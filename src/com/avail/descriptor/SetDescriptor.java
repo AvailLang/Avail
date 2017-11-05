@@ -196,12 +196,15 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsSet (final AvailObject object, final A_Set aSet)
 	{
-		// First eliminate the trivial case of different sizes.
-		if (object.setSize() != aSet.setSize())
+		// Check if either the sets or the bins are the same objects.
+		if (object.sameAddressAs(aSet)
+			|| rootBin(object).sameAddressAs(rootBin((AvailObject) aSet)))
 		{
-			return false;
+			return true;
 		}
-		if (object.hash() != aSet.hash())
+		// Eliminate the trivial case of different sizes or hashes.
+		if (object.setSize() != aSet.setSize()
+			|| object.hash() != aSet.hash())
 		{
 			return false;
 		}
@@ -224,6 +227,12 @@ extends Descriptor
 		{
 			object.makeImmutable();
 			aSet.becomeIndirectionTo(object);
+		}
+		else
+		{
+			// They're both shared.  Substitute one of the bins for the other to
+			// speed up subsequent equality checks.
+			object.writeBackSlot(ROOT_BIN, 1, rootBin((AvailObject) aSet));
 		}
 		return true;
 	}

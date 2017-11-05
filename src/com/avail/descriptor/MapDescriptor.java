@@ -123,7 +123,7 @@ extends Descriptor
 	 */
 	private static void setRootBin (
 		final A_Map map,
-		final A_BasicObject bin)
+		final A_MapBin bin)
 	{
 		assert !bin.equalsNil();  // Obsolete representation
 		((AvailObject) map).setSlot(ROOT_BIN, bin);
@@ -247,8 +247,10 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsMap (final AvailObject object, final A_Map aMap)
 	{
-		if (object.sameAddressAs(aMap))
+		if (object.sameAddressAs(aMap)
+			|| rootBin(object).sameAddressAs(rootBin(aMap)))
 		{
+			// Same object, or maps have the same root bin.
 			return true;
 		}
 		if (object.mapSize() != aMap.mapSize())
@@ -283,6 +285,12 @@ extends Descriptor
 			object.makeImmutable();
 			aMap.becomeIndirectionTo(object);
 		}
+		else
+		{
+			// Both are shared.  Substitute one of the bins for the other to
+			// speed up subsequent equality checks.
+			object.writeBackSlot(ROOT_BIN, 1, (AvailObject) rootBin(aMap));
+		}
 		return true;
 	}
 
@@ -310,17 +318,37 @@ extends Descriptor
 		final boolean keyTypeIsEnumeration = keyType.isEnumeration();
 		final boolean valueTypeIsEnumeration = valueType.isEnumeration();
 		@Nullable A_Type keyUnionKind = null;
-		final boolean keysMatch =
-			keyType.equals(ANY.o())
-			|| (!keyTypeIsEnumeration
-				&& (keyUnionKind = rootBin.mapBinKeyUnionKind())
-					.isSubtypeOf(keyType));
+		final boolean keysMatch;
+		if (keyType.equals(ANY.o()))
+		{
+			keysMatch = true;
+		}
+		else if (keyTypeIsEnumeration)
+		{
+			keysMatch = false;
+		}
+		else
+		{
+			keyUnionKind = rootBin.mapBinKeyUnionKind();
+			keysMatch = keyUnionKind.isSubtypeOf(keyType);
+		}
+
 		@Nullable A_Type valueUnionKind = null;
-		final boolean valuesMatch =
-			valueType.equals(ANY.o())
-			|| (!valueTypeIsEnumeration
-				&& (valueUnionKind = rootBin.mapBinValueUnionKind())
-					.isSubtypeOf(valueType));
+		final boolean valuesMatch;
+		if (valueType.equals(ANY.o()))
+		{
+			valuesMatch = true;
+		}
+		else if (valueTypeIsEnumeration)
+		{
+			valuesMatch = false;
+		}
+		else
+		{
+			valueUnionKind = rootBin.mapBinValueUnionKind();
+			valuesMatch = valueUnionKind.isSubtypeOf(valueType);
+		}
+
 		if (keysMatch)
 		{
 			if (valuesMatch)
@@ -835,7 +863,7 @@ extends Descriptor
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
 	 */
-	public static A_Map createFromBin (final A_BasicObject rootBin)
+	public static A_Map createFromBin (final A_MapBin rootBin)
 	{
 		final A_Map newMap = mutable.create();
 		setRootBin(newMap, rootBin);

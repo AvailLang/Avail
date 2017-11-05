@@ -106,7 +106,6 @@ extends Primitive
 							runtime,
 							fiber,
 							fromCodePoint(buffer.get(0)),
-							primitiveFunction,
 							skipReturnCheck);
 					}
 

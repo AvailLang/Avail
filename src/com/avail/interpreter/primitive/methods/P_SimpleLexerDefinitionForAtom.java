@@ -149,7 +149,6 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						nil,
-						primitiveFunction,
 						skipReturnCheck);
 				}));
 		return FIBER_SUSPENDED;

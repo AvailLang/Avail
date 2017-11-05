@@ -1026,7 +1026,7 @@ extends Descriptor
 	 * NilDescriptor nil}.
 	 */
 	private static final A_BasicObject defaultFailureContinuation =
-		identityPojo((Continuation1<Throwable>) ignored ->
+		identityPojo((Continuation1NotNull<Throwable>) throwable ->
 		{
 			// Do nothing; errors in fibers should be handled by Avail
 			// code.

@@ -85,7 +85,6 @@ extends Primitive
 				currentRuntime(),
 				fiber,
 				nil,
-				primitiveFunction,
 				true));
 		return suspended;
 	}

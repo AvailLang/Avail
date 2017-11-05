@@ -32,7 +32,6 @@
 
 package com.avail.optimizer;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Function;
@@ -49,22 +48,15 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
-import static java.lang.String.format;
 
 /**
  * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor
@@ -178,17 +170,6 @@ public final class L2Translator
 	}
 
 	/**
-	 * Answer the {@linkplain AvailRuntime runtime} associated with the current
-	 * {@linkplain Interpreter interpreter}.
-	 *
-	 * @return The runtime.
-	 */
-	@InnerAccess AvailRuntime runtime ()
-	{
-		return interpreter().runtime();
-	}
-
-	/**
 	 * All {@link A_ChunkDependable contingent values} for which changes should
 	 * cause the current {@linkplain L2Chunk level two chunk} to be
 	 * invalidated.
@@ -216,103 +197,6 @@ public final class L2Translator
 			throw new RuntimeException("L2Translator code was null");
 		}
 		return c;
-	}
-
-	/**
-	 * Compute the program state at each instruction. This information includes,
-	 * for each register, its constant value (if any) and type information,
-	 * other registers that currently hold equivalent values, and the set of
-	 * instructions that may have directly produced the current register value.
-	 */
-	@Deprecated
-	private void computeDataFlow ()
-	{
-		//TODO MvG - Rework this as a code regeneration pass, where each
-		// instruction is given the chance to regenerate itself in the new
-		// control flow graph, tracking the mapping from the previous version.
-//		instructionRegisterSets.clear();
-//		instructionRegisterSets.add(new RegisterSet(fixedRegisterMap));
-//		for (int i = 1, end = instructions.size(); i < end; i++)
-//		{
-//			instructionRegisterSets.add(null);
-//		}
-//		final int instructionsCount = instructions.size();
-//		final BitSet instructionsToVisit = new BitSet(instructionsCount);
-//		instructionsToVisit.set(0);
-//		for (
-//			int instructionIndex = 0;
-//			instructionIndex < instructionsCount;
-//			instructionIndex++)
-//		{
-//			if (!instructionsToVisit.get(instructionIndex))
-//			{
-//				continue;
-//			}
-//			final L2Instruction instruction =
-//				instructions.get(instructionIndex);
-//			DebugFlag.DATA_FLOW.log(
-//				Level.FINEST,
-//				"Trace #%d (%s):%n",
-//				instructionIndex,
-//				instruction);
-//			final RegisterSet regs =
-//				instructionRegisterSets.get(instructionIndex);
-//			final List<L2PcOperand> successors =
-//				new ArrayList<>(instruction.targetEdges());
-//			if (instruction.operation.reachesNextInstruction())
-//			{
-//				successors.add(0, instructions.get(instructionIndex + 1));
-//			}
-//			final int successorsSize = successors.size();
-//			// The list allTargets now holds every target instruction, starting
-//			// with the instruction following this one if this one
-//			// reachesNextInstruction().
-//			final List<RegisterSet> targetRegisterSets =
-//				new ArrayList<>(successorsSize);
-//			for (int i = 0; i < successorsSize; i++)
-//			{
-//				targetRegisterSets.add(new RegisterSet(regs));
-//			}
-//			instruction.propagateTypes(targetRegisterSets, L2Translator.this);
-//
-//			for (int i = 0; i < successorsSize; i++)
-//			{
-//				final L2Instruction successor = successors.get(i);
-//				final RegisterSet targetRegisterSet = targetRegisterSets.get(i);
-//				final int targetInstructionNumber = successor.offset();
-//				DebugFlag.DATA_FLOW.log(
-//					Level.FINEST,
-//					log ->
-//					{
-//						final StringBuilder builder = new StringBuilder(100);
-//						targetRegisterSet.debugOn(builder);
-//						log.value(
-//							format(
-//								"\t->#%d:%s%n",
-//								targetInstructionNumber,
-//								increaseIndentation(builder.toString(), 1)),
-//							null);
-//					});
-//				final RegisterSet existing =
-//					instructionRegisterSets.get(targetInstructionNumber);
-//				final boolean followIt;
-//				if (existing == null)
-//				{
-//					instructionRegisterSets.set(
-//						targetInstructionNumber, targetRegisterSet);
-//					followIt = true;
-//				}
-//				else
-//				{
-//					followIt = existing.mergeFrom(targetRegisterSet);
-//				}
-//				if (followIt)
-//				{
-//					assert successor.offset() > instructionIndex;
-//					instructionsToVisit.set(successor.offset());
-//				}
-//			}
-//		}
 	}
 
 	/**
@@ -387,7 +271,6 @@ public final class L2Translator
 		this.codeOrNull = code;
 		this.optimizationLevel = optimizationLevel;
 		this.interpreter = interpreter;
-		final A_RawFunction theCode = codeOrFail();
 	}
 
 	/**

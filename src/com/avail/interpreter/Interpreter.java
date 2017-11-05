@@ -937,10 +937,13 @@ public final class Interpreter
 	 * A_Continuation} will be available in {@link #reifiedContinuation}, and
 	 * will be installed into the current fiber.
 	 *
+	 * @param suspendingFunction
+	 *        The primitive {@link A_Function} parking the fiber.
 	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
 	 */
-	public Result primitivePark ()
+	public Result primitivePark (final A_Function suspendingFunction)
 	{
+		fiber().suspendingFunction(suspendingFunction);
 		return primitiveSuspend(PARKED);
 	}
 
@@ -1004,7 +1007,6 @@ public final class Interpreter
 							currentRuntime(),
 							joiner,
 							nil,
-							joiner.suspendingFunction(),
 							true);
 					}
 				});
@@ -1988,7 +1990,6 @@ public final class Interpreter
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
 		final A_BasicObject result,
-		final A_Function returner,
 		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
@@ -2004,7 +2005,7 @@ public final class Interpreter
 				final A_Continuation continuation = aFiber.continuation();
 				interpreter.reifiedContinuation = continuation;
 				interpreter.latestResult(result);
-				interpreter.returningFunction = returner;
+				interpreter.returningFunction = aFiber.suspendingFunction();
 				interpreter.exitNow = false;
 				if (continuation.equalsNil())
 				{

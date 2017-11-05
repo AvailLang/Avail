@@ -117,7 +117,6 @@ extends Primitive
 							runtime,
 							fiber,
 							nil,
-							primitiveFunction,
 							skipReturnCheck);
 					}
 

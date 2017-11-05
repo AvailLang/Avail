@@ -41,13 +41,10 @@ import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
@@ -124,6 +121,10 @@ public final class P_EmergencyExit extends Primitive
 				killer.fillInStackTrace();
 				fiber.executionState(ExecutionState.ABORTED);
 				fiber.failureContinuation().value(killer);
+				// If we're still here, the handler didn't do anything with the
+				// exception.  Output it and throw it as a runtime exception.
+				System.err.print(builder);
+				throw new RuntimeException(killer);
 			});
 		return Result.FIBER_SUSPENDED;
 	}

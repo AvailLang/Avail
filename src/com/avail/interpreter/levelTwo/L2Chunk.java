@@ -60,7 +60,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.String.format;
 
 /**
@@ -238,19 +237,6 @@ public final class L2Chunk
 		{
 			builder.append(" (INVALID)");
 		}
-		if (false)
-		{
-			final L2InstructionDescriber describer =
-				new L2InstructionDescriber();
-			for (final L2Instruction instruction : instructions)
-			{
-				builder.append(format("\t#%-3d ", instruction.offset()));
-				final StringBuilder tempStream = new StringBuilder(100);
-				describer.describe(instruction, this, tempStream);
-				builder.append(increaseIndentation(tempStream.toString(), 2));
-				builder.append("\n");
-			}
-		}
 		return builder.toString();
 	}
 
@@ -342,11 +328,7 @@ public final class L2Chunk
 	 */
 	public static int countdownForNewCode ()
 	{
-		// TODO: [MvG] Set this back when we're ready to test Level Two
-		// optimization on the semi-stackless (reifiable) execution model.
-		return 1;
-//		return 1_000_000_000;
-//		return 10;
+		return 10;
 	}
 
 	/**

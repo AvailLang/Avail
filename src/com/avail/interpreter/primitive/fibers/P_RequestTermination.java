@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
@@ -57,7 +56,6 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Request termination of the given
@@ -83,8 +81,6 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		final A_Function primitiveFunction =
-			stripNull(interpreter.function);
 		fiber.lock(() ->
 		{
 			// Set the interrupt request flag.
@@ -108,7 +104,6 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						nil,
-						primitiveFunction,
 						true);
 					break;
 				case PARKED:
@@ -120,7 +115,6 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						nil,
-						primitiveFunction,
 						true);
 					break;
 				case UNSTARTED:

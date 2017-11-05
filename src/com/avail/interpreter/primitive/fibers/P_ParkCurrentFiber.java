@@ -51,6 +51,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Attempt to acquire the {@linkplain
@@ -90,7 +91,7 @@ extends Primitive
 			// If permit is not available, then park this fiber.
 			result.value = fiber.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, true)
-				? interpreter.primitivePark()
+				? interpreter.primitivePark(stripNull(interpreter.function))
 				: interpreter.primitiveSuccess(nil);
 		});
 		return result.value();

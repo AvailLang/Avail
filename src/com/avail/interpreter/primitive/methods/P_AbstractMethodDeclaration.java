@@ -120,7 +120,6 @@ extends Primitive
 							currentRuntime(),
 							fiber,
 							nil,
-							primitiveFunction,
 							skipReturnCheck);
 					}
 					catch (

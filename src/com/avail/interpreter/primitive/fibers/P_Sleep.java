@@ -124,7 +124,6 @@ extends Primitive
 								runtime,
 								fiber,
 								nil,
-								primitiveFunction,
 								true);
 						}
 					});
@@ -145,7 +144,6 @@ extends Primitive
 								runtime,
 								fiber,
 								nil,
-								primitiveFunction,
 								true);
 							return;
 						}
@@ -173,7 +171,6 @@ extends Primitive
 								runtime,
 								fiber,
 								nil,
-								primitiveFunction,
 								true);
 							return;
 						}

@@ -57,6 +57,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> If the {@linkplain FiberDescriptor fiber} has
@@ -111,7 +112,8 @@ extends Primitive
 				if (current.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, true))
 				{
-					result.value = interpreter.primitivePark();
+					result.value = interpreter.primitivePark(
+						stripNull(interpreter.function));
 				}
 				else
 				{

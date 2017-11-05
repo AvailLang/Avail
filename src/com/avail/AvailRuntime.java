@@ -81,6 +81,7 @@ import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -308,7 +309,7 @@ public final class AvailRuntime
 	 * The maximum number of {@link Interpreter}s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = 1; //TODO UNHACK:  availableProcessors;
+	public static final int maxInterpreters = availableProcessors;
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
@@ -441,7 +442,7 @@ public final class AvailRuntime
 	 *        A path.
 	 * @param options
 	 *        The {@linkplain OpenOption open options}.
-	 * @param attrs
+	 * @param attributes
 	 *        The {@linkplain FileAttribute file attributes} (for newly created
 	 *        files only).
 	 * @return An asynchronous file channel.
@@ -458,7 +459,7 @@ public final class AvailRuntime
 	public AsynchronousFileChannel openFile (
 			final Path path,
 			final Set<? extends OpenOption> options,
-			final FileAttribute<?>... attrs)
+			final FileAttribute<?>... attributes)
 		throws
 			IllegalArgumentException,
 			UnsupportedOperationException,
@@ -466,7 +467,7 @@ public final class AvailRuntime
 			IOException
 	{
 		return AsynchronousFileChannel.open(
-			path, options, fileExecutor, attrs);
+			path, options, fileExecutor, attributes);
 	}
 
 	/** The default {@linkplain FileSystem file system}. */
@@ -491,7 +492,7 @@ public final class AvailRuntime
 	 * The {@linkplain LinkOption link options} for forbidding traversal of
 	 * symbolic links.
 	 */
-	private static final LinkOption[] dontFollowSymlinks =
+	private static final LinkOption[] doNotFollowSymbolicLinks =
 		{LinkOption.NOFOLLOW_LINKS};
 
 	/**
@@ -505,7 +506,7 @@ public final class AvailRuntime
 	 */
 	public static LinkOption[] followSymlinks (final boolean shouldFollow)
 	{
-		return shouldFollow ? followSymlinks : dontFollowSymlinks;
+		return shouldFollow ? followSymlinks : doNotFollowSymbolicLinks;
 	}
 
 	/**
@@ -554,7 +555,8 @@ public final class AvailRuntime
 		final long startPosition;
 
 		/**
-		 * Construct a new {@link BufferKey}.
+		 * Construct a new buffer key, used to identify a buffer in the global
+		 * cache.
 		 *
 		 * @param fileHandle
 		 *        The {@link FileHandle} that represents the provenance of the
@@ -656,7 +658,7 @@ public final class AvailRuntime
 			new WeakHashMap<>();
 
 		/**
-		 * Construct a new {@link FileHandle}.
+		 * Construct a new file handle.
 		 *
 		 * @param filename The {@link A_String name} of the file.
 		 * @param alignment The alignment by which to access the file.
@@ -772,7 +774,7 @@ public final class AvailRuntime
 	 * however, schedule fiber-related tasks.
 	 */
 	public final Timer timer = new Timer(
-		String.format("timer for %s", this),
+		String.format("timer for Avail runtime"),
 		true);
 
 	/**
@@ -781,26 +783,16 @@ public final class AvailRuntime
 	public class Clock
 	{
 		/**
-		 * The current value of the monotonic counter.  It's a volatile to
-		 * ensure the polling code doesn't cache a stale copy, and to ensure the
-		 * incrementing code doesn't hoard its updates locally.
+		 * The current value of the monotonic counter.
 		 */
-		private volatile long counter = 0;
+		private final AtomicLong counter = new AtomicLong(0);
 
 		/**
-		 * Advance the clock.  Note that incrementing a volatile is not
-		 * guaranteed to be atomic, but
-		 * <ol>
-		 * <li>We only run one timer task at a time that might increment it.
-		 * </li>
-		 * <li>It wouldn't really matter if we skipped a beat or leapt forward
-		 * every now and then, since we only use this clock to trigger voluntary
-		 * context switches to maintain fair scheduling.</li>
-		 * </ol>
+		 * Advance the clock.
 		 */
 		public void increment ()
 		{
-			counter++;
+			counter.incrementAndGet();
 		}
 
 		/**
@@ -810,7 +802,7 @@ public final class AvailRuntime
 		 */
 		public long get ()
 		{
-			return counter;
+			return counter.get();
 		}
 	}
 

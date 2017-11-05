@@ -232,7 +232,6 @@ extends Primitive
 						bundle,
 						argsListNode,
 						intersection.value),
-					primitiveFunction,
 					skipReturnCheck);
 			}
 			else

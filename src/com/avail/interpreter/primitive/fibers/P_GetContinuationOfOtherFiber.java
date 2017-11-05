@@ -97,7 +97,6 @@ extends Primitive
 							currentRuntime(),
 							thisFiber,
 							theContinuation,
-							primitiveFunction,
 							skipReturnCheck);
 					}
 					else

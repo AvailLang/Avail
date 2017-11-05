@@ -123,7 +123,6 @@ extends Primitive
 					runtime,
 					fiber,
 					stackDump,
-					primitiveFunction,
 					skipReturnCheck);
 			});
 		return Result.FIBER_SUSPENDED;
