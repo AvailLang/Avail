@@ -92,6 +92,7 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
 import static com.avail.optimizer.L2Translator.*;
@@ -721,7 +722,8 @@ public final class L1Translator
 		final L2ReadPointerOperand function,
 		final L2ReadPointerOperand caller,
 		final Continuation1<L2ReadPointerOperand> actionForContinuation,
-		final L2BasicBlock resumeBlock)
+		final L2BasicBlock resumeBlock,
+		final ChunkEntryPoint typeOfEntryPoint)
 	{
 		final L2WritePointerOperand newContinuationRegister =
 			newObjectRegisterWriter(mostGeneralContinuationType(), null);
@@ -767,7 +769,7 @@ public final class L1Translator
 		startBlock(onReturnIntoReified);
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(TO_RETURN_INTO.offsetInDefaultChunk));
+			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk));
 		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
@@ -1379,7 +1381,8 @@ public final class L1Translator
 					L2_RETURN.instance,
 					newContinuationReg,
 					constantIntRegister(1)),
-			onReturn);
+			onReturn,
+			TO_RETURN_INTO);
 
 		// This is reached either (1) after a normal return from the invoke, or
 		// (2) after reification, a return into the reified continuation, and
@@ -1866,7 +1869,8 @@ public final class L1Translator
 				addInstruction(
 					L2_PROCESS_INTERRUPT.instance,
 					continuationReg),
-			merge);
+			merge,
+			TO_RESUME);
 
 		// And now... either we're back or we never left.
 		startBlock(merge);
