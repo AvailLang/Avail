@@ -1,5 +1,5 @@
 /*
- * Avail Tests.avail
+ * Scratch.avail
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,13 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Scratch
+Module "Scratch"
 Versions
-	"1.0.0 DEV 2014-04-28
-Uses "Avail
+	"1.0.0 DEV 2014-04-28"
+Uses "Avail"
 Names
-"Base64 encoder",
-"“_”(Base64)
 Body
 
 Method "Cheese_" is
@@ -48,48 +46,5 @@ Method "Cheese_" is
 
 [
 	Breakpoint;
-	Cheese "suckah";
+	Cheese "turkey";
 ]();
-
-/**
- * foo
- * @module
- */
-
- /**
-  * A {@type "converter"} that translates a {@type "tuple"} of {@type "byte"}s
-  * into a tuple of {@type "Base64 character"}s.
-  *
-  * @type "Base64 encoder
-  * @supertype "converter
-  * @field "binary residue" "byte*
-  *        Bytes that have not yet undergone conversion.
-  * @field "binary residue cleaner" "“_”(Base64)
-  *        A cleaner
-  * @category "Data Abstractions" "Converters" "Codecs" "Base64
-  */
-
-  /**
-   * Convert {@param "bytes"} to a Base64 {@type "string"}.
-   *
-   * @method "“_”(Base64)
-   * @param "bytes" "byte*
-   * @returns "Base64 string
-   * @category "Data Abstractions" "Converters" "Codecs" "Base64
-   */
-
-   /**
-    * You know, some stuff!
-    * @category "Data Abstractions
-    */
-
-    /**
-     * Other stuff!
-	* @category "Converters
-	*/
-
-	/**
-	* even more things!!!
-	* @category "Base64
-	*/
-

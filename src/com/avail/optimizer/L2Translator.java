@@ -55,6 +55,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RESUME;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 
@@ -302,7 +308,6 @@ public final class L2Translator
 			reenterFromCallBlock,
 			reenterFromInterruptBlock);
 
-//		translator.controlFlowGraph.optimize();
 		initialBlock = translator.initialBlock;
 		afterOptionalInitialPrimitiveBlock =
 			translator.afterOptionalInitialPrimitiveBlock;
@@ -317,12 +322,12 @@ public final class L2Translator
 
 		assert translator.initialBlock.offset() == 0;
 		assert reenterFromRestartBlock.offset()
-			== L2Chunk.offsetToRestartUnoptimizedChunk();
+			== TO_RESTART.offsetInDefaultChunk;
 		assert loopBlock.offset() == 3;
 		assert reenterFromCallBlock.offset()
-			== L2Chunk.offsetToReturnIntoUnoptimizedChunk();
+			== TO_RETURN_INTO.offsetInDefaultChunk;
 		assert reenterFromInterruptBlock.offset()
-			== L2Chunk.offsetToResumeInterruptedUnoptimizedChunk();
+			== TO_RESUME.offsetInDefaultChunk;
 	}
 
 	/**

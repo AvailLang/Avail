@@ -378,9 +378,9 @@ public final class AvailLoader
 		}
 
 		/**
-		 * Collect the lexers should run when we encounter a character with the
-		 * given (int) code point, then pass this set of lexers to the supplied
-		 * {@link Continuation1}.
+		 * Collect the lexers that should run when we encounter a character with
+		 * the given (int) code point, then pass this set of lexers to the
+		 * supplied {@link Continuation1}.
 		 *
 		 * <p>We pass it forward rather than return it, since sometimes this
 		 * requires lexer filter functions to run, which we must not do
@@ -394,10 +394,9 @@ public final class AvailLoader
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
-		 *        What to invoke with the {@link A_Tuple tuple} of {@link
-		 *        A_Lexer lexers} and a (normally empty) map from lexer to
-		 *        throwable, indicating lexer filter invocations that raised
-		 *        exceptions.
+		 *        What to invoke with the {@link A_Set set} of {@link A_Lexer
+		 *        lexers} and a (normally empty) map from lexer to throwable,
+		 *        indicating lexer filter invocations that raised exceptions.
 		 */
 		private void selectLexersPassingFilterThen (
 			final LexingState lexingState,
@@ -408,15 +407,13 @@ public final class AvailLoader
 				new Mutable<>(allVisibleLexers.size());
 			if (countdown.value == 0)
 			{
-				continuation.value(
-					emptySet(),
-					emptyMap());
+				continuation.value(emptySet(), emptyMap());
 				return;
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
 			// replace it if/when the first error happens.
 			final Mutable<Map<A_Lexer, Throwable>> failureMap =
-				new Mutable<>(Collections.<A_Lexer, Throwable>emptyMap());
+				new Mutable<>(emptyMap());
 			final List<A_Character> argsList = Collections.singletonList(
 				fromCodePoint(codePoint));
 			final Object joinLock = new Object();
@@ -424,6 +421,7 @@ public final class AvailLoader
 			final CompilationContext compilationContext =
 				lexingState.compilationContext;
 			final AvailLoader loader = compilationContext.loader();
+			compilationContext.startWorkUnits(allVisibleLexers.size());
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = newLoaderFiber(
@@ -481,10 +479,10 @@ public final class AvailLoader
 				};
 				fiber.textInterface(loader.textInterface);
 
-				if (compilationContext.getNoMoreWorkUnits() != null)
+				//TODO MvG - MAke this an assertion?  (fix the {} after it}
+				assert (compilationContext.getNoMoreWorkUnits() != null);
 				{
 					// Trace it as a work unit.
-					compilationContext.startWorkUnit();
 					final AtomicBoolean oneWay = new AtomicBoolean();
 					fiberSuccess = compilationContext.workUnitCompletion(
 						lexingState, oneWay, fiberSuccess);

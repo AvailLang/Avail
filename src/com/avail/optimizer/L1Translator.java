@@ -43,6 +43,7 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -91,6 +92,8 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -762,7 +765,9 @@ public final class L1Translator
 
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
-		addInstruction(L2_ENTER_L2_CHUNK.instance);
+		addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2ImmediateOperand(TO_RETURN_INTO.offsetInDefaultChunk));
 		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
@@ -1565,8 +1570,13 @@ public final class L1Translator
 						interpreter.function = functionIfKnown;
 						final String savedDebugModeString =
 							interpreter.debugModeString;
-						interpreter.debugModeString +=
-							"FOLD " + primitive.getClass().getSimpleName() + ": ";
+						if (Interpreter.debugL2)
+						{
+							interpreter.debugModeString +=
+								"FOLD "
+									+ primitive.getClass().getSimpleName()
+									+ ": ";
+						}
 						final Result success;
 						try
 						{
@@ -1811,67 +1821,6 @@ public final class L1Translator
 	}
 
 	/**
-	 * Test the value in the indicated slot against the given type, then branch
-	 * to one of two target blocks.  The type of the slot in each of those
-	 * blocks should be statically strengthened by how the result of the test
-	 * led to that location.
-	 *
-	 * @param slotIndexOfValue
-	 *        The index of the slot to test.
-	 * @param constantType
-	 *        The constant {@link A_Type} to test against.
-	 * @param isKind
-	 *        Where to jump (with the slot restriction intersected with the
-	 *        constant type) if the test passes.
-	 * @param isNotKind
-	 *        Where to jump (with the slot restriction having the tested
-	 *        constant type subtracted from it) if the test fails.
-	 */
-	public void branchAgainstConstantType (
-		final int slotIndexOfValue,
-		final A_Type constantType,
-		final L2BasicBlock isKind,
-		final L2BasicBlock isNotKind)
-	{
-		final AvailObject strongConstantType = (AvailObject) constantType;
-		final L2BasicBlock isKindHop = createBasicBlock(
-			"Hop for is kind (" + strongConstantType.typeTag() + ")");
-		final L2BasicBlock isNotKindHop = createBasicBlock(
-			"Hop for is not kind (" + strongConstantType.typeTag() + ")");
-		final L2ReadPointerOperand originalSlot = readSlot(slotIndexOfValue);
-		addInstruction(
-			L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-			readSlot(slotIndexOfValue),
-			new L2ConstantOperand(constantType),
-			new L2PcOperand(isKindHop, slotRegisters),
-			new L2PcOperand(isNotKindHop, slotRegisters));
-
-		startBlock(isKindHop);
-		final TypeRestriction passedTestRestriction =
-			originalSlot.restriction().intersection(
-				new TypeRestriction(constantType, null));
-		final L2WritePointerOperand passedTestSlot = writeSlot(
-			slotIndexOfValue,
-			passedTestRestriction.type,
-			passedTestRestriction.constantOrNull);
-		addInstruction(L2_MOVE.instance, originalSlot, passedTestSlot);
-		addInstruction(
-			L2_JUMP.instance, new L2PcOperand(isKind, slotRegisters));
-
-		startBlock(isNotKindHop);
-		final TypeRestriction failedTestRestriction =
-			originalSlot.restriction().minus(
-				new TypeRestriction(constantType, null));
-		final L2WritePointerOperand failedTestSlot = writeSlot(
-			slotIndexOfValue,
-			failedTestRestriction.type,
-			failedTestRestriction.constantOrNull);
-		addInstruction(L2_MOVE.instance, originalSlot, failedTestSlot);
-		addInstruction(
-			L2_JUMP.instance, new L2PcOperand(isNotKind, slotRegisters));
-	}
-
-	/**
 	 * Emit code to check for an interrupt and service it if necessary,
 	 * including generation of the subsequently continued on-ramp.  The
 	 * generated code should only be reachable at positions that are effectively
@@ -2090,7 +2039,9 @@ public final class L1Translator
 				afterOptionalInitialPrimitiveBlock, slotRegisters()));
 
 		startBlock(afterOptionalInitialPrimitiveBlock);
-		addInstruction(L2_ENTER_L2_CHUNK.instance);
+		addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2ImmediateOperand(-9));  // Default chunk can't be invalidated.
 
 		// Do any reoptimization before capturing arguments.
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)

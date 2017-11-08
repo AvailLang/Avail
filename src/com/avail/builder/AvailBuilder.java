@@ -879,7 +879,7 @@ public final class AvailBuilder
 			final byte [] digest = archive.digestForFile(resolvedName);
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(resolvedName, digest);
-			final ModuleVersion existingVersion =
+			final @Nullable ModuleVersion existingVersion =
 				archive.getVersion(versionKey);
 			if (existingVersion != null)
 			{
@@ -2836,8 +2836,7 @@ public final class AvailBuilder
 	 *
 	 * @param target
 	 *        The {@linkplain ModuleName canonical name} of the module that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
+	 *        builder must (recursively) load into the {@link AvailRuntime}.
 	 * @param localTracker
 	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
 	 *        <ol>
@@ -2893,8 +2892,8 @@ public final class AvailBuilder
 	 * target} and its dependencies.
 	 *
 	 * @param target
-	 *        The {@linkplain ModuleName canonical name} of the module for which
-	 *        the {@linkplain AvailBuilder builder} must (recursively) generate
+	 *        The {@code ModuleName canonical name} of the module for which
+	 *        the {@code AvailBuilder builder} must (recursively) generate
 	 *        documentation.
 	 * @param documentationPath
 	 *        The {@linkplain Path path} to the output {@linkplain
@@ -3005,7 +3004,7 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Construct a new {@link CompiledCommand}.
+		 * Construct a new {@code CompiledCommand}.
 		 *
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName module name} of the

@@ -265,40 +265,7 @@ public class ParserState
 	}
 
 	/**
-	 * Queue an action to be performed later.
-	 *
-	 * @param action The {@link Continuation0} to perform later.
-	 */
-	public void workUnitDo (final Continuation0 action)
-	{
-		lexingState.workUnitDo(action);
-	}
-
-	/**
-	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
-	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0)}.
-	 *
-	 * @param <ArgType>
-	 *        The type of argument to the given continuation.
-	 * @param continuation
-	 *        What to execute with the passed argument.
-	 * @param argument
-	 *        What to pass as an argument to the provided {@linkplain
-	 *        Continuation1 one-argument continuation}.
-	 */
-	public <ArgType> void workUnitDo (
-		final Continuation1<ArgType> continuation,
-		final ArgType argument)
-	{
-		lexingState.workUnitDo(continuation, argument);
-	}
-
-	/**
-	 * Wrap the {@linkplain Continuation1NotNull continuation of one non-null
-	 * argument} inside a {@linkplain Continuation0 continuation of zero
-	 * arguments} and record that as per {@linkplain
-	 * #workUnitDo(Continuation0)}.
+	 * Queue an action to be performed later, passing an argument.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.

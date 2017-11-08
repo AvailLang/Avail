@@ -68,7 +68,8 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelOne.L1Operation.L1_doExtension;
-import static com.avail.interpreter.levelTwo.L2Chunk.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -453,7 +454,7 @@ public final class L1InstructionStepper
 							interpreter.function = savedFunction;
 							interpreter.chunk = unoptimizedChunk();
 							interpreter.offset =
-								offsetToReenterAfterReification();
+								AFTER_REIFICATION.offsetInDefaultChunk;
 							interpreter.pointers = savedPointers;
 							interpreter.integers = savedInts;
 							interpreter.skipReturnCheck = savedSkip;
@@ -470,7 +471,7 @@ public final class L1InstructionStepper
 									interpreter.reifiedContinuation,
 									savedSkip,
 									unoptimizedChunk(),
-									offsetToRestartUnoptimizedChunk(),
+									TO_RESTART.offsetInDefaultChunk,
 									args);
 
 							// Freeze all fields of the new object, including
@@ -703,7 +704,7 @@ public final class L1InstructionStepper
 							savedStackp,
 							false,
 							unoptimizedChunk(),
-							offsetToResumeInterruptedUnoptimizedChunk());
+							TO_RESUME.offsetInDefaultChunk);
 					for (
 						int i = 1, limit = code.numArgsAndLocalsAndStack();
 						i <= limit;
@@ -800,7 +801,7 @@ public final class L1InstructionStepper
 						savedStackp,
 						false,
 						unoptimizedChunk(),
-						offsetToReturnIntoUnoptimizedChunk());
+						TO_RETURN_INTO.offsetInDefaultChunk);
 				for (
 					int i = savedFunction.code().numArgsAndLocalsAndStack();
 					i >= 1;

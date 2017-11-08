@@ -541,9 +541,8 @@ public final class AvailCompiler
 		compilationContext.setNoMoreWorkUnits(() ->
 		{
 			// The counters must be read in this order for correctness.
-			final long completed =
-				compilationContext.getWorkUnitsCompleted().get();
-			assert completed == compilationContext.getWorkUnitsQueued().get();
+			final long completed = compilationContext.getWorkUnitsCompleted();
+			assert completed == compilationContext.getWorkUnitsQueued();
 			if (compilationContext.diagnostics.pollForAbort.value())
 			{
 				// We may have been asked to abort subtasks by a failure in
@@ -1927,18 +1926,19 @@ public final class AvailCompiler
 				// due to there being a first argument already pre-parsed.
 				if (firstArgOrNull == null || op.canRunIfHasFirstArgument)
 				{
-					final A_Tuple value = entry.value();
-					start.workUnitDo(() -> runParsingInstructionThen(
-						start,
-						keyInt,
-						firstArgOrNull,
-						argsSoFar,
-						marksSoFar,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						value,
-						continuation));
+					start.workUnitDo(
+						value -> runParsingInstructionThen(
+							start,
+							keyInt,
+							firstArgOrNull,
+							argsSoFar,
+							marksSoFar,
+							initialTokenPosition,
+							consumedAnything,
+							consumedTokens,
+							value,
+							continuation),
+						entry.value());
 				}
 			}
 		}
@@ -2469,7 +2469,7 @@ public final class AvailCompiler
 		{
 			return;
 		}
-		compilationContext.startWorkUnit();
+		compilationContext.startWorkUnits(1);
 		final A_Fiber fiber = newLoaderFiber(
 			prefixFunction.kind().returnType(),
 			compilationContext.loader(),
@@ -2586,7 +2586,7 @@ public final class AvailCompiler
 		final A_Set restrictions = method.semanticRestrictions();
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
-		compilationContext.startWorkUnit();
+		compilationContext.startWorkUnits(1);
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 		final Continuation1NotNull<A_Type> onSuccess =
 			compilationContext.workUnitCompletion(
@@ -3221,7 +3221,6 @@ public final class AvailCompiler
 					return;
 				}
 				completedSendNodeForMacro(
-					stateBeforeCall,
 					stateAfterCall,
 					argumentsListNode,
 					bundle,
@@ -3518,8 +3517,6 @@ public final class AvailCompiler
 	 * A macro invocation has just been parsed.  Run its body now to produce a
 	 * substitute phrase.
 	 *
-	 * @param stateBeforeCall
-	 *        The initial parsing state, prior to parsing the entire message.
 	 * @param stateAfterCall
 	 *        The parsing state after the message.
 	 * @param argumentsListNode
@@ -3546,7 +3543,6 @@ public final class AvailCompiler
 	 *        What to do with the resulting send node solution.
 	 */
 	@InnerAccess void completedSendNodeForMacro (
-		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
@@ -3571,7 +3567,7 @@ public final class AvailCompiler
 				ALL_TOKENS_KEY.atom, constituentTokens, false)
 			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
 			.makeShared();
-		compilationContext.startWorkUnit();
+		compilationContext.startWorkUnits(1);
 		final MutableOrNull<A_Map> clientDataAfterRunning =
 			new MutableOrNull<>();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
@@ -4579,8 +4575,8 @@ public final class AvailCompiler
 				solution ->
 				{
 					// The counters must be read in this order for correctness.
-					assert compilationContext.getWorkUnitsCompleted().get()
-						== compilationContext.getWorkUnitsQueued().get();
+					assert compilationContext.getWorkUnitsCompleted()
+						== compilationContext.getWorkUnitsQueued();
 
 					// In case the top level statement is compound, process the
 					// base statements individually.
@@ -4762,9 +4758,8 @@ public final class AvailCompiler
 			succeed,
 		final Continuation0 afterFail)
 	{
-		// The counters must be read in this order for correctness.
-		assert compilationContext.getWorkUnitsCompleted().get() == 0
-			&& compilationContext.getWorkUnitsQueued().get() == 0;
+		assert compilationContext.getWorkUnitsCompleted() == 0
+			&& compilationContext.getWorkUnitsQueued() == 0;
 		// Start a module transaction, just to complete any necessary
 		// initialization. We are going to rollback this transaction no matter
 		// what happens.
@@ -4785,8 +4780,8 @@ public final class AvailCompiler
 			() ->
 			{
 				// The counters must be read in this order for correctness.
-				assert compilationContext.getWorkUnitsCompleted().get()
-					== compilationContext.getWorkUnitsQueued().get();
+				assert compilationContext.getWorkUnitsCompleted()
+					== compilationContext.getWorkUnitsQueued();
 				// If no solutions were found, then report an error.
 				if (solutions.isEmpty())
 				{
@@ -5305,15 +5300,17 @@ public final class AvailCompiler
 							}
 						});
 				start.workUnitDo(
-					() -> parseExpressionUncachedThen(start, action));
+					a -> parseExpressionUncachedThen(start, a), action);
 			}
-			start.workUnitDo(() ->
-			{
-				synchronized (fragmentCache)
+			start.workUnitDo(
+				originalCon ->
 				{
-					fragmentCache.addAction(start, originalContinuation);
-				}
-			});
+					synchronized (fragmentCache)
+					{
+						fragmentCache.addAction(start, originalCon);
+					}
+				},
+				originalContinuation);
 		}
 	}
 
@@ -5426,16 +5423,18 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con continuation)
 	{
-		start.workUnitDo(() -> parseRestOfSendNode(
-			start,
-			bundleTree,
-			firstArgOrNull,
-			initialTokenPosition,
-			consumedAnything,
-			consumedTokens,
-			argsSoFar,
-			marksSoFar,
-			continuation));
+		start.workUnitDo(
+			ignored -> parseRestOfSendNode(
+				start,
+				bundleTree,
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				marksSoFar,
+				continuation),
+			999);
 	}
 
 	/**

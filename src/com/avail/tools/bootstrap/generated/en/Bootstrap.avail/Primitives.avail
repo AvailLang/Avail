@@ -55,6 +55,7 @@ Names
 	"Breakpoint",
 	"Cast|cast_into_else_",
 	"Crash:_",
+	"Define lexer_filter_body_",
 	"Error:_",
 	"Exit_with_",
 	"Export_as a new name",

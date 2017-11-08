@@ -64,6 +64,8 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode
 	.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain ContinuationDescriptor
@@ -106,7 +108,7 @@ public final class P_CreateContinuation extends Primitive
 			stackp.extractInt(),
 			false,
 			L2Chunk.unoptimizedChunk(),
-			L2Chunk.offsetToReturnIntoUnoptimizedChunk());
+			TO_RETURN_INTO.offsetInDefaultChunk);
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
 		{
 			cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));

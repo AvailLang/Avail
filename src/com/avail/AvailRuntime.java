@@ -85,8 +85,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -109,6 +107,8 @@ import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
+import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -1653,6 +1653,9 @@ public final class AvailRuntime
 		specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom;
 		specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom;
 		specials[156] = variableReadWriteType(mostGeneralMapType(), bottom());
+		specials[157] = lexerFilterFunctionType();
+		specials[158] = lexerBodyFunctionType();
+
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1868,7 +1871,7 @@ public final class AvailRuntime
 					// Remove the desiccated message bundle from its atom.
 					final A_Atom atom = bundle.message();
 					atom.setAtomProperty(
-						MESSAGE_BUNDLE_KEY.atom,
+						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
 						nil);
 				}
 			}
@@ -2139,7 +2142,7 @@ public final class AvailRuntime
 			{
 				assert !levelOneSafetyRequested;
 				incompleteLevelOneUnsafeTasks++;
-				executor.execute(wrapped);
+				execute(wrapped);
 			}
 			else
 			{
@@ -2210,7 +2213,7 @@ public final class AvailRuntime
 			if (incompleteLevelOneUnsafeTasks == 0)
 			{
 				incompleteLevelOneSafeTasks++;
-				executor.execute(wrapped);
+				execute(wrapped);
 			}
 			else
 			{

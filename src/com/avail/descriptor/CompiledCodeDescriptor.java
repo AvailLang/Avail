@@ -217,7 +217,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code}, in which to record information
 		 * such as the file and line number of source code.
 		 */
-		@HideFieldInDebugger
+//		@HideFieldInDebugger
 		PROPERTY_ATOM,
 
 		/**
@@ -240,6 +240,11 @@ extends Descriptor
 	 * A helper class that tracks invocation information in {@link
 	 * AtomicLong}s.  Since these require neither locks nor complete memory
 	 * barriers, they're ideally suited for this purpose.
+	 *
+	 * TODO MvG - Put these directly into the CompiledCodeDescriptor instances,
+	 * allocating a shared descriptor per code object.  Perhaps all the other
+	 * fields should also be moved there (allowing the AvailObjects to reuse the
+	 * common empty arrays).
 	 */
 	@InnerAccess
 	static class InvocationStatistic
@@ -351,7 +356,7 @@ extends Descriptor
 
 	/**
 	 * Answer the {@link InvocationStatistic} associated with the
-	 * specified {@link CompiledCodeDescriptor raw function}.
+	 * specified {@link A_RawFunction}.
 	 *
 	 * @param object
 	 *        The {@link A_RawFunction} from which to extract the invocation
@@ -372,10 +377,9 @@ extends Descriptor
 				new WeakHashMap<A_RawFunction, Boolean>()));
 
 	/**
-	 * Reset the code coverage details of all {@link CompiledCodeDescriptor raw
-	 * functions} by discarding their L2 optimized chunks and clearing their
-	 * flags. When complete, resume the supplied {@link Continuation0
-	 * continuation}.
+	 * Reset the code coverage details of all {@link A_RawFunction}s by
+	 * discarding their L2 optimized chunks and clearing their flags.  When
+	 * complete, resume the supplied {@link Continuation0 continuation}.
 	 *
 	 * @param resume
 	 *        The {@link Continuation0 continuation to be executed upon
@@ -453,7 +457,7 @@ extends Descriptor
 		public final String methodName;
 
 		/**
-		 * Construct a new {@link CodeCoverageReport}.
+		 * Construct a new {@code CodeCoverageReport}.
 		 *
 		 * @param hasRun
 		 *        Whether this raw function has been run during this code
@@ -828,7 +832,7 @@ extends Descriptor
 		for (int i = 1, limit = object.numLiterals(); i <= limit; i++)
 		{
 			final AvailObject literal = object.literalAt(i);
-			final A_RawFunction subCode;
+			final @Nullable A_RawFunction subCode;
 			if (literal.isFunction())
 			{
 				subCode = literal.code();
@@ -1102,7 +1106,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link CompiledCodeDescriptor}.
+	 * Construct a new {@code CompiledCodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

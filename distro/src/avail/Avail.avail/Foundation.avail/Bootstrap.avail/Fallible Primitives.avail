@@ -53,6 +53,7 @@ Uses
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
+		"Define lexer_filter_body_",
 		"Error:_",
 		"Exit_with_",
 		"Export_as a new name",
@@ -2127,6 +2128,78 @@ Primitive "semantic restrictions for_given_" is
 		incorrect-number-of-arguments code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of semantic restriction function;
+
+/**
+ * Define a new lexer.  When it's imported into a module, it will attempt
+ * lexical scanning.  Its filter function is used to classify which lexers
+ * should run when a particular character is encountered, and its body attempts
+ * to produce tokens in that circumstance.
+ *
+ * @category "Primitives"
+ * @method "Define lexer_filter_body_"
+ * @param "lexerName" "atom"
+ *        The atom that names the lexer.
+ * @param "filterFunction" "lexer filter function"
+ *        The filter function of the lexer.
+ * @param "bodyFunction" "lexer body function"
+ *        The body of the lexer.
+ * @returns "⊤"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
+ */
+Primitive "Define lexer_filter_body_" is
+[
+	lexerName : atom,
+	filterFunction : lexer filter function,
+	bodyFunction : lexer body function
+|
+	Primitive SimpleLexerDefinitionForAtom (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
+		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
+		loading-is-over code,
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
 
 /**
  * Define a macro with the specified name and body. A macro is a method invoked

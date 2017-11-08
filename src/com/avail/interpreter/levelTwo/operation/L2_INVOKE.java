@@ -137,7 +137,10 @@ public class L2_INVOKE extends L2Operation
 					interpreter.returnNow = false;
 					assert !interpreter.exitNow;
 					final String oldModeString = interpreter.debugModeString;
-					interpreter.debugModeString += "reif L2 ";
+					if (Interpreter.debugL2)
+					{
+						interpreter.debugModeString += "reif L2 ";
+					}
 					try
 					{
 						interpreter.runChunk();

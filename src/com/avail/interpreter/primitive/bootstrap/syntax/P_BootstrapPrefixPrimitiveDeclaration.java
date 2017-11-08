@@ -64,6 +64,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The {@code P_BootstrapPrefixVariableDeclaration} primitive is used for
@@ -93,7 +94,7 @@ extends Primitive
 		final A_Phrase optionalBlockArgumentsList = args.get(0);
 		final A_Phrase optionalPrimPhrase = args.get(1);
 
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -131,8 +132,7 @@ extends Primitive
 				final A_String name = namePhrase.token().literal().string();
 				assert name.isString();
 				final A_Phrase declaration =
-					FiberDescriptor.lookupBindingOrNull(name);
-				assert declaration != null;
+					stripNull(FiberDescriptor.lookupBindingOrNull(name));
 				blockArgumentPhrases.add(declaration);
 			}
 		}

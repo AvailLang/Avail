@@ -216,6 +216,12 @@ public final class Interpreter
 	public static boolean debugPrimitives = false;
 
 	/**
+	 * Whether to print detailed debug information related to compiler/lexer
+	 * work unit tracking.
+	 * */
+	public static boolean debugWorkUnits = false;
+
+	/**
 	 * Whether to print debug information related to a specific problem being
 	 * debugged with a custom VM.  This is a convenience flag and will be
 	 * inaccessible in a production VM.
@@ -1495,6 +1501,13 @@ public final class Interpreter
 		final A_RawFunction code = aFunction.code();
 		assert code.numArgs() == argsBuffer.size();
 		chunk = code.startingChunk();
+		// Note that a chunk can only be invalidated by a method change, which
+		// can only happen when all fibers are suspended (level-one safe zone),
+		// so this test is entirely stable.  Also, the chunk will be
+		// disconnected from the L1 code during invalidation, although
+		// existing continuations will still refer to it.  Re-entry into those
+		// continuations always checks for validity.
+		assert chunk.isValid();
 		offset = 0;
 		returnNow = false;
 		runChunk();
@@ -1507,11 +1520,11 @@ public final class Interpreter
 	@InnerAccess void run ()
 	{
 		assert fiber != null;
-		debugModeString = "Fib=" + fiber.uniqueId() + " ";
 		assert !exitNow;
 		startTick = runtime.clock.get();
 		if (debugL2)
 		{
+			debugModeString = "Fib=" + fiber.uniqueId() + " ";
 			System.out.println(
 				"\nRun: " + debugModeString + " (" + fiber.fiberName() + ")");
 		}

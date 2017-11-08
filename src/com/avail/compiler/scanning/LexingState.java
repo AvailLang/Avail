@@ -45,12 +45,12 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
@@ -72,6 +72,7 @@ import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 
 /**
@@ -142,41 +143,35 @@ public class LexingState
 	}
 
 	/**
-	 * Queue the given action to be executed eventually.  It can be executed at
-	 * any time during or after this call.
-	 *
-	 * @param action The {@link Continuation0} to evaluate eventually.
-	 */
-	public void workUnitDo (final Continuation0 action)
-	{
-		compilationContext.workUnitDo(this, action);
-	}
-
-	/**
-	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
-	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0)}.
+	 * Eventually invoke the given {@link Continuation1NotNull}s, each with the
+	 * given argument.  Track them as outstanding actions, ensuring {@link
+	 * CompilationContext#noMoreWorkUnits} is invoked only when all such queued
+	 * actions for the {@link CompilationContext} have completed.  Ensure the
+	 * queued count is increased prior to actually queueing any of the actions,
+	 * to ensure a hasty execution of a prefix of the tasks doesn't cause the
+	 * {@link CompilationContext#noMoreWorkUnits} to be executed prematurely.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
-	 * @param continuation
-	 *        What to execute with the passed argument.
+	 * @param continuations
+	 *        The non-empty list of continuations to execute, each with the
+	 *        passed argument.
 	 * @param argument
 	 *        What to pass as an argument to the provided {@linkplain
 	 *        Continuation1 one-argument continuation}.
 	 */
-	public <ArgType> void workUnitDo (
-		final Continuation1<ArgType> continuation,
+	public <ArgType> void workUnitsDo (
+		final List<Continuation1NotNull<ArgType>> continuations,
 		final ArgType argument)
 	{
-		workUnitDo(() -> continuation.value(argument));
+		compilationContext.workUnitsDo(this, continuations, argument);
 	}
 
 	/**
-	 * Wrap the {@linkplain Continuation1NotNull continuation of one not-null
-	 * argument} inside a {@linkplain Continuation0 continuation of zero
-	 * arguments} and record that as per {@linkplain
-	 * #workUnitDo(Continuation0)}.
+	 * Eventually invoke the given {@link Continuation1NotNull} with the given
+	 * argument.  Track it as an outstanding action, ensuring {@link
+	 * CompilationContext#noMoreWorkUnits} is invoked only when all such queued
+	 * actions have completed.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -190,14 +185,15 @@ public class LexingState
 		final Continuation1NotNull<ArgType> continuation,
 		final ArgType argument)
 	{
-		workUnitDo(() -> continuation.value(argument));
+		compilationContext.workUnitsDo(
+			this, singletonList(continuation), argument);
 	}
 
 	/**
-	 * Eventually invoke the given {@link Continuation1} with the {@link List}
-	 * of {@link A_Token tokens} at this position.  If necessary, launch {@link
-	 * A_Fiber fibers} to run {@link A_Lexer lexers}, invoking the continuation
-	 * only when all possible next tokens have been computed.
+	 * Eventually invoke the given {@link Continuation1NotNull} with the {@link
+	 * List} of {@link A_Token tokens} at this position.  If necessary, launch
+	 * {@link A_Fiber fibers} to run {@link A_Lexer lexers}, invoking the
+	 * continuation only when all possible next tokens have been computed.
 	 *
 	 * @param newAction
 	 *        What to do with the list of tokens.
@@ -205,7 +201,6 @@ public class LexingState
 	public synchronized void withTokensDo (
 		final Continuation1NotNull<List<A_Token>> newAction)
 	{
-		final List<A_Token> theNextTokens;
 		if (actions == null)
 		{
 			// The complete list of tokens was already computed, and actions
@@ -224,7 +219,7 @@ public class LexingState
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		theNextTokens = new ArrayList<>(2);
+		final List<A_Token> theNextTokens = new ArrayList<>(2);
 		nextTokens = theNextTokens;
 		final LexicalScanner scanner =
 			compilationContext.loader().lexicalScanner();
@@ -305,6 +300,17 @@ public class LexingState
 		}
 	}
 
+	/**
+	 * Run a lexer.  When it completes, decrement the countdown.  If it reaches
+	 * zero,
+	 * @param lexer
+	 *        The lexer to execute.
+	 * @param arguments
+	 *        The arguments supplied to the lexer's body.
+	 * @param countdown
+	 *        A countdown to indicate completion of the group of lexers running
+	 *        at the same source position in parallel.
+	 */
 	@InnerAccess void evaluateLexerAndRunActionsWhenZero (
 		final A_Lexer lexer,
 		final List<A_BasicObject> arguments,
@@ -314,9 +320,8 @@ public class LexingState
 		final A_Fiber fiber = newLoaderFiber(
 			lexerBodyFunctionType().returnType(),
 			loader,
-			() ->
-				formatString("Lexer body on line %d for %s.", lineNumber,
-					lexer));
+			() -> formatString(
+				"Lexer body on line %d for %s.", lineNumber, lexer));
 		// TODO MvG - Set up fiber variables for lexing?
 //		A_Map fiberGlobals = fiber.fiberGlobals();
 //		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
@@ -351,7 +356,7 @@ public class LexingState
 			};
 		assert compilationContext.getNoMoreWorkUnits() != null;
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
-		compilationContext.startWorkUnit();
+		compilationContext.startWorkUnits(1);
 		final AtomicBoolean oneWay = new AtomicBoolean();
 		fiber.resultContinuation(
 			compilationContext.workUnitCompletion(this, oneWay, onSuccess));
@@ -386,11 +391,7 @@ public class LexingState
 		if (countdown.decrementAndGet() == 0)
 		{
 			// We just heard from the last lexer.  Run the actions once.
-			for (final Continuation1NotNull<List<A_Token>> action
-				: stripNull(actions))
-			{
-				workUnitDo(action, theNextTokens);
-			}
+			workUnitsDo(stripNull(actions), theNextTokens);
 			actions = null;
 		}
 	}
@@ -473,7 +474,7 @@ public class LexingState
 	 */
 	public void expected (
 		final List<? extends A_BasicObject> values,
-		final Transformer1<List<String>, String> transformer)
+		final Transformer1NotNull<List<String>, String> transformer)
 	{
 		expected(continuation ->
 			Interpreter.stringifyThen(

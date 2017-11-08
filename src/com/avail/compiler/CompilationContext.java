@@ -210,17 +210,17 @@ public class CompilationContext
 	/** The number of work units that have been queued. */
 	@InnerAccess final AtomicLong workUnitsQueued = new AtomicLong(0);
 
-	public AtomicLong getWorkUnitsQueued ()
+	public long getWorkUnitsQueued ()
 	{
-		return workUnitsQueued;
+		return workUnitsQueued.get();
 	}
 
 	/** The number of work units that have been completed. */
 	@InnerAccess final AtomicLong workUnitsCompleted = new AtomicLong(0);
 
-	public AtomicLong getWorkUnitsCompleted ()
+	public long getWorkUnitsCompleted ()
 	{
-		return workUnitsCompleted;
+		return workUnitsCompleted.get();
 	}
 
 	/**
@@ -233,8 +233,18 @@ public class CompilationContext
 		return noMoreWorkUnits;
 	}
 
-	public void setNoMoreWorkUnits (final Continuation0 noMoreWorkUnits)
+	public void setNoMoreWorkUnits (
+		final @Nullable Continuation0 noMoreWorkUnits)
 	{
+		if (Interpreter.debugWorkUnits)
+		{
+			final boolean wasNull = this.noMoreWorkUnits == null;
+			final boolean isNull = noMoreWorkUnits == null;
+			System.out.println(
+				(isNull ? "Clear" : "Set")
+					+ " noMoreWorkUnits (was "
+					+ (wasNull ? "null)" : "non-null)"));
+		}
 		this.noMoreWorkUnits = noMoreWorkUnits;
 	}
 
@@ -349,18 +359,40 @@ public class CompilationContext
 	}
 
 	/**
-	 * Start a work unit.
+	 * Start N work units, which are about to be queued.
 	 */
-	public void startWorkUnit ()
+	public void startWorkUnits (final int countToBeQueued)
 	{
-		assert noMoreWorkUnits != null;
-		workUnitsQueued.incrementAndGet();
+		assert getNoMoreWorkUnits() != null;
+		final long queued = workUnitsQueued.addAndGet(countToBeQueued);
+		if (Interpreter.debugWorkUnits)
+		{
+			final long completed = getWorkUnitsCompleted();
+			final StringBuilder builder = new StringBuilder();
+			Throwable e = new Throwable().fillInStackTrace();
+			builder.append(trace(e));
+			final String trace = builder.toString().replaceAll(
+				"\\A.*\\R((.*\\R){6})(.|\\R)*\\z", "$1");
+			System.out.println(
+				CompilationContext.this.hashCode()
+					+ " Starting work unit:  queued = "
+					+ queued
+					+ ", completed = "
+					+ completed
+					+ " (delta="
+					+ (queued - completed)
+					+ ")"
+					+ (countToBeQueued > 1
+						   ? " (bulk=" + countToBeQueued + ")"
+						   : "")
+					+ "\n\t" + trace.trim());
+		}
 		logger.log(
 			Level.FINEST,
 			format(
 				"Started work unit: %d/%d%n",
-				workUnitsCompleted.get(),
-				workUnitsQueued.get()));
+				getWorkUnitsCompleted(),
+				getWorkUnitsQueued()));
 	}
 
 	/**
@@ -377,14 +409,14 @@ public class CompilationContext
 	 * @param continuation
 	 *        What to do as a work unit.
 	 * @return A new continuation. It accepts an argument of some kind, which
-	 * will be passed forward to the argument continuation.
+	 *         will be passed forward to the argument continuation.
 	 */
 	public <ArgType> Continuation1NotNull<ArgType> workUnitCompletion (
 		final LexingState lexingState,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1NotNull<ArgType> continuation)
 	{
-		assert noMoreWorkUnits != null;
+		assert getNoMoreWorkUnits() != null;
 		final AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
 			? optionalSafetyCheck
 			: new AtomicBoolean(false);
@@ -410,9 +442,7 @@ public class CompilationContext
 			catch (final Exception e)
 			{
 				reportInternalProblem(
-					lexingState.lineNumber,
-					lexingState.position,
-					e);
+					lexingState.lineNumber, lexingState.position, e);
 			}
 			finally
 			{
@@ -425,28 +455,36 @@ public class CompilationContext
 				// still have to do the fused incrementAndGet so that we know if
 				// *we* were the (sole) cause of exhaustion.
 				final long completed = workUnitsCompleted.incrementAndGet();
-				final long queued = workUnitsQueued.get();
+				final long queued = getWorkUnitsQueued();
 				assert completed <= queued;
+				if (Interpreter.debugWorkUnits)
+				{
+					System.out.println(
+						CompilationContext.this.hashCode()
+							+ " Completed work unit: queued = "
+							+ queued
+							+ ", completed = "
+							+ completed
+							+ " (delta="
+							+ (queued - completed)
+							+ ")");
+				}
 				logger.log(
 					Level.FINEST,
-					format(
-						"Completed work unit: %d/%d%n",
-						completed,
-						queued));
+					format("Completed work unit: %d/%d%n", completed, queued));
 				if (completed == queued)
 				{
 					try
 					{
-						final Continuation0 noMore = stripNull(noMoreWorkUnits);
-						noMoreWorkUnits = null;
+						final Continuation0 noMore =
+							stripNull(getNoMoreWorkUnits());
+						setNoMoreWorkUnits(null);
 						noMore.value();
 					}
 					catch (final Exception e)
 					{
 						reportInternalProblem(
-							lexingState.lineNumber,
-							lexingState.position,
-							e);
+							lexingState.lineNumber, lexingState.position, e);
 					}
 				}
 			}
@@ -454,50 +492,70 @@ public class CompilationContext
 	}
 
 	/**
-	 * Eventually execute the specified {@linkplain Continuation0 continuation}
-	 * as a {@linkplain AvailCompiler compiler} work unit.
+	 * Eventually execute the specified {@link List} of {@linkplain
+	 * Continuation1NotNull}s as {@linkplain AvailCompiler compiler} work units.
+	 * Note that the queued work unit count must be increased by the full amount
+	 * up-front to ensure the completion of the first N tasks before the N+1st
+	 * can be queued doesn't trigger execution of {@link #noMoreWorkUnits}.
+	 * Each continuation will be passed the same given argument.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} for which to report problems.
-	 * @param continuation
-	 *        What to do at some point in the future.
+	 * @param continuations
+	 *        A non-empty list of things to do at some point in the future.
+	 * @param argument
+	 *        The argument to pass to each continuation.
 	 */
-	public void workUnitDo (
+	public <ArgType> void workUnitsDo (
 		final LexingState lexingState,
-		final Continuation0 continuation)
+		final List<Continuation1NotNull<ArgType>> continuations,
+		final ArgType argument)
 	{
-		if (noMoreWorkUnits != null)
+		assert !continuations.isEmpty();
+		//TODO MvG - Make this permanently be an assert?
+		assert (getNoMoreWorkUnits() != null);
+		if (getNoMoreWorkUnits() != null)
 		{
+			// Start by increasing the queued counter by the number of actions
+			// we're adding.
+			startWorkUnits(continuations.size());
 			// We're tracking work units, so we have to make sure to account for
 			// the new unit being queued, increment the completed count when it
 			// completes, and run the noMoreWorkUnits action as soon the
 			// counters collide (indicating the last work unit just completed).
-			startWorkUnit();
-			final Continuation1NotNull<Void> workUnit = workUnitCompletion(
-				lexingState, null, ignored -> continuation.value());
-			runtime.execute(
-				new ParsingTask()
-				{
-					@Override
-					public void value ()
+			for (final Continuation1NotNull<ArgType> continuation
+				: continuations)
+			{
+				final Continuation1NotNull<ArgType> workUnit =
+					workUnitCompletion(lexingState, null, continuation);
+				runtime.execute(
+					new ParsingTask()
 					{
-						workUnit.value(null);
-					}
-				});
+						@Override
+						public void value ()
+						{
+							workUnit.value(argument);
+						}
+					});
+			}
 		}
 		else
 		{
 			// We're not tracking work units, so just queue it without fiddling
 			// with the queued/completed counts.
-			runtime.execute(
-				new ParsingTask()
-				{
-					@Override
-					public void value ()
+			for (final Continuation1NotNull<ArgType> continuation
+				: continuations)
+			{
+				runtime.execute(
+					new ParsingTask()
 					{
-						continuation.value();
-					}
-				});
+						@Override
+						public void value ()
+						{
+							continuation.value(argument);
+						}
+					});
+			}
 		}
 	}
 
@@ -692,7 +750,7 @@ public class CompilationContext
 		final Continuation1NotNull<AvailObject> continuation,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
-		startWorkUnit();
+		startWorkUnits(1);
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 		evaluatePhraseThen(
 			expression,

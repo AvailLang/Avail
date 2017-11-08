@@ -101,6 +101,9 @@ public final class L2Chunk
 	 */
 	final L2ControlFlowGraph controlFlowGraph;
 
+	/** The code that was translated to L2.  Null for the default (L1) chunk. */
+	final @Nullable A_RawFunction code;
+
 	/**
 	 * The number of {@linkplain L2ObjectRegister object registers} that
 	 * this chunk uses (including the fixed registers).  Having the number of
@@ -194,17 +197,6 @@ public final class L2Chunk
 	}
 
 	/**
-	 * The offset at which to start running this chunk if the code's primitive
-	 * was already tried but failed.
-	 *
-	 * @return An index into the chunk's {@link #instructions}.
-	 */
-	public int offsetAfterInitialTryPrimitive ()
-	{
-		return offsetAfterInitialTryPrimitive;
-	}
-
-	/**
 	 * Answer whether this chunk is still valid.  A {@linkplain
 	 * ContinuationDescriptor continuation} or {@linkplain
 	 * CompiledCodeDescriptor raw function} may refer to an invalid chunk, but
@@ -240,72 +232,80 @@ public final class L2Chunk
 		return builder.toString();
 	}
 
-	/**
-	 * The level two wordcode offset to which to jump when continuing execution
-	 * of a non-reified {@link #unoptimizedChunk() unoptimized} frame after
-	 * reifying all of its callers.
-	 *
-	 * <p>It's hard-coded, but checked against the default chunk in {@link
-	 * L2Translator#L2Translator()} when that chunk is created.</p>
-	 *
-	 * @return A level two offset within the default chunk.
-	 */
-	public static int offsetToReenterAfterReification ()
+	public enum ChunkEntryPoint
 	{
-		return 3;
+		/**
+		 * The {@link #unoptimizedChunk()} entry point to jump to if a primitive
+		 * was attempted but failed, and we need to run the (unoptimized, L1)
+		 * alternative code.
+		 */
+		AFTER_TRY_PRIMITIVE(1),
+
+		/**
+		 * The entry point to jump to when continuing execution of a non-reified
+		 * {@link #unoptimizedChunk() unoptimized} frame after reifying its
+		 * caller chain.
+		 *
+		 * <p>It's hard-coded, but checked against the default chunk in {@link
+		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 */
+		AFTER_REIFICATION(3),
+
+		/**
+		 * The entry point to which to jump when returning into a continuation
+		 * that's running the {@link #unoptimizedChunk()}.
+		 *
+		 * <p>It's hard-coded, but checked against the default chunk in {@link
+		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 */
+		TO_RETURN_INTO(4),
+
+		/**
+		 * The entry point to which to jump when returning from an interrupt
+		 * into a continuation that's running the {@link #unoptimizedChunk}.
+		 *
+		 * <p>It's hard-coded, but checked against the default chunk in {@link
+		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 */
+		TO_RESUME(6),
+
+		/**
+		 * The entry point to which to jump when restarting an unoptimized
+		 * {@link A_Continuation} via {@link P_RestartContinuation} or {@link
+		 * P_RestartContinuationWithArguments}.  We skip the {@link
+		 * L2_TRY_PRIMITIVE}, but still do the {@link
+		 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} so that looped functions
+		 * tend to get optimized.
+		 *
+		 * <p>Note that we could just as easily start at 0, the entry point for
+		 * <em>calling</em> an unoptimized function, but we can skip the
+		 * primitive safely because primitives and labels are mutually
+		 * exclusive.</p>
+		 *
+		 * <p>It's hard-coded, but checked against the default chunk in {@link
+		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 */
+		TO_RESTART(1);
+
+		public final int offsetInDefaultChunk;
+
+		ChunkEntryPoint (final int offsetInDefaultChunk)
+		{
+			this.offsetInDefaultChunk = offsetInDefaultChunk;
+		}
 	}
 
 	/**
-	 * The level two wordcode offset to which to jump when returning into a
-	 * continuation that's running the {@linkplain #unoptimizedChunk unoptimized
-	 * chunk}.
+	 * The offset at which to start running this chunk if the code's primitive
+	 * was already tried but failed.
 	 *
-	 * <p>It's hard-coded, but checked against the default chunk in {@link
-	 * L2Translator#L2Translator()} when that chunk is created.</p>
-	 *
-	 * @return A level two offset within the default chunk.
+	 * @return An index into the chunk's {@link #instructions}.
 	 */
-	public static int offsetToReturnIntoUnoptimizedChunk ()
+	public int offsetAfterInitialTryPrimitive ()
 	{
-		return 4;
+		return offsetAfterInitialTryPrimitive;
 	}
 
-	/**
-	 * The level two wordcode offset to which to jump when returning from an
-	 * interrupt into a continuation that's running the {@linkplain
-	 * #unoptimizedChunk unoptimized chunk}.
-	 *
-	 * <p>It's hard-coded, but checked against the default chunk in {@link
-	 * L2Translator#L2Translator()} when that chunk is created.</p>
-	 *
-	 * @return A level two offset within the default chunk.
-	 */
-	public static int offsetToResumeInterruptedUnoptimizedChunk ()
-	{
-		return 6;
-	}
-
-	/**
-	 * The level two wordcode offset to which to jump when restarting an
-	 * unoptimized {@link A_Continuation} via {@link P_RestartContinuation} or
-	 * {@link P_RestartContinuationWithArguments}.  We skip the {@link
-	 * L2_TRY_PRIMITIVE}, but still do the {@link
-	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} so that looped functions
-	 * tend to get optimized.
-	 *
-	 * <p>Note that we could just as easily start at 0, the entry point for
-	 * <em>calling</em> an unoptimized function, but we can skip the primitive
-	 * safely because primitives and labels are mutually exclusive.</p>
-	 *
-	 * <p>It's hard-coded, but checked against the default chunk in {@link
-	 * L2Translator#L2Translator()} when that chunk is created.</p>
-	 *
-	 * @return A level two offset within the default chunk.
-	 */
-	public static int offsetToRestartUnoptimizedChunk ()
-	{
-		return 1;
-	}
 
 	/**
 	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
@@ -398,6 +398,7 @@ public final class L2Chunk
 		final A_Set contingentValues)
 	{
 		final L2Chunk chunk = new L2Chunk(
+			code,
 			numObjects,
 			numIntegers,
 			numFloats,
@@ -441,6 +442,7 @@ public final class L2Chunk
 	 *        The set of contingent {@link A_ChunkDependable}.
 	 */
 	private L2Chunk (
+		final @Nullable A_RawFunction code,
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
@@ -451,6 +453,7 @@ public final class L2Chunk
 	{
 		// A new chunk starts out valid.
 		this.valid = true;
+		this.code = code;
 		this.numObjects = numObjects;
 		this.numIntegers = numIntegers;
 		this.numDoubles = numFloats;
@@ -490,6 +493,15 @@ public final class L2Chunk
 		for (final A_ChunkDependable value : contingents)
 		{
 			value.removeDependentChunk(this);
+		}
+		if (code != null)
+		{
+			// Unlink this invalid chunk from the compiled code that referred to
+			// it as its entry point.  Continuations can't be efficiently
+			// updated the same way, so the re-entry points have to check for
+			// validity (jumping to a suitable L1 entry point instead).
+			code.setStartingChunkAndReoptimizationCountdown(
+				unoptimizedChunk(), countdownForInvalidatedCode());
 		}
 	}
 

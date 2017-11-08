@@ -52,8 +52,8 @@ import static com.avail.descriptor.ContinuationDescriptor
 	.createContinuationExceptFrame;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
-import static com.avail.interpreter.levelTwo.L2Chunk
-	.offsetToResumeInterruptedUnoptimizedChunk;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -145,7 +145,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 					numSlots + 1,   // empty stack
 					interpreter.skipReturnCheck,
 					unoptimizedChunk(),
-					offsetToResumeInterruptedUnoptimizedChunk());
+					TO_RESUME.offsetInDefaultChunk);
 			for (
 				int i = function.code().numArgsAndLocalsAndStack();
 				i >= 1;

@@ -95,6 +95,8 @@ Names
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
 	/*  63 */ "label phrase",
+	/* 158 */ "lexer body function",
+	/* 157 */ "lexer filter function",
 	/*  59 */ "list phrase",
 	/*  55 */ "literal phrase",
 	/* 116 */ "literal token",
@@ -2089,4 +2091,26 @@ Special object "explicit subclassing key" is special object 155;
  * @alias "map variable"
  */
 Special object "map variable" is special object 156;
+
+/**
+ * The function type for lexer filters.  If a lexer filter function is passed a
+ * character and it returns true, that lexer body will be called whenever that
+ * character is encountered during lexical scanning.
+ *
+ * @category "Primitives" "Types"
+ * @type "[character]→boolean"
+ * @alias "lexer filter function"
+ */
+Special object "lexer filter function" is special object 157;
+
+/**
+ * The function type for lexer bodies.  A lexer body has access to the source
+ * code being scanned, the position at which to start, and the line number at
+ * the initial position.
+ *
+ * @category "Primitives" "Types"
+ * @type "[string, [1..∞), [1..∞)]→<token…|>"
+ * @alias "lexer body function"
+ */
+Special object "lexer body function" is special object 158;
 

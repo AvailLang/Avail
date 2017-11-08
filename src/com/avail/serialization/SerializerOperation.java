@@ -121,6 +121,10 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Double.doubleToRawLongBits;
@@ -1546,8 +1550,8 @@ public enum SerializerOperation
 					false,
 					L2Chunk.unoptimizedChunk(),
 					pcInteger.equalsInt(0)
-						? L2Chunk.offsetToRestartUnoptimizedChunk()
-						: L2Chunk.offsetToReturnIntoUnoptimizedChunk());
+						? TO_RESTART.offsetInDefaultChunk
+						: TO_RETURN_INTO.offsetInDefaultChunk);
 			for (int i = 1; i <= frameSlotCount; i++)
 			{
 				continuation.argOrLocalOrStackAtPut(i, frameSlots.tupleAt(i));

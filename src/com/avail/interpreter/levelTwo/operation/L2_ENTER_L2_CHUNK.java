@@ -34,9 +34,13 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -50,7 +54,8 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ENTER_L2_CHUNK().init();
+		new L2_ENTER_L2_CHUNK().init(
+			IMMEDIATE.is("entry point offset in default chunk"));
 
 	@Override
 	public void step (
@@ -58,8 +63,22 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		final Interpreter interpreter)
 	{
 		final L2Chunk chunk = stripNull(interpreter.chunk);
-		interpreter.pointers = new AvailObject[chunk.numObjects()];
-		interpreter.integers = new int[chunk.numIntegers()];
+		if (chunk.isValid())
+		{
+			// Allocate the registers.
+			interpreter.pointers = new AvailObject[chunk.numObjects()];
+			interpreter.integers = new int[chunk.numIntegers()];
+		}
+		else
+		{
+			// Jump to the corresponding entry point of the default chunk
+			// instead.
+			interpreter.chunk = L2Chunk.unoptimizedChunk();
+			interpreter.offset = instruction.immediateAt(0);
+			// Safety.
+			interpreter.pointers = Interpreter.emptyPointersArray;
+			interpreter.integers = Interpreter.emptyIntArray;
+		}
 	}
 
 	@Override
