@@ -218,11 +218,11 @@ extends AbstractEnumerationTypeDescriptor
 			return;
 		}
 		// Default printing.
-		aStream.append("enumeration of ");
 		getInstances(object).printOnAvoidingIndent(
 			aStream,
 			recursionMap,
 			indent + 1);
+		aStream.append("ᵀ");
 	}
 
 	/**
