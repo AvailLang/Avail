@@ -1,5 +1,5 @@
 /**
- * ReifyStackThrowable.java
+ * StackReifier.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,19 +44,15 @@ import java.util.List;
 /**
  * The level two execution machinery allows limited use of the Java stack during
  * ordinary execution, but when exceptional conditions arise, the Java stack is
- * unwound with a {@code ReifyStackThrowable} and converted into level one
+ * unwound with a {@code StackReifier} and converted into level one
  * continuations.  This happens when the stack gets too deep, when tricky code
  * like exceptions and backtracking happen, when taking an off-ramp to reify the
  * level one state, or when attempting to continue invalidated level two code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ReifyStackThrowable
-extends Exception
+public final class StackReifier
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 7279470906495791301L;
-
 	/**
 	 * The list of mutable level one continuations that have been reified so
 	 * far.  They are added to the end during repeated throws until the
@@ -83,14 +79,14 @@ extends Exception
 	private final Continuation0 postReificationAction;
 
 	/**
-	 * Construct a new {@code ReifyStackThrowable}.
+	 * Construct a new {@code StackReifier}.
 	 *
 	 * @param postReificationAction
 	 *        The action to perform after the Java stack has been fully reified.
 	 * @param actuallyReify
 	 *        Whether to reify the Java frames (rather than simply drop them).
 	 */
-	public ReifyStackThrowable (
+	public StackReifier (
 		final Continuation0 postReificationAction,
 		final boolean actuallyReify)
 	{

@@ -38,6 +38,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
@@ -57,13 +60,14 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 			READ_POINTER.is("object"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
 		final L2ReadPointerOperand objectReg =
 			instruction.readObjectRegisterAt(0);
 		objectReg.in(interpreter).makeSubobjectsImmutable();
+		return null;
 	}
 
 	@Override

@@ -31,15 +31,25 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.sun.org.apache.bcel.internal.generic.L2I;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -65,7 +75,7 @@ public class L2_MOVE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int sourceRegNumber =
@@ -73,9 +83,12 @@ public class L2_MOVE extends L2Operation
 		final int destinationRegNumber =
 			instruction.writeObjectRegisterAt(1).finalIndex();
 		return interpreter ->
+		{
 			interpreter.pointerAtPut(
 				destinationRegNumber,
 				interpreter.pointerAt(sourceRegNumber));
+			return null;
+		};
 	}
 
 	@Override
@@ -112,6 +125,41 @@ public class L2_MOVE extends L2Operation
 		}
 		registerSet.propagateMove(
 			sourceReg.register(), destinationReg.register(), instruction);
+	}
+
+
+	@Override
+	public L2ReadPointerOperand extractFunctionOuterRegister (
+		final L2Instruction instruction,
+		final L2ReadPointerOperand functionRegister,
+		final int outerIndex,
+		final A_Type outerType,
+		final L1Translator translator)
+	{
+		final L2ReadPointerOperand sourceReg =
+			instruction.readObjectRegisterAt(0);
+//		final L2WritePointerOperand destinationReg =
+//			instruction.writeObjectRegisterAt(1);
+
+		// Trace it back toward the actual function creation.
+		final L2Instruction earlierInstruction =
+			sourceReg.register().definition();
+		return earlierInstruction.operation.extractFunctionOuterRegister(
+			earlierInstruction,
+			sourceReg,
+			outerIndex,
+			outerType,
+			translator);
+	}
+
+	@Override
+	public @Nullable A_RawFunction getConstantCodeFrom (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		final L2ReadPointerOperand source = sourceOf(instruction);
+		final L2Instruction producer = source.register().definition();
+		return producer.operation.getConstantCodeFrom(producer);
 	}
 
 	@Override

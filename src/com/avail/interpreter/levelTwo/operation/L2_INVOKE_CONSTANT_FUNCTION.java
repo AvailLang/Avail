@@ -40,11 +40,12 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -71,7 +72,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			PC.is("on reification"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final AvailObject constantFunction = instruction.constantAt(0);
@@ -106,52 +107,49 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 
 			interpreter.chunk = code.startingChunk();
 			interpreter.offset = 0;
+			final @Nullable StackReifier reifier = interpreter.runChunk();
 			try
 			{
-				interpreter.runChunk();
-			}
-			catch (final ReifyStackThrowable reifier)
-			{
-				if (reifier.actuallyReify())
+				if (reifier != null)
 				{
-					// We were somewhere inside the callee and received a
-					// reification throwable.  Run the steps at the reification
-					// off-ramp to produce this continuation, ending at an
-					// L2_Return.  None of the intervening instructions may
-					// cause reification or Avail function invocation.  The
-					// resulting continuation is "returned" by the L2_Return
-					// instruction.  That continuation should know how to be
-					// reentered when the callee returns.
-					interpreter.function = savedFunction;
-					interpreter.chunk = savedChunk;
-					interpreter.offset = onReification;
-					interpreter.pointers = savedPointers;
-					interpreter.integers = savedInts;
-					interpreter.returnNow = false;
-					assert !interpreter.exitNow;
-					try
+					if (reifier.actuallyReify())
 					{
-						interpreter.runChunk();
+						// We were somewhere inside the callee and received a
+						// reification signal.  Run the steps at the reification
+						// off-ramp to produce this continuation, ending at an
+						// L2_Return.  None of the intervening instructions may
+						// cause reification or Avail function invocation.  The
+						// resulting continuation is "returned" by the L2_Return
+						// instruction.  That continuation should know how to be
+						// reentered when the callee returns.
+						interpreter.function = savedFunction;
+						interpreter.chunk = savedChunk;
+						interpreter.offset = onReification;
+						interpreter.pointers = savedPointers;
+						interpreter.integers = savedInts;
+						interpreter.returnNow = false;
+						assert !interpreter.exitNow;
+						final @Nullable StackReifier reifier2 =
+							interpreter.runChunk();
+						assert reifier2 == null
+							: "Off-ramp must not cause reification!";
+						// The off-ramp "returned" the callerless continuation
+						// that captures this frame.
+						interpreter.returnNow = false;
+						final A_Continuation continuation =
+							interpreter.latestResult();
+						if (Interpreter.debugL2)
+						{
+							System.out.println(
+								interpreter.debugModeString
+									+ "Push reified continuation (for invoke-const-fn): "
+									+ continuation.function().code()
+									.methodName());
+						}
+						reifier.pushContinuation(continuation);
 					}
-					catch (final ReifyStackThrowable innerReifier)
-					{
-						assert false : "Off-ramp must not cause reification!";
-					}
-					// The off-ramp "returned" the callerless continuation that
-					// captures this frame.
-					interpreter.returnNow = false;
-					final A_Continuation continuation =
-						interpreter.latestResult();
-					if (Interpreter.debugL2)
-					{
-						System.out.println(
-							interpreter.debugModeString
-								+ "Push reified continuation (for invoke-const-fn): "
-								+ continuation.function().code().methodName());
-					}
-					reifier.pushContinuation(continuation);
+					return reifier;
 				}
-				throw reifier;
 			}
 			finally
 			{
@@ -165,6 +163,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			}
 			// The invocation returned normally.
 			interpreter.offset = onNormalReturn;
+			return null;
 		};
 	}
 

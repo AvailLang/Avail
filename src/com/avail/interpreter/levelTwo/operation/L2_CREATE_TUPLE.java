@@ -42,7 +42,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +75,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 			WRITE_POINTER.is("tuple"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -85,6 +87,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 		final A_Tuple tuple = generateObjectTupleFrom(
 			elements.size(), i -> elements.get(i - 1).in(interpreter));
 		destinationReg.set(tuple, interpreter);
+		return null;
 	}
 
 	@Override

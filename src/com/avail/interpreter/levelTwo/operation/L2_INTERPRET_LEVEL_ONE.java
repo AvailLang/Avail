@@ -36,21 +36,21 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
 /**
  * Use the {@link Interpreter#levelOneStepper} to execute the Level One
  * unoptimized nybblecodes.  If an interrupt request is indicated, throw a
- * {@link ReifyStackThrowable}, making sure to synthesize a continuation for the
+ * {@link StackReifier}, making sure to synthesize a continuation for the
  * current frame.
  *
  * <p>Note that Avail calls are now executed as Java calls, causing this thread
- * to block until either it completes or a {@link ReifyStackThrowable} is
+ * to block until either it completes or a {@link StackReifier} is
  * thrown, which causes an {@link A_Continuation} to be built, allowing the
  * Avail frame to continue executing later.</p>
  *
@@ -76,7 +76,7 @@ extends L2Operation
 			PC.is("interrupt reentry point"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 //		final int callReentryOffset = instruction.pcAt(0);
@@ -84,7 +84,7 @@ extends L2Operation
 		return interpreter ->
 		{
 			interpreter.offset = Integer.MAX_VALUE;  // safety
-			interpreter.levelOneStepper.run();
+			return interpreter.levelOneStepper.run();
 		};
 	}
 

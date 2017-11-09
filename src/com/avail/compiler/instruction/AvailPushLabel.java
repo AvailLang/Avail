@@ -40,6 +40,8 @@ import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 
+
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -97,7 +99,7 @@ public class AvailPushLabel extends AvailInstruction
 	{
 		for (int index = 0; index < codeGenerator.numArgs(); index++)
 		{
-			AvailVariableAccessNote note = localData.get(index);
+			@Nullable AvailVariableAccessNote note = localData.get(index);
 			if (note == null)
 			{
 				note = new AvailVariableAccessNote();
@@ -106,25 +108,27 @@ public class AvailPushLabel extends AvailInstruction
 			// If any argument was pushed before this pushLabel, set its
 			// isLastAccess to false, as a restart will need to have these
 			// arguments intact.
-			final AvailPushVariable previousPush = note.previousPush();
+			final @Nullable AvailPushVariable previousPush = note.previousPush();
 			if (previousPush != null)
 			{
 				previousPush.isLastAccess(false);
 			}
 		}
 
-		for (final AvailVariableAccessNote outerNote : outerData)
+		for (final @Nullable AvailVariableAccessNote outerNote : outerData)
 		{
 			if (outerNote != null)
 			{
-				final AvailPushVariable previousPush = outerNote.previousPush();
+				final @Nullable AvailPushVariable previousPush =
+					outerNote.previousPush();
 				if (previousPush != null)
 				{
 					// Make sure the previous outer push is not considered the
 					// last access.
 					previousPush.isLastAccess(false);
 				}
-				final AvailGetVariable previousGet = outerNote.previousGet();
+				final @Nullable AvailGetVariable previousGet =
+					outerNote.previousGet();
 				if (previousGet != null)
 				{
 					// Make sure the previous outer get is not considered the

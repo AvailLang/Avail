@@ -49,8 +49,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
-import com.avail.optimizer.Continuation0ThrowsReification;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -1485,16 +1484,13 @@ public final class Interpreter
 	 *
 	 * @param aFunction
 	 *        The function to begin executing.
-	 * @return The {@linkplain Result success state}. If the function was not a
-	 *         primitive, always indicate that the current continuation was
-	 *         replaced.
-	 * @throws ReifyStackThrowable
-	 *         If reification is requested at any point while running the
-	 *         function.
+	 * @return Either {@code null} to indicate the function returned normally,
+	 *         leaving its result in the interpreter's latestResult field, or
+	 *         a {@link StackReifier} used to indicate the stack is being
+	 *         unwound (and the Avail function is <em>not</em> returning).
 	 */
-	public void invokeFunction (
+	public @Nullable StackReifier invokeFunction (
 		final A_Function aFunction)
-	throws ReifyStackThrowable
 	{
 		assert !exitNow;
 		function = aFunction;
@@ -1510,7 +1506,7 @@ public final class Interpreter
 		assert chunk.isValid();
 		offset = 0;
 		returnNow = false;
-		runChunk();
+		return runChunk();
 	}
 
 	/**
@@ -1530,16 +1526,13 @@ public final class Interpreter
 		}
 		while (true)
 		{
-			try
-			{
-				// Run the chunk to completion (dealing with reification).
-				// The chunk will do its own invalidation checks and off-ramp
-				// to L1 if needed.
-				final A_Function calledFunction = stripNull(function);
-				runChunk();
-				returningFunction = calledFunction;
-			}
-			catch (final ReifyStackThrowable reifier)
+			// Run the chunk to completion (dealing with reification).
+			// The chunk will do its own invalidation checks and off-ramp
+			// to L1 if needed.
+			final A_Function calledFunction = stripNull(function);
+			final @Nullable StackReifier reifier = runChunk();
+			returningFunction = calledFunction;
+			if (reifier != null)
 			{
 				// Reification has been requested, and the exception has already
 				// collected all the continuations.
@@ -1555,7 +1548,8 @@ public final class Interpreter
 					assert fiber == null;
 					if (debugL2)
 					{
-						System.out.println("Exit1 run: " + debugModeString + "\n");
+						System.out.println(
+							"Exit1 run: " + debugModeString + "\n");
 					}
 					return;
 				}
@@ -1575,13 +1569,12 @@ public final class Interpreter
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
 				terminateFiber(latestResult());
-				if (debugL2)
-				{
-					System.out.println(debugModeString + "Set exitNow (fall off Interpreter.run)");
-				}
 				exitNow = true;
 				if (debugL2)
 				{
+					System.out.println(
+						debugModeString
+							+ "Set exitNow (fall off Interpreter.run)");
 					System.out.println("Exit2 run: " + debugModeString + "\n");
 				}
 				return;
@@ -1598,7 +1591,7 @@ public final class Interpreter
 	}
 
 	/**
-	 * Run the current L2Chunk to completion.  Note that a reification throwable
+	 * Run the current L2Chunk to completion.  Note that a reification request
 	 * may cut this short.  Also note that this interpreter indicates the offset
 	 * at which to start executing.  For an initial invocation, the argsBuffer
 	 * will have been set up for the call.  For a return into this continuation,
@@ -1610,10 +1603,10 @@ public final class Interpreter
 	 * checks on the chunk, allowing an orderly off-ramp into the {@link
 	 * L2Chunk#unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
 	 *
-	 * @throws ReifyStackThrowable If reification is requested.
+	 * @return {@code null} if returning normally, otherwise a {@link
+	 *          StackReifier} to effect reification.
 	 */
-	public void runChunk ()
-	throws ReifyStackThrowable
+	public @Nullable StackReifier runChunk ()
 	{
 		assert !exitNow;
 		while (!returnNow)
@@ -1633,7 +1626,12 @@ public final class Interpreter
 			final long timeBefore = System.nanoTime();
 			try
 			{
-				instruction.action.value(this);
+				final @Nullable StackReifier reifier =
+					instruction.action.value(this);
+				if (reifier != null)
+				{
+					return reifier;
+				}
 			}
 			finally
 			{
@@ -1645,19 +1643,21 @@ public final class Interpreter
 				instruction.operation.statisticInNanoseconds.record(
 					timeAfter - timeBefore,
 					interpreterIndex);
-			}
-			if (Interpreter.debugL2)
-			{
-				System.out.println(
-					debugModeString
-						+ "L2 end: "
-						+ instruction.operation.debugNameIn(instruction));
+				if (Interpreter.debugL2)
+				{
+					System.out.println(
+						debugModeString
+							+ "L2 end: "
+							+ instruction.operation.debugNameIn(instruction));
+				}
 			}
 		}
+		// It returned normally without needing to reify.
+		return null;
 	}
 
 	/**
-	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * Throw a {@link StackReifier} to reify the Java stack into {@link
 	 * A_Continuation}s, then invoke the given {@link A_Function} with no
 	 * arguments.
 	 *
@@ -1671,15 +1671,14 @@ public final class Interpreter
 	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
 	 *         integrated into type signatures in a sane way, there'd be that
 	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
+	 * @throws StackReifier
 	 *         Always, to initiate reification of the Java stack.
 	 */
-	public ReifyStackThrowable reifyThenCall0 (
+	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
 		final boolean skipReturnCheckFlag)
-	throws ReifyStackThrowable
 	{
-		throw reifyThen(() ->
+		return reifyThen(() ->
 		{
 			argsBuffer.clear();
 			skipReturnCheck = skipReturnCheckFlag;
@@ -1690,7 +1689,7 @@ public final class Interpreter
 	}
 
 	/**
-	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * Throw a {@link StackReifier} to reify the Java stack into {@link
 	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
 	 * two arguments.
 	 *
@@ -1703,22 +1702,16 @@ public final class Interpreter
 	 *        The first argument of the function.
 	 * @param arg2
 	 *        The second argument of the function.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
+	 * @return StackReifier
 	 *         Always, to initiate reification of the Java stack.
 	 */
-	public ReifyStackThrowable reifyThenCall2 (
+	public StackReifier reifyThenCall2 (
 		final A_Function functionToCall,
 		final boolean skipReturnCheckFlag,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2)
-	throws ReifyStackThrowable
 	{
-		throw reifyThen(() ->
+		return reifyThen(() ->
 		{
 			argsBuffer.clear();
 			argsBuffer.add((AvailObject) arg1);
@@ -1731,7 +1724,7 @@ public final class Interpreter
 	}
 
 	/**
-	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * Throw a {@link StackReifier} to reify the Java stack into {@link
 	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
 	 * three arguments.
 	 *
@@ -1746,23 +1739,17 @@ public final class Interpreter
 	 *        The second argument of the function.
 	 * @param arg3
 	 *        The third argument of the function.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
+	 * @return StackReifier
 	 *         Always, to initiate reification of the Java stack.
 	 */
-	public ReifyStackThrowable reifyThenCall3 (
+	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
 		final boolean skipReturnCheckFlag,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2,
 		final A_BasicObject arg3)
-	throws ReifyStackThrowable
 	{
-		throw reifyThen(() ->
+		return reifyThen(() ->
 		{
 			argsBuffer.clear();
 			argsBuffer.add((AvailObject) arg1);
@@ -1776,7 +1763,7 @@ public final class Interpreter
 	}
 
 	/**
-	 * Immediately throw a {@link ReifyStackThrowable}.  Various Java stack
+	 * Immediately throw a {@link StackReifier}.  Various Java stack
 	 * frames will catch and rethrow it, accumulating reified {@link
 	 * A_Continuation}s along the way.  The outer interpreter loop should catch
 	 * this, then run the provided {@link Continuation0ThrowsReification}.
@@ -1784,24 +1771,18 @@ public final class Interpreter
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
+	 * @return StackReifier
 	 *         Always, to initiate reification of the Java stack.
 	 */
-	public ReifyStackThrowable reifyThen (
+	public StackReifier reifyThen (
 		final Continuation0 postReificationAction)
-	throws ReifyStackThrowable
 	{
-		throw new ReifyStackThrowable(postReificationAction, true);
+		return new StackReifier(postReificationAction, true);
 	}
 
 	/**
-	 * Immediately throw a {@link ReifyStackThrowable} with its {@link
-	 * ReifyStackThrowable#actuallyReify} flag set to false.  This abandons the
+	 * Immediately throw a {@link StackReifier} with its {@link
+	 * StackReifier#actuallyReify} flag set to false.  This abandons the
 	 * Java stack (out to {@link #run()}) before running the
 	 * postReificationAction, which should set up the interpreter to continue
 	 * running.
@@ -1809,19 +1790,13 @@ public final class Interpreter
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
+	 * @return StackReifier
 	 *         Always, to initiate reification of the Java stack.
 	 */
-	public ReifyStackThrowable abandonStackThen (
+	public StackReifier abandonStackThen (
 		final Continuation0 postReificationAction)
-	throws ReifyStackThrowable
 	{
-		throw new ReifyStackThrowable(postReificationAction, false);
+		return new StackReifier(postReificationAction, false);
 	}
 
 	/**
@@ -2110,13 +2085,13 @@ public final class Interpreter
 	 *        The expected type to check the value against.
 	 * @param returnee
 	 *        The {@link A_Function} that we're returning into.
-	 * @throws ReifyStackThrowable If reification is needed.
+	 * @return A {@link StackReifier} if reification is needed, otherwise {@code
+	 *         null}.
 	 */
-	public void checkReturnType (
+	public @Nullable StackReifier checkReturnType (
 		final AvailObject result,
 		final A_Type expectedReturnType,
 		final A_Function returnee)
-	throws ReifyStackThrowable
 	{
 		final long before = AvailRuntime.captureNanos();
 		final boolean checkOk = result.isInstanceOf(expectedReturnType);
@@ -2142,13 +2117,18 @@ public final class Interpreter
 			argsBuffer.add((AvailObject) returner);
 			argsBuffer.add((AvailObject) expectedReturnType);
 			argsBuffer.add((AvailObject) reportedResult);
-			invokeFunction(runtime.resultDisagreedWithExpectedTypeFunction());
+			final @Nullable StackReifier reifier =
+				invokeFunction(
+					runtime.resultDisagreedWithExpectedTypeFunction());
 			// The function has to be bottom-valued, so it can't ever actually
 			// return.  However, it's reifiable.  Note that the original callee
 			// is not part of the stack.  No point, since it was returning and
 			// is probably mostly evacuated.
-			throw new UnsupportedOperationException("Should not reach here");
+			assert reifier != null;
+			return reifier;
 		}
+		// Check was ok.
+		return null;
 	}
 
 	/**

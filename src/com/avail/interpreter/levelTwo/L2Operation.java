@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
@@ -41,15 +43,15 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -276,13 +278,12 @@ public abstract class L2Operation
 	 * @param interpreter
 	 *        The {@link Interpreter} on behalf of which to perform this
 	 *        operation.
-	 * @throws ReifyStackThrowable
-	 *         If the instruction triggers stack reification.
+	 * @return {@code null} if the step completes normally, or a {@link
+	 *         StackReifier} if the instruction triggers stack reification.
 	 */
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
-	throws ReifyStackThrowable
 	{
 		// Subclasses should implement either this or actionFor().
 		// Eventually step() will be entirely deprecated.
@@ -462,11 +463,11 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Emit code to extract the specified outer variable from the function
-	 * produced by this instruction.  The new code is appended to the provided
-	 * list of instructions, which may be at a code generation position
-	 * unrelated to the receiver.  The extracted outer variable will be written
-	 * to the provided target register.
+	 * Emit code to extract the specified outer value from the function produced
+	 * by this instruction.  The new code is appended to the provided list of
+	 * instructions, which may be at a code generation position unrelated to the
+	 * receiver.  The extracted outer variable will be written to the provided
+	 * target register.
 	 *
 	 * @param instruction
 	 *        The instruction that produced the function.  Its {@linkplain
@@ -475,28 +476,44 @@ public abstract class L2Operation
 	 *        The register holding the function after this instruction runs.
 	 * @param outerIndex
 	 *        The one-based outer index to extract from the function.
-	 * @param targetRegisterWrite
-	 *        The {@link L2WritePointerOperand} into which the new code should
-	 *        cause the captured outer variable or value to be written.
+	 * @param outerType
+	 *        The type of value that must be in that outer.
 	 * @param translator
 	 *        The {@link L1Translator} into which to write the new code.
-	 * @return A boolean indicating whether an instruction substitution took
-	 *         place which may warrant another pass of optimization.
+	 * @return The {@link L2ReadPointerOperand} holding the outer value.
 	 */
-	public boolean extractFunctionOuterRegister (
+	public L2ReadPointerOperand extractFunctionOuterRegister (
 		final L2Instruction instruction,
 		final L2ReadPointerOperand functionRegister,
 		final int outerIndex,
-		final L2WritePointerOperand targetRegisterWrite,
+		final A_Type outerType,
 		final L1Translator translator)
 	{
 		assert instruction.operation == this;
+		final L2WritePointerOperand writer =
+			translator.newObjectRegisterWriter(outerType, null);
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
 			functionRegister,
-			targetRegisterWrite);
-		return false;
+			writer);
+		return writer.read();
+	}
+
+	/**
+	 * Extract the constant {@link A_RawFunction} that's enclosed by the
+	 * function produced or passed along by this instruction.
+	 *
+	 * @param instruction
+	 *        The instruction to examine.
+	 * @return The constant {@link A_RawFunction} extracted from the
+	 *         instruction, or {@code null} if unknown.
+	 */
+	public @Nullable A_RawFunction getConstantCodeFrom (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == this;
+		return null;
 	}
 
 	/**
@@ -524,10 +541,10 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *        The instruction for which to create an action.
-	 * @return A {@link Continuation1NotNullThrowsReification} to run to effect
-	 *         this {@code L2Operation} on an {@link Interpreter}.
+	 * @return A {@link Continuation1NotNull} to run to effect this {@code
+	 *         L2Operation} on an {@link Interpreter}.
 	 */
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		// For now, most operations can just fall back on their step method.

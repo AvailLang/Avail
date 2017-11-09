@@ -70,7 +70,7 @@ public final class P_PushConstant extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushConstant().init(
-			-1, SpecialReturnConstant, Private, CannotFail);
+			-1, SpecialForm, Private, CannotFail);
 
 	@Override
 	public Result attempt (

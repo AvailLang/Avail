@@ -36,9 +36,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -57,14 +58,17 @@ public class L2_MOVE_CONSTANT extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final AvailObject constant = instruction.constantAt(0);
 		final int destinationRegNumber =
 			instruction.writeObjectRegisterAt(1).finalIndex();
 		return interpreter ->
+		{
 			interpreter.pointerAtPut(destinationRegNumber, constant);
+			return null;
+		};
 	}
 
 	@Override

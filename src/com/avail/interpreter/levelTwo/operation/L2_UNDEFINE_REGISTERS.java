@@ -37,7 +37,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
@@ -59,7 +61,7 @@ public class L2_UNDEFINE_REGISTERS extends L2Operation
 		);
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{

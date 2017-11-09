@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
@@ -56,7 +59,7 @@ public class L2_GET_SKIP_RETURN_CHECK extends L2Operation
 			WRITE_INT.is("skip return check flag"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -64,5 +67,6 @@ public class L2_GET_SKIP_RETURN_CHECK extends L2Operation
 			instruction.writeIntRegisterAt(0);
 		skipReturnCheckReg.set(
 			interpreter.skipReturnCheck ? 1 : 0, interpreter);
+		return null;
 	}
 }

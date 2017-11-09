@@ -41,7 +41,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
@@ -67,7 +69,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 			WRITE_POINTER.is("concatenated tuple"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -92,6 +94,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 			}
 		}
 		targetTupleReg.set(accumulator, interpreter);
+		return null;
 	}
 
 	@Override

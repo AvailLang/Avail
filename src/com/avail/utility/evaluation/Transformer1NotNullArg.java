@@ -1,5 +1,5 @@
 /**
- * Continuation0ThrowsReification.java
+ * Transformer1NotNullArg.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,17 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.optimizer;
+package com.avail.utility.evaluation;
+
+import javax.annotation.Nullable;
 
 /**
- * A zero-argument {@link FunctionalInterface} that can throw a {@link
- * ReifyStackThrowable}.
+ * Implementors of {@code Transformer1NotNullArg} provide a single arbitrary
+ * operation that accepts one argument and produces a potentially {@code null}
+ * result.  Nulls are not allowed as input.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @param <X> The type of the sole argument to the operation.
+ * @param <Y> The type of value (or null) produced by the operation.
  */
 @FunctionalInterface
-public interface Continuation0ThrowsReification
+public interface Transformer1NotNullArg<X,Y>
 {
-	void value ()
-	throws ReifyStackThrowable;
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg The argument to the operation.
+	 * @return The result of performing the operation.
+	 */
+	@Nullable Y value (X arg);
 }

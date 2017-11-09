@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -61,7 +64,7 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 			PC.is("out of range"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -87,6 +90,7 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 		{
 			interpreter.offset(outOfRangeOffset);
 		}
+		return null;
 	}
 
 	@Override

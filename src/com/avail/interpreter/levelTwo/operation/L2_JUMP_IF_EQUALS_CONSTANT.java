@@ -33,17 +33,17 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -68,7 +68,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 			PC.is("if unequal"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int valueRegisterIndex =
@@ -78,10 +78,13 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final int ifUnequal = instruction.pcOffsetAt(3);
 
 		return interpreter ->
+		{
 			interpreter.offset(
 				interpreter.pointerAt(valueRegisterIndex).equals(constant)
 					? ifEqual
 					: ifUnequal);
+			return null;
+		};
 	}
 
 	@Override

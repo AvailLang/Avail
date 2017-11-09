@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -59,7 +57,7 @@ public final class P_PushArgument extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushArgument().init(
-			1, SpecialReturnSoleArgument, Private, CanInline, CannotFail);
+			1, SpecialForm, Private, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -96,7 +94,6 @@ public final class P_PushArgument extends Primitive
 				ANY.o()),
 			bottom());
 	}
-
 
 	@Override
 	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (

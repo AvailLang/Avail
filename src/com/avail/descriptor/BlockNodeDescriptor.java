@@ -219,10 +219,7 @@ extends ParseNodeDescriptor
 			builder.append("|");
 		}
 		boolean skipFailureDeclaration = false;
-		if (primitive != null
-			&& !primitive.hasFlag(Flag.SpecialReturnConstant)
-			&& !primitive.hasFlag(Flag.SpecialReturnSoleArgument)
-			&& !primitive.hasFlag(Flag.SpecialReturnGlobalValue))
+		if (primitive != null && !primitive.hasFlag(Flag.SpecialForm))
 		{
 			wroteAnything = true;
 			Strings.newlineTab(builder, indent);

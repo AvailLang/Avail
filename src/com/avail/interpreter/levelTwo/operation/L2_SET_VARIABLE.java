@@ -43,7 +43,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.VariableTypeDescriptor
@@ -68,7 +70,7 @@ extends L2Operation
 			PC.is("write failed"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -92,6 +94,7 @@ extends L2Operation
 			// Jump to the failure offset.
 			interpreter.offset(failed);
 		}
+		return null;
 	}
 
 	@Override

@@ -40,7 +40,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 			WRITE_POINTER.is("tuple type"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -82,6 +84,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 		}
 		final A_Type tupleType = tupleTypeForTypes(types);
 		destinationReg.set(tupleType, interpreter);
+		return null;
 	}
 
 	@Override

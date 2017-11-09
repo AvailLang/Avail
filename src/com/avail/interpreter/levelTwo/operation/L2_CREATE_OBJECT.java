@@ -40,7 +40,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -68,7 +70,7 @@ public class L2_CREATE_OBJECT extends L2Operation
 			WRITE_POINTER.is("new object"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -91,5 +93,6 @@ public class L2_CREATE_OBJECT extends L2Operation
 		}
 		final AvailObject object = objectFromMap(map);
 		destinationObjectReg.set(object, interpreter);
+		return null;
 	}
 }

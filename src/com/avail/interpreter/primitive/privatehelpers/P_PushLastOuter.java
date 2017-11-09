@@ -1,5 +1,5 @@
 /**
- * P_GetGlobalVariableValue.java
+ * P_PushLastOuter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,17 +31,14 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
-import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
 import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
@@ -53,16 +50,16 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
- * <strong>Primitive:</strong> A global variable's value is being returned.
+ * <strong>Primitive:</strong> The only outer value is being returned.
  */
-public final class P_GetGlobalVariableValue extends Primitive
+public final class P_PushLastOuter extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public static final Primitive instance =
-		new P_GetGlobalVariableValue().init(
-			1, SpecialForm, CanInline, Private, CannotFail);
+		new P_PushLastOuter().init(
+			-1, SpecialForm, Private, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -70,71 +67,57 @@ public final class P_GetGlobalVariableValue extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		final A_RawFunction code = stripNull(interpreter.function).code();
-		final A_Variable literalVariable = code.literalAt(1);
-		try
-		{
-			return interpreter.primitiveSuccess(literalVariable.getValue());
-		}
-		catch (final VariableGetException e)
-		{
-			assert false : "A write-only variable must be assigned!";
-			throw new RuntimeException(e);
-		}
+		final A_Function function = stripNull(interpreter.function);
+		assert function.code().primitive() == this;
+		return interpreter.primitiveSuccess(function.outerVarAt(1));
 	}
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
 	{
-		// The L2Translator has a special case for invocations of this
-		// primitive, so improving this bound would be entirely futile.
+		// This will be specially inlined, so strengthening it doesn't matter.
 		return ANY.o();
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		// This primitive is suitable for any function with any as the return
-		// type.  We can't express that yet, so we allow any function.
+		// This primitive is suitable for any block signature, although really
+		// the primitive could only be applied if the function returns any.
 		return bottom();
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator)
 	{
-		final @Nullable A_Function function =
-			(A_Function) functionToCallReg.constantOrNull();
-		if (function == null)
+		final @Nullable A_BasicObject constantFunction =
+			functionToCallReg.constantOrNull();
+
+		// Check for the rare case that the exact function is known (noting that
+		// it has an outer).
+		if (constantFunction != null)
 		{
-			// We have to know the specific function to know what variable to
-			// read from, since it's the first literal.
-			return null;
+			return translator.constantRegister(
+				((A_Function) constantFunction).outerVarAt(1));
 		}
-		final A_Variable variable = function.code().literalAt(1);
-		// Avoid generating a constant move if the value wasn't stably computed.
-		// While it would be the correct value, it wouldn't trigger the fast
-		// loader suppression necessary to indicate that an unstable global
-		// constant had been accessed, and a new global constant initialization
-		// running this L2Chunk wouldn't be flagged correctly as also unstable.
-		if (variable.isInitializedWriteOnceVariable()
-			&& variable.valueWasStablyComputed())
-		{
-			// The variable is permanently set to this value.
-			return translator.constantRegister(variable.getValue());
-		}
-		final L2WritePointerOperand valueRegisterWriter =
-			translator.newObjectRegisterWriter(
-				variable.kind().readType(),
-				null);
-		translator.emitGetVariableOffRamp(
-			L2_GET_VARIABLE.instance,
-			translator.constantRegister(variable),
-			valueRegisterWriter);
-		return valueRegisterWriter.read();
+
+		// See if we can find the instruction that created the function, using
+		// the original register that provided the value for the outer.  This
+		// should allow us to skip the creation of the function.
+		final L2Instruction functionCreationInstruction =
+			functionToCallReg.register().definition();
+		final A_Type returnType = functionToCallReg.type().returnType();
+		return functionCreationInstruction.operation
+			.extractFunctionOuterRegister(
+				functionCreationInstruction,
+				functionToCallReg,
+				1,
+				returnType,
+				translator);
 	}
 }

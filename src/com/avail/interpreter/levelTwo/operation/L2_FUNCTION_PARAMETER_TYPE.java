@@ -45,6 +45,7 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
+import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -70,7 +71,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			WRITE_POINTER.is("parameter type"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -85,6 +86,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			function.code().functionType().argsTupleType().typeAtIndex(
 				paramIndex);
 		outputParamTypeReg.set(paramType, interpreter);
+		return null;
 	}
 
 	@Override

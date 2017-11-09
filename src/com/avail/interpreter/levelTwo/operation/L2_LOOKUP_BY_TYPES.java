@@ -45,7 +45,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -80,7 +82,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 			PC.is("lookup failed"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -118,9 +120,8 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		catch (final MethodDefinitionException e)
 		{
 			errorCodeReg.set(e.numericCode(), interpreter);
-			// Fall through to the next instruction.
 			interpreter.offset(lookupFailed);
-			return;
+			return null;
 		}
 		finally
 		{
@@ -131,20 +132,19 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		{
 			errorCodeReg.set(
 				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
-			// Fall through to the next instruction.
 			interpreter.offset(lookupFailed);
-			return;
+			return null;
 		}
 		if (definitionToCall.isForwardDefinition())
 		{
 			errorCodeReg.set(
 				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
-			// Fall through to the next instruction.
 			interpreter.offset(lookupFailed);
-			return;
+			return null;
 		}
 		functionReg.set(definitionToCall.bodyBlock(), interpreter);
 		interpreter.offset(lookupSucceeded);
+		return null;
 	}
 
 	/** The type of failure codes that a failed lookup can produce. */

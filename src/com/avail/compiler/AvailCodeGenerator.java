@@ -40,6 +40,7 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -333,6 +334,16 @@ public final class AvailCodeGenerator
 				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
 			{
 				primitive(P_PushArgument.instance);
+			}
+			if (onlyInstruction instanceof AvailPushOuterVariable)
+			{
+				// There can only be one outer since the only instruction is to
+				// push it.
+				final AvailPushOuterVariable pushOuter =
+					(AvailPushOuterVariable) onlyInstruction;
+				assert pushOuter.index() == 1;
+				assert pushOuter.isLastAccess();
+ 				primitive(P_PushLastOuter.instance);
 			}
 			// Only target module constants, not module variables. Module
 			// variables can be unassigned, and reading an unassigned module

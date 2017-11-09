@@ -72,6 +72,9 @@ import static java.util.stream.Collectors.toList;
  */
 public final class L2ControlFlowGraph
 {
+	/** Whether to sanity-check the graph between optimization steps. */
+	public static boolean shouldSanityCheck = false;
+
 	/** The basic blocks, in their original creation order. */
 	private final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
 
@@ -897,10 +900,13 @@ public final class L2ControlFlowGraph
 	private void sanityCheck (
 		final Function<L2Register, Integer> registerIdFunction)
 	{
-		checkBlocksAndInstructions();
-		checkUniqueOperands();
-		checkEdgesAndPhis();
-		checkRegistersAreInitialized(registerIdFunction);
+		if (shouldSanityCheck)
+		{
+			checkBlocksAndInstructions();
+			checkUniqueOperands();
+			checkEdgesAndPhis();
+			checkRegistersAreInitialized(registerIdFunction);
+		}
 	}
 
 	/**

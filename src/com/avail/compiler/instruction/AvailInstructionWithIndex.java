@@ -45,7 +45,6 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 	 */
 	final int index;
 
-
 	/**
 	 * Answer the generic index recorded at construction time.
 	 *
@@ -55,7 +54,6 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 	{
 		return index;
 	}
-
 
 	/**
 	 * Construct a new {@link AvailInstructionWithIndex}.

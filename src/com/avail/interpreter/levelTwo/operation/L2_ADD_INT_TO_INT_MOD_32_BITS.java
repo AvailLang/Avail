@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -59,7 +62,7 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 			WRITE_INT.is("sum"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -70,5 +73,6 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 		final int addend = addendReg.in(interpreter);
 		final int augend = augendReg.in(interpreter);
 		sumReg.set(augend + addend, interpreter);
+		return null;
 	}
 }

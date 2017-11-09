@@ -38,6 +38,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
@@ -56,12 +59,13 @@ public class L2_JUMP extends L2Operation
 			PC.is("target"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
 		final int offset = instruction.pcOffsetAt(0);
 		interpreter.offset(offset);
+		return null;
 	}
 
 	@Override

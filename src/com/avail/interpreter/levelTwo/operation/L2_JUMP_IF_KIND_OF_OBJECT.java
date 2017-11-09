@@ -42,7 +42,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -66,7 +68,7 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 			PC.is("if not kind"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -81,6 +83,7 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 			valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter))
 				? isKindOffset
 				: isNotKindOffset);
+		return null;
 	}
 
 	@Override

@@ -134,9 +134,9 @@ public abstract class AvailInstruction
 	 * @param codeGenerator The code generator.
 	 */
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData,
-			final List<AvailVariableAccessNote> outerData,
-			final AvailCodeGenerator codeGenerator)
+		final List<AvailVariableAccessNote> localData,
+		final List<AvailVariableAccessNote> outerData,
+		final AvailCodeGenerator codeGenerator)
 	{
 		// Do nothing here in the general case.
 	}

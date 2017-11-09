@@ -36,6 +36,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.Interpreter.debugL1;
 
@@ -59,7 +62,7 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT().init();
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -81,6 +84,7 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 		}
 		interpreter.levelOneStepper.pc = continuation.pc();
 		interpreter.levelOneStepper.stackp = continuation.stackp();
+		return null;
 	}
 
 	@Override

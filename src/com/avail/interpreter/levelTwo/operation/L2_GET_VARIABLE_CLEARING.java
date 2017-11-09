@@ -40,9 +40,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 			PC.is("read failed"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int variableRegIndex =
@@ -99,6 +100,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 			{
 				interpreter.offset(failureIndex);
 			}
+			return null;
 		};
 	}
 

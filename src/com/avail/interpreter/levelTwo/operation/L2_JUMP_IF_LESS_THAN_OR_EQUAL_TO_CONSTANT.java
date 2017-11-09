@@ -38,6 +38,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -59,7 +62,7 @@ public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 			CONSTANT.is("constant"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -74,6 +77,7 @@ public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 		{
 			interpreter.offset(target);
 		}
+		return null;
 	}
 
 	@Override

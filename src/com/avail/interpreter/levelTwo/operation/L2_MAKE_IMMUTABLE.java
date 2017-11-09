@@ -34,9 +34,10 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
@@ -56,13 +57,16 @@ public class L2_MAKE_IMMUTABLE extends L2Operation
 			READ_POINTER.is("object"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int objectRegNumber =
 			instruction.readObjectRegisterAt(0).finalIndex();
 		return interpreter ->
+		{
 			interpreter.pointerAt(objectRegNumber).makeImmutable();
+			return null;
+		};
 	}
 
 	@Override

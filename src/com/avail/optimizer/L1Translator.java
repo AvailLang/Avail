@@ -974,8 +974,8 @@ public final class L1Translator
 		// this site's argumentTypes would eliminate.
 		final L2BasicBlock afterCall = createBasicBlock(
 			superUnionType.isBottom()
-				? "After call of " + quotedBundleName
-				: "After super call of " + quotedBundleName);
+				? "after call of " + quotedBundleName
+				: "after super call of " + quotedBundleName);
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			MethodDescriptor.runtimeDispatcher.createRoot(
 				allPossible, argumentTypes, null);
@@ -1539,79 +1539,87 @@ public final class L1Translator
 	{
 		final @Nullable A_Function functionIfKnown =
 			(A_Function) functionToCallReg.constantOrNull();
+		final @Nullable Primitive primitive;
 		if (functionIfKnown != null)
 		{
 			// The exact function is known.
-			final @Nullable Primitive primitive =
-				functionIfKnown.code().primitive();
-			if (primitive != null)
+			primitive = functionIfKnown.code().primitive();
+		}
+		else
+		{
+			// See if we can at least find out the code that the function was
+			// created from.
+			final L2Instruction functionDefinition =
+				functionToCallReg.register().definition();
+			final @Nullable A_RawFunction constantCode =
+				functionDefinition.operation.getConstantCodeFrom(
+					functionDefinition);
+			primitive = constantCode == null ? null : constantCode.primitive();
+		}
+		if (primitive != null)
+		{
+			// It's a primitive function.
+			final Interpreter interpreter = translator.interpreter();
+			if (primitive.hasFlag(CanFold))
 			{
-				// It's a primitive function.
-				final Interpreter interpreter = translator.interpreter();
-				if (primitive.hasFlag(CanFold))
+				// It can be folded, if supplied with constants.
+				final int count = arguments.size();
+				final List<AvailObject> constants = new ArrayList<>(count);
+				for (final L2ReadPointerOperand regRead : arguments)
 				{
-					// It can be folded, if supplied with constants.
-					final int count = arguments.size();
-					final List<AvailObject> constants = new ArrayList<>(count);
-					for (final L2ReadPointerOperand regRead : arguments)
+					if (regRead.constantOrNull() == null)
 					{
-						if (regRead.constantOrNull() == null)
-						{
-							break;
-						}
-						constants.add((AvailObject) regRead.constantOrNull());
+						break;
 					}
-					if (constants.size() == count)
-					{
-						// Fold the primitive.  Save and restore the
-						// interpreter's function field, and also load it up
-						// with the known function before attempting the
-						// primitive.  At least P_PushConstant requires it to
-						// have been set up that way.
-						final @Nullable A_Function savedFunction =
-							interpreter.function;
-						interpreter.function = functionIfKnown;
-						final String savedDebugModeString =
-							interpreter.debugModeString;
-						if (Interpreter.debugL2)
-						{
-							interpreter.debugModeString +=
-								"FOLD "
-									+ primitive.getClass().getSimpleName()
-									+ ": ";
-						}
-						final Result success;
-						try
-						{
-							success = primitive.attempt(
-								constants, interpreter, true);
-						}
-						finally
-						{
-							interpreter.debugModeString = savedDebugModeString;
-							interpreter.function = savedFunction;
-						}
-
-						if (success == SUCCESS)
-						{
-							return constantRegister(
-								interpreter.latestResult().makeImmutable());
-						}
-						// The primitive failed with the supplied arguments,
-						// which it's allowed to do even if it CanFold.
-						assert success == FAILURE;
-						assert !primitive.hasFlag(CannotFail);
-					}
+					constants.add((AvailObject) regRead.constantOrNull());
 				}
+				if (constants.size() == count)
+				{
+					// Fold the primitive.  A foldable primitive must not
+					// require access to the enclosing function or its code.
+					final @Nullable A_Function savedFunction =
+						interpreter.function;
+					interpreter.function = null;
+					final String savedDebugModeString =
+						interpreter.debugModeString;
+					if (Interpreter.debugL2)
+					{
+						interpreter.debugModeString +=
+							"FOLD "
+								+ primitive.getClass().getSimpleName()
+								+ ": ";
+					}
+					final Result success;
+					try
+					{
+						success = primitive.attempt(
+							constants, interpreter, true);
+					}
+					finally
+					{
+						interpreter.debugModeString = savedDebugModeString;
+						interpreter.function = savedFunction;
+					}
 
-				// The primitive can't be folded, so let it generate its own
-				// code equivalent to invocation.
-				final List<A_Type> argTypes = arguments.stream()
-					.map(L2ReadPointerOperand::type)
-					.collect(toList());
-				return primitive.tryToGenerateSpecialInvocation(
-					functionToCallReg, arguments, argTypes, this);
+					if (success == SUCCESS)
+					{
+						return constantRegister(
+							interpreter.latestResult().makeImmutable());
+					}
+					// The primitive failed with the supplied arguments,
+					// which it's allowed to do even if it CanFold.
+					assert success == FAILURE;
+					assert !primitive.hasFlag(CannotFail);
+				}
 			}
+
+			// The primitive can't be folded, so let it generate its own
+			// code equivalent to invocation.
+			final List<A_Type> argTypes = arguments.stream()
+				.map(L2ReadPointerOperand::type)
+				.collect(toList());
+			return primitive.tryToGenerateSpecialInvocation(
+				functionToCallReg, arguments, argTypes, this);
 		}
 		return null;
 	}

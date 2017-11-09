@@ -32,15 +32,15 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class L2_RETURN extends L2Operation
 			READ_INT.is("skip return check"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		// Return to the calling continuation with the given value.
@@ -81,6 +81,7 @@ public class L2_RETURN extends L2Operation
 				interpreter.integerAt(skipCheckIndex) != 0;
 			interpreter.returnNow = true;
 			interpreter.returningFunction = stripNull(interpreter.function);
+			return null;
 		};
 	}
 

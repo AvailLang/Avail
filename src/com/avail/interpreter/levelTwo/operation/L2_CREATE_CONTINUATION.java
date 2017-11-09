@@ -39,7 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			PC.is("fall through after creation"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int callerRegIndex =
@@ -98,19 +99,13 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 
 		return interpreter ->
 		{
-			final A_Function function =
-				interpreter.pointerAt(functionRegIndex);
-			final A_RawFunction code = function.code();
-			final int frameSize = code.numArgsAndLocalsAndStack();
-			final boolean skipReturnCheck =
-				interpreter.integerAt(skipReturnRegIndex) != 0;
 			final A_Continuation continuation =
 				createContinuationExceptFrame(
-					function,
+					interpreter.pointerAt(functionRegIndex),
 					interpreter.pointerAt(callerRegIndex),
 					levelOnePC,
 					levelOneStackp,
-					skipReturnCheck,
+					interpreter.integerAt(skipReturnRegIndex) != 0,
 					stripNull(interpreter.chunk),
 					onRampOffset);
 			for (int i = 0; i < slotRegIndices.length; i++)
@@ -120,6 +115,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			}
 			interpreter.pointerAtPut(destRegIndex, continuation);
 			interpreter.offset(fallThroughOffset);
+			return null;
 		};
 	}
 

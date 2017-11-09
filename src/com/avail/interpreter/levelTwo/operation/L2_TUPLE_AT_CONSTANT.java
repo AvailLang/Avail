@@ -38,9 +38,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -60,7 +61,7 @@ public class L2_TUPLE_AT_CONSTANT extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int tupleRegIndex =
@@ -70,9 +71,12 @@ public class L2_TUPLE_AT_CONSTANT extends L2Operation
 			instruction.writeObjectRegisterAt(2).finalIndex();
 
 		return interpreter ->
+		{
 			interpreter.pointerAtPut(
 				destinationRegIndex,
 				interpreter.pointerAt(tupleRegIndex).tupleAt(subscript));
+			return null;
+		};
 	}
 
 	@Override

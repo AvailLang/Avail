@@ -43,12 +43,10 @@ import com.avail.descriptor.FunctionDescriptor;
  */
 public abstract class AvailPushVariable extends AvailInstructionWithIndex
 {
-
 	/**
 	 * Whether this instruction is the last use of its variable.
 	 */
 	protected boolean isLastAccess = false;
-
 
 	/**
 	 * Set the flag indicating whether this instruction is the last use of its
@@ -62,9 +60,18 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 		this.isLastAccess = newFlag;
 	}
 
+	/**
+	 * Answer whether this instruction is the last use of its variable.
+	 *
+	 * @return Whether this is a last use.
+	 */
+	public boolean isLastAccess ()
+	{
+		return isLastAccess;
+	}
 
 	/**
-	 * Construct a new {@link AvailPushVariable}.
+	 * Construct a new {@code AvailPushVariable}.
 	 *
 	 * @param variableIndex
 	 *        The index that the variable will occupy at runtime, either within

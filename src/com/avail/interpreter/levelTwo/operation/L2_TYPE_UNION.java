@@ -40,6 +40,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -62,7 +65,7 @@ public class L2_TYPE_UNION extends L2Operation
 			WRITE_POINTER.is("union type"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -77,6 +80,7 @@ public class L2_TYPE_UNION extends L2Operation
 		final A_Type secondInputType = secondInputTypeReg.in(interpreter);
 		final A_Type unionType = firstInputType.typeUnion(secondInputType);
 		outputTypeReg.set(unionType, interpreter);
+		return null;
 	}
 
 	@Override

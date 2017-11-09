@@ -41,6 +41,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
@@ -64,7 +67,7 @@ public class L2_GET_TYPE extends L2Operation
 			WRITE_POINTER.is("value's type"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -76,6 +79,7 @@ public class L2_GET_TYPE extends L2Operation
 		final AvailObject value = valueReg.in(interpreter);
 		final A_Type type = instanceTypeOrMetaOn(value);
 		typeReg.set(type, interpreter);
+		return null;
 	}
 
 	@Override

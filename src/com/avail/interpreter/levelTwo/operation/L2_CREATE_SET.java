@@ -38,7 +38,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -61,7 +63,7 @@ public class L2_CREATE_SET extends L2Operation
 			WRITE_POINTER.is("new set"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -76,5 +78,6 @@ public class L2_CREATE_SET extends L2Operation
 			set = set.setWithElementCanDestroy(reg.in(interpreter), true);
 		}
 		destinationSetReg.set(set, interpreter);
+		return null;
 	}
 }

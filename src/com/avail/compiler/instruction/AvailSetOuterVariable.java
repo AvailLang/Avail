@@ -36,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -90,11 +91,11 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData,
-			final List<AvailVariableAccessNote> outerData,
-			final AvailCodeGenerator codeGenerator)
+		final List<AvailVariableAccessNote> localData,
+		final List<AvailVariableAccessNote> outerData,
+		final AvailCodeGenerator codeGenerator)
 	{
-		AvailVariableAccessNote note = outerData.get(index - 1);
+		@Nullable AvailVariableAccessNote note = outerData.get(index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
@@ -105,7 +106,7 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 		note.previousGet(null);
 		// Any previous push could not be the last access, as we're using the
 		// variable right now.
-		final AvailPushVariable previousPush = note.previousPush();
+		final @Nullable AvailPushVariable previousPush = note.previousPush();
 		if (previousPush != null)
 		{
 			previousPush.isLastAccess(false);

@@ -33,17 +33,21 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
@@ -65,7 +69,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			WRITE_POINTER.is("new function"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
@@ -90,6 +94,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 					i + 1, interpreter.pointerAt(outerRegNumbers[i]));
 			}
 			interpreter.pointerAtPut(newFunctionRegIndex, function);
+			return null;
 		};
 	}
 
@@ -131,23 +136,26 @@ public class L2_CREATE_FUNCTION extends L2Operation
 	}
 
 	@Override
-	public boolean extractFunctionOuterRegister (
+	public L2ReadPointerOperand extractFunctionOuterRegister (
 		final L2Instruction instruction,
 		final L2ReadPointerOperand functionRegister,
 		final int outerIndex,
-		final L2WritePointerOperand targetRegisterWrite,
+		final A_Type outerType,
 		final L1Translator translator)
 	{
-//		final A_RawFunction code = instruction.constantAt(0);
+		final A_RawFunction code = instruction.constantAt(0);
 		final List<L2ReadPointerOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
 //		final int newFunctionRegIndex =
 //			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		final L2ReadPointerOperand outerRegister =
-			outerRegs.get(outerIndex - 1);
-		translator.moveRegister(outerRegister, targetRegisterWrite);
-		return true;
+		final A_Type typeFromCode = code.outerTypeAt(outerIndex);
+		final A_Type intersection = outerType.typeIntersection(typeFromCode);
+		assert !intersection.isBottom();
+
+		return new L2ReadPointerOperand(
+			outerRegs.get(outerIndex - 1).register(),
+			new TypeRestriction(intersection, null));
 	}
 
 	/**
@@ -160,7 +168,8 @@ public class L2_CREATE_FUNCTION extends L2Operation
 	 * @return The constant {@link A_RawFunction} extracted from the
 	 *         instruction.
 	 */
-	public static A_RawFunction getConstantCodeFrom (
+	@Override
+	public A_RawFunction getConstantCodeFrom (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;

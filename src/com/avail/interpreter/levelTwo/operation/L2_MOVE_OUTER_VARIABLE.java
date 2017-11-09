@@ -39,10 +39,11 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -63,7 +64,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int outerIndex = instruction.immediateAt(0);
@@ -79,6 +80,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			final AvailObject value = function.outerVarAt(outerIndex);
 			// assert value.isInstanceOf(outerType);
 			interpreter.pointerAtPut(destinationRegNumber, value);
+			return null;
 		};
 	}
 
@@ -103,38 +105,5 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			registerSet.constantAtPut(
 				destinationReg.register(), value, instruction);
 		}
-	}
-
-	/**
-	 * If the function was created by exactly one instruction then see if the
-	 * outer variable can be accessed more economically.
-	 */
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L1Translator translator)
-	{
-		assert instruction.operation == this;
-		final int outerIndex = instruction.immediateAt(0);
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(1);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(2);
-
-		final L2Instruction functionCreationInstruction =
-			functionReg.register().definition();
-		if (!(functionCreationInstruction.operation.isPhi()))
-		{
-			// Exactly one instruction produced the function.
-			return functionCreationInstruction.operation
-				.extractFunctionOuterRegister(
-					functionCreationInstruction,
-					functionReg,
-					outerIndex,
-					destinationReg,
-					translator);
-		}
-		return super.regenerate(instruction, registerSet, translator);
 	}
 }

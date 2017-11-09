@@ -77,7 +77,7 @@ public final class L2Translator
 	 * Don't inline dispatch logic if there are more than this many possible
 	 * implementations at a call site.
 	 */
-	static final int maxPolymorphismToInlineDispatch = 5;
+	static final int maxPolymorphismToInlineDispatch = 10;
 
 	/**
 	 * Use a series of instance equality checks if we're doing type testing for

@@ -252,7 +252,8 @@ extends MapBinDescriptor
 			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
 				&& object.slot(BIN_SLOT_AT_, (i << 1) - 1).equals(key))
 			{
-				final A_BasicObject oldValue = object.slot(BIN_SLOT_AT_, i << 1);
+				final A_BasicObject oldValue =
+					object.slot(BIN_SLOT_AT_, i << 1);
 				if (oldValue.equals(value))
 				{
 					// The (key,value) pair is present.
@@ -293,7 +294,8 @@ extends MapBinDescriptor
 				}
 				newBin.setSlot(BIN_SLOT_AT_, i << 1, value);
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
-				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+				// The keys didn't change.
+//				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
 				newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 				check(newBin);
 				return newBin;
@@ -352,20 +354,27 @@ extends MapBinDescriptor
 		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash);
 		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 1, key);
 		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 2, value);
-		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
-		if (!oldKeyKind.equalsNil())
-		{
-			result.setSlot(
-				BIN_KEY_UNION_KIND_OR_NIL,
-				oldKeyKind.typeUnion(key.kind()));
-		}
-		final A_Type oldValueKind = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
-		if (!oldValueKind.equalsNil())
-		{
-			result.setSlot(
-				BIN_VALUE_UNION_KIND_OR_NIL,
-				oldValueKind.typeUnion(value.kind()));
-		}
+
+		// Clear the key/value kind fields.  We could be more precise, but that
+		// has a cost that's probably not worthwhile.
+		result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
+
+//		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
+//		if (!oldKeyKind.equalsNil())
+//		{
+//			result.setSlot(
+//				BIN_KEY_UNION_KIND_OR_NIL,
+//				oldKeyKind.typeUnion(key.kind()));
+//		}
+//		final A_Type oldValueKind = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
+//		if (!oldValueKind.equalsNil())
+//		{
+//			result.setSlot(
+//				BIN_VALUE_UNION_KIND_OR_NIL,
+//				oldValueKind.typeUnion(value.kind()));
+//		}
+
 		if (canDestroy && isMutable())
 		{
 			// Ensure destruction of the old object doesn't drag along anything

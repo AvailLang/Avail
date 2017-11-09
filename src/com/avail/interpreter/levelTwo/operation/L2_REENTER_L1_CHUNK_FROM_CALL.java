@@ -39,7 +39,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.utility.Nulls.stripNull;
@@ -69,10 +71,9 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		new L2_REENTER_L1_CHUNK_FROM_CALL().init();
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
-	throws ReifyStackThrowable
 	{
 		if (debugL1)
 		{
@@ -103,6 +104,7 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 				returnValue, expectedType, returneeFunction);
 		}
 		interpreter.pointerAtPut(stepper.stackp, returnValue);
+		return null;
 	}
 
 	@Override

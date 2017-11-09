@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -60,7 +63,7 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 			WRITE_INT.is("product"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -75,6 +78,7 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 		final int multiplicand = multiplicandReg.in(interpreter);
 		final long longResult = (long)multiplier * (long)multiplicand;
 		productReg.set((int)longResult, interpreter);
+		return null;
 	}
 
 	@Override

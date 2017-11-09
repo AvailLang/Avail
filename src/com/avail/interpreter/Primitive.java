@@ -55,7 +55,6 @@ import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
-import com.sun.org.apache.bcel.internal.classfile.Unknown;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -70,7 +69,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
@@ -196,25 +194,12 @@ implements IntegerEnumSlotDescriptionEnum
 		SwitchesContinuation,
 
 		/**
-		 * The primitive returns some constant. Currently this is only used for
-		 * {@link P_PushConstant}, which always returns the first literal of
-		 * the {@linkplain CompiledCodeDescriptor compiled code}.
+		 * The raw function has a particular form that qualifies it as a special
+		 * primitive, such as immediately returning a constant or argument.  The
+		 * raw function won't be displayed as a primitive, but it will execute
+		 * and be inlineable as one.
 		 */
-		SpecialReturnConstant,
-
-		/**
-		 * The primitive returns the only argument.  This is only used for
-		 * {@link P_PushArgument}, which is detected automatically at code
-		 * generation time.
-		 */
-		SpecialReturnSoleArgument,
-
-		/**
-		 * The primitive returns the value of some global variable.  This is
-		 * only used for {@link P_GetGlobalVariableValue}, which is detected
-		 * automatically at code generation time.
-		 */
-		SpecialReturnGlobalValue,
+		SpecialForm,
 
 		/**
 		 * The primitive cannot fail. Hence, there is no need for Avail code
@@ -815,11 +800,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public boolean canHaveNybblecodes ()
 	{
-		return
-			!hasFlag(CannotFail)
-				|| hasFlag(Flag.SpecialReturnConstant)
-				|| hasFlag(Flag.SpecialReturnSoleArgument)
-				|| hasFlag(Flag.SpecialReturnGlobalValue);
+		return !hasFlag(CannotFail) || hasFlag(Flag.SpecialForm);
 	}
 
 	/**

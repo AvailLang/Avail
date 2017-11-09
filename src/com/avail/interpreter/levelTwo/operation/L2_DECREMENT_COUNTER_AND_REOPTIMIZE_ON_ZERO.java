@@ -38,10 +38,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
-import com.avail.utility.Mutable;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.utility.Nulls.stripNull;
@@ -64,7 +64,7 @@ extends L2Operation
 			IMMEDIATE.is("New optimization level"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int targetOptimizationLevel = instruction.immediateAt(0);
@@ -84,6 +84,7 @@ extends L2Operation
 				interpreter.chunk = chunk;
 				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
 			});
+			return null;
 		};
 	}
 

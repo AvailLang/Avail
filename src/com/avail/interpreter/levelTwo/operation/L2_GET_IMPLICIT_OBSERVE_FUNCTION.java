@@ -40,6 +40,9 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -67,7 +70,7 @@ extends L2Operation
 			WRITE_POINTER.is("implicit observe function"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -76,6 +79,7 @@ extends L2Operation
 		destination.set(
 			interpreter.runtime().implicitObserveFunction(),
 			interpreter);
+		return null;
 	}
 
 	@Override

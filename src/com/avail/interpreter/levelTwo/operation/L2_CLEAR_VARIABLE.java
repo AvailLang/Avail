@@ -38,6 +38,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.VariableTypeDescriptor
 	.mostGeneralVariableType;
@@ -56,13 +59,14 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 			READ_POINTER.is("variable"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
 		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
 		variableReg.in(interpreter).clearValue();
+		return null;
 	}
 
 	@Override

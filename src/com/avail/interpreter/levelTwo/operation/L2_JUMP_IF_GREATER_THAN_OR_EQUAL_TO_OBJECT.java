@@ -37,6 +37,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
@@ -59,7 +62,7 @@ public class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT extends L2Operation
 			READ_POINTER.is("second value"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -75,6 +78,7 @@ public class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT extends L2Operation
 		{
 			interpreter.offset(target);
 		}
+		return null;
 	}
 
 	@Override

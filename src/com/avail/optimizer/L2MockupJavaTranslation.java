@@ -35,7 +35,8 @@ package com.avail.optimizer;
 import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * This is a mockup subclass of {@link L2JavaTranslation}, used only as a proof
@@ -52,10 +53,9 @@ public final class L2MockupJavaTranslation extends L2JavaTranslation
 	private final L2Chunk chunk;
 
 	@Override
-	void startOrResume (
+	@Nullable StackReifier startOrResume (
 		final Interpreter interpreter,
 		final @Nullable A_Continuation thisContinuation)
-	throws ReifyStackThrowable
 	{
 		//TODO MvG - Implement before L2->JVM translation.
 		throw new UnsupportedOperationException("Not yet implemented");

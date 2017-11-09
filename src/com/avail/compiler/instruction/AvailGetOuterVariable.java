@@ -36,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -94,17 +95,17 @@ public class AvailGetOuterVariable extends AvailGetVariable
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData,
-			final List<AvailVariableAccessNote> outerData,
-			final AvailCodeGenerator codeGenerator)
+		final List<AvailVariableAccessNote> localData,
+		final List<AvailVariableAccessNote> outerData,
+		final AvailCodeGenerator codeGenerator)
 	{
-		AvailVariableAccessNote note = outerData.get(index - 1);
+		@Nullable AvailVariableAccessNote note = outerData.get(index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
 			outerData.set(index - 1, note);
 		}
-		final AvailGetVariable previousGet = note.previousGet();
+		final @Nullable AvailGetVariable previousGet = note.previousGet();
 		if (previousGet != null)
 		{
 			previousGet.canClear(false);
@@ -112,7 +113,7 @@ public class AvailGetOuterVariable extends AvailGetVariable
 		canClear(true);
 		//  Until indicated otherwise by a later instruction
 		note.previousGet(this);
-		final AvailPushVariable previousPush = note.previousPush();
+		final @Nullable AvailPushVariable previousPush = note.previousPush();
 		if (previousPush != null)
 		{
 			previousPush.isLastAccess(false);

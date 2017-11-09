@@ -42,14 +42,12 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.utility.Strings;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,16 +119,16 @@ public final class L2Instruction
 
 	/**
 	 * Each {@link L2Operation} is responsible for generating this {@link
-	 * Continuation1NotNullThrowsReification<Interpreter>} as an action to
-	 * directly invoke to accomplish the effect of this instruction.  This
-	 * interim measure helps alleviate some of the runtime instruction decoding
-	 * cost, until we're able to generate JVM instructions directly.
+	 * Transformer1NotNullArg} as an action to directly invoke to accomplish the
+	 * effect of this instruction.  This interim measure helps alleviate some of
+	 * the runtime instruction decoding cost, until we're able to generate JVM
+	 * instructions directly.
 	 *
 	 * <p>Note that we have to wait until code generation of an {@link L2Chunk}
 	 * has completed before being able to set this action meaningfully, since
 	 * the point of it is to cache register numbering and target offsets.</p>
 	 */
-	public Continuation1NotNullThrowsReification<Interpreter> action;
+	public Transformer1NotNullArg<Interpreter, StackReifier> action;
 
 	/**
 	 * Construct a new {@code L2Instruction}.
@@ -170,10 +168,11 @@ public final class L2Instruction
 		action = uninitializedAction;
 	}
 
-	private static final Continuation1NotNullThrowsReification<Interpreter>
+	private static final Transformer1NotNullArg<Interpreter, StackReifier>
 		uninitializedAction = interpreter ->
 		{
 			assert false : "Instruction has not had its action initialized yet";
+			return null;
 		};
 
 	/**

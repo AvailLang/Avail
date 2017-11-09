@@ -35,7 +35,8 @@ package com.avail.optimizer;
 import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * This class represents a translation of a level two continuation into
@@ -60,20 +61,19 @@ public abstract class L2JavaTranslation
 	 * <p>In the majority of circumstances, this Java method will only return
 	 * when the corresponding Avail function has completed.  However, to support
 	 * some of Avail's more powerful features like backtracking, exceptions,
-	 * very deep stacks, and stackless context switching, we may instead throw a
-	 * {@link ReifyStackThrowable}.  During the unwinding of this throwable,
-	 * all unreified frames still on the Java stack will be converted to mutable
-	 * level one {@link A_Continuation}s, which will subsequently be linked
-	 * together in the correct order by the {@link Interpreter}'s outermost
-	 * handler.
+	 * very deep stacks, and stackless context switching, we may instead return
+	 * a {@link StackReifier}.  During this "unwinding", all unreified frames
+	 * still on the Java stack will be converted to mutable level one {@link
+	 * A_Continuation}s, which will subsequently be linked together in the
+	 * orrect order by the {@link Interpreter}'s outermost run loop.
 	 *
 	 * @param thisContinuation
 	 *        Either {@code null} in the case that this is an initial call, or
 	 *        else the {@link A_Continuation} to resume.
-	 * @throws ReifyStackThrowable If the stack needs to be reified.
+	 * @return StackReifier If the stack needs to be reified.
 	 */
-	abstract void startOrResume (
+	abstract @Nullable
+	StackReifier startOrResume (
 		final Interpreter interpreter,
-		final @Nullable A_Continuation thisContinuation)
-	throws ReifyStackThrowable;
+		final @Nullable A_Continuation thisContinuation);
 }

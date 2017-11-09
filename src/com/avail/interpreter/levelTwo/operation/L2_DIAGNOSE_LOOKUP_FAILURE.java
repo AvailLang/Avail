@@ -40,6 +40,9 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -67,7 +70,7 @@ extends L2Operation
 			WRITE_POINTER.is("error code"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -77,13 +80,13 @@ extends L2Operation
 		if (definitions.setSize() == 0)
 		{
 			errorCodeReg.set(E_NO_METHOD_DEFINITION.numericCode(), interpreter);
-			return;
+			return null;
 		}
 		if (definitions.setSize() > 1)
 		{
 			errorCodeReg.set(
 				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(), interpreter);
-			return;
+			return null;
 		}
 		final A_Definition definition = definitions.iterator().next();
 		if (definition.isAbstractDefinition())
@@ -96,6 +99,7 @@ extends L2Operation
 			errorCodeReg.set(
 				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
 		}
+		return null;
 	}
 
 	@Override

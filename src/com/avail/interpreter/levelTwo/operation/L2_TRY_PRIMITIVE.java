@@ -42,9 +42,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -68,10 +68,9 @@ extends L2Operation
 		new L2_TRY_PRIMITIVE().init();
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
-	throws ReifyStackThrowable
 	{
 		final A_Function function = stripNull(interpreter.function);
 		final @Nullable Primitive primitive = function.code().primitive();
@@ -83,7 +82,7 @@ extends L2Operation
 				System.out.println(
 					interpreter.debugModeString + "          (no prim)");
 			}
-			return;
+			return null;
 		}
 
 		if (primitive.hasFlag(CanInline))
@@ -104,7 +103,7 @@ extends L2Operation
 					interpreter.function = null;
 					interpreter.returnNow = true;
 					interpreter.returningFunction = function;
-					return;
+					return null;
 				}
 				case FAILURE:
 				{
@@ -112,7 +111,7 @@ extends L2Operation
 					// will set up the frame, including capturing it in a local.
 					interpreter.function = function;
 					interpreter.returnNow = false;
-					return;
+					return null;
 				}
 				case READY_TO_INVOKE:
 				{
@@ -127,21 +126,22 @@ extends L2Operation
 					final int savedOffset = interpreter.offset;
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
-					try
-					{
+					final @Nullable StackReifier reifier =
 						interpreter.invokeFunction(interpreter.function);
-					}
-					finally
+
+					interpreter.function = function;
+					interpreter.chunk = savedChunk;
+					interpreter.offset = savedOffset;
+					interpreter.pointers = savedPointers;
+					interpreter.integers = savedInts;
+					if (reifier != null)
 					{
-						interpreter.function = function;
-						interpreter.chunk = savedChunk;
-						interpreter.offset = savedOffset;
-						interpreter.pointers = savedPointers;
-						interpreter.integers = savedInts;
+						return reifier;
 					}
+
 					interpreter.returnNow = true;
 					interpreter.returningFunction = function;
-					return;
+					return null;
 				}
 				case CONTINUATION_CHANGED:
 				{
@@ -158,7 +158,7 @@ extends L2Operation
 					final boolean newReturnNow = interpreter.returnNow;
 					final @Nullable AvailObject newReturnValue =
 						newReturnNow ? interpreter.latestResult() : null;
-					throw interpreter.abandonStackThen(() ->
+					return interpreter.abandonStackThen(() ->
 					{
 						interpreter.reifiedContinuation = newContinuation;
 						interpreter.function = newFunction;
@@ -189,7 +189,7 @@ extends L2Operation
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
 
-		throw interpreter.reifyThen(() ->
+		return interpreter.reifyThen(() ->
 		{
 			interpreter.chunk = savedChunk;
 			interpreter.offset = savedOffset;

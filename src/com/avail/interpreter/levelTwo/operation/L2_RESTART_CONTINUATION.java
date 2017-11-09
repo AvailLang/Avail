@@ -42,7 +42,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
@@ -66,7 +68,7 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 			READ_POINTER.is("continuation to restart"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -102,6 +104,7 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 		interpreter.offset = continuation.levelTwoOffset();
 		interpreter.returnNow = false;
 		interpreter.latestResult(null);
+		return null;
 	}
 
 	@Override

@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -64,7 +67,7 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 			PC.is("success"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -81,7 +84,7 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 		if (divisor == 0)
 		{
 			interpreter.offset(zeroDivisorIndex);
-			return;
+			return null;
 		}
 		final long dividend = dividendReg.in(interpreter);
 		final long quotient;
@@ -111,6 +114,7 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 		{
 			interpreter.offset(outOfRangeIndex);
 		}
+		return null;
 	}
 
 	@Override

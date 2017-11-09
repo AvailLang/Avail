@@ -124,7 +124,7 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		final A_Fiber fiber = currentFiber();
+		final A_Fiber fiber = stripNull((A_Fiber) attachment);
 		runtime.executeFileTask(
 			AvailTask.forUnboundFiber(
 				fiber,

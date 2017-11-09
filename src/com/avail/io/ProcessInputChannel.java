@@ -50,6 +50,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -95,7 +96,7 @@ implements TextInputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		final A_Fiber fiber = (A_Fiber) attachment;
+		final A_Fiber fiber = stripNull((A_Fiber) attachment);
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,
 			() ->

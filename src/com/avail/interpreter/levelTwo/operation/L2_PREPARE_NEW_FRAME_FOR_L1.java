@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 
@@ -81,10 +81,9 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 	static final int[] emptyIntArray = new int[0];
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
-	throws ReifyStackThrowable
 	{
 		assert !interpreter.exitNow;
 		final A_Function function = stripNull(interpreter.function);
@@ -154,7 +153,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 				continuation.argOrLocalOrStackAtPut(
 					i, interpreter.pointerAt(i));
 			}
-			throw interpreter.reifyThen(() ->
+			return interpreter.reifyThen(() ->
 			{
 				// Push the continuation from above onto the reified stack.
 				interpreter.reifiedContinuation = continuation.replacingCaller(
@@ -162,6 +161,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 				interpreter.processInterrupt(interpreter.reifiedContinuation);
 			});
 		}
+		return null;
 	}
 
 	@Override

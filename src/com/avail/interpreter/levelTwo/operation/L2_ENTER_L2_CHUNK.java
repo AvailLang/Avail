@@ -34,11 +34,11 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.utility.Nulls.stripNull;
@@ -58,7 +58,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			IMMEDIATE.is("entry point offset in default chunk"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -79,6 +79,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			interpreter.pointers = Interpreter.emptyPointersArray;
 			interpreter.integers = Interpreter.emptyIntArray;
 		}
+		return null;
 	}
 
 	@Override

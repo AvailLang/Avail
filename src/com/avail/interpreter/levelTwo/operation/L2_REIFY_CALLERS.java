@@ -39,13 +39,15 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
- * Throw a {@link ReifyStackThrowable}, which unwinds the Java stack to the
+ * Throw a {@link StackReifier}, which unwinds the Java stack to the
  * outer {@link Interpreter} loop.  Any {@link L2Chunk}s that are active on the
  * stack will catch this throwable, reify an {@link A_Continuation} representing
  * the chunk's suspended state, add this to a list inside the throwable, then
@@ -71,10 +73,9 @@ public class L2_REIFY_CALLERS extends L2Operation
 			IMMEDIATE.is("capture frames"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
-	throws ReifyStackThrowable
 	{
 		final boolean actuallyReify = instruction.immediateAt(0) != 0;
 
@@ -93,7 +94,7 @@ public class L2_REIFY_CALLERS extends L2Operation
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
 
-		throw new ReifyStackThrowable(
+		return new StackReifier(
 			() ->
 			{
 				interpreter.function = savedFunction;

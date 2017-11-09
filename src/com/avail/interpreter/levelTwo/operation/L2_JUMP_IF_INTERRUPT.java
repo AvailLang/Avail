@@ -34,9 +34,10 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 			PC.is("if not interrupt"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
@@ -68,6 +69,7 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 			interpreter.offset(interpreter.isInterruptRequested()
 				? offsetIfInterrupt
 				: offsetIfNotInterrupt);
+			return null;
 		};
 	}
 

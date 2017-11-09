@@ -42,9 +42,10 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
-import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.optimizer.StackReifier;
 import com.avail.utility.IndexedGenerator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -183,14 +184,16 @@ public final class L1InstructionStepper
 
 	/**
 	 * Run the current code until it reaches the end.  Individual instructions,
-	 * such as calls, may be subject to {@link ReifyStackThrowable}, which
+	 * such as calls, may be subject to {@link StackReifier reification}, which
 	 * should cause a suitable {@link A_Continuation} to be reified.  In
-	 * addition, inter-nybblecode interrupts may also signal reification, but
-	 * provide a {@link ReifyStackThrowable#postReificationAction()} that
-	 * handles the interrupt.
+	 * addition, inter-nybblecode interrupts may also trigger reification, but
+	 * they'll handle their own reification prior to returning here with a
+	 * suitable {@link StackReifier} (to update and return again from here).
+	 *
+	 * @return {@code null} if the current function returns normally, otherwise
+	 *         a {@link StackReifier} with which to reify the stack.
 	 */
-	public void run ()
-	throws ReifyStackThrowable
+	public @Nullable StackReifier run ()
 	{
 		final A_Function function = stripNull(interpreter.function);
 		final A_RawFunction code = function.code();
@@ -260,7 +263,7 @@ public final class L1InstructionStepper
 					}
 					catch (final MethodDefinitionException e)
 					{
-						throw reifyAndReportFailedLookup(method, e.errorCode());
+						return reifyAndReportFailedLookup(method, e.errorCode());
 					}
 					finally
 					{
@@ -270,7 +273,12 @@ public final class L1InstructionStepper
 							interpreter.interpreterIndex);
 					}
 
-					callMethodAfterLookup(matching);
+					final @Nullable StackReifier reifier =
+						callMethodAfterLookup(matching);
+					if (reifier != null)
+					{
+						return reifier;
+					}
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
@@ -351,13 +359,23 @@ public final class L1InstructionStepper
 				}
 				case L1_doSetLocal:
 				{
-					setVariable(pointerAt(getInteger()), pop());
+					final @Nullable StackReifier reifier =
+						setVariable(pointerAt(getInteger()), pop());
+					if (reifier != null)
+					{
+						return reifier;
+					}
 					break;
 				}
 				case L1_doGetLocalClearing:
 				{
 					final A_Variable localVariable = pointerAt(getInteger());
-					final AvailObject value = getVariable(localVariable);
+					final Object valueOrReifier = getVariable(localVariable);
+					if (valueOrReifier instanceof StackReifier)
+					{
+						return (StackReifier) valueOrReifier;
+					}
+					final AvailObject value = (AvailObject) valueOrReifier;
 					if (localVariable.traversed().descriptor().isMutable())
 					{
 						localVariable.clearValue();
@@ -385,7 +403,12 @@ public final class L1InstructionStepper
 				{
 					final A_Variable outerVariable =
 						function.outerVarAt(getInteger());
-					final AvailObject value = getVariable(outerVariable);
+					final Object valueOrReifier = getVariable(outerVariable);
+					if (valueOrReifier instanceof StackReifier)
+					{
+						return (StackReifier) valueOrReifier;
+					}
+					final AvailObject value = (AvailObject) valueOrReifier;
 					if (outerVariable.traversed().descriptor().isMutable())
 					{
 						outerVariable.clearValue();
@@ -399,12 +422,24 @@ public final class L1InstructionStepper
 				}
 				case L1_doSetOuter:
 				{
-					setVariable(function.outerVarAt(getInteger()), pop());
+					final @Nullable StackReifier reifier =
+						setVariable(function.outerVarAt(getInteger()), pop());
+					if (reifier != null)
+					{
+						return reifier;
+					}
 					break;
 				}
 				case L1_doGetLocal:
 				{
-					push(getVariable(pointerAt(getInteger())).makeImmutable());
+					final Object valueOrReifier =
+						getVariable(pointerAt(getInteger()));
+					if (valueOrReifier instanceof StackReifier)
+					{
+						return (StackReifier) valueOrReifier;
+					}
+					final AvailObject value = (AvailObject) valueOrReifier;
+					push(value.makeImmutable());
 					break;
 				}
 				case L1_doMakeTuple:
@@ -414,9 +449,14 @@ public final class L1InstructionStepper
 				}
 				case L1_doGetOuter:
 				{
-					final A_Variable outerVariable =
-						function.outerVarAt(getInteger());
-					push(getVariable(outerVariable).makeImmutable());
+					final Object valueOrReifier =
+						getVariable(function.outerVarAt(getInteger()));
+					if (valueOrReifier instanceof StackReifier)
+					{
+						return (StackReifier) valueOrReifier;
+					}
+					final AvailObject value = (AvailObject) valueOrReifier;
+					push(value.makeImmutable());
 					break;
 				}
 				case L1_doExtension:
@@ -445,7 +485,7 @@ public final class L1InstructionStepper
 					final int savedPc = pc;
 					final int savedStackp = stackp;
 
-					throw interpreter.reifyThen(
+					return interpreter.reifyThen(
 						() ->
 						{
 							// The Java stack has been reified into Avail
@@ -492,9 +532,14 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doGetLiteral:
 				{
-					push(
-						getVariable(code.literalAt(getInteger()))
-							.makeImmutable());
+					final Object valueOrReifier =
+						getVariable(code.literalAt(getInteger()));
+					if (valueOrReifier instanceof StackReifier)
+					{
+						return (StackReifier) valueOrReifier;
+					}
+					final AvailObject value = (AvailObject) valueOrReifier;
+					push(value.makeImmutable());
 					break;
 				}
 				case L1Ext_doSetLiteral:
@@ -567,7 +612,8 @@ public final class L1InstructionStepper
 					}
 					catch (final MethodDefinitionException e)
 					{
-						throw reifyAndReportFailedLookup(method, e.errorCode());
+						return reifyAndReportFailedLookup(
+							method, e.errorCode());
 					}
 					finally
 					{
@@ -577,7 +623,12 @@ public final class L1InstructionStepper
 							interpreter.interpreterIndex);
 					}
 
-					callMethodAfterLookup(matching);
+					final @Nullable StackReifier reifier =
+						callMethodAfterLookup(matching);
+					if (reifier != null)
+					{
+						return reifier;
+					}
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
@@ -615,6 +666,7 @@ public final class L1InstructionStepper
 		{
 			System.out.println("L1 return");
 		}
+		return null;
 	}
 
 	/**
@@ -624,12 +676,10 @@ public final class L1InstructionStepper
 	 *
 	 * @param variable
 	 *        The variable to read.
-	 * @return The value of the variable, if it's assigned.
-	 * @throws ReifyStackThrowable
-	 *         If the variable was unassigned.
+	 * @return A {@link StackReifier} if the variable was unassigned, otherwise
+	 *         the {@link AvailObject} that's the current value of the variable.
 	 */
-	private AvailObject getVariable (final A_Variable variable)
-	throws ReifyStackThrowable
+	private Object getVariable (final A_Variable variable)
 	{
 		try
 		{
@@ -641,7 +691,7 @@ public final class L1InstructionStepper
 			// to "return" a value in place of the variable read, the reified
 			// continuation should push the expected type before calling the
 			// handler.  We can probably avoid or postpone reification as well.
-			throw interpreter.reifyThenCall0(
+			return interpreter.reifyThenCall0(
 				interpreter.runtime().unassignedVariableReadFunction(),
 				true);
 		}
@@ -655,13 +705,12 @@ public final class L1InstructionStepper
 	 *        The variable to update.
 	 * @param value
 	 *        The type-safe value to write to the variable.
-	 * @throws ReifyStackThrowable
-	 *         If an observed variable is assigned while tracing is off.
+	 * @return A {@link StackReifier} to reify the stack if an observed variable
+	 *         is assigned while tracing is off, otherwise null.
 	 */
-	private void setVariable (
+	private @Nullable StackReifier setVariable (
 		final A_Variable variable,
 		final AvailObject value)
-	throws ReifyStackThrowable
 	{
 		try
 		{
@@ -687,11 +736,9 @@ public final class L1InstructionStepper
 			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
 			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
 			interpreter.skipReturnCheck = true;
-			try
-			{
+			final @Nullable StackReifier reifier =
 				interpreter.invokeFunction(implicitObserveFunction);
-			}
-			catch (final ReifyStackThrowable reifier)
+			if (reifier != null)
 			{
 				if (reifier.actuallyReify())
 				{
@@ -710,21 +757,19 @@ public final class L1InstructionStepper
 						i <= limit;
 						i++)
 					{
-						continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+						continuation
+							.argOrLocalOrStackAtPut(i, pointerAt(i));
 					}
 					if (Interpreter.debugL2)
 					{
 						System.out.println(
 							interpreter.debugModeString
 								+ "Push reified continuation (for L1 setVar failure): "
-								+ continuation.function().code().methodName());
+								+ continuation.function().code()
+								.methodName());
 					}
 					reifier.pushContinuation(continuation);
 				}
-				throw reifier;
-			}
-			finally
-			{
 				interpreter.integers = savedInts;
 				interpreter.pointers = savedPointers;
 				interpreter.chunk = unoptimizedChunk();
@@ -733,8 +778,10 @@ public final class L1InstructionStepper
 				nybbles = savedNybbles;
 				pc = savedPc;
 				stackp = savedStackp;
+				return reifier;
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -742,21 +789,23 @@ public final class L1InstructionStepper
 	 * its body function.  If reification is requested, construct a suitable
 	 * continuation for the current frame on the way out.
 	 *
-	 * @param matching The {@link A_Definition} that was already looked up.
-	 * @throws ReifyStackThrowable
+	 * @param matching
+	 *        The {@link A_Definition} that was already looked up.
+	 * @return Either {@code null} to indicate successful return from the called
+	 *         function, or a {@link StackReifier} to indicate reification is in
+	 *         progress.
 	 */
-	private void callMethodAfterLookup (
+	private @Nullable StackReifier callMethodAfterLookup (
 		final A_Definition matching)
-	throws ReifyStackThrowable
 	{
 		if (matching.isForwardDefinition())
 		{
-			throw reifyAndReportFailedLookup(
+			return reifyAndReportFailedLookup(
 				matching.definitionMethod(), E_FORWARD_METHOD_DEFINITION);
 		}
 		if (matching.isAbstractDefinition())
 		{
-			throw reifyAndReportFailedLookup(
+			return reifyAndReportFailedLookup(
 				matching.definitionMethod(), E_ABSTRACT_METHOD_DEFINITION);
 		}
 		// At this point, the frame information is still the same,
@@ -773,52 +822,53 @@ public final class L1InstructionStepper
 		final int savedStackp = stackp;
 
 		final A_Function functionToInvoke = matching.bodyBlock();
+		final @Nullable StackReifier reifier =
+			interpreter.invokeFunction(functionToInvoke);
 		try
 		{
-			interpreter.invokeFunction(functionToInvoke);
-		}
-		catch (final ReifyStackThrowable reifier)
-		{
-			if (Interpreter.debugL2)
+			if (reifier != null)
 			{
-				System.out.println(
-					interpreter.debugModeString
-					+ "Reifying call from L1 ("
-					+ reifier.actuallyReify()
-					+ ")");
-			}
-			if (reifier.actuallyReify())
-			{
-				// At some point during the call, reification was
-				// requested.  Add this frame and rethrow.
-				interpreter.pointers = savedPointers;
-				interpreter.integers = savedInts;
-				final A_Continuation continuation =
-					createContinuationExceptFrame(
-						savedFunction,
-						nil,
-						savedPc,
-						savedStackp,
-						false,
-						unoptimizedChunk(),
-						TO_RETURN_INTO.offsetInDefaultChunk);
-				for (
-					int i = savedFunction.code().numArgsAndLocalsAndStack();
-					i >= 1;
-					i--)
-				{
-					continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
-				}
 				if (Interpreter.debugL2)
 				{
 					System.out.println(
 						interpreter.debugModeString
-							+ "Push reified continuation (for L1): "
-							+ continuation.function().code().methodName());
+							+ "Reifying call from L1 ("
+							+ reifier.actuallyReify()
+							+ ")");
 				}
-				reifier.pushContinuation(continuation);
+				if (reifier.actuallyReify())
+				{
+					// At some point during the call, reification was
+					// requested.  Add this frame and rethrow.
+					interpreter.pointers = savedPointers;
+					interpreter.integers = savedInts;
+					final A_Continuation continuation =
+						createContinuationExceptFrame(
+							savedFunction,
+							nil,
+							savedPc,
+							savedStackp,
+							false,
+							unoptimizedChunk(),
+							TO_RETURN_INTO.offsetInDefaultChunk);
+					for (
+						int i = savedFunction.code().numArgsAndLocalsAndStack();
+						i >= 1;
+						i--)
+					{
+						continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+					}
+					if (Interpreter.debugL2)
+					{
+						System.out.println(
+							interpreter.debugModeString
+								+ "Push reified continuation (for L1): "
+								+ continuation.function().code().methodName());
+					}
+					reifier.pushContinuation(continuation);
+				}
+				return reifier;
 			}
-			throw reifier;
 		}
 		finally
 		{
@@ -831,10 +881,12 @@ public final class L1InstructionStepper
 			pc = savedPc;
 			stackp = savedStackp;
 		}
+		// Regular return.
+		return null;
 	}
 
 	/**
-	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * Return a {@link StackReifier} to reify the Java stack into {@link
 	 * A_Continuation}s, then invoke the {@link
 	 * AvailRuntime#invalidMessageSendFunction()} with appropriate arguments.
 	 * An {@link AvailErrorCode} is also provided to indicate what the lookup
@@ -844,19 +896,13 @@ public final class L1InstructionStepper
 	 *        The method that failed lookup.
 	 * @param errorCode
 	 *        The {@link AvailErrorCode} indicating the lookup problem.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable Always, to cause reification.
+	 * @return A {@link StackReifier} to cause reification.
 	 */
-	private ReifyStackThrowable reifyAndReportFailedLookup (
+	private StackReifier reifyAndReportFailedLookup (
 		final A_Method method,
 		final AvailErrorCode errorCode)
-	throws ReifyStackThrowable
 	{
-		throw interpreter.reifyThenCall3(
+		return interpreter.reifyThenCall3(
 			interpreter.runtime().invalidMessageSendFunction(),
 			true,
 			errorCode.numericCode(),

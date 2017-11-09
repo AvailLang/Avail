@@ -37,7 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class L2_GET_ARGUMENTS extends L2Operation
 			WRITE_VECTOR.is("arguments"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final List<L2WritePointerOperand> argumentRegs =
@@ -80,6 +81,7 @@ public class L2_GET_ARGUMENTS extends L2Operation
 				interpreter.pointerAtPut(
 					argumentRegNumbers[i], arguments.get(i));
 			}
+			return null;
 		};
 	}
 }

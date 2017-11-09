@@ -41,6 +41,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
@@ -61,7 +64,7 @@ public class L2_CREATE_VARIABLE extends L2Operation
 			WRITE_POINTER.is("variable"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -71,6 +74,7 @@ public class L2_CREATE_VARIABLE extends L2Operation
 
 		final A_Variable newVar = newVariableWithOuterType(outerType);
 		destReg.set(newVar, interpreter);
+		return null;
 	}
 
 	@Override

@@ -37,7 +37,8 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -58,7 +59,7 @@ public class L2_GET_VARIABLE extends L2Operation
 			PC.is("read failed"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final int variableRegIndex =
@@ -81,6 +82,7 @@ public class L2_GET_VARIABLE extends L2Operation
 			{
 				interpreter.offset(failureIndex);
 			}
+			return null;
 		};
 	}
 

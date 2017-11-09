@@ -36,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -46,7 +47,6 @@ import java.util.List;
  */
 public class AvailPushLocalVariable extends AvailPushVariable
 {
-
 	/**
 	 * Construct a new {@link AvailPushLocalVariable}.
 	 *
@@ -74,7 +74,6 @@ public class AvailPushLocalVariable extends AvailPushVariable
 		writeIntegerOn(index, aStream);
 	}
 
-
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
@@ -95,11 +94,11 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData,
-			final List<AvailVariableAccessNote> outerData,
-			final AvailCodeGenerator codeGenerator)
+		final List<AvailVariableAccessNote> localData,
+		final List<AvailVariableAccessNote> outerData,
+		final AvailCodeGenerator codeGenerator)
 	{
-		AvailVariableAccessNote note = localData.get(index - 1);
+		@Nullable AvailVariableAccessNote note = localData.get(index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
@@ -107,7 +106,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 		}
 		// If there was a push before this one, set its isLastAccess to false,
 		// as the receiver is clearly a later use.
-		final AvailPushVariable previousPush = note.previousPush();
+		final @Nullable AvailPushVariable previousPush = note.previousPush();
 		if (previousPush != null)
 		{
 			previousPush.isLastAccess(false);
@@ -115,14 +114,13 @@ public class AvailPushLocalVariable extends AvailPushVariable
 		isLastAccess(true);
 		// If there was a get before this push, make sure its canClear flag is
 		// false (the variable escapes).
-		final AvailGetVariable previousGet = note.previousGet();
+		final @Nullable AvailGetVariable previousGet = note.previousGet();
 		if (previousGet != null)
 		{
 			previousGet.canClear(false);
 		}
 		note.previousPush(this);
 	}
-
 
 	@Override
 	public boolean isLocalUse ()

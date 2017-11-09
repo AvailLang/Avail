@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -69,7 +70,7 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 			PC.is("not subtype"));
 
 	@Override
-	public void step (
+	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
@@ -83,6 +84,7 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 			typeReg.in(interpreter).isSubtypeOf(constantType)
 				? isSubtypeIndex
 				: notSubtypeIndex);
+		return null;
 	}
 
 	@Override

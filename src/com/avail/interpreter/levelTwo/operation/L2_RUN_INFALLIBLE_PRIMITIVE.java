@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -43,12 +42,12 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
@@ -81,7 +80,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
@@ -132,6 +131,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			{
 				assert res == CONTINUATION_CHANGED;
 			}
+			return null;
 		};
 	}
 
