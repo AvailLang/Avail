@@ -11,7 +11,6 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" relativeOutputPath="resources" />
       <excludeFolder url="file://$MODULE_DIR$/distro/Apps" />
     </content>
-    <content url="file://$MODULE_DIR$/../../blink" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="module-library" exported="">
