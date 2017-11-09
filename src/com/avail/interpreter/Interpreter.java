@@ -1766,7 +1766,7 @@ public final class Interpreter
 	 * Immediately throw a {@link StackReifier}.  Various Java stack
 	 * frames will catch and rethrow it, accumulating reified {@link
 	 * A_Continuation}s along the way.  The outer interpreter loop should catch
-	 * this, then run the provided {@link Continuation0ThrowsReification}.
+	 * this, then run the provided {@link Continuation0}.
 	 *
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
