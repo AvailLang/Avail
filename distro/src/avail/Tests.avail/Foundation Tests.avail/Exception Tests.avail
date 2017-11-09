@@ -400,6 +400,7 @@ Test "two intercepts, unwind (mismatched intercept)" in exception test suite is
 Test "bad intercept, unwind" in exception test suite is
 [
 	ensured : boolean := false;
+	ensured2 : boolean := false;
 	Guard
 	[
 		Guard
@@ -420,7 +421,10 @@ Test "bad intercept, unwind" in exception test suite is
 	ensure
 	[
 		Require: ensured;
+		ensured2 := true;
 	];
+	Require: ensured;
+	Require: ensured2;
 ]
 must raise subscript-out-of-bounds exception;
 
