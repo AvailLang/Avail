@@ -49,6 +49,7 @@ import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 
 /**
@@ -71,7 +72,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_RaiseException().init(
-			1, SwitchesContinuation);
+			1, CanSuspend, SwitchesContinuation);
 
 	@Override
 	public Result attempt (

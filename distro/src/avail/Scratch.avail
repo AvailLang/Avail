@@ -33,9 +33,31 @@
 Module "Scratch"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Uses "Avail"
+Extends "Avail"
 Names
+Entries "Crazy"
 Body
+
+Method "Crazy" is
+[
+	Guard
+	[
+		Breakpoint;
+	]
+	intercept
+	[
+		e : exception
+	|
+		Print: “e”;
+		Breakpoint;
+	]
+	ensure
+	[
+	];
+];
+
+Crazy;
+
 
 Method "Cheese_" is
 [

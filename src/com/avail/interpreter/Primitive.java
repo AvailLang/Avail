@@ -170,6 +170,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * A primitive must have this flag if it might suspend the current
 		 * fiber.  The L2 invocation machinery ensures the Java stack has been
 		 * reified into a continuation chain <em>prior</em> to invoking the
+		 * primitive.
 		 */
 		CanSuspend,
 

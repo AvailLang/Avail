@@ -47,6 +47,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
@@ -64,7 +65,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_MarkNearestCatch().init(
-			1, Unknown);
+			1, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (
