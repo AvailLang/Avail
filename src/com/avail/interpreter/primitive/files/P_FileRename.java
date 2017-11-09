@@ -139,67 +139,63 @@ extends Primitive
 		fail.makeShared();
 
 		final boolean replace = replaceExisting.extractBoolean();
-		runtime.executeFileTask(new AvailTask(priorityInt)
+		runtime.executeFileTask(() ->
 		{
-			@Override
-			public void value ()
+			final List<CopyOption> options = new ArrayList<>();
+			if (replace)
 			{
-				final List<CopyOption> options = new ArrayList<>();
-				if (replace)
-				{
-					options.add(StandardCopyOption.REPLACE_EXISTING);
-				}
-				try
-				{
-					Files.move(
-						sourcePath,
-						destinationPath,
-						options.toArray(new CopyOption[options.size()]));
-				}
-				catch (final SecurityException|AccessDeniedException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_PERMISSION_DENIED.numericCode()));
-					return;
-				}
-				catch (final NoSuchFileException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(E_NO_FILE.numericCode()));
-					return;
-				}
-				catch (final FileAlreadyExistsException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_FILE_EXISTS.numericCode()));
-					return;
-				}
-				catch (final IOException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(E_IO_ERROR.numericCode()));
-					return;
-				}
+				options.add(StandardCopyOption.REPLACE_EXISTING);
+			}
+			try
+			{
+				Files.move(
+					sourcePath,
+					destinationPath,
+					options.toArray(new CopyOption[options.size()]));
+			}
+			catch (final SecurityException|AccessDeniedException e)
+			{
 				Interpreter.runOutermostFunction(
 					runtime,
 					newFiber,
-					succeed,
-					Collections.emptyList());
+					fail,
+					Collections.singletonList(
+						E_PERMISSION_DENIED.numericCode()));
+				return;
 			}
+			catch (final NoSuchFileException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(E_NO_FILE.numericCode()));
+				return;
+			}
+			catch (final FileAlreadyExistsException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(
+						E_FILE_EXISTS.numericCode()));
+				return;
+			}
+			catch (final IOException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(E_IO_ERROR.numericCode()));
+				return;
+			}
+			Interpreter.runOutermostFunction(
+				runtime,
+				newFiber,
+				succeed,
+				Collections.emptyList());
 		});
 		return interpreter.primitiveSuccess(newFiber);
 	}

@@ -144,28 +144,24 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 
-		runtime.executeFileTask(new AvailTask(priorityInt)
+		runtime.executeFileTask(() ->
 		{
-			@Override
-			public void value ()
+			try
 			{
-				try
-				{
-					fileChannel.truncate(size);
-				}
-				catch (final IOException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_IO_ERROR.numericCode()));
-					return;
-				}
-				Interpreter.runOutermostFunction(
-					runtime, newFiber, succeed, Collections.emptyList());
+				fileChannel.truncate(size);
 			}
+			catch (final IOException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(
+						E_IO_ERROR.numericCode()));
+				return;
+			}
+			Interpreter.runOutermostFunction(
+				runtime, newFiber, succeed, Collections.emptyList());
 		});
 
 		return interpreter.primitiveSuccess(newFiber);

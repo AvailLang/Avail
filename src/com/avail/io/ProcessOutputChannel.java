@@ -1,4 +1,4 @@
-/**
+/*
  * ProcessOutputChannel.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -33,9 +33,7 @@
 package com.avail.io;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_Fiber;
 
 import javax.annotation.Nullable;
 import java.io.BufferedWriter;
@@ -50,8 +48,6 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.FiberDescriptor.currentFiber;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -64,7 +60,7 @@ public final class ProcessOutputChannel
 implements TextOutputChannel
 {
 	/** The wrapped {@linkplain Writer writer}. */
-	@InnerAccess final Writer out;
+	@SuppressWarnings("WeakerAccess") @InnerAccess final Writer out;
 
 	/**
 	 * Construct a new {@code ProcessOutputChannel} that wraps the specified
@@ -97,24 +93,20 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		final A_Fiber fiber = stripNull((A_Fiber) attachment);
-		runtime.executeFileTask(
-			AvailTask.forUnboundFiber(
-			fiber,
-			() ->
+		runtime.executeFileTask(() ->
+		{
+			try
 			{
-				try
-				{
-					out.write(buffer.toString());
-					out.flush();
-				}
-				catch (final IOException e)
-				{
-					handler.failed(e, attachment);
-					return;
-				}
-				handler.completed(buffer.limit(), attachment);
-			}));
+				out.write(buffer.toString());
+				out.flush();
+			}
+			catch (final IOException e)
+			{
+				handler.failed(e, attachment);
+				return;
+			}
+			handler.completed(buffer.limit(), attachment);
+		});
 	}
 
 	@Override
@@ -124,24 +116,21 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		final A_Fiber fiber = stripNull((A_Fiber) attachment);
 		runtime.executeFileTask(
-			AvailTask.forUnboundFiber(
-				fiber,
-				() ->
+			() ->
+			{
+				try
 				{
-					try
-					{
-						out.write(data);
-						out.flush();
-					}
-					catch (final IOException e)
-					{
-						handler.failed(e, attachment);
-						return;
-					}
-					handler.completed(data.length(), attachment);
-				}));
+					out.write(data);
+					out.flush();
+				}
+				catch (final IOException e)
+				{
+					handler.failed(e, attachment);
+					return;
+				}
+				handler.completed(data.length(), attachment);
+			});
 	}
 
 	@Override

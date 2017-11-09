@@ -143,31 +143,27 @@ extends Primitive
 		fail.makeShared();
 
 		final AvailRuntime runtime = interpreter.runtime();
-		runtime.executeFileTask(new AvailTask(priorityInt)
+		runtime.executeFileTask(() ->
 		{
-			@Override
-			public void value ()
+			try
 			{
-				try
-				{
-					handle.channel.force(true);
-				}
-				catch (final IOException e)
-				{
-					runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_IO_ERROR.numericCode()));
-					return;
-				}
+				handle.channel.force(true);
+			}
+			catch (final IOException e)
+			{
 				runOutermostFunction(
 					runtime,
 					newFiber,
-					succeed,
-					Collections.emptyList());
+					fail,
+					Collections.singletonList(
+						E_IO_ERROR.numericCode()));
+				return;
 			}
+			runOutermostFunction(
+				runtime,
+				newFiber,
+				succeed,
+				Collections.emptyList());
 		});
 		return interpreter.primitiveSuccess(newFiber);
 	}

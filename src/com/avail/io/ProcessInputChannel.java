@@ -1,4 +1,4 @@
-/**
+/*
  * ProcessInputChannel.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -33,9 +33,7 @@
 package com.avail.io;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_Fiber;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -50,7 +48,6 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -64,7 +61,7 @@ public final class ProcessInputChannel
 implements TextInputChannel
 {
 	/** The wrapped {@linkplain Reader reader}. */
-	@InnerAccess final Reader in;
+	@SuppressWarnings("WeakerAccess") @InnerAccess final Reader in;
 
 	/**
 	 * Construct a new {@link ProcessInputChannel} that wraps the specified
@@ -96,27 +93,24 @@ implements TextInputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		final A_Fiber fiber = stripNull((A_Fiber) attachment);
-		runtime.executeFileTask(AvailTask.forUnboundFiber(
-			fiber,
-			() ->
+		runtime.executeFileTask(() ->
+		{
+			final int charsRead;
+			try
 			{
-				final int charsRead;
-				try
+				charsRead = in.read(buffer);
+				if (charsRead == -1)
 				{
-					charsRead = in.read(buffer);
-					if (charsRead == -1)
-					{
-						throw new IOException("end of stream");
-					}
+					throw new IOException("end of stream");
 				}
-				catch (final IOException e)
-				{
-					handler.failed(e, attachment);
-					return;
-				}
-				handler.completed(charsRead, attachment);
-			}));
+			}
+			catch (final IOException e)
+			{
+				handler.failed(e, attachment);
+				return;
+			}
+			handler.completed(charsRead, attachment);
+		});
 	}
 
 	@Override

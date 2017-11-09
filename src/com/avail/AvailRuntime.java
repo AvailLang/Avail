@@ -373,7 +373,7 @@ public final class AvailRuntime
 			new CallerRunsPolicy());
 
 	/**
-	 * Schedule the specified {@linkplain AvailTask task} for eventual execution
+	 * Schedule the specified {@linkplain Runnable task} for eventual execution
 	 * by the {@linkplain ThreadPoolExecutor thread pool executor} for
 	 * asynchronous file operations. The implementation is free to run the task
 	 * immediately or delay its execution arbitrarily. The task will not execute
@@ -381,7 +381,7 @@ public final class AvailRuntime
 	 *
 	 * @param task A task.
 	 */
-	public void executeFileTask (final AvailTask task)
+	public void executeFileTask (final Runnable task)
 	{
 		fileExecutor.execute(task);
 	}

@@ -162,58 +162,54 @@ extends Primitive
 		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
 		final FileAttribute<Set<PosixFilePermission>> attr =
 			PosixFilePermissions.asFileAttribute(permissions);
-		runtime.executeFileTask(new AvailTask(priorityInt)
+		runtime.executeFileTask(() ->
 		{
-			@Override
-			public void value ()
+			try
 			{
 				try
 				{
-					try
-					{
-						Files.createDirectory(path, attr);
-					}
-					catch (final UnsupportedOperationException e)
-					{
-						// Retry without setting the permissions.
-						Files.createDirectory(path);
-					}
+					Files.createDirectory(path, attr);
 				}
-				catch (final FileAlreadyExistsException e)
+				catch (final UnsupportedOperationException e)
 				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_FILE_EXISTS.numericCode()));
-					return;
+					// Retry without setting the permissions.
+					Files.createDirectory(path);
 				}
-				catch (final SecurityException|AccessDeniedException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(
-							E_PERMISSION_DENIED.numericCode()));
-					return;
-				}
-				catch (final IOException e)
-				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						Collections.singletonList(E_IO_ERROR.numericCode()));
-					return;
-				}
+			}
+			catch (final FileAlreadyExistsException e)
+			{
 				Interpreter.runOutermostFunction(
 					runtime,
 					newFiber,
-					succeed,
-					Collections.emptyList());
+					fail,
+					Collections.singletonList(
+						E_FILE_EXISTS.numericCode()));
+				return;
 			}
+			catch (final SecurityException|AccessDeniedException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(
+						E_PERMISSION_DENIED.numericCode()));
+				return;
+			}
+			catch (final IOException e)
+			{
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					Collections.singletonList(E_IO_ERROR.numericCode()));
+				return;
+			}
+			Interpreter.runOutermostFunction(
+				runtime,
+				newFiber,
+				succeed,
+				Collections.emptyList());
 		});
 		return interpreter.primitiveSuccess(newFiber);
 	}
