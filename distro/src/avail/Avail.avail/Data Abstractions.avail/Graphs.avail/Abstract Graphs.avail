@@ -67,6 +67,10 @@ Names
 	"_'s⁇edges",
 	"_'s⁇vertices",
 
+	/* Graph derivation. */
+	"_+_",
+	"_-_",
+
 	/* Exceptions. */
 	"graph exception",
 	"no-such-edge exception",
@@ -500,7 +504,7 @@ Method "_'s⁇edges" is
  *          "aVertex"}.
  * @category "Data Abstractions" "Graphs"
  */
-Abstract method "_+_" is [graph, any]→graph;
+Public abstract method "_+_" is [graph, any]→graph;
 
 Method "_+_" is
 [
@@ -563,7 +567,7 @@ Semantic restriction "_+_" is
  *          {@param "aVertex"}.
  * @category "Data Abstractions" "Graphs"
  */
-Abstract method "_-_" is [graph, any]→graph;
+Public abstract method "_-_" is [graph, any]→graph;
 
 Method "_-_" is
 [
