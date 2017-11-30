@@ -143,7 +143,7 @@ public class L2_MOVE extends L2Operation
 
 		// Trace it back toward the actual function creation.
 		final L2Instruction earlierInstruction =
-			sourceReg.register().definition();
+			sourceReg.register().definitionSkippingMoves();
 		return earlierInstruction.operation.extractFunctionOuterRegister(
 			earlierInstruction,
 			sourceReg,
@@ -171,6 +171,12 @@ public class L2_MOVE extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 
 		return sourceReg.finalIndex() != destinationReg.finalIndex();
+	}
+
+	@Override
+	public boolean isMove ()
+	{
+		return true;
 	}
 
 	/**

@@ -54,21 +54,17 @@ import java.util.List;
 public final class StackReifier
 {
 	/**
-	 * The list of mutable level one continuations that have been reified so
-	 * far.  They are added to the end during repeated throws until the
-	 * interpreter catches the outermost throw and links the continuations
-	 * together by making each continuation point to its predecessor in the
-	 * list.
-	 */
-	private final List<A_Continuation> continuationsNewestFirst =
-		new ArrayList<>();
-
-	/**
 	 * Whether to actually reify continuations during unwinding.  If false, the
 	 * frames are simply dropped, on the assumption that the {@link
 	 * #postReificationAction} will replace the entire stack anyhow.
 	 */
 	private final boolean actuallyReify;
+
+	/**
+	 * The number of entries we expect to see in {@link
+	 * #continuationsNewestFirst} after reifying the Java stack.
+	 */
+	private final int expectedDepth;
 
 	/**
 	 * A {@link Continuation0} that should be executed once the {@link
@@ -79,19 +75,35 @@ public final class StackReifier
 	private final Continuation0 postReificationAction;
 
 	/**
+	 * The list of mutable level one continuations that have been reified so
+	 * far.  They are added to the end during repeated throws until the
+	 * interpreter catches the outermost throw and links the continuations
+	 * together by making each continuation point to its predecessor in the
+	 * list.
+	 */
+	private final List<A_Continuation> continuationsNewestFirst =
+		new ArrayList<>();
+
+	/**
 	 * Construct a new {@code StackReifier}.
 	 *
-	 * @param postReificationAction
-	 *        The action to perform after the Java stack has been fully reified.
 	 * @param actuallyReify
 	 *        Whether to reify the Java frames (rather than simply drop them).
+	 * @param expectedDepth
+	 *        The number of reified continuations that we expect to collect.
+	 *        This should be zero if actuallyReify is false, otherwise the
+	 *        number of entries we expect in {@link #continuationsNewestFirst}.
+	 * @param postReificationAction
+	 *        The action to perform after the Java stack has been fully reified.
 	 */
 	public StackReifier (
-		final Continuation0 postReificationAction,
-		final boolean actuallyReify)
+		final boolean actuallyReify,
+		final int expectedDepth,
+		final Continuation0 postReificationAction)
 	{
-		this.postReificationAction = postReificationAction;
 		this.actuallyReify = actuallyReify;
+		this.expectedDepth = expectedDepth;
+		this.postReificationAction = postReificationAction;
 	}
 
 	/**
@@ -116,6 +128,7 @@ public final class StackReifier
 	public A_Continuation assembleContinuation (
 		final A_Continuation alreadyReifiedContinuation)
 	{
+		assert continuationsNewestFirst.size() == expectedDepth;
 		A_Continuation current = alreadyReifiedContinuation;
 		for (
 			int index = continuationsNewestFirst.size() - 1;

@@ -52,6 +52,8 @@ import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.interpreter.primitive.general.P_Equality;
+import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
 
@@ -61,6 +63,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
@@ -125,7 +128,7 @@ public final class L1Translator
 	/**
 	 * The nybblecodes being optimized.
 	 */
-	final A_Tuple nybbles;
+	private final A_Tuple nybbles;
 
 	/**
 	 * The number of slots in the virtualize continuation.  This includes the
@@ -148,7 +151,7 @@ public final class L1Translator
 	private final @Nullable A_Function exactFunctionOrNull;
 
 	/** The control flow graph being generated. */
-	public final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
+	final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 
 	/**
 	 * The {@link L2BasicBlock} which is the entry point for a function that has
@@ -168,7 +171,7 @@ public final class L1Translator
 	 * a fallible primitive can safely attempt the primitive, then if it fails
 	 * invoke the fallback code safely.</p>
 	 */
-	public @Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock = null;
+	@Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock = null;
 
 	/**
 	 * An {@link L2BasicBlock} that shouldn't actually be dynamically reachable.
@@ -189,7 +192,7 @@ public final class L1Translator
 	 *
 	 * @return An {@link L2PcOperand} that should never be traversed.
 	 */
-	public L2PcOperand unreachablePcOperand ()
+	private L2PcOperand unreachablePcOperand ()
 	{
 		if (unreachableBlock == null)
 		{
@@ -204,7 +207,7 @@ public final class L1Translator
 	}
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
-	@Nullable L2BasicBlock currentBlock = initialBlock;
+	private @Nullable L2BasicBlock currentBlock = initialBlock;
 
 	/**
 	 * During naive L1 → L2 translation, the stack-oriented L1 nybblecodes are
@@ -233,8 +236,8 @@ public final class L1Translator
 	 * the current block, so that they can be reused as needed.  This is
 	 * especially handy for {@code nil}.
 	 */
-	final Map<A_BasicObject, L2ReadPointerOperand> constantsInCurrentBlock =
-		new HashMap<>();
+	private final Map<A_BasicObject, L2ReadPointerOperand>
+		constantsInCurrentBlock = new HashMap<>();
 
 	/**
 	 * Answer a copy of the current array of registers that represent the
@@ -310,7 +313,7 @@ public final class L1Translator
 	 *
 	 * @return Whether the current block is probably reachable.
 	 */
-	boolean currentlyReachable ()
+	private boolean currentlyReachable ()
 	{
 		return currentBlock != null && currentBlock.currentlyReachable();
 	}
@@ -374,7 +377,7 @@ public final class L1Translator
 	 *        The index into the continuation's slots.
 	 * @return A register representing that continuation slot.
 	 */
-	public L2ReadPointerOperand readSlot (final int slotNumber)
+	private L2ReadPointerOperand readSlot (final int slotNumber)
 	{
 		return slotRegisters[slotNumber - 1];
 	}
@@ -388,7 +391,7 @@ public final class L1Translator
 	 *        The index into the continuation's slots.
 	 * @return A register representing that continuation slot.
 	 */
-	public L2WritePointerOperand writeSlot (
+	L2WritePointerOperand writeSlot (
 		final int slotNumber,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
@@ -408,7 +411,7 @@ public final class L1Translator
 	 * @param slotNumber
 	 *        The index into the continuation's slots.
 	 */
-	public void nilSlot (final int slotNumber)
+	private void nilSlot (final int slotNumber)
 	{
 		slotRegisters[slotNumber - 1] = constantRegister(nil);
 	}
@@ -434,7 +437,7 @@ public final class L1Translator
 	 *
 	 * @return The new register.
 	 */
-	public L2IntegerRegister newIntegerRegister ()
+	private L2IntegerRegister newIntegerRegister ()
 	{
 		return new L2IntegerRegister(
 			controlFlowGraph.nextUnique());
@@ -445,7 +448,7 @@ public final class L1Translator
 	 * L2ReadPointerOperand} for the register that will hold the function
 	 * afterward.
 	 */
-	public L2ReadPointerOperand getCurrentFunction ()
+	private L2ReadPointerOperand getCurrentFunction ()
 	{
 		if (exactFunctionOrNull != null)
 		{
@@ -467,7 +470,7 @@ public final class L1Translator
 	 * answer an {@link L2ReadPointerOperand} for the register that will hold
 	 * the continuation afterward.
 	 */
-	public L2ReadPointerOperand getCurrentContinuation ()
+	private L2ReadPointerOperand getCurrentContinuation ()
 	{
 		final L2WritePointerOperand continuationTempReg =
 			newObjectRegisterWriter(mostGeneralContinuationType(), null);
@@ -483,7 +486,7 @@ public final class L1Translator
 	 * the continuation afterward.  Move the caller of this continuation back
 	 * into the interpreter's current reified continuation field.
 	 */
-	public L2ReadPointerOperand popCurrentContinuation ()
+	private L2ReadPointerOperand popCurrentContinuation ()
 	{
 		final L2WritePointerOperand continuationTempReg =
 			newObjectRegisterWriter(mostGeneralContinuationType(), null);
@@ -498,7 +501,7 @@ public final class L1Translator
 	 * new {@link L2IntegerRegister}, and answer an {@link L2ReadIntOperand} for
 	 * that register.
 	 */
-	public L2ReadIntOperand getSkipReturnCheck ()
+	private L2ReadIntOperand getSkipReturnCheck ()
 	{
 		final L2IntegerRegister tempIntReg = newIntegerRegister();
 		addInstruction(
@@ -516,7 +519,7 @@ public final class L1Translator
 	 * @return An {@link L2ReadPointerOperand} that now holds the returned
 	 *         value.
 	 */
-	public L2ReadPointerOperand getLatestReturnValue (
+	private L2ReadPointerOperand getLatestReturnValue (
 		final A_Type guaranteedType)
 	{
 		final L2WritePointerOperand writer = newObjectRegisterWriter(
@@ -534,7 +537,7 @@ public final class L1Translator
 	 * @return An {@link L2ReadPointerOperand} that now holds the function that
 	 *         is returning.
 	 */
-	public L2ReadPointerOperand getReturningFunctionRegister ()
+	private L2ReadPointerOperand getReturningFunctionRegister ()
 	{
 		final L2WritePointerOperand writer = newObjectRegisterWriter(
 			mostGeneralFunctionType(), null);
@@ -542,34 +545,6 @@ public final class L1Translator
 			L2_GET_RETURNING_FUNCTION.instance,
 			writer);
 		return writer.read();
-	}
-
-	/**
-	 * Create a {@link L2ReadVectorOperand} for reading each element of the
-	 * given list of {@link L2ReadPointerOperand}s.
-	 *
-	 * @param sources
-	 *        The list of register-read sources to aggregate.
-	 * @return A new {@link L2ReadVectorOperand}.
-	 */
-	public static L2ReadVectorOperand readVector (
-		final List<L2ReadPointerOperand> sources)
-	{
-		return new L2ReadVectorOperand(sources);
-	}
-
-	/**
-	 * Create a {@link L2WriteVectorOperand} for writing each element of the
-	 * given list of {@link L2WritePointerOperand}s.
-	 *
-	 * @param sources
-	 *        The list of register-write destinations to aggregate.
-	 * @return A new {@link L2WriteVectorOperand}.
-	 */
-	public static L2WriteVectorOperand writeVector (
-		final List<L2WritePointerOperand> sources)
-	{
-		return new L2WriteVectorOperand(sources);
 	}
 
 	/**
@@ -616,7 +591,7 @@ public final class L1Translator
 	 * @param slotIndex
 	 *        The index of the slot in which to write it.
 	 */
-	public void moveConstantToSlot (
+	void moveConstantToSlot (
 		final A_BasicObject value,
 		final int slotIndex)
 	{
@@ -661,7 +636,7 @@ public final class L1Translator
 	 * @param value The immediate int to write to a new int register.
 	 * @return The {@link L2ReadIntOperand} for the new register.
 	 */
-	public L2ReadIntOperand constantIntRegister (final int value)
+	L2ReadIntOperand constantIntRegister (final int value)
 	{
 		final L2WriteIntOperand registerWrite =
 			new L2WriteIntOperand(newIntegerRegister());
@@ -680,7 +655,7 @@ public final class L1Translator
 	 * @param destinationRegister
 	 *        Where to write the AvailObject.
 	 */
-	public void moveRegister (
+	private void moveRegister (
 		final L2ReadPointerOperand sourceRegister,
 		final L2WritePointerOperand destinationRegister)
 	{
@@ -756,7 +731,7 @@ public final class L1Translator
 			new L2ImmediateOperand(pc),
 			new L2ImmediateOperand(stackp),
 			getSkipReturnCheck(),
-			readVector(asList(slots)),
+			new L2ReadVectorOperand(asList(slots)),
 			newContinuationRegister,
 			new L2PcOperand(onReturnIntoReified, readSlotsOnReturnIntoReified),
 			new L2PcOperand(afterCreation, slots));
@@ -773,7 +748,7 @@ public final class L1Translator
 		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
-			writeVector(writeSlotsOnReturnIntoReified),
+			new L2WriteVectorOperand(writeSlotsOnReturnIntoReified),
 			new L2WriteIntOperand(newIntegerRegister())); //TODO MvG - Fix this when we have int phis
 		addInstruction(
 			L2_JUMP.instance,
@@ -783,7 +758,7 @@ public final class L1Translator
 	/**
 	 * Add an instruction that's not supposed to be reachable.
 	 */
-	public void addUnreachableCode ()
+	private void addUnreachableCode ()
 	{
 		addInstruction(L2_JUMP.instance, unreachablePcOperand());
 		startBlock(createBasicBlock("an unreachable block"));
@@ -800,7 +775,7 @@ public final class L1Translator
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
-	public void forceSlotRegister (
+	void forceSlotRegister (
 		final int slotIndex,
 		final @Nullable L2ReadPointerOperand register)
 	{
@@ -814,7 +789,7 @@ public final class L1Translator
 	 *
 	 * @return The new register that will hold the invalid return function.
 	 */
-	public L2ReadPointerOperand getInvalidResultFunctionRegister ()
+	private L2ReadPointerOperand getInvalidResultFunctionRegister ()
 	{
 		final L2WritePointerOperand invalidResultFunction =
 			newObjectRegisterWriter(
@@ -1086,14 +1061,12 @@ public final class L1Translator
 								? memento.failCheckBasicBlock
 								: createBasicBlock(
 									"test next case of enumeration");
-						addInstruction(
-							L2_JUMP_IF_EQUALS_CONSTANT.instance,
-							arg,
-							new L2ConstantOperand(instance),
-							new L2PcOperand(
-								memento.passCheckBasicBlock, slotRegisters()),
-							new L2PcOperand(
-								nextCheckOrFail, slotRegisters()));
+						final L2PcOperand passEdge = new L2PcOperand(
+							memento.passCheckBasicBlock, slotRegisters());
+						final L2PcOperand failEdge = new L2PcOperand(
+							nextCheckOrFail, slotRegisters());
+						generateJumpIfEqualsConstant(
+							arg, instance, passEdge, failEdge);
 						if (!last)
 						{
 							startBlock(nextCheckOrFail);
@@ -1254,7 +1227,7 @@ public final class L1Translator
 					newObjectRegisterWriter(mostGeneralTupleType(), null);
 				addInstruction(
 					L2_CREATE_TUPLE.instance,
-					readVector(arguments),
+					new L2ReadVectorOperand(arguments),
 					argumentsTupleWrite);
 				// Ignore the result register, since the function can't return.
 				generateGeneralFunctionInvocation(
@@ -1276,6 +1249,139 @@ public final class L1Translator
 		// values checked, and whether reification can even happen (e.g., for
 		// contextually infallible, inlineable primitives, it can't).
 		startBlock(afterCall);
+	}
+
+	/**
+	 * Generate conditional branch to either passEdge or failEdge based on
+	 * whether the given register equals the given constant value.
+	 *
+	 * <p>If the constant to compare against is a boolean, check the proveance
+	 * of the register.  If it's the result of a suitable comparison primitive,
+	 * generate a more efficient compare-and-branch instruction instead of
+	 * creating the boolean only to have it compared to a boolean constant.</p>
+	 *
+	 * <p>If the value of the boolean-producing instruction is not used, it will
+	 * eventually be removed as dead code.</p>
+	 *
+	 * @param registerToTest
+	 *        The register whose content should be compared.
+	 * @param constantValue
+	 *        The constant value to compare against.
+	 * @param passEdge
+	 *        Where to go if the register's value equals the constant.
+	 * @param failEdge
+	 *        Where to go if the register's value does not equal the constant.
+	 */
+	private void generateJumpIfEqualsConstant (
+		final L2ReadPointerOperand registerToTest,
+		final A_BasicObject constantValue,
+		final L2PcOperand passEdge,
+		final L2PcOperand failEdge)
+	{
+		if (constantValue.isBoolean())
+		{
+			final boolean constantBool =
+				constantValue.equals(AtomDescriptor.trueObject());
+			final L2Instruction boolSource =
+				registerToTest.register().definitionSkippingMoves();
+			if (boolSource.operation == L2_RUN_INFALLIBLE_PRIMITIVE.instance)
+			{
+				final Primitive primitive =
+					L2_RUN_INFALLIBLE_PRIMITIVE.primitiveOf(boolSource);
+				if (primitive == P_Equality.instance)
+				{
+					final List<L2ReadPointerOperand> args =
+						L2_RUN_INFALLIBLE_PRIMITIVE.argsOf(boolSource);
+					// If either operand of P_Equality is a constant, recurse to
+					// allow deeper replacement.
+					@Nullable A_BasicObject previousConstant;
+					final L2ReadPointerOperand previousRegister;
+					previousConstant = args.get(0).constantOrNull();
+					if (previousConstant != null)
+					{
+						previousRegister = args.get(1);
+					}
+					else
+					{
+						previousConstant = args.get(1).constantOrNull();
+						previousRegister = args.get(0);
+					}
+					if (previousConstant != null)
+					{
+						// It's a comparison against a constant.  Recurse to
+						// deal with comparing the result of a prior comparison
+						// to a boolean.
+						generateJumpIfEqualsConstant(
+							previousRegister,
+							previousConstant,
+							constantBool ? passEdge : failEdge,
+							constantBool ? failEdge : passEdge);
+						return;
+					}
+					// Neither value is a constant, but we can still do the
+					// compare-and-branch without involving Avail booleans.
+					addInstruction(
+						L2_JUMP_IF_OBJECTS_EQUAL.instance,
+						args.get(0),
+						args.get(1),
+						constantBool ? passEdge : failEdge,
+						constantBool ? failEdge : passEdge);
+					return;
+				}
+				else if (primitive == P_IsSubtypeOf.instance)
+				{
+					// Instance-of testing is done by extracting the type and
+					// testing if it's a subtype.  See if the operand to the
+					// is-subtype test is a get-type instruction.
+					final List<L2ReadPointerOperand> args =
+						L2_RUN_INFALLIBLE_PRIMITIVE.argsOf(boolSource);
+					final @Nullable A_BasicObject constantType =
+						args.get(1).constantOrNull();
+					if (constantType != null)
+					{
+						final L2Instruction typeSource =
+							args.get(0).register().definitionSkippingMoves();
+						if (typeSource.operation == L2_GET_TYPE.instance)
+						{
+							// There's a get-type followed by an is-subtype
+							// followed by a compare-and-branch of the result
+							// against a constant boolean.  Replace with a
+							// branch-if-instance.
+							final L2ReadPointerOperand valueSource =
+								L2_GET_TYPE.sourceValueOf(typeSource);
+							addInstruction(
+								L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+								valueSource,
+								new L2ConstantOperand(constantType),
+								constantBool ? passEdge : failEdge,
+								constantBool ? failEdge : passEdge);
+							return;
+						}
+						// Perform a branch-if-is-subtype-of instead of checking
+						// whether the Avail boolean is true or false.
+						addInstruction(
+							L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+							args.get(0),
+							new L2ConstantOperand(constantType),
+							constantBool ? passEdge : failEdge,
+							constantBool ? failEdge : passEdge);
+						return;
+					}
+					// We don't have a special branch that compares two
+					// non-constant types, so fall through.
+				}
+				// TODO MvG - We could check for other special cases here, like
+				// numeric less-than.  For now, fall through to compare the
+				// value against the constant.
+			}
+		}
+		// Generate the general case.
+		addInstruction(
+			L2_JUMP_IF_EQUALS_CONSTANT.instance,
+			registerToTest,
+			new L2ConstantOperand(constantValue),
+			passEdge,
+			failEdge);
 	}
 
 	/**
@@ -1337,8 +1443,11 @@ public final class L1Translator
 				|| !sizeRange.lowerBound().equals(sizeRange.upperBound())
 				|| sizeRange.rangeIncludesInt(arguments.size());
 		}
+		final @Nullable Primitive primitiveOrNull =
+			determinePrimitive(functionToCallReg);
 		final @Nullable L2ReadPointerOperand specialOutputReg =
-			tryToGenerateSpecialInvocation(functionToCallReg, arguments);
+			tryToGenerateSpecialInvocation(
+				functionToCallReg, primitiveOrNull, arguments);
 		if (specialOutputReg != null)
 		{
 			// The call was to a specific primitive function that generated
@@ -1365,7 +1474,7 @@ public final class L1Translator
 		addInstruction(
 			L2_INVOKE.instance,
 			functionToCallReg,
-			readVector(arguments),
+			new L2ReadVectorOperand(arguments),
 			new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
 			new L2PcOperand(onReturn, slotsIfReified),
 			new L2PcOperand(onReification, slotsIfReified));
@@ -1402,6 +1511,30 @@ public final class L1Translator
 				addUnreachableCode();
 			}
 			return resultReg;
+		}
+		if (primitiveOrNull != null)
+		{
+			final List<A_Type> argTypes = new ArrayList<>(arguments.size());
+			for (final L2ReadPointerOperand arg : arguments)
+			{
+				argTypes.add(arg.type());
+			}
+			final A_Type guaranteedType =
+				primitiveOrNull.returnTypeGuaranteedByVM(argTypes);
+			if (guaranteedType.isSubtypeOf(expectedType))
+			{
+				// Elide the return check, since the primitive guaranteed it.
+				if (guaranteedType.equals(expectedType))
+				{
+					// Exact match.
+					return resultReg;
+				}
+				// Do a move to strengthen the type.
+				final L2WritePointerOperand strongerResultWrite =
+					newObjectRegisterWriter(guaranteedType, null);
+				moveRegister(resultReg, strongerResultWrite);
+				return strongerResultWrite.read();
+			}
 		}
 		return generateReturnTypeCheck(resultReg, expectedType);
 	}
@@ -1529,38 +1662,23 @@ public final class L1Translator
 	 *
 	 * @param functionToCallReg
 	 *        The register containing the function to invoke.
+	 * @param primitiveOrNull
+	 *        The {@link Primitive} that the function in the register is
+	 *        guaranteed to be, or {@code null}.
 	 * @param arguments
 	 *        The arguments to supply to the function.
 	 * @return The register that holds the result of the invocation.
 	 */
 	private @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final @Nullable Primitive primitiveOrNull,
 		final List<L2ReadPointerOperand> arguments)
 	{
-		final @Nullable A_Function functionIfKnown =
-			(A_Function) functionToCallReg.constantOrNull();
-		final @Nullable Primitive primitive;
-		if (functionIfKnown != null)
-		{
-			// The exact function is known.
-			primitive = functionIfKnown.code().primitive();
-		}
-		else
-		{
-			// See if we can at least find out the code that the function was
-			// created from.
-			final L2Instruction functionDefinition =
-				functionToCallReg.register().definition();
-			final @Nullable A_RawFunction constantCode =
-				functionDefinition.operation.getConstantCodeFrom(
-					functionDefinition);
-			primitive = constantCode == null ? null : constantCode.primitive();
-		}
-		if (primitive != null)
+		if (primitiveOrNull != null)
 		{
 			// It's a primitive function.
 			final Interpreter interpreter = translator.interpreter();
-			if (primitive.hasFlag(CanFold))
+			if (primitiveOrNull.hasFlag(CanFold))
 			{
 				// It can be folded, if supplied with constants.
 				final int count = arguments.size();
@@ -1584,15 +1702,17 @@ public final class L1Translator
 						interpreter.debugModeString;
 					if (Interpreter.debugL2)
 					{
-						interpreter.debugModeString +=
-							"FOLD "
-								+ primitive.getClass().getSimpleName()
-								+ ": ";
+						Interpreter.log(
+							Interpreter.loggerDebugL2,
+							Level.FINER,
+							"{0}FOLD {1}:",
+							interpreter.debugModeString,
+							primitiveOrNull.name());
 					}
 					final Result success;
 					try
 					{
-						success = primitive.attempt(
+						success = primitiveOrNull.attempt(
 							constants, interpreter, true);
 					}
 					finally
@@ -1609,7 +1729,7 @@ public final class L1Translator
 					// The primitive failed with the supplied arguments,
 					// which it's allowed to do even if it CanFold.
 					assert success == FAILURE;
-					assert !primitive.hasFlag(CannotFail);
+					assert !primitiveOrNull.hasFlag(CannotFail);
 				}
 			}
 
@@ -1618,10 +1738,44 @@ public final class L1Translator
 			final List<A_Type> argTypes = arguments.stream()
 				.map(L2ReadPointerOperand::type)
 				.collect(toList());
-			return primitive.tryToGenerateSpecialInvocation(
+			return primitiveOrNull.tryToGenerateSpecialInvocation(
 				functionToCallReg, arguments, argTypes, this);
 		}
 		return null;
+	}
+
+	/**
+	 * Given a register that holds the function to invoke, answer either the
+	 * {@link Primitive} it will be known to run, or {@code null}.
+	 *
+	 * @param functionToCallReg
+	 *        The {@link L2ReadPointerOperand} containing the function to
+	 *        invoke.
+	 * @return Either {@code null} or the function's {@link Primitive}.
+	 */
+	private static @Nullable Primitive determinePrimitive (
+		final L2ReadPointerOperand functionToCallReg)
+	{
+		final @Nullable A_Function functionIfKnown =
+			(A_Function) functionToCallReg.constantOrNull();
+		final @Nullable Primitive primitive;
+		if (functionIfKnown != null)
+		{
+			// The exact function is known.
+			primitive = functionIfKnown.code().primitive();
+		}
+		else
+		{
+			// See if we can at least find out the code that the function was
+			// created from.
+			final L2Instruction functionDefinition =
+				functionToCallReg.register().definitionSkippingMoves();
+			final @Nullable A_RawFunction constantCode =
+				functionDefinition.operation.getConstantCodeFrom(
+					functionDefinition);
+			primitive = constantCode == null ? null : constantCode.primitive();
+		}
+		return primitive;
 	}
 
 	/**
@@ -1680,7 +1834,7 @@ public final class L1Translator
 			addInstruction(
 				L2_LOOKUP_BY_VALUES.instance,
 				new L2SelectorOperand(bundle),
-				readVector(arguments),
+				new L2ReadVectorOperand(arguments),
 				functionReg,
 				errorCodeReg,
 				new L2PcOperand(
@@ -1755,7 +1909,7 @@ public final class L1Translator
 			addInstruction(
 				L2_LOOKUP_BY_TYPES.instance,
 				new L2SelectorOperand(bundle),
-				readVector(argTypeRegs),
+				new L2ReadVectorOperand(argTypeRegs),
 				functionReg,
 				errorCodeReg,
 				new L2PcOperand(
@@ -1788,7 +1942,8 @@ public final class L1Translator
 			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 			invalidSendReg);
 		// Collect the arguments into a tuple.
-		final L2ReadVectorOperand argsVector = readVector(arguments);
+		final L2ReadVectorOperand argsVector =
+			new L2ReadVectorOperand(arguments);
 		final L2WritePointerOperand argumentsTupleWrite =
 			newObjectRegisterWriter(
 				tupleTypeForSizesTypesDefaultType(
@@ -1987,7 +2142,7 @@ public final class L1Translator
 				null);
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
-			readVector(asList(variable, newValue)),
+			new L2ReadVectorOperand(asList(variable, newValue)),
 			variableAndValueTupleReg);
 		generateGeneralFunctionInvocation(
 			observeFunction.read(),
@@ -2081,7 +2236,7 @@ public final class L1Translator
 					.collect(toList());
 			addInstruction(
 				L2_GET_ARGUMENTS.instance,
-				writeVector(argRegs));
+				new L2WriteVectorOperand(argRegs));
 		}
 
 		// Create the locals.
@@ -2155,7 +2310,7 @@ public final class L1Translator
 	 * @param reenterFromInterruptBlock
 	 *        The entry point for resuming from an interrupt.
 	 */
-	public void generateDefaultChunk (
+	void generateDefaultChunk (
 		final L2BasicBlock reenterFromRestartBlock,
 		final L2BasicBlock loopBlock,
 		final L2BasicBlock reenterFromCallBlock,
@@ -2299,7 +2454,7 @@ public final class L1Translator
 		addInstruction(
 			L2_CREATE_FUNCTION.instance,
 			new L2ConstantOperand(codeLiteral),
-			readVector(outers),
+			new L2ReadVectorOperand(outers),
 			writeSlot(stackp, codeLiteral.functionType(), null));
 
 		// Now that the function has been constructed, clear the slots that
@@ -2454,7 +2609,7 @@ public final class L1Translator
 					.toArray(A_Type[]::new));
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
-				readVector(vector),
+				new L2ReadVectorOperand(vector),
 				writeSlot(stackp, tupleType, null));
 		}
 	}
@@ -2533,7 +2688,7 @@ public final class L1Translator
 			new L2ImmediateOperand(0),
 			new L2ImmediateOperand(numSlots + 1),
 			skipReturnCheckRead,
-			readVector(vectorWithOnlyArgsPreserved),
+			new L2ReadVectorOperand(vectorWithOnlyArgsPreserved),
 			destReg,
 			new L2PcOperand(initialBlock, new L2ReadPointerOperand[0]),
 			new L2PcOperand(afterCreation, slotRegisters()));

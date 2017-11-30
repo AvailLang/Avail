@@ -122,6 +122,7 @@ extends Primitive
 				Interpreter.resumeFromSuccessfulPrimitive(
 					runtime,
 					fiber,
+					this,
 					stackDump,
 					skipReturnCheck);
 			});

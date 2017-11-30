@@ -72,14 +72,9 @@ extends L2Operation
 
 		final AvailObject continuation = continuationReg.in(interpreter);
 		interpreter.reifiedContinuation = continuation;
-		// This throw is just to get Interpreter#run() to notice exitNow, so we
-		// don't waste time polling for it in the happy case.  The continuation
-		// has already been reified as needed.
-		return interpreter.abandonStackThen(() ->
-		{
-			interpreter.processInterrupt(continuation);
-		});
-
+		assert interpreter.unreifiedCallDepth() == 1;
+		return interpreter.abandonStackThen(
+			() -> interpreter.processInterrupt(continuation));
 	}
 
 	@Override

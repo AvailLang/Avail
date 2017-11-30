@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
@@ -418,6 +419,18 @@ public abstract class L2Operation
 	 * @return Whether the instruction causes a variable to be written.
 	 */
 	public boolean isVariableSet ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer whether this operation is a move between (compatible) registers.
+	 *
+	 * @return {@code true} if this operation simply moves data between two
+	 *         registers of the same {@link L2Register.RegisterKind}, otherwise
+	 *         {@code false}.
+	 */
+	public boolean isMove ()
 	{
 		return false;
 	}

@@ -227,6 +227,7 @@ extends Primitive
 				resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
+					this,
 					newSendNode(
 						emptyTuple(),
 						bundle,

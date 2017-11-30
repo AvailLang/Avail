@@ -94,7 +94,10 @@ public class L2_REIFY_CALLERS extends L2Operation
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
 
+		// Note that the *current* frame isn't reified, so subtract one.
 		return new StackReifier(
+			actuallyReify,
+			interpreter.unreifiedCallDepth() - 1,
 			() ->
 			{
 				interpreter.function = savedFunction;
@@ -103,8 +106,7 @@ public class L2_REIFY_CALLERS extends L2Operation
 				interpreter.pointers = savedPointers;
 				interpreter.integers = savedInts;
 				// Return into the Interpreter's run loop.
-			},
-			actuallyReify);
+			});
 	}
 
 	@Override

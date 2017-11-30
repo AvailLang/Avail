@@ -123,6 +123,7 @@ extends Primitive
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
 								fiber,
+								P_Sleep.this,
 								nil,
 								true);
 						}
@@ -143,6 +144,7 @@ extends Primitive
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
 								fiber,
+								this,
 								nil,
 								true);
 							return;
@@ -170,6 +172,7 @@ extends Primitive
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
 								fiber,
+								this,
 								nil,
 								true);
 							return;

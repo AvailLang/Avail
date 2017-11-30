@@ -41,12 +41,13 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
+import com.avail.interpreter.primitive.fibers.P_AttemptJoinFiber;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.StackReifier;
@@ -57,16 +58,18 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +96,8 @@ import static com.avail.descriptor.VariableDescriptor
 	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
@@ -221,6 +226,17 @@ public final class Interpreter
 	public static boolean debugWorkUnits = false;
 
 	/**
+	 * Whether to divert logging into fibers' {@link A_Fiber#debugLog()}, which
+	 * is simply a length-bounded StringBuilder.  This is <em>by far</em> the
+	 * fastest available way to log, although message pattern substitution is
+	 * still unnecessarily slow.
+	 *
+	 * <p>Note that this only has an effect if one of the above debug flags is
+	 * set.</p>
+	 */
+	public static boolean debugIntoFiberDebugLog = true;
+
+	/**
 	 * Whether to print debug information related to a specific problem being
 	 * debugged with a custom VM.  This is a convenience flag and will be
 	 * inaccessible in a production VM.
@@ -228,8 +244,21 @@ public final class Interpreter
 	public static boolean debugCustom = false;
 
 	/** A {@linkplain Logger logger}. */
-	private static final Logger logger =
+	private static final Logger mainLogger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
+
+	/** A {@linkplain Logger logger}. */
+	public  static final Logger loggerDebugL1 =
+		Logger.getLogger(Interpreter.class.getCanonicalName() + ".debugL1");
+
+	/** A {@linkplain Logger logger}. */
+	public static final Logger loggerDebugL2 =
+		Logger.getLogger(Interpreter.class.getCanonicalName() + ".debugL2");
+
+	/** A {@linkplain Logger logger}. */
+	private static final Logger loggerDebugPrimitives =
+		Logger.getLogger(
+			Interpreter.class.getCanonicalName() + ".debugPrimitives");
 
 	/**
 	 * Set the current logging level for interpreters.
@@ -238,7 +267,10 @@ public final class Interpreter
 	 */
 	public static void setLoggerLevel (final Level level)
 	{
-		logger.setLevel(level);
+		mainLogger.setLevel(level);
+		loggerDebugL1.setLevel(level);
+		loggerDebugL2.setLevel(level);
+		loggerDebugPrimitives.setLevel(level);
 	}
 
 	/**
@@ -249,6 +281,7 @@ public final class Interpreter
 	 * @param arguments The arguments to fill into the message pattern.
 	 */
 	public static void log (
+		final Logger logger,
 		final Level level,
 		final String message,
 		final Object... arguments)
@@ -260,11 +293,18 @@ public final class Interpreter
 				thread instanceof AvailThread
 					? ((AvailThread)thread).interpreter.fiber
 					: null,
+				logger,
 				level,
 				message,
 				arguments);
 		}
 	}
+
+	/**
+	 * The approximate maximum number of bytes to log per fiber before throwing
+	 * away the earliest 25%.
+	 */
+	private final static int maxFiberLogLength = 10_000_000;
 
 	/**
 	 * Log a message.
@@ -276,6 +316,7 @@ public final class Interpreter
 	 */
 	public static void log (
 		final @Nullable A_Fiber affectedFiber,
+		final Logger logger,
 		final Level level,
 		final String message,
 		final Object... arguments)
@@ -283,12 +324,32 @@ public final class Interpreter
 		if (logger.isLoggable(level))
 		{
 			final @Nullable A_Fiber runningFiber = currentFiberOrNull();
+			if (debugIntoFiberDebugLog)
+			{
+				// Write into a StringBuilder in each fiber's debugLog().
+				if (runningFiber != null)
+				{
+					// Log to the fiber.
+					final StringBuilder log = runningFiber.debugLog();
+					synchronized (log)
+					{
+						log.append(MessageFormat.format(message, arguments));
+						log.append('\n');
+						if (log.length() > maxFiberLogLength)
+						{
+							log.delete(0, maxFiberLogLength >> 4);
+						}
+					}
+				}
+				// Ignore the bit of logging not tied to a specific fiber.
+				return;
+			}
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
 					? format("%6d ", runningFiber.uniqueId())
 					: "?????? ");
-			builder.append('→');
+			builder.append("→ ");
 			builder.append(
 				affectedFiber != null
 					? format("%6d ", affectedFiber.uniqueId())
@@ -325,6 +386,37 @@ public final class Interpreter
 			return ((AvailThread) current).interpreter;
 		}
 		return null;
+	}
+
+	/**
+	 * Answer how many continuations would be created from Java stack frames at
+	 * the current execution point (or the nearest place reification may be
+	 * triggered).
+	 */
+	public int unreifiedCallDepth ()
+	{
+		return unreifiedCallDepth;
+	}
+
+	/**
+	 * Add the delta to the current count of how many frames would be reified
+	 * into continuations at the current execution point.
+	 *
+	 * @param delta How much to add.
+	 */
+	public void adjustUnreifiedCallDepthBy (final int delta)
+	{
+		if (debugL1 || debugL2)
+		{
+			log(
+				loggerDebugL2,
+				Level.FINER,
+				"{0}Depth: {1} → {2}",
+				debugModeString,
+				unreifiedCallDepth,
+				unreifiedCallDepth + delta);
+		}
+		unreifiedCallDepth += delta;
 	}
 
 	/**
@@ -369,7 +461,7 @@ public final class Interpreter
 		INTEGERS,
 
 		/** The current {@link AvailLoader}, if any. */
-		LOADER;
+		LOADER
 	}
 
 	/**
@@ -404,28 +496,23 @@ public final class Interpreter
 		outerArray[CURRENT_FUNCTION.ordinal()] = function;
 
 		// Build the stack frames...
-		final List<A_Continuation> frames = new ArrayList<>(50);
-		A_Continuation frame = reifiedContinuation;
-		while (!frame.equalsNil())
+		@Nullable A_Continuation frame = reifiedContinuation;
+		if (frame != null)
 		{
-			frames.add(frame);
-			frame = frame.caller();
+			final List<A_Continuation> frames = new ArrayList<>(50);
+			while (!frame.equalsNil())
+			{
+				frames.add(frame);
+				frame = frame.caller();
+			}
+			outerArray[FRAMES.ordinal()] = tupleFromList(frames);
 		}
-		outerArray[FRAMES.ordinal()] = tupleFromList(frames);
 
 		// Now collect the pointer register values.
-		outerArray[POINTERS.ordinal()] =
-			Arrays.copyOf(
-				pointers,
-				Math.min(
-					pointers.length, chunk != null ? chunk.numObjects() : 0));
+		outerArray[POINTERS.ordinal()] = pointers;
 
 		// May as well show the integer registers too...
-		outerArray[INTEGERS.ordinal()] =
-			Arrays.copyOf(
-				integers,
-				Math.min(
-					integers.length, chunk != null ? chunk.numIntegers() : 0));
+		outerArray[INTEGERS.ordinal()] = integers;
 
 		outerArray[LOADER.ordinal()] = availLoaderOrNull();
 
@@ -517,7 +604,7 @@ public final class Interpreter
 	/**
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
-	@InnerAccess @Nullable A_Fiber fiber;
+	private @Nullable A_Fiber fiber;
 
 	/**
 	 * Answer the current {@link A_Fiber fiber} bound to this interpreter, or
@@ -549,8 +636,7 @@ public final class Interpreter
 	 */
 	public void fiber (final @Nullable A_Fiber newFiber, final String tempDebug)
 	{
-		//TODO MvG - Remove.
-		if (false)
+		if (debugPrimitives)
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder
@@ -566,12 +652,17 @@ public final class Interpreter
 					: newFiber.uniqueId()
 						+ "[" + newFiber.executionState() + "]")
 				.append(" (").append(tempDebug).append(")");
-			System.out.println(builder);
+			log(
+				loggerDebugPrimitives,
+				Level.INFO,
+				"{0}",
+				builder.toString());
 		}
 
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
 		fiber = newFiber;
+		reifiedContinuation = null;
 		if (newFiber != null)
 		{
 			availLoader = newFiber.availLoader();
@@ -695,13 +786,6 @@ public final class Interpreter
 	private @Nullable AvailObject latestResult;
 
 	/**
-	 * A field that captures which {@link A_Function} is returning.  This is
-	 * used for statistics collection and reporting errors when returning a
-	 * value that disagrees with semantic restrictions.
-	 */
-	public @Nullable A_Function returningFunction;
-
-	/**
 	 * Set the latest result due to a {@linkplain Result#SUCCESS successful}
 	 * {@linkplain Primitive primitive}, or the latest {@linkplain
 	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
@@ -717,7 +801,9 @@ public final class Interpreter
 		latestResult = (AvailObject)newResult;
 		if (debugL2)
 		{
-			System.out.println(
+			log(
+				loggerDebugL2,
+				Level.INFO,
 				debugModeString + "Set latestResult: " +
 					(latestResult == null
 						 ? "null"
@@ -750,6 +836,80 @@ public final class Interpreter
 	public @Nullable AvailObject latestResultOrNull ()
 	{
 		return latestResult;
+	}
+
+	/**
+	 * A field that captures which {@link A_Function} is returning.  This is
+	 * used for statistics collection and reporting errors when returning a
+	 * value that disagrees with semantic restrictions.
+	 */
+	public @Nullable A_Function returningFunction;
+
+	/**
+	 * Some operations like {@link L2_INVOKE} instructions have statistics that
+	 * shouldn't include the {@link L2Instruction}s executed while the invoked
+	 * function is running (e.g., other L2_INVOKE instructions).  Accumulate
+	 * those here.  When an L2_INVOKE completes its invocation, replace the
+	 * portion representing the sub-tasks accumulated during the call with a
+	 * value representing the actual elapsed time for the call, but exclude the
+	 * prior value from the reported L2_INVOKE.
+	 */
+	public long nanosToExclude = 0L;
+
+	/**
+	 * Suspend the current fiber, evaluating the provided action.  The action is
+	 * passed two additional actions, one indicating how to resume from the
+	 * suspension in the future (taking the result of the primitive), and the
+	 * other indicating how to cause the primitive to fail (taking an
+	 * AvailErrorCode).
+	 *
+	 * @param args
+	 *        The {@link List} of arguments to the primitive.
+	 * @param skipReturnCheck
+	 *        Whether the result will need to be dynamically type-checked.
+	 * @param action
+	 *        The action supplied by the client that itself takes two actions
+	 *        for succeeding and failing the primitive at a later time.
+	 * @return The value FIBER_SUSPENDED.
+	 */
+	public Result suspendAndDo (
+		final List<AvailObject> args,
+		boolean skipReturnCheck,
+		Continuation2NotNull<
+				Continuation1NotNull<A_BasicObject>,
+				Continuation1NotNull<AvailErrorCode>>
+			action)
+	{
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final AvailRuntime runtime = AvailRuntime.currentRuntime();
+		final A_Function primitiveFunction = stripNull(function);
+		final @Nullable Primitive prim = primitiveFunction.code().primitive();
+		assert prim != null && prim.hasFlag(CanSuspend);
+		final A_Fiber fiber = fiber();
+		final AtomicBoolean once = new AtomicBoolean(false);
+		postExitContinuation(() ->
+			action.value(
+				result -> {
+					assert !once.getAndSet(true);
+					resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						prim,
+						result,
+						skipReturnCheck);
+				},
+				failureCode ->
+				{
+					assert !once.getAndSet(true);
+					resumeFromFailedPrimitive(
+						runtime,
+						fiber,
+						failureCode.numericCode(),
+						primitiveFunction,
+						copiedArgs,
+						skipReturnCheck);
+				}));
+		return primitiveSuspend(primitiveFunction);
 	}
 
 	/**
@@ -895,12 +1055,14 @@ public final class Interpreter
 	{
 		assert !exitNow;
 		assert state.indicatesSuspension();
+		assert unreifiedCallDepth() == 0;
 		final A_Fiber aFiber = fiber();
 		aFiber.lock(() ->
 		{
 			assert aFiber.executionState() == RUNNING;
 			aFiber.executionState(state);
-			aFiber.continuation(reifiedContinuation);
+			aFiber.continuation(stripNull(reifiedContinuation));
+			reifiedContinuation = null;
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
 			assert bound;
@@ -909,8 +1071,11 @@ public final class Interpreter
 		startTick = -1L;
 		if (debugL2)
 		{
-			System.out.println(debugModeString + "Set exitNow (primitiveSuspend)");
-			System.out.println(debugModeString + "Clear latestResult (primitiveSuspend)");
+			log(
+				loggerDebugL2,
+				Level.INFO,
+				"{0}Set exitNow (primitiveSuspend), clear latestResult",
+				debugModeString);
 		}
 		exitNow = true;
 		latestResult(null);
@@ -931,8 +1096,9 @@ public final class Interpreter
 	public Result primitiveSuspend (final A_Function suspendingFunction)
 	{
 		final Primitive prim = stripNull(suspendingFunction.code().primitive());
-		assert prim.hasFlag(Flag.CanSuspend);
+		assert prim.hasFlag(CanSuspend);
 		fiber().suspendingFunction(suspendingFunction);
+		function = null;  // Safety
 		return primitiveSuspend(SUSPENDED);
 	}
 
@@ -986,8 +1152,14 @@ public final class Interpreter
 		exitNow = true;
 		if (debugL2)
 		{
-			System.out.println(debugModeString + "Set exitNow (exitFiber)");
-			System.out.println(debugModeString + "Clear latestResult (exitFiber)");
+			log(
+				loggerDebugL2,
+				Level.INFO,
+				debugModeString + "Set exitNow (exitFiber)");
+			log(
+				loggerDebugL2,
+				Level.INFO,
+				debugModeString + "Clear latestResult (exitFiber)");
 		}
 		latestResult(null);
 		wipeRegisters();
@@ -1000,8 +1172,7 @@ public final class Interpreter
 			{
 				joiner.lock(() ->
 				{
-					// Restore the permit. Resume the fiber if it was
-					// parked.
+					// Restore the permit. Resume the fiber if it was parked.
 					joiner.getAndSetSynchronizationFlag(
 						PERMIT_UNAVAILABLE, false);
 					if (joiner.executionState() == PARKED)
@@ -1011,6 +1182,7 @@ public final class Interpreter
 						Interpreter.resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							joiner,
+							P_AttemptJoinFiber.instance,
 							nil,
 							true);
 					}
@@ -1073,15 +1245,11 @@ public final class Interpreter
 		if (debugPrimitives)
 		{
 			log(
+				loggerDebugPrimitives,
 				Level.FINER,
-				"{0}attempt {1}",
+				"{0}attempt {1} (and clear latestResult)",
 				debugModeString,
 				primitive.name());
-			System.out.println(debugModeString + "Trying prim: " + primitive.name());
-		}
-		if (debugL2)
-		{
-			System.out.println(debugModeString + "Clear latestResult (attemptPrimitive)");
 		}
 		latestResult(null);
 		assert current() == this;
@@ -1091,10 +1259,10 @@ public final class Interpreter
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
-		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
+		assert success != FAILURE || !primitive.hasFlag(CannotFail);
 		if (debugPrimitives)
 		{
-			if (logger.isLoggable(Level.FINER))
+			if (loggerDebugPrimitives.isLoggable(Level.FINER))
 			{
 				@Nullable AvailErrorCode errorCode = null;
 				if (success == FAILURE)
@@ -1109,23 +1277,35 @@ public final class Interpreter
 					? " (" + errorCode + ")"
 					: "";
 				log(
+					loggerDebugPrimitives,
 					Level.FINER,
 					"{0}... completed primitive {1} => {2}{3}",
 					debugModeString,
 					primitive.getClass().getSimpleName(),
 					success.name(),
 					failPart);
-			}
-			if (success != SUCCESS)
-			{
-				System.out.println("      (" + success.name() + ")");
+				if (success != SUCCESS)
+				{
+					log(
+						loggerDebugPrimitives,
+						Level.FINER,
+						"{0}      ({1})",
+						debugModeString,
+						success.name());
+				}
 			}
 		}
 		return success;
 	}
 
 	/** The (bottom) portion of the call stack that has been reified. */
-	public A_Continuation reifiedContinuation = nil;
+	public @Nullable A_Continuation reifiedContinuation = null;
+
+	/**
+	 * The number of stack frames that reification would transform into
+	 * continuations.
+	 */
+	private int unreifiedCallDepth = 0;
 
 	/** The {@link A_Function} being executed. */
 	public @Nullable A_Function function;
@@ -1306,10 +1486,11 @@ public final class Interpreter
 	/**
 	 * The {@linkplain #fiber() current} {@linkplain FiberDescriptor fiber} has
 	 * been asked to pause for an inter-nybblecode interrupt for some reason. It
-	 * has possibly executed several more wordcodes since that time, to place
-	 * the fiber into a state that's consistent with naive Level One execution
-	 * semantics. That is, a naive Level One interpreter should be able to
-	 * resume the fiber later.
+	 * has possibly executed several more L2 instructions since that time, to
+	 * place the fiber into a state that's consistent with naive Level One
+	 * execution semantics. That is, a naive Level One interpreter should be
+	 * able to resume the fiber later (although most of the time the Level Two
+	 * interpreter will kick in).
 	 *
 	 * @param continuation
 	 *        The reified continuation to save into the current fiber.
@@ -1343,7 +1524,11 @@ public final class Interpreter
 		offset = Integer.MAX_VALUE;
 		if (debugL2)
 		{
-			System.out.println(debugModeString + "Set exitNow (processInterrupt)");
+			log(
+				loggerDebugL2,
+				Level.FINER,
+				"{0}Set exitNow (processInterrupt)",
+				debugModeString);
 		}
 		startTick = -1L;
 		latestResult(null);
@@ -1385,7 +1570,8 @@ public final class Interpreter
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_CatchException.instance.primitiveNumber;
-		A_Continuation continuation = reifiedContinuation;
+		A_Continuation continuation = stripNull(reifiedContinuation);
+		int depth = 0;
 		while (!continuation.equalsNil())
 		{
 			final A_RawFunction code = continuation.function().code();
@@ -1395,7 +1581,7 @@ public final class Interpreter
 				final A_Variable failureVariable =
 					continuation.argOrLocalOrStackAt(4);
 				// Scan a currently unmarked frame.
-				if (failureVariable.value().equalsInt(0))
+				if (failureVariable.value().value().equalsInt(0))
 				{
 					final A_Tuple handlerTuple =
 						continuation.argOrLocalOrStackAt(2);
@@ -1407,7 +1593,16 @@ public final class Interpreter
 						{
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
-							failureVariable.setValueNoCheck(
+							if (debugL2)
+							{
+								log(
+									loggerDebugPrimitives,
+									Level.FINER,
+									"{0}Raised (->handler) at depth {1}",
+									debugModeString,
+									depth);
+							}
+							failureVariable.value().setValueNoCheck(
 								E_HANDLER_SENTINEL.numericCode());
 							// Run the handler.  Since the Java stack has been
 							// fully reified, simply jump into the chunk.  Note
@@ -1426,6 +1621,7 @@ public final class Interpreter
 				}
 			}
 			continuation = continuation.caller();
+			depth++;
 		}
 		// If no handler was found, then return the unhandled exception.
 		return primitiveFailure(exceptionValue);
@@ -1440,10 +1636,51 @@ public final class Interpreter
 	 * @param marker An exception handling state marker.
 	 * @return The {@link Result success state}.
 	 */
+	public Result markGuardVariable (
+		final A_Variable guardVariable,
+		final A_Number marker)
+	{
+		// Only allow certain state transitions.
+		final int oldState = guardVariable.value().extractInt();
+		if (marker.equals(E_HANDLER_SENTINEL.numericCode())
+			&& oldState != 0)
+		{
+			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
+		}
+		if (marker.equals(E_UNWIND_SENTINEL.numericCode())
+			&& oldState != E_HANDLER_SENTINEL.nativeCode())
+		{
+			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
+		}
+		// Mark this frame.  Depending on the marker, we don't want it to handle
+		// exceptions or unwinds anymore.
+		if (debugL2)
+		{
+			log(
+				loggerDebugL2,
+				Level.FINER,
+				"{0}Marked guard var {1}",
+				debugModeString,
+				marker);
+		}
+		guardVariable.setValueNoCheck(marker);
+		return primitiveSuccess(nil);
+	}
+
+	/**
+	 * Assume the entire stack has been reified.  Scan the stack of
+	 * continuations until one is found for a function whose code specifies
+	 * {@link P_CatchException}. Write the specified marker into its primitive
+	 * failure variable to indicate the current exception handling state.
+	 *
+	 * @param marker An exception handling state marker.
+	 * @return The {@link Result success state}.
+	 */
 	public Result markNearestGuard (final A_Number marker)
 	{
 		final int primNum = P_CatchException.instance.primitiveNumber;
-		A_Continuation continuation = reifiedContinuation;
+		A_Continuation continuation = stripNull(reifiedContinuation);
+		int depth = 0;
 		while (!continuation.equalsNil())
 		{
 			final A_RawFunction code = continuation.function().code();
@@ -1452,26 +1689,36 @@ public final class Interpreter
 				assert code.numArgs() == 3;
 				final A_Variable failureVariable =
 					continuation.argOrLocalOrStackAt(4);
+				final A_Variable guardVariable = failureVariable.value();
+				final int oldState = guardVariable.value().extractInt();
 				// Only allow certain state transitions.
 				if (marker.equals(E_HANDLER_SENTINEL.numericCode())
-					&& failureVariable.value().extractInt() != 0)
+					&& oldState != 0)
 				{
 					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
 				}
-				if (
-					marker.equals(
-						E_UNWIND_SENTINEL.numericCode())
-					&& !failureVariable.value().equals(
-						E_HANDLER_SENTINEL.numericCode()))
+				if (marker.equals(E_UNWIND_SENTINEL.numericCode())
+					&& oldState != E_HANDLER_SENTINEL.nativeCode())
 				{
 					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
 				}
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
-				failureVariable.setValueNoCheck(marker);
+				guardVariable.setValueNoCheck(marker);
+				if (debugL2)
+				{
+					log(
+						loggerDebugL2,
+						Level.FINER,
+						"{0}Marked {1} at depth {2}",
+						debugModeString,
+						marker,
+						depth);
+				}
 				return primitiveSuccess(nil);
 			}
 			continuation = continuation.caller();
+			depth++;
 		}
 		return primitiveFailure(E_NO_HANDLER_FRAME);
 	}
@@ -1515,14 +1762,20 @@ public final class Interpreter
 	 */
 	@InnerAccess void run ()
 	{
+		assert unreifiedCallDepth() == 0;
 		assert fiber != null;
 		assert !exitNow;
+		nanosToExclude = 0L;
 		startTick = runtime.clock.get();
 		if (debugL2)
 		{
 			debugModeString = "Fib=" + fiber.uniqueId() + " ";
-			System.out.println(
-				"\nRun: " + debugModeString + " (" + fiber.fiberName() + ")");
+			log(
+				loggerDebugPrimitives,
+				Level.FINER,
+				"\n{0}Run: ({1})",
+				debugModeString,
+				fiber.fiberName());
 		}
 		while (true)
 		{
@@ -1531,6 +1784,7 @@ public final class Interpreter
 			// to L1 if needed.
 			final A_Function calledFunction = stripNull(function);
 			final @Nullable StackReifier reifier = runChunk();
+			assert unreifiedCallDepth() <= 1;
 			returningFunction = calledFunction;
 			if (reifier != null)
 			{
@@ -1538,7 +1792,8 @@ public final class Interpreter
 				// collected all the continuations.
 				reifiedContinuation =
 					reifier.actuallyReify()
-						? reifier.assembleContinuation(reifiedContinuation)
+						? reifier.assembleContinuation(
+							stripNull(reifiedContinuation))
 						: nil;
 				chunk = null; // The postReificationAction should set this up.
 				reifier.postReificationAction().value();
@@ -1548,8 +1803,11 @@ public final class Interpreter
 					assert fiber == null;
 					if (debugL2)
 					{
-						System.out.println(
-							"Exit1 run: " + debugModeString + "\n");
+						log(
+							loggerDebugL2,
+							Level.FINER,
+							"{0}Exit1 run\n",
+							debugModeString);
 					}
 					return;
 				}
@@ -1564,7 +1822,7 @@ public final class Interpreter
 			assert returnNow;
 			assert latestResult != null;
 			returnNow = false;
-			if (reifiedContinuation.equalsNil())
+			if (stripNull(reifiedContinuation).equalsNil())
 			{
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
@@ -1572,10 +1830,12 @@ public final class Interpreter
 				exitNow = true;
 				if (debugL2)
 				{
-					System.out.println(
-						debugModeString
-							+ "Set exitNow (fall off Interpreter.run)");
-					System.out.println("Exit2 run: " + debugModeString + "\n");
+					log(
+						loggerDebugL2,
+						Level.FINER,
+						"{0}Exit2 run and set exitNow "
+							+ "(fall off Interpreter.run)\n",
+						debugModeString);
 				}
 				return;
 			}
@@ -1608,6 +1868,7 @@ public final class Interpreter
 	 */
 	public @Nullable StackReifier runChunk ()
 	{
+		adjustUnreifiedCallDepthBy(1);
 		assert !exitNow;
 		while (!returnNow)
 		{
@@ -1615,14 +1876,16 @@ public final class Interpreter
 				stripNull(chunk).instructions[offset++];
 			if (Interpreter.debugL2)
 			{
-				System.out.println(
-					debugModeString
-						+ "L2 start[#"
-						+ (offset - 1)
-						+ "]: "
-						+ instruction.operation.debugNameIn(instruction));
+				log(
+					loggerDebugL2,
+					Level.FINER,
+					"{0}L2 start[#{1}]: {2}",
+					debugModeString,
+					offset - 1,
+					instruction.operation.debugNameIn(instruction));
 			}
 
+			final long nanosToExcludeBeforeStep = nanosToExclude;
 			final long timeBefore = System.nanoTime();
 			try
 			{
@@ -1630,6 +1893,7 @@ public final class Interpreter
 					instruction.action.value(this);
 				if (reifier != null)
 				{
+					adjustUnreifiedCallDepthBy(-1);
 					return reifier;
 				}
 			}
@@ -1639,20 +1903,23 @@ public final class Interpreter
 				// the code still returns here after suspending.  Close enough.
 				// Also, this chunk may call other chunks (on the Java stack),
 				// so there will be multiple-counting of call instructions.
-				final long timeAfter = System.nanoTime();
+				final long deltaTime = System.nanoTime() - timeBefore;
+				final long exclude = nanosToExclude - nanosToExcludeBeforeStep;
 				instruction.operation.statisticInNanoseconds.record(
-					timeAfter - timeBefore,
-					interpreterIndex);
+					deltaTime - exclude, interpreterIndex);
+				nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
 				if (Interpreter.debugL2)
 				{
-					System.out.println(
-						debugModeString
-							+ "L2 end: "
-							+ instruction.operation.debugNameIn(instruction));
+					log(
+						loggerDebugL2,
+						Level.FINER,
+						"{0}L2 end: {1}",
+						debugModeString,
+						instruction.operation.debugNameIn(instruction));
 				}
 			}
 		}
-		// It returned normally without needing to reify.
+		adjustUnreifiedCallDepthBy(-1);
 		return null;
 	}
 
@@ -1666,13 +1933,8 @@ public final class Interpreter
 	 * @param skipReturnCheckFlag
 	 *        Whether when the function completes it can skip checking the
 	 *        result's type.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws StackReifier
-	 *         Always, to initiate reification of the Java stack.
+	 * @return The {@link StackReifier} that collects reified continuations on
+	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
@@ -1702,8 +1964,8 @@ public final class Interpreter
 	 *        The first argument of the function.
 	 * @param arg2
 	 *        The second argument of the function.
-	 * @return StackReifier
-	 *         Always, to initiate reification of the Java stack.
+	 * @return The {@link StackReifier} that collects reified continuations on
+	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall2 (
 		final A_Function functionToCall,
@@ -1739,8 +2001,8 @@ public final class Interpreter
 	 *        The second argument of the function.
 	 * @param arg3
 	 *        The third argument of the function.
-	 * @return StackReifier
-	 *         Always, to initiate reification of the Java stack.
+	 * @return The {@link StackReifier} that collects reified continuations on
+	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
@@ -1771,13 +2033,15 @@ public final class Interpreter
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
-	 * @return StackReifier
-	 *         Always, to initiate reification of the Java stack.
+	 * @return The {@link StackReifier} that collects reified continuations on
+	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThen (
 		final Continuation0 postReificationAction)
 	{
-		return new StackReifier(postReificationAction, true);
+		// Note that the *current* frame isn't reified, so subtract one.
+		return new StackReifier(
+			true, unreifiedCallDepth() - 1, postReificationAction);
 	}
 
 	/**
@@ -1790,13 +2054,13 @@ public final class Interpreter
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
-	 * @return StackReifier
-	 *         Always, to initiate reification of the Java stack.
+	 * @return The {@link StackReifier} that <em>abandons</em> stack frames on
+	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier abandonStackThen (
 		final Continuation0 postReificationAction)
 	{
-		return new StackReifier(postReificationAction, false);
+		return new StackReifier(false, 0, postReificationAction);
 	}
 
 	/**
@@ -1836,7 +2100,8 @@ public final class Interpreter
 					continuation.value(interpreter);
 					if (interpreter.exitNow)
 					{
-						assert interpreter.reifiedContinuation.equalsNil();
+						assert stripNull(interpreter.reifiedContinuation)
+							.equalsNil();
 						interpreter.terminateFiber(interpreter.latestResult());
 					}
 					else
@@ -1962,26 +2227,31 @@ public final class Interpreter
 	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
 	 * {@linkplain Result#SUCCESS successful} {@linkplain Primitive primitive}.
 	 * This method is an entry point.
-	 *
-	 * @param runtime
+	 *  @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
+	 * @param resumingPrimitive
+	 *        The suspended primitive that is resuming.  This must agree with
+	 *        the fiber's {@link A_Fiber#suspendingFunction}'s raw function's
+	 *        primitive.
 	 * @param result
 	 *        The result of the primitive.
 	 * @param skipReturnCheck
-	 *        Whether successful completion of the primitive will always produce
-	 *        something of the expected type, allowing us to elide the check of
-	 *        the returned value's type.
+ *        Whether successful completion of the primitive will always produce
+ *        something of the expected type, allowing us to elide the check of
 	 */
 	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
+		final Primitive resumingPrimitive,
 		final A_BasicObject result,
 		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
+		assert aFiber.suspendingFunction().code().primitive()
+			== resumingPrimitive;
 		executeFiber(
 			runtime,
 			aFiber,
@@ -2050,6 +2320,8 @@ public final class Interpreter
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
+		assert aFiber.suspendingFunction().equals(failureFunction);
+
 		executeFiber(
 			runtime,
 			aFiber,
@@ -2057,8 +2329,12 @@ public final class Interpreter
 			{
 				final A_RawFunction code = failureFunction.code();
 				final @Nullable Primitive prim = code.primitive();
-				assert prim != null && !prim.hasFlag(Flag.CannotFail);
+				assert prim != null;
+				assert !prim.hasFlag(CannotFail);
+				assert prim.hasFlag(CanSuspend);
 				assert args.size() == code.numArgs();
+				assert interpreter.reifiedContinuation == null;
+				interpreter.reifiedContinuation = aFiber.continuation();
 				aFiber.continuation(nil);
 				interpreter.function = failureFunction;
 				interpreter.argsBuffer.clear();
@@ -2275,9 +2551,13 @@ public final class Interpreter
 		else
 		{
 			builder.append(formatString(" [%s]", fiber.fiberName()));
-			if (reifiedContinuation.equalsNil())
+			if (reifiedContinuation == null)
 			{
-				builder.append(formatString("%n\t«no stack»"));
+				builder.append(formatString("%n\t«null stack»"));
+			}
+			else if (reifiedContinuation.equalsNil())
+			{
+				builder.append(formatString("%n\t«empty call stack»"));
 			}
 			builder.append("\n\n");
 		}

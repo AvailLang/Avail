@@ -78,15 +78,14 @@ extends Primitive
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
-		final Result suspended =
-			interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.postExitContinuation(
 			() -> resumeFromSuccessfulPrimitive(
 				currentRuntime(),
 				fiber,
+				this,
 				nil,
 				true));
-		return suspended;
+		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 
 	@Override

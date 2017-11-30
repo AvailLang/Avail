@@ -451,7 +451,7 @@ public final class L2ControlFlowGraph
 			while (iterator.hasNext())
 			{
 				final L2Instruction instruction = iterator.next();
-				if (instruction.operation instanceof L2_MOVE
+				if (instruction.operation.isMove()
 					&& instruction.sourceRegisters().get(0).finalIndex()
 					== instruction.destinationRegisters().get(0).finalIndex())
 				{
@@ -936,11 +936,17 @@ public final class L2ControlFlowGraph
 		removeDeadCode();
 		sanityCheck(L2Register::uniqueValue);
 
-		// Color all registers.  This creates a dense finalIndex numbering for
-		// the registers in such a way that no two registers that have to
-		// maintain distinct values at the same time will have the same number.
+		// Compute the register-coloring interference graph while we're just out
+		// of SSA form – phis have been replaced by moves on incoming edges.
 		final L2RegisterColorer colorer = new L2RegisterColorer(this);
-		colorer.colorRegisters();
+		colorer.computeInterferenceGraph();
+
+		// Color all registers, using the previously computed interference
+		// graph.  This creates a dense finalIndex numbering for the registers
+		// in such a way that no two registers that have to maintain distinct
+		// values at the same time will have the same number.
+		colorer.coalesceNoninterferingMoves();
+		colorer.computeColors();
 		sanityCheck(L2Register::finalIndex);
 
 		// Create a replacement register for each used color (of each kind).

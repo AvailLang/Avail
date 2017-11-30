@@ -157,7 +157,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 			{
 				// Push the continuation from above onto the reified stack.
 				interpreter.reifiedContinuation = continuation.replacingCaller(
-					interpreter.reifiedContinuation);
+					stripNull(interpreter.reifiedContinuation));
 				interpreter.processInterrupt(interpreter.reifiedContinuation);
 			});
 		}

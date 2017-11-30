@@ -102,6 +102,11 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	StringBuilder debugLog ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	ExecutionState executionState ();
 
 	/**

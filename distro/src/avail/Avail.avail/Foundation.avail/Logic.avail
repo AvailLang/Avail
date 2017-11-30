@@ -884,7 +884,7 @@ Semantic restriction "_=_" is
 ];
 
 /**
- * The negation method "¬_" is not precede the not equal method "_≠_", which is
+ * The negation method "¬_" cannot precede the not equal method "_≠_", which is
  * dealt with by a grammatical restriction.  However, this can lead to confusing
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.
@@ -905,7 +905,7 @@ Public macro "¬_≠_" is
 ];
 
 /**
- * The negation method "¬_" is not precede the equals method "_=_", which is
+ * The negation method "¬_" cannot precede the equals method "_=_", which is
  * dealt with by a grammatical restriction.  However, this can lead to confusing
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.

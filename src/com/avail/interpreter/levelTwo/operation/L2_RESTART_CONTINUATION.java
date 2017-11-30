@@ -75,6 +75,7 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 		final L2ReadPointerOperand continuationReg =
 			instruction.readObjectRegisterAt(0);
 
+		assert interpreter.unreifiedCallDepth() == 1;
 		final A_Continuation continuation = continuationReg.in(interpreter);
 		final A_RawFunction code = continuation.function().code();
 		//TODO MvG - Continuations should have two statically distinguishable

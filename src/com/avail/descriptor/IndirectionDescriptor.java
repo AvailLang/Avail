@@ -5121,4 +5121,10 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).isSourceOfCycle(isSourceOfCycle);
 	}
+
+	@Override
+	StringBuilder o_DebugLog (final AvailObject object)
+	{
+		return o_Traversed(object).debugLog();
+	}
 }

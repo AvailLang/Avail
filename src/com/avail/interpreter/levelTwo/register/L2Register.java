@@ -40,6 +40,7 @@ import com.avail.optimizer.L2Translator;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -159,6 +160,24 @@ public abstract class L2Register
 	{
 		assert definitions.size() == 1;
 		return definitions.iterator().next();
+	}
+
+	/**
+	 * Answer the {@link L2Instruction} which generates the value that will
+	 * populate this register.  Skip over move instructions.  The containing
+	 * graph must be in SSA form.
+	 */
+	public L2Instruction definitionSkippingMoves ()
+	{
+		assert definitions.size() == 1;
+		L2Instruction definition = definitions.iterator().next();
+		if (definition.operation.isMove())
+		{
+			final List<L2Register> sources = definition.sourceRegisters();
+			assert sources.size() == 1;
+			return sources.get(0).definitionSkippingMoves();
+		}
+		return definition;
 	}
 
 	/**

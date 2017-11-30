@@ -83,8 +83,6 @@ extends Primitive
 
 		final A_Fiber thisFiber = interpreter.fiber();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
-		final Result suspended =
-			interpreter.primitiveSuspend(primitiveFunction);
 		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.postExitContinuation(
@@ -96,6 +94,7 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							thisFiber,
+							this,
 							theContinuation,
 							skipReturnCheck);
 					}
@@ -110,7 +109,7 @@ extends Primitive
 							skipReturnCheck);
 					}
 				}));
-		return suspended;
+		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 
 	@Override

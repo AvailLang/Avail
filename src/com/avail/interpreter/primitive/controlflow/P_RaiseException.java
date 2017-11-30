@@ -51,6 +51,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Raise an exception. Scan the stack of
@@ -87,7 +88,7 @@ extends Primitive
 		final A_Map fieldMap = exception.fieldMap();
 		final A_Map newFieldMap = fieldMap.mapAtPuttingCanDestroy(
 			stackDumpAtom(),
-			interpreter.reifiedContinuation.makeImmutable(),
+			stripNull(interpreter.reifiedContinuation).makeImmutable(),
 			false);
 		final AvailObject newException = objectFromMap(newFieldMap);
 		// Search for an applicable exception handler, and invoke it if found.
@@ -98,7 +99,10 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(exceptionType()), bottom());
+			functionType(
+				tuple(
+					exceptionType()),
+				bottom());
 	}
 
 	@Override

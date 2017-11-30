@@ -99,6 +99,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		if (Interpreter.debugL2)
 		{
 			Interpreter.log(
+				Interpreter.loggerDebugL2,
 				Level.FINER,
 				"{0}Lookup-by-types {1}",
 				interpreter.debugModeString,

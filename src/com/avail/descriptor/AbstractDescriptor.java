@@ -1721,6 +1721,14 @@ public abstract class AbstractDescriptor
 		List<? extends A_Type> argTypes);
 
 	/**
+	 * Answer a fiber's internal debug log.
+	 *
+	 * @param object The {@link A_Fiber}.
+	 * @return The fiber's debug log, a {@link StringBuilder}.
+	 */
+	abstract StringBuilder o_DebugLog (final AvailObject object);
+
+	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link

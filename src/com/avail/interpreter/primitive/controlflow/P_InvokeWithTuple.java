@@ -44,16 +44,15 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
 import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -71,7 +70,6 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
-import static com.avail.optimizer.L1Translator.writeVector;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -272,22 +270,16 @@ extends Primitive
 
 		// Emit code to get the tuple slots into separate registers for the
 		// invocation, *extracting* them from the tuple if necessary.
-		L2Instruction tupleDefinitionInstruction =
-			tupleReg.register().definition();
-		while (tupleDefinitionInstruction.operation instanceof L2_MOVE)
-		{
-			final L2ReadPointerOperand sourceReg =
-				L2_MOVE.sourceOf(tupleDefinitionInstruction);
-			tupleDefinitionInstruction = sourceReg.register().definition();
-		}
+		final L2Instruction tupleDefinitionInstruction =
+			tupleReg.register().definitionSkippingMoves();
 		final List<L2ReadPointerOperand> argsTupleReaders;
-		if (tupleDefinitionInstruction.operation instanceof L2_CREATE_TUPLE)
+		if (tupleDefinitionInstruction.operation == L2_CREATE_TUPLE.instance)
 		{
 			argsTupleReaders = L2_CREATE_TUPLE.tupleSourceRegistersOf(
 				tupleDefinitionInstruction);
 		}
 		else if (tupleDefinitionInstruction.operation
-			instanceof L2_MOVE_CONSTANT)
+			== L2_MOVE_CONSTANT.instance)
 		{
 			final A_Tuple constantTuple =
 				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
@@ -302,7 +294,7 @@ extends Primitive
 			translator.addInstruction(
 				L2_EXPLODE_TUPLE.instance,
 				tupleReg,
-				writeVector(argsTupleWriters));
+				new L2WriteVectorOperand(argsTupleWriters));
 			argsTupleReaders =
 				argsTupleWriters.stream()
 					.map(L2WritePointerOperand::read)

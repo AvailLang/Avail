@@ -31,20 +31,16 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.io.TextInterface;
 
 import javax.annotation.Nullable;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -55,11 +51,8 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.interpreter.Interpreter.resumeFromFailedPrimitive;
-import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Read one character from the standard input
@@ -83,47 +76,35 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
-		final TextInterface textInterface = fiber.textInterface();
-		final A_Function primitiveFunction = stripNull(interpreter.function);
-		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		final CharBuffer buffer = CharBuffer.allocate(1);
-		interpreter.primitiveSuspend(primitiveFunction);
-		interpreter.postExitContinuation(() ->
-			textInterface.inputChannel().read(
-				buffer,
-				fiber,
-				new CompletionHandler<Integer, A_Fiber>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable A_Fiber unused)
+		return interpreter.suspendAndDo(
+			args,
+			skipReturnCheck,
+			(toSucceed, toFail) ->
+			{
+				final CharBuffer buffer = CharBuffer.allocate(1);
+				fiber.textInterface().inputChannel().read(
+					buffer,
+					fiber,
+					new CompletionHandler<Integer, A_Fiber>()
 					{
-						resumeFromSuccessfulPrimitive(
-							runtime,
-							fiber,
-							fromCodePoint(buffer.get(0)),
-							skipReturnCheck);
-					}
+						@Override
+						public void completed (
+							final @Nullable Integer result,
+							final @Nullable A_Fiber unused)
+						{
+							toSucceed.value(fromCodePoint(buffer.get(0)));
+						}
 
-					@Override
-					public void failed (
-						final @Nullable Throwable exc,
-						final @Nullable A_Fiber unused)
-					{
-						resumeFromFailedPrimitive(
-							runtime,
-							fiber,
-							E_IO_ERROR.numericCode(),
-							primitiveFunction,
-							copiedArgs,
-							skipReturnCheck);
-					}
-				}));
-		return Result.FIBER_SUSPENDED;
+						@Override
+						public void failed (
+							final @Nullable Throwable exc,
+							final @Nullable A_Fiber unused)
+						{
+							toFail.value(E_IO_ERROR);
+						}
+					});
+			});
 	}
 
 	@Override

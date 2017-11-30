@@ -187,4 +187,36 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		assert instruction.operation == instance;
 		return instruction.writeObjectRegisterAt(2);
 	}
+
+	/**
+	 * Extract the {@link Primitive} from the provided instruction.
+	 *
+ 	 * @param instruction
+	 *        The {@link L2Instruction} from which to extract the {@link
+	 *        Primitive}.
+	 * @return The {@link Primitive} invoked by this instruction.
+	 */
+	public static Primitive primitiveOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.primitiveAt(0);
+	}
+
+	/**
+	 * Extract the {@link List} of {@link L2ReadPointerOperand}s that supply the
+	 * arguments to the primitive.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} from which to extract the list of
+	 *        arguments.
+	 * @return The {@link List} of {@link L2ReadPointerOperand}s that supply
+	 *         arguments to the primitive.
+	 */
+	public static List<L2ReadPointerOperand> argsOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.readVectorRegisterAt(1);
+	}
 }

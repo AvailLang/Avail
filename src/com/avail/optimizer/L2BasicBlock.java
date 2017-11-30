@@ -36,19 +36,15 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import static com.avail.optimizer.L1Translator.readVector;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -115,7 +111,7 @@ public final class L2BasicBlock
 	 * Prevent this block from being removed, so that its position can be
 	 * identified in the final generated code.
 	 */
-	public void makeIrremovable ()
+	void makeIrremovable ()
 	{
 		isIrremovable = true;
 	}
@@ -123,7 +119,7 @@ public final class L2BasicBlock
 	/**
 	 * Answer whether this block must be tracked until final code generation.
 	 * */
-	public boolean isIrremovable ()
+	boolean isIrremovable ()
 	{
 		return isIrremovable;
 	}
@@ -156,7 +152,7 @@ public final class L2BasicBlock
 	 *
 	 * @return The last {@link L2Instruction} of this block.
 	 */
-	public L2Instruction finalInstruction ()
+	L2Instruction finalInstruction ()
 	{
 		return instructions.get(instructions.size() - 1);
 	}
@@ -266,16 +262,17 @@ public final class L2BasicBlock
 	 * @param translator
 	 *        The {@link L1Translator} generating instructions.
 	 */
-	public void startIn (final L1Translator translator)
+	void startIn (final L1Translator translator)
 	{
 		final int numSlots;
 		if (!predecessorEdges.isEmpty())
 		{
-			final List<Integer> slotSizes = predecessorEdges.stream()
-				.map(e -> e.slotRegisters().length)
-				.distinct().collect(toList());
-			assert slotSizes.size() == 1;
-			numSlots = slotSizes.get(0);
+			numSlots = predecessorEdges.get(0).slotRegisters().length;
+			for (int i = 1; i < predecessorEdges.size(); i++)
+			{
+				assert predecessorEdges.get(i).slotRegisters().length
+					== numSlots;
+			}
 			assert numSlots <= translator.numSlots;
 		}
 		else
@@ -283,9 +280,11 @@ public final class L2BasicBlock
 			numSlots = translator.numSlots;
 		}
 		final List<List<L2ReadPointerOperand>> sourcesBySlot =
-			IntStream.range(0, numSlots)
-				.mapToObj(i -> new ArrayList<L2ReadPointerOperand>())
-				.collect(toList());
+			new ArrayList<>();
+		for (int i = numSlots; i > 0; i--)
+		{
+			sourcesBySlot.add(new ArrayList<>());
+		}
 		// Determine the sets of registers feeding each slot index.
 		for (final L2PcOperand edge : predecessorEdges)
 		{
@@ -315,29 +314,45 @@ public final class L2BasicBlock
 				translator.forceSlotRegister(slotIndex, null);
 				continue;
 			}
-			final List<A_BasicObject> constants = registerReads.stream()
-				.map(L2ReadPointerOperand::constantOrNull)
-				.collect(toList());
-			if (!constants.contains(null)
-				&& constants.stream().distinct().count() == 1)
+			@Nullable A_BasicObject constant = null;
+			for (L2ReadPointerOperand registerRead : registerReads)
+			{
+				@Nullable A_BasicObject constantOrNull =
+					registerRead.constantOrNull();
+				if (constantOrNull == null
+					|| (constant != null
+						    && !constantOrNull.equals(constant)))
+				{
+					// Not a constant, or it's different.
+					constant = null;
+					break;
+				}
+				constant = constantOrNull;
+			}
+			if (constant != null)
 			{
 				// All predecessors produce the same constant value for this
 				// phi.  Introduce another local constant instead of a phi
 				// move, under the assumption that the previous constant
 				// moves are likely to become dead code.
-				translator.moveConstantToSlot(constants.get(0), slotIndex);
+				translator.moveConstantToSlot(constant, slotIndex);
 				continue;
 			}
-			@SuppressWarnings("ConstantConditions")
-			final TypeRestriction unionRestriction = registerReads.stream()
-				.map(L2ReadPointerOperand::restriction)
-				.reduce(TypeRestriction::union)
-				.get();
-			final Set<L2ObjectRegister> distinct = registerReads.stream()
-				.map(L2ReadPointerOperand::register)
-				.collect(toSet());
-			assert !distinct.isEmpty();
-			if (distinct.size() == 1)
+			@Nullable L2ObjectRegister commonRegister =
+				registerReads.get(0).register();
+			TypeRestriction unionRestriction =
+				registerReads.get(0).restriction();
+			for (int i = 1; i < registerReads.size(); i++)
+			{
+				final L2ReadPointerOperand read = registerReads.get(i);
+				unionRestriction = unionRestriction.union(read.restriction());
+				if (read.register() != commonRegister)
+				{
+					commonRegister = null;
+				}
+			}
+
+			if (commonRegister != null)
 			{
 				// All predecessors set up this register the same way, so
 				// this register doesn't need a phi function.  However, this
@@ -345,17 +360,14 @@ public final class L2BasicBlock
 				// creation order.  Bring the translator into agreement.
 				translator.forceSlotRegister(
 					slotIndex,
-					new L2ReadPointerOperand(
-						distinct.iterator().next(),
-						unionRestriction));
-				translator.forceSlotRegister(slotIndex, registerReads.get(0));
+					new L2ReadPointerOperand(commonRegister, unionRestriction));
 				continue;
 			}
 			// Create a phi instruction to merge these sources together
 			// into a new register at that slot index.
 			translator.addInstruction(
 				L2_PHI_PSEUDO_OPERATION.instance,
-				readVector(registerReads),
+				new L2ReadVectorOperand(registerReads),
 				translator.writeSlot(
 					slotIndex,
 					unionRestriction.type,
@@ -409,7 +421,7 @@ public final class L2BasicBlock
 	 * @return Whether it would be possible to reach a new instruction added to
 	 *         this block.
 	 */
-	public boolean currentlyReachable ()
+	boolean currentlyReachable ()
 	{
 		return (isIrremovable || !predecessorEdges.isEmpty())
 			&& !hasControlFlowAtEnd;
@@ -432,7 +444,7 @@ public final class L2BasicBlock
 	 *        The {@link List} of {@link L2Instruction}s in which to append this
 	 *        basic block's instructions.
 	 */
-	public void generateOn (final List<L2Instruction> output)
+	void generateOn (final List<L2Instruction> output)
 	{
 		// If the preceding instruction was a jump to here, remove it.  In fact,
 		// a null-jump might be on the end of the list, hiding another jump

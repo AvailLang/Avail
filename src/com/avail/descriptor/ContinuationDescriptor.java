@@ -36,9 +36,11 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
+import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
@@ -47,6 +49,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -388,8 +391,18 @@ extends Descriptor
 	@Override
 	String o_NameForDebugger (final AvailObject object)
 	{
-		return super.o_NameForDebugger(object) + ": "
-			+ object.function().code().methodName();
+		final StringBuilder builder = new StringBuilder();
+		builder.append(super.o_NameForDebugger(object));
+		builder.append(": ");
+		builder.append(object.function().code().methodName());
+		final @Nullable Primitive primitive =
+			object.function().code().primitive();
+		if (primitive == P_CatchException.instance)
+		{
+			builder.append(", CATCH var = ");
+			builder.append(object.argOrLocalOrStackAt(4).value().value());
+		}
+		return builder.toString();
 	}
 
 	@Override

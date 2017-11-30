@@ -98,6 +98,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		if (Interpreter.debugL2)
 		{
 			Interpreter.log(
+				Interpreter.loggerDebugL2,
 				Level.FINER,
 				"{0}Lookup {1}",
 				interpreter.debugModeString,

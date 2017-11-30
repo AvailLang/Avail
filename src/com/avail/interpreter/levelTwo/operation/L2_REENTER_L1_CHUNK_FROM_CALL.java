@@ -43,6 +43,8 @@ import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 
+import java.util.logging.Level;
+
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -77,10 +79,14 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 	{
 		if (debugL1)
 		{
-			System.out.println("Reenter L1 from call");
+			Interpreter.log(
+				Interpreter.loggerDebugL1,
+				Level.FINER,
+				"{0}Reenter L1 from call",
+				interpreter.debugModeString);
 		}
-
-		final A_Continuation continuation = interpreter.reifiedContinuation;
+		final A_Continuation continuation =
+			stripNull(interpreter.reifiedContinuation);
 		interpreter.reifiedContinuation = continuation.caller();
 		final AvailObject returnValue = interpreter.latestResult();
 

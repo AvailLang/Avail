@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
@@ -50,7 +51,6 @@ import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L1Translator;
@@ -67,7 +67,6 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.optimizer.L1Translator.readVector;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -127,50 +126,41 @@ public final class P_CastIntoElse extends Primitive
 	 * against (i.e., the intoBlock's argument type), then answer it.  Otherwise
 	 * answer {@code null}.
 	 *
-	 * @param initialFunctionReg
+	 * @param functionReg
 	 *        The register that holds the intoFunction.
 	 * @return Either null or an exact type to compare the value against in
 	 *         order to determine whether the intoBlock or the elseBlock will be
 	 *         invoked.
 	 */
 	private static @Nullable A_Type exactArgumentTypeFor (
-		final L2ReadPointerOperand initialFunctionReg)
+		final L2ReadPointerOperand functionReg)
 	{
-		L2ReadPointerOperand functionReg = initialFunctionReg;
-		while (true)
+		final @Nullable A_Function constantFunction =
+			A_Function.class.cast(functionReg.constantOrNull());
+		if (constantFunction != null)
 		{
-			final @Nullable A_Function constantFunction =
-				A_Function.class.cast(functionReg.constantOrNull());
-			if (constantFunction != null)
-			{
-				// Function is a constant.
-				final A_Type functionType =
-					constantFunction.code().functionType();
-				return functionType.argsTupleType().typeAtIndex(1);
-			}
-			final L2Instruction originOfFunction =
-				functionReg.register().definition();
-			if (originOfFunction.operation instanceof L2_MOVE_CONSTANT)
-			{
-				final A_Function function = originOfFunction.constantAt(0);
-				final A_Type functionType = function.code().functionType();
-				return functionType.argsTupleType().typeAtIndex(1);
-			}
-			if (originOfFunction.operation instanceof L2_CREATE_FUNCTION)
-			{
-				final A_RawFunction code = originOfFunction.constantAt(0);
-				final A_Type functionType = code.functionType();
-				return functionType.argsTupleType().typeAtIndex(1);
-			}
-			if (originOfFunction.operation instanceof L2_MOVE)
-			{
-				// Trace it back through moves.
-				functionReg = originOfFunction.readObjectRegisterAt(0);
-			}
-			else
-			{
-				return null;
-			}
+			// Function is a constant.
+			final A_Type functionType =
+				constantFunction.code().functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		final L2Instruction originOfFunction =
+			functionReg.register().definitionSkippingMoves();
+		if (originOfFunction.operation instanceof L2_MOVE_CONSTANT)
+		{
+			final A_Function function = originOfFunction.constantAt(0);
+			final A_Type functionType = function.code().functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		if (originOfFunction.operation instanceof L2_CREATE_FUNCTION)
+		{
+			final A_RawFunction code = originOfFunction.constantAt(0);
+			final A_Type functionType = code.functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		else
+		{
+			return null;
 		}
 	}
 
@@ -339,7 +329,7 @@ public final class P_CastIntoElse extends Primitive
 			// function).  Merge the results with a phi function.
 			translator.addInstruction(
 				L2_PHI_PSEUDO_OPERATION.instance,
-				readVector(asList(castResultReg, elseResultReg)),
+				new L2ReadVectorOperand(asList(castResultReg, elseResultReg)),
 				mergeReg);
 			return mergeReg.read();
 		}

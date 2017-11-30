@@ -63,67 +63,25 @@ import java.util.List;
 public enum StatisticReport
 {
 	/** Statistics for executing parsing instructions. */
-	RUNNING_PARSING_INSTRUCTIONS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Running Parsing Operations";
-		}
-	},
+	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations"),
 
 	/**
 	 * Statistics for {@link MessageBundleTreeDescriptor#o_Expand(AvailObject,
 	 * A_Module) expanding} ParsingOperations.
 	 */
-	EXPANDING_PARSING_INSTRUCTIONS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Expanding Parsing Operations";
-		}
-	},
+	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations"),
 
 	/** Level-Two Operations report. */
-	L2_OPERATIONS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "L2 Operations";
-		}
-	},
+	L2_OPERATIONS("L2 Operations"),
 
 	/** The Dynamic Lookups report. */
-	DYNAMIC_LOOKUPS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Dynamic Lookups";
-		}
-	},
+	DYNAMIC_LOOKUPS("Dynamic Lookups"),
 
 	/** The Primitives report. */
-	PRIMITIVES
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Primitives";
-		}
-	},
+	PRIMITIVES("Primitives"),
 
 	/** The Primitive Return Type Checks report. */
-	PRIMITIVE_RETURN_TYPE_CHECKS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Primitive Return Type Checks";
-		}
-	},
+	PRIMITIVE_RETURN_TYPE_CHECKS("Primitive Return Type Checks"),
 
 	/**
 	 * The Non-primitive Return Type Checks report.  This collects contextual
@@ -131,24 +89,34 @@ public enum StatisticReport
 	 * return result.  They're organized by the {@link A_RawFunction} that the
 	 * return is from, and the {@link A_RawFunction} that it's to.
 	 */
-	NON_PRIMITIVE_RETURN_TYPE_CHECKS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "Nonprimitive Return Type Checks";
-		}
-	},
+	NON_PRIMITIVE_RETURN_TYPE_CHECKS("Nonprimitive Return Type Checks"),
 
 	/** Report for outermost statements of modules that are loaded. */
-	TOP_LEVEL_STATEMENTS
+	TOP_LEVEL_STATEMENTS("Top Level Statements"),
+
+	/** Report for time spent updating text in workbench transcript. */
+	WORKBENCH_TRANSCRIPT("Workbench transcript");
+
+	/** The title of the StatisticReport. */
+	private String title;
+
+	/**
+	 * @return The title associated with the StatisticReport.
+	 */
+	public String title ()
 	{
-		@Override
-		public String keyword ()
-		{
-			return "Top Level Statements";
-		}
-	};
+		return title;
+	}
+
+	/**
+	 * Create an enumerated {@link StatisticReport}.
+	 *
+	 * @param title The title of the statistic report.
+	 */
+	StatisticReport (final String title)
+	{
+		this.title = title;
+	}
 
 	/**
 	 * The {@link List} of {@link Statistic} objects that have been registered
@@ -183,18 +151,13 @@ public enum StatisticReport
 	{
 		for (final StatisticReport report : values())
 		{
-			if (report.keyword().equals(str))
+			if (report.title().equals(str))
 			{
 				return report;
 			}
 		}
 		return null;
 	}
-
-	/**
-	 * @return The String keyword associated with the StatisticReport.
-	 */
-	public abstract String keyword ();
 
 	/**
 	 * Clear all my {@link Statistic}s.
@@ -259,7 +222,7 @@ public enum StatisticReport
 		for (final StatisticReport report : reports)
 		{
 			builder.append('\n');
-			builder.append(report.keyword());
+			builder.append(report.title());
 			builder.append('\n');
 			final List<Pair<String, PerInterpreterStatistic>> pairs =
 				report.sortedPairs();

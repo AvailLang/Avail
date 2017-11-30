@@ -56,6 +56,7 @@ import com.avail.environment.tasks.BuildTask;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
@@ -102,17 +103,24 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
+import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
+import static java.lang.System.currentTimeMillis;
 import static javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED;
-import static javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 import static javax.swing.SwingUtilities.invokeLater;
 
 /**
@@ -265,7 +273,7 @@ extends JFrame
 		@Override
 		protected final @Nullable Void doInBackground () throws Exception
 		{
-			startTimeMillis = System.currentTimeMillis();
+			startTimeMillis = currentTimeMillis();
 			try
 			{
 				// Reopen the repositories if necessary.
@@ -285,7 +293,7 @@ extends JFrame
 				{
 					root.repository().close();
 				}
-				stopTimeMillis = System.currentTimeMillis();
+				stopTimeMillis = currentTimeMillis();
 			}
 		}
 
@@ -297,28 +305,6 @@ extends JFrame
 		 */
 		protected abstract void executeTask () throws Exception;
 	}
-
-
-	/**
-	 * Whether there is a task queued or running that will check again for
-	 * new changes before giving up control.
-	 */
-	@InnerAccess boolean updatingTranscript = false;
-
-	/**
-	 * A {@link List} of {@link Pair}s, where the first part of each pair is a
-	 * boolean indicating if the entry is for the error stream (true) or the
-	 * regular output stream (false), and the second part of the pair is a
-	 * {@link StringBuilder} that accumulates new {@link String} data to be
-	 * written with the same style.
-	 *
-	 * Additionally, this queue is the monitor on which to synchronize writing
-	 * to either output stream, and to transfer from the queue to the output
-	 * transcript (a {@link StyledDocument}).
-	 */
-	@InnerAccess
-	final Deque<Pair<StreamStyle, StringBuilder>> updateQueue =
-		new ArrayDeque<>();
 
 	/**
 	 * The {@link StyledDocument} into which to write both error and regular
@@ -335,7 +321,7 @@ extends JFrame
 	 */
 	@InnerAccess StyledDocument document ()
 	{
-		StyledDocument d = document;
+		@Nullable StyledDocument d = document;
 		if (d == null)
 		{
 			d = transcript.getStyledDocument();
@@ -345,7 +331,53 @@ extends JFrame
 	}
 
 	/** Truncate the start of the document any time it exceeds this. */
-	final int maxDocumentSize = 1_000_000;
+	private final int maxDocumentSize = 10_000_000;
+
+	/**
+	 * A singular write to an output stream.  This write is considered atomic
+	 * with respect to writes from other threads, and will not have content from
+	 * other writes interspersed with its characters.
+	 */
+	final class BuildOutputStreamEntry
+	{
+		public final StreamStyle style;
+
+		public final String string;
+
+		BuildOutputStreamEntry (final StreamStyle style, final String string)
+		{
+			this.style = style;
+			this.string = string;
+		}
+	}
+
+	/** The last moment (ms) that a UI update of the transcript completed. */
+	private volatile long lastTranscriptUpdateCompleted = 0L;
+
+	/**
+	 * A {@link List} of {@link BuildOutputStreamEntry}(s), each of which holds
+	 * a style and a {@link String}.  The {@link #totalQueuedTextSize} must be
+	 * updated after an add to this queue, or before a remove from this queue.
+	 * This ensures that the queue contains at least as many characters as the
+	 * counter indicates, although it can be more.  Additionally, to allow each
+	 * enqueuer to also dequeue surplus entries, the {@link #dequeueLock} must
+	 * be held whenever removing entries from the queue.
+	 */
+	@InnerAccess
+	final Queue<BuildOutputStreamEntry> updateQueue =
+		new ConcurrentLinkedQueue<>();
+
+	/**
+	 * The sum of the lengths of the strings in the updateQueue.  This value
+	 * must always be ≤ the actual sum of the lengths of the strings at any
+	 * moment, so it's updated after an add but before a remove from the queue.
+	 */
+	@InnerAccess AtomicLong totalQueuedTextSize = new AtomicLong();
+
+	/**
+	 * A lock that's held when removing things from the {@link #updateQueue}.
+	 */
+	final WriteLock dequeueLock = new ReentrantReadWriteLock(false).writeLock();
 
 	/**
 	 * Update the {@linkplain #transcript} by appending the (non-empty) queued
@@ -357,66 +389,185 @@ extends JFrame
 	 */
 	@InnerAccess void updateTranscript ()
 	{
-		assert Thread.holdsLock(updateQueue);
-		assert updatingTranscript;
-		assert !updateQueue.isEmpty();
-		invokeLater(() ->
+		assert totalQueuedTextSize.get() > 0;
+		final long now = currentTimeMillis();
+		if (now - lastTranscriptUpdateCompleted > 200)
 		{
-			final List<Pair<StreamStyle, StringBuilder>> allPairs;
-			synchronized (updateQueue)
-			{
-				allPairs = new ArrayList<>(updateQueue);
-				updateQueue.clear();
-			}
-			assert !allPairs.isEmpty();
-			final StyledDocument doc = document();
-			for (final Pair<StreamStyle, StringBuilder> pair : allPairs)
-			{
-				try
+			// It's been more than 200ms since the last UI update completed, so
+			// process the update immediately.
+			invokeLater(this::privateUpdateTranscriptInUIThread);
+		}
+		else
+		{
+			// Wait until 200ms have actually elapsed.
+			availBuilder.runtime.timer.schedule(
+				new TimerTask()
 				{
-					final int statusSize = perModuleStatusTextSize;
-					final int length = doc.getLength();
-					final String newString = pair.second().toString();
-					final int newStringLength = newString.length();
-					final int newLength = length + newStringLength;
-					final int amountToRemove = newLength - maxDocumentSize;
-					if (amountToRemove > 0)
+					@Override
+					public void run ()
 					{
-						// Remove part of the document just after the status
-						// area.  It may still be the case that the string being
-						// appended is still very large, but we'll just allow
-						// it to be big in that case.
-						final int endOfRemoval = min(
-							statusSize + amountToRemove, length);
-						if (endOfRemoval > statusSize)
-						{
-							doc.remove(statusSize, endOfRemoval - statusSize);
-						}
+						invokeLater(() -> privateUpdateTranscriptInUIThread());
 					}
-					doc.insertString(
-						doc.getLength(),  // The new length
-						newString,
-						pair.first().styleIn(doc));
-				}
-				catch (final BadLocationException e)
-				{
-					// Just ignore the failed write.
-				}
-			}
-			synchronized (updateQueue)
+				},
+				max(0, now - lastTranscriptUpdateCompleted));
+		}
+	}
+
+	private static final Statistic insertStringStat =
+		new Statistic(
+			"Insert string",
+			WORKBENCH_TRANSCRIPT);
+
+	private static final Statistic removeStringStat =
+		new Statistic(
+			"Remove string",
+			WORKBENCH_TRANSCRIPT);
+
+	/**
+	 * Discard entries from the {@link #updateQueue} without updating the {@link
+	 * #totalQueuedTextSize} until no more can be discarded.  The {@link
+	 * #dequeueLock} must be acquired before calling this.  The caller should
+	 * decrease the {@link #totalQueuedTextSize} by the returned amount before
+	 * releasing the {@link #dequeueLock}.
+	 *
+	 * <p>Assume the {@link #totalQueuedTextSize} is accurate prior to the call.
+	 * </p>
+	 *
+	 * @return The number of characters removed from the queue.
+	 */
+	private int privateDiscardExcessLeadingQueuedUpdates ()
+	{
+		final long before = System.nanoTime();
+		try
+		{
+			assert dequeueLock.isHeldByCurrentThread();
+			long excessSize = totalQueuedTextSize.get() - maxDocumentSize;
+			int removed = 0;
+			while (true)
 			{
-				if (updateQueue.isEmpty())
+				final @Nullable BuildOutputStreamEntry entry =
+					updateQueue.peek();
+				if (entry == null)
 				{
-					updatingTranscript = false;
+					return removed;
 				}
-				else
+				final int size = entry.string.length();
+				if (size >= excessSize)
 				{
-					// Queue another task to update the transcript, to
-					// avoid starving other UI interactions.
-					updateTranscript();
+					return removed;
 				}
+				final @Nullable BuildOutputStreamEntry entry2 =
+					updateQueue.remove();
+				assert entry == entry2;
+				excessSize -= size;
+				removed += size;
 			}
-		});
+		}
+		finally
+		{
+			discardExcessLeadingStat.record(System.nanoTime() - before, 0);
+		}
+	}
+
+	/**
+	 * Must be called in the dispatch thread.  Actually update the transcript.
+	 */
+	private void privateUpdateTranscriptInUIThread ()
+	{
+		assert EventQueue.isDispatchThread();
+		final List<BuildOutputStreamEntry> aggregatedEntries =
+			new ArrayList<>();
+		int lengthToInsert = 0;
+		final boolean wentToZero;
+		// Hold the dequeueLock just long enough to extract all entries, only
+		// decreasing totalQueuedTextSize just before unlocking.
+		dequeueLock.lock();
+		try
+		{
+			int removedSize = privateDiscardExcessLeadingQueuedUpdates();
+			@Nullable StreamStyle currentStyle = null;
+			final StringBuilder builder = new StringBuilder();
+			while (true)
+			{
+				final @Nullable BuildOutputStreamEntry entry =
+					removedSize < totalQueuedTextSize.get()
+						? stripNull(updateQueue.poll())
+						: null;
+				if (entry == null || entry.style != currentStyle)
+				{
+					// Either the final entry or a style change.
+					if (currentStyle != null)
+					{
+						final String string = builder.toString();
+						aggregatedEntries.add(
+							new BuildOutputStreamEntry(currentStyle, string));
+						lengthToInsert += string.length();
+						builder.setLength(0);
+					}
+					if (entry == null)
+					{
+						// The queue has been emptied.
+						break;
+					}
+					currentStyle = entry.style;
+				}
+				builder.append(entry.string);
+				removedSize += entry.string.length();
+			}
+			// Only now should we decrease the counter, otherwise writers could
+			// have kept adding things unboundedly while we were removing them.
+			// Adding things "boundedly" is fine, however (i.e., blocking on the
+			// dequeueLock if too much is added).
+			final long afterRemove =
+				totalQueuedTextSize.addAndGet(-removedSize);
+			assert afterRemove >= 0;
+			wentToZero = afterRemove == 0;
+		}
+		finally
+		{
+			dequeueLock.unlock();
+		}
+
+		assert !aggregatedEntries.isEmpty();
+		assert lengthToInsert > 0;
+		final StyledDocument doc = document();
+		try
+		{
+			final int statusSize = perModuleStatusTextSize;
+			final int length = doc.getLength();
+			final int amountToRemove =
+				length - statusSize + lengthToInsert - maxDocumentSize;
+			if (amountToRemove > 0)
+			{
+				// We need to trim off some of the document, right after the
+				// module status area.
+				final long beforeRemove = System.nanoTime();
+				doc.remove(
+					statusSize, min(amountToRemove, length - statusSize));
+				// Always use index 0, since this only happens in the UI thread.
+				removeStringStat.record(System.nanoTime() - beforeRemove, 0);
+			}
+			for (final BuildOutputStreamEntry entry : aggregatedEntries)
+			{
+				final long before = System.nanoTime();
+				doc.insertString(
+					doc.getLength(),  // The current length
+					entry.string,
+					entry.style.styleIn(doc));
+				// Always use index 0, since this only happens in the UI thread.
+				insertStringStat.record(System.nanoTime() - before, 0);
+			}
+		}
+		catch (final BadLocationException e)
+		{
+			// Ignore the failed append, which should be impossible.
+		}
+		lastTranscriptUpdateCompleted = System.currentTimeMillis();
+		transcript.repaint();
+		if (!wentToZero)
+		{
+			updateTranscript();
+		}
 	}
 
 	/** An abstraction of the styles of streams used by the workbench. */
@@ -503,7 +654,7 @@ extends JFrame
 		 */
 		private void queueForTranscript ()
 		{
-			assert Thread.holdsLock(this);
+//			assert Thread.holdsLock(this);
 			final String text;
 			try
 			{
@@ -560,6 +711,38 @@ extends JFrame
 		{
 			super(1);
 			this.streamStyle = streamStyle;
+		}
+	}
+
+	/** A PrintStream specialization for better println handling. */
+	public class BuildPrintStream extends PrintStream
+	{
+		/**
+		 * Because you can't inherit constructors.
+		 *
+		 * @param out
+		 *        The wrapped {@link OutputStream}.
+		 * @throws UnsupportedEncodingException
+		 *         Because Java won't let you catch the pointless exception
+		 *         thrown by the super constructor.
+		 */
+		BuildPrintStream (
+			final OutputStream out)
+		throws UnsupportedEncodingException
+		{
+			super(out, false, StandardCharsets.UTF_8.name());
+		}
+
+		@Override
+		public void println (final String x)
+		{
+			print(x + "\n");
+		}
+
+		@Override
+		public void println (final Object x)
+		{
+			print(x + "\n");
 		}
 	}
 
@@ -980,8 +1163,8 @@ extends JFrame
 	@InnerAccess final @Nullable ShowCCReportAction showCCReportAction;
 
 	/** The {@linkplain ResetCCReportDataAction reset CC report data action}. */
-	@InnerAccess final @Nullable
-		ResetCCReportDataAction resetCCReportDataAction;
+	@InnerAccess final @Nullable ResetCCReportDataAction
+		resetCCReportDataAction;
 
 	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
 	@InnerAccess final TraceMacrosAction debugMacroExpansionsAction =
@@ -1026,7 +1209,8 @@ extends JFrame
 		new TraceLoadedStatementsAction(this);
 
 	/** The {@linkplain ParserIntegrityCheckAction}. */
-	@InnerAccess final ParserIntegrityCheckAction parserIntegrityCheckAction;
+	@InnerAccess final @Nullable ParserIntegrityCheckAction
+		parserIntegrityCheckAction;
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
 	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
@@ -1044,17 +1228,17 @@ extends JFrame
 	@InnerAccess final EditModuleAction editModuleAction =
 		new EditModuleAction(this);
 
-	/**
-	 * The {@linkplain DisplayCodeCoverageReport action to display the current
-	 * code coverage session's report data}.
-	 */
+//	/**
+//	 * The {@linkplain DisplayCodeCoverageReport action to display the current
+//	 * code coverage session's report data}.
+//	 */
 //	@InnerAccess final DisplayCodeCoverageReport displayCodeCoverageReport =
 //		new DisplayCodeCoverageReport(this, true);
 
-	/**
-	 * The {@linkplain ResetCodeCoverageDataAction action to reset the code
-	 * coverage data and thereby start a new code coverage session}.
-	 */
+//	/**
+//	 * The {@linkplain ResetCodeCoverageDataAction action to reset the code
+//	 * coverage data and thereby start a new code coverage session}.
+//	 */
 //	@InnerAccess final ResetCodeCoverageDataAction resetCodeCoverageDataAction =
 //		new ResetCodeCoverageDataAction(this, true);
 
@@ -1086,7 +1270,7 @@ extends JFrame
 		graphAction.setEnabled(!busy && selectedModule() != null);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
-		final ResolvedModuleName selectedEntryPointModule =
+		final @Nullable ResolvedModuleName selectedEntryPointModule =
 			selectedEntryPointModule();
 		createProgramAction.setEnabled(
 			!busy && selectedEntryPoint() != null
@@ -1120,9 +1304,12 @@ extends JFrame
 			final StyledDocument doc = document();
 			try
 			{
+				final long beforeRemove = System.nanoTime();
 				doc.remove(
 					perModuleStatusTextSize,
 					doc.getLength() - perModuleStatusTextSize);
+				// Always use index 0, since this only happens in the UI thread.
+				removeStringStat.record(System.nanoTime() - beforeRemove, 0);
 			}
 			catch (final BadLocationException e)
 			{
@@ -1179,7 +1366,7 @@ extends JFrame
 	{
 		final String extension = ModuleNameResolver.availExtension;
 		final Mutable<Boolean> isRoot = new Mutable<>(true);
-		final FileVisitor<Path> visitor = new FileVisitor<Path>()
+		return new FileVisitor<Path>()
 		{
 			@Override
 			public FileVisitResult preVisitDirectory (
@@ -1339,7 +1526,6 @@ extends JFrame
 				return FileVisitResult.CONTINUE;
 			}
 		};
-		return visitor;
 	}
 
 	/**
@@ -1359,7 +1545,6 @@ extends JFrame
 		for (final ModuleRoot root : roots.roots())
 		{
 			// Obtain the path associated with the module root.
-			assert root != null;
 			root.repository().reopenIfNecessary();
 			final File rootDirectory = stripNull(root.sourceDirectory());
 			try
@@ -1376,6 +1561,15 @@ extends JFrame
 				stack.clear();
 				stack.add(treeRoot);
 			}
+		}
+		@SuppressWarnings("unchecked")
+		final Enumeration<AbstractBuilderFrameTreeNode> enumeration =
+			treeRoot.preorderEnumeration();
+		// Skip the invisible root.
+		enumeration.nextElement();
+		while (enumeration.hasMoreElements())
+		{
+			enumeration.nextElement().sortChildren();
 		}
 		return treeRoot;
 	}
@@ -1400,8 +1594,7 @@ extends JFrame
 				if (!entryPoints.isEmpty())
 				{
 					final EntryPointModuleNode moduleNode =
-						new EntryPointModuleNode(
-							availBuilder, resolvedName);
+						new EntryPointModuleNode(availBuilder, resolvedName);
 					for (final String entryPoint : entryPoints)
 					{
 						final EntryPointNode entryPointNode =
@@ -1424,6 +1617,15 @@ extends JFrame
 		for (final String moduleLabel : mapKeys)
 		{
 			entryPointsTreeRoot.add(moduleNodes.get(moduleLabel));
+		}
+		@SuppressWarnings("unchecked")
+		final Enumeration<AbstractBuilderFrameTreeNode> enumeration =
+			entryPointsTreeRoot.preorderEnumeration();
+		// Skip the invisible root.
+		enumeration.nextElement();
+		while (enumeration.hasMoreElements())
+		{
+			enumeration.nextElement().sortChildren();
 		}
 		return entryPointsTreeRoot;
 	}
@@ -1565,7 +1767,7 @@ extends JFrame
 	 */
 	public @Nullable String selectedEntryPoint ()
 	{
-		final TreePath path = entryPointsTree.getSelectionPath();
+		final @Nullable TreePath path = entryPointsTree.getSelectionPath();
 		if (path == null)
 		{
 			return null;
@@ -1589,7 +1791,7 @@ extends JFrame
 	 */
 	public @Nullable ResolvedModuleName selectedEntryPointModule ()
 	{
-		final TreePath path = entryPointsTree.getSelectionPath();
+		final @Nullable TreePath path = entryPointsTree.getSelectionPath();
 		if (path == null)
 		{
 			return null;
@@ -1777,11 +1979,18 @@ extends JFrame
 		final StyledDocument doc = transcript.getStyledDocument();
 		try
 		{
+			final long beforeRemove = System.nanoTime();
 			doc.remove(0, perModuleStatusTextSize);
+			// Always use index 0, since this only happens in the UI thread.
+			removeStringStat.record(System.nanoTime() - beforeRemove, 0);
+
+			final long beforeInsert = System.nanoTime();
 			doc.insertString(
 				0,
 				string,
 				BUILD_PROGRESS.styleIn(doc));
+			// Always use index 0, since this only happens in the UI thread.
+			insertStringStat.record(System.nanoTime() - beforeInsert, 0);
 		}
 		catch (final BadLocationException e)
 		{
@@ -2222,7 +2431,7 @@ extends JFrame
 	 *
 	 * @return The initial {@link LayoutConfiguration}.
 	 */
-	@InnerAccess static LayoutConfiguration getInitialConfiguration ()
+	private static LayoutConfiguration getInitialConfiguration ()
 	{
 		final Preferences preferences =
 			placementPreferencesNodeForScreenNames(allScreenNames());
@@ -2239,7 +2448,6 @@ extends JFrame
 	/**
 	 * The module templates.
 	 */
-	@InnerAccess
 	public static class ModuleTemplates
 	{
 		/**
@@ -2349,7 +2557,7 @@ extends JFrame
 
 			final StringBuilder builder = new StringBuilder();
 			boolean first = true;
-			for (final String string : strings)
+			for (final @Nullable String string : strings)
 			{
 				if (!first)
 				{
@@ -2416,6 +2624,20 @@ extends JFrame
 		return new ModuleTemplates(templateString);
 	}
 
+	/** Statistic for waiting for updateQueue's monitor. */
+	final static Statistic waitForDequeueLock = new Statistic(
+		"Wait for lock to trim old entries",
+		WORKBENCH_TRANSCRIPT);
+
+	/** Statistic for trimming excess leading entries. */
+	final static Statistic discardExcessLeadingStat = new Statistic(
+		"Trim old entries (not counting lock)",
+		WORKBENCH_TRANSCRIPT);
+
+	/** Statistic for invoking writeText, including waiting for the monitor. */
+	final static Statistic writeTextStat = new Statistic(
+		"Call writeText",
+		WORKBENCH_TRANSCRIPT);
 
 	/**
 	 * Write text to the transcript with the given {@link StreamStyle}.
@@ -2427,45 +2649,36 @@ extends JFrame
 		final String text,
 		final StreamStyle streamStyle)
 	{
-		synchronized (updateQueue)
+		final long before = System.nanoTime();
+		int size = text.length();
+		assert size > 0;
+		updateQueue.add(new BuildOutputStreamEntry(streamStyle, text));
+		final long previous = totalQueuedTextSize.getAndAdd(size);
+		if (previous == 0)
 		{
-			int consumed = text.length();
-			final Iterator<Pair<StreamStyle, StringBuilder>> iterator =
-				updateQueue.iterator();
-			if (iterator.hasNext())
+			// We transitioned from zero to positive.
+			updateTranscript();
+		}
+		if (previous + size > maxDocumentSize + (maxDocumentSize >> 2))
+		{
+			// We're more than 125% capacity.  Discard old stuff that won't be
+			// displayed because it would be rolled off anyhow.  Since this has
+			// to happen within the dequeueLock, it nicely blocks this writer
+			// while whoever owns the lock does its own cleanup.
+			final long beforeLock = System.nanoTime();
+			dequeueLock.lock();
+			try
 			{
-				iterator.next();  // Skip the first entry, the oldest one.
-				while (iterator.hasNext())
-				{
-					consumed += iterator.next().second().length();
-				}
-				// Consumed is now how many chars would be queued if the first
-				// queued entry were to be removed and the new text added.
-				if (consumed > maxDocumentSize)
-				{
-					// Remove the oldest entry, since the subsequent entries
-					// plus the new text are guaranteed to roll it off.
-					updateQueue.removeFirst();
-				}
+				waitForDequeueLock.record(System.nanoTime() - beforeLock, 0);
+				totalQueuedTextSize.getAndAdd(
+					-privateDiscardExcessLeadingQueuedUpdates());
 			}
-			final Pair<StreamStyle, StringBuilder> entry;
-			if (!updateQueue.isEmpty()
-				&& updateQueue.peekLast().first() == streamStyle
-				&& updateQueue.peekLast().second().length() < maxDocumentSize)
+			finally
 			{
-				entry = updateQueue.peekLast();
-			}
-			else
-			{
-				entry = new Pair<>(streamStyle, new StringBuilder());
-				updateQueue.addLast(entry);
-			}
-			entry.second().append(text);
-			if (!updatingTranscript)
-			{
-				// The updating Runnable will deal with it afterward.
-				updatingTranscript = true;
-				updateTranscript();
+				// Record the stat just before unlocking, to avoid the need for
+				// a lock for the statistic itself.
+				writeTextStat.record(System.nanoTime() - before, 0);
+				dequeueLock.unlock();
 			}
 		}
 	}
@@ -2493,7 +2706,7 @@ extends JFrame
 				{
 					final AbstractBuilderFrameTreeNode node =
 						(AbstractBuilderFrameTreeNode) value;
-					final Icon icon = node.icon(tree.getRowHeight());
+					final @Nullable Icon icon = node.icon(tree.getRowHeight());
 					setLeafIcon(icon);
 					setOpenIcon(icon);
 					setClosedIcon(icon);
@@ -2537,6 +2750,7 @@ extends JFrame
 		// Set *just* the window title...
 		setTitle("Avail Workbench");
 		setResizable(true);
+		rootPane.setDoubleBuffered(true);
 
 		// Create the menu bar and its menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -2632,14 +2846,9 @@ extends JFrame
 
 		final JMenu transcriptPopup = menu("Transcript", clearTranscriptAction);
 
-		// Collect the modules and entry points.
-		final TreeNode modules = new DefaultMutableTreeNode(
-			"(packages hidden root)");
-		final TreeNode entryPoints =
-			new DefaultMutableTreeNode("(entry points hidden root)");
-
 		// Create the module tree.
-		moduleTree = new JTree(modules);
+		moduleTree = new JTree(
+			new DefaultMutableTreeNode("(packages hidden root)"));
 		moduleTree.setToolTipText("All modules, organized by module root.");
 		moduleTree.setComponentPopupMenu(buildPopup.getPopupMenu());
 		moduleTree.setEditable(false);
@@ -2681,7 +2890,8 @@ extends JFrame
 		}
 
 		// Create the entry points tree.
-		entryPointsTree = new JTree(entryPoints);
+		entryPointsTree = new JTree(
+			new DefaultMutableTreeNode("(entry points hidden root)"));
 		entryPointsTree.setToolTipText(
 			"All entry points, organized by defining module.");
 		entryPointsTree.setComponentPopupMenu(entryPointsPopup.getPopupMenu());
@@ -2741,7 +2951,6 @@ extends JFrame
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 1000);
 		buildProgress.setToolTipText("Progress indicator for the build.");
-		buildProgress.setDoubleBuffered(true);
 		buildProgress.setEnabled(false);
 		buildProgress.setFocusable(false);
 		buildProgress.setIndeterminate(false);
@@ -2786,10 +2995,12 @@ extends JFrame
 			(loadedModule, loaded) ->
 			{
 				assert loadedModule != null;
-				moduleTree.repaint();
+				// Postpone repaints up to 250ms to avoid thrash.
+				moduleTree.repaint(250);
 				if (loadedModule.entryPoints().size() > 0)
 				{
-					entryPointsTree.repaint();
+					// Postpone repaints up to 250ms to avoid thrash.
+					entryPointsTree.repaint(250);
 				}
 			});
 
@@ -2820,14 +3031,10 @@ extends JFrame
 		// Redirect the standard streams.
 		try
 		{
-			outputStream = new PrintStream(
-				new BuildOutputStream(OUT),
-				false,
-				StandardCharsets.UTF_8.name());
-			errorStream = new PrintStream(
-				new BuildOutputStream(ERR),
-				false,
-				StandardCharsets.UTF_8.name());
+			outputStream = new BuildPrintStream(
+				new BuildOutputStream(OUT));
+			errorStream = new BuildPrintStream(
+				new BuildOutputStream(ERR));
 		}
 		catch (final UnsupportedEncodingException e)
 		{
@@ -2985,7 +3192,7 @@ extends JFrame
 	 */
 	private static void augment (final JMenu menu, final Object... actionsAndSubmenus)
 	{
-		for (final Object item : actionsAndSubmenus)
+		for (final @Nullable Object item : actionsAndSubmenus)
 		{
 			if (item == null)
 			{
@@ -3012,7 +3219,7 @@ extends JFrame
 	{
 		final JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setMinimumSize(new Dimension(100, 0));
 		scrollPane.setViewportView(innerComponent);
 		return scrollPane;
@@ -3141,7 +3348,7 @@ extends JFrame
 			// Select an initial module if specified.
 			if (!initial.isEmpty())
 			{
-				final TreePath path = frame.modulePath(initial);
+				final @Nullable TreePath path = frame.modulePath(initial);
 				if (path != null)
 				{
 					frame.moduleTree.setSelectionPath(path);

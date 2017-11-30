@@ -100,7 +100,8 @@ public final class P_Assert extends Primitive
 		if (!predicate.extractBoolean())
 		{
 			final A_Fiber fiber = interpreter.fiber();
-			final A_Continuation continuation = interpreter.reifiedContinuation;
+			final A_Continuation continuation =
+				stripNull(interpreter.reifiedContinuation);
 			interpreter.primitiveSuspend(stripNull(interpreter.function));
 			dumpStackThen(
 				interpreter.runtime(),

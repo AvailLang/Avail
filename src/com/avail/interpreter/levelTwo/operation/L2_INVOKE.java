@@ -47,6 +47,7 @@ import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.logging.Level;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -139,7 +140,7 @@ public class L2_INVOKE extends L2Operation
 							interpreter.debugModeString;
 						if (Interpreter.debugL2)
 						{
-							interpreter.debugModeString += "reif L2 ";
+							interpreter.debugModeString += "REIFY L2 ";
 						}
 						final @Nullable StackReifier reifier2 =
 							interpreter.runChunk();
@@ -151,11 +152,13 @@ public class L2_INVOKE extends L2Operation
 							interpreter.latestResult();
 						if (Interpreter.debugL2)
 						{
-							System.out.println(
-								interpreter.debugModeString
-									+ "Push reified continuation (for L2_INVOKE): "
-									+ continuation.function().code()
-									.methodName());
+							Interpreter.log(
+								Interpreter.loggerDebugL2,
+								Level.FINER,
+								"{0}Push reified continuation "
+									+ "for L2_INVOKE: {1}",
+								interpreter.debugModeString,
+								continuation.function().code().methodName());
 						}
 						reifier.pushContinuation(continuation);
 						interpreter.debugModeString = oldModeString;

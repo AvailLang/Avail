@@ -99,7 +99,7 @@ implements Comparable<AvailTask>, Runnable
 							SCHEDULED, false);
 					assert wasScheduled;
 					fiber.executionState(RUNNING);
-					interpreter.fiber(fiber, "forFiberResumption");
+ 					interpreter.fiber(fiber, "forFiberResumption");
 				});
 				try
 				{
@@ -109,6 +109,8 @@ implements Comparable<AvailTask>, Runnable
 				{
 					// If execution failed, terminate the fiber and invoke its
 					// failure continuation with the throwable.
+					interpreter.adjustUnreifiedCallDepthBy(
+						-interpreter.unreifiedCallDepth());
 					if (!fiber.executionState().indicatesTermination())
 					{
 						assert interpreter.fiberOrNull() == fiber;
@@ -124,19 +126,19 @@ implements Comparable<AvailTask>, Runnable
 				}
 				finally
 				{
-					final @Nullable Continuation0 postExit =
-						interpreter.postExitContinuation();
 					// This is the first point at which *some other* Thread may
 					// have had a chance to resume the fiber and update its
 					// state.
+					final @Nullable Continuation0 postExit =
+						interpreter.postExitContinuation();
 					if (postExit != null)
 					{
 						interpreter.postExitContinuation(null);
 						postExit.value();
 					}
 				}
-				// If the fiber has terminated, then report its
-				// result via its result continuation.
+				// If the fiber has terminated, then report its result via its
+				// result continuation.
 				fiber.lock(() ->
 				{
 					if (fiber.executionState() == TERMINATED)

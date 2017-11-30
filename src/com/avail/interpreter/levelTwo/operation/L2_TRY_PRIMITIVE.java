@@ -46,6 +46,7 @@ import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.logging.Level;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -77,11 +78,6 @@ extends L2Operation
 		if (primitive == null)
 		{
 			// Not a primitive.  Exit quickly, having done nothing.
-			if (Interpreter.debugL2)
-			{
-				System.out.println(
-					interpreter.debugModeString + "          (no prim)");
-			}
 			return null;
 		}
 
@@ -90,9 +86,12 @@ extends L2Operation
 			// It can succeed or fail, but it can't mess with the fiber's stack.
 			if (Interpreter.debugL2)
 			{
-				System.out.println(
-					interpreter.debugModeString
-						+ "          inline = " + primitive.name());
+				Interpreter.log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}          inline prim = {1}",
+					interpreter.debugModeString,
+					primitive.name());
 			}
 			final Result result = interpreter.attemptPrimitive(
 				primitive, interpreter.skipReturnCheck);
@@ -126,8 +125,16 @@ extends L2Operation
 					final int savedOffset = interpreter.offset;
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
+
+					// The invocation did a runChunk, but we need to do another
+					// runChunk now (via invokeFunction).  Only one should count
+					// as an unreified frame (specifically the inner one we're
+					// about to start).
+
+					interpreter.adjustUnreifiedCallDepthBy(-1);
 					final @Nullable StackReifier reifier =
 						interpreter.invokeFunction(interpreter.function);
+					interpreter.adjustUnreifiedCallDepthBy(1);
 
 					interpreter.function = function;
 					interpreter.chunk = savedChunk;
@@ -151,7 +158,7 @@ extends L2Operation
 					assert primitive.hasFlag(SwitchesContinuation);
 
 					final A_Continuation newContinuation =
-						interpreter.reifiedContinuation;
+						stripNull(interpreter.reifiedContinuation);
 					final A_Function newFunction = interpreter.function;
 					final @Nullable L2Chunk newChunk = interpreter.chunk;
 					final int newOffset = interpreter.offset;
@@ -179,9 +186,12 @@ extends L2Operation
 		// primitive.
 		if (Interpreter.debugL2)
 		{
-			System.out.println(
-				interpreter.debugModeString
-					+ "          reifying for " + primitive.name());
+			Interpreter.log(
+				Interpreter.loggerDebugL2,
+				Level.FINER,
+				"{0}          reifying for {1}",
+				interpreter.debugModeString,
+				primitive.name());
 		}
 		interpreter.skipReturnCheck = false;
 		final L2Chunk savedChunk = stripNull(interpreter.chunk);
@@ -191,6 +201,8 @@ extends L2Operation
 
 		return interpreter.reifyThen(() ->
 		{
+			assert interpreter.unreifiedCallDepth() == 0
+				: "Should have reified the stack for Non-inlineable primitive";
 			interpreter.chunk = savedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.pointers = savedPointers;
@@ -199,13 +211,15 @@ extends L2Operation
 
 			if (Interpreter.debugL2)
 			{
-				System.out.println(
-					interpreter.debugModeString
-						+ "          reified, now starting " + primitive.name());
+				Interpreter.log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}          reified, now starting {1}",
+					interpreter.debugModeString,
+					primitive.name());
 			}
 			final Result result = interpreter.attemptPrimitive(
-				primitive,
-				interpreter.skipReturnCheck);
+				primitive, interpreter.skipReturnCheck);
 			switch (result)
 			{
 				case SUCCESS:

@@ -140,7 +140,7 @@ import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.AvailLoader.Phase.COMPILING;
-import static com.avail.interpreter.AvailLoader.Phase.EXECUTING;
+import static com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Interpreter.stringifyThen;
 import static com.avail.interpreter.Primitive.primitiveByName;
@@ -883,7 +883,7 @@ public final class AvailCompiler
 								+ nodeStrings.get(0)
 								+ "\n\t"
 								+ nodeStrings.get(1)));
-				});
+			});
 		compilationContext.diagnostics.reportError(afterFail);
 	}
 
@@ -1684,6 +1684,12 @@ public final class AvailCompiler
 			"(Match insensitive token)",
 			StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
 
+	/** Statistic for type-checking an argument. */
+	private static final Statistic typeCheckArgumentStat =
+		new Statistic(
+			"(type-check argument)",
+			StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+
 	/**
 	 * We've parsed part of a send. Try to finish the job.
 	 *
@@ -1865,11 +1871,17 @@ public final class AvailCompiler
 					typeFilterTree =
 					(LookupTree<A_Tuple, A_BundleTree, A_BundleTree>)
 						typeFilterTreePojo.javaObjectNotNull();
+				final long timeBefore = AvailRuntime.captureNanos();
 				final A_BundleTree successor =
 					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
 						typeFilterTree,
 						latestPhrase,
 						bundleTree.latestBackwardJump());
+				final long timeAfter = AvailRuntime.captureNanos();
+				final AvailThread thread = (AvailThread) Thread.currentThread();
+				typeCheckArgumentStat.record(
+					timeAfter - timeBefore,
+					thread.interpreter.interpreterIndex);
 				if (AvailRuntime.debugCompilerSteps)
 				{
 					System.out.println(
@@ -4449,7 +4461,7 @@ public final class AvailCompiler
 					failure);
 			}
 		};
-		compilationContext.loader().setPhase(EXECUTING);
+		compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
 		next.value();
 	}
 
@@ -4650,7 +4662,7 @@ public final class AvailCompiler
 					};
 
 					// Kick off execution of these simple statements.
-					compilationContext.loader().setPhase(EXECUTING);
+					compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
 					executeSimpleStatement.value().value();
 				}),
 			afterFail);

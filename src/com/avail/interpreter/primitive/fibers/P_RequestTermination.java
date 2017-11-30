@@ -56,6 +56,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Request termination of the given
@@ -103,6 +104,7 @@ extends Primitive
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
+						this,
 						nil,
 						true);
 					break;
@@ -111,9 +113,16 @@ extends Primitive
 					assert !hadPermit :
 						"Should not have been parked with a permit";
 					fiber.executionState(SUSPENDED);
+					final Primitive fiberSuspendingPrimitive =
+						stripNull(
+							fiber.suspendingFunction().code().primitive());
+					assert fiberSuspendingPrimitive
+							== P_ParkCurrentFiber.instance
+						|| fiberSuspendingPrimitive == P_Sleep.instance;
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
+						fiberSuspendingPrimitive,
 						nil,
 						true);
 					break;

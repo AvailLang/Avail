@@ -1814,7 +1814,7 @@ public final class AvailBuilder
 				stringFrom(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
-			availLoader.createFilteredBundleTree();
+//			availLoader.createFilteredBundleTree();
 			availLoader.createLexicalScanner();
 			final Continuation1NotNull<Throwable> fail =
 				e -> module.removeFrom(
@@ -1876,7 +1876,7 @@ public final class AvailBuilder
 				fail.value(e);
 				return;
 			}
-			availLoader.createFilteredBundleTree();
+//			availLoader.createFilteredBundleTree();
 
 			// Run each zero-argument block, one after another.
 			final MutableOrNull<Continuation0> runNext = new MutableOrNull<>();
@@ -1925,7 +1925,7 @@ public final class AvailBuilder
 										.startingLineNumber());
 							runNext.value().value();
 						});
-					availLoader.setPhase(Phase.EXECUTING);
+					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD);
 					if (AvailLoader.debugLoadedStatements)
 					{
 						System.out.println(

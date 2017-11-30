@@ -676,6 +676,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	StringBuilder o_DebugLog (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Number o_DivideCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,

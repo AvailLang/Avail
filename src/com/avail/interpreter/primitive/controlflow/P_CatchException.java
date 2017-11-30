@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.controlflow;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -54,6 +55,8 @@ import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -69,7 +72,7 @@ public final class P_CatchException extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_CatchException().init(
-			3, CatchException, PreserveFailureVariable, PreserveArguments, Unknown);
+			3, CatchException, PreserveFailureVariable, PreserveArguments, CanInline);
 
 	@Override
 	public Result attempt (
@@ -80,16 +83,23 @@ public final class P_CatchException extends Primitive
 		assert args.size() == 3;
 //		final A_BasicObject bodyBlock = args.get(0);
 		final A_Tuple handlerBlocks = args.get(1);
-//		final A_BasicObject optionalEnsureBlock = args.get(2);
+//		final A_BasicObject ensureBlock = args.get(2);
+
+		final A_Variable innerVariable = newVariableWithOuterType(
+			failureVariableType());
+
 		for (final A_BasicObject block : handlerBlocks)
 		{
 			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
 				exceptionType()))
 			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+				innerVariable.setValueNoCheck(
+					E_INCORRECT_ARGUMENT_TYPE.numericCode());
+				return interpreter.primitiveFailure(innerVariable);
 			}
 		}
-		return interpreter.primitiveFailure(E_REQUIRED_FAILURE);
+		innerVariable.setValueNoCheck(E_REQUIRED_FAILURE.numericCode());
+		return interpreter.primitiveFailure(innerVariable);
 	}
 
 	@Override
@@ -104,24 +114,24 @@ public final class P_CatchException extends Primitive
 					functionType(
 						tuple(bottom()),
 						TOP.o())),
-				tupleTypeForSizesTypesDefaultType(
-					zeroOrOne(),
+				functionType(
 					emptyTuple(),
-					functionType(
-						emptyTuple(),
-						TOP.o()))),
+					TOP.o())),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
+		// Note: The failure value is itself a new variable stuffed into the
+		// outer (primitive-failure) variable.
 		return
-			enumerationWith(
-				set(
-					E_REQUIRED_FAILURE,
-					E_INCORRECT_ARGUMENT_TYPE,
-					E_HANDLER_SENTINEL,
-					E_UNWIND_SENTINEL));
+			variableTypeFor(
+				enumerationWith(
+					set(
+						E_REQUIRED_FAILURE,
+						E_INCORRECT_ARGUMENT_TYPE,
+						E_HANDLER_SENTINEL,
+						E_UNWIND_SENTINEL)));
 	}
 }

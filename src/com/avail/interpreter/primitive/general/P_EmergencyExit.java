@@ -85,8 +85,8 @@ public final class P_EmergencyExit extends Primitive
 		assert args.size() == 1;
 		final A_BasicObject errorMessageProducer = args.get(0);
 		final A_Fiber fiber = interpreter.fiber();
-		final A_Continuation continuation = interpreter.reifiedContinuation;
-
+		final A_Continuation continuation =
+			stripNull(interpreter.reifiedContinuation);
 		interpreter.primitiveSuspend(stripNull(interpreter.function));
 		dumpStackThen(
 			interpreter.runtime(),

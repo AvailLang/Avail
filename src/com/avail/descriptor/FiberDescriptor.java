@@ -40,6 +40,7 @@ import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.utility.Generator;
@@ -59,19 +60,23 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.all;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An Avail {@code FiberDescriptor fiber} represents an independently
@@ -98,11 +103,13 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 public final class FiberDescriptor
 extends Descriptor
 {
 	/** A simple counter for identifying fibers by creation order. */
-	public static final AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
+	private static final AtomicInteger uniqueDebugCounter =
+		new AtomicInteger(0);
 
 	/** The priority of module tracing tasks. */
 	public static final int tracerPriority = 50;
@@ -453,7 +460,16 @@ extends Descriptor
 		 * {@link #NAME_GENERATOR} to run, and the resulting string to be cached
 		 * here.
 		 */
-		NAME_OR_NIL;
+		NAME_OR_NIL,
+
+		/**
+		 * A {@link RawPojoDescriptor raw pojo} holding a {@link StringBuilder}
+		 * in which logging should take place for this fiber.  This is a very
+		 * fast way of doing logging, since it doesn't have to write to disk or
+		 * update a user interface component, and garbage collection of a fiber
+		 * whiche has terminated typically also collects that fiber's log.
+		 */
+		DEBUG_LOG
 	}
 
 	/**
@@ -466,14 +482,8 @@ extends Descriptor
 		/**
 		 * The fiber has not been started.
 		 */
-		UNSTARTED
+		UNSTARTED(true, false)
 		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -484,7 +494,7 @@ extends Descriptor
 		/**
 		 * The fiber is running or waiting for another fiber to yield.
 		 */
-		RUNNING
+		RUNNING(false, false)
 		{
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
@@ -501,14 +511,8 @@ extends Descriptor
 		/**
 		 * The fiber has been suspended.
 		 */
-		SUSPENDED
+		SUSPENDED(true, false)
 		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -522,14 +526,8 @@ extends Descriptor
 		/**
 		 * The fiber has been interrupted.
 		 */
-		INTERRUPTED
+		INTERRUPTED(true, false)
 		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -540,14 +538,8 @@ extends Descriptor
 		/**
 		 * The fiber has been parked.
 		 */
-		PARKED
+		PARKED(true, false)
 		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -558,14 +550,8 @@ extends Descriptor
 		/**
 		 * The fiber is asleep.
 		 */
-		ASLEEP
+		ASLEEP(true, false)
 		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -576,14 +562,8 @@ extends Descriptor
 		/**
 		 * The fiber has terminated successfully.
 		 */
-		TERMINATED
+		TERMINATED(false, true)
 		{
-			@Override
-			public boolean indicatesTermination ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -594,14 +574,8 @@ extends Descriptor
 		/**
 		 * The fiber has aborted (due to an exception).
 		 */
-		ABORTED
+		ABORTED(false, true)
 		{
-			@Override
-			public boolean indicatesTermination ()
-			{
-				return true;
-			}
-
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
@@ -615,14 +589,31 @@ extends Descriptor
 		 * AvailObject#failureContinuation() failure continuation}. This state
 		 * is permanent.
 		 */
-		RETIRED
+		RETIRED(false, true);
+
+
+		/** Whether this state indicates the fiber is suspended. */
+		final boolean indicatesSuspension;
+
+		/** Whether this state indicates the fiber is terminated. */
+		final boolean indicatesTermination;
+
+		/**
+		 * Instantiate the enumeration, capturing whether it indicates a
+		 * suspension state and whether it indicates a termination state.
+		 *
+		 * @param indicatesSuspension
+		 *        Whether this state indicates a suspended fiber.
+		 * @param indicatesTermination
+		 *        Whether this state indicates a terminated fiber.
+		 */
+		ExecutionState (
+			final boolean indicatesSuspension,
+			final boolean indicatesTermination)
 		{
-			@Override
-			public boolean indicatesTermination ()
-			{
-				return true;
-			}
-		};
+			this.indicatesSuspension = indicatesSuspension;
+			this.indicatesTermination = indicatesTermination;
+		}
 
 		/** An array of all {@link ExecutionState} enumeration values. */
 		private static final ExecutionState[] all = values();
@@ -683,9 +674,9 @@ extends Descriptor
 		 * @return {@code true} if the execution state represents suspension,
 		 *         {@code false} otherwise.
 		 */
-		public boolean indicatesSuspension ()
+		public final boolean indicatesSuspension ()
 		{
-			return false;
+			return indicatesSuspension;
 		}
 
 		/**
@@ -695,9 +686,9 @@ extends Descriptor
 		 * @return {@code true} if the execution state represents termination,
 		 *         {@code false} otherwise.
 		 */
-		public boolean indicatesTermination ()
+		public final boolean indicatesTermination ()
 		{
-			return false;
+			return indicatesTermination;
 		}
 	}
 
@@ -719,8 +710,8 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final ExecutionState current =
-				all()[(int)object.mutableSlot(EXECUTION_STATE)];
+			final int index = (int) object.mutableSlot(EXECUTION_STATE);
+			final ExecutionState current = all()[index];
 			//noinspection AssertWithSideEffects
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
@@ -1308,6 +1299,9 @@ extends Descriptor
 		final AvailObject object,
 		final A_Function suspendingFunction)
 	{
+		assert suspendingFunction.equalsNil()
+			|| stripNull(suspendingFunction.code().primitive()).hasFlag(
+				Flag.CanSuspend);
 		object.setSlot(SUSPENDING_FUNCTION, suspendingFunction);
 	}
 
@@ -1315,6 +1309,13 @@ extends Descriptor
 	A_Function o_SuspendingFunction (final AvailObject object)
 	{
 		return object.slot(SUSPENDING_FUNCTION);
+	}
+
+	@Override
+	StringBuilder o_DebugLog (final AvailObject object)
+	{
+		final AvailObject pojo = object.mutableSlot(DEBUG_LOG);
+		return (StringBuilder) pojo.javaObjectNotNull();
 	}
 
 	/**
@@ -1519,6 +1520,7 @@ extends Descriptor
 		final AvailRuntime runtime = currentRuntime();
 		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
+		fiber.setSlot(DEBUG_LOG, identityPojo(new StringBuilder()));
 		runtime.registerFiber(fiber);
 		return fiber;
 	}
@@ -1569,6 +1571,7 @@ extends Descriptor
 		final AvailRuntime runtime = currentRuntime();
 		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
+		fiber.setSlot(DEBUG_LOG, identityPojo(new StringBuilder()));
 		runtime.registerFiber(fiber);
 		return fiber;
 	}

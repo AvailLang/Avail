@@ -45,10 +45,9 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
-import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
@@ -74,7 +73,6 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.optimizer.L1Translator.readVector;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -136,7 +134,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * primitive executing, so the {@linkplain Interpreter interpreter}
 		 * should switch processes now.
 		 */
-		FIBER_SUSPENDED;
+		FIBER_SUSPENDED
 	}
 
 	/**
@@ -457,7 +455,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * explicitly in Avail code – it's plugged in automatically for functions
 	 * that immediately return a constant.
 	 */
-	int argCount;
+	private int argCount;
 
 	/**
 	 * The flags that indicate to the {@link L2Translator} how an invocation of
@@ -766,18 +764,6 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Answer the primitive with the given number, loading it if necessary.
-	 *
-	 * @param primitiveNumber The primitive number to look up.
-	 * @return The requested primitive.
-	 */
-	public static Primitive byPrimitiveNumberOrFail (
-		final int primitiveNumber)
-	{
-		return stripNull(holdersByNumber[primitiveNumber].primitive());
-	}
-
-	/**
 	 * Locate the primitive that has the specified primitive number.
 	 *
 	 * @param primitiveNumber The primitive number for which to search.
@@ -868,18 +854,19 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/** Capture the name of the primitive class once for performance. */
-	@Nullable String name;
+	private String name = "";
 
 	/**
 	 * Answer the name of this primitive, which is just the class's simple name,
-	 * as previously captured by the {@link #name} field.
+	 * as previously captured by the {@link #name} field during {@link #init(
+	 * int, Flag...)}.
 	 *
 	 * @return The name of this primitive.
 	 */
 	@Override
 	public String name ()
 	{
-		return stripNull(name);
+		return name;
 	}
 
 	/**
@@ -901,7 +888,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A performance metric indicating how long was spent executing each
 	 * primitive.
 	 */
-	@Nullable Statistic runningNanos = null;
+	private @Nullable Statistic runningNanos = null;
 
 	/**
 	 * Record that some number of nanoseconds were just expended running this
@@ -910,7 +897,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param deltaNanoseconds The sample to add, in nanoseconds.
 	 * @param interpreterIndex The contention bin in which to add the sample.
 	 */
-	public void addNanosecondsRunning (
+	void addNanosecondsRunning (
 		final long deltaNanoseconds,
 		final int interpreterIndex)
 	{
@@ -924,7 +911,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * #returnTypeGuaranteedByVM(List)} to return a stronger
 	 * type, perhaps allowing the level two optimizer to skip more checks.
 	 */
-	final Statistic resultTypeCheckingNanos = new Statistic(
+	private final Statistic resultTypeCheckingNanos = new Statistic(
 		getClass().getSimpleName() + " (checking result)",
 		StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS);
 
@@ -937,7 +924,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param interpreterIndex
 	 *        The interpreterIndex of the current thread's interpreter.
 	 */
-	public void addNanosecondsCheckingResultType (
+	void addNanosecondsCheckingResultType (
 		final long deltaNanoseconds,
 		final int interpreterIndex)
 	{
@@ -988,7 +975,7 @@ implements IntegerEnumSlotDescriptionEnum
 			translator.addInstruction(
 				L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 				new L2PrimitiveOperand(this),
-				readVector(arguments),
+				new L2ReadVectorOperand(arguments),
 				writer);
 			return writer.read();
 		}

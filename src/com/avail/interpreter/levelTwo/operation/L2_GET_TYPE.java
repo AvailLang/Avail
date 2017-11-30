@@ -119,4 +119,17 @@ public class L2_GET_TYPE extends L2Operation
 				instruction);
 		}
 	}
+
+	/**
+	 * Extract the register providing the value whose type is to be produced.
+	 *
+	 * @param instruction The instruction to examine.
+	 * @return The {@link L2ReadPointerOperand} supplying the value.
+	 */
+	public static L2ReadPointerOperand sourceValueOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.readObjectRegisterAt(0);
+	}
 }

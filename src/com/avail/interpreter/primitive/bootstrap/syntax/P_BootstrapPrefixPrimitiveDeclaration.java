@@ -173,6 +173,15 @@ extends Primitive
 				throw new AvailRejectedParseException(
 					"primitive failure variable type not to be " + failureType);
 			}
+			final A_Type requiredFailureType = prim.failureVariableType();
+			if (!requiredFailureType.isSubtypeOf(failureType))
+			{
+				throw new AvailRejectedParseException(
+					"primitive failure variable to be a supertype of: "
+					+ requiredFailureType
+					+ ", not "
+					+ failureType);
+			}
 			final A_Phrase failureDeclaration = newPrimitiveFailureVariable(
 				failureName, failureTypePhrase, failureType);
 			final @Nullable A_Phrase conflictingDeclaration =

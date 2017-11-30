@@ -84,7 +84,10 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(BLOCK_NODE.mostGeneralType()), zeroOrMoreOf(
-				PARSE_NODE.mostGeneralType()));
+			functionType(
+				tuple(
+					BLOCK_NODE.mostGeneralType()),
+				zeroOrMoreOf(
+					PARSE_NODE.mostGeneralType()));
 	}
 }

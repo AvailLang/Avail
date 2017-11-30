@@ -49,6 +49,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -201,9 +202,12 @@ public final class L1InstructionStepper
 		nybbles = code.nybbles();
 		if (debugL1)
 		{
-			System.out.println(
-				"Started L1 run: "
-				+ whitespaces.matcher(function.toString()).replaceAll(" "));
+			Interpreter.log(
+				Interpreter.loggerDebugL1,
+				Level.FINER,
+				"{0}Started L1 run: {1}",
+				interpreter.debugModeString,
+				whitespaces.matcher(function.toString()).replaceAll(" "));
 		}
 		final int nybbleCount = nybbles.tupleSize();
 		while (pc <= nybbleCount)
@@ -222,11 +226,14 @@ public final class L1InstructionStepper
 					Arrays.stream(nybblecode.operandTypes())
 						.map(x -> getInteger())
 						.collect(Collectors.toList());
-				System.out.println(
-					"L1 step: "
-						+ (operands.isEmpty()
-							? nybblecode
-							: nybblecode + " " + operands));
+				Interpreter.log(
+					Interpreter.loggerDebugL1,
+					Level.FINER,
+					"{0}L1 step: {1}",
+					interpreter.debugModeString,
+					operands.isEmpty()
+						? nybblecode
+						: nybblecode + " " + operands);
 				pc = savePc;
 			}
 			switch (nybblecode)
@@ -239,8 +246,12 @@ public final class L1InstructionStepper
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
-						System.out.println(
-							"         (" + bundle.message().atomName() + ")");
+						Interpreter.log(
+							Interpreter.loggerDebugL1,
+							Level.FINER,
+							"{0}         L1 call ({1})",
+							interpreter.debugModeString,
+							bundle.message().atomName());
 					}
 					interpreter.argsBuffer.clear();
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
@@ -285,7 +296,12 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.latestResult();
 					if (debugL1)
 					{
-						System.out.println("Call returned: " + result);
+						Interpreter.log(
+							Interpreter.loggerDebugL1,
+							Level.FINER,
+							"{0}Call returned: {1}",
+							interpreter.debugModeString,
+							result.typeTag().name());
 					}
 					if (!interpreter.skipReturnCheck)
 					{
@@ -508,7 +524,7 @@ public final class L1InstructionStepper
 							final A_Continuation newContinuation =
 								createLabelContinuation(
 									savedFunction,
-									interpreter.reifiedContinuation,
+									stripNull(interpreter.reifiedContinuation),
 									savedSkip,
 									unoptimizedChunk(),
 									TO_RESTART.offsetInDefaultChunk,
@@ -577,8 +593,12 @@ public final class L1InstructionStepper
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
-						System.out.println(
-							"L1 supercall: " + bundle.message().atomName());
+						Interpreter.log(
+							Interpreter.loggerDebugL1,
+							Level.FINER,
+							"{0}L1 supercall: {1}",
+							interpreter.debugModeString,
+							bundle.message().atomName());
 					}
 					interpreter.argsBuffer.clear();
 					final A_Tuple typesTuple =
@@ -635,7 +655,12 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.latestResult();
 					if (debugL1)
 					{
-						System.out.println("Call returned: " + result);
+						Interpreter.log(
+							Interpreter.loggerDebugL1,
+							Level.FINER,
+							"{0}Call returned: {1}",
+							interpreter.debugModeString,
+							result.typeTag().name());
 					}
 					if (!interpreter.skipReturnCheck)
 					{
@@ -664,7 +689,11 @@ public final class L1InstructionStepper
 		interpreter.returningFunction = function;
 		if (debugL1)
 		{
-			System.out.println("L1 return");
+			Interpreter.log(
+				Interpreter.loggerDebugL1,
+				Level.FINER,
+				"{0}L1 return",
+				interpreter.debugModeString);
 		}
 		return null;
 	}
@@ -762,11 +791,13 @@ public final class L1InstructionStepper
 					}
 					if (Interpreter.debugL2)
 					{
-						System.out.println(
-							interpreter.debugModeString
-								+ "Push reified continuation (for L1 setVar failure): "
-								+ continuation.function().code()
-								.methodName());
+						Interpreter.log(
+							Interpreter.loggerDebugL2,
+							Level.FINER,
+							"{0}Push reified continuation "
+								+ "for L1 setVar failure: {1}",
+							interpreter.debugModeString,
+							continuation.function().code().methodName());
 					}
 					reifier.pushContinuation(continuation);
 				}
@@ -830,11 +861,12 @@ public final class L1InstructionStepper
 			{
 				if (Interpreter.debugL2)
 				{
-					System.out.println(
-						interpreter.debugModeString
-							+ "Reifying call from L1 ("
-							+ reifier.actuallyReify()
-							+ ")");
+					Interpreter.log(
+						Interpreter.loggerDebugL2,
+						Level.FINER,
+						"{0}Reifying call from L1 ({1})",
+						interpreter.debugModeString,
+						reifier.actuallyReify());
 				}
 				if (reifier.actuallyReify())
 				{
@@ -860,10 +892,12 @@ public final class L1InstructionStepper
 					}
 					if (Interpreter.debugL2)
 					{
-						System.out.println(
-							interpreter.debugModeString
-								+ "Push reified continuation (for L1): "
-								+ continuation.function().code().methodName());
+						Interpreter.log(
+							Interpreter.loggerDebugL2,
+							Level.FINER,
+							"{0}Push reified continuation for L1: {1}",
+							interpreter.debugModeString,
+							continuation.function().code().methodName());
 					}
 					reifier.pushContinuation(continuation);
 				}

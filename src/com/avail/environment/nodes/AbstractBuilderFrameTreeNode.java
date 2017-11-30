@@ -43,6 +43,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.net.URL;
+import java.util.Comparator;
 
 /**
  * An {@code AbstractBuilderFrameTreeNode} is a tree node used within some
@@ -114,7 +115,7 @@ extends DefaultMutableTreeNode
 	/**
 	 * A static cache of scaled icons, organized by node class and line height.
 	 */
-	static final LRUCache<Pair<String, Integer>, ImageIcon>
+	private static final LRUCache<Pair<String, Integer>, ImageIcon>
 		cachedScaledIcons = new LRUCache<>(
 			100,
 			20,
@@ -187,5 +188,32 @@ extends DefaultMutableTreeNode
 	public final boolean isSpecifiedByString (final String string)
 	{
 		return text(false).equals(string);
+	}
+
+	private final static Comparator<AbstractBuilderFrameTreeNode> sorter =
+		Comparator.comparing(AbstractBuilderFrameTreeNode::sortMajor)
+			.thenComparing(node -> node.text(false));
+
+	/**
+	 * Sort the direct children of this node.  The default sort order is
+	 * alphabetic by the nodes' {@link #text(boolean)} (passing false).
+	 */
+	public void sortChildren ()
+	{
+		//noinspection unchecked
+		if (children != null)
+		{
+			children.sort(sorter);
+		}
+	}
+
+	/**
+	 * The primary order by which to sort this node relative to siblings.
+	 *
+	 * @return An {@code int}.  Lower values sort before higher ones.
+	 */
+	public int sortMajor ()
+	{
+		return 0;
 	}
 }

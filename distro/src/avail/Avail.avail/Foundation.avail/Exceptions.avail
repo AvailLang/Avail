@@ -258,38 +258,57 @@ Private method "Mark nearest guard frame with_" is
 	early failure function(failureCode)
 ] : ⊤;
 
+/*
+ * The type of CatchException's failure variable's content (another variable
+ * type).
+ */
+guardVariableType ::= ↑{
+	0,
+	incorrect-argument-type code,
+	handler-sentinel code,
+	unwind-sentinel code
+}ᵀ;
+
+/**
+ * Mark the nearest {@method "Guard|guard_«intercept_»«ensure_»" guard frame}
+ * with the current exception handling state.
+ *
+ * @method "Mark nearest guard frame with_"
+ * @param "marker" "{handler-sentinel code, unwind-sentinel code}ᵀ"
+ * @returns "ᵀ"
+ * @category "Bootstrap" "Primitives" "Exception Handling"
+ */
+Private method "Mark guard variable_with_" is
+[
+	guardVariable : guardVariableType,
+	marker : {handler-sentinel code, unwind-sentinel code}ᵀ
+|
+	Primitive MarkGuardVariable (failureCode :
+		{cannot-mark-handler-frame code}ᵀ);
+	early failure function(failureCode)
+] : ⊤;
+
 /**
  * This is a helper for {@method "Private guard_intercept_ensure_"}. Run
- * {@param "body"} and then {@param "unwind"}. If {@param "body"} produces a
+ * {@param "body"} and then {@param "unwind"}. If {@param "body"} produced a
  * value then return it.
  *
- * @macro "Run_and_;"
+ * @macro "Guard body_unwind_variable_;"
  * @param "body" "expression phrase⇒([]→⊤)"
  * @param "unwind" "expression phrase⇒([]→⊤)"
+ * @param "guardVariable"
+ *        "read any write {handler-sentinel code, unwind-sentinel code}ᵀ"
  * @returns "first-of-sequence phrase"
  * @category "Bootstrap" "Exception Handling"
  */
-Private macro "Run_and_;" is
+Private macro "Do_and_;" is
 [
-	body : expression phrase⇒([]→⊤),
-	unwind : expression phrase⇒([]→⊤)
+	firstBlock : block phrase ⇒ []→⊤,
+	secondBlock : block phrase ⇒ []→⊤
 |
-	callBody ::= send $"_(«_‡,»)" with <body, «<>»> → list phrase : ⊤;
-	ensure ::=
-		«[
-			<>
-		|
-			Primitive ""
-			<
-				send $"Mark nearest guard frame with_"
-					with «<‘handler-sentinel code’>» : ⊤,
-				send $"_(«_‡,»)" with «<unwind, «<>»>» : ⊤,
-				send $"Mark nearest guard frame with_"
-					with «<‘unwind-sentinel code’>» : ⊤
-			>
-		] : ⊤ ^ ∅»;
-	callEnsure ::= send $"_(«_‡,»)" with «<ensure, «<>»>» : ⊤;
-	first-of-seq «<callBody, callEnsure>»
+	first ::= seq «firstBlock's statements»;
+	second ::= seq «secondBlock's statements»;
+	first-of-seq «<first, second>»
 ];
 
 /**
@@ -319,9 +338,9 @@ Private macro "Run_and_;" is
  *    The protected function.
  * @param "handlers" "<[⊥]→⊤…|>"
  *    A tuple of exception handlers.
- * @param "optionalUnwind" "([]→⊤)?"
- *    If specified, then a function to apply after either the successful
- *    completion of {@param "body"} or an unwind through this continuation.
+ * @param "unwind" "[]→⊤"
+ *    A function to execute after either the successful completion of {@param
+ *    "body"} or an unwind through this continuation.
  * @returns "⊤"
  * @category "Bootstrap" "Primitives" "Exception Handling" "Control Structures"
  */
@@ -329,23 +348,37 @@ Private method "Private guard_intercept_ensure_" is
 [
 	body : []→⊤,
 	handlers : <[⊥]→⊤…|>,
-	optionalUnwind : ([]→⊤)?
+	unwind : []→⊤
 |
-	Primitive CatchException (failureCode :
-		{
-			0,
-			incorrect-argument-type code,
-			handler-sentinel code,
-			unwind-sentinel code
-		}ᵀ);
-	If failureCode = 0 then
+	Primitive CatchException (failureCode : guardVariableType);
+
+	/* If the failureCode is non-zero, report it with the failure function. */
+	Cast ↓failureCode into
 	[
-		Run body and optionalUnwind[1] else [[]];
+		code : natural number
+	|
+		early failure function(code)
 	]
-	else
-	[
-		early failure function(incorrect-argument-type code)
-	];
+	else [];
+
+	Do
+		[
+			body();
+		]
+	and
+		[
+			/* No exception was caught, or we would have dealt with the unwind
+			 * already in "Handle_handler_unwind_".  Therefore, any exception
+			 * raised in the unwind should propagate (unmodified by causal
+			 * chaining) to any enclosing handlers.
+			 */
+			If ↓failureCode = 0 then
+			[
+				Mark guard variable failureCode with handler-sentinel code;
+				unwind();
+				Mark guard variable failureCode with unwind-sentinel code;
+			];
+		];
 ] : ⊤;
 
 /**
@@ -426,7 +459,7 @@ Public method "_caused by_" is
  * a {@type "cascade exception"} and reraise it. Otherwise answer the result
  * produced by {@param "handler"}.
  *
- * @method "Handle_with_and_"
+ * @method "Handle_handler_unwind_"
  * @param "originalException" "exception"
  *        The exception originally caught by the handler that {@method
  *        "Guard|guard_«intercept_»«ensure_»"} wrapped around {@param
@@ -444,7 +477,7 @@ Public method "_caused by_" is
  *         {@type "exception"}.
  * @category "Bootstrap" "Exception Handling"
  */
-Private method "Handle_with_and_" is
+Private method "Handle_handler_unwind_" is
 [
 	originalException : exception,
 	handler : [⊥]→⊤,
@@ -456,13 +489,13 @@ Private method "Handle_with_and_" is
 	 */
 	Private guard [handler(originalException);]
 	intercept <[e : exception | preemptiveException := e;]>
-	ensure <>;
+	ensure [];
 	/* Guard the unwind, because if it blows up, then we want to build a cascade
 	 * exception from it instead of from the handler.
 	 */
 	Private guard [unwind();]
 	intercept <[e : exception | preemptiveException := e;]>
-	ensure <>;
+	ensure [];
 	/* Forbid a subsequent unwind. */
 	Mark nearest guard frame with unwind-sentinel code;
 	/* If either the handler or the unwind raised an exception, then convert it
@@ -475,7 +508,7 @@ Private method "Handle_with_and_" is
 	];
 ] : ⊤;
 
-Private method "Handle_with_and_" is
+Private method "Handle_handler_unwind_" is
 [
 	originalException : exception,
 	handler : [⊥]→any,
@@ -488,13 +521,13 @@ Private method "Handle_with_and_" is
 	 */
 	Private guard [result := handler(originalException);]
 	intercept <[e : exception | preemptiveException := e;]>
-	ensure <>;
+	ensure [];
 	/* Guard the unwind, because if it blows up, then we want to build a cascade
 	 * exception from it instead of from the handler.
 	 */
 	Private guard [unwind();]
 	intercept <[e : exception | preemptiveException := e;]>
-	ensure <>;
+	ensure [];
 	/* Forbid a subsequent unwind. */
 	Mark nearest guard frame with unwind-sentinel code;
 	/* If either the handler or the unwind raised an exception, then convert it
@@ -616,7 +649,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 				<outerArg>
 			|
 				<
-					send $"Handle_with_and_" with
+					send $"Handle_handler_unwind_" with
 						«<
 							«↓outerArg»,
 							«[
@@ -646,7 +679,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 				<arg>
 			|
 				<
-					send $"Handle_with_and_" with
+					send $"Handle_handler_unwind_" with
 						«<
 							«↓arg»,
 							handler,
@@ -662,7 +695,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 		«<
 			bodyPhrase,
 			realHandlers,
-			optionalUnwindPhrase
+			unwind
 		>» : ⊤
 ];
 

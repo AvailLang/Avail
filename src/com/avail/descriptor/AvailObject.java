@@ -5940,4 +5940,10 @@ implements
 	{
 		descriptor.o_IsSourceOfCycle(this, isSourceOfCycle);
 	}
+
+	@Override
+	public StringBuilder debugLog ()
+	{
+		return descriptor.o_DebugLog(this);
+	}
 }

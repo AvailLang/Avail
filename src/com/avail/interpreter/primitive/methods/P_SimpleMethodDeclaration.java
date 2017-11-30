@@ -45,7 +45,6 @@ import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -107,7 +106,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		if (loader.phase() != Phase.EXECUTING)
+		if (!loader.phase().isExecuting())
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION);
@@ -131,6 +130,7 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							fiber,
+							this,
 							nil,
 							skipReturnCheck);
 					}

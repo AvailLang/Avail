@@ -39,8 +39,10 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
+import java.util.logging.Level;
 
 import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
@@ -66,11 +68,16 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final A_Continuation continuation = interpreter.reifiedContinuation;
+		final A_Continuation continuation =
+			stripNull(interpreter.reifiedContinuation);
 		interpreter.reifiedContinuation = continuation.caller();
 		if (debugL1)
 		{
-			System.out.println("Reenter L1 from interrupt");
+			Interpreter.log(
+				Interpreter.loggerDebugL1,
+				Level.FINER,
+				"{0}Reenter L1 from interrupt",
+				interpreter.debugModeString);
 		}
 
 		assert interpreter.function == continuation.function();

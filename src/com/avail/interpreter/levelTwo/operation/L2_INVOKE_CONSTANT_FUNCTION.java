@@ -47,6 +47,7 @@ import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.logging.Level;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -140,11 +141,13 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 							interpreter.latestResult();
 						if (Interpreter.debugL2)
 						{
-							System.out.println(
-								interpreter.debugModeString
-									+ "Push reified continuation (for invoke-const-fn): "
-									+ continuation.function().code()
-									.methodName());
+							Interpreter.log(
+								Interpreter.loggerDebugL2,
+								Level.FINER,
+								"{0}Push reified continuation "
+									+ "for invoke-const-fn: {1}",
+								interpreter.debugModeString,
+								continuation.function().code().methodName());
 						}
 						reifier.pushContinuation(continuation);
 					}

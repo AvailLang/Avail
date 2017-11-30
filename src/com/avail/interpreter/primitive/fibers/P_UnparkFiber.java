@@ -98,6 +98,7 @@ extends Primitive
 				resumeFromSuccessfulPrimitive(
 					currentRuntime(),
 					fiber,
+					P_ParkCurrentFiber.instance,
 					nil,
 					skipReturnCheck);
 			}

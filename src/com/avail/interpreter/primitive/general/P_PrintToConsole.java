@@ -101,7 +101,6 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.postExitContinuation(
 			() -> textInterface.outputChannel().write(
 				string.asNativeString(),
@@ -116,6 +115,7 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							runtime,
 							fiber,
+							P_PrintToConsole.this,
 							nil,
 							skipReturnCheck);
 					}
@@ -134,7 +134,7 @@ extends Primitive
 							skipReturnCheck);
 					}
 				}));
-		return Result.FIBER_SUSPENDED;
+		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 
 	@Override

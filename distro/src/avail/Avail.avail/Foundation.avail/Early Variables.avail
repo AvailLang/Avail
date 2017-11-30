@@ -511,6 +511,7 @@ Invoke
 		|
 			Primitive DeclarationInitializingExpression
 				(failureCode : enumeration of {
+					cannot-store-incorrectly-typed-value code,
 					observed-variable-written-while-untraced code});
 			invoke variableFailureFunction
 			with <failureCode, f, <var, aDeclaration>>

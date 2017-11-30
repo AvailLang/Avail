@@ -169,4 +169,10 @@ extends AbstractBuilderFrameTreeNode
 		}
 		return base;
 	}
+
+	@Override
+	public int sortMajor ()
+	{
+		return isPackage ? 10 : 20;
+	}
 }

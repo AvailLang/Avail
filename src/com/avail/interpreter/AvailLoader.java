@@ -101,8 +101,7 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.AvailLoader.Phase.INITIALIZING;
-import static com.avail.interpreter.AvailLoader.Phase.UNLOADING;
+import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.util.Collections.emptyMap;
@@ -502,9 +501,10 @@ public final class AvailLoader
 
 	/**
 	 * The macro-state of the loader.  During compilation from a file, a loader
-	 * will ratchet between {@link #COMPILING} a top-level statement and {@link
-	 * #EXECUTING} it.  Similarly, when loading from a file, the loader's
-	 * setPhase alternates between {@link #LOADING} and {@link #EXECUTING}.
+	 * will ratchet between {@link #COMPILING} for a top-level statement and
+	 * {@link #EXECUTING_FOR_COMPILE}.  Similarly, when loading from a file, the
+	 * loader's {@link #phase} alternates between {@link #LOADING} and {@link
+	 * #EXECUTING_FOR_LOAD}.
 	 */
 	public enum Phase
 	{
@@ -518,10 +518,18 @@ public final class AvailLoader
 		LOADING,
 
 		/** A top-level statement is being executed. */
-		EXECUTING,
+		EXECUTING_FOR_COMPILE,
+
+		/** A top-level statement is being executed. */
+		EXECUTING_FOR_LOAD,
 
 		/** The fully-loaded module is now being unloaded. */
 		UNLOADING;
+
+		public boolean isExecuting ()
+		{
+			return this == EXECUTING_FOR_COMPILE || this == EXECUTING_FOR_LOAD;
+		}
 	}
 
 	/** The current loading setPhase. */
@@ -587,7 +595,7 @@ public final class AvailLoader
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing {@linkplain
 	 * AvailLoader loader}.
 	 */
-	@InnerAccess final A_Module module;
+	private final A_Module module;
 
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} undergoing loading by
@@ -600,7 +608,7 @@ public final class AvailLoader
 		return module;
 	}
 
-	@Nullable CompilationContext compilationContext;
+	private @Nullable CompilationContext compilationContext;
 
 	/**
 	 * Set the current {@link CompilationContext} for this loader.
@@ -624,7 +632,7 @@ public final class AvailLoader
 	}
 
 	/** Used for extracting tokens from the source text. */
-	LexicalScanner lexicalScanner;
+	private LexicalScanner lexicalScanner;
 
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
@@ -633,15 +641,6 @@ public final class AvailLoader
 	public LexicalScanner lexicalScanner ()
 	{
 		return lexicalScanner;
-	}
-
-	/**
-	 * Set the {@link LexicalScanner} used for creating tokens from source
-	 * code for this {@link AvailLoader}.
-	 */
-	public void lexicalScanner (final LexicalScanner scanner)
-	{
-		lexicalScanner = scanner;
 	}
 
 	/**
@@ -655,7 +654,7 @@ public final class AvailLoader
 	 * this {@code AvailLoader} is using to parse its {@linkplain
 	 * ModuleDescriptor module}.
 	 */
-	@InnerAccess @Nullable A_BundleTree rootBundleTree;
+	private @Nullable A_BundleTree rootBundleTree;
 
 	/**
 	 * Answer the {@linkplain MessageBundleTreeDescriptor message bundle tree}
@@ -845,7 +844,7 @@ public final class AvailLoader
 	 *
 	 * @param forwardDefinition A forward declaration.
 	 */
-	@InnerAccess void removeForward (
+	private void removeForward (
 		final A_Definition forwardDefinition)
 	{
 		final A_Method method = forwardDefinition.definitionMethod();
@@ -1327,25 +1326,28 @@ public final class AvailLoader
 				bundle.addGrammaticalRestriction(grammaticalRestriction);
 				theModule.moduleAddGrammaticalRestriction(
 					grammaticalRestriction);
-				// Now update the message bundle tree to accommodate the new
-				// grammatical restriction.
-				final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-					treesToVisit = new ArrayDeque<>();
-				for (final Entry planEntry
-					: bundle.definitionParsingPlans().mapIterable())
+				if (phase == EXECUTING_FOR_COMPILE)
 				{
-					final A_DefinitionParsingPlan plan = planEntry.value();
-					treesToVisit.addLast(
-						new Pair<>(root, newPlanInProgress(plan, 1)));
-					while (!treesToVisit.isEmpty())
+					// Update the message bundle tree to accommodate the new
+					// grammatical restriction.
+					final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+						treesToVisit = new ArrayDeque<>();
+					for (final Entry planEntry
+						: bundle.definitionParsingPlans().mapIterable())
 					{
-						final Pair<A_BundleTree, A_ParsingPlanInProgress>
-							pair = treesToVisit.removeLast();
-						final A_BundleTree tree = pair.first();
-						final A_ParsingPlanInProgress planInProgress =
-							pair.second();
-						tree.updateForNewGrammaticalRestriction(
-							planInProgress, treesToVisit);
+						final A_DefinitionParsingPlan plan = planEntry.value();
+						treesToVisit.addLast(
+							new Pair<>(root, newPlanInProgress(plan, 1)));
+						while (!treesToVisit.isEmpty())
+						{
+							final Pair<A_BundleTree, A_ParsingPlanInProgress>
+								pair = treesToVisit.removeLast();
+							final A_BundleTree tree = pair.first();
+							final A_ParsingPlanInProgress planInProgress =
+								pair.second();
+							tree.updateForNewGrammaticalRestriction(
+								planInProgress, treesToVisit);
+						}
 					}
 				}
 			});
@@ -1551,13 +1553,13 @@ public final class AvailLoader
 	 * The {@link A_BundleTree} used <em>only</em> for parsing module
 	 * headers.
 	 */
-	public static final A_BundleTree moduleHeaderBundleRoot;
+	private static final A_BundleTree moduleHeaderBundleRoot;
 
 	/**
 	 * The {@link LexicalScanner} used only</em> for parsing module
 	 * headers.
 	 */
-	public static final LexicalScanner moduleHeaderLexicalScanner;
+	private static final LexicalScanner moduleHeaderLexicalScanner;
 
 	/*
 	 * Create the special {@link A_BundleTree} used for parsing module headers.
