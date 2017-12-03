@@ -115,8 +115,7 @@ extends Primitive
 		// that should be used to recursively look up the method.
 		if (!pojoType.isPojoFusedType())
 		{
-			final Class<?> javaClass =
-				(Class<?>) pojoType.javaClass().javaObjectNotNull();
+			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
 			try
 			{
 				method = javaClass.getMethod(
@@ -136,8 +135,7 @@ extends Primitive
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
-				final Class<?> javaClass =
-					(Class<?>) ancestor.javaObjectNotNull();
+				final Class<?> javaClass = ancestor.javaObjectNotNull();
 				try
 				{
 					methods.add(javaClass.getMethod(

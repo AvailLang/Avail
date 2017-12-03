@@ -89,8 +89,7 @@ extends Primitive
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}
-		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousSocketChannel socket = pojo.javaObjectNotNull();
 		try
 		{
 			socket.close();

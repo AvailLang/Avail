@@ -109,8 +109,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		}
 		// Marshal the argument types and look up the appropriate
 		// constructor.
-		final Class<?> javaClass =
-			(Class<?>) pojoType.javaClass().javaObjectNotNull();
+		final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
 		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
 		try
 		{

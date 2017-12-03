@@ -195,9 +195,9 @@ extends Descriptor
 		private static final TokenType[] all = values();
 
 		/**
-		 * Answer an array of all {@link TokenType} enumeration values.
+		 * Answer an array of all {@code TokenType} enumeration values.
 		 *
-		 * @return An array of all {@link TokenType} enum values.  Do not
+		 * @return An array of all {@code TokenType} enum values.  Do not
 		 *         modify the array.
 		 */
 		public static TokenType[] all ()
@@ -216,9 +216,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Lazily compute and install the lowercase variant of the specified
-	 * {@linkplain TokenDescriptor token}'s lexeme.  The caller must handle
-	 * locking as needed.  Cache the lowercase variant within the object.
+	 * Lazily compute and install the lowercase variant of the specified token's
+	 * lexeme.  The caller must handle locking as needed.  Cache the lowercase
+	 * variant within the object.
 	 *
 	 * @param token A token.
 	 * @return The lowercase lexeme (an Avail string).
@@ -326,7 +326,7 @@ extends Descriptor
 				NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared());
 			return state;
 		}
-		return (LexingState) pojo.javaObjectNotNull();
+		return pojo.javaObjectNotNull();
 	}
 
 	@Override
@@ -399,8 +399,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain TokenDescriptor token}.  The
-	 * {@link ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
+	 * Create and initialize a new {@link A_Token}.  The {@link
+	 * ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
 	 * NilDescriptor#nil}.  This indicates that the next lexing state can be
 	 * found by examining the {@link CompilationContext#lexingStateAt(int,
 	 * int)}, adding the length of the string to {@link IntegerSlots#START} for
@@ -443,7 +443,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link TokenDescriptor}.
+	 * Construct a new {@code TokenDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

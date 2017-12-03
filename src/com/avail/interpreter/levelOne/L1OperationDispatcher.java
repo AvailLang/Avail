@@ -209,18 +209,8 @@ public interface L1OperationDispatcher
 	void L1Ext_doSuperCall ();
 
 	/**
-	 * This shouldn't happen unless the compiler is out of sync with the
-	 * interpreter.
+	 * Pop the stack, writing the value directly into the indicated local slot.
+	 * This is how local constants become initialized.
 	 */
-	void L1Ext_doReserved();
-
-	/**
-	 * Return to the calling continuation with top of stack.  This isn't an
-	 * actual instruction (any more), but it's implied after every block.
-	 * Note that the calling continuation has automatically pushed the
-	 * expected return type, which after being used to check the return
-	 * value should simply be replaced by this value.  This avoids
-	 * manipulating the stack depth.
-	 */
-	void L1Implied_doReturn();
+	void L1Ext_doSetSlot ();
 }

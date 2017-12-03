@@ -257,7 +257,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
+		for (int i = object.numSlots(); i >= 1; i--)
 		{
 			if (!object.argOrLocalOrStackAt(i).equals(
 				aContinuation.argOrLocalOrStackAt(i)))
@@ -274,7 +274,7 @@ extends Descriptor
 		int h = 0x593599A;
 		h ^= object.caller().hash();
 		h += object.function().hash() + object.pc() * object.stackp();
-		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
+		for (int i = object.numSlots(); i >= 1; i--)
 		{
 			h = h * 23 + 0x221C9 ^ object.argOrLocalOrStackAt(i).hash();
 		}
@@ -368,8 +368,7 @@ extends Descriptor
 	@Override @AvailMethod
 	L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
-		final AvailObject pojo = object.mutableSlot(LEVEL_TWO_CHUNK);
-		return (L2Chunk)pojo.javaObject();
+		return object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -383,7 +382,7 @@ extends Descriptor
 	 * entries.
 	 */
 	@Override @AvailMethod
-	int o_NumArgsAndLocalsAndStack (final AvailObject object)
+	int o_NumSlots (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -469,7 +468,7 @@ extends Descriptor
 	{
 		final A_RawFunction code = function.code();
 		assert code.primitive() == null;
-		final int frameSize = code.numArgsAndLocalsAndStack();
+		final int frameSize = code.numSlots();
 		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
@@ -528,7 +527,7 @@ extends Descriptor
 		final int levelTwoOffset)
 	{
 		final A_RawFunction code = function.code();
-		final int frameSize = code.numArgsAndLocalsAndStack();
+		final int frameSize = code.numSlots();
 		final AvailObject continuation = mutable.create(frameSize);
 		continuation.setSlot(CALLER, caller);
 		continuation.setSlot(FUNCTION, function);

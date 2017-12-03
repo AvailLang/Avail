@@ -81,24 +81,22 @@ extends Descriptor
 	 * Continuation1} with each.
 	 *
 	 * @param object
-	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
-	 * @param aBlock
-	 *            The {@linkplain Continuation1 action} to perform with each of
-	 *            this parse node's children.
+	 *        The {@linkplain ParseNodeDescriptor parse node} to traverse.
+	 * @param action
+	 *        The {@linkplain Continuation1 action} to perform with each of
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock);
+		final Continuation1NotNull<A_Phrase> action);
 
 	/**
 	 * Visit and transform the direct descendants of this parse node.  Map this
-	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
+	 * parse node's children through the
 	 * (destructive) transformation specified by aBlock, assigning them back
 	 * into my slots.
 	 *
-	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
-	 *               transform.
+	 * @param object The parse node to transform.
 	 * @param aBlock The {@linkplain Transformer1 transformation} through which
 	 *               to map this parse node's children.
 	 */
@@ -323,8 +321,6 @@ extends Descriptor
 		object.childrenDo(
 			child ->
 			{
-				assert child != null;
-				assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 				treeDoWithParent(child, aBlock, object);
 			});
 		aBlock.value(object, parentNode);

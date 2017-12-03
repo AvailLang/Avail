@@ -124,30 +124,31 @@ extends NumericTupleDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & ~255) != 0)
+		if (originalSize < maximumCopySize && newElement.isInt())
 		{
-			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
+			final int intValue = ((A_Number) newElement).extractInt();
+			if ((intValue & ~255) == 0)
+			{
+				// Convert to a ByteTupleDescriptor.
+				final ByteBuffer buffer =
+					object.slot(BYTE_BUFFER).javaObjectNotNull();
+				final int newSize = originalSize + 1;
+				return generateByteTupleFrom(
+					newSize,
+					index -> index < newSize
+						? (short) (buffer.get(index - 1) & 255)
+						: (short) intValue);
+			}
 		}
-		// Convert to a ByteTupleDescriptor.
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
-		final int newSize = originalSize + 1;
-		return generateByteTupleFrom(
-			newSize,
-			index -> index < newSize
-				? (short)(buffer.get(index - 1) & 255)
-				: (short)intValue);
+		// Transition to a tree tuple.
+		final A_Tuple singleton = tuple(newElement);
+		return object.concatenateWith(singleton, canDestroy);
 	}
 
 	@Override @AvailMethod
 	ByteBuffer o_ByteBuffer (final AvailObject object)
 	{
-		return (ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		return object.slot(BYTE_BUFFER).javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -157,8 +158,7 @@ extends NumericTupleDescriptor
 		final int end)
 	{
 		// See comment in superclass. This method must produce the same value.
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
@@ -317,8 +317,7 @@ extends NumericTupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		return (AvailObject) fromUnsignedByte(
 			(short) (buffer.get(index - 1) & 0xFF));
 	}
@@ -355,8 +354,7 @@ extends NumericTupleDescriptor
 		// Clobber the object in place...
 		final byte theByte =
 			(byte)((A_Number)newValueObject).extractUnsignedByte();
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		buffer.put(index - 1, theByte);
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
@@ -368,8 +366,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the integer element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		return buffer.get(index - 1) & 0xFF;
 	}
 
@@ -404,8 +401,7 @@ extends NumericTupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		return buffer.limit();
 	}
 
@@ -514,22 +510,15 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (bytes().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+		return bytes().isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		writer.startArray();
 		for (int i = 0; i < buffer.limit(); i++)
 		{
@@ -539,7 +528,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ByteBufferTupleDescriptor}.
+	 * Construct a new {@code ByteBufferTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -598,11 +587,11 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Create a new {@link ByteBufferTupleDescriptor} for the specified
-	 * {@linkplain ByteBuffer byte buffer}.
+	 * Create a new {@code ByteBufferTupleDescriptor} for the specified {@link
+	 * ByteBuffer}.
 	 *
 	 * @param buffer A byte buffer.
-	 * @return The requested {@linkplain ByteBufferTupleDescriptor tuple}.
+	 * @return The requested byte buffer tuple.
 	 */
 	public static AvailObject tupleForByteBuffer (final ByteBuffer buffer)
 	{

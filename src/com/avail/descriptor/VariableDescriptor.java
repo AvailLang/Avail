@@ -300,10 +300,8 @@ extends Descriptor
 				final AvailObject rawPojo = object.slot(WRITE_REACTORS);
 				if (!rawPojo.equalsNil())
 				{
-					@SuppressWarnings("unchecked")
 					final Map<A_Atom, VariableAccessReactor> writeReactors =
-						(Map<A_Atom, VariableAccessReactor>)
-							rawPojo.javaObjectNotNull();
+						rawPojo.javaObjectNotNull();
 					discardInvalidWriteReactors(writeReactors);
 					// If there are write reactors, but write tracing isn't
 					// active, then raise an exception.
@@ -547,9 +545,8 @@ extends Descriptor
 				new HashMap<A_Atom, VariableAccessReactor>());
 			object.setMutableSlot(WRITE_REACTORS, rawPojo);
 		}
-		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
-			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObjectNotNull();
+			rawPojo.javaObjectNotNull();
 		discardInvalidWriteReactors(writeReactors);
 		writeReactors.put(key, reactor);
 		return object;
@@ -564,9 +561,8 @@ extends Descriptor
 		{
 			throw new AvailException(E_KEY_NOT_FOUND);
 		}
-		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
-			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObjectNotNull();
+			rawPojo.javaObjectNotNull();
 		discardInvalidWriteReactors(writeReactors);
 		if (writeReactors.remove(key) == null)
 		{
@@ -580,10 +576,8 @@ extends Descriptor
 		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
 		if (!rawPojo.equalsNil())
 		{
-			@SuppressWarnings("unchecked")
 			final Map<A_Atom, VariableAccessReactor> writeReactors =
-				(Map<A_Atom, VariableAccessReactor>)
-					rawPojo.javaObjectNotNull();
+				rawPojo.javaObjectNotNull();
 			A_Set set = emptySet();
 			for (final Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())

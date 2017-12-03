@@ -92,15 +92,14 @@ public final class P_InvokePojoConstructor extends Primitive
 		final A_Tuple constructorArgs = args.get(1);
 		final A_Tuple marshaledTypePojos = args.get(2);
 		final A_Type expectedType = args.get(3);
-		final Constructor<?> constructor =
-			(Constructor<?>) constructorPojo.javaObjectNotNull();
+		final Constructor<?> constructor = constructorPojo.javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[constructorArgs.tupleSize()];
 		// Marshal the arguments.
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
 			{
-				final @Nullable Class<?> marshaledType = (Class<?>)
+				final @Nullable Class<?> marshaledType =
 					marshaledTypePojos.tupleAt(i + 1).javaObject();
 				marshaledArgs[i] =
 					constructorArgs.tupleAt(i + 1).marshalToJava(marshaledType);

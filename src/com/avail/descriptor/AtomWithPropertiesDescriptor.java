@@ -153,9 +153,8 @@ extends AtomDescriptor
 		// indirection.
 		final AvailObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
 		propertyMapPojo.makeShared();
-		@SuppressWarnings("unchecked")
 		final Map<A_Atom, AvailObject> propertyMap =
-			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
+			propertyMapPojo.javaObjectNotNull();
 		for (final Entry<A_Atom, AvailObject> entry :
 			propertyMap.entrySet())
 		{
@@ -182,9 +181,8 @@ extends AtomDescriptor
 	{
 		assert key.isAtom();
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
-		@SuppressWarnings("unchecked")
 		final Map<A_Atom, A_BasicObject> propertyMap =
-			(Map<A_Atom, A_BasicObject>) propertyMapPojo.javaObjectNotNull();
+			propertyMapPojo.javaObjectNotNull();
 		if (value.equalsNil())
 		{
 			propertyMap.remove(key);
@@ -210,9 +208,8 @@ extends AtomDescriptor
 	{
 		assert key.isAtom();
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
-		@SuppressWarnings("unchecked")
 		final Map<A_Atom, AvailObject> propertyMap =
-			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
+			propertyMapPojo.javaObjectNotNull();
 		final A_BasicObject value = propertyMap.get(key);
 		return value == null ? nil : (AvailObject) value;
 	}

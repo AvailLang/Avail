@@ -81,7 +81,7 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 		}
 
 		assert interpreter.function == continuation.function();
-		final int numSlots = continuation.numArgsAndLocalsAndStack();
+		final int numSlots = continuation.numSlots();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		interpreter.pointers = new AvailObject[numSlots + 1];
 		int dest = 1;

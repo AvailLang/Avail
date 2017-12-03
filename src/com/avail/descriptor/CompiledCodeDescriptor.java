@@ -87,24 +87,32 @@ import static java.lang.String.format;
  * {@linkplain NybbleTupleDescriptor tuple} of nybbles that encode {@linkplain
  * L1Operation operations} and their {@linkplain L1OperandType operands}.
  *
- * <p>
- * To refer to specific {@linkplain AvailObject Avail objects} from these
- * instructions, some operands act as indices into the {@linkplain
+ * <p>To refer to specific {@linkplain AvailObject Avail objects} from these
+ * instructions, some operands act as indices into the {@link
  * ObjectSlots#LITERAL_AT_ literals} that are stored within the compiled code
  * object. There are also slots that keep track of the number of arguments that
  * this code expects to be invoked with, and the number of slots to allocate for
  * {@linkplain ContinuationDescriptor continuations} that represent invocations
- * of this code.
- * </p>
+ * of this code.</p>
  *
- * <p>
- * Compiled code objects can not be directly invoked, as the block they
+ * <p>Compiled code objects can not be directly invoked, as the block they
  * represent may refer to "outer" variables. When this is the case, a
  * {@linkplain FunctionDescriptor function (closure)} must be constructed at
  * runtime to hold this information. When no such outer variables are needed,
  * the function itself can be constructed at compile time and stored as a
- * literal.
- * </p>
+ * literal.</p>
+ *
+ * <p>After the literal values, the rest of the {@link ObjectSlots#LITERAL_AT_}
+ * slots are:</p>
+ *
+ * <ul>
+ *     <li>outer types</li>
+ *     <li>local variable types</li>
+ *     <li>local constant types</li>
+ * </ul>
+ *
+ * <p>Note that the local variable types start with the primitive failure
+ * variable's type, if this is a fallible primitive.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -119,25 +127,32 @@ extends Descriptor
 	{
 		/**
 		 * A compound field consisting of the hash value, computed at
-		 * construction time, and the {@link Primitive} number or zero.
+		 * construction time, the {@link Primitive} number or zero, and the
+		 * number of outer variables that my functions must lexically capture.
 		 */
-		HASH_AND_PRIMITIVE,
+		HASH_AND_PRIMITIVE_AND_OUTERS,
 
 		/**
+		 * A compound field consisting of the total number of slots to allocate
+		 * in an {@link A_Continuation} representing an activation of this raw
+		 * function, the number of arguments, the number of local variables, and
+		 * the number of local constants.
+		 *
 		 * A compound field consisting of the number of outer variables/values
 		 * to be captured by my {@linkplain FunctionDescriptor functions}, the
 		 * variable number of slots that should be allocated for a {@linkplain
 		 * ContinuationDescriptor continuation} running this code, the number of
 		 * local variables, and the number of arguments.
 		 */
-		NUM_OUTERS_FRAMES_LOCALS_AND_ARGS;
+		NUM_SLOTS_ARGS_LOCALS_AND_CONSTS;
 
 		/**
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
-		 * code object}. It is computed at construction time.
+		 * code object}.  It is computed at construction time.
 		 */
 		@HideFieldInDebugger
-		static final BitField HASH = bitField(HASH_AND_PRIMITIVE, 0, 32);
+		static final BitField HASH = bitField(
+			HASH_AND_PRIMITIVE_AND_OUTERS, 32, 32);
 
 		/**
 		 * The primitive number or zero. This does not correspond with the
@@ -151,14 +166,15 @@ extends Descriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		static final BitField PRIMITIVE = bitField(HASH_AND_PRIMITIVE, 32, 32);
+		static final BitField PRIMITIVE = bitField(
+			HASH_AND_PRIMITIVE_AND_OUTERS, 16, 16);
 
 		/**
 		 * The number of outer variables that must captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
 		static final BitField NUM_OUTERS = bitField(
-			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 48, 16);
+			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
 		/**
 		 * The number of {@linkplain
@@ -166,21 +182,28 @@ extends Descriptor
 		 * for continuations running this code.
 		 */
 		static final BitField FRAME_SLOTS = bitField(
-			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 32, 16);
-
-		/**
-		 * The number of local variables and constants declared in this code,
-		 * not counting the arguments. Also don't count locals in nested code.
-		 */
-		static final BitField NUM_LOCALS = bitField(
-			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 16, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 48, 16);
 
 		/**
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
 		 * code expects.
 		 */
 		static final BitField NUM_ARGS = bitField(
-			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 0, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 32, 16);
+
+		/**
+		 * The number of local variables declared in this code.  This does not
+		 * include arguments or local constants.
+		 */
+		static final BitField NUM_LOCALS = bitField(
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 16, 16);
+
+		/**
+		 * The number of local constants declared in this code.  These occur in
+		 * the frame after the arguments and local variables.
+		 */
+		static final BitField NUM_CONSTANTS = bitField(
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 0, 16);
 	}
 
 	/**
@@ -283,11 +306,14 @@ extends Descriptor
 	private enum FakeSlots
 	implements ObjectSlotsEnum
 	{
+		/** Used for showing the types of captured variables and constants. */
+		OUTER_TYPE_,
+
 		/** Used for showing the types of local variables. */
 		LOCAL_TYPE_,
 
-		/** Used for showing the types of captured variables and constants. */
-		OUTER_TYPE_,
+		/** Used for showing the types of local constants. */
+		CONSTANT_TYPE_,
 
 		/** Used for showing an L1 disassembly of the code. */
 		L1_DISASSEMBLY,
@@ -330,6 +356,15 @@ extends Descriptor
 					i,
 					object.localTypeAt(i)));
 		}
+		for (int i = 1, end = object.numConstants(); i <= end; i++)
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					FakeSlots.CONSTANT_TYPE_,
+					i,
+					object.constantTypeAt(i)));
+		}
 		final StringBuilder disassembled = new StringBuilder();
 		object.printOnAvoidingIndent(
 			disassembled, new IdentityHashMap<>(), 0);
@@ -366,8 +401,7 @@ extends Descriptor
 	static InvocationStatistic getInvocationStatistic (
 		final AvailObject object)
 	{
-		final AvailObject pojo = object.slot(INVOCATION_STATISTIC);
-		return (InvocationStatistic) pojo.javaObjectNotNull();
+		return object.slot(INVOCATION_STATISTIC).javaObjectNotNull();
 	}
 
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
@@ -658,13 +692,24 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_ConstantTypeAt (final AvailObject object, final int index)
+	{
+		assert 1 <= index && index <= object.numConstants();
+		return object.literalAt(
+			object.numLiterals()
+				- object.numConstants()
+				+ index);
+	}
+
+	@Override @AvailMethod
 	A_Type o_LocalTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();
 		return object.literalAt(
 			object.numLiterals()
-			- object.numLocals()
-			+ index);
+				- object.numConstants()
+				- object.numLocals()
+				+ index);
 	}
 
 	@Override @AvailMethod
@@ -673,9 +718,10 @@ extends Descriptor
 		assert 1 <= index && index <= object.numOuters();
 		return object.literalAt(
 			object.numLiterals()
-			- object.numLocals()
-			- object.numOuters()
-			+ index);
+				- object.numConstants()
+				- object.numLocals()
+				- object.numOuters()
+				+ index);
 	}
 
 	@Override @AvailMethod
@@ -707,7 +753,7 @@ extends Descriptor
 	int o_MaxStackDepth (final AvailObject object)
 	{
 		return
-			object.numArgsAndLocalsAndStack()
+			object.numSlots()
 			- object.numArgs()
 			- object.numLocals();
 	}
@@ -727,7 +773,7 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	int o_NumArgsAndLocalsAndStack (final AvailObject object)
+	int o_NumSlots (final AvailObject object)
 	{
 		return object.slot(FRAME_SLOTS);
 	}
@@ -736,6 +782,12 @@ extends Descriptor
 	int o_NumLiterals (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
+	}
+
+	@Override @AvailMethod
+	int o_NumConstants (final AvailObject object)
+	{
+		return object.slot(NUM_CONSTANTS);
 	}
 
 	@Override @AvailMethod
@@ -767,8 +819,7 @@ extends Descriptor
 	@Override @AvailMethod
 	L2Chunk o_StartingChunk (final AvailObject object)
 	{
-		final AvailObject pojo = object.mutableSlot(STARTING_CHUNK);
-		return (L2Chunk) pojo.javaObjectNotNull();
+		return object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -893,6 +944,8 @@ extends Descriptor
 		writer.write(object.slot(NUM_ARGS));
 		writer.write("locals");
 		writer.write(object.slot(NUM_LOCALS));
+		writer.write("constants");
+		writer.write(object.slot(NUM_CONSTANTS));
 		writer.write("maximum stack depth");
 		writer.write(object.slot(FRAME_SLOTS));
 		writer.write("nybbles");
@@ -938,6 +991,8 @@ extends Descriptor
 		writer.write(object.slot(NUM_ARGS));
 		writer.write("locals");
 		writer.write(object.slot(NUM_LOCALS));
+		writer.write("constants");
+		writer.write(object.slot(NUM_CONSTANTS));
 		writer.write("maximum stack depth");
 		writer.write(object.slot(FRAME_SLOTS));
 		writer.write("nybbles");
@@ -992,25 +1047,26 @@ extends Descriptor
 	 * Create a new compiled code object with the given properties.
 	 *
 	 * @param nybbles The nybblecodes.
-	 * @param locals The number of local variables.
-	 * @param stack The maximum stack depth.
+	 * @param stackDepth The maximum stack depth.
 	 * @param functionType The type that the code's functions will have.
 	 * @param primitive Which primitive to invoke, or zero.
 	 * @param literals A tuple of literals.
-	 * @param localTypes A tuple of types of local variables.
+	 * @param localVariableTypes A tuple of types of local variables.
+	 * @param localConstantTypes A tuple of types of local constants.
 	 * @param outerTypes A tuple of types of outer (captured) variables.
 	 * @param module The module in which the code occurs, or nil.
 	 * @param lineNumber The module line number on which this code starts.
+	 * @param originatingPhrase The {@link A_Phrase} from which this is built.
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject newCompiledCode (
 		final A_Tuple nybbles,
-		final int locals,
-		final int stack,
+		final int stackDepth,
 		final A_Type functionType,
 		final @Nullable Primitive primitive,
 		final A_Tuple literals,
-		final A_Tuple localTypes,
+		final A_Tuple localVariableTypes,
+		final A_Tuple localConstantTypes,
 		final A_Tuple outerTypes,
 		final A_Module module,
 		final int lineNumber,
@@ -1031,59 +1087,54 @@ extends Descriptor
 			assert nybbles.tupleSize() > 0;
 		}
 
-		assert localTypes.tupleSize() == locals;
 		final A_Type argCounts = functionType.argsTupleType().sizeRange();
 		final int numArgs = argCounts.lowerBound().extractInt();
 		assert argCounts.upperBound().extractInt() == numArgs;
-		final int literalsSize = literals.tupleSize();
-		final int outersSize = outerTypes.tupleSize();
+		final int numLocals = localVariableTypes.tupleSize();
+		final int numConstants = localConstantTypes.tupleSize();
+		final int numLiterals = literals.tupleSize();
+		final int numOuters = outerTypes.tupleSize();
+		final int numSlots = numArgs + numLocals + numConstants + stackDepth;
 
-		assert 0 <= numArgs && numArgs <= 0xFFFF;
-		assert 0 <= locals && locals <= 0xFFFF;
-		final int slotCount = numArgs + locals + stack;
-		assert 0 <= slotCount && slotCount <= 0xFFFF;
-		assert 0 <= outersSize && outersSize <= 0xFFFF;
+		assert (numSlots & ~0xFFFF) == 0;
+		assert (numArgs & ~0xFFFF) == 0;
+		assert (numLocals & ~0xFFFF) == 0;
+		assert (numConstants & ~0xFFFF) == 0;
+		assert (numLiterals & ~0xFFFF) == 0;
+		assert (numOuters & ~0xFFFF) == 0;
 
 		assert module.equalsNil() || module.isInstanceOf(MODULE.o());
 		assert lineNumber >= 0;
 
 		final AvailObject code = mutable.create(
-			literalsSize + outersSize + locals);
+			numLiterals + numOuters + numLocals + numConstants);
 
 		final InvocationStatistic statistic = new InvocationStatistic();
 		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
-		final AvailObject statisticPojo = identityPojo(statistic);
 
-		code.setSlot(NUM_LOCALS, locals);
+		code.setSlot(FRAME_SLOTS, numSlots);
 		code.setSlot(NUM_ARGS, numArgs);
-		code.setSlot(FRAME_SLOTS, slotCount);
-		code.setSlot(NUM_OUTERS, outersSize);
+		code.setSlot(NUM_LOCALS, numLocals);
+		code.setSlot(NUM_CONSTANTS, numConstants);
 		code.setSlot(
 			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
-		code.setSlot(NYBBLES, nybbles.makeShared());
-		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
+		code.setSlot(NUM_OUTERS, numOuters);
+		code.setSlot(NYBBLES, nybbles);
+		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, nil);
 		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
-		code.setSlot(INVOCATION_STATISTIC, statisticPojo);
+		code.setSlot(INVOCATION_STATISTIC, identityPojo(statistic));
 
 		// Fill in the literals.
-		int dest;
-		for (dest = 1; dest <= literalsSize; dest++)
+		int dest = 1;
+		for (final A_Tuple tuple : Arrays.asList(
+			literals, outerTypes, localVariableTypes, localConstantTypes))
 		{
-			code.setSlot(
-				LITERAL_AT_, dest, literals.tupleAt(dest).makeShared());
+			for (final AvailObject literal : tuple)
+			{
+				code.setSlot(LITERAL_AT_, dest++, literal);
+			}
 		}
-		for (int i = 1; i <= outersSize; i++)
-		{
-			code.setSlot(
-				LITERAL_AT_, dest++, outerTypes.tupleAt(i).makeShared());
-		}
-		for (int i = 1; i <= locals; i++)
-		{
-			code.setSlot(
-				LITERAL_AT_, dest++, localTypes.tupleAt(i).makeShared());
-		}
-		assert dest == literalsSize + outersSize + locals + 1;
 
 		final A_Atom propertyAtom = createAtomWithProperties(
 			emptyTuple(), module);

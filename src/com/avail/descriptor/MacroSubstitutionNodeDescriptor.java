@@ -37,7 +37,6 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -133,9 +132,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		aBlock.value(object.slot(OUTPUT_PARSE_NODE));
+		action.value(object.slot(OUTPUT_PARSE_NODE));
 	}
 
 	@Override @AvailMethod
@@ -170,7 +169,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	AvailObject o_DeclaredType (final AvailObject object)
+	A_Type o_DeclaredType (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).declaredType();
 	}
@@ -455,8 +454,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro
-	 * substitution node}.
+	 * Construct a new macro substitution node.
 	 *
 	 * @param macroSend
 	 *        The send of the macro that produced this node.
@@ -476,7 +474,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link MacroSubstitutionNodeDescriptor}.
+	 * Construct a new {@code MacroSubstitutionNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

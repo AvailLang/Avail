@@ -116,8 +116,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousSocketChannel socket = pojo.javaObjectNotNull();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = newFiber(

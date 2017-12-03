@@ -304,7 +304,7 @@ public final class Interpreter
 	 * The approximate maximum number of bytes to log per fiber before throwing
 	 * away the earliest 25%.
 	 */
-	private final static int maxFiberLogLength = 10_000_000;
+	private static final int maxFiberLogLength = 10_000_000;
 
 	/**
 	 * Log a message.
@@ -354,6 +354,7 @@ public final class Interpreter
 				affectedFiber != null
 					? format("%6d ", affectedFiber.uniqueId())
 					: "?????? ");
+			//noinspection StringConcatenationMissingWhitespace
 			logger.log(level, builder + message, arguments);
 		}
 	}
@@ -638,6 +639,7 @@ public final class Interpreter
 	{
 		if (debugPrimitives)
 		{
+			@SuppressWarnings("StringBufferReplaceableByString")
 			final StringBuilder builder = new StringBuilder();
 			builder
 				.append("[")
@@ -801,6 +803,7 @@ public final class Interpreter
 		latestResult = (AvailObject)newResult;
 		if (debugL2)
 		{
+			//noinspection StringConcatenationMissingWhitespace
 			log(
 				loggerDebugL2,
 				Level.INFO,
@@ -865,7 +868,7 @@ public final class Interpreter
 	 *
 	 * @param args
 	 *        The {@link List} of arguments to the primitive.
-	 * @param skipReturnCheck
+	 * @param skipCheck
 	 *        Whether the result will need to be dynamically type-checked.
 	 * @param action
 	 *        The action supplied by the client that itself takes two actions
@@ -874,40 +877,40 @@ public final class Interpreter
 	 */
 	public Result suspendAndDo (
 		final List<AvailObject> args,
-		boolean skipReturnCheck,
-		Continuation2NotNull<
+		final boolean skipCheck,
+		final Continuation2NotNull<
 				Continuation1NotNull<A_BasicObject>,
 				Continuation1NotNull<AvailErrorCode>>
 			action)
 	{
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		final AvailRuntime runtime = AvailRuntime.currentRuntime();
+		final AvailRuntime theRuntime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(function);
 		final @Nullable Primitive prim = primitiveFunction.code().primitive();
 		assert prim != null && prim.hasFlag(CanSuspend);
-		final A_Fiber fiber = fiber();
+		final A_Fiber currentFiber = fiber();
 		final AtomicBoolean once = new AtomicBoolean(false);
 		postExitContinuation(() ->
 			action.value(
 				result -> {
 					assert !once.getAndSet(true);
 					resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
+						theRuntime,
+						currentFiber,
 						prim,
 						result,
-						skipReturnCheck);
+						skipCheck);
 				},
 				failureCode ->
 				{
 					assert !once.getAndSet(true);
 					resumeFromFailedPrimitive(
-						runtime,
-						fiber,
+						theRuntime,
+						currentFiber,
 						failureCode.numericCode(),
 						primitiveFunction,
 						copiedArgs,
-						skipReturnCheck);
+						skipCheck);
 				}));
 		return primitiveSuspend(primitiveFunction);
 	}
@@ -1152,14 +1155,12 @@ public final class Interpreter
 		exitNow = true;
 		if (debugL2)
 		{
+			//noinspection StringConcatenationMissingWhitespace
 			log(
 				loggerDebugL2,
 				Level.INFO,
-				debugModeString + "Set exitNow (exitFiber)");
-			log(
-				loggerDebugL2,
-				Level.INFO,
-				debugModeString + "Clear latestResult (exitFiber)");
+				debugModeString
+					+ "Set exitNow and clear latestResult (exitFiber)");
 		}
 		latestResult(null);
 		wipeRegisters();
@@ -1226,21 +1227,20 @@ public final class Interpreter
 	 * Result#SUCCESS}.
 	 *
 	 * @param primitive
-	 *            The {@link Primitive} to invoke.
-	 * @param skipReturnCheck
-	 *            Whether to skip checking the return result if the primitive
-	 *            attempt succeeds.  It should only skip the check if the VM
-	 *            guarantees the type produced at the current call site will
-	 *            satisfy the expected type at the call site.  To simplify the
-	 *            design, the primitive {@link A_Function}'s Avail backup code,
-	 *            if any, must also satisfy the call site.  This is usually the
-	 *            case anyhow, because most primitive backup Avail code produces
-	 *            type ⊥.
+	 *        The {@link Primitive} to invoke.
+	 * @param skipCheck
+	 *        Whether to skip checking the return result if the primitive
+	 *        attempt succeeds.  It should only skip the check if the VM
+	 *        guarantees the type produced at the current call site will satisfy
+	 *        the expected type at the call site.  To simplify the design, the
+	 *        primitive {@link A_Function}'s Avail backup code, if any, must
+	 *        also satisfy the call site.  This is usually the case anyhow,
+	 *        because most primitive backup Avail code produces type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public Result attemptPrimitive (
 		final Primitive primitive,
-		final boolean skipReturnCheck)
+		final boolean skipCheck)
 	{
 		if (debugPrimitives)
 		{
@@ -1255,7 +1255,7 @@ public final class Interpreter
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success =
-			primitive.attempt(argsBuffer, this, skipReturnCheck);
+			primitive.attempt(argsBuffer, this, skipCheck);
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1351,7 +1351,9 @@ public final class Interpreter
 	 * @param anAvailObject
 	 *        The object to write to the specified register.
 	 */
-	public void pointerAtPut (final int index, final A_BasicObject anAvailObject)
+	public void pointerAtPut (
+		final int index,
+		final A_BasicObject anAvailObject)
 	{
 		// assert index > 0;
 		// assert anAvailObject != null;
@@ -1382,7 +1384,7 @@ public final class Interpreter
 		pointers = replacementPointers;
 	}
 
-	/** An empty array used for clearing the integer squickly. */
+	/** An empty array used for clearing the integers quickly. */
 	public static final int[] emptyIntArray = new int[0];
 
 	/**
@@ -1429,10 +1431,10 @@ public final class Interpreter
 	}
 
 	/**
-	 * Jump to a new position in the L2 wordcode stream.
+	 * Jump to a new position in the L2 instruction stream.
 	 *
 	 * @param newOffset
-	 *        The new position in the L2 wordcode stream.
+	 *        The new position in the L2 instruction stream.
 	 */
 	public void offset (final int newOffset)
 	{
@@ -1455,6 +1457,7 @@ public final class Interpreter
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
 	 * nybblecodes.
 	 */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	public final L1InstructionStepper levelOneStepper =
 		new L1InstructionStepper(this);
 
@@ -1537,12 +1540,10 @@ public final class Interpreter
 		{
 			if (waiters.value != null)
 			{
-				for (final A_BasicObject pojo : waiters.value())
+				for (final A_BasicObject pojo : waiters.value)
 				{
-					@SuppressWarnings("unchecked")
 					final Continuation1<A_Continuation> waiter =
-						(Continuation1<A_Continuation>)
-							(pojo.javaObjectNotNull());
+						pojo.javaObjectNotNull();
 					waiter.value(continuation);
 				}
 			}
@@ -1887,36 +1888,34 @@ public final class Interpreter
 
 			final long nanosToExcludeBeforeStep = nanosToExclude;
 			final long timeBefore = System.nanoTime();
-			try
+			final @Nullable StackReifier reifier =
+				instruction.action.value(this);
+			// Even though some primitives may suspend the current fiber, the
+			// code still returns here after suspending.  Close enough.  Also,
+			// this chunk may call other chunks (on the Java stack), so we have
+			// to subtract out the cost of other instructions executed during
+			// this one... and count this instruction's *total* execution time
+			// as something to be subtracted from any outer instructions.
+			final long deltaTime = System.nanoTime() - timeBefore;
+			final long exclude = nanosToExclude - nanosToExcludeBeforeStep;
+			instruction.operation.statisticInNanoseconds.record(
+				deltaTime - exclude, interpreterIndex);
+			nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
+			final boolean isReifying = reifier != null;
+			if (Interpreter.debugL2)
 			{
-				final @Nullable StackReifier reifier =
-					instruction.action.value(this);
-				if (reifier != null)
-				{
-					adjustUnreifiedCallDepthBy(-1);
-					return reifier;
-				}
+				log(
+					loggerDebugL2,
+					Level.FINER,
+					"{0}L2 end{1}: {2}",
+					debugModeString,
+					isReifying ? "-for-reify" : "",
+					instruction.operation.debugNameIn(instruction));
 			}
-			finally
+			if (isReifying)
 			{
-				// Even though some primitives may suspend the current fiber,
-				// the code still returns here after suspending.  Close enough.
-				// Also, this chunk may call other chunks (on the Java stack),
-				// so there will be multiple-counting of call instructions.
-				final long deltaTime = System.nanoTime() - timeBefore;
-				final long exclude = nanosToExclude - nanosToExcludeBeforeStep;
-				instruction.operation.statisticInNanoseconds.record(
-					deltaTime - exclude, interpreterIndex);
-				nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
-				if (Interpreter.debugL2)
-				{
-					log(
-						loggerDebugL2,
-						Level.FINER,
-						"{0}L2 end: {1}",
-						debugModeString,
-						instruction.operation.debugNameIn(instruction));
-				}
+				adjustUnreifiedCallDepthBy(-1);
+				return reifier;
 			}
 		}
 		adjustUnreifiedCallDepthBy(-1);
@@ -1943,41 +1942,6 @@ public final class Interpreter
 		return reifyThen(() ->
 		{
 			argsBuffer.clear();
-			skipReturnCheck = skipReturnCheckFlag;
-			function = functionToCall;
-			chunk = functionToCall.code().startingChunk();
-			offset = 0;
-		});
-	}
-
-	/**
-	 * Throw a {@link StackReifier} to reify the Java stack into {@link
-	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
-	 * two arguments.
-	 *
-	 * @param functionToCall
-	 *        What two-argument function to invoke after reification.
-	 * @param skipReturnCheckFlag
-	 *        Whether when the function completes it can skip checking the
-	 *        result's type.
-	 * @param arg1
-	 *        The first argument of the function.
-	 * @param arg2
-	 *        The second argument of the function.
-	 * @return The {@link StackReifier} that collects reified continuations on
-	 *         the way out to {@link #run()}.
-	 */
-	public StackReifier reifyThenCall2 (
-		final A_Function functionToCall,
-		final boolean skipReturnCheckFlag,
-		final A_BasicObject arg1,
-		final A_BasicObject arg2)
-	{
-		return reifyThen(() ->
-		{
-			argsBuffer.clear();
-			argsBuffer.add((AvailObject) arg1);
-			argsBuffer.add((AvailObject) arg2);
 			skipReturnCheck = skipReturnCheckFlag;
 			function = functionToCall;
 			chunk = functionToCall.code().startingChunk();
@@ -2057,6 +2021,7 @@ public final class Interpreter
 	 * @return The {@link StackReifier} that <em>abandons</em> stack frames on
 	 *         the way out to {@link #run()}.
 	 */
+	@SuppressWarnings("MethodMayBeStatic")
 	public StackReifier abandonStackThen (
 		final Continuation0 postReificationAction)
 	{
@@ -2078,8 +2043,8 @@ public final class Interpreter
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param continuation
-	 *        How to set up the {@linkplain Interpreter interpreter} prior to
-	 *        running the fiber for a while. Pass in the interpreter to use.
+	 *        How to set up the {@code Interpreter interpreter} prior to running
+	 *        the fiber for a while. Pass in the interpreter to use.
 	 */
 	private static void executeFiber (
 		final AvailRuntime runtime,
@@ -2656,6 +2621,7 @@ public final class Interpreter
 					+ " to "
 					+ returnee.methodName().asNativeString();
 			final A_String stringKey = stringFrom(nameString);
+			//noinspection SynchronizationOnStaticField
 			synchronized (checkedReturnMapsByString)
 			{
 				final Statistic statistic =
@@ -2693,6 +2659,7 @@ public final class Interpreter
 		final int lineNumber)
 	{
 		Statistic statistic;
+		//noinspection SynchronizationOnStaticField
 		synchronized (topStatementEvaluationStats)
 		{
 			final A_Module moduleTraversed = module.traversed();
@@ -2703,14 +2670,14 @@ public final class Interpreter
 			statistic = submap.get(lineNumber);
 			if (statistic == null)
 			{
+				@SuppressWarnings("StringBufferReplaceableByString")
 				final StringBuilder builder = new StringBuilder();
 				builder.append("[#");
 				builder.append(lineNumber);
 				builder.append("] of ");
 				builder.append(module.moduleName().asNativeString());
-				final String nameString = builder.toString();
 				statistic = new Statistic(
-					nameString,
+					builder.toString(),
 					StatisticReport.TOP_LEVEL_STATEMENTS);
 				submap.put(lineNumber, statistic);
 			}

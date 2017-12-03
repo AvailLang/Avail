@@ -68,7 +68,6 @@ import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -647,6 +646,12 @@ extends AbstractDescriptor
 	A_Tuple o_ConcatenateTuplesCanDestroy (
 		final AvailObject object,
 		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_ConstantTypeAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1944,7 +1949,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_NumArgsAndLocalsAndStack (final AvailObject object)
+	int o_NumConstants (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_NumSlots (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2564,7 +2575,7 @@ extends AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail string?
 	 *
 	 * @param object
-	 * 	An {@link AvailObject}.
+	 *        An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
 	 * otherwise.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -2765,7 +2776,7 @@ extends AbstractDescriptor
 	 * <em>foreach</em> construct.
 	 *
 	 * @param object
-	 * 	An {@link AvailObject}.
+	 *        An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -2826,7 +2837,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DeclaredType (final AvailObject object)
+	A_Type o_DeclaredType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2925,7 +2936,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3620,7 +3631,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	@Nullable Object o_JavaObject (final AvailObject object)
+	@Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

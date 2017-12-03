@@ -49,10 +49,10 @@ class RawTokenArgument
 extends Argument
 {
 	/**
-	 * Construct a new {@link RawTokenArgument}.
+	 * Construct a new {@code RawTokenArgument}.
 	 *
 	 * @param startTokenIndex
-	 * 	The one-based token index of this argument.
+	 *       The one-based token index of this argument.
 	 */
 	RawTokenArgument (
 		final MessageSplitter splitter,

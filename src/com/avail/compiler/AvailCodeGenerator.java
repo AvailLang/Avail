@@ -45,7 +45,6 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,20 +55,20 @@ import java.util.Set;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
-	.ARGUMENT;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
-	.LABEL;
+	.LOCAL_CONSTANT;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.ASSIGNMENT_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.LABEL_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static java.util.Arrays.asList;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
@@ -88,10 +87,30 @@ public final class AvailCodeGenerator
 		new ArrayList<>(10);
 
 	/**
-	 * The number of arguments with which the resulting {@linkplain
-	 * CompiledCodeDescriptor compiled code} will be invoked.
+	 * The {@link List} of argument {@linkplain A_Phrase declarations} that
+	 * correspond with actual arguments with which the resulting {@linkplain
+	 * A_RawFunction raw function} will be invoked.
 	 */
-	private final int numArgs;
+	private final List<A_Phrase> args;
+
+	/**
+	 * The {@link List} of declarations of local variables that this {@linkplain
+	 * A_RawFunction raw function} will use.
+	 */
+	private final List<A_Phrase> locals;
+
+	/**
+	 * The {@link List} of declarations of local constants that this {@linkplain
+	 * A_RawFunction raw function} will use.
+	 */
+	private final List<A_Phrase> constants;
+
+	/**
+	 * The {@link List} of the lexically captured declarations of arguments,
+	 * variables, locals, and labels from enclosing scopes which are used by
+	 * this block.
+	 */
+	private final List<A_Phrase> outers;
 
 	/**
 	 * A mapping from local variable/constant/argument/label declarations to
@@ -116,7 +135,8 @@ public final class AvailCodeGenerator
 
 	/**
 	 * The current stack depth, which is the number of objects that have been
-	 * pushed but not yet been popped at this point in the list of instructions.
+	 * pushed but not yet been popped at this point in the list of
+	 * instructions.
 	 */
 	private int depth = 0;
 
@@ -144,7 +164,8 @@ public final class AvailCodeGenerator
 	private final A_Set exceptionSet;
 
 	/**
-	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or
+	 * Which {@linkplain Primitive primitive VM operation} should be
+	 * invoked, or
 	 * zero if none.
 	 */
 	private @Nullable Primitive primitive;
@@ -162,7 +183,8 @@ public final class AvailCodeGenerator
 	/**
 	 * Answer the index of the literal, adding it if not already present.
 	 *
-	 * @param aLiteral The literal to look up.
+	 * @param aLiteral
+	 *        The literal to look up.
 	 * @return The index of the literal.
 	 */
 	public int indexOfLiteral (
@@ -184,7 +206,7 @@ public final class AvailCodeGenerator
 	 */
 	public int numArgs ()
 	{
-		return numArgs;
+		return args.size();
 	}
 
 	/**
@@ -212,11 +234,12 @@ public final class AvailCodeGenerator
 		final @Nullable Primitive primitive = blockPhrase.primitive();
 		final AvailCodeGenerator generator = new AvailCodeGenerator(
 			module,
-			blockPhrase.argumentsTuple(),
+			toList(blockPhrase.argumentsTuple()),
 			primitive,
 			BlockNodeDescriptor.locals(blockPhrase),
+			BlockNodeDescriptor.constants(blockPhrase),
 			BlockNodeDescriptor.labels(blockPhrase),
-			blockPhrase.neededVariables(),
+			toList(blockPhrase.neededVariables()),
 			blockPhrase.resultType(),
 			blockPhrase.declaredExceptions(),
 			blockPhrase.startingLineNumber());
@@ -241,7 +264,7 @@ public final class AvailCodeGenerator
 					statementsTuple.tupleAt(statementsCount);
 				if (lastStatement.parseNodeKindIsUnder(LABEL_NODE)
 					|| (lastStatement.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-						&& lastStatement.expressionType().isTop()))
+						    && lastStatement.expressionType().isTop()))
 				{
 					// Either the block 1) ends with the label declaration or
 					// 2) is top-valued and ends with an assignment. Push the
@@ -261,30 +284,45 @@ public final class AvailCodeGenerator
 	/**
 	 * Set up code generation of a raw function.
 	 *
-	 * @param module The module in which the function is defined.
-	 * @param argumentsTuple The tuple of argument declarations.
-	 * @param thePrimitive The {@link Primitive} or {@code null}.
-	 * @param locals The list of local declarations.
-	 * @param labels The list of (zero or one) label declarations.
-	 * @param outerVariables Any needed outer variable declarations.
-	 * @param resultType The return type of the function.
-	 * @param declaredException The declared exception set of the function.
-	 * @param startingLineNumber The line number of the module at which the
-	 *                           function is purported to begin.
+	 * @param module
+	 *        The module in which the function is defined.
+	 * @param argumentsTuple
+	 *        The tuple of argument declarations.
+	 * @param thePrimitive
+	 *        The {@link Primitive} or {@code null}.
+	 * @param locals
+	 *        The list of local variable declarations.
+	 * @param constants
+	 *        The list of local constant declarations.
+	 * @param labels
+	 *        The list of (zero or one) label declarations.
+	 * @param outers
+	 *        Any needed outer variable/constant declarations.
+	 * @param resultType
+	 *        The return type of the function.
+	 * @param declaredException
+	 *        The declared exception set of the function.
+	 * @param startingLineNumber
+	 *        The line number of the module at which the function is purported
+	 *        to begin.
 	 */
 	private AvailCodeGenerator (
 		final A_Module module,
-		final A_Tuple argumentsTuple,
+		final List<A_Phrase> argumentsTuple,
 		final @Nullable Primitive thePrimitive,
-		final List<? extends A_Phrase> locals,
-		final List<? extends A_Phrase> labels,
-		final A_Tuple outerVariables,
+		final List<A_Phrase> locals,
+		final List<A_Phrase> constants,
+		final List<A_Phrase> labels,
+		final List<A_Phrase> outers,
 		final A_Type resultType,
 		final A_Set declaredException,
 		final int startingLineNumber)
 	{
 		this.module = module;
-		numArgs = argumentsTuple.tupleSize();
+		this.args = argumentsTuple;
+		this.locals = locals;
+		this.constants = constants;
+		this.outers = outers;
 		for (final A_Phrase argumentDeclaration : argumentsTuple)
 		{
 			varMap.put(argumentDeclaration, varMap.size() + 1);
@@ -294,7 +332,11 @@ public final class AvailCodeGenerator
 		{
 			varMap.put(local, varMap.size() + 1);
 		}
-		for (final AvailObject outerVar : outerVariables)
+		for (final A_Phrase constant : constants)
+		{
+			varMap.put(constant, varMap.size() + 1);
+		}
+		for (final A_Phrase outerVar : outers)
 		{
 			outerMap.put(outerVar, outerMap.size() + 1);
 		}
@@ -305,6 +347,23 @@ public final class AvailCodeGenerator
 		this.resultType = resultType;
 		this.exceptionSet = declaredException;
 		this.lineNumber = startingLineNumber;
+	}
+
+	/**
+	 * Answer the type that should be captured in the literal frame for the
+	 * given declaration.  In the case that it's a variable declaration, we need
+	 * to wrap the declared type in a variable type.
+	 *
+	 * @param declaration
+	 *        The {@link DeclarationNodeDescriptor declaration} to examine.
+	 * @return The type for the corresponding {@link ContinuationDescriptor
+	 *         continuation} slot.
+	 */
+	private static A_Type outerType (final A_Phrase declaration)
+	{
+		return declaration.declarationKind().isVariable()
+			? variableTypeFor(declaration.declaredType())
+			: declaration.declaredType();
 	}
 
 	/**
@@ -319,37 +378,41 @@ public final class AvailCodeGenerator
 	{
 		fixFinalUses();
 		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);
-		// Detect blocks that immediately return a constant and mark them with a
+		// Detect blocks that immediately return something and mark them with a
 		// special primitive number.
 		if (primitive == null && instructions.size() == 1)
 		{
 			final AvailInstruction onlyInstruction = instructions.get(0);
 			if (onlyInstruction instanceof AvailPushLiteral
-				&& ((AvailPushLiteral)onlyInstruction).index() == 1)
+				&& ((AvailPushLiteral) onlyInstruction).index() == 1)
 			{
+				// The block immediately answers a constant.
 				primitive(P_PushConstant.instance);
 			}
 			if (numArgs() == 1
 				&& onlyInstruction instanceof AvailPushLocalVariable
-				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
+				&& ((AvailPushLocalVariable) onlyInstruction).index() == 1)
 			{
+				// The block immediately answers the first argument.
 				primitive(P_PushArgument.instance);
 			}
 			if (onlyInstruction instanceof AvailPushOuterVariable)
 			{
-				// There can only be one outer since the only instruction is to
-				// push it.
+				// The block immediately answers the sole captured outer
+				// variable or constant.  There can only be one such outer since
+				// we only capture what's needed, and there are no other
+				// instructions that might use another outer.
 				final AvailPushOuterVariable pushOuter =
 					(AvailPushOuterVariable) onlyInstruction;
 				assert pushOuter.index() == 1;
 				assert pushOuter.isLastAccess();
- 				primitive(P_PushLastOuter.instance);
+				primitive(P_PushLastOuter.instance);
 			}
-			// Only target module constants, not module variables. Module
+			// Only optimize module constants, not module variables.  Module
 			// variables can be unassigned, and reading an unassigned module
 			// variable must fail appropriately.
 			if (onlyInstruction instanceof AvailGetLiteralVariable
-				&& ((AvailGetLiteralVariable)onlyInstruction).index() == 1
+				&& ((AvailGetLiteralVariable) onlyInstruction).index() == 1
 				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
 				primitive(P_GetGlobalVariableValue.instance);
@@ -362,7 +425,7 @@ public final class AvailCodeGenerator
 		{
 			if (instruction.isOuterUse())
 			{
-				final int i = ((AvailInstructionWithIndex)instruction).index();
+				final int i = ((AvailInstructionWithIndex) instruction).index();
 				unusedOuters.clear(i - 1);
 			}
 			instruction.writeNybblesOn(nybbles);
@@ -384,52 +447,29 @@ public final class AvailCodeGenerator
 		final A_Tuple nybbleTuple = generateNybbleTupleFrom(
 			nybblesArray.length, i -> nybblesArray[i - 1]);
 		assert resultType.isType();
-		final A_Type[] argsArray = new A_Type[numArgs];
-		final A_Type[] localsArray = new A_Type[varMap.size() - numArgs];
-		for (final Entry<A_Phrase, Integer> entry : varMap.entrySet())
-		{
-			final int i = entry.getValue();
-			final A_Type argDeclType = entry.getKey().declaredType();
-			if (i <= numArgs)
-			{
-				assert argDeclType.isType();
-				argsArray[i - 1] = argDeclType;
-			}
-			else
-			{
-				localsArray[i - numArgs - 1] = variableTypeFor(argDeclType);
-			}
-		}
-		final A_Tuple argsTuple = tuple(argsArray);
-		final A_Tuple localsTuple = tuple(localsArray);
-		final A_Type [] outerArray = new A_Type[outerMap.size()];
-		for (final Entry<A_Phrase, Integer> entry : outerMap.entrySet())
-		{
-			final int i = entry.getValue();
-			final A_Phrase argDecl = entry.getKey();
-			final A_Type argDeclType = argDecl.declaredType();
-			final DeclarationKind kind = argDecl.declarationKind();
-			if (kind == ARGUMENT || kind == LABEL)
-			{
-				outerArray[i - 1] = argDeclType;
-			}
-			else
-			{
-				outerArray[i - 1] = variableTypeFor(argDeclType);
-			}
-		}
-		final A_Tuple outerTuple = tuple(outerArray);
+
+		final A_Tuple argTypes = generateObjectTupleFrom(
+			args.size(), i -> args.get(i - 1).declaredType());
+		final A_Tuple localTypes = generateObjectTupleFrom(
+			locals.size(),
+			i -> variableTypeFor(locals.get(i - 1).declaredType()));
+		final A_Tuple constantTypes = generateObjectTupleFrom(
+			constants.size(), i -> constants.get(i - 1).declaredType());
+
+		final A_Tuple outerTypes = generateObjectTupleFrom(
+			outers.size(), i -> outerType(outers.get(i - 1)));
+
 		final A_Type functionType =
-			functionType(argsTuple, resultType, exceptionSet);
+			functionType(argTypes, resultType, exceptionSet);
 		final A_RawFunction code = newCompiledCode(
-			nybbleTuple.makeShared(),
-			varMap.size() - numArgs,
+			nybbleTuple,
 			maxDepth,
 			functionType,
 			primitive,
 			tupleFromList(literals),
-			localsTuple,
-			outerTuple,
+			localTypes,
+			constantTypes,
+			outerTypes,
 			module,
 			lineNumber,
 			originatingBlockPhrase);
@@ -439,7 +479,8 @@ public final class AvailCodeGenerator
 	/**
 	 * Decrease the tracked stack depth by the given amount.
 	 *
-	 * @param delta The number of things popped off the stack.
+	 * @param delta
+	 *        The number of things popped off the stack.
 	 */
 	public void decreaseDepth (
 		final int delta)
@@ -452,7 +493,8 @@ public final class AvailCodeGenerator
 	/**
 	 * Increase the tracked stack depth by the given amount.
 	 *
-	 * @param delta The number of things pushed onto the stack.
+	 * @param delta
+	 *        The number of things pushed onto the stack.
 	 */
 	public void increaseDepth (
 		final int delta)
@@ -476,10 +518,13 @@ public final class AvailCodeGenerator
 	 * Write a regular multimethod call.  I expect my arguments to have been
 	 * pushed already.
 	 *
-	 * @param nArgs The number of arguments that the method accepts.
-	 * @param bundle The message bundle for the method in which to look up the
-	 *               method definition being invoked.
-	 * @param returnType The expected return type of the call.
+	 * @param nArgs
+	 *        The number of arguments that the method accepts.
+	 * @param bundle
+	 *        The message bundle for the method in which to look up the
+	 *        method definition being invoked.
+	 * @param returnType
+	 *        The expected return type of the call.
 	 */
 	public void emitCall (
 		final int nArgs,
@@ -568,8 +613,8 @@ public final class AvailCodeGenerator
 	 * Emit code to get the value of a literal variable.
 	 *
 	 * @param aLiteral
-	 *            The {@linkplain VariableDescriptor variable} that should have
-	 *            its value extracted.
+	 *        The {@linkplain VariableDescriptor variable} that should have
+	 *        its value extracted.
 	 */
 	public void emitGetLiteral (
 		final A_BasicObject aLiteral)
@@ -583,8 +628,8 @@ public final class AvailCodeGenerator
 	 * Emit code to get the value of a local or outer (captured) variable.
 	 *
 	 * @param localOrOuter
-	 *            The {@linkplain DeclarationNodeDescriptor declaration} of the
-	 *            variable that should have its value extracted.
+	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 *        variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
 		final A_Phrase localOrOuter)
@@ -611,13 +656,14 @@ public final class AvailCodeGenerator
 	 * Emit a {@linkplain DeclarationNodeDescriptor declaration} of a {@link
 	 * DeclarationKind#LABEL label} for the current block.
 	 *
-	 * @param labelNode The label declaration.
+	 * @param labelNode
+	 *        The label declaration.
 	 */
 	public void emitLabelDeclaration (
 		final A_Phrase labelNode)
 	{
 		assert instructions.isEmpty()
-		: "Label must be first statement in block";
+			: "Label must be first statement in block";
 		// stack is unaffected.
 		instructions.add(labelInstructions.get(labelNode));
 	}
@@ -626,7 +672,8 @@ public final class AvailCodeGenerator
 	 * Emit code to create a {@linkplain TupleDescriptor tuple} from the top N
 	 * items on the stack.
 	 *
-	 * @param count How many pushed items to pop for the new tuple.
+	 * @param count
+	 *        How many pushed items to pop for the new tuple.
 	 */
 	public void emitMakeTuple (
 		final int count)
@@ -661,7 +708,8 @@ public final class AvailCodeGenerator
 	/**
 	 * Emit code to push a literal object onto the stack.
 	 *
-	 * @param aLiteral The object to push.
+	 * @param aLiteral
+	 *        The object to push.
 	 */
 	public void emitPushLiteral (
 		final A_BasicObject aLiteral)
@@ -675,7 +723,8 @@ public final class AvailCodeGenerator
 	 * Push a variable.  It can be local to the current block or defined in an
 	 * outer scope.
 	 *
-	 * @param variableDeclaration The variable declaration.
+	 * @param variableDeclaration
+	 *        The variable declaration.
 	 */
 	public void emitPushLocalOrOuter (
 		final A_Phrase variableDeclaration)
@@ -702,7 +751,8 @@ public final class AvailCodeGenerator
 	 * Emit code to pop the stack and write the popped value into a literal
 	 * variable.
 	 *
-	 * @param aLiteral The variable in which to write.
+	 * @param aLiteral
+	 *        The variable in which to write.
 	 */
 	public void emitSetLiteral (
 		final A_BasicObject aLiteral)
@@ -717,9 +767,9 @@ public final class AvailCodeGenerator
 	 * Emit code to pop the stack and write into a local or outer variable.
 	 *
 	 * @param localOrOuter
-	 *            The {@linkplain DeclarationNodeDescriptor declaration} of the
-	 *            {@link DeclarationKind#LOCAL_VARIABLE local} or outer variable
-	 *            in which to write.
+	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 * 	{@link DeclarationKind#LOCAL_VARIABLE local} or outer variable
+	 *        in which to write.
 	 */
 	public void emitSetLocalOrOuter (
 		final A_Phrase localOrOuter)
@@ -740,6 +790,20 @@ public final class AvailCodeGenerator
 		assert !labelInstructions.containsKey(localOrOuter)
 			: "You can't assign to a label!";
 		assert false : "Consistency error - unknown variable.";
+	}
+
+	/**
+	 * Emit code to pop the stack and write it directly into a local slot of
+	 * the continuation.  This is how local constants become initialized.
+	 */
+	public void emitSetLocalFrameSlot (
+		final A_Phrase localConstant)
+	{
+		assert localConstant.declarationKind() == LOCAL_CONSTANT;
+		assert varMap.containsKey(localConstant)
+			: "Local constants can only be initialized at their definition.";
+		decreaseDepth(1);
+		instructions.add(new AvailSetLocalConstant(varMap.get(localConstant)));
 	}
 
 	/**
@@ -774,47 +838,37 @@ public final class AvailCodeGenerator
 	 */
 	public void fixFinalUses ()
 	{
-		final List<AvailVariableAccessNote> localData = new ArrayList<>(
-			Arrays.asList(new AvailVariableAccessNote[varMap.size()]));
-		final List<AvailVariableAccessNote> outerData = new ArrayList<>(
-			Arrays.asList(new AvailVariableAccessNote[outerMap.size()]));
+		final List<AvailVariableAccessNote> localData =
+			asList(new AvailVariableAccessNote[varMap.size()]);
+		final List<AvailVariableAccessNote> outerData =
+			asList(new AvailVariableAccessNote[outerMap.size()]);
 		for (int index = 1, end = instructions.size(); index <= end; index++)
 		{
 			final AvailInstruction instruction = instructions.get(index - 1);
-			instruction.fixFlagsUsingLocalDataOuterDataCodeGenerator(
-				localData,
-				outerData,
-				this);
+			instruction.fixUsageFlags(localData, outerData, this);
 		}
 		final @Nullable Primitive p = primitive;
 		if (p != null)
 		{
-			// If necessary, then prevent clearing of the primitive failure
-			// variable after its last usage.
+			// If necessary, prevent clearing of the primitive failure variable
+			// after its last usage.
 			if (p.hasFlag(Flag.PreserveFailureVariable))
 			{
 				assert !p.hasFlag(Flag.CannotFail);
 				final AvailInstruction fakeFailureVariableUse =
-					new AvailGetLocalVariable(numArgs + 1);
-				fakeFailureVariableUse
-					.fixFlagsUsingLocalDataOuterDataCodeGenerator(
-						localData,
-						outerData,
-						this);
+					new AvailGetLocalVariable(numArgs() + 1);
+				fakeFailureVariableUse.fixUsageFlags(
+					localData, outerData, this);
 			}
-			// If necessary, then prevent clearing of the primitive arguments
-			// after their last usage.
+			// If necessary, prevent clearing of the primitive arguments after
+			// their last usage.
 			if (p.hasFlag(Flag.PreserveArguments))
 			{
-				for (int index = 1; index <= numArgs; index++)
+				for (int index = 1; index <= numArgs(); index++)
 				{
 					final AvailInstruction fakeArgumentUse =
 						new AvailPushLocalVariable(index);
-					fakeArgumentUse
-						.fixFlagsUsingLocalDataOuterDataCodeGenerator(
-							localData,
-							outerData,
-							this);
+					fakeArgumentUse.fixUsageFlags(localData, outerData, this);
 				}
 			}
 		}

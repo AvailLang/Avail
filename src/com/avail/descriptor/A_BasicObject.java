@@ -939,12 +939,12 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
-	@Nullable Object javaObject ();
+	@Nullable <T> T javaObject ();
 
 	/**
 	 * @return
 	 */
-	Object javaObjectNotNull ();
+	<T> T javaObjectNotNull ();
 
 	/**
 	 * @return

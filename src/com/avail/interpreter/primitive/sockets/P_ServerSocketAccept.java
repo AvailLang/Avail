@@ -107,15 +107,13 @@ extends Primitive
 		final A_Function succeed = args.get(2);
 		final A_Function fail = args.get(3);
 		final A_Number priority = args.get(4);
-		final A_BasicObject pojo =
-			handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
+		final AvailObject pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousServerSocketChannel socket = pojo.javaObjectNotNull();
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),

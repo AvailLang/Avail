@@ -178,7 +178,7 @@ extends A_BasicObject
 	 *
 	 * @return The number of arguments, locals, and stack slots in the receiver.
 	 */
-	int numArgsAndLocalsAndStack ();
+	int numSlots ();
 
 	/**
 	 * Set both the {@link IntegerSlots#PROGRAM_COUNTER}

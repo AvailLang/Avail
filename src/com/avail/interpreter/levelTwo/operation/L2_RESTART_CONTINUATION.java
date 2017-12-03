@@ -80,7 +80,7 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 		final A_RawFunction code = continuation.function().code();
 		//TODO MvG - Continuations should have two statically distinguishable
 		// varieties.
-		assert continuation.stackp() == code.numArgsAndLocalsAndStack() + 1
+		assert continuation.stackp() == code.numSlots() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
 		//TODO MvG - Continuations should have two statically distinguishable

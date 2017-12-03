@@ -76,8 +76,8 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject array = args.get(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
-		array.lock(() -> tuple.value =
-			tuple((AvailObject[]) array.javaObject()));
+		array.lock(() ->
+			tuple.value = tuple(array.<AvailObject[]>javaObjectNotNull()));
 		return interpreter.primitiveSuccess(tuple.value());
 	}
 
@@ -85,7 +85,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralPojoArrayType()),
+			functionType(
+				tuple(
+					mostGeneralPojoArrayType()),
 				mostGeneralTupleType());
 	}
 }

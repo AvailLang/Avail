@@ -263,7 +263,7 @@ public final class L1Translator
 		{
 			this.code = translator.codeOrNull;
 			this.nybbles = code.nybbles();
-			this.numSlots = code.numArgsAndLocalsAndStack();
+			this.numSlots = code.numSlots();
 			this.pc = 1;
 			this.stackp = numSlots + 1;
 			this.slotRegisters = new L2ReadPointerOperand[numSlots];
@@ -2268,8 +2268,10 @@ public final class L1Translator
 		}
 
 		// Nil the rest of the stack slots.
-		IntStream.rangeClosed(numArgs + numLocals + 1, numSlots)
-			.forEach(this::nilSlot);
+		for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
+		{
+			nilSlot(i);
+		}
 
 		// Check for interrupts. If an interrupt is discovered, then reify and
 		// process the interrupt.  When the chunk resumes, it will explode the
@@ -2283,10 +2285,13 @@ public final class L1Translator
 			pc++;
 			L1Operation.all()[nybble].dispatch(this);
 		}
-		// Translate the implicit L1_doReturn instruction that terminates
-		// the instruction sequence.
-		L1Operation.L1Implied_Return.dispatch(this);
-		assert stackp == Integer.MIN_VALUE;
+		// Generate the implicit return after the instruction sequence.
+		addInstruction(
+			L2_RETURN.instance,
+			readSlot(stackp),
+			getSkipReturnCheck());
+		assert stackp == numSlots;
+		stackp = Integer.MIN_VALUE;
 
 		if (unreachableBlock != null && unreachableBlock.hasPredecessors())
 		{
@@ -2793,21 +2798,14 @@ public final class L1Translator
 	}
 
 	@Override
-	public void L1Ext_doReserved ()
+	public void L1Ext_doSetSlot ()
 	{
-		// This shouldn't happen unless the compiler is out of sync with the
-		// translator.
-		error("That nybblecode is not supported");
-	}
-
-	@Override
-	public void L1Implied_doReturn ()
-	{
-		addInstruction(
-			L2_RETURN.instance,
-			readSlot(stackp),
-			getSkipReturnCheck());
-		assert stackp == numSlots;
-		stackp = Integer.MIN_VALUE;
+		final int destIndex = getInteger();
+		final L2ReadPointerOperand source = readSlot(stackp);
+		moveRegister(
+			source,
+			writeSlot(destIndex, source.type(), source.constantOrNull()));
+		nilSlot(stackp);
+		stackp++;
 	}
 }

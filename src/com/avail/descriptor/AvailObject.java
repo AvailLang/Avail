@@ -68,7 +68,6 @@ import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -2849,9 +2848,9 @@ implements
 	}
 
 	@Override
-	public int numArgsAndLocalsAndStack ()
+	public int numSlots ()
 	{
-		return descriptor.o_NumArgsAndLocalsAndStack(this);
+		return descriptor.o_NumSlots(this);
 	}
 
 	@Override
@@ -2864,6 +2863,12 @@ implements
 	public int numLocals ()
 	{
 		return descriptor.o_NumLocals(this);
+	}
+
+	@Override
+	public int numConstants ()
+	{
+		return descriptor.o_NumConstants(this);
 	}
 
 	@Override
@@ -2910,10 +2915,7 @@ implements
 		final int index,
 		final AvailObject value)
 	{
-		descriptor.o_OuterVarAtPut(
-			this,
-			index,
-			value);
+		descriptor.o_OuterVarAtPut(this, index, value);
 	}
 	@Override
 	public A_BasicObject parent ()
@@ -3818,7 +3820,7 @@ implements
 	}
 
 	@Override
-	public AvailObject declaredType ()
+	public A_Type declaredType ()
 	{
 		return descriptor.o_DeclaredType(this);
 	}
@@ -3904,9 +3906,9 @@ implements
 
 	@Override
 	public void childrenDo (
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		descriptor.o_ChildrenDo(this, aBlock);
+		descriptor.o_ChildrenDo(this, action);
 	}
 
 	@Override
@@ -4638,13 +4640,13 @@ implements
 	}
 
 	@Override
-	public @Nullable Object javaObject ()
+	public @Nullable <T> T javaObject ()
 	{
 		return descriptor.o_JavaObject(this);
 	}
 
 	@Override
-	public Object javaObjectNotNull ()
+	public <T> T javaObjectNotNull ()
 	{
 		return stripNull(descriptor.o_JavaObject(this));
 	}
@@ -5945,5 +5947,11 @@ implements
 	public StringBuilder debugLog ()
 	{
 		return descriptor.o_DebugLog(this);
+	}
+
+	@Override
+	public A_Type constantTypeAt (final int index)
+	{
+		return descriptor.o_ConstantTypeAt(this, index);
 	}
 }

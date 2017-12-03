@@ -72,7 +72,7 @@ public final class P_ContinuationStackData extends Primitive
 		assert args.size() == 1;
 		final A_Continuation con = args.get(0);
 		final A_Tuple tuple = generateObjectTupleFrom(
-			con.function().code().numArgsAndLocalsAndStack(),
+			con.function().code().numSlots(),
 			index ->
 			{
 				final A_BasicObject entry = con.argOrLocalOrStackAt(index);

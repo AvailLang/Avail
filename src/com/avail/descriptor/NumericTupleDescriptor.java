@@ -49,14 +49,14 @@ extends TupleDescriptor
 	 * Construct a new {@link TupleDescriptor}.
 	 *
 	 * @param mutability
-	 * 	The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 * 	The Java {@link Class} which is a subclass of {@link
-	 * 	ObjectSlotsEnum} and defines this object's object slots
-	 * 	layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots
+	 *        layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 * 	The Java {@link Class} which is a subclass of {@link
-	 * 	IntegerSlotsEnum} and defines this object's object slots
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's object slots
 	 */
 	protected NumericTupleDescriptor (
 		final Mutability mutability,

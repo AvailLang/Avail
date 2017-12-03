@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -433,15 +434,15 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
 		for (final AvailObject argument : object.argumentsTuple())
 		{
-			aBlock.value(argument);
+			action.value(argument);
 		}
 		for (final AvailObject statement : object.statementsTuple())
 		{
-			aBlock.value(statement);
+			action.value(statement);
 		}
 	}
 
@@ -543,7 +544,7 @@ extends ParseNodeDescriptor
 	/**
 	 * Return a {@linkplain List list} of all {@linkplain
 	 * DeclarationNodeDescriptor declaration nodes} defined by this block.
-	 * This includes arguments, locals, and labels.
+	 * This includes arguments, locals, constants, and labels.
 	 *
 	 * @param object The Avail block node to scan.
 	 * @return The list of declarations.
@@ -557,6 +558,7 @@ extends ParseNodeDescriptor
 			declarations.add(argumentDeclaration);
 		}
 		declarations.addAll(locals(object));
+		declarations.addAll(constants(object));
 		declarations.addAll(labels(object));
 		return declarations;
 	}
@@ -571,11 +573,12 @@ extends ParseNodeDescriptor
 	public static List<A_Phrase> labels (final A_Phrase object)
 	{
 		final List<A_Phrase> labels = new ArrayList<>(1);
-		for (final AvailObject maybeLabel : object.statementsTuple())
+		for (final AvailObject phrase : object.statementsTuple())
 		{
-			if (maybeLabel.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
+			if (phrase.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 			{
-				labels.add(maybeLabel);
+				assert phrase.declarationKind() == DeclarationKind.LABEL;
+				labels.add(phrase);
 			}
 		}
 		return labels;
@@ -583,7 +586,10 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Answer the declarations of this block's local variables.  Do not include
-	 * the label declaration if present, nor argument declarations.
+	 * the label declaration if present, nor argument declarations, nor local
+	 * constants.
+	 *
+	 * <p>Include the primitive failure reason variable, if present.</p>
 	 *
 	 * @param object The block node to examine.
 	 * @return This block's local variable declarations.
@@ -591,15 +597,42 @@ extends ParseNodeDescriptor
 	public static List<A_Phrase> locals (final A_Phrase object)
 	{
 		final List<A_Phrase> locals = new ArrayList<>(5);
-		for (final A_Phrase maybeLocal : object.statementsTuple())
+		for (final A_Phrase phrase : object.statementsTuple())
 		{
-			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
-				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
+			if (phrase.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 			{
-				locals.add(maybeLocal);
+				final DeclarationKind kind = phrase.declarationKind();
+				if (kind == DeclarationKind.LOCAL_VARIABLE
+					|| kind == DeclarationKind.PRIMITIVE_FAILURE_REASON)
+				{
+					locals.add(phrase);
+				}
 			}
 		}
 		return locals;
+	}
+
+	/**
+	 * Answer the declarations of this block's local constants.  Do not include
+	 * the label declaration if present, nor argument declarations, nor local
+	 * variables.
+	 *
+	 * @param object The block node to examine.
+	 * @return This block's local constant declarations.
+	 */
+	public static List<A_Phrase> constants (final A_Phrase object)
+	{
+		final List<A_Phrase> constants = new ArrayList<>(5);
+		for (final A_Phrase phrase : object.statementsTuple())
+		{
+			if (phrase.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
+				&& phrase.declarationKind()
+					== DeclarationKind.LOCAL_CONSTANT)
+			{
+				constants.add(phrase);
+			}
+		}
+		return constants;
 	}
 
 	/**
@@ -625,7 +658,7 @@ extends ParseNodeDescriptor
 	 * @return
 	 *            A block node.
 	 */
-	public static A_Phrase newBlockNode (
+public static A_Phrase newBlockNode (
 		final List<A_Phrase> argumentsList,
 		final int primitive,
 		final List<A_Phrase> statementsList,
@@ -646,25 +679,21 @@ extends ParseNodeDescriptor
 	 * Construct a block phrase.
 	 *
 	 * @param arguments
-	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *            DeclarationNodeDescriptor argument declarations}.
+	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *        DeclarationNodeDescriptor argument declarations}.
 	 * @param primitive
-	 *            The index of the primitive that the resulting block will
-	 *            invoke.
+	 *        The index of the primitive that the resulting block will invoke.
 	 * @param statements
-	 *            The {@linkplain TupleDescriptor tuple} of statement
-	 *            {@linkplain ParseNodeDescriptor nodes}.
+	 *        The {@link A_Tuple tuple} of statement {@linkplain
+	 *        ParseNodeDescriptor nodes}.
 	 * @param resultType
-	 *            The {@linkplain TypeDescriptor type} that will be returned by
-	 *            the block.
+	 *        The {@link A_Type type} that will be returned by the block.
 	 * @param declaredExceptions
-	 *            The {@linkplain SetDescriptor set} of exception types that may
-	 *            be raised by this block.  <em>This is not yet normalized.</em>
+	 *        The {@link A_Set set} of exception types that may be raised by
+	 *        this block.  <em>This is not yet normalized.</em>
 	 * @param lineNumber
-	 *            The line number of the current module at which this block
-	 *            begins.
-	 * @return
-	 *            A block node.
+	 *        The line number in the current module at which this block begins.
+	 * @return A block node.
 	 */
 	public static AvailObject newBlockNode (
 		final A_Tuple arguments,
@@ -693,9 +722,7 @@ extends ParseNodeDescriptor
 		final AvailObject block = mutable.create();
 		block.setSlot(ARGUMENTS_TUPLE, arguments);
 		block.setSlot(PRIMITIVE, primitive);
-		block.setSlot(
-			STATEMENTS_TUPLE,
-			tupleFromList(flattenedStatements));
+		block.setSlot(STATEMENTS_TUPLE, tupleFromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
 		block.setSlot(NEEDED_VARIABLES, nil);
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
@@ -730,7 +757,7 @@ extends ParseNodeDescriptor
 		providedByMe.addAll(allLocallyDefinedVariables(object));
 		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
 		final List<A_Phrase> neededDeclarations = new ArrayList<>();
-		object.childrenDo(new Continuation1<A_Phrase>()
+		object.childrenDo(new Continuation1NotNull<A_Phrase>()
 		{
 			@Override
 			public void value (final @Nullable A_Phrase node)

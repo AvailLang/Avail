@@ -81,7 +81,7 @@ public final class P_RestartContinuation extends Primitive
 
 		final A_RawFunction code = originalCon.function().code();
 		//TODO MvG - This should be a primitive failure.
-		assert originalCon.stackp() == code.numArgsAndLocalsAndStack() + 1
+		assert originalCon.stackp() == code.numSlots() + 1
 			: "Continuation should have been a label- rather than "
 			+ "call-continuation";
 		assert originalCon.pc() == 0

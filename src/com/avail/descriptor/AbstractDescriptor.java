@@ -73,7 +73,6 @@ import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -2097,6 +2096,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param index
+	 * @return
+	 */
+	abstract A_Type o_ConstantTypeAt (
+		AvailObject object,
+		int index);
+
+	/**
+	 * @param object
 	 * @param argumentTypeTuple
 	 * @return
 	 * @throws MethodDefinitionException
@@ -3353,7 +3361,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_NumArgsAndLocalsAndStack (AvailObject object);
+	abstract int o_NumSlots (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_NumConstants (AvailObject object);
 
 	/**
 	 * @param object
@@ -4316,7 +4330,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_DeclaredType (AvailObject object);
+	abstract A_Type o_DeclaredType (AvailObject object);
 
 	/**
 	 * @param object
@@ -4408,13 +4422,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Visit my child parse nodes with aBlock.
-	 *
-	 * @param object
-	 * @param aBlock
+	 *  @param object
+	 * @param action
 	 */
 	abstract void o_ChildrenDo (
 		AvailObject object,
-		Continuation1<A_Phrase> aBlock);
+		Continuation1NotNull<A_Phrase> action);
 
 	/**
 	 * @param object
@@ -5204,10 +5217,15 @@ public abstract class AbstractDescriptor
 		final @Nullable Object otherJavaObject);
 
 	/**
-	 * @param object
-	 * @return
+	 * Answer a pojo's java object.  The type is not statically checkable in
+	 * Java, but at least making it generic avoids an explicit cast expression
+	 * at each call site.
+	 *
+	 * @param object The Avail pojo object.
+	 * @param <T> The type of Java {@link Object} to return.
+	 * @return The actual Java object, which may be {code null}.
 	 */
-	abstract @Nullable Object o_JavaObject (final AvailObject object);
+	abstract @Nullable <T> T o_JavaObject (final AvailObject object);
 
 	/**
 	 * @param object

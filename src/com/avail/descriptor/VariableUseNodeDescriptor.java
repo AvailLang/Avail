@@ -36,7 +36,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -77,9 +76,7 @@ extends ParseNodeDescriptor
 		 * Whether this is the last use of the mentioned entity.
 		 */
 		static final BitField LAST_USE = bitField(
-			FLAGS,
-			0,
-			1);
+			FLAGS, 0, 1);
 	}
 
 	/**
@@ -191,9 +188,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		aBlock.value(object.slot(DECLARATION));
+		action.value(object.slot(DECLARATION));
 	}
 
 	@Override @AvailMethod
@@ -271,7 +268,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain VariableUseNodeDescriptor variable use node}.
+	 * Construct a new variable use node.
 	 *
 	 * @param theToken The token which is the use of the variable in the source.
 	 * @param declaration The declaration which is being used.
@@ -292,7 +289,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link VariableUseNodeDescriptor}.
+	 * Construct a new {@code VariableUseNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

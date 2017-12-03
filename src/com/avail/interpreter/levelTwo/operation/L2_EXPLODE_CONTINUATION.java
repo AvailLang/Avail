@@ -84,7 +84,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		final int slotsCount = explodedSlots.size();
 		final A_Continuation continuation =
 			continuationToExplodeReg.in(interpreter);
-		assert continuation.numArgsAndLocalsAndStack() == slotsCount;
+		assert continuation.numSlots() == slotsCount;
 		for (int i = 1; i <= slotsCount; i++)
 		{
 			final AvailObject slotValue = continuation.argOrLocalOrStackAt(i);

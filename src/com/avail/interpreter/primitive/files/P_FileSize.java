@@ -89,7 +89,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		final FileHandle handle = pojo.javaObjectNotNull();
 		final long fileSize;
 		try
 		{

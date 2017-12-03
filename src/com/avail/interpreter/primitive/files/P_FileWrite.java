@@ -127,7 +127,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		final FileHandle handle = pojo.javaObjectNotNull();
 		if (!handle.canWrite)
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);

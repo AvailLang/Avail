@@ -37,7 +37,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -269,7 +268,7 @@ extends ParseNodeDescriptor
 			{
 				declarationNode.initializationExpression()
 					.emitValueOn(codeGenerator);
-				codeGenerator.emitSetLocalOrOuter(declarationNode);
+				codeGenerator.emitSetLocalFrameSlot(declarationNode);
 			}
 
 			@Override
@@ -277,7 +276,7 @@ extends ParseNodeDescriptor
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitGetLocalOrOuter(declarationNode);
+				codeGenerator.emitPushLocalOrOuter(declarationNode);
 			}
 
 			@Override
@@ -376,7 +375,7 @@ extends ParseNodeDescriptor
 		 */
 		PRIMITIVE_FAILURE_REASON(
 			"primitive failure reason",
-			false,
+			true,
 			false,
 			ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE)
 		{
@@ -424,8 +423,7 @@ extends ParseNodeDescriptor
 		private final A_String kindName;
 
 		/**
-		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
-		 * when constructing the enumeration values.
+		 * Construct one of the enumeration values.
 		 *
 		 * @param nativeKindName
 		 *        A Java {@link String} describing this kind of declaration.
@@ -459,7 +457,7 @@ extends ParseNodeDescriptor
 		 * Answer the previously stashed copy of the array of all {@link
 		 * DeclarationKind} enum values.
 		 *
-		 * @return The array of {@link DeclarationKind} values.  Do not modify
+		 * @return The array of {@code DeclarationKind} values.  Do not modify
 		 *         the array.
 		 */
 		public static DeclarationKind[] all ()
@@ -639,7 +637,7 @@ extends ParseNodeDescriptor
 	 * Getter for field declaredType.
 	 */
 	@Override @AvailMethod
-	AvailObject o_DeclaredType (
+	A_Type o_DeclaredType (
 		final AvailObject object)
 	{
 		return object.slot(DECLARED_TYPE);
@@ -760,12 +758,12 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
 		final AvailObject expression = object.initializationExpression();
 		if (!expression.equalsNil())
 		{
-			aBlock.value(expression);
+			action.value(expression);
 		}
 	}
 
@@ -841,8 +839,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a {@linkplain DeclarationNodeDescriptor declaration node} of
-	 * some {@linkplain DeclarationKind kind}.
+	 * Construct a declaration node of some {@linkplain DeclarationKind kind}.
 	 *
 	 * @param declarationKind
 	 *        The {@linkplain DeclarationKind kind} of {@linkplain
@@ -863,7 +860,7 @@ extends ParseNodeDescriptor
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
 	 *        being defined, or {@linkplain NilDescriptor#nil nil} if none.
-	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
+	 * @return The new declaration node.
 	 */
 	public static A_Phrase newDeclaration (
 		final DeclarationKind declarationKind,
@@ -895,8 +892,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * block or method {@linkplain DeclarationKind#ARGUMENT argument}.
+	 * Construct a new declaration of a block or method {@linkplain
+	 * DeclarationKind#ARGUMENT argument}.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -924,15 +921,15 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#LOCAL_VARIABLE local variable}.
+	 * Construct a new declaration of a {@linkplain
+	 * DeclarationKind#LOCAL_VARIABLE local variable}.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the local variable being declared.
 	 * @param declaredType
-	 *        The {@linkplain TypeDescriptor type} of the local variable being
-	 *        declared.
+	 *        The inner {@linkplain TypeDescriptor type} of the local variable
+	 *        being declared.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
@@ -959,8 +956,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#LOCAL_CONSTANT local constant}.
+	 * Construct a new declaration of a {@linkplain
+	 * DeclarationKind#LOCAL_CONSTANT local constant}.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -984,10 +981,10 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#PRIMITIVE_FAILURE_REASON primitive failure
-	 * variable}.  This is set up automatically when a primitive fails, and the
-	 * statements of the block should not be allowed to write to it.
+	 * Construct a new declaration of a {@linkplain
+	 * DeclarationKind#PRIMITIVE_FAILURE_REASON primitive failure variable}.
+	 * This is set up automatically when a primitive fails, and the statements
+	 * of the block should not be allowed to write to it.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -1016,8 +1013,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#LABEL label}.
+	 * Construct a new declaration of a {@linkplain DeclarationKind#LABEL
+	 * label}.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -1051,9 +1048,9 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#MODULE_VARIABLE module variable} with or
-	 * without an initialization expression.
+	 * Construct a new declaration of a {@linkplain
+	 * DeclarationKind#MODULE_VARIABLE module variable} with or without an
+	 * initialization expression.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -1086,8 +1083,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#MODULE_CONSTANT module constant}.
+	 * Construct a new declaration of a {@linkplain
+	 * DeclarationKind#MODULE_CONSTANT module constant}.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -1114,7 +1111,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link DeclarationNodeDescriptor}.
+	 * Construct a new {@code DeclarationNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

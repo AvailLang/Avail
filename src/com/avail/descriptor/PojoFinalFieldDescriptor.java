@@ -188,7 +188,7 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if (!Modifier.isStatic(field.getModifiers()))
 		{
 			builder.append('(');
@@ -276,7 +276,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoFinalFieldDescriptor variable} that can read
+	 * Create a {@code PojoFinalFieldDescriptor variable} that can read
 	 * through to the specified {@linkplain Field field} values of the specified
 	 * {@linkplain TypeDescriptor type}.
 	 *
@@ -295,7 +295,7 @@ extends Descriptor
 		final AvailObject receiver,
 		final A_Type innerType)
 	{
-		final Field javaField = (Field) field.javaObjectNotNull();
+		final Field javaField = field.javaObjectNotNull();
 		assert Modifier.isFinal(javaField.getModifiers());
 		final @Nullable Object javaReceiver = receiver.javaObject();
 		final AvailObject value;

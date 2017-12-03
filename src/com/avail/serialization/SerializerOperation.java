@@ -1059,6 +1059,7 @@ public enum SerializerOperation
 		UNCOMPRESSED_NYBBLE_TUPLE.as("Level one nybblecodes"),
 		TUPLE_OF_OBJECTS.as("Regular literals"),
 		TUPLE_OF_OBJECTS.as("Local types"),
+		TUPLE_OF_OBJECTS.as("Constant types"),
 		TUPLE_OF_OBJECTS.as("Outer types"),
 		OBJECT_REFERENCE.as("Module name"),
 		UNSIGNED_INT.as("Line number"),
@@ -1071,13 +1072,16 @@ public enum SerializerOperation
 			final Serializer serializer)
 		{
 			final int numLocals = object.numLocals();
+			final int numConstants = object.numConstants();
 			final int numOuters = object.numOuters();
 			final int numRegularLiterals =
-				object.numLiterals() - numLocals - numOuters;
+				object.numLiterals() - numConstants - numLocals - numOuters;
 			final A_Tuple regularLiterals = generateObjectTupleFrom(
 				numRegularLiterals, object::literalAt);
 			final A_Tuple localTypes = generateObjectTupleFrom(
 				numLocals, object::localTypeAt);
+			final A_Tuple constantTypes = generateObjectTupleFrom(
+				numConstants, object::constantTypeAt);
 			final A_Tuple outerTypes = generateObjectTupleFrom(
 				numOuters, object::outerTypeAt);
 			final A_Module module = object.module();
@@ -1095,12 +1099,13 @@ public enum SerializerOperation
 				primName = stringFrom(primitive.name());
 			}
 			return array(
-				fromInt(object.numArgsAndLocalsAndStack()),
+				fromInt(object.numSlots()),
 				primName,
 				object.functionType(),
 				object.nybbles(),
 				regularLiterals,
 				localTypes,
+				constantTypes,
 				outerTypes,
 				moduleName,
 				fromInt(object.startingLineNumber()),
@@ -1112,33 +1117,36 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final int numArgsAndLocalsAndStack = subobjects[0].extractInt();
+			final int numSlots = subobjects[0].extractInt();
 			final A_String primitive = subobjects[1];
 			final A_Type functionType = subobjects[2];
 			final A_Tuple nybbles = subobjects[3];
 			final A_Tuple regularLiterals = subobjects[4];
 			final A_Tuple localTypes = subobjects[5];
-			final A_Tuple outerTypes = subobjects[6];
-			final A_String moduleName = subobjects[7];
-			final A_Number lineNumberInteger = subobjects[8];
-			final A_Phrase originatingPhrase = subobjects[9];
+			final A_Tuple constantTypes = subobjects[6];
+			final A_Tuple outerTypes = subobjects[7];
+			final A_String moduleName = subobjects[8];
+			final A_Number lineNumberInteger = subobjects[9];
+			final A_Phrase originatingPhrase = subobjects[10];
 
 			final A_Type numArgsRange =
 				functionType.argsTupleType().sizeRange();
 			final int numArgs = numArgsRange.lowerBound().extractInt();
+			assert numArgsRange.upperBound().extractInt() == numArgs;
 			final int numLocals = localTypes.tupleSize();
+			final int numConstants = constantTypes.tupleSize();
 
 			final A_Module module = moduleName.tupleSize() == 0
 				? nil
 				: deserializer.moduleNamed(moduleName);
 			return newCompiledCode(
 				nybbles,
-				localTypes.tupleSize(),
-				numArgsAndLocalsAndStack - numLocals - numArgs,
+				numSlots - numConstants - numLocals - numArgs,
 				functionType,
 				primitiveByName(primitive.asNativeString()),
 				regularLiterals,
 				localTypes,
+				constantTypes,
 				outerTypes,
 				module,
 				lineNumberInteger.extractInt(),
@@ -1515,7 +1523,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			final int frameSlotCount = object.numArgsAndLocalsAndStack();
+			final int frameSlotCount = object.numSlots();
 			final List<AvailObject> frameSlotsList =
 				new ArrayList<>(frameSlotCount);
 			for (int i = 1; i <= frameSlotCount; i++)
@@ -2771,10 +2779,8 @@ public enum SerializerOperation
 			assert object.isPojoType();
 			assert !object.isPojoFusedType();
 			final AvailObject rawPojoType = object.javaClass();
-			final Class<?> baseClass =
-				(Class<?>)rawPojoType.javaObjectNotNull();
-			final A_String className =
-				stringFrom(baseClass.getName());
+			final Class<?> baseClass = rawPojoType.javaObjectNotNull();
+			final A_String className = stringFrom(baseClass.getName());
 			final A_Map ancestorMap = object.javaAncestors();
 			final A_Tuple myParameters = ancestorMap.mapAt(rawPojoType);
 			final List<A_BasicObject> processedParameters =
@@ -2857,10 +2863,8 @@ public enum SerializerOperation
 			for (final Entry entry
 				: object.javaAncestors().mapIterable())
 			{
-				final Class<?> baseClass =
-					(Class<?>)entry.key().javaObjectNotNull();
-				final A_String className =
-					stringFrom(baseClass.getName());
+				final Class<?> baseClass = entry.key().javaObjectNotNull();
+				final A_String className = stringFrom(baseClass.getName());
 				final List<A_BasicObject> processedParameters =
 					new ArrayList<>(entry.value().tupleSize());
 				for (final AvailObject parameter : entry.value())
@@ -2877,9 +2881,7 @@ public enum SerializerOperation
 					}
 				}
 				symbolicMap = symbolicMap.mapAtPuttingCanDestroy(
-					className,
-					tupleFromList(processedParameters),
-					true);
+					className, tupleFromList(processedParameters), true);
 			}
 			return array(symbolicMap);
 		}

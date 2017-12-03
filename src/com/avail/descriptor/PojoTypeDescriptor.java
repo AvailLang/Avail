@@ -122,10 +122,10 @@ extends TypeDescriptor
 		private static final long serialVersionUID = -5682929623799845184L;
 
 		/**
-		 * Construct a new {@link Canon} that has initial capacity for five
+		 * Construct a new {@code Canon} that has initial capacity for five
 		 * bindings and includes a binding for {@link Object java.lang.Object}.
 		 */
-		public Canon ()
+		Canon ()
 		{
 			super(5);
 			put(Object.class, rawObjectClass());
@@ -164,13 +164,13 @@ extends TypeDescriptor
 		private static final long serialVersionUID = -6642629479723500110L;
 
 		/**
-		 * Construct a new {@link TypeVariableMap} for the specified {@linkplain
+		 * Construct a new {@code TypeVariableMap} for the specified {@linkplain
 		 * Class Java class or interface}.
 		 *
 		 * @param javaClass
 		 *        A Java class or interface.
 		 */
-		public TypeVariableMap (final Class<?> javaClass)
+		TypeVariableMap (final Class<?> javaClass)
 		{
 			super(2);
 			final TypeVariable<?>[] vars = javaClass.getTypeParameters();
@@ -213,14 +213,14 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Construct a new {@link LRUCacheKey}.
+		 * Construct a new {@code LRUCacheKey}.
 		 *
 		 * @param javaClass
 		 *        The {@linkplain Class Java class or interface}.
 		 * @param typeArgs
 		 *        The type arguments.
 		 */
-		public LRUCacheKey (
+		LRUCacheKey (
 			final Class<?> javaClass,
 			final A_Tuple typeArgs)
 		{
@@ -230,8 +230,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the most general {@linkplain PojoTypeDescriptor pojo
-	 * type}.
+	 * Answer the most general pojo type.
 	 *
 	 * @return The most general pojo type.
 	 */
@@ -241,8 +240,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array
-	 * type}.
+	 * Answer the most general pojo array type.
 	 *
 	 * @return The most general pojo array type.
 	 */
@@ -357,24 +355,6 @@ extends TypeDescriptor
 	public static A_Type longRange ()
 	{
 		return longRange;
-	}
-
-	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code char}.
-	 */
-	private static final A_Type charRange =
-		inclusive(Character.MIN_VALUE, Character.MAX_VALUE).makeShared();
-
-	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 * that corresponds to Java {@code char}.
-	 *
-	 * @return {@code [0..65535]}.
-	 */
-	public static A_Type charRange ()
-	{
-		return charRange;
 	}
 
 	/**
@@ -739,12 +719,10 @@ extends TypeDescriptor
 		}
 		for (final AvailObject ancestor : ancestry)
 		{
-			final Class<?> possibleAncestor =
-				(Class<?>) ancestor.javaObjectNotNull();
+			final Class<?> possibleAncestor = ancestor.javaObjectNotNull();
 			for (final A_BasicObject child : ancestry)
 			{
-				final Class<?> possibleChild =
-					(Class<?>) child.javaObjectNotNull();
+				final Class<?> possibleChild = child.javaObjectNotNull();
 				if (possibleAncestor != possibleChild
 					&& possibleAncestor.isAssignableFrom(possibleChild))
 				{
@@ -775,7 +753,7 @@ extends TypeDescriptor
 		Class<?> mostSpecific = Object.class;
 		for (final AvailObject rawType : ancestry)
 		{
-			final Class<?> javaClass = (Class<?>) rawType.javaObjectNotNull();
+			final Class<?> javaClass = rawType.javaObjectNotNull();
 			if (mostSpecific.isAssignableFrom(javaClass))
 			{
 				mostSpecific = javaClass;
@@ -789,8 +767,7 @@ extends TypeDescriptor
 		{
 			for (final A_BasicObject rawType : ancestry)
 			{
-				final Class<?> javaClass =
-					(Class<?>) rawType.javaObjectNotNull();
+				final Class<?> javaClass = rawType.javaObjectNotNull();
 				if (!javaClass.isAssignableFrom(mostSpecific))
 				{
 					return nil;

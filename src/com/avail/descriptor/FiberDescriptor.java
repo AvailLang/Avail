@@ -873,9 +873,7 @@ extends Descriptor
 		{
 			// Compute it from the generator.
 			final AvailObject pojo = object.mutableSlot(NAME_GENERATOR);
-			@SuppressWarnings("unchecked")
-			final Generator<A_String> generator =
-				(Generator<A_String>) pojo.javaObjectNotNull();
+			final Generator<A_String> generator = pojo.javaObjectNotNull();
 			name = generator.value();
 			// Save it for next time.
 			object.setMutableSlot(NAME_OR_NIL, name);
@@ -951,7 +949,7 @@ extends Descriptor
 		final AvailObject pojo = object.mutableSlot(LOADER);
 		if (!pojo.equalsNil())
 		{
-			return (AvailLoader) pojo.javaObject();
+			return pojo.javaObject();
 		}
 		return null;
 	}
@@ -980,7 +978,6 @@ extends Descriptor
 					// Do nothing.
 				});
 
-	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	Continuation1NotNull<AvailObject> o_ResultContinuation (
 		final AvailObject object)
@@ -993,7 +990,7 @@ extends Descriptor
 			object.setSlot(RESULT_CONTINUATION, nil);
 			object.setSlot(FAILURE_CONTINUATION, nil);
 		}
-		return (Continuation1NotNull<AvailObject>) pojo.javaObjectNotNull();
+		return pojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -1005,9 +1002,7 @@ extends Descriptor
 		{
 			final AvailObject oldPojo = object.slot(RESULT_CONTINUATION);
 			assert oldPojo == defaultResultContinuation;
-			object.setSlot(
-				RESULT_CONTINUATION,
-				identityPojo(continuation));
+			object.setSlot(RESULT_CONTINUATION, identityPojo(continuation));
 		}
 	}
 
@@ -1019,11 +1014,9 @@ extends Descriptor
 	private static final A_BasicObject defaultFailureContinuation =
 		identityPojo((Continuation1NotNull<Throwable>) throwable ->
 		{
-			// Do nothing; errors in fibers should be handled by Avail
-			// code.
+			// Do nothing; errors in fibers should be handled by Avail code.
 		});
 
-	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	Continuation1NotNull<Throwable> o_FailureContinuation (
 		final AvailObject object)
@@ -1036,7 +1029,7 @@ extends Descriptor
 			object.setSlot(FAILURE_CONTINUATION, nil);
 			object.setSlot(RESULT_CONTINUATION, nil);
 		}
-		return (Continuation1NotNull<Throwable>) pojo.javaObjectNotNull();
+		return pojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -1072,27 +1065,24 @@ extends Descriptor
 		final AvailObject pojo = object.mutableSlot(WAKEUP_TASK);
 		if (!pojo.equalsNil())
 		{
-			return (TimerTask) pojo.javaObject();
+			return pojo.javaObject();
 		}
 		return null;
 	}
 
 	@Override @AvailMethod
-	void o_WakeupTask (final AvailObject object, final @Nullable TimerTask task)
+	void o_WakeupTask (
+		final AvailObject object,
+		final @Nullable TimerTask task)
 	{
 		object.setMutableSlot(
-			WAKEUP_TASK,
-			task == null
-				? nil
-				: identityPojo(task));
+			WAKEUP_TASK, task == null ? nil : identityPojo(task));
 	}
 
 	@Override
 	TextInterface o_TextInterface (final AvailObject object)
 	{
-		return
-			(TextInterface)
-				object.mutableSlot(TEXT_INTERFACE).javaObjectNotNull();
+		return object.mutableSlot(TEXT_INTERFACE).javaObjectNotNull();
 	}
 
 	@Override
@@ -1113,9 +1103,8 @@ extends Descriptor
 		assert object.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) == 1
 			^ object.mutableSlot(_TRACE_VARIABLE_WRITES) == 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
+			rawPojo.javaObjectNotNull();
 		if (!map.containsKey(var))
 		{
 			map.put(var, wasRead);
@@ -1127,9 +1116,8 @@ extends Descriptor
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
+			rawPojo.javaObjectNotNull();
 		A_Set set = emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
@@ -1147,9 +1135,8 @@ extends Descriptor
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
+			rawPojo.javaObjectNotNull();
 		A_Set set = emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
@@ -1314,8 +1301,7 @@ extends Descriptor
 	@Override
 	StringBuilder o_DebugLog (final AvailObject object)
 	{
-		final AvailObject pojo = object.mutableSlot(DEBUG_LOG);
-		return (StringBuilder) pojo.javaObjectNotNull();
+		return object.mutableSlot(DEBUG_LOG).javaObjectNotNull();
 	}
 
 	/**
@@ -1383,8 +1369,7 @@ extends Descriptor
 		final A_Map fiberGlobals = fiber.fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			CLIENT_DATA_GLOBAL_KEY.atom);
-		final A_Map bindings = clientData.mapAt(
-			COMPILER_SCOPE_MAP_KEY.atom);
+		final A_Map bindings = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
 		if (bindings.hasKey(name))
 		{
 			return bindings.mapAt(name);

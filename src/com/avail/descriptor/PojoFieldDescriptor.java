@@ -39,6 +39,7 @@ import com.avail.exceptions.MarshalingException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.utility.json.JSONWriter;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
@@ -90,9 +91,9 @@ extends Descriptor
 	void o_ClearValue (final AvailObject object)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		final Class<?> fieldType = field.getType();
-		final Object defaultValue;
+		final @Nullable Object defaultValue;
 		// Sadly Java does not offer reflective access to the default values of
 		// its primitive types ...
 		if (fieldType.isPrimitive())
@@ -103,20 +104,19 @@ extends Descriptor
 			}
 			else if (fieldType.equals(Float.TYPE))
 			{
-				defaultValue = Float.valueOf(0.0f);
+				defaultValue = 0.0f;
 			}
 			else if (fieldType.equals(Double.TYPE))
 			{
-				defaultValue = Double.valueOf(0.0d);
+				defaultValue = 0.0d;
 			}
 			else if (fieldType.equals(Character.TYPE))
 			{
-				defaultValue = Character.valueOf((char) 0);
+				defaultValue = (char) 0;
 			}
 			else
 			{
-				defaultValue =
-					zero().marshalToJava(fieldType);
+				defaultValue = zero().marshalToJava(fieldType);
 			}
 		}
 		// Reference types have a default value of null.
@@ -160,7 +160,7 @@ extends Descriptor
 		throws VariableGetException
 	{
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
@@ -194,7 +194,7 @@ extends Descriptor
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
 		{
@@ -218,7 +218,7 @@ extends Descriptor
 	{
 		// Actually check this write anyhow. Just in case.
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
 		{
@@ -239,7 +239,7 @@ extends Descriptor
 	AvailObject o_Value (final AvailObject object)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
@@ -287,7 +287,7 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
+		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if (!Modifier.isStatic(field.getModifiers()))
 		{
 			builder.append('(');
@@ -297,12 +297,11 @@ extends Descriptor
 		}
 		builder.append(field);
 		builder.append(" = ");
-		object.value().printOnAvoidingIndent(
-			builder, recursionMap, indent + 1);
+		object.value().printOnAvoidingIndent(builder, recursionMap, indent + 1);
 	}
 
 	/**
-	 * Construct a new {@link PojoFieldDescriptor}.
+	 * Construct a new {@code PojoFieldDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -343,7 +342,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoFieldDescriptor variable} that reads/writes
+	 * Create a {@code PojoFieldDescriptor variable} that reads/writes
 	 * through to the specified {@linkplain Field field} and has the specified
 	 * {@linkplain VariableTypeDescriptor variable type}.
 	 *
@@ -369,7 +368,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoFieldDescriptor variable} that can read/write
+	 * Create a {@code PojoFieldDescriptor variable} that can read/write
 	 * through to the specified {@linkplain Field field} values of the specified
 	 * {@linkplain TypeDescriptor type}.
 	 *
@@ -388,7 +387,7 @@ extends Descriptor
 		final AvailObject receiver,
 		final A_Type innerType)
 	{
-		final Field javaField = (Field) field.javaObjectNotNull();
+		final Field javaField = field.javaObjectNotNull();
 		if (Modifier.isFinal(javaField.getModifiers()))
 		{
 			return pojoFinalFieldForInnerType(field, receiver, innerType);

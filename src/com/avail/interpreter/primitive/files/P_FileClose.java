@@ -85,7 +85,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		final FileHandle handle = pojo.javaObjectNotNull();
 		try
 		{
 			handle.channel.close();

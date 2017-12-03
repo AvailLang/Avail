@@ -69,7 +69,7 @@ extends DefaultMutableTreeNode
 	}
 
 	/**
-	 * Construct a new {@link AbstractBuilderFrameTreeNode} on behalf of the
+	 * Construct a new {@code AbstractBuilderFrameTreeNode} on behalf of the
 	 * given {@link AvailBuilder}.
 	 *
 	 * @param builder The builder for which this node is being built.
@@ -127,6 +127,7 @@ extends DefaultMutableTreeNode
 				{
 					assert key != null;
 					final String iconResourceName = key.first();
+					@SuppressWarnings("StringConcatenationMissingWhitespace")
 					final String path = AvailWorkbench.resourcePrefix
 						+ iconResourceName + ".png";
 					final Class<?> thisClass = this.getClass();
@@ -190,7 +191,7 @@ extends DefaultMutableTreeNode
 		return text(false).equals(string);
 	}
 
-	private final static Comparator<AbstractBuilderFrameTreeNode> sorter =
+	private static final Comparator<AbstractBuilderFrameTreeNode> sorter =
 		Comparator.comparing(AbstractBuilderFrameTreeNode::sortMajor)
 			.thenComparing(node -> node.text(false));
 
@@ -200,9 +201,9 @@ extends DefaultMutableTreeNode
 	 */
 	public void sortChildren ()
 	{
-		//noinspection unchecked
 		if (children != null)
 		{
+			//noinspection unchecked
 			children.sort(sorter);
 		}
 	}

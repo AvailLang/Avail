@@ -183,7 +183,7 @@ extends Descriptor
 	Statistic o_DynamicLookupStatistic (final AvailObject object)
 	{
 		final A_BasicObject pojo = object.slot(DYNAMIC_LOOKUP_STATS_POJO);
-		return (Statistic)pojo.javaObjectNotNull();
+		return pojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -227,7 +227,7 @@ extends Descriptor
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		final MessageSplitter messageSplitter =
-			(MessageSplitter) splitterPojo.javaObjectNotNull();
+			splitterPojo.javaObjectNotNull();
 		return messageSplitter.messageParts();
 	}
 
@@ -235,7 +235,7 @@ extends Descriptor
 	MessageSplitter o_MessageSplitter(final AvailObject object)
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
-		return (MessageSplitter)splitterPojo.javaObjectNotNull();
+		return splitterPojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod

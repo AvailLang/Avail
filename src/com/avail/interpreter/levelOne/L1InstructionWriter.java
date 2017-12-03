@@ -50,6 +50,7 @@ import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -105,7 +106,7 @@ public class L1InstructionWriter
 	/**
 	 * Set the array of types of the arguments.
 	 *
-	 * @param argTypes
+	 * @param argTypes The vararg array of argument types.
 	 */
 	public void argumentTypes (final A_Type... argTypes)
 	{
@@ -147,11 +148,11 @@ public class L1InstructionWriter
 	 * Set the return type that the {@linkplain FunctionDescriptor} under
 	 * construction will produce.
 	 *
-	 * @param retType
+	 * @param theReturnType The return type of the function.
 	 */
-	public void returnType (final A_Type retType)
+	public void returnType (final A_Type theReturnType)
 	{
-		this.returnType = retType;
+		this.returnType = theReturnType;
 	}
 
 	/**
@@ -162,16 +163,14 @@ public class L1InstructionWriter
 	 */
 	private A_Type returnType ()
 	{
-		final A_Type type = returnType;
-		assert type != null;
-		return type;
+		return stripNull(returnType);
 	}
 
-	/**
-	 * The types of the local variables, including the arguments which must
-	 * occur first.
-	 */
+	/** The types of the local variables. */
 	private final List<A_Type> localTypes = new ArrayList<>();
+
+	/** The types of the local constants. */
+	private final List<A_Type> constantTypes = new ArrayList<>();
 
 	/**
 	 * Declare a local variable with the specified type.  Answer its index.  The
@@ -393,12 +392,12 @@ public class L1InstructionWriter
 		: "Fallible primitive needs a primitive failure variable";
 		return newCompiledCode(
 			nybbles(),
-			localTypes.size(),
 			stackTracker.maxDepth(),
 			functionType(tupleFromList(argumentTypes), returnType()),
 			primitive,
 			tupleFromList(literals),
 			tupleFromList(localTypes),
+			tupleFromList(constantTypes),
 			tupleFromList(outerTypes),
 			module,
 			startingLineNumber,

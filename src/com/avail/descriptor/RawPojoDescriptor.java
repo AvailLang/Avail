@@ -119,9 +119,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final @Nullable Object o_JavaObject (final AvailObject object)
+	final @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
-		return javaObject;
+		//noinspection unchecked
+		return (T) javaObject;
 	}
 
 	@Override @AvailMethod

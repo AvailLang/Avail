@@ -100,8 +100,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousSocketChannel socket = pojo.javaObjectNotNull();
 		// Build the big-endian address byte array.
 		final byte[] addressBytes = new byte[4];
 		for (int i = 0; i < addressBytes.length; i++)

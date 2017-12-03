@@ -1866,11 +1866,8 @@ public final class AvailCompiler
 				// successor bundle tree.  This implements aggregated argument
 				// type filtering.
 				final A_Phrase latestPhrase = last(argsSoFar);
-				@SuppressWarnings("unchecked")
 				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree>
-					typeFilterTree =
-					(LookupTree<A_Tuple, A_BundleTree, A_BundleTree>)
-						typeFilterTreePojo.javaObjectNotNull();
+					typeFilterTree = typeFilterTreePojo.javaObjectNotNull();
 				final long timeBefore = AvailRuntime.captureNanos();
 				final A_BundleTree successor =
 					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(

@@ -89,8 +89,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
-		final AvailObject pojo =
-			handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
+		final AvailObject pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -98,8 +97,7 @@ extends Primitive
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}
-		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousServerSocketChannel socket = pojo.javaObjectNotNull();
 		final InetSocketAddress peer;
 		try
 		{

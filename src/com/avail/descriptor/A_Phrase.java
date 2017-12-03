@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 
@@ -77,9 +76,9 @@ extends A_BasicObject
 	A_Bundle bundle ();
 
 	/**
-	 * @param aBlock
+	 * @param action
 	 */
-	void childrenDo (Continuation1<A_Phrase> aBlock);
+	void childrenDo (Continuation1NotNull<A_Phrase> action);
 
 	/**
 	 * @param aBlock
@@ -114,7 +113,7 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	AvailObject declaredType ();
+	A_Type declaredType ();
 
 	/**
 	 * Emit code to push each value produced by the expressions of a {@linkplain

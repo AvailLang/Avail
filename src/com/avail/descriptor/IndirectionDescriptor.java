@@ -69,7 +69,6 @@ import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -2516,9 +2515,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_NumArgsAndLocalsAndStack (final AvailObject object)
+	int o_NumSlots (final AvailObject object)
 	{
-		return o_Traversed(object).numArgsAndLocalsAndStack();
+		return o_Traversed(object).numSlots();
 	}
 
 	@Override
@@ -2788,7 +2787,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DeclaredType (final AvailObject object)
+	A_Type o_DeclaredType (final AvailObject object)
 	{
 		return o_Traversed(object).declaredType();
 	}
@@ -2887,9 +2886,9 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		o_Traversed(object).childrenDo(aBlock);
+		o_Traversed(object).childrenDo(action);
 	}
 
 	@Override
@@ -3704,7 +3703,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	@Nullable Object o_JavaObject (final AvailObject object)
+	@Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return o_Traversed(object).javaObject();
 	}
@@ -5126,5 +5125,17 @@ extends AbstractDescriptor
 	StringBuilder o_DebugLog (final AvailObject object)
 	{
 		return o_Traversed(object).debugLog();
+	}
+
+	@Override
+	int o_NumConstants (final AvailObject object)
+	{
+		return o_Traversed(object).numConstants();
+	}
+
+	@Override
+	A_Type o_ConstantTypeAt (final AvailObject object, final int index)
+	{
+		return o_Traversed(object).constantTypeAt(index);
 	}
 }

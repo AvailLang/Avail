@@ -94,7 +94,7 @@ public class AvailGetLocalVariable extends AvailGetVariable
 	 * wrapped in a variable).
 	 */
 	@Override
-	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
+	public void fixUsageFlags (
 		final List<AvailVariableAccessNote> localData,
 		final List<AvailVariableAccessNote> outerData,
 		final AvailCodeGenerator codeGenerator)

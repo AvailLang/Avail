@@ -100,8 +100,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousServerSocketChannel socket = pojo.javaObjectNotNull();
 		try
 		{
 			for (final Entry entry : options.mapIterable())

@@ -41,8 +41,7 @@ import java.io.ByteArrayOutputStream;
  * nybblecode stream} as an opcode followed by operands.  Opcodes less than 16
  * are encoded as a single nybble, and the others are represented as the
  * {@linkplain #L1_doExtension extension} nybble followed by the opcode minus
- * 16.  The {@linkplain #L1Implied_Return return} instruction does not actually
- * occur, and is implied immediately after the end of a stream of nybblecodes.
+ * 16.
  *
  * <p>The operands are encoded in such a way that very small values occupy a
  * single nybble, but values up to {@link Integer#MAX_VALUE} are supported
@@ -70,7 +69,7 @@ public enum L1Operation
 	L1_doCall(0, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doCall();
 		}
@@ -82,7 +81,7 @@ public enum L1Operation
 	L1_doPushLiteral(1, L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLiteral();
 		}
@@ -107,7 +106,7 @@ public enum L1Operation
 	L1_doPushLastLocal(2, L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLastLocal();
 		}
@@ -121,7 +120,7 @@ public enum L1Operation
 	L1_doPushLocal(3, L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLocal();
 		}
@@ -135,7 +134,7 @@ public enum L1Operation
 	L1_doPushLastOuter(4, L1OperandType.OUTER)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLastOuter();
 		}
@@ -149,7 +148,7 @@ public enum L1Operation
 	L1_doClose(5, L1OperandType.IMMEDIATE, L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doClose();
 		}
@@ -162,7 +161,7 @@ public enum L1Operation
 	L1_doSetLocal(6, L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doSetLocal();
 		}
@@ -176,7 +175,7 @@ public enum L1Operation
 	L1_doGetLocalClearing(7, L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetLocalClearing();
 		}
@@ -189,7 +188,7 @@ public enum L1Operation
 	L1_doPushOuter(8, L1OperandType.OUTER)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushOuter();
 		}
@@ -201,7 +200,7 @@ public enum L1Operation
 	L1_doPop(9)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPop();
 		}
@@ -215,7 +214,7 @@ public enum L1Operation
 	L1_doGetOuterClearing(10, L1OperandType.OUTER)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetOuterClearing();
 		}
@@ -228,7 +227,7 @@ public enum L1Operation
 	L1_doSetOuter(11, L1OperandType.OUTER)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doSetOuter();
 		}
@@ -241,7 +240,7 @@ public enum L1Operation
 	L1_doGetLocal(12, L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetLocal();
 		}
@@ -254,7 +253,7 @@ public enum L1Operation
 	L1_doMakeTuple(13, L1OperandType.IMMEDIATE)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doMakeTuple();
 		}
@@ -267,7 +266,7 @@ public enum L1Operation
 	L1_doGetOuter(14, L1OperandType.OUTER)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetOuter();
 		}
@@ -280,7 +279,7 @@ public enum L1Operation
 	L1_doExtension(15, L1OperandType.EXTENSION)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doExtension();
 		}
@@ -293,7 +292,7 @@ public enum L1Operation
 	L1Ext_doPushLabel(16)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doPushLabel();
 		}
@@ -306,7 +305,7 @@ public enum L1Operation
 	L1Ext_doGetLiteral(17, L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doGetLiteral();
 		}
@@ -319,7 +318,7 @@ public enum L1Operation
 	L1Ext_doSetLiteral(18, L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doSetLiteral();
 		}
@@ -404,41 +403,24 @@ public enum L1Operation
 		L1OperandType.LITERAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doSuperCall();
 		}
 	},
 
 	/**
-	 * An unsupported instruction was encountered.
+	 * Pop the stack, writing the value directly to the current continuation in
+	 * the indicated local slot.
 	 */
-	L1Ext_doReserved(22)
+	L1Ext_doSetLocalSlot(
+		22,
+		L1OperandType.LOCAL)
 	{
 		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L1Ext_doReserved();
-		}
-	},
-
-	/**
-	 * The nybblecode stream has been exhausted, and all that's left is to
-	 * perform an implicit return to the caller.
-	 */
-	L1Implied_Return(23)
-	{
-		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L1Implied_doReturn();
-		}
-
-		@Override
-		public void writeTo (final ByteArrayOutputStream stream)
-		{
-			assert false
-			: "The implied return instruction should not be output";
+			operationDispatcher.L1Ext_doSetSlot();
 		}
 	};
 
@@ -446,9 +428,9 @@ public enum L1Operation
 	private static final L1Operation[] all = values();
 
 	/**
-	 * Answer an array of all {@link L1Operation} enumeration values.
+	 * Answer an array of all {@code L1Operation} enumeration values.
 	 *
-	 * @return An array of all {@link L1Operation} enum values.  Do not
+	 * @return An array of all {@code L1Operation} enum values.  Do not
 	 *         modify the array.
 	 */
 	public static L1Operation[] all ()
@@ -473,7 +455,7 @@ public enum L1Operation
 	}
 
 	/**
-	 * Construct a new {@link L1Operation}.  The expected {@link Enum#ordinal()
+	 * Construct a new {@code L1Operation}.  The expected {@link Enum#ordinal()
 	 * ordinal} is passed as a cross-check so that each operation's definition
 	 * shows the ordinal.  The rest of the arguments are the {@linkplain
 	 * L1OperandType operand types} that this operation expects.

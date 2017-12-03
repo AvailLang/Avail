@@ -34,7 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.utility.evaluation.Transformer1;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
@@ -72,6 +71,10 @@ import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.VariableTypeDescriptor
 	.mostGeneralVariableType;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
+import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
+import static com.avail.utility.PrefixSharingList.last;
+import static java.util.Arrays.asList;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
@@ -97,21 +100,35 @@ public class L1Decompiler
 	 * in favor of module constants and module variables.
 	 */
 	@InnerAccess
-	final List<A_Phrase> outers;
+	final A_Phrase[] outers;
 
 	/**
 	 * The {@linkplain DeclarationKind#ARGUMENT
 	 * arguments declarations} for this code.
 	 */
 	@InnerAccess
-	final List<A_Phrase> args;
+	final A_Phrase[] args;
 
 	/**
-	 * The {@linkplain DeclarationKind#
-	 * LOCAL_VARIABLE local variables} defined by this code.
+	 * The {@linkplain DeclarationKind#LOCAL_VARIABLE local variables} defined
+	 * by this code.
 	 */
 	@InnerAccess
-	final List<A_Phrase> locals;
+	final A_Phrase[] locals;
+
+	/**
+	 * Flags to indicate which local variables have been mentioned.  Upon first
+	 * mention, the corresponding local declaration should be emitted.
+	 */
+	@InnerAccess
+	final boolean[] mentionedLocals;
+
+	/**
+	 * The {@linkplain DeclarationKind#LOCAL_CONSTANT local constants} defined
+	 * by this code.
+	 */
+	@InnerAccess
+	final A_Phrase[] constants;
 
 	/**
 	 * The tuple of nybblecodes to decode.
@@ -163,58 +180,54 @@ public class L1Decompiler
 	 * @param aCodeObject
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param outerVars
-	 *        The list of outer variable declarations and literal nodes.
+	 *        The array of outer variable declarations and literal nodes.
 	 * @param tempBlock
 	 *        A {@linkplain Transformer1NotNull transformer} that takes a prefix
 	 *        and generates a suitably unique temporary variable name.
 	 */
 	public L1Decompiler (
 		final A_RawFunction aCodeObject,
-		final List<A_Phrase> outerVars,
+		final A_Phrase[] outerVars,
 		final Transformer1NotNull<String, String> tempBlock)
 	{
 		code = aCodeObject;
 		nybbles = code.nybbles();
 		outers = outerVars;
 		tempGenerator = tempBlock;
-		args = new ArrayList<>(code.numArgs());
-		locals = new ArrayList<>(code.numLocals());
+		args = new A_Phrase[code.numArgs()];
 		final A_Type tupleType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
-			final String argName = tempGenerator.value("arg");
 			final A_Token token = newToken(
-				stringFrom(argName),
+				stringFrom(tempGenerator.value("arg")),
 				emptyTuple(),
 				emptyTuple(),
 				0,
 				0,
 				KEYWORD);
-			final A_Phrase decl = newArgument(
-				token,
-				tupleType.typeAtIndex(i),
-				nil);
-			args.add(decl);
+			args[i - 1] = newArgument(token, tupleType.typeAtIndex(i), nil);
 		}
+		locals = new A_Phrase[code.numLocals()];
+		mentionedLocals = new boolean[code.numLocals()];
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
-			final String localName = tempGenerator.value("local");
 			final A_Token token = newToken(
-				stringFrom(localName),
+				stringFrom(tempGenerator.value("local")),
 				emptyTuple(),
 				emptyTuple(),
 				0,
 				0,
 				KEYWORD);
 			final A_Phrase decl = newVariable(
-				token,
-				code.localTypeAt(i).writeType(),
-				nil,
-				nil);
-			locals.add(decl);
+				token, code.localTypeAt(i).writeType(), nil, nil);
+			locals[i - 1] = decl;
+			mentionedLocals[i - 1] = false;
 		}
-		statements.addAll(locals);
-		//  Add all local declaration statements at the start.
+		constants = new A_Phrase[code.numConstants()];
+		// Don't initialize the constants – we may as well wait until we reach
+		// the initialization for each, identified by an L1Ext_doSetSlot().
+
+		final DecompilerDispatcher dispatcher = new DecompilerDispatcher();
 		pc = 1;
 		while (pc <= nybbles.tupleSize())
 		{
@@ -223,22 +236,62 @@ public class L1Decompiler
 			final L1Operation op = L1Operation.all()[nybble];
 			op.dispatch(dispatcher);
 		}
-		// Infallible primitives don't have nybblecodes... except the special
-		// ones (340-342).
+		// Infallible primitives don't have nybblecodes, except ones marked as
+		// Primitive.Flag.SpecialForm.
 		if (pc > 1)
 		{
-			dispatcher.L1Implied_doReturn();
+			assert pc == nybbles.tupleSize() + 1;
+			if (!endsWithPushNil)
+			{
+				statements.add(popExpression());
+			}
+			// Otherwise nothing was left on the expression stack.
 		}
 		assert expressionStack.size() == 0
-		: "There should be nothing on the stack after the final return";
-
+			: "There should be nothing on the stack after the final return";
+		for (final boolean b : mentionedLocals)
+		{
+			assert b : "Local constant was not mentioned";
+		}
 		block = newBlockNode(
-			args,
+			asList(args),
 			code.primitiveNumber(),
 			statements,
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),
 			0);
+	}
+
+	/**
+	 * Look up the declaration for the argument, local, or constant at the
+	 * specified one-based offset in what will be the continuation's slots.
+	 *
+	 * @param index The one-based index into the args/locals/constants.
+	 * @return The declaration.
+	 */
+	@InnerAccess A_Phrase argOrLocalOrConstant (final int index)
+	{
+		if (index <= args.length)
+		{
+			return args[index - 1];
+		}
+		if (index <= args.length + locals.length)
+		{
+			final int localSubscript = index - args.length - 1;
+			if (!mentionedLocals[localSubscript])
+			{
+				// This was the first mention of the local.  Emit its
+				// declaration as a statement.  If this was being looked up
+				// for a write, simply set the declaration's initializing
+				// expression later instead of emitting a separate
+				// assignment statement.
+				mentionedLocals[localSubscript] = true;
+				statements.add(locals[localSubscript]);
+			}
+			return locals[localSubscript];
+		}
+		final int constSubscript = index - args.length - locals.length - 1;
+		return constants[constSubscript];
 	}
 
 	/**
@@ -336,13 +389,13 @@ public class L1Decompiler
 		 * A marker standing for a duplicate of some value that was on the
 		 * stack.
 		 */
-		dup,
+		DUP,
 
 		/**
 		 * A marker indicating the value below it has been permuted, and should
 		 * be checked by a subsequent call operation;
 		 */
-		permute;
+		PERMUTE;
 
 		/**
 		 * A pre-built marker for this enumeration value.
@@ -350,13 +403,7 @@ public class L1Decompiler
 		public final A_Phrase marker = newMarkerNode(fromInt(ordinal()));
 	}
 
-	/**
-	 * The {@link L1OperationDispatcher} used by the {@linkplain L1Decompiler
-	 * decompiler} to dispatch {@link L1Operation}s. This allows {@code
-	 * L1Decompiler} to hide the implemented interface methods of {@code
-	 * L1OperationDispatcher}.
-	 */
-	private final L1OperationDispatcher dispatcher = new L1OperationDispatcher()
+	private class DecompilerDispatcher implements L1OperationDispatcher
 	{
 		@Override
 		public void L1_doCall ()
@@ -366,8 +413,7 @@ public class L1Decompiler
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
 			@Nullable A_Tuple permutationTuple = null;
-			if (nArgs > 1
-				&& peekExpression().equals(MarkerTypes.permute.marker))
+			if (nArgs > 1 && peekExpression().equals(PERMUTE.marker))
 			{
 				// We just hit a permute of the top N items of the stack.  This
 				// is due to a permutation of the top-level arguments of a call,
@@ -397,8 +443,8 @@ public class L1Decompiler
 			final AvailObject value = code.literalAt(getInteger());
 			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
-				final List<A_Phrase> functionOuters =
-					new ArrayList<>(value.numOuterVars());
+				final A_Phrase[] functionOuters =
+					new A_Phrase[value.numOuterVars()];
 				// Due to stub-building primitives, it's possible for a
 				// non-clean function to be a literal, so deal with it here.
 				for (int i = 1; i <= value.numOuterVars(); i++)
@@ -418,16 +464,11 @@ public class L1Decompiler
 							0,
 							LITERAL,
 							varObject);
-					final A_Phrase literalNode = literalNodeFromToken(token);
-					functionOuters.add(literalNode);
+					functionOuters[i - 1] = literalNodeFromToken(token);
 				}
-				final A_Phrase blockNode =
-					new L1Decompiler(
-						value.code(),
-						functionOuters,
-						tempGenerator
-					).block();
-				pushExpression(blockNode);
+				final L1Decompiler decompiler = new L1Decompiler(
+					value.code(), functionOuters, tempGenerator);
+				pushExpression(decompiler.block());
 			}
 			else
 			{
@@ -437,13 +478,13 @@ public class L1Decompiler
 					// Such a statement will be re-synthesized during code
 					// generation, so don't bother reconstructing it now.
 					assert pc > nybbles.tupleSize()
-					: "nil can only be (implicitly) pushed at the "
+						: "nil can only be (implicitly) pushed at the "
 						+ "end of a sequence of statements";
 					endsWithPushNil = true;
 				}
 				else
 				{
-					final AvailObject token =
+					final A_Token token =
 						literalToken(
 							stringFrom(value.toString()),
 							emptyTuple(),
@@ -452,8 +493,7 @@ public class L1Decompiler
 							0,
 							LITERAL,
 							value);
-					final AvailObject literalNode = literalNodeFromToken(token);
-					pushExpression(literalNode);
+					pushExpression(literalNodeFromToken(token));
 				}
 			}
 		}
@@ -461,34 +501,25 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushLastLocal ()
 		{
-			final int index = getInteger();
-			final boolean isArg = index <= code.numArgs();
-			final A_Phrase decl = isArg
-				? args.get(index - 1)
-				: locals.get(index - code.numArgs() - 1);
+			final A_Phrase decl = argOrLocalOrConstant(getInteger());
 			final A_Phrase use = newUse(decl.token(), decl);
 			use.isLastUse(true);
-			if (isArg)
+			if (decl.declarationKind().isVariable())
 			{
 				pushExpression(use);
 			}
 			else
 			{
-				final A_Phrase ref = referenceNodeFromUse(use);
-				pushExpression(ref);
+				pushExpression(referenceNodeFromUse(use));
 			}
 		}
 
 		@Override
 		public void L1_doPushLocal ()
 		{
-			final int index = getInteger();
-			final boolean isArg = index <= code.numArgs();
-			final A_Phrase decl = isArg
-				? args.get(index - 1)
-				: locals.get(index - code.numArgs() - 1);
+			final A_Phrase decl = argOrLocalOrConstant(getInteger());
 			final AvailObject use = newUse(decl.token(), decl);
-			if (isArg)
+			if (decl.declarationKind().isVariable())
 			{
 				pushExpression(use);
 			}
@@ -512,23 +543,49 @@ public class L1Decompiler
 			final List<A_Phrase> theOuters = popExpressions(nOuters);
 			for (final A_Phrase outer : theOuters)
 			{
-				assert
-					outer.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType())
-					|| outer.isInstanceOfKind(REFERENCE_NODE.mostGeneralType())
-					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
+				final ParseNodeKind kind = outer.parseNodeKind();
+				assert kind == VARIABLE_USE_NODE
+					|| kind == REFERENCE_NODE
+					|| kind == LITERAL_NODE;
 			}
-			final A_Phrase blockNode =
-				new L1Decompiler(theCode, theOuters, tempGenerator).block();
-			pushExpression(blockNode);
+			final L1Decompiler decompiler = new L1Decompiler(
+				theCode,
+				theOuters.toArray(new A_Phrase[theOuters.size()]),
+				tempGenerator);
+			pushExpression(decompiler.block());
 		}
 
 		@Override
 		public void L1_doSetLocal ()
 		{
-			final A_Phrase localDecl = locals.get(
-				getInteger() - code.numArgs() - 1);
+			final int previousStatementCount = statements.size();
+			final int indexInFrame = getInteger();
+			final A_Phrase declaration = argOrLocalOrConstant(indexInFrame);
+			assert declaration.declarationKind().isVariable();
+			if (statements.size() > previousStatementCount)
+			{
+				assert statements.size() == previousStatementCount + 1;
+				assert last(statements) == declaration;
+				// This was the first use of the variable, so it was written as
+				// a statement automatically.  Create a new variable with an
+				// initialization expression, and replace the old declaration
+				// in the locals list and the last emitted statement, which are
+				// the only places that could have a reference to the old
+				// declaration.
+				assert declaration.initializationExpression().equalsNil();
+				final A_Phrase replacementDecl = newVariable(
+					declaration.token(),
+					declaration.declaredType(),
+					declaration.typeExpression(),
+					popExpression());
+				locals[indexInFrame - code.numArgs() - 1] = replacementDecl;
+				statements.set(statements.size() - 1, replacementDecl);
+				return;
+			}
+			// This assignment wasn't the first mention of the variable.
 			final A_Phrase valueNode = popExpression();
-			final A_Phrase variableUse = newUse(localDecl.token(), localDecl);
+			final A_Phrase variableUse =
+				newUse(declaration.token(), declaration);
 			final A_Phrase assignmentNode = newAssignment(
 				variableUse, valueNode, false);
 			if (expressionStack.isEmpty()
@@ -542,7 +599,7 @@ public class L1Decompiler
 				// didn't do what we expected.  Remove the marker and replace it
 				// with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.equals(MarkerTypes.dup.marker);
+				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
 			}
 		}
@@ -556,7 +613,7 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushOuter ()
 		{
-			pushExpression(outers.get(getInteger() - 1));
+			pushExpression(outers[getInteger() - 1]);
 		}
 
 		@Override
@@ -601,7 +658,7 @@ public class L1Decompiler
 		@Override
 		public void L1_doSetOuter ()
 		{
-			final A_Phrase outerExpr = outers.get(getInteger() - 1);
+			final A_Phrase outerExpr = outers[getInteger() - 1];
 			final A_Phrase outerDecl;
 			if (outerExpr.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
 			{
@@ -611,8 +668,7 @@ public class L1Decompiler
 				final A_BasicObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
 					mostGeneralVariableType());
-				outerDecl = newModuleVariable(
-					token, variableObject, nil, nil);
+				outerDecl = newModuleVariable(token, variableObject, nil, nil);
 			}
 			else
 			{
@@ -634,7 +690,7 @@ public class L1Decompiler
 				// didn't do what we expected.  Remove that marker and replace
 				// it with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.equals(MarkerTypes.dup.marker);
+				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
 			}
 		}
@@ -642,8 +698,8 @@ public class L1Decompiler
 		@Override
 		public void L1_doGetLocal ()
 		{
-			final A_Phrase localDecl =
-				locals.get(getInteger() - code.numArgs() - 1);
+			final A_Phrase localDecl = argOrLocalOrConstant(getInteger());
+			assert localDecl.declarationKind().isVariable();
 			final AvailObject useNode = newUse(localDecl.token(), localDecl);
 			pushExpression(useNode);
 		}
@@ -653,8 +709,7 @@ public class L1Decompiler
 		{
 			final int count = getInteger();
 			@Nullable A_Tuple permutationTuple = null;
-			if (count > 1
-				&& peekExpression().equals(MarkerTypes.permute.marker))
+			if (count > 1 && peekExpression().equals(PERMUTE.marker))
 			{
 				// We just hit a permute of the top N items of the stack.  This
 				// is due to a permutation within a guillemet expression.  A
@@ -677,8 +732,7 @@ public class L1Decompiler
 		@Override
 		public void L1_doGetOuter ()
 		{
-			final int outerIndex = getInteger();
-			final A_Phrase outer = outers.get(outerIndex - 1);
+			final A_Phrase outer = outers[getInteger() - 1];
 			if (outer.parseNodeKindIsUnder(LITERAL_NODE))
 			{
 				pushExpression(outer);
@@ -722,7 +776,6 @@ public class L1Decompiler
 					continuationTypeForFunctionType(code.functionType()));
 				statements.add(0, label);
 			}
-
 			pushExpression(newUse(label.token(), label));
 		}
 
@@ -737,7 +790,6 @@ public class L1Decompiler
 				0,
 				KEYWORD);
 			final A_BasicObject globalVar = code.literalAt(getInteger());
-
 			final A_Phrase decl =
 				newModuleVariable(globalToken, globalVar, nil, nil);
 			pushExpression(newUse(globalToken, decl));
@@ -756,8 +808,7 @@ public class L1Decompiler
 			final AvailObject globalVar = code.literalAt(getInteger());
 			final A_Phrase declaration =
 				newModuleVariable(globalToken, globalVar, nil, nil);
-			final A_Phrase varUse = newUse(
-				globalToken, declaration);
+			final A_Phrase varUse = newUse(globalToken, declaration);
 			final A_Phrase assignmentNode =
 				newAssignment(varUse, popExpression(), false);
 			if (expressionStack.isEmpty())
@@ -770,13 +821,14 @@ public class L1Decompiler
 				// didn't do what we expected.  Remove that marker and replace
 				// it with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.equals(MarkerTypes.dup.marker);
+				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
 			}
 		}
 
 		/**
-		 * The presence of the {@linkplain L1Operation operation} indicates that
+		 * The presence of the {@linkplain L1Operation operation} indicates
+		 * that
 		 * an assignment is being used as a subexpression or final statement
 		 * from a non-void valued {@linkplain FunctionDescriptor block}.
 		 *
@@ -789,7 +841,7 @@ public class L1Decompiler
 		public void L1Ext_doDuplicate ()
 		{
 			final A_Phrase rightSide = popExpression();
-			pushExpression(MarkerTypes.dup.marker);
+			pushExpression(DUP.marker);
 			pushExpression(rightSide);
 		}
 
@@ -802,7 +854,7 @@ public class L1Decompiler
 			// super-call to a bundle containing permutations.
 			final A_Tuple permutation = code.literalAt(getInteger());
 			pushExpression(syntheticLiteralNodeFor(permutation));
-			pushExpression(MarkerTypes.permute.marker);
+			pushExpression(PERMUTE.marker);
 		}
 
 		@Override
@@ -822,123 +874,121 @@ public class L1Decompiler
 		}
 
 		@Override
-		public void L1Ext_doReserved ()
+		public void L1Ext_doSetSlot ()
 		{
-			error("Illegal extended nybblecode: F+"
-				+ nybbles.extractNybbleFromTupleAt(pc - 1));
+			// This instruction is only used to initialize local constants.
+			// In fact, the constant declaration isn't even created until we
+			// reach this corresponding instruction.  Also note that there is no
+			// inline-assignment form of constant declaration, so we don't need
+			// to look for a DUP marker.
+			final int constSubscript =
+				getInteger() - code.numArgs() - code.numLocals() - 1;
+			final A_Token token = newToken(
+				stringFrom(tempGenerator.value("const")),
+				emptyTuple(),
+				emptyTuple(),
+				0,
+				0,
+				KEYWORD);
+			final A_Phrase constantDecl = newConstant(token, popExpression());
+			constants[constSubscript] = constantDecl;
+			statements.add(constantDecl);
 		}
+	}
 
-		@Override
-		public void L1Implied_doReturn ()
+	/**
+	 * There are {@code nArgs} values on the stack.  Pop them all, and build
+	 * a suitable list phrase (or permuted list phrase if there was also a
+	 * permutation literal and permute marker pushed after).  The passed
+	 * superUnionType is a tuple type that says how to adjust the lookup by
+	 * first producing a type union with it and the actual arguments' types.
+	 *
+	 * @param nArgs
+	 *        The number of arguments to expect on the stack.  This is also
+	 *        the size of the resulting list phrase.
+	 * @param superUnionType
+	 *        The tuple type which will be type unioned with the runtime
+	 *        argument types prior to lookup.
+	 * @return A list phrase or permuted list phrase containing at least one
+	 *         supercast somewhere within the recursive list structure.
+	 */
+	@InnerAccess A_Phrase reconstructListWithSuperUnionType (
+		final int nArgs,
+		final A_Type superUnionType)
+	{
+		@Nullable A_Tuple permutationTuple = null;
+		if (nArgs > 1
+			&& peekExpression().equals(PERMUTE.marker))
 		{
-			assert pc == nybbles.tupleSize() + 1;
-			//noinspection StatementWithEmptyBody
-			if (endsWithPushNil)
-			{
-				// Nothing was left on the expression stack in this case.
-			}
-			else
-			{
-				statements.add(popExpression());
-			}
-			assert expressionStack.size() == 0
-			: "There should be nothing on the stack after a return";
+			// We just hit a permute of the top N items of the stack.  This
+			// is due to a permutation of the top-level arguments of a call,
+			// not an embedded guillemet expression (otherwise we would have
+			// hit an L1_doMakeTuple instead of this call).  A literal node
+			// containing the permutation to apply was pushed before the
+			// marker.
+			popExpression();
+			final A_Phrase permutationLiteral = popExpression();
+			assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+			permutationTuple = permutationLiteral.token().literal();
 		}
+		final List<A_Phrase> argsList = popExpressions(nArgs);
+		final A_Phrase listNode = newListNode(tupleFromList(argsList));
+		final A_Phrase argsNode = permutationTuple != null
+			? newPermutedListNode(listNode, permutationTuple)
+			: listNode;
+		return adjustSuperCastsIn(argsNode, superUnionType);
+	}
 
-		/**
-		 * There are {@code nArgs} values on the stack.  Pop them all, and build
-		 * a suitable list phrase (or permuted list phrase if there was also a
-		 * permutation literal and permute marker pushed after).  The passed
-		 * superUnionType is a tuple type that says how to adjust the lookup by
-		 * first producing a type union with it and the actual arguments' types.
-		 *
-		 * @param nArgs
-		 *        The number of arguments to expect on the stack.  This is also
-		 *        the size of the resulting list phrase.
-		 * @param superUnionType
-		 *        The tuple type which will be type unioned with the runtime
-		 *        argument types prior to lookup.
-		 * @return A list phrase or permuted list phrase containing at least one
-		 *         supercast somewhere within the recursive list structure.
-		 */
-		private A_Phrase reconstructListWithSuperUnionType (
-			final int nArgs,
-			final A_Type superUnionType)
+	/**
+	 * Convert some of the descendants within a {@link ListNodeDescriptor
+	 * list phrase} into {@link SuperCastNodeDescriptor supercasts}, based
+	 * on the given superUnionType.  Because the phrase is processed
+	 * recursively, some invocations will pass a non-list phrase.
+	 */
+	private static A_Phrase adjustSuperCastsIn (
+		final A_Phrase phrase,
+		final A_Type superUnionType)
+	{
+		if (superUnionType.isBottom())
 		{
-			@Nullable A_Tuple permutationTuple = null;
-			if (nArgs > 1
-				&& peekExpression().equals(MarkerTypes.permute.marker))
-			{
-				// We just hit a permute of the top N items of the stack.  This
-				// is due to a permutation of the top-level arguments of a call,
-				// not an embedded guillemet expression (otherwise we would have
-				// hit an L1_doMakeTuple instead of this call).  A literal node
-				// containing the permutation to apply was pushed before the
-				// marker.
-				popExpression();
-				final A_Phrase permutationLiteral = popExpression();
-				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
-				permutationTuple = permutationLiteral.token().literal();
-			}
-			final List<A_Phrase> argsList = popExpressions(nArgs);
-			final A_Phrase listNode = newListNode(tupleFromList(argsList));
-			final A_Phrase argsNode = permutationTuple != null
-				? newPermutedListNode(listNode, permutationTuple)
-				: listNode;
-			return adjustSuperCastsIn(argsNode, superUnionType);
+			// No supercasts in this argument.
+			return phrase;
 		}
-
-		/**
-		 * Convert some of the descendants within a {@link ListNodeDescriptor
-		 * list phrase} into {@link SuperCastNodeDescriptor supercasts}, based
-		 * on the given superUnionType.  Because the phrase is processed
-		 * recursively, some invocations will pass a non-list phrase.
-		 */
-		private A_Phrase adjustSuperCastsIn (
-			final A_Phrase phrase,
-			final A_Type superUnionType)
+		else if (phrase.parseNodeKindIsUnder(PERMUTED_LIST_NODE))
 		{
-			if (superUnionType.isBottom())
+			// Apply the superUnionType's elements to the permuted list.
+			final A_Tuple permutation = phrase.permutation();
+			final A_Phrase list = phrase.list();
+			final int size = list.expressionsSize();
+			final A_Phrase[] outputArray = new A_Phrase[size];
+			for (int i = 1; i <= size; i++)
 			{
-				// No supercasts in this argument.
-				return phrase;
+				final int index = permutation.tupleIntAt(i);
+				final A_Phrase element = list.expressionAt(index);
+				outputArray[index - 1] = adjustSuperCastsIn(
+					element, superUnionType.typeAtIndex(i));
 			}
-			else if (phrase.parseNodeKindIsUnder(PERMUTED_LIST_NODE))
-			{
-				// Apply the superUnionType's elements to the permuted list.
-				final A_Tuple permutation = phrase.permutation();
-				final A_Phrase list = phrase.list();
-				final int size = list.expressionsSize();
-				final A_Phrase[] outputArray = new A_Phrase[size];
-				for (int i = 1; i <= size; i++)
-				{
-					final int index = permutation.tupleIntAt(i);
-					final A_Phrase element = list.expressionAt(index);
-					outputArray[index - 1] = adjustSuperCastsIn(
-						element, superUnionType.typeAtIndex(i));
-				}
-				return newPermutedListNode(
-					newListNode(tuple(outputArray)), permutation);
-			}
-			else if (phrase.parseNodeKindIsUnder(LIST_NODE))
-			{
-				// Apply the superUnionType's elements to the list.
-				final int size = phrase.expressionsSize();
-				final A_Phrase[] outputArray = new A_Phrase[size];
-				for (int i = 1; i <= size; i++)
-				{
-					final A_Phrase element = phrase.expressionAt(i);
-					outputArray[i - 1] = adjustSuperCastsIn(
-						element, superUnionType.typeAtIndex(i));
-				}
-				return newListNode(tuple(outputArray));
-			}
-			else
-			{
-				return newSuperCastNode(phrase, superUnionType);
-			}
+			return newPermutedListNode(
+				newListNode(tuple(outputArray)), permutation);
 		}
-	};
+		else if (phrase.parseNodeKindIsUnder(LIST_NODE))
+		{
+			// Apply the superUnionType's elements to the list.
+			final int size = phrase.expressionsSize();
+			final A_Phrase[] outputArray = new A_Phrase[size];
+			for (int i = 1; i <= size; i++)
+			{
+				final A_Phrase element = phrase.expressionAt(i);
+				outputArray[i - 1] = adjustSuperCastsIn(
+					element, superUnionType.typeAtIndex(i));
+			}
+			return newListNode(tuple(outputArray));
+		}
+		else
+		{
+			return newSuperCastNode(phrase, superUnionType);
+		}
+	}
 
 	/**
 	 * Parse the given statically constructed function.  It treats outer
@@ -963,10 +1013,9 @@ public class L1Decompiler
 			};
 		// Synthesize fake outers as literals to allow decompilation.
 		final int outerCount = aFunction.numOuterVars();
-		final List<A_Phrase> functionOuters = new ArrayList<>(outerCount);
+		final A_Phrase[] functionOuters = new A_Phrase[outerCount];
 		for (int i = 1; i <= outerCount; i++)
 		{
-			final A_BasicObject outerObject = aFunction.outerVarAt(i);
 			final A_Token token = literalToken(
 				stringFrom("Outer#" + i),
 				emptyTuple(),
@@ -974,14 +1023,11 @@ public class L1Decompiler
 				0,
 				0,
 				SYNTHETIC_LITERAL,
-				outerObject);
-			final A_Phrase literalNode = fromTokenForDecompiler(token);
-			functionOuters.add(literalNode);
+				aFunction.outerVarAt(i));
+			functionOuters[i - 1] = fromTokenForDecompiler(token);
 		}
-		return new L1Decompiler(
-				aFunction.code(),
-				functionOuters,
-				generator
-			).block();
+		final L1Decompiler decompiler = new L1Decompiler(
+			aFunction.code(), functionOuters, generator);
+		return decompiler.block();
 	}
 }

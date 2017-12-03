@@ -132,7 +132,7 @@ extends PojoTypeDescriptor
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		return javaClass.equalsNil()
 			|| Modifier.isAbstract(
-				((Class<?>) javaClass.javaObjectNotNull()).getModifiers());
+				javaClass.<Class<?>>javaObjectNotNull().getModifiers());
 	}
 
 	@Override @AvailMethod
@@ -215,7 +215,7 @@ extends PojoTypeDescriptor
 		final A_Set otherAncestors = other.javaAncestors();
 		for (final AvailObject ancestor : ancestors)
 		{
-			final Class<?> javaClass = (Class<?>) ancestor.javaObjectNotNull();
+			final Class<?> javaClass = ancestor.javaObjectNotNull();
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
@@ -224,7 +224,7 @@ extends PojoTypeDescriptor
 		}
 		for (final A_BasicObject ancestor : otherAncestors)
 		{
-			final Class<?> javaClass = (Class<?>) ancestor.javaObjectNotNull();
+			final Class<?> javaClass = ancestor.javaObjectNotNull();
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
@@ -295,8 +295,7 @@ extends PojoTypeDescriptor
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		if (!javaClass.equalsNil())
 		{
-			builder.append(
-				((Class<?>) javaClass.javaObjectNotNull()).getName());
+			builder.append(javaClass.<Class<?>>javaObjectNotNull().getName());
 		}
 		else
 		{
@@ -307,8 +306,8 @@ extends PojoTypeDescriptor
 			{
 				assert o1 != null;
 				assert o2 != null;
-				final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
-				final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
+				final Class<?> c1 = o1.javaObjectNotNull();
+				final Class<?> c2 = o2.javaObjectNotNull();
 				return c1.getName().compareTo(c2.getName());
 			});
 			builder.append('(');
@@ -320,8 +319,7 @@ extends PojoTypeDescriptor
 					builder.append(" ∩ ");
 				}
 				first = false;
-				builder.append(
-					((Class<?>) aClass.javaObjectNotNull()).getName());
+				builder.append(aClass.<Class<?>>javaObjectNotNull().getName());
 			}
 			builder.append(')');
 		}
@@ -329,7 +327,7 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link SelfPojoTypeDescriptor}.
+	 * Construct a new {@code SelfPojoTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -414,13 +412,13 @@ extends PojoTypeDescriptor
 		}
 		else
 		{
-			final Class<?> javaClass = (Class<?>)pojoClass.javaObjectNotNull();
+			final Class<?> javaClass = pojoClass.javaObjectNotNull();
 			mainClassName = stringFrom(javaClass.getName());
 		}
 		A_Set ancestorNames = emptySet();
 		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
 		{
-			final Class<?> javaClass = (Class<?>)ancestor.javaObjectNotNull();
+			final Class<?> javaClass = ancestor.javaObjectNotNull();
 			ancestorNames = ancestorNames.setWithElementCanDestroy(
 				stringFrom(javaClass.getName()), true);
 		}

@@ -100,8 +100,7 @@ public final class P_BindPojoStaticField extends Primitive
 		// that should be used to recursively look up the field.
 		if (!pojoType.isPojoFusedType())
 		{
-			final Class<?> javaClass =
-				(Class<?>) pojoType.javaClass().javaObjectNotNull();
+			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
 			try
 			{
 				field = javaClass.getField(fieldName.asNativeString());
@@ -120,8 +119,7 @@ public final class P_BindPojoStaticField extends Primitive
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
-				final Class<?> javaClass =
-					(Class<?>) ancestor.javaObjectNotNull();
+				final Class<?> javaClass = ancestor.javaObjectNotNull();
 				try
 				{
 					fields.add(javaClass.getField(

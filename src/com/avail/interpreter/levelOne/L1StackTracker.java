@@ -69,17 +69,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	int currentDepth = 0;
 
 	/**
-	 * Answer the number of items that will have been pushed onto the stack at
-	 * this point.
-	 *
-	 * @return The stack depth.
-	 */
-	int currentDepth ()
-	{
-		return currentDepth;
-	}
-
-	/**
 	 * The maximum stack depth needed so far.
 	 */
 	int maxDepth = 0;
@@ -95,23 +84,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	/**
-	 * Whether the next instruction is reachable.
-	 */
-	boolean reachable = true;
-
-	/**
-	 * Answer whether there is a path through the code that can reach the next
-	 * instruction.  Since level one code has no branches and always ends with
-	 * an {@link L1Operation#L1Implied_Return}, this is a simple test.
-	 *
-	 * @return Whether the next instruction is reachable.
-	 */
-	boolean reachable ()
-	{
-		return reachable;
-	}
-
-	/**
 	 * Record the effect of an L1 instruction.
 	 *
 	 * @param operation The {@link L1Operation}.
@@ -121,7 +93,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		final L1Operation operation,
 		final int... operands)
 	{
-		assert reachable;
 		assert currentDepth >= 0;
 		assert maxDepth >= currentDepth;
 		currentOperands = operands;
@@ -261,6 +232,12 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	@Override
+	public void L1Ext_doSetSlot ()
+	{
+		currentDepth--;
+	}
+
+	@Override
 	public void L1Ext_doPermute ()
 	{
 		// No change.
@@ -271,19 +248,5 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	{
 		final A_Bundle bundle = literalAt(currentOperands()[0]);
 		currentDepth += 1 - bundle.bundleMethod().numArgs();
-	}
-
-	@Override
-	public void L1Ext_doReserved ()
-	{
-		error("Reserved nybblecode");
-	}
-
-	@Override
-	public void L1Implied_doReturn ()
-	{
-		assert currentDepth == 1;
-		currentDepth = 0;
-		reachable = false;
 	}
 }

@@ -38,7 +38,6 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.Formatter;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
@@ -108,16 +107,20 @@ extends Descriptor
 			case Character.SPACE_SEPARATOR:
 			case Character.SURROGATE:
 			case Character.UNASSIGNED:
-				new Formatter(aStream).format("\"\\(%x)\"", codePoint);
+			{
+				aStream.append(String.format("\"\\(%x)\"", codePoint));
 				break;
+			}
 			default:
+			{
 				aStream.appendCodePoint(codePoint);
+			}
 		}
 	}
 
 	/**
-	 * Answer the hash of the Avail {@linkplain CharacterDescriptor character}
-	 * with the specified Unicode code point.
+	 * Answer the hash of the Avail {@link A_Character} with the specified
+	 * Unicode code point.
 	 *
 	 * @param codePoint A Unicode code point.
 	 * @return A hash.
@@ -128,8 +131,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the hash of the Avail {@linkplain CharacterDescriptor character}
-	 * with the specified unsigned 8-bit Unicode code point.
+	 * Answer the hash of the Avail {@link A_Character} with the specified
+	 * unsigned 8-bit Unicode code point.
 	 *
 	 * @param codePoint An unsigned 8-bit Unicode code point.
 	 * @return A hash.
@@ -206,7 +209,7 @@ extends Descriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -214,7 +217,7 @@ extends Descriptor
 		// Force marshaling to Java's primitive int type.
 		if (Integer.TYPE.equals(classHint))
 		{
-			return Integer.valueOf(codePoint);
+			return codePoint;
 		}
 		// Force marshaling to Java's primitive char type, throwing an exception
 		// if the code point is out of range.
@@ -224,17 +227,17 @@ extends Descriptor
 			{
 				throw new MarshalingException();
 			}
-			return Character.valueOf((char) codePoint);
+			return (char) codePoint;
 		}
 		assert classHint == null;
 		// Only understand Unicode code points in the basic multilingual plane
 		// (BMP) as marshaling to Java's primitive char type.
 		if (codePoint < 65536)
 		{
-			return Character.valueOf((char) codePoint);
+			return (char) codePoint;
 		}
 		// Use Java's primitive int type for all others.
-		return Integer.valueOf(codePoint);
+		return codePoint;
 	}
 
 	@Override @AvailMethod
@@ -259,7 +262,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link CharacterDescriptor}.
+	 * Construct a new {@code CharacterDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

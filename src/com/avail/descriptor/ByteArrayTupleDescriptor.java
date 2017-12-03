@@ -123,23 +123,24 @@ extends NumericTupleDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & ~255) != 0)
+		if (originalSize < maximumCopySize && newElement.isInt())
 		{
-			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
+			final int intValue = ((A_Number) newElement).extractInt();
+			if ((intValue & ~255) == 0)
+			{
+				// Convert to a ByteTupleDescriptor.
+				final byte[] array =
+					object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+				return generateByteTupleFrom(
+					originalSize + 1,
+					index -> index <= originalSize
+						? (short) (array[index - 1] & 255)
+						: (short) intValue);
+			}
 		}
-		// Convert to a ByteTupleDescriptor.
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return generateByteTupleFrom(
-			originalSize + 1,
-			index -> index <= originalSize
-				? (short)(array[index - 1] & 255)
-				: (short)intValue);
+		// Transition to a tree tuple.
+		final A_Tuple singleton = tuple(newElement);
+		return object.concatenateWith(singleton, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -153,7 +154,7 @@ extends NumericTupleDescriptor
 	@Override @AvailMethod
 	byte[] o_ByteArray (final AvailObject object)
 	{
-		return (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		return object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -207,8 +208,7 @@ extends NumericTupleDescriptor
 		final int end)
 	{
 		// See comment in superclass. This method must produce the same value.
-		final byte[] array = (byte[])
-			object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
@@ -441,8 +441,7 @@ extends NumericTupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return (AvailObject) fromUnsignedByte(
 			(short) (array[index - 1] & 0xFF));
 	}
@@ -477,8 +476,7 @@ extends NumericTupleDescriptor
 		// Clobber the object in place...
 		final byte theByte =
 			(byte) ((AvailObject)newValueObject).extractUnsignedByte();
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		array[index - 1] = theByte;
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
@@ -494,10 +492,7 @@ extends NumericTupleDescriptor
 	{
 		return bytes().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
-				object,
-				startIndex,
-				endIndex,
-				type);
+				object, startIndex, endIndex, type);
 	}
 
 	@Override
@@ -506,8 +501,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the integer element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return array[index - 1] & 0xFF;
 	}
 
@@ -535,16 +529,14 @@ extends NumericTupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return array.length;
 	}
 
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
-		final byte[] bytes = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
-		assert bytes != null;
+		final byte[] bytes = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		writer.startArray();
 		for (final byte aByte : bytes)
 		{
@@ -554,7 +546,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ByteArrayTupleDescriptor}.
+	 * Construct a new {@code ByteArrayTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -603,8 +595,7 @@ extends NumericTupleDescriptor
 	private static A_Tuple copyAsMutableByteArrayTuple (
 		final AvailObject object)
 	{
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		final byte[] copy = Arrays.copyOf(array, array.length);
 		final AvailObject result = tupleForByteArray(copy);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
@@ -612,11 +603,11 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Create a new {@link ByteArrayTupleDescriptor} for the specified byte
-	 * array.
+	 * Create a new {@code ByteArrayTupleDescriptor} instance for the specified
+	 * byte array.
 	 *
 	 * @param array A Java byte array.
-	 * @return The requested {@linkplain ByteArrayTupleDescriptor tuple}.
+	 * @return The requested tuple.
 	 */
 	public static AvailObject tupleForByteArray (final byte[] array)
 	{

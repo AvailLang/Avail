@@ -391,7 +391,7 @@ extends VariableDescriptor
 			}
 			else
 			{
-				chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
+				chunkSet = pojo.javaObjectNotNull();
 			}
 			chunkSet.add(chunk);
 		}
@@ -406,9 +406,7 @@ extends VariableDescriptor
 		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
 		if (!pojo.equalsNil())
 		{
-			@SuppressWarnings("unchecked")
-			final Set<L2Chunk> chunkSet =
-				(Set<L2Chunk>) pojo.javaObjectNotNull();
+			final Set<L2Chunk> chunkSet = pojo.javaObjectNotNull();
 			chunkSet.remove(chunk);
 		}
 	}
@@ -427,9 +425,7 @@ extends VariableDescriptor
 		if (!pojo.equalsNil())
 		{
 			// Copy the set of chunks to avoid modification during iteration.
-			@SuppressWarnings("unchecked")
-			final
-			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
+			final Set<L2Chunk> originalSet = pojo.javaObjectNotNull();
 			final Set<L2Chunk> chunksToInvalidate =
 				new HashSet<>(originalSet);
 			for (final L2Chunk chunk : chunksToInvalidate)

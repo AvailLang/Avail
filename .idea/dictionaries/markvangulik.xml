@@ -41,6 +41,7 @@
       <w>multimethod</w>
       <w>multimethods</w>
       <w>mutables</w>
+      <w>nanos</w>
       <w>naïve</w>
       <w>nontype</w>
       <w>nullary</w>
@@ -103,6 +104,7 @@
       <w>unparseable</w>
       <w>unpopped</w>
       <w>unregister</w>
+      <w>unreified</w>
       <w>unstarted</w>
       <w>unsummarized</w>
       <w>virtualized</w>

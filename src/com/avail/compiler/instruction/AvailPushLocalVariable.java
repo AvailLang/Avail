@@ -93,7 +93,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	 * </p>
 	 */
 	@Override
-	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
+	public void fixUsageFlags (
 		final List<AvailVariableAccessNote> localData,
 		final List<AvailVariableAccessNote> outerData,
 		final AvailCodeGenerator codeGenerator)

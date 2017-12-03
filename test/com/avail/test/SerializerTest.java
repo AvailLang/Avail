@@ -489,8 +489,8 @@ public final class SerializerTest
 		final A_RawFunction code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());
 		assertEquals(
-			code.numArgsAndLocalsAndStack(),
-			code2.numArgsAndLocalsAndStack());
+			code.numSlots(),
+			code2.numSlots());
 		assertEquals(code.numArgs(), code2.numArgs());
 		assertEquals(code.numLocals(), code2.numLocals());
 		assertEquals(code.primitiveNumber(), code2.primitiveNumber());

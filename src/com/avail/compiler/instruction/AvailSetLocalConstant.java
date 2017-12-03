@@ -1,5 +1,5 @@
 /**
- * AvailPushLabel.java
+ * AvailSetLocalConstant.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,44 +33,40 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
-
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * I represent the use of a label.  When a label is <em>used</em>, it causes the
- * current {@linkplain ContinuationDescriptor continuation} to be copied.  The
- * copy is then reset to the state that existed when the current {@linkplain
- * FunctionDescriptor function} started running, resetting the program counter,
- * stack pointer, and stack slots, and creating new local variables.
- *
- * <p>
- * The new continuation can subsequently be {@linkplain
- * P_RestartContinuation restarted}, {@linkplain
- * P_RestartContinuationWithArguments restarted with new arguments}, or
- * {@linkplain P_ExitContinuationWithResult exited}.
- * </p>
+ * Set a local constant to its computed value, popped from the stack.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailPushLabel extends AvailInstruction
+public class AvailSetLocalConstant extends AvailInstructionWithIndex
 {
+	/**
+	 * Construct a new {@code AvailSetLocalConstant}.
+	 *
+	 * @param index
+	 *        The local constant's index within a {@link A_Continuation}'s
+	 *        frame.
+	 */
+	public AvailSetLocalConstant (final int index)
+	{
+		super(index);
+	}
 
 	@Override
 	public void writeNybblesOn (
-		final ByteArrayOutputStream aStream)
+			final ByteArrayOutputStream aStream)
 	{
-		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
+		L1Operation.L1Ext_doSetLocalSlot.writeTo(aStream);
+		writeIntegerOn(index, aStream);
 	}
-
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -79,17 +75,17 @@ public class AvailPushLabel extends AvailInstruction
 	 * each instruction as though it is the last one in the block, and save
 	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
+	 *
 	 * <p>
 	 * The data lists are keyed by local or outer index.  Each entry is either
 	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
 	 * previous time a get or push happened.
+	 * </p>
+	 *
 	 * <p>
-	 * I push a label, which is a {@linkplain ContinuationDescriptor
-	 * continuation}.  Since the label can be restarted (which constructs new
-	 * locals while reusing the arguments), or exited (which has no static
-	 * effect on optimizations), I only have an effect on arguments and outer
-	 * variables.  Scan all arguments and outer variables and ensure the most
-	 * recent pushes are reset so that isLastAccess is false.
+	 * The receiver sets the value of a local variable, so it can't be an
+	 * argument (they aren't wrapped in a variable).
+	 * </p>
 	 */
 	@Override
 	public void fixUsageFlags (
@@ -97,52 +93,21 @@ public class AvailPushLabel extends AvailInstruction
 		final List<AvailVariableAccessNote> outerData,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (int index = 0; index < codeGenerator.numArgs(); index++)
+		@Nullable AvailVariableAccessNote note = localData.get(index - 1);
+		if (note == null)
 		{
-			@Nullable AvailVariableAccessNote note = localData.get(index);
-			if (note == null)
-			{
-				note = new AvailVariableAccessNote();
-				localData.set(index, note);
-			}
-			// If any argument was pushed before this pushLabel, set its
-			// isLastAccess to false, as a restart will need to have these
-			// arguments intact.
-			final @Nullable AvailPushVariable previousPush = note.previousPush();
-			if (previousPush != null)
-			{
-				previousPush.isLastAccess(false);
-			}
+			note = new AvailVariableAccessNote();
+			localData.set(index - 1, note);
 		}
-
-		for (final @Nullable AvailVariableAccessNote outerNote : outerData)
+		// If there was a get before this set, leave its canClear flag set to
+		// true.
+		note.previousGet(null);
+		// Any previous push could not be the last access, as we're using the
+		// variable right now.
+		final @Nullable AvailPushVariable previousPush = note.previousPush();
+		if (previousPush != null)
 		{
-			if (outerNote != null)
-			{
-				final @Nullable AvailPushVariable previousPush =
-					outerNote.previousPush();
-				if (previousPush != null)
-				{
-					// Make sure the previous outer push is not considered the
-					// last access.
-					previousPush.isLastAccess(false);
-				}
-				final @Nullable AvailGetVariable previousGet =
-					outerNote.previousGet();
-				if (previousGet != null)
-				{
-					// Make sure the previous outer get is not considered the
-					// last use of the value.
-					previousGet.canClear(false);
-				}
-			}
+			previousPush.isLastAccess(false);
 		}
-	}
-
-
-	@Override
-	public boolean isPushLabel ()
-	{
-		return true;
 	}
 }

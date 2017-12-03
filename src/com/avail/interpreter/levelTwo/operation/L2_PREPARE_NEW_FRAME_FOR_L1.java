@@ -90,7 +90,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
-		final int numSlots = code.numArgsAndLocalsAndStack();
+		final int numSlots = code.numSlots();
 		// The L2 instructions that implement L1 don't reserve room for any
 		// fixed registers, but they assume [0] is unused (to simplify
 		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
@@ -146,7 +146,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 					unoptimizedChunk(),
 					TO_RESUME.offsetInDefaultChunk);
 			for (
-				int i = function.code().numArgsAndLocalsAndStack();
+				int i = function.code().numSlots();
 				i >= 1;
 				i--)
 			{

@@ -41,6 +41,7 @@ import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.List;
 
@@ -84,7 +85,7 @@ public final class P_PojoArraySet extends Primitive
 		final A_Number subscript = args.get(1);
 		final A_BasicObject value = args.get(2);
 		final A_BasicObject rawPojo = pojo.rawPojo();
-		final Object array = rawPojo.javaObject();
+		final Object array = rawPojo.javaObjectNotNull();
 		final int index = subscript.extractInt();
 		if (index > Array.getLength(array))
 		{
@@ -98,7 +99,7 @@ public final class P_PojoArraySet extends Primitive
 		}
 		try
 		{
-			final Class<?> marshaledType =
+			final @Nullable Class<?> marshaledType =
 				(Class<?>) contentType.marshalToJava(null);
 			Array.set(array, index - 1, value.marshalToJava(marshaledType));
 		}

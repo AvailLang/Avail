@@ -138,7 +138,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@Nullable Object o_JavaObject (final AvailObject object)
+	@Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return object.slot(RAW_POJO).javaObject();
 	}
@@ -158,7 +158,7 @@ extends Descriptor
 		writer.write("pojo type");
 		object.slot(KIND).writeTo(writer);
 		writer.write("description");
-		writer.write((String) object.slot(RAW_POJO).javaObject());
+		writer.write(object.slot(RAW_POJO).<String>javaObject());
 		writer.endObject();
 	}
 
@@ -171,7 +171,7 @@ extends Descriptor
 		writer.write("pojo type");
 		object.slot(KIND).writeSummaryTo(writer);
 		writer.write("description");
-		writer.write((String) object.slot(RAW_POJO).javaObject());
+		writer.write(object.slot(RAW_POJO).<String>javaObject());
 		writer.endObject();
 	}
 
@@ -182,10 +182,10 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		builder.append(String.valueOf(object.slot(RAW_POJO).javaObject()));
+		builder.append(
+			String.valueOf(object.slot(RAW_POJO).<Object>javaObject()));
 		builder.append(" ∈ ");
-		object.slot(KIND).printOnAvoidingIndent(
-			builder, recursionMap, indent);
+		object.slot(KIND).printOnAvoidingIndent(builder, recursionMap, indent);
 	}
 
 	/**

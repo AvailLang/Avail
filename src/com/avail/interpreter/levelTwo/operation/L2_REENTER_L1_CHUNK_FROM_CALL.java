@@ -92,13 +92,13 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 
 		final A_Function returneeFunction = stripNull(interpreter.function);
 		assert returneeFunction == continuation.function();
-		final int numSlots = continuation.numArgsAndLocalsAndStack();
+		final int numSlots = continuation.numSlots();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		interpreter.pointers = new AvailObject[numSlots + 1];
-		int dest = 1;
+		int destination = 1;
 		for (int i = 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(dest++, continuation.stackAt(i));
+			interpreter.pointerAtPut(destination++, continuation.stackAt(i));
 		}
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		stepper.pc = continuation.pc();
@@ -106,8 +106,17 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		if (!interpreter.skipReturnCheck)
 		{
 			final A_Type expectedType = interpreter.pointerAt(stepper.stackp);
-			interpreter.checkReturnType(
-				returnValue, expectedType, returneeFunction);
+
+			final @Nullable StackReifier returnCheckReifier =
+				interpreter.checkReturnType(
+					returnValue, expectedType, returneeFunction);
+			if (returnCheckReifier != null)
+			{
+				// Reification is happening within the handling of the *failed*
+				// return type check.
+				return returnCheckReifier;
+			}
+			// Otherwise the check passed.  Fall through.
 		}
 		interpreter.pointerAtPut(stepper.stackp, returnValue);
 		return null;

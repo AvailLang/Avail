@@ -84,7 +84,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		final FileHandle handle = pojo.javaObjectNotNull();
 		return interpreter.primitiveSuccess(fromInt(handle.alignment));
 	}
 

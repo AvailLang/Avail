@@ -346,8 +346,7 @@ extends Descriptor
 		{
 			final A_BasicObject pojo =
 				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-			final Set<L2Chunk> chunkSet =
-				(Set<L2Chunk>) pojo.javaObjectNotNull();
+			final Set<L2Chunk> chunkSet = pojo.javaObjectNotNull();
 			chunkSet.add(chunk);
 		}
 	}
@@ -555,12 +554,10 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
-			(LookupTree<A_Definition, A_Tuple, Void>)
-				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		final A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
-			tree, argumentTypeTuple, null);
+			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
+		final A_Tuple resultTuple =
+			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, null);
 		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
 
@@ -575,12 +572,10 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
-			(LookupTree<A_Definition, A_Tuple, Void>)
-				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		final A_Tuple results = runtimeDispatcher.lookupByValues(
-			tree, argumentList, null);
+			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
+		final A_Tuple results =
+			runtimeDispatcher.lookupByValues(tree, argumentList, null);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
@@ -602,13 +597,10 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
-			(LookupTree<A_Definition, A_Tuple, Void>)
-				object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
+			object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
-			runtimeDispatcher.lookupByValues(
-				tree, argumentPhraseTuple, null);
+			runtimeDispatcher.lookupByValues(tree, argumentPhraseTuple, null);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
@@ -766,8 +758,7 @@ extends Descriptor
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-		@SuppressWarnings("unchecked")
-		final Set<L2Chunk> chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
+		final Set<L2Chunk> chunkSet = pojo.javaObjectNotNull();
 		chunkSet.remove(chunk);
 	}
 
@@ -958,9 +949,7 @@ extends Descriptor
 		// Invalidate any affected level two chunks.
 		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
 		// Copy the set of chunks to avoid modification during iteration.
-		@SuppressWarnings("unchecked")
-		final Set<L2Chunk> originalSet =
-			(Set<L2Chunk>) pojo.javaObjectNotNull();
+		final Set<L2Chunk> originalSet = pojo.javaObjectNotNull();
 		for (final L2Chunk chunk : new ArrayList<>(originalSet))
 		{
 			chunk.invalidate();

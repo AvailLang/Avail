@@ -338,8 +338,7 @@ extends PojoTypeDescriptor
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
-		final Class<?> otherJavaClass =
-			(Class<?>) object.javaClass().javaObjectNotNull();
+		final Class<?> otherJavaClass = object.javaClass().javaObjectNotNull();
 		final int otherModifiers = otherJavaClass.getModifiers();
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
@@ -359,8 +358,7 @@ extends PojoTypeDescriptor
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(rawObjectClass()))
 				{
-					final Class<?> javaClass =
-						(Class<?>) ancestor.javaObjectNotNull();
+					final Class<?> javaClass = ancestor.javaObjectNotNull();
 					final int modifiers = javaClass.getModifiers();
 					if (isFinal(modifiers) || !isInterface(modifiers))
 					{
@@ -440,8 +438,7 @@ extends PojoTypeDescriptor
 			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
-				final Class<?> ancestor =
-					(Class<?>) entry.key().javaObjectNotNull();
+				final Class<?> ancestor = entry.key().javaObjectNotNull();
 				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
 				final A_Tuple typeArgs = entry.value();
 				assert vars.length == typeArgs.tupleSize();
@@ -488,10 +485,9 @@ extends PojoTypeDescriptor
 			childlessAmong(ancestors.keysAsSet()));
 		childless.sort((o1, o2) ->
 		{
-			assert o1 != null;
-			assert o2 != null;
-			final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
-			final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
+			assert o1 != null && o2 != null;
+			final Class<?> c1 = o1.javaObjectNotNull();
+			final Class<?> c2 = o2.javaObjectNotNull();
 			return c1.getName().compareTo(c2.getName());
 		});
 		boolean firstChildless = true;
@@ -502,8 +498,7 @@ extends PojoTypeDescriptor
 				builder.append(" ∩ ");
 			}
 			firstChildless = false;
-			builder.append(
-				((Class<?>) javaClass.javaObjectNotNull()).getName());
+			builder.append((javaClass.<Class<?>>javaObjectNotNull()).getName());
 			final A_Tuple params = ancestors.hasKey(javaClass)
 				? ancestors.mapAt(javaClass)
 				: emptyTuple();

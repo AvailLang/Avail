@@ -50,6 +50,16 @@ public interface A_RawFunction
 extends A_BasicObject
 {
 	/**
+	 * Answer the {@linkplain A_Type type} of the {@code index}-th local
+	 * constant.
+	 *
+	 * @param index
+	 *        The one-based ordinal of the desired local constant.
+	 * @return The requested type.
+	 */
+	A_Type constantTypeAt (int index);
+
+	/**
 	 * Set the countdown until reoptimization by the {@linkplain L2Translator
 	 * Level Two translator}.
 	 *
@@ -148,7 +158,7 @@ extends A_BasicObject
 	 * @return The number of slots to reserve for executing this function
 	 *         implementation.
 	 */
-	int numArgsAndLocalsAndStack ();
+	int numSlots ();
 
 	/**
 	 * Answer the number of literal values embedded into this {@linkplain
@@ -159,12 +169,20 @@ extends A_BasicObject
 	int numLiterals ();
 
 	/**
-	 * Answer the number of local variables specified by this {@linkplain
-	 * A_RawFunction function implementation}.
+	 * Answer the number of local variables specified by this {@link
+	 * A_RawFunction}.
 	 *
 	 * @return The number of local variables of this function implementation.
 	 */
 	int numLocals ();
+
+	/**
+	 * Answer the number of local constants specified by this {@link
+	 * A_RawFunction}.
+	 *
+	 * @return The number of local constants of this function implementation.
+	 */
+	int numConstants ();
 
 	/**
 	 * Answer the number of outer variables specified by this {@linkplain

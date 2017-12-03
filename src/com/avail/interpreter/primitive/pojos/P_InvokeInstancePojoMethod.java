@@ -91,17 +91,17 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		final A_Tuple methodArgs = args.get(2);
 		final A_Tuple marshaledTypePojos = args.get(3);
 		// Marshal the arguments and invoke the method.
-		final Method method = (Method) methodPojo.javaObjectNotNull();
+		final Method method = methodPojo.javaObjectNotNull();
 		final Object receiver = receiverPojo.rawPojo().javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
 			{
-				final Class<?> marshaledType = (Class<?>)
+				final Class<?> marshaledType =
 					marshaledTypePojos.tupleAt(i + 1).javaObjectNotNull();
-				marshaledArgs[i] = methodArgs.tupleAt(
-					i + 1).marshalToJava(marshaledType);
+				marshaledArgs[i] =
+					methodArgs.tupleAt(i + 1).marshalToJava(marshaledType);
 			}
 		}
 		catch (final MarshalingException e)

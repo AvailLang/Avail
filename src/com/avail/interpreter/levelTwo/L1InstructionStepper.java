@@ -274,7 +274,8 @@ public final class L1InstructionStepper
 					}
 					catch (final MethodDefinitionException e)
 					{
-						return reifyAndReportFailedLookup(method, e.errorCode());
+						return reifyAndReportFailedLookup(
+							method, e.errorCode());
 					}
 					finally
 					{
@@ -305,10 +306,18 @@ public final class L1InstructionStepper
 					}
 					if (!interpreter.skipReturnCheck)
 					{
-						interpreter.checkReturnType(
-							result, expectedReturnType, function);
+						final @Nullable StackReifier returnCheckReifier =
+							interpreter.checkReturnType(
+								result, expectedReturnType, function);
+						if (returnCheckReifier != null)
+						{
+							// Reification is happening within the handling of
+							// the failed return type check.
+							return returnCheckReifier;
+						}
+						// The return check passed.  Fall through.
 					}
-					assert stackp <= code.numArgsAndLocalsAndStack();
+					assert stackp <= code.numSlots();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
@@ -664,17 +673,26 @@ public final class L1InstructionStepper
 					}
 					if (!interpreter.skipReturnCheck)
 					{
-						interpreter.checkReturnType(
-							result, expectedReturnType, function);
+						final @Nullable StackReifier returnCheckReifier =
+							interpreter.checkReturnType(
+								result, expectedReturnType, function);
+						if (returnCheckReifier != null)
+						{
+							// Reification is happening within the handling of
+							// the failed return type check.
+							return returnCheckReifier;
+						}
+						// The return check passed.  Fall through.
 					}
-					assert stackp <= code.numArgsAndLocalsAndStack();
+					assert stackp <= code.numSlots();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
 				}
-				default:
+				case L1Ext_doSetLocalSlot:
 				{
-					assert false : "Illegal dispatch nybblecode";
+					pointerAtPut(getInteger(), pop());
+					break;
 				}
 			}
 			// Make sure an instruction didn't switch contexts by accident.
@@ -782,7 +800,7 @@ public final class L1InstructionStepper
 							unoptimizedChunk(),
 							TO_RESUME.offsetInDefaultChunk);
 					for (
-						int i = 1, limit = code.numArgsAndLocalsAndStack();
+						int i = 1, limit = code.numSlots();
 						i <= limit;
 						i++)
 					{
@@ -884,7 +902,7 @@ public final class L1InstructionStepper
 							unoptimizedChunk(),
 							TO_RETURN_INTO.offsetInDefaultChunk);
 					for (
-						int i = savedFunction.code().numArgsAndLocalsAndStack();
+						int i = savedFunction.code().numSlots();
 						i >= 1;
 						i--)
 					{

@@ -95,8 +95,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
+		final AsynchronousSocketChannel socket = pojo.javaObjectNotNull();
 		final InetSocketAddress peer;
 		try
 		{

@@ -47,9 +47,8 @@ import java.util.List;
  */
 public class AvailSetLocalVariable extends AvailInstructionWithIndex
 {
-
 	/**
-	 * Construct a new {@link AvailSetLocalVariable}.
+	 * Construct a new {@code AvailSetLocalVariable}.
 	 *
 	 * @param index
 	 *            The variable's index within a {@linkplain
@@ -60,7 +59,6 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 		super(index);
 	}
 
-
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
@@ -68,7 +66,6 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 		L1Operation.L1_doSetLocal.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 	}
-
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -90,7 +87,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 	 * </p>
 	 */
 	@Override
-	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
+	public void fixUsageFlags (
 		final List<AvailVariableAccessNote> localData,
 		final List<AvailVariableAccessNote> outerData,
 		final AvailCodeGenerator codeGenerator)

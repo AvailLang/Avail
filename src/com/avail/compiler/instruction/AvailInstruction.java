@@ -133,7 +133,7 @@ public abstract class AvailInstruction
 	 *                  each outer variable.
 	 * @param codeGenerator The code generator.
 	 */
-	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
+	public void fixUsageFlags (
 		final List<AvailVariableAccessNote> localData,
 		final List<AvailVariableAccessNote> outerData,
 		final AvailCodeGenerator codeGenerator)
