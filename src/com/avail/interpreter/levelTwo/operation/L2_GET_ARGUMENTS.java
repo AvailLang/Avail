@@ -84,4 +84,11 @@ public class L2_GET_ARGUMENTS extends L2Operation
 			return null;
 		};
 	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Keep this instruction pinned in place for safety during inlining.
+		return true;
+	}
 }

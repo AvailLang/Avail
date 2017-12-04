@@ -36,14 +36,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
-import com.sun.org.apache.bcel.internal.generic.L2I;
 
 import javax.annotation.Nullable;
-
-import java.util.Arrays;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -77,18 +73,10 @@ public class L2PcOperand extends L2Operand
 	 * flow transition.  An instruction that has multiple control flow
 	 * transitions from it may produce different type restrictions along each
 	 * branch, e.g., type narrowing from a type-testing branch.
+	 *
+	 * TODO MvG - This is not yet used.
 	 */
 	private final PhiRestriction[] phiRestrictions;
-
-	/**
-	 * Answer the array of {@link PhiRestriction}s along this branch.
-	 *
-	 * @return The array of {@link PhiRestriction}s.
-	 */
-	public PhiRestriction[] phiRestrictions ()
-	{
-		return phiRestrictions;
-	}
 
 	/**
 	 * Construct a new {@code L2PcOperand} with the specified {@link
@@ -111,7 +99,7 @@ public class L2PcOperand extends L2Operand
 	{
 		this.targetBlock = targetBlock;
 		this.slotRegisters = slotRegisters.clone();
-		this.phiRestrictions = phiRestrictions;
+		this.phiRestrictions = phiRestrictions.clone();
 	}
 
 	@Override
@@ -229,7 +217,6 @@ public class L2PcOperand extends L2Operand
 			newBlock,
 			L2_JUMP.instance,
 			new L2PcOperand(garbageBlock, slotRegisters, phiRestrictions));
-		final L2PcOperand garbageEdge = jump.pcAt(0);
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);

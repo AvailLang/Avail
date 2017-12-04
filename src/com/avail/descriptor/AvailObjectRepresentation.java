@@ -32,13 +32,15 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
+import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 
@@ -127,7 +129,7 @@ implements A_BasicObject
 	 *
 	 * @param field The object slot to validate for the receiver.
 	 */
-	private final void checkSlot (final ObjectSlotsEnum field)
+	private void checkSlot (final ObjectSlotsEnum field)
 	{
 		if (shouldCheckSlots)
 		{
@@ -171,7 +173,7 @@ implements A_BasicObject
 	 *
 	 * @param field The integer slot to validate for the receiver.
 	 */
-	private final void checkSlot (final IntegerSlotsEnum field)
+	private void checkSlot (final IntegerSlotsEnum field)
 	{
 		if (shouldCheckSlots)
 		{
@@ -438,8 +440,7 @@ implements A_BasicObject
 
 	/**
 	 * Extract the (signed 64-bit) integer for the given field {@code enum}
-	 * value. If the receiver is {@linkplain Mutability#SHARED shared}, then
-	 * acquire its monitor.
+	 * value, using volatile-read semantics if the receiver is shared.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @return A {@code long} extracted from this object.
@@ -449,12 +450,12 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			synchronized (this)
-			{
-				return longSlots[field.ordinal()];
-			}
+			return volatileSlotHelper.volatileRead(longSlots, field.ordinal());
 		}
-		return longSlots[field.ordinal()];
+		else
+		{
+			return longSlots[field.ordinal()];
+		}
 	}
 
 	/**
@@ -473,10 +474,8 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			synchronized (this)
-			{
-				longSlots[field.ordinal()] = anInteger;
-			}
+			volatileSlotHelper.volatileWrite(
+				longSlots, field.ordinal(), anInteger);
 		}
 		else
 		{
@@ -494,19 +493,7 @@ implements A_BasicObject
 	 */
 	public final int mutableSlot (final BitField bitField)
 	{
-		checkSlot(bitField.integerSlot);
-		final long fieldValue;
-		if (descriptor.isShared())
-		{
-			synchronized (this)
-			{
-				fieldValue = longSlots[bitField.integerSlotIndex];
-			}
-		}
-		else
-		{
-			fieldValue = longSlots[bitField.integerSlotIndex];
-		}
+		final long fieldValue = mutableSlot(bitField.integerSlot);
 		return bitField.extractFromLong(fieldValue);
 	}
 
@@ -526,12 +513,18 @@ implements A_BasicObject
 		checkSlot(bitField.integerSlot);
 		if (descriptor.isShared())
 		{
-			synchronized (this)
+			long oldFieldValue;
+			long newFieldValue;
+			do
 			{
-				long value = longSlots[bitField.integerSlotIndex];
-				value = bitField.replaceBits(value, anInteger);
-				longSlots[bitField.integerSlotIndex] = value;
+				oldFieldValue = mutableSlot(bitField.integerSlot);
+				newFieldValue = bitField.replaceBits(oldFieldValue, anInteger);
 			}
+			while (!volatileSlotHelper.compareAndSet(
+				longSlots,
+				bitField.integerSlotIndex,
+				oldFieldValue,
+				newFieldValue));
 		}
 		else
 		{
@@ -557,9 +550,13 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
+			return volatileSlotHelper.volatileRead(
+				longSlots, field.ordinal() + subscript - 1);
+		}
+		else
+		{
 			return longSlots[field.ordinal() + subscript - 1];
 		}
-		return longSlots[field.ordinal() + subscript - 1];
 	}
 
 	/**
@@ -580,10 +577,8 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			synchronized (this)
-			{
-				longSlots[field.ordinal() + subscript - 1] = anInteger;
-			}
+			volatileSlotHelper.volatileWrite(
+				longSlots, field.ordinal() + subscript - 1, anInteger);
 		}
 		else
 		{
@@ -703,20 +698,188 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			synchronized (this)
-			{
-				return objectSlots[field.ordinal()];
-			}
+			return volatileSlotHelper.volatileRead(
+				objectSlots, field.ordinal());
 		}
-		return objectSlots[field.ordinal()];
+		else
+		{
+			return objectSlots[field.ordinal()];
+		}
 	}
 
-	private static final
-			AtomicReferenceFieldUpdater<AbstractAvailObject, AbstractDescriptor>
-		descriptorFieldUpdater = AtomicReferenceFieldUpdater.newUpdater(
-			AbstractAvailObject.class,
-			AbstractDescriptor.class,
-			"descriptor");
+//	/**
+//	 * An {@link AtomicReferenceFieldUpdater} suitable for updating the
+//	 * descriptor field of an Avail object.
+//	 */
+//	private static final
+//			AtomicReferenceFieldUpdater<AbstractAvailObject, AbstractDescriptor>
+//		descriptorFieldUpdater = AtomicReferenceFieldUpdater.newUpdater(
+//			AbstractAvailObject.class,
+//			AbstractDescriptor.class,
+//			"descriptor");
+
+	/**
+	 * Provide fast volatile and atomic access to long and AvailObject slots.
+	 * Java left a huge implementation gap where you can't access normal array
+	 * slots with volatile access, but there are ways around it.  For now, use
+	 * Sun's Unsafe class.
+	 *
+	 * <p>In sandboxed environments where this is not possible we'll need to
+	 * change this to use subclassing, and do volatile reads or nilpotent
+	 * compare-and-set writes of the descriptor field at the appropriate times
+	 * to ensure happens-before/after.  However, compare-and-set semantics will
+	 * be much harder to accomplish.
+	 */
+	private static final class VolatileSlotHelper
+	{
+		/**
+		 * This is used for atomic access to slots.  It's not allowed to be
+		 * used
+		 * by non-system code in sand-boxed contexts, so we'll need a
+		 * poorer-performing solution there.
+		 */
+		private static final Unsafe unsafe;
+
+		static
+		{
+			try
+			{
+				final Field f = Unsafe.class.getDeclaredField("theUnsafe");
+				f.setAccessible(true);
+				unsafe = (Unsafe) f.get(null);
+			}
+			catch (NoSuchFieldException | IllegalAccessException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+		private static final int longArrayBaseOffset =
+			unsafe.arrayBaseOffset(long[].class);
+
+		private static final int longArrayShift;
+
+		static
+		{
+			final int delta = unsafe.arrayIndexScale(long[].class);
+			assert (delta & (delta - 1)) == 0
+				: "The reserved size of a long wasn't a power of two";
+			longArrayShift = Integer.numberOfTrailingZeros(delta);
+		}
+
+		@InnerAccess long volatileRead (
+			final long[] longs,
+			final int subscript)
+		{
+			assert 0 <= subscript && subscript < longs.length;
+			final long byteOffset =
+				((long) subscript << longArrayShift) + longArrayBaseOffset;
+			return unsafe.getLongVolatile(longs, byteOffset);
+		}
+
+		@InnerAccess void volatileWrite (
+			final long[] longs,
+			final int subscript,
+			final long value)
+		{
+			assert 0 <= subscript && subscript < longs.length;
+			final long byteOffset =
+				((long) subscript << longArrayShift) + longArrayBaseOffset;
+			unsafe.putLongVolatile(longs, byteOffset, value);
+		}
+
+		@InnerAccess boolean compareAndSet (
+			final long[] longs,
+			final int subscript,
+			final long expected,
+			final long value)
+		{
+			assert 0 <= subscript && subscript < longs.length;
+			final long byteOffset =
+				((long) subscript << longArrayShift) + longArrayBaseOffset;
+			return unsafe.compareAndSwapLong(
+				longs, byteOffset, expected, value);
+		}
+
+		private static final int objectArrayBaseOffset =
+			unsafe.arrayBaseOffset(AvailObject[].class);
+
+		private static final int objectArrayShift;
+
+		static
+		{
+			final int delta = unsafe.arrayIndexScale(AvailObject[].class);
+			assert (delta & (delta - 1)) == 0
+				: "The reserved size of a slot in an object array wasn't "
+				+ "a power of two";
+			objectArrayShift = Integer.numberOfTrailingZeros(delta);
+		}
+
+		@InnerAccess AvailObject volatileRead (
+			final AvailObject[] objects,
+			final int subscript)
+		{
+			assert 0 <= subscript && subscript < objects.length;
+			final long byteOffset =
+				((long) subscript << objectArrayShift) + objectArrayBaseOffset;
+			return (AvailObject) unsafe.getObjectVolatile(objects, byteOffset);
+		}
+
+		@InnerAccess void volatileWrite (
+			final AvailObject[] objects,
+			final int subscript,
+			final AvailObject value)
+		{
+			assert 0 <= subscript && subscript < objects.length;
+			final long byteOffset =
+				((long) subscript << objectArrayShift) + objectArrayBaseOffset;
+			unsafe.putObjectVolatile(objects, byteOffset, value);
+		}
+
+		@InnerAccess boolean compareAndSet (
+			final AvailObject[] objects,
+			final int subscript,
+			final AvailObject expected,
+			final AvailObject value)
+		{
+			assert 0 <= subscript && subscript < objects.length;
+			final long byteOffset =
+				((long) subscript << objectArrayShift) + objectArrayBaseOffset;
+			return unsafe.compareAndSwapObject(
+				objects, byteOffset, expected, value);
+		}
+	}
+
+	/**
+	 * The global instance of the {@link VolatileSlotHelper}, used for volatile
+	 * and compare-and-set operations on both AvailObject and long slots.
+	 */
+	private static final VolatileSlotHelper volatileSlotHelper =
+		new VolatileSlotHelper();
+
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver.  Use volatile semantics for the read.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The one-based subscript to offset the field.
+	 * @return The object found at the specified slot in the receiver.
+	 */
+	public final AvailObject volatileSlot (
+		final ObjectSlotsEnum field,
+		final int subscript)
+	{
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			return volatileSlotHelper.volatileRead(
+				objectSlots, field.ordinal() + subscript - 1);
+		}
+		else
+		{
+			return objectSlots[field.ordinal() + subscript - 1];
+		}
+	}
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
@@ -725,13 +888,50 @@ implements A_BasicObject
 	 * @param field An enumeration value that defines the field ordering.
 	 * @return The object found at the specified slot in the receiver.
 	 */
-	public final AvailObject volatileSlot (final ObjectSlotsEnum field)
+	public final AvailObject volatileSlot (
+		final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		// First, read from the volatile descriptor field.  This acts as a read
-		// fence for other accesses to this object.
-		descriptorFieldUpdater.get(this);
-		return objectSlots[field.ordinal()];
+		if (descriptor.isShared())
+		{
+			return volatileSlotHelper.volatileRead(
+				objectSlots, field.ordinal());
+		}
+		else
+		{
+			return objectSlots[field.ordinal()];
+		}
+	}
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver.  Use volatile write semantics.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The one-based subscript to offset the field.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
+	final void setVolatileSlot (
+		final ObjectSlotsEnum field,
+		final int subscript,
+		final A_BasicObject anAvailObject)
+	{
+		checkSlot(field);
+		checkWriteForField(field);
+		if (descriptor.isShared())
+		{
+			// The receiver is shared, so the new value must become shared
+			// before it can be stored.
+			volatileSlotHelper.volatileWrite(
+				objectSlots,
+				field.ordinal() + subscript - 1,
+				anAvailObject.makeShared());
+		}
+		else
+		{
+			objectSlots[field.ordinal() + subscript - 1] =
+				(AvailObject) anAvailObject;
+		}
 	}
 
 	/**
@@ -747,29 +947,22 @@ implements A_BasicObject
 	{
 		checkSlot(field);
 		checkWriteForField(field);
-		final AvailObject valueToWrite;
 		if (descriptor.isShared())
 		{
-			// If the receiver is shared, then the new value must become shared
+			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
-			// Note: Don't acquire the object's monitor for this, since we want
-			// weaker memory semantics.
-			valueToWrite = anAvailObject.traversed().makeShared();
+			volatileSlotHelper.volatileWrite(
+				objectSlots, field.ordinal(), anAvailObject.makeShared());
 		}
 		else
 		{
-			valueToWrite = (AvailObject)anAvailObject;
+			objectSlots[field.ordinal()] = (AvailObject) anAvailObject;
 		}
-		setSlot(field, valueToWrite);
-		// Force volatile semantics by performing a compare-and-set on the
-		// descriptor field (leaving it safely unmodified).
-		descriptorFieldUpdater.compareAndSet(this, descriptor, descriptor);
 	}
 
 	/**
 	 * Store the {@linkplain AvailObject object} in the specified slot of the
-	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
-	 * acquire its monitor.
+	 * receiver, using volatile-write semantics if the receiver is shared.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param anAvailObject The object to store at the specified slot.
@@ -778,29 +971,12 @@ implements A_BasicObject
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
-		checkSlot(field);
-		checkWriteForField(field);
-		if (descriptor.isShared())
-		{
-			// If the receiver is shared, then the new value must become shared
-			// before it can be stored.
-			final AvailObject shared = anAvailObject.traversed().makeShared();
-			//noinspection SynchronizeOnThis
-			synchronized (this)
-			{
-				objectSlots[field.ordinal()] = shared;
-			}
-		}
-		else
-		{
-			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
-		}
+		setVolatileSlot(field, anAvailObject);
 	}
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
-	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
-	 * acquire its monitor.
+	 * receiver, using volatile-read semantics if the receiver is shared.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
@@ -810,47 +986,7 @@ implements A_BasicObject
 		final ObjectSlotsEnum field,
 		final int subscript)
 	{
-		checkSlot(field);
-		if (descriptor.isShared())
-		{
-			synchronized (this)
-			{
-				return objectSlots[field.ordinal() + subscript - 1];
-			}
-		}
-		return objectSlots[field.ordinal() + subscript - 1];
-	}
-
-	/**
-	 * Store the {@linkplain AvailObject object} in the specified slot of the
-	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
-	 * acquire its monitor.
-	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anAvailObject The object to store at the specified slot.
-	 */
-	public final void setMutableSlot (
-		final ObjectSlotsEnum field,
-		final int subscript,
-		final AvailObject anAvailObject)
-	{
-		checkSlot(field);
-		checkWriteForField(field);
-		if (descriptor.isShared())
-		{
-			// If the receiver is shared, then the new value must become shared
-			// before it can be stored.
-			final AvailObject shared = anAvailObject.traversed().makeShared();
-			synchronized (this)
-			{
-				objectSlots[field.ordinal() + subscript - 1] = shared;
-			}
-		}
-		else
-		{
-			objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
-		}
+		return volatileSlot(field, subscript);
 	}
 
 	/**
@@ -1116,7 +1252,7 @@ implements A_BasicObject
 	}
 
 	/**
-	 * Construct a new {@link AvailObjectRepresentation}.
+	 * Construct a new {@code AvailObjectRepresentation}.
 	 *
 	 * @param descriptor This object's {@link AbstractDescriptor}.
 	 * @param objectSlotsSize The number of object slots to allocate.

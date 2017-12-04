@@ -41,10 +41,13 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -96,6 +99,15 @@ public final class L2BasicBlock
 	 * block.
 	 */
 	private boolean hasControlFlowAtEnd = false;
+
+	/**
+	 * This is only populated during optimization, while the control flow graph
+	 * is still in SSA form.  When populated, it contains the registers which
+	 * are known to be live at the start of the block.  These are registers
+	 * which have definitely been written before each predecessor edge, and will
+	 * be read in this block or at least one of its descendants.
+	 */
+	public final Set<L2Register> liveInRegisters = new HashSet<>();
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -377,7 +389,8 @@ public final class L2BasicBlock
 
 	/**
 	 * Append an instruction to this basic block, notifying the operands that
-	 * the instruction was just added.
+	 * the instruction was just added.  Adding a phi instruction automatically
+	 * places it at the start.
 	 *
 	 * @param instruction The {@link L2Instruction} to append.
 	 */
@@ -390,7 +403,8 @@ public final class L2BasicBlock
 
 	/**
 	 * Append an instruction to this basic block, without telling the operands
-	 * that the instruction was just added.
+	 * that the instruction was just added.  Adding a phi instruction
+	 * automatically places it at the start.
 	 *
 	 * @param instruction The {@link L2Instruction} to append.
 	 */
@@ -400,7 +414,7 @@ public final class L2BasicBlock
 		assert instruction.basicBlock == this;
 		if (instruction.operation.isPhi())
 		{
-			// For simplicity, phi functions are added to the *start* of the
+			// For simplicity, phi functions are routed to the *start* of the
 			// block.
 			instructions.add(0, instruction);
 		}
@@ -412,6 +426,23 @@ public final class L2BasicBlock
 		hasControlFlowAtEnd = instruction.altersControlFlow();
 	}
 
+	/**
+	 * Insert an instruction in this basic block at the specified instruction
+	 * index, notifying the operands that the instruction was just added.
+	 *
+	 * @param index The index at which to insert the instruction.
+	 * @param instruction The {@link L2Instruction} to insert.
+	 */
+	public void insertInstruction (
+		final int index,
+		final L2Instruction instruction)
+	{
+		assert isIrremovable() || hasPredecessors();
+		assert instruction.basicBlock == this;
+		instructions.add(index, instruction);
+		hasStartedCodeGeneration = true;
+		instruction.justAdded();
+	}
 
 	/**
 	 * Determine whether code added after the last instruction of this block

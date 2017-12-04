@@ -182,7 +182,6 @@ implements Comparable<BitField>
 	int extractFromLong (final long longValue)
 	{
 		return (int)((longValue >>> shift) & lowMask);
-
 	}
 
 	/**
