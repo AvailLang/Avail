@@ -71,7 +71,6 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
@@ -102,6 +101,7 @@ import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -202,8 +202,7 @@ public final class L1Translator
 			// out all phi information here.
 		}
 		return new L2PcOperand(
-			unreachableBlock,
-			new L2ReadPointerOperand[0]);
+			unreachableBlock, new L2ReadPointerOperand[0], liveConstants);
 	}
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
@@ -232,12 +231,22 @@ public final class L1Translator
 	private final L2ReadPointerOperand[] slotRegisters;
 
 	/**
-	 * Keep track of all constant-valued registers that have been generated in
-	 * the current block, so that they can be reused as needed.  This is
+	 * Keep track of all constant-valued registers that are live at the current
+	 * generation point, so that they can be reused as needed.  This is
 	 * especially handy for {@code nil}.
 	 */
-	private final Map<A_BasicObject, L2ReadPointerOperand>
-		constantsInCurrentBlock = new HashMap<>();
+	final Map<A_BasicObject, L2ReadPointerOperand> liveConstants =
+		new HashMap<>();
+
+	/**
+	 * Answer the current map of {@link #liveConstants}.
+	 *
+	 * @return A map from {@link A_BasicObject} to {@link L2ReadPointerOperand}.
+	 */
+	public Map<A_BasicObject, L2ReadPointerOperand> liveConstants ()
+	{
+		return liveConstants;
+	}
 
 	/**
 	 * Answer a copy of the current array of registers that represent the
@@ -293,7 +302,6 @@ public final class L1Translator
 	 */
 	public void startBlock (final L2BasicBlock block)
 	{
-		constantsInCurrentBlock.clear();
 		if (block.isIrremovable() || block.hasPredecessors())
 		{
 			currentBlock = block;
@@ -610,7 +618,7 @@ public final class L1Translator
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
 		final @Nullable L2ReadPointerOperand existingConstant =
-			constantsInCurrentBlock.get(value);
+			liveConstants.get(value);
 		if (existingConstant != null)
 		{
 			return existingConstant;
@@ -625,7 +633,7 @@ public final class L1Translator
 			new L2ConstantOperand(value),
 			registerWrite);
 		final L2ReadPointerOperand read = registerWrite.read();
-		constantsInCurrentBlock.put(value, read);
+		liveConstants.put(value, read);
 		return read;
 	}
 
@@ -733,8 +741,11 @@ public final class L1Translator
 			getSkipReturnCheck(),
 			new L2ReadVectorOperand(asList(slots)),
 			newContinuationRegister,
-			new L2PcOperand(onReturnIntoReified, readSlotsOnReturnIntoReified),
-			new L2PcOperand(afterCreation, slots));
+			new L2PcOperand(
+				onReturnIntoReified,
+				readSlotsOnReturnIntoReified,
+				liveConstants),
+			new L2PcOperand(afterCreation, slots, liveConstants));
 
 		startBlock(afterCreation);
 		// Right after creating the continuation.
@@ -742,6 +753,7 @@ public final class L1Translator
 
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
+		liveConstants.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk));
@@ -752,7 +764,8 @@ public final class L1Translator
 			new L2WriteIntOperand(newIntegerRegister())); //TODO MvG - Fix this when we have int phis
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(resumeBlock, readSlotsOnReturnIntoReified));
+			new L2PcOperand(
+				resumeBlock, readSlotsOnReturnIntoReified, liveConstants));
 	}
 
 	/**
@@ -780,6 +793,22 @@ public final class L1Translator
 		final @Nullable L2ReadPointerOperand register)
 	{
 		slotRegisters[slotIndex - 1] = register;
+	}
+
+	/**
+	 * Create an {@link L2PcOperand} with suitable defaults.
+	 *
+	 * @param targetBlock The target {@link L2BasicBlock}.
+	 * @return The new {@link L2PcOperand}.
+	 */
+	@InnerAccess
+	public L2PcOperand edgeTo (
+		final L2BasicBlock targetBlock)
+	{
+		return new L2PcOperand(
+			targetBlock,
+			slotRegisters(),
+			liveConstants);
 	}
 
 	/**
@@ -831,6 +860,11 @@ public final class L1Translator
 		 */
 		final L2BasicBlock failCheckBasicBlock;
 
+		/**
+		 * A read of the argument register being tested.  This register is the
+		 * original input, and has not been strengthened for having passed or
+		 * failed the type test.
+		 */
 		final L2ReadPointerOperand argumentBeforeComparison;
 
 		/**
@@ -1014,11 +1048,10 @@ public final class L1Translator
 					// type, since it's a known constant either way.
 					addInstruction(
 						L2_JUMP.instance,
-						new L2PcOperand(
-							(constantOrNull.isInstanceOf(intersection))
+						edgeTo(
+							constantOrNull.isInstanceOf(intersection)
 								? memento.passCheckBasicBlock
-								: memento.failCheckBasicBlock,
-							slotRegisters()));
+								: memento.failCheckBasicBlock));
 				}
 				else if (existingType.isSubtypeOf(superUnionElementType))
 				{
@@ -1029,11 +1062,10 @@ public final class L1Translator
 						superUnionElementType.isSubtypeOf(intersection);
 					addInstruction(
 						L2_JUMP.instance,
-						new L2PcOperand(
+						edgeTo(
 							passed
 								? memento.passCheckBasicBlock
-								: memento.failCheckBasicBlock,
-							slotRegisters()));
+								: memento.failCheckBasicBlock));
 				}
 				else if (superUnionElementTypeIsBottom
 					&& intersection.isEnumeration()
@@ -1061,10 +1093,9 @@ public final class L1Translator
 								? memento.failCheckBasicBlock
 								: createBasicBlock(
 									"test next case of enumeration");
-						final L2PcOperand passEdge = new L2PcOperand(
-							memento.passCheckBasicBlock, slotRegisters());
-						final L2PcOperand failEdge = new L2PcOperand(
-							nextCheckOrFail, slotRegisters());
+						final L2PcOperand passEdge = edgeTo(
+							memento.passCheckBasicBlock);
+						final L2PcOperand failEdge = edgeTo(nextCheckOrFail);
 						generateJumpIfEqualsConstant(
 							arg, instance, passEdge, failEdge);
 						if (!last)
@@ -1081,10 +1112,8 @@ public final class L1Translator
 						L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 						arg,
 						new L2ConstantOperand(intersection),
-						new L2PcOperand(
-							memento.passCheckBasicBlock, slotRegisters()),
-						new L2PcOperand(
-							memento.failCheckBasicBlock, slotRegisters()));
+						edgeTo(memento.passCheckBasicBlock),
+						edgeTo(memento.failCheckBasicBlock));
 				}
 				else
 				{
@@ -1116,10 +1145,8 @@ public final class L1Translator
 						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
 						unionReg.read(),
 						new L2ConstantOperand(intersection),
-						new L2PcOperand(
-							memento.passCheckBasicBlock, slotRegisters()),
-						new L2PcOperand(
-							memento.failCheckBasicBlock, slotRegisters()));
+						edgeTo(memento.passCheckBasicBlock),
+						edgeTo(memento.failCheckBasicBlock));
 				}
 
 				// Prepare to generate the pass block.  In particular, replace
@@ -1144,7 +1171,7 @@ public final class L1Translator
 				{
 					addInstruction(
 						L2_JUMP.instance,
-						new L2PcOperand(afterCall, slotRegisters()));
+						edgeTo(afterCall));
 				}
 				final L2ReadPointerOperand argBeforeTest =
 					memento.argumentBeforeComparison;
@@ -1202,7 +1229,7 @@ public final class L1Translator
 								resultReg.constantOrNull()));
 						addInstruction(
 							L2_JUMP.instance,
-							new L2PcOperand(afterCall, slotRegisters));
+							edgeTo(afterCall));
 						return;
 					}
 				}
@@ -1294,9 +1321,9 @@ public final class L1Translator
 						L2_RUN_INFALLIBLE_PRIMITIVE.argsOf(boolSource);
 					// If either operand of P_Equality is a constant, recurse to
 					// allow deeper replacement.
-					@Nullable A_BasicObject previousConstant;
+					@Nullable A_BasicObject previousConstant =
+						args.get(0).constantOrNull();
 					final L2ReadPointerOperand previousRegister;
-					previousConstant = args.get(0).constantOrNull();
 					if (previousConstant != null)
 					{
 						previousRegister = args.get(1);
@@ -1476,8 +1503,8 @@ public final class L1Translator
 			functionToCallReg,
 			new L2ReadVectorOperand(arguments),
 			new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-			new L2PcOperand(onReturn, slotsIfReified),
-			new L2PcOperand(onReification, slotsIfReified));
+			new L2PcOperand(onReturn, slotsIfReified, liveConstants),
+			new L2PcOperand(onReification, slotsIfReified, liveConstants));
 
 		// Reification has been requested while the call is in progress.
 		startBlock(onReification);
@@ -1487,9 +1514,8 @@ public final class L1Translator
 			constantRegister(nil),
 			newContinuationReg ->
 				addInstruction(
-					L2_RETURN.instance,
-					newContinuationReg,
-					constantIntRegister(1)),
+					L2_RETURN_NO_CHECK.instance,
+					newContinuationReg),
 			onReturn,
 			TO_RETURN_INTO);
 
@@ -1580,7 +1606,7 @@ public final class L1Translator
 			// the bad type handler.
 			addInstruction(
 				L2_JUMP.instance,
-				new L2PcOperand(failedCheck, slotRegisters()));
+				edgeTo(failedCheck));
 		}
 		else
 		{
@@ -1591,10 +1617,12 @@ public final class L1Translator
 				new L2PcOperand(
 					passedCheck,
 					slotRegisters(),
+					liveConstants,
 					valueReg.restrictedTo(expectedType, null)),
 				new L2PcOperand(
 					failedCheck,
 					slotRegisters(),
+					liveConstants,
 					valueReg.restrictedTo(TOP.o(), null)));
 		}
 
@@ -1612,8 +1640,8 @@ public final class L1Translator
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			variableToHoldValueWrite.read(),
 			valueReg,
-			new L2PcOperand(wroteVariable, slotRegisters()),
-			new L2PcOperand(wroteVariable, slotRegisters()));
+			edgeTo(wroteVariable),
+			edgeTo(wroteVariable));
 
 		// Whether the set succeeded or failed doesn't really matter, although
 		// it should always succeed for this freshly created variable.
@@ -1840,6 +1868,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupSucceeded,
 					slotRegisters(),
+					liveConstants,
 					new PhiRestriction(
 						functionReg.register(),
 						functionTypeUnion,
@@ -1849,6 +1878,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupFailed,
 					slotRegisters(),
+					liveConstants,
 					new PhiRestriction(
 						errorCodeReg.register(),
 						L2_LOOKUP_BY_VALUES.lookupErrorsType,
@@ -1915,6 +1945,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupSucceeded,
 					slotRegisters(),
+					liveConstants,
 					new PhiRestriction(
 						functionReg.register(),
 						functionTypeUnion,
@@ -1924,6 +1955,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupFailed,
 					slotRegisters(),
+					liveConstants,
 					new PhiRestriction(
 						errorCodeReg.register(),
 						L2_LOOKUP_BY_VALUES.lookupErrorsType,
@@ -2005,8 +2037,8 @@ public final class L1Translator
 
 		addInstruction(
 			L2_JUMP_IF_INTERRUPT.instance,
-			new L2PcOperand(serviceInterrupt, slotRegisters()),
-			new L2PcOperand(merge, slotRegisters()));
+			edgeTo(serviceInterrupt),
+			edgeTo(merge));
 
 		startBlock(serviceInterrupt);
 		// Service the interrupt:  Generate the reification instructions,
@@ -2066,8 +2098,8 @@ public final class L1Translator
 			getOperation,
 			variable,
 			destination,
-			new L2PcOperand(success, slotRegisters()),
-			new L2PcOperand(failure, slotRegisters()));
+			edgeTo(success),
+			edgeTo(failure));
 
 		// Emit the failure path.
 		startBlock(failure);
@@ -2121,8 +2153,8 @@ public final class L1Translator
 			setOperation,
 			variable,
 			newValue,
-			new L2PcOperand(successBlock, slotRegisters()),
-			new L2PcOperand(failureBlock, slotRegisters()));
+			edgeTo(successBlock),
+			edgeTo(failureBlock));
 
 		// Emit the failure off-ramp.
 		startBlock(failureBlock);
@@ -2155,7 +2187,7 @@ public final class L1Translator
 			"set variable failure");
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(successBlock, slotRegisters()));
+			edgeTo(successBlock));
 
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
@@ -2202,10 +2234,10 @@ public final class L1Translator
 		afterOptionalInitialPrimitiveBlock.makeIrremovable();
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(
-				afterOptionalInitialPrimitiveBlock, slotRegisters()));
+			edgeTo(afterOptionalInitialPrimitiveBlock));
 
 		startBlock(afterOptionalInitialPrimitiveBlock);
+		liveConstants.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2ImmediateOperand(-9));  // Default chunk can't be invalidated.
@@ -2262,7 +2294,7 @@ public final class L1Translator
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				readSlot(numArgs + 1),
 				getLatestReturnValue(code().localTypeAt(1).writeType()),
-				new L2PcOperand(success, slotRegisters()),
+				edgeTo(success),
 				unreachablePcOperand());
 			startBlock(success);
 		}
@@ -2334,7 +2366,7 @@ public final class L1Translator
 		// This instruction gets stripped out.
 //		addInstruction(
 //			L2_JUMP.instance,
-//			new L2PcOperand(reenterFromCallBlock, emptySlots));
+//			edgeTo(reenterFromCallBlock, emptySlots));
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
@@ -2356,8 +2388,9 @@ public final class L1Translator
 		final L2ReadPointerOperand[] emptySlots = new L2ReadPointerOperand[0];
 		addInstruction(
 			L2_INTERPRET_LEVEL_ONE.instance,
-			new L2PcOperand(reenterFromCallBlock, emptySlots),
-			new L2PcOperand(reenterFromInterruptBlock, emptySlots));
+			new L2PcOperand(reenterFromCallBlock, emptySlots, liveConstants),
+			new L2PcOperand(
+				reenterFromInterruptBlock, emptySlots, liveConstants));
 
 		// 4,5. If reified, calls return here.
 		startBlock(reenterFromCallBlock);
@@ -2365,7 +2398,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, emptySlots));
+			new L2PcOperand(loopBlock, emptySlots, liveConstants));
 
 		// 6,7. If reified, interrupts return here.
 		startBlock(reenterFromInterruptBlock);
@@ -2373,7 +2406,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, emptySlots));
+			new L2PcOperand(loopBlock, emptySlots, liveConstants));
 	}
 
 	@Override
@@ -2695,8 +2728,9 @@ public final class L1Translator
 			skipReturnCheckRead,
 			new L2ReadVectorOperand(vectorWithOnlyArgsPreserved),
 			destReg,
-			new L2PcOperand(initialBlock, new L2ReadPointerOperand[0]),
-			new L2PcOperand(afterCreation, slotRegisters()));
+			new L2PcOperand(
+				initialBlock, new L2ReadPointerOperand[0], emptyMap()),
+			edgeTo(afterCreation));
 		startBlock(afterCreation);
 
 		// Freeze all fields of the new object, including its caller,

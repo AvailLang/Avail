@@ -35,9 +35,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.InstanceTypeDescriptor;
-import com.avail.descriptor.SetDescriptor;
 
 import javax.annotation.Nullable;
 
@@ -46,7 +43,6 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -90,7 +86,12 @@ public final class TypeRestriction
 	{
 		if (constantOrNull != null)
 		{
-			if (!constantOrNull.isInstanceOf(type))
+			if (constantOrNull.equalsNil())
+			{
+				this.type = TOP.o();
+				this.constantOrNull = constantOrNull;
+			}
+			else if (!constantOrNull.isInstanceOf(type))
 			{
 				this.type = bottom();
 				this.constantOrNull = null;
@@ -140,7 +141,10 @@ public final class TypeRestriction
 		{
 			// The two restrictions are for the same constant value.
 			return new TypeRestriction(
-				instanceTypeOrMetaOn(constantOrNull), constantOrNull);
+				constantOrNull.equalsNil()
+					? TOP.o()
+					: instanceTypeOrMetaOn(constantOrNull),
+				constantOrNull);
 		}
 		else
 		{

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -40,10 +41,13 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
@@ -54,9 +58,7 @@ import static java.util.Arrays.asList;
  */
 public class L2PcOperand extends L2Operand
 {
-	/**
-	 * The {@link L2BasicBlock} that this operand refers to.
-	 */
+	/** The {@link L2BasicBlock} that this operand leads to. */
 	private L2BasicBlock targetBlock;
 
 	/** The instruction that this operand is part of. */
@@ -67,6 +69,12 @@ public class L2PcOperand extends L2Operand
 	 * virtual continuation when following this control flow edge.
 	 */
 	private final L2ReadPointerOperand[] slotRegisters;
+
+	/**
+	 * A map from constant values to registers holding them at this control flow
+	 * edge.
+	 */
+	private Map<A_BasicObject, L2ReadPointerOperand> liveConstants;
 
 	/**
 	 * The collection of {@link PhiRestriction}s along this particular control
@@ -95,10 +103,12 @@ public class L2PcOperand extends L2Operand
 	public L2PcOperand (
 		final L2BasicBlock targetBlock,
 		final L2ReadPointerOperand[] slotRegisters,
+		final Map<A_BasicObject, L2ReadPointerOperand> liveConstants,
 		final PhiRestriction... phiRestrictions)
 	{
 		this.targetBlock = targetBlock;
 		this.slotRegisters = slotRegisters.clone();
+		this.liveConstants = new HashMap<>(liveConstants);
 		this.phiRestrictions = phiRestrictions.clone();
 	}
 
@@ -120,6 +130,17 @@ public class L2PcOperand extends L2Operand
 	public L2ReadPointerOperand[] slotRegisters ()
 	{
 		return slotRegisters;
+	}
+
+	/**
+	 * Answer the map from constants to the constant-valued registers that are
+	 * live along this edge.
+	 *
+	 * @return A map from constants to registers.
+	 */
+	public Map<A_BasicObject, L2ReadPointerOperand> liveConstants ()
+	{
+		return liveConstants;
 	}
 
 	@Override
@@ -173,9 +194,12 @@ public class L2PcOperand extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("Pc(%d: %s)",
+		return format("Pc(%d: %s)[Consts=%s]",
 			targetBlock.offset(),
-			targetBlock.name());
+			targetBlock.name(),
+			liveConstants.values().stream()
+				.map(L2ReadPointerOperand::register)
+				.collect(toList()));
 	}
 
 	/**
@@ -216,7 +240,8 @@ public class L2PcOperand extends L2Operand
 		final L2Instruction jump = new L2Instruction(
 			newBlock,
 			L2_JUMP.instance,
-			new L2PcOperand(garbageBlock, slotRegisters, phiRestrictions));
+			new L2PcOperand(
+				garbageBlock, slotRegisters, liveConstants, phiRestrictions));
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
@@ -225,7 +250,7 @@ public class L2PcOperand extends L2Operand
 
 		// Create a new edge from the original source to the new block.
 		final L2PcOperand newEdge = new L2PcOperand(
-			newBlock, slotRegisters.clone(), phiRestrictions.clone());
+			newBlock, slotRegisters, liveConstants, phiRestrictions);
 		newEdge.instruction = originalSource;
 		newBlock.predecessorEdges().add(newEdge);
 

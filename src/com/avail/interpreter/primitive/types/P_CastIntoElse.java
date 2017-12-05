@@ -255,10 +255,12 @@ public final class P_CastIntoElse extends Primitive
 				new L2PcOperand(
 					castBlock,
 					translator.slotRegisters(),
+					translator.liveConstants(),
 					valueReg.restrictedTo(typeTest, null)),
 				new L2PcOperand(
 					elseBlock,
 					translator.slotRegisters(),
+					translator.liveConstants(),
 					valueReg.restrictedWithoutType(typeTest)));
 		}
 		else
@@ -279,8 +281,8 @@ public final class P_CastIntoElse extends Primitive
 				L2_JUMP_IF_KIND_OF_OBJECT.instance,
 				valueReg,
 				parameterTypeWrite.read(),
-				new L2PcOperand(castBlock, translator.slotRegisters()),
-				new L2PcOperand(elseBlock, translator.slotRegisters()));
+				translator.edgeTo(castBlock),
+				translator.edgeTo(elseBlock));
 		}
 
 		// We couldn't skip the runtime type check, which takes us to either
@@ -297,7 +299,7 @@ public final class P_CastIntoElse extends Primitive
 				"cast body");
 		translator.addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(mergeBlock, translator.slotRegisters()));
+			translator.edgeTo(mergeBlock));
 		// Check if the jump above was actually reachable.
 		final boolean canReachMergeFromCastBody = mergeBlock.hasPredecessors();
 
@@ -312,7 +314,7 @@ public final class P_CastIntoElse extends Primitive
 				"cast else");
 		translator.addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(mergeBlock, translator.slotRegisters()));
+			translator.edgeTo(mergeBlock));
 
 		translator.startBlock(mergeBlock);
 		final TypeRestriction mergeRestriction =

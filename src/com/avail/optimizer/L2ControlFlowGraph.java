@@ -533,61 +533,30 @@ public final class L2ControlFlowGraph
 				final List<L2ReadPointerOperand> sourceReaders =
 					L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(instruction);
 
-				// Check for the special case that all the phi sources supply
-				// the same constant value.
+				// Insert a non-SSA move in each predecessor block.
 				for (int i = 0; i < fanIn; i++)
 				{
-					final @Nullable A_BasicObject newConstant =
-						sourceReaders.get(i).constantOrNull();
-					if (newConstant == null
-						|| (constant != null && !newConstant.equals(constant)))
-					{
-						constant = null;
-						break;
-					}
-					constant = newConstant;
-				}
-				if (constant != null)
-				{
-					// All inputs provide the same constant value.  Convert the
-					// phi into a constant move, rather than introduce non-SSA
-					// moves for it in the predecessor blocks.  Note that this
-					// may cause the incoming registers to be dead.  Also note
-					// that the order of these constant moves doesn't matter.
-					instructionsToPrepend.add(
-						new L2Instruction(
-							block,
-							L2_MOVE_CONSTANT.instance,
-							new L2ConstantOperand(constant),
-							targetWriter));
-				}
-				else
-				{
-					// Insert a non-SSA move in each predecessor block.
-					for (int i = 0; i < fanIn; i++)
-					{
-						final L2BasicBlock predecessor =
-							predecessors.get(i).sourceBlock();
-						final List<L2Instruction> instructions =
-							predecessor.instructions();
-						assert predecessor.finalInstruction().operation
-							instanceof L2_JUMP;
-						final L2ObjectRegister sourceReg =
-							L2ObjectRegister.class.cast(phiSources.get(i));
+					final L2BasicBlock predecessor =
+						predecessors.get(i).sourceBlock();
+					final List<L2Instruction> instructions =
+						predecessor.instructions();
+					assert predecessor.finalInstruction().operation
+						instanceof L2_JUMP;
+					final L2ObjectRegister sourceReg =
+						L2ObjectRegister.class.cast(phiSources.get(i));
 
-						// TODO MvG - Eventually we'll need phis for int and
-						// float registers.  We'll move responsibility for
-						// constructing the move into the specific L2Operation
-						// subclasses.
-						final L2Instruction move =
-							new L2Instruction(
-								predecessor,
-								L2_MOVE.instance,
-								new L2ReadPointerOperand(sourceReg, null),
-								targetWriter);
-						instructions.add(instructions.size() - 1, move);
-						move.justAdded();
-					}
+					// TODO MvG - Eventually we'll need phis for int and
+					// float registers.  We'll move responsibility for
+					// constructing the move into the specific L2Operation
+					// subclasses.
+					final L2Instruction move =
+						new L2Instruction(
+							predecessor,
+							L2_MOVE.instance,
+							new L2ReadPointerOperand(sourceReg, null),
+							targetWriter);
+					instructions.add(instructions.size() - 1, move);
+					move.justAdded();
 				}
 				// Eliminate the phi function itself.
 				instructionIterator.remove();

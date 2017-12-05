@@ -189,8 +189,8 @@ public final class P_Assert extends Primitive
 			L2_JUMP_IF_EQUALS_CONSTANT.instance,
 			arguments.get(0),
 			new L2ConstantOperand(trueObject()),
-			new L2PcOperand(afterPath, translator.slotRegisters()),
-			new L2PcOperand(failPath, translator.slotRegisters()));
+			translator.edgeTo(afterPath),
+			translator.edgeTo(failPath));
 
 		translator.startBlock(failPath);
 		// Since this invocation will also be optimized, pass the constant false
@@ -206,7 +206,7 @@ public final class P_Assert extends Primitive
 			"assertion failure");
 		translator.addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(afterPath, translator.slotRegisters()));
+			translator.edgeTo(afterPath));
 
 		// And converge back here.  This assertion primitive always answers nil.
 		translator.startBlock(afterPath);

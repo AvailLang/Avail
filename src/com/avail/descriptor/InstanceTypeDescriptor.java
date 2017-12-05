@@ -717,6 +717,7 @@ extends AbstractEnumerationTypeDescriptor
 	public static AvailObject instanceType (final A_BasicObject instance)
 	{
 		assert !instance.isType();
+		assert !instance.equalsNil();
 		final AvailObject result = mutable.create();
 		instance.makeImmutable();
 		result.setSlot(INSTANCE, instance);

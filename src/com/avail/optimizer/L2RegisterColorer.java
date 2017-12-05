@@ -153,8 +153,7 @@ public final class L2RegisterColorer
 	}
 
 	/**
-	 * Calculate the register interference graph.  The control flow graph must
-	 * be in SSA form.
+	 * Calculate the register interference graph.
 	 */
 	void computeInterferenceGraph ()
 	{
