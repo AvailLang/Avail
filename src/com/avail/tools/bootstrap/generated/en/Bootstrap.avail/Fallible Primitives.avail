@@ -86,6 +86,7 @@ Uses
 		"_[_]",
 		"_[_]:=_",
 		"_[_]→_",
+		"_[_↔_]",
 		"_has definition for_",
 		"_is unambiguous",
 		"_occurrences⁇of_",
@@ -3482,9 +3483,9 @@ Primitive "_[_]:=_" is
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired method.
  * @returns "(⊤)'s type"
- *    TODO
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
+ *    The Java methods return type.
+ * @raises "{8}"
+ * @raises "{9}"
  */
 Primitive "return type of_._«parameterized by»⁇_" is
 [
@@ -3696,6 +3697,33 @@ Primitive "_«[_]»(_.._)→_" is
 		incorrect-argument-type code,
 		key-not-found code,
 		negative-size code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
+
+/**
+ * Produce a tuple like the given tuple, but with the elements at the given
+ * indices interchanged.
+ *
+ * @category "Primitives"
+ * @method "_[_↔_]"
+ * @param "aTuple" "tuple"
+ *        The initial tuple.
+ * @param "index1" "natural number"
+ *        An index into the tuple.
+ * @param "index2" "natural number"
+ *        Another index into the tuple.
+ * @returns "tuple"
+ *    A tuple like the input, but with the specified indices swapped.
+ * @raises "subscript-out-of-bounds exception"
+ */
+Primitive "_[_↔_]" is
+[
+	aTuple : tuple,
+	index1 : natural number,
+	index2 : natural number
+|
+	Primitive TupleSwapElements (failureCode : {
+		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 

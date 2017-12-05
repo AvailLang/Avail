@@ -110,7 +110,6 @@ Names
 	"_[_..]else_",
 	"_[.._]else_",
 	"_[_.._]→_",
-	"_[_↔_]",
 	"_↑-=_",
 	"_-=_",
 	"«_‡zip»"
@@ -3124,34 +3123,6 @@ Semantic restriction "_[_.._]→_" is
 ];
 
 /**
- * Compute an answer that is the result of swapping the elements of {@param
- * "aTuple"} at {@param "index1"} and {@param "index2"}.
- *
- * @method "_[_↔_]"
- * @param "aTuple" "tuple"
- *        A tuple.
- * @param "index1" "natural number"
- *        A subscript.
- * @param "index2" "natural number"
- *        A subscript.
- * @returns "tuple"
- *          A variant of {@param "aTuple"} whose elements at indices {@param
- *          "index1"} and {@param "index2"} have been exchanged. No other
- *          elements are affected.
- * @category "Tuples" "Transformers"
- */
-Public stable method "_[_↔_]" is
-[
-	aTuple : tuple,
-	index1 : natural number,
-	index2 : natural number
-|
-	element2 ::= aTuple[index2];
-	temp ::= aTuple[index2]→aTuple[index1];
-	temp[index1]→element2
-] : tuple;
-
-/**
  * @method "_[_↔_]"
  * @restricts "tuple's type"
  * @restricts "natural number's type"
@@ -3485,7 +3456,7 @@ Print: “z”;
 
 /**
  * An implementation of insertion sort that accepts a tuple to be sorted and
- * the predicate that defines how sorting occurs. This only used for sorting
+ * the predicate that defines how sorting occurs. This is only used for sorting
  * small tuples.
  *
  * @method "insertion sort_with_"
