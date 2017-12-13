@@ -582,11 +582,14 @@ public class CompilerDiagnostics
 		final ProblemsAtPosition lastProblem =
 			ascending.get(ascending.size() - 1);
 		final int finalLineNumber = lastProblem.lineNumber();
-		final int startOfNextLine = 1 + firstIndexOf(
+		int startOfNextLine = 1 + firstIndexOf(
 			source,
 			'\n',
 			lastProblem.lexingStateAfterToken.position,
 			source.tupleSize());
+		startOfNextLine = startOfNextLine != 1
+			? startOfNextLine
+			: source.tupleSize() + 1;
 		int startOfSecondNextLine = 1 + firstIndexOf(
 			source, '\n', startOfNextLine, source.tupleSize());
 		startOfSecondNextLine = startOfSecondNextLine != 1
