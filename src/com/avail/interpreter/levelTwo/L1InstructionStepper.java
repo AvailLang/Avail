@@ -280,13 +280,12 @@ public final class L1InstructionStepper
 					finally
 					{
 						final long afterLookup = System.nanoTime();
-						bundle.dynamicLookupStatistic().record(
-							afterLookup - beforeLookup,
-							interpreter.interpreterIndex);
+						interpreter.recordDynamicLookup(
+							bundle, afterLookup - beforeLookup);
 					}
 
 					final @Nullable StackReifier reifier =
-						callMethodAfterLookup(matching);
+						callMethodAfterLookup(matching, expectedReturnType);
 					if (reifier != null)
 					{
 						return reifier;
@@ -647,13 +646,12 @@ public final class L1InstructionStepper
 					finally
 					{
 						final long afterLookup = System.nanoTime();
-						bundle.dynamicLookupStatistic().record(
-							afterLookup - beforeLookup,
-							interpreter.interpreterIndex);
+						interpreter.recordDynamicLookup(
+							bundle, afterLookup - beforeLookup);
 					}
 
 					final @Nullable StackReifier reifier =
-						callMethodAfterLookup(matching);
+						callMethodAfterLookup(matching, expectedReturnType);
 					if (reifier != null)
 					{
 						return reifier;
@@ -845,8 +843,11 @@ public final class L1InstructionStepper
 	 *         progress.
 	 */
 	private @Nullable StackReifier callMethodAfterLookup (
-		final A_Definition matching)
+		final A_Definition matching,
+		final A_Type expectedReturnType)
 	{
+		// At this point, the frame information is still the same, but we've set
+		// up argsBuffer.
 		if (matching.isForwardDefinition())
 		{
 			return reifyAndReportFailedLookup(
@@ -857,9 +858,6 @@ public final class L1InstructionStepper
 			return reifyAndReportFailedLookup(
 				matching.definitionMethod(), E_ABSTRACT_METHOD_DEFINITION);
 		}
-		// At this point, the frame information is still the same,
-		// but we've set up argsBuffer.
-		interpreter.skipReturnCheck = false;
 
 		final A_Function savedFunction = stripNull(interpreter.function);
 		assert interpreter.chunk == unoptimizedChunk();
@@ -934,6 +932,22 @@ public final class L1InstructionStepper
 			stackp = savedStackp;
 		}
 		// Regular return.
+		//
+		// A call from L1 code doesn't have anywhere to reliably store the
+		// guaranteed type from an invocation (nor update it if method
+		// defintions are added or removed).  Therefore we must always check the
+		// return type.
+		//
+		// However... we know the function that was called (and returned
+		// normally, since reification didn't happen), so we can check for the
+		// common case that the expected type and the function's return type are
+		// the same, skipping the test in that special case.  Throwing more
+		// effort at it would only serve to duplicate optimizations that L2
+		// accomplishes.
+		final A_Type functionReturnType =
+			functionToInvoke.code().functionType().returnType();
+		interpreter.skipReturnCheck =
+			functionReturnType.equals(expectedReturnType);
 		return null;
 	}
 

@@ -238,7 +238,7 @@ public class TupleReverseTest
 		// Small size where copies are made
 
 		final AvailObject myByteTupleSmall = generateByteTupleFrom(
-			3, index -> (short)index);
+			3, index -> (short) index);
 		final AvailObject myByteTupleSmallReversed =
 			generateByteTupleFrom(
 				3,
@@ -275,7 +275,7 @@ public class TupleReverseTest
 		final ByteBuffer aByteBufferReversed = ByteBuffer.allocate(36);
 		for (int i = 36; i > 0; i--)
 		{
-			aByteBufferReversed.put((byte)(1 + i));
+			aByteBufferReversed.put((byte) (1 + i));
 		}
 		aByteBufferReversed.flip();
 		final A_Tuple myByteBufferTupleReversed =
@@ -335,7 +335,7 @@ public class TupleReverseTest
 
 		for (int i = 35; i >= 0; i--)
 		{
-			aByteArrayReversed[35-i] = (byte)(2 + i);
+			aByteArrayReversed[35-i] = (byte) (2 + i);
 		}
 
 		final A_Tuple myByteBufferTupleReversed =

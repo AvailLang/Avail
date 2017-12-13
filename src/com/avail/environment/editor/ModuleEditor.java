@@ -62,7 +62,7 @@ import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.StyledText;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -93,10 +93,6 @@ import static com.avail.environment.editor.ModuleEditorStyle.*;
 public final class ModuleEditor
 	extends Scene
 {
-	/**
-	 * An {@link AvailScannerResult} from scanning the file.
-	 */
-	private AvailScannerResult scannerResult;
 
 	/**
 	 * A reference to the {@link AvailWorkbench}..
@@ -167,7 +163,7 @@ public final class ModuleEditor
 	}
 
 	/**
-	 * Close this {@link ModuleEditor}, throwing away any changes, and open a
+	 * Close this {@code ModuleEditor}, throwing away any changes, and open a
 	 * fresh copy from the file system.
 	 */
 	private void reloadModule ()
@@ -184,7 +180,7 @@ public final class ModuleEditor
 	}
 
 	/**
-	 * Answer a new {@link ModuleEditor}.
+	 * Answer a new {@code ModuleEditor}.
 	 *
 	 * @param module
 	 *        The {@link ResolvedModuleName} that represents the module to open.
@@ -195,11 +191,12 @@ public final class ModuleEditor
 	 * @return A {@code ModuleEditor}.
 	 */
 	public static ModuleEditor moduleViewer (
-		final @Nonnull ResolvedModuleName module,
-		final @Nonnull AvailWorkbench workbench,
-		final @Nonnull JFrame frame)
+		final ResolvedModuleName module,
+		final AvailWorkbench workbench,
+		final JFrame frame)
 	{
 		final AvailArea availArea = new AvailArea(workbench);
+		//noinspection StringConcatenationMissingWhitespace
 		availArea.setParagraphGraphicFactory(
 			LineNumberFactory.get(availArea, digits -> "%1$" + digits + "s"));
 		availArea.getStyle();
@@ -240,7 +237,7 @@ public final class ModuleEditor
 	}
 
 	/**
-	 * Write the content of the {@link ModuleEditor} to disk.
+	 * Write the content of the {@code ModuleEditor} to disk.
 	 *
 	 * <p>
 	 * This operation blocks until it can acquire the {@link #stylingSemaphore}. This
@@ -309,7 +306,7 @@ public final class ModuleEditor
 	 * A {@linkplain Map map} from Avail header keywords to the associated
 	 * {@link ExpectedToken}s.
 	 */
-	private static final @Nonnull Map<A_String, ExpectedToken> headerKeywords;
+	private static final Map<A_String, ExpectedToken> headerKeywords;
 
 	static
 	{
@@ -394,10 +391,10 @@ public final class ModuleEditor
 	 *        a styling operation completes.
 	 */
 	private void asyncStyleOutputTokens (
-		final @Nonnull List<A_Token> outputTokens,
-		final @Nonnull Map<A_Token, ModuleEditorStyle> tokenStyles,
-		final @Nonnull Map<A_String, ModuleEditorStyle> nameStyles,
-		final @Nonnull Semaphore semaphore)
+		final List<A_Token> outputTokens,
+		final Map<A_Token, ModuleEditorStyle> tokenStyles,
+		final Map<A_String, ModuleEditorStyle> nameStyles,
+		final Semaphore semaphore)
 	{
 		// Override the general style for each ordinary token.
 		outputTokens.parallelStream().forEach(token ->
@@ -440,7 +437,7 @@ public final class ModuleEditor
 	/**
 	 * The {@linkplain Pattern pattern} that describes Stacks keywords.
 	 */
-	private static final @Nonnull Pattern stacksKeywordPattern =
+	private static final Pattern stacksKeywordPattern =
 		Pattern.compile("@\\w+");
 
 	/**
@@ -494,7 +491,7 @@ public final class ModuleEditor
 //                continue;
 //				}
 //			}
-//			catch (final @Nonnull StacksScannerException e)
+//			catch (final StacksScannerException e)
 //			{
 //				// This comment is busted — style it appropriately.
 //				styleToken(token, MALFORMED_STACKS_COMMENT);
@@ -537,8 +534,8 @@ public final class ModuleEditor
 	 *        a styling operation completes.
 	 */
 	private void asyncStyleOrdinaryComments (
-		final @Nonnull List<BasicCommentPosition> positions,
-		final @Nonnull Semaphore semaphore)
+		final List<BasicCommentPosition> positions,
+		final Semaphore semaphore)
 	{
 		positions.forEach(position ->
 			Platform.runLater(() ->
@@ -562,7 +559,8 @@ public final class ModuleEditor
 	/** Accumulate a sequence of styles as tokens are processed. */
 	private class StyleSpansAccumulator
 	{
-		final StyleSpansBuilder spansBuilder = new StyleSpansBuilder(1000);
+		final StyleSpansBuilder<ModuleEditorStyle> spansBuilder =
+			new StyleSpansBuilder<>(1000);
 
 		int lastPosition = 0;
 
@@ -575,11 +573,10 @@ public final class ModuleEditor
 			{
 				assert tokenStart > lastPosition;
 				spansBuilder.add(
-					new StyleSpan(
-						GENERAL.styleClass, tokenStart - lastPosition));
+					new StyleSpan<>(GENERAL, tokenStart - lastPosition));
 				lastPosition = tokenStart;
 			}
-			spansBuilder.add(new StyleSpan(style, tokenEnd - tokenStart));
+			spansBuilder.add(new StyleSpan<>(style, tokenEnd - tokenStart));
 			lastPosition = tokenEnd;
 		}
 	}
@@ -595,17 +592,15 @@ public final class ModuleEditor
 		try
 		{
 			// Scan the source module to produce all tokens.
-			scannerResult = AvailScanner.scanString(
-				source,
-				resolvedModuleName.localName(),
-				false);
+			final AvailScannerResult scannerResult = AvailScanner.scanString(
+				source, resolvedModuleName.localName(), false);
 
 			// Tag each token of the header with the appropriate style.
 			final List<A_Token> outputTokens = scannerResult.outputTokens();
 			final int outputTokenCount = outputTokens.size();
 			final Map<A_Token, ModuleEditorStyle> tokenStyles =	new HashMap<>();
 			final Map<A_String, ModuleEditorStyle> nameStyles = new HashMap<>();
-			ModuleEditorStyle activeStyle = null;
+			@Nullable ModuleEditorStyle activeStyle = null;
 			for (final A_Token token : outputTokens)
 			{
 				final A_String lexeme = token.string().makeShared();
@@ -624,12 +619,14 @@ public final class ModuleEditor
 						break;
 					}
 				}
-				else if (expected == ExpectedToken.OPEN_PARENTHESIS)
+				else if (expected == ExpectedToken.OPEN_PARENTHESIS
+					&& activeStyle != null)
 				{
 					// Activate the subsection style.
 					activeStyle = activeStyle.subsectionStyleClass;
 				}
-				else if (expected == ExpectedToken.CLOSE_PARENTHESIS)
+				else if (expected == ExpectedToken.CLOSE_PARENTHESIS
+					&& activeStyle != null)
 				{
 					// Deactivate the subsection style.
 					activeStyle = activeStyle.supersectionStyleClass;
@@ -689,14 +686,14 @@ public final class ModuleEditor
 			semaphore.acquire();
 //			codeArea.requestFollowCaret();
 		}
-		catch (final @Nonnull AvailScannerException|InterruptedException e)
+		catch (final AvailScannerException|InterruptedException e)
 		{
-			scannerResult = null;
+			// Ignore problem.
 		}
 	}
 
 	/**
-	 * Construct a {@link ModuleEditor}.
+	 * Construct a {@code ModuleEditor}.
 	 *
 	 * @param root
 	 *        The root node of the {@link Scene} graph.

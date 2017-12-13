@@ -144,7 +144,7 @@ extends Descriptor
 		{
 			this.limitDouble = limitDouble;
 			this.limitDoubleObject = fromDouble(limitDouble).makeShared();
-			this.limitFloat = (float)limitDouble;
+			this.limitFloat = (float) limitDouble;
 			this.limitFloatObject = fromFloat(limitFloat).makeShared();
 		}
 
@@ -709,7 +709,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger);
+		final AvailObject anInteger);
 
 	@Override @AvailMethod
 	abstract Order o_NumericCompareToInfinity (
@@ -730,7 +730,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
@@ -754,7 +754,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
@@ -766,7 +766,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
@@ -778,7 +778,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod

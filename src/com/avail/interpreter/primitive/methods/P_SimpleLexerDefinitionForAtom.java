@@ -128,6 +128,7 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
+			fiber.priority(),
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->

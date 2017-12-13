@@ -353,7 +353,7 @@ extends NumericTupleDescriptor
 		}
 		// Clobber the object in place...
 		final byte theByte =
-			(byte)((A_Number)newValueObject).extractUnsignedByte();
+			(byte) ((A_Number)newValueObject).extractUnsignedByte();
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		buffer.put(index - 1, theByte);
 		object.hashOrZero(0);
@@ -385,7 +385,7 @@ extends NumericTupleDescriptor
 		// case.
 		final ByteBuffer originalBuffer = object.byteBuffer();
 		final AvailObject result = generateByteTupleFrom(
-			size,  i -> (short)(originalBuffer.get(size - i) & 255));
+			size,  i -> (short) (originalBuffer.get(size - i) & 255));
 		result.hashOrZero(0);
 		return result;
 	}
@@ -477,7 +477,7 @@ extends NumericTupleDescriptor
 			// case.
 			final ByteBuffer originalBuffer = object.byteBuffer();
 			final AvailObject result = generateByteTupleFrom(
-				size, i -> (short)(originalBuffer.get(i + start - 2) & 255));
+				size, i -> (short) (originalBuffer.get(i + start - 2) & 255));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();

@@ -228,9 +228,9 @@ public class IndexedRepositoryManager
 	{
 		int h = currentHash;
 		h *= multiplier;
-		h += (int)newLong;
+		h += (int) newLong;
 		h *= multiplier;
-		h ^= (int)(newLong >> 32);
+		h ^= (int) (newLong >> 32);
 		return h;
 	}
 
@@ -608,7 +608,7 @@ public class IndexedRepositoryManager
 			{
 				return false;
 			}
-			final ModuleVersionKey key = (ModuleVersionKey)obj;
+			final ModuleVersionKey key = (ModuleVersionKey) obj;
 			return hash == key.hash
 				&& isPackage == key.isPackage
 				&& Arrays.equals(sourceDigest, key.sourceDigest);
@@ -727,7 +727,7 @@ public class IndexedRepositoryManager
 			{
 				return false;
 			}
-			final ModuleCompilationKey key = (ModuleCompilationKey)obj;
+			final ModuleCompilationKey key = (ModuleCompilationKey) obj;
 			return hash == key.hash
 				&& Arrays.equals(
 					predecessorCompilationTimes,

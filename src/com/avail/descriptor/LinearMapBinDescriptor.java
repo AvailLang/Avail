@@ -306,12 +306,12 @@ extends MapBinDescriptor
 		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			// Convert to a hashed bin.
-			int bitPosition = bitShift(keyHash, -6 * myLevel) & 63;
+			int bitPosition = bitShiftInt(keyHash, -6 * myLevel) & 63;
 			long bitVector = 1L << bitPosition;
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final int anotherKeyHash = object.intSlot(KEY_HASHES_AREA_, i);
-				bitPosition = bitShift(anotherKeyHash, -6 * myLevel) & 63;
+				bitPosition = bitShiftInt(anotherKeyHash, -6 * myLevel) & 63;
 				bitVector |= 1L << bitPosition;
 			}
 			final AvailObject result = createLevelBitVector(myLevel, bitVector);

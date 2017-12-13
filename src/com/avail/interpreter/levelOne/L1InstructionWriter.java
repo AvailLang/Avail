@@ -90,7 +90,7 @@ public class L1InstructionWriter
 		Integer index = reverseLiterals.get(literal);
 		if (index == null)
 		{
-			literals.add((AvailObject)literal);
+			literals.add((AvailObject) literal);
 			index = literals.size();
 			reverseLiterals.put(literal, index);
 		}
@@ -341,7 +341,7 @@ public class L1InstructionWriter
 		final int... operands)
 	{
 		stackTracker.track(operation, operands);
-		final byte opcode = (byte)operation.ordinal();
+		final byte opcode = (byte) operation.ordinal();
 		if (opcode <= 15)
 		{
 			stream.write(opcode);

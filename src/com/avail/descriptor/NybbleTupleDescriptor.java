@@ -158,7 +158,7 @@ extends NumericTupleDescriptor
 				0,
 				(originalSize & 15) == 0 ? 1 : 0);
 		}
-		setNybble(result, newSize, (byte)intValue);
+		setNybble(result, newSize, (byte) intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -574,8 +574,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Extract the nybble from the specified position of the {@linkplain
-	 * NybbleTupleDescriptor nybble tuple}.
+	 * Extract the nybble from the specified position of the nybble tuple.
 	 *
 	 * @param object A nybble tuple.
 	 * @param nybbleIndex The index.
@@ -593,8 +592,8 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Overwrite the specified position of the {@linkplain NybbleTupleDescriptor
-	 * nybble tuple} with a replacement nybble.
+	 * Overwrite the specified position of the nybble tuple with a replacement
+	 * nybble.
 	 *
 	 * @param object The nybble tuple.
 	 * @param nybbleIndex The index.
@@ -611,12 +610,12 @@ extends NumericTupleDescriptor
 		long longValue = object.slot(RAW_LONG_AT_, longIndex);
 		final int leftShift = ((nybbleIndex - 1) & 15) << 2;
 		longValue &= ~(0x0FL << leftShift);
-		longValue |= ((long)aNybble) << leftShift;
+		longValue |= ((long) aNybble) << leftShift;
 		object.setSlot(RAW_LONG_AT_, longIndex, longValue);
 	}
 
 	/**
-	 * Construct a new {@link NybbleTupleDescriptor}.
+	 * Construct a new {@code NybbleTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -644,10 +643,9 @@ extends NumericTupleDescriptor
 		for (final int excess
 			: new int[] {0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1})
 		{
-			for (final Mutability mut : Mutability.values())
-			{
-				descriptors[i++] = new NybbleTupleDescriptor(mut, excess);
-			}
+			descriptors[i++] = new NybbleTupleDescriptor(MUTABLE, excess);
+			descriptors[i++] = new NybbleTupleDescriptor(IMMUTABLE, excess);
+			descriptors[i++] = new NybbleTupleDescriptor(SHARED, excess);
 		}
 	}
 
@@ -674,12 +672,12 @@ extends NumericTupleDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link NybbleTupleDescriptor}.  Run the generator for each position in
+	 * of {@code NybbleTupleDescriptor}.  Run the generator for each position in
 	 * ascending order to produce the nybbles with which to populate the tuple.
 	 *
 	 * @param size The size of nybble tuple to create.
 	 * @param generator A generator to provide nybbles to store.
-	 * @return The new {@linkplain NybbleTupleDescriptor tuple}.
+	 * @return The new tuple of nybbles.
 	 */
 	public static AvailObject generateNybbleTupleFrom (
 		final int size,
@@ -698,7 +696,7 @@ extends NumericTupleDescriptor
 			{
 				final byte nybble = (byte) generator.value(tupleIndex++);
 				assert (nybble & 15) == nybble;
-				combined |= ((long)nybble) << shift;
+				combined |= ((long) nybble) << shift;
 			}
 			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
 		}
@@ -718,16 +716,15 @@ extends NumericTupleDescriptor
 	 * nybbles.
 	 *
 	 * @param object
-	 *         A {@linkplain NybbleTupleDescriptor nybble tuple} to copy as a
-	 *         {@linkplain ByteTupleDescriptor byte tuple}.
-	 * @return
-	 *         A new {@linkplain ByteTupleDescriptor byte tuple} with the same
+	 *        A nybble tuple to copy as a {@linkplain ByteTupleDescriptor byte
+	 *        tuple}.
+	 * @return A new {@linkplain ByteTupleDescriptor byte tuple} with the same
 	 *         sequence of integers as the argument.
 	 */
 	private static A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
 		final AvailObject result = generateByteTupleFrom(
-			object.tupleSize(), index -> (short)getNybble(object, index));
+			object.tupleSize(), index -> (short) getNybble(object, index));
 		result.hashOrZero(object.hashOrZero());
 		return result;
 	}
@@ -736,7 +733,7 @@ extends NumericTupleDescriptor
 	 * Build a new object instance with room for size elements.
 	 *
 	 * @param size The number of elements for which to leave room.
-	 * @return A mutable {@linkplain NybbleTupleDescriptor nybble tuple}.
+	 * @return A mutable nybble tuple.
 	 */
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
@@ -755,8 +752,8 @@ extends NumericTupleDescriptor
 	 *        How many elements are in a tuple to be represented by the
 	 *        descriptor.
 	 * @return
-	 *        A {@link NybbleTupleDescriptor} suitable for representing a
-	 *        nybble tuple of the given mutability and {@linkplain
+	 *        A {@code NybbleTupleDescriptor} suitable for representing a nybble
+	 *        tuple of the given mutability and {@linkplain
 	 *        AvailObject#tupleSize() size}.
 	 */
 	private static NybbleTupleDescriptor descriptorFor (

@@ -48,9 +48,9 @@ extends Scene
 	public NewModuleWindow (
 		@NamedArg("width") final double width,
 		@NamedArg("height") final double height,
-		final @Nonnull File directory,
-		final @Nonnull AvailWorkbench workbench,
-		final @Nonnull NewModuleTask task)
+		final File directory,
+		final AvailWorkbench workbench,
+		final NewModuleTask task)
 	{
 		super(
 			createWindowContent(task, directory, workbench),
@@ -71,10 +71,10 @@ extends Scene
 	 *        The owning {@link AvailWorkbench}.
 	 * @return A {@code VBox}.
 	 */
-	private static @Nonnull VBox createWindowContent (
-		final @Nonnull NewModuleTask task,
-		final @Nonnull File directory,
-		final @Nonnull AvailWorkbench workbench)
+	private static VBox createWindowContent (
+		final NewModuleTask task,
+		final File directory,
+		final AvailWorkbench workbench)
 	{
 		final Label moduleNameLabel = FXUtility.label(
 			"Module Name", 5.0, 0, 0, 0);

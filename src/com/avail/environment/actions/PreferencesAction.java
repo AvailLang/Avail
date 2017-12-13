@@ -103,7 +103,7 @@ extends AbstractWorkbenchAction
 
 		@Override
 		public void setValueAt (final Object value, final int row, final int column) {
-			rows.get(row).set(column, (String)value);
+			rows.get(row).set(column, (String) value);
 			fireTableCellUpdated(row, column);
 		}
 
@@ -415,7 +415,7 @@ extends AbstractWorkbenchAction
 		preferencesDialog.pack();
 		final Point topLeft = workbench.getLocation();
 		preferencesDialog.setLocation(
-			(int)topLeft.getX() + 22, (int)topLeft.getY() + 22);
+			(int) topLeft.getX() + 22, (int) topLeft.getY() + 22);
 	}
 
 	/**

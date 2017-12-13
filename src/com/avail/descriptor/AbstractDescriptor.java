@@ -150,7 +150,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer the {@linkplain Mutability#MUTABLE mutable} version of this
-	 * {@linkplain AbstractDescriptor descriptor}.
+	 * descriptor.
 	 *
 	 * @return A mutable descriptor equivalent to the receiver.
 	 */
@@ -158,7 +158,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
-	 * {@linkplain AbstractDescriptor descriptor}.
+	 * descriptor.
 	 *
 	 * @return An immutable descriptor equivalent to the receiver.
 	 */
@@ -166,15 +166,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer the {@linkplain Mutability#SHARED shared} version of this
-	 * {@linkplain AbstractDescriptor descriptor}.
+	 * descriptor.
 	 *
 	 * @return A shared descriptor equivalent to the receiver.
 	 */
 	abstract AbstractDescriptor shared ();
 
 	/**
-	 * Are {@linkplain AvailObject objects} using this {@linkplain
-	 * AbstractDescriptor descriptor} {@linkplain Mutability#SHARED shared}?
+	 * Are {@linkplain AvailObject objects} using this descriptor {@linkplain
+	 * Mutability#SHARED shared}?
 	 *
 	 * @return {@code true} if the described object is shared, {@code false}
 	 *         otherwise.
@@ -194,12 +194,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer the minimum number of object slots an {@link AvailObject} can have
-	 * if it uses this {@linkplain AbstractDescriptor descriptor}. Does not
-	 * include indexed slots possibly at the end. Populated automatically by the
-	 * constructor.
+	 * if it uses this descriptor. Does not include indexed slots possibly at
+	 * the end. Populated automatically by the constructor.
 	 *
 	 * @return The minimum number of object slots featured by an object using
-	 *         this {@linkplain AbstractDescriptor descriptor}.
+	 *         this descriptor.
 	 */
 	final int numberOfFixedObjectSlots ()
 	{
@@ -208,20 +207,18 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * The minimum number of integer slots an {@link AvailObject} can have if it
-	 * uses this {@linkplain AbstractDescriptor descriptor}. Does not include
-	 * indexed slots possibly at the end. Populated automatically by the
-	 * constructor.
+	 * uses this descriptor. Does not include indexed slots possibly at the end.
+	 * Populated automatically by the constructor.
 	 */
 	protected final int numberOfFixedIntegerSlots;
 
 	/**
 	 * Answer the minimum number of integer slots an {@link AvailObject} can
-	 * have if it uses this {@linkplain AbstractDescriptor descriptor}. Does not
-	 * include indexed slots possibly at the end. Populated automatically by the
-	 * constructor.
+	 * have if it uses this descriptor. Does not include indexed slots possibly
+	 * at the end. Populated automatically by the constructor.
 	 *
 	 * @return The minimum number of integer slots featured by an object using
-	 *         this {@linkplain AbstractDescriptor descriptor}.
+	 *         this descriptor.
 	 */
 	final int numberOfFixedIntegerSlots ()
 	{
@@ -229,25 +226,49 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Whether an {@linkplain AvailObject object} using this {@linkplain
-	 * AbstractDescriptor descriptor} can have more than the minimum number of
-	 * object slots. Populated automatically by the constructor.
+	 * Whether an {@linkplain AvailObject object} using this descriptor can have
+	 * more than the minimum number of object slots. Populated automatically by
+	 * the constructor, based on the presence of an underscore at the end of its
+	 * final {@link ObjectSlotsEnum} name.
 	 */
 	final boolean hasVariableObjectSlots;
 
 	/**
-	 * Can an {@linkplain AvailObject object} using this {@linkplain
-	 * AbstractDescriptor descriptor} have more than the {@linkplain
-	 * #numberOfFixedObjectSlots() minimum number of object slots}?
+	 * Can an {@linkplain AvailObject object} using this descriptor have more
+	 * than the {@linkplain #numberOfFixedObjectSlots() minimum number of object
+	 * slots}?
 	 *
 	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
-	 *         object} using this {@linkplain AbstractDescriptor descriptor}
-	 *         to have more than the {@linkplain #numberOfFixedObjectSlots()
-	 *         minimum number of object slots}, {@code false} otherwise.
+	 *         object} using this descriptor to have more than the {@linkplain
+	 *         #numberOfFixedObjectSlots() minimum number of object slots},
+	 *         {@code false} otherwise.
 	 */
 	protected final boolean hasVariableObjectSlots ()
 	{
 		return hasVariableObjectSlots;
+	}
+
+	/**
+	 * Whether an {@linkplain AvailObject object} using this descriptor can have
+	 * more than the minimum number of integer slots. Populated automatically by
+	 * the constructor, based on the presence of an underscore at the end of its
+	 * final {@link IntegerSlotsEnum} name.
+	 */
+	final boolean hasVariableIntegerSlots;
+
+	/**
+	 * Can an {@linkplain AvailObject object} using this descriptor have more
+	 * than the {@linkplain #numberOfFixedIntegerSlots() minimum number of
+	 * integer slots}?
+	 *
+	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
+	 *         object} using this descriptor to have more than the {@linkplain
+	 *         #numberOfFixedIntegerSlots() minimum number of integer slots},
+	 *         {@code false} otherwise.
+	 */
+	protected final boolean hasVariableIntegerSlots ()
+	{
+		return hasVariableIntegerSlots;
 	}
 
 	/**
@@ -256,28 +277,6 @@ public abstract class AbstractDescriptor
 	 * This is purely an optimization for fast type checking and dispatching.
 	 */
 	public final TypeTag typeTag;
-
-	/**
-	 * Whether an {@linkplain AvailObject object} using this {@linkplain
-	 * AbstractDescriptor descriptor} can have more than the minimum number of
-	 * integer slots. Populated automatically by the constructor.
-	 */
-	final boolean hasVariableIntegerSlots;
-
-	/**
-	 * Can an {@linkplain AvailObject object} using this {@linkplain
-	 * AbstractDescriptor descriptor} have more than the {@linkplain
-	 * #numberOfFixedIntegerSlots() minimum number of integer slots}?
-	 *
-	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
-	 *         object} using this {@linkplain AbstractDescriptor descriptor}
-	 *         to have more than the {@linkplain #numberOfFixedIntegerSlots()
-	 *         minimum number of integer slots}, {@code false} otherwise.
-	 */
-	protected final boolean hasVariableIntegerSlots ()
-	{
-		return hasVariableIntegerSlots;
-	}
 
 	/**
 	 * Used for quickly checking object fields when {@link
@@ -296,12 +295,14 @@ public abstract class AbstractDescriptor
 	 * Note: This is a logical shift *without* Java's implicit modulus on the
 	 * shift amount.
 	 *
-	 * @param value The value to shift.
-	 * @param leftShift The amount to shift left. If negative, shift right by
-	 *                  the corresponding positive amount.
+	 * @param value
+	 *        The value to shift.
+	 * @param leftShift
+	 *        The amount to shift left. If negative, shift right by the
+	 *        corresponding positive amount.
 	 * @return The shifted integer, modulus 2^32 then cast to {@code int}.
 	 */
-	protected static int bitShift (final int value, final int leftShift)
+	protected static int bitShiftInt (final int value, final int leftShift)
 	{
 		if (leftShift >= 32)
 		{
@@ -327,7 +328,7 @@ public abstract class AbstractDescriptor
 	 *                  the corresponding positive amount.
 	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
 	 */
-	protected static long bitShift (final long value, final int leftShift)
+	protected static long bitShiftLong (final long value, final int leftShift)
 	{
 		if (leftShift >= 64)
 		{
@@ -353,7 +354,7 @@ public abstract class AbstractDescriptor
 	 *                  the corresponding positive amount.
 	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
 	 */
-	protected static long arithmeticBitShift (
+	protected static long arithmeticBitShiftLong (
 		final long value,
 		final int leftShift)
 	{
@@ -374,20 +375,20 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain AbstractDescriptor descriptor}.
+	 * Construct a new {@code AbstractDescriptor descriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@link Mutability} of the new descriptor.
 	 * @param typeTag
-	 *            The {@link TypeTag} to embed in the new descriptor.
+	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's object slots layout,
+	 *        or null if there are no integer slots.
 	 */
 	protected AbstractDescriptor (
 		final Mutability mutability,
@@ -447,7 +448,6 @@ public abstract class AbstractDescriptor
 				"Enum class didn't recognize its own instance",
 				e);
 		}
-		assert annotationClass != null;
 		return slotMirror.getAnnotation(annotationClass);
 	}
 
@@ -465,7 +465,7 @@ public abstract class AbstractDescriptor
 	{
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
-		Class<Enum<?>> enumClass;
+		@Nullable Class<Enum<?>> enumClass;
 
 		try
 		{
@@ -489,10 +489,10 @@ public abstract class AbstractDescriptor
 					fields.add(
 						new AvailObjectFieldHelper(
 							object,
-							(IntegerSlotsEnum)slot,
+							(IntegerSlotsEnum) slot,
 							-1,
 							new AvailIntegerValueHelper(
-								object.slot((IntegerSlotsEnum)slot))));
+								object.slot((IntegerSlotsEnum) slot))));
 				}
 			}
 			final Enum<?> slot = slots[slots.length - 1];
@@ -507,11 +507,11 @@ public abstract class AbstractDescriptor
 					fields.add(
 						new AvailObjectFieldHelper(
 							object,
-							(IntegerSlotsEnum)slot,
+							(IntegerSlotsEnum) slot,
 							subscript,
 							new AvailIntegerValueHelper(
 								object.slot(
-									(IntegerSlotsEnum)slot, subscript))));
+									(IntegerSlotsEnum) slot, subscript))));
 				}
 			}
 		}
@@ -536,9 +536,9 @@ public abstract class AbstractDescriptor
 					fields.add(
 						new AvailObjectFieldHelper(
 							object,
-							(ObjectSlotsEnum)slot,
+							(ObjectSlotsEnum) slot,
 							-1,
-							object.slot((ObjectSlotsEnum)slot)));
+							object.slot((ObjectSlotsEnum) slot)));
 				}
 			}
 			final Enum<?> slot = slots[slots.length - 1];
@@ -553,9 +553,9 @@ public abstract class AbstractDescriptor
 					fields.add(
 						new AvailObjectFieldHelper(
 							object,
-							(ObjectSlotsEnum)slot,
+							(ObjectSlotsEnum) slot,
 							subscript,
-							object.slot((ObjectSlotsEnum)slot, subscript)));
+							object.slot((ObjectSlotsEnum) slot, subscript)));
 				}
 			}
 		}
@@ -625,11 +625,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Print the {@linkplain AvailObject object} to the {@link StringBuilder}.
-	 * By default show it as the {@linkplain AbstractDescriptor descriptor} name
-	 * and a line-by-line list of fields. If the indent is beyond the {@link
-	 * #maximumIndent() maximumIndent}, indicate it's too deep without
-	 * recursing. If the object is in the specified recursion list, indicate a
-	 * recursive print and return.
+	 * By default show it as the descriptor's name and a line-by-line list of
+	 * fields. If the indent is beyond the {@link #maximumIndent()
+	 * maximumIndent}, indicate it's too deep without recursing. If the object
+	 * is in the specified recursion list, indicate a recursive print and
+	 * return.
 	 *
 	 * @param object The object to print (its descriptor is me).
 	 * @param builder Where to print the object.
@@ -675,7 +675,7 @@ public abstract class AbstractDescriptor
 		}
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
-		Class<? extends IntegerSlotsEnum> intEnumClass;
+		@Nullable Class<? extends IntegerSlotsEnum> intEnumClass;
 
 		try
 		{
@@ -722,7 +722,7 @@ public abstract class AbstractDescriptor
 			}
 		}
 
-		Class<? extends ObjectSlotsEnum> objectEnumClass;
+		@Nullable Class<? extends ObjectSlotsEnum> objectEnumClass;
 		try
 		{
 			objectEnumClass =
@@ -1004,7 +1004,7 @@ public abstract class AbstractDescriptor
 					describingClass.getEnumConstants();
 				if (0 <= value && value < allValues.length)
 				{
-					builder.append(allValues[(int)value].name());
+					builder.append(allValues[(int) value].name());
 				}
 				else
 				{
@@ -1021,19 +1021,17 @@ public abstract class AbstractDescriptor
 				final Method lookupMethod =
 					describingClass.getMethod(lookupName, Integer.TYPE);
 				final IntegerEnumSlotDescriptionEnum lookedUp =
-					(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
-						null, (int)value);
+					(IntegerEnumSlotDescriptionEnum) lookupMethod.invoke(
+						null, (int) value);
 				if (lookedUp == null)
 				{
 					builder.append("null");
 				}
 				else
 				{
-					if (lookedUp instanceof Enum)
-					{
-						assert ((Enum<?>)lookedUp).getDeclaringClass()
+					assert !(lookedUp instanceof Enum)
+						|| ((Enum<?>) lookedUp).getDeclaringClass()
 							== describingClass;
-					}
 					builder.append(lookedUp.name());
 				}
 			}
@@ -1219,10 +1217,17 @@ public abstract class AbstractDescriptor
 		A_Tuple arguments);
 
 	/**
-	 *
+	 * Record the fact that the given {@link L2Chunk} depends on the object not
+	 * changing in some way peculiar to the kind of object.  Most typically,
+	 * this is applied to {@link A_Method}s, triggering invalidation if
+	 * {@link A_Definition}s are added to or removed from the method, but at
+	 * some point we may also support slowly-changing variables.
 	 *
 	 * @param object
+	 *        The object responsible for invalidating dependent chunks when it
+	 *        changes.
 	 * @param chunk
+	 *        A chunk that should be invalidated if the object changes.
 	 */
 	abstract void o_AddDependentChunk (
 		AvailObject object,
@@ -1304,7 +1309,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Number o_AddToIntegerCanDestroy (
 		AvailObject object,
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -1731,7 +1736,7 @@ public abstract class AbstractDescriptor
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * AvailObject#divideIntoIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#divideIntoIntegerCanDestroy(AvailObject, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
 	 * AvailObject#divideIntoInfinityCanDestroy(Sign, boolean)
 	 * divideIntoInfinityCanDestroy}, where actual implementations of the
@@ -1798,7 +1803,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Number o_DivideIntoIntegerCanDestroy (
 		AvailObject object,
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -2161,7 +2166,7 @@ public abstract class AbstractDescriptor
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * AvailObject#subtractFromIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
 	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
@@ -2229,7 +2234,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Number o_MultiplyByIntegerCanDestroy (
 		AvailObject object,
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -2282,7 +2287,7 @@ public abstract class AbstractDescriptor
 	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * AvailObject#addToIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#addToIntegerCanDestroy(AvailObject, boolean)
 	 * addToIntegerCanDestroy} or {@link
 	 * AvailObject#addToInfinityCanDestroy(Sign, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
@@ -2532,7 +2537,7 @@ public abstract class AbstractDescriptor
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * AvailObject#subtractFromIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
 	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
@@ -2558,7 +2563,7 @@ public abstract class AbstractDescriptor
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * AvailObject#subtractFromIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
 	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
@@ -2577,7 +2582,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Number o_SubtractFromIntegerCanDestroy (
 		AvailObject object,
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -2585,7 +2590,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * <p>
 	 * Implementations may double-dispatch to {@link
-	 * AvailObject#multiplyByIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#multiplyByIntegerCanDestroy(AvailObject, boolean)
 	 * multiplyByIntegerCanDestroy} or {@link
 	 * AvailObject#multiplyByInfinityCanDestroy(Sign, boolean)
 	 * multiplyByInfinityCanDestroy}, where actual implementations of the
@@ -3780,7 +3785,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsInteger (
 		AvailObject object,
-		A_Number anAvailInteger);
+		AvailObject anAvailInteger);
 
 	/**
 	 * @param object
@@ -3888,7 +3893,6 @@ public abstract class AbstractDescriptor
 	 * @param aTuple
 	 * @return
 	 */
-
 	abstract boolean o_EqualsReverseTuple (
 		AvailObject object,
 		A_Tuple aTuple);
@@ -4887,7 +4891,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger);
+		final AvailObject anInteger);
 
 	/**
 	 * @param object
@@ -6640,13 +6644,6 @@ public abstract class AbstractDescriptor
 	abstract int o_TupleCodePointAt (final AvailObject object, final int index);
 
 	/**
-	 *
-	 * @param object
-	 * @return
-	 */
-	abstract Statistic o_DynamicLookupStatistic (final AvailObject object);
-
-	/**
 	 * @param object
 	 * @return
 	 */
@@ -6717,7 +6714,6 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSourceOfCycle (final AvailObject object);
 
-
 	/**
 	 * @param object
 	 * @param isSourceOfCycle
@@ -6725,4 +6721,16 @@ public abstract class AbstractDescriptor
 	abstract void o_IsSourceOfCycle (
 		final AvailObject object,
 		final boolean isSourceOfCycle);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Statistic o_ReturnerCheckStat (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Statistic o_ReturneeCheckStat (final AvailObject object);
 }

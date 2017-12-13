@@ -136,7 +136,7 @@ extends A_BasicObject
 	 * @return The sum, possibly recycling one of the inputs if canDestroy
 	 *         is true.
 	 */
-	A_Number addToIntegerCanDestroy (A_Number anInteger, boolean canDestroy);
+	A_Number addToIntegerCanDestroy (AvailObject anInteger, boolean canDestroy);
 
 	/**
 	 * Convert the receiver, which must be an integer, into a Java {@link
@@ -332,7 +332,7 @@ extends A_BasicObject
 	 *         canDestroy is true.
 	 */
 	A_Number divideIntoIntegerCanDestroy (
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -340,7 +340,7 @@ extends A_BasicObject
 	 * {@linkplain AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #divideIntoIntegerCanDestroy(A_Number, boolean)
+	 * #divideIntoIntegerCanDestroy(AvailObject, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
 	 * #divideIntoInfinityCanDestroy(Sign, boolean)
 	 * divideIntoInfinityCanDestroy} (or others), where actual implementations
@@ -466,7 +466,7 @@ extends A_BasicObject
 	 * the {@linkplain AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #subtractFromIntegerCanDestroy(A_Number, boolean)
+	 * #subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
 	 * #subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
@@ -554,7 +554,7 @@ extends A_BasicObject
 	 *         canDestroy is true.
 	 */
 	A_Number multiplyByIntegerCanDestroy (
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -687,14 +687,14 @@ extends A_BasicObject
 	 * @param anInteger The {@code integer} to numerically compare against.
 	 * @return How the receiver compares to the specified integer.
 	 */
-	Order numericCompareToInteger (A_Number anInteger);
+	Order numericCompareToInteger (AvailObject anInteger);
 
 	/**
 	 * Add the receiver and the argument {@code aNumber} and answer the
 	 * {@linkplain AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #addToIntegerCanDestroy(A_Number, boolean) addToIntegerCanDestroy} or
+	 * #addToIntegerCanDestroy(AvailObject, boolean) addToIntegerCanDestroy} or
 	 * {@link #addToInfinityCanDestroy(Sign, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
 	 * operation should reside.</p>
@@ -829,7 +829,7 @@ extends A_BasicObject
 	 *         canDestroy is true.
 	 */
 	A_Number subtractFromIntegerCanDestroy (
-		A_Number anInteger,
+		AvailObject anInteger,
 		boolean canDestroy);
 
 	/**
@@ -837,7 +837,7 @@ extends A_BasicObject
 	 * {@linkplain AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #multiplyByIntegerCanDestroy(A_Number, boolean)
+	 * #multiplyByIntegerCanDestroy(AvailObject, boolean)
 	 * multiplyByIntegerCanDestroy} or {@linkplain
 	 * #multiplyByInfinityCanDestroy(Sign, boolean)
 	 * multiplyByInfinityCanDestroy}, where actual implementations of the

@@ -492,7 +492,7 @@ extends Descriptor
 			traversedKey,
 			traversedKey.hash(),
 			newValueObject,
-			(byte)0,
+			(byte) 0,
 			canDestroy);
 		if (canDestroy && isMutable())
 		{
@@ -756,7 +756,7 @@ extends Descriptor
 		 * class supports both protocols.
 		 */
 		@Override
-		public @Nonnull MapIterable iterator ()
+		public MapIterable iterator ()
 		{
 			return this;
 		}

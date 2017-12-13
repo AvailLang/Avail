@@ -294,7 +294,7 @@ extends NumericTupleDescriptor
 				final long newSize = object.slot(SIZE) + otherDirect.slot(SIZE);
 				// and the other's start is one delta away from my end,
 				if (object.slot(END) + delta == otherDirect.slot(START)
-					&& newSize == (int)newSize)
+					&& newSize == (int) newSize)
 				{
 					// then we're adjacent.
 
@@ -303,7 +303,7 @@ extends NumericTupleDescriptor
 					if (isMutable())
 					{
 						object.setSlot(END, otherDirect.slot(END));
-						object.setSlot(SIZE, (int)newSize);
+						object.setSlot(SIZE, (int) newSize);
 						object.hashOrZero(0);
 						return object;
 					}
@@ -311,7 +311,7 @@ extends NumericTupleDescriptor
 					if (otherDirect.descriptor().isMutable())
 					{
 						otherDirect.setSlot(START, object.slot(START));
-						otherDirect.setSlot(SIZE, (int)newSize);
+						otherDirect.setSlot(SIZE, (int) newSize);
 						otherDirect.hashOrZero(0);
 						return otherDirect;
 					}
@@ -358,19 +358,19 @@ extends NumericTupleDescriptor
 		final int oldStartValue = object.slot(START);
 
 		final long newStartValue = oldStartValue + delta * (start - 1);
-		assert newStartValue == (int)newStartValue;
+		assert newStartValue == (int) newStartValue;
 		final long newEndValue = newStartValue + delta * (newSize - 1);
-		assert newEndValue == (int)newEndValue;
+		assert newEndValue == (int) newEndValue;
 
 		if (isMutable() && canDestroy)
 		{
 			// Recycle the object.
-			object.setSlot(START, (int)newStartValue);
-			object.setSlot(END, (int)newEndValue);
+			object.setSlot(START, (int) newStartValue);
+			object.setSlot(END, (int) newEndValue);
 			object.setSlot(SIZE, newSize);
 			return object;
 		}
-		return createSmallInterval((int)newStartValue, (int)newEndValue, delta);
+		return createSmallInterval((int) newStartValue, (int) newEndValue, delta);
 
 	}
 
@@ -445,8 +445,8 @@ extends NumericTupleDescriptor
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
 		final long temp = object.slot(START) + (index - 1) * object.slot(DELTA);
-		assert temp == (int)temp;
-		return (AvailObject) fromInt((int)temp);
+		assert temp == (int) temp;
+		return fromInt((int) temp);
 	}
 
 	@Override @AvailMethod
@@ -545,15 +545,9 @@ extends NumericTupleDescriptor
 			low = end;
 			high = start;
 		}
-		if (type.isSupertypeOfIntegerRangeType(inclusive(low, high)))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+		return type.isSupertypeOfIntegerRangeType(inclusive(low, high))
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -565,8 +559,8 @@ extends NumericTupleDescriptor
 		long temp = index - 1;
 		temp *= object.slot(DELTA);
 		temp += object.slot(START);
-		assert temp == (int)temp;
-		return (int)temp;
+		assert temp == (int) temp;
+		return (int) temp;
 	}
 
 	@Override @AvailMethod
@@ -628,7 +622,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link SmallIntegerIntervalTupleDescriptor}.
+	 * Construct a new {@code SmallIntegerIntervalTupleDescriptor}.
 	 *
 	 * @param mutability The mutability of the descriptor.
 	 */
@@ -683,17 +677,17 @@ extends NumericTupleDescriptor
 		final long delta)
 	{
 		assert delta != 0;
-		final long size = ((long)newEnd - (long)newStart) / delta + 1L;
-		assert size == (int)size
+		final long size = ((long) newEnd - (long) newStart) / delta + 1L;
+		assert size == (int) size
 			: "Proposed tuple has too many elements";
-		final long adjustedEnd = newStart + delta * ((int)size - 1);
-		assert adjustedEnd == (int)adjustedEnd;
+		final long adjustedEnd = newStart + delta * ((int) size - 1);
+		assert adjustedEnd == (int) adjustedEnd;
 		final AvailObject interval = mutable.create();
 		interval.setSlot(START, newStart);
-		interval.setSlot(END, (int)adjustedEnd);
+		interval.setSlot(END, (int) adjustedEnd);
 		interval.setSlot(DELTA, delta);
 		interval.setSlot(HASH_OR_ZERO, 0);
-		interval.setSlot(SIZE, (int)size);
+		interval.setSlot(SIZE, (int) size);
 		return interval;
 	}
 }

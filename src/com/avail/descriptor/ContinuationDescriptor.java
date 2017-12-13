@@ -39,6 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Chunk.Generation;
 import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
@@ -368,13 +369,19 @@ extends Descriptor
 	@Override @AvailMethod
 	L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
-		return object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
+		final L2Chunk chunk =
+			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
+		if (chunk != L2Chunk.unoptimizedChunk() && chunk.isValid())
+		{
+			Generation.usedChunk(chunk);
+		}
+		return chunk;
 	}
 
 	@Override @AvailMethod
 	int o_LevelTwoOffset (final AvailObject object)
 	{
-		return (int)object.mutableSlot(LEVEL_TWO_OFFSET);
+		return (int) object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	/**
@@ -540,7 +547,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ContinuationDescriptor}.
+	 * Construct a new {@code ContinuationDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

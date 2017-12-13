@@ -64,19 +64,19 @@ public class FilterDropDownDialog<
 	/**
 	 * The {@link GridPane} the {@link FilterDropDownDialog} displayed on.
 	 */
-	private final @Nonnull GridPane grid;
+	private final GridPane grid;
 
 	/**
 	 * The label next to the {@link ComboBox}.
 	 */
-	private final @Nonnull Label label;
+	private final Label label;
 
 	/**
 	 * The main {@link ComboBox}.
 	 */
-	private final @Nonnull T comboBox;
+	private final T comboBox;
 
-	public @Nonnull T getComboBox ()
+	public T getComboBox ()
 	{
 		return comboBox;
 	}
@@ -98,9 +98,9 @@ public class FilterDropDownDialog<
 	 *        The {@link FilterComboBox} used in this dialog.
 	 */
 	public FilterDropDownDialog (
-		final @Nonnull S defaultChoice,
-		final @Nonnull Collection<S> choices,
-		final @Nonnull T comboBox)
+		final S defaultChoice,
+		final Collection<S> choices,
+		final T comboBox)
 	{
 		final DialogPane dialogPane = getDialogPane();
 
@@ -175,7 +175,7 @@ public class FilterDropDownDialog<
 	 * Answer the property representing the currently selected item in the
 	 * dialog.
 	 */
-	public final @Nonnull ReadOnlyObjectProperty<S> selectedItemProperty()
+	public final ReadOnlyObjectProperty<S> selectedItemProperty()
 	{
 		return comboBox.getSelectionModel().selectedItemProperty();
 	}
@@ -186,7 +186,7 @@ public class FilterDropDownDialog<
 	 * @param item
 	 *        The item to select in the dialog.
 	 */
-	public final void setSelectedItem(final @Nonnull S item)
+	public final void setSelectedItem(final S item)
 	{
 		comboBox.getSelectionModel().select(item);
 	}
@@ -196,7 +196,7 @@ public class FilterDropDownDialog<
 	 * can be modified by the developer to add, remove, or reorder the items
 	 * to present to the user.
 	 */
-	public final @Nonnull ObservableList<S> getItems()
+	public final ObservableList<S> getItems()
 	{
 		return comboBox.getItems();
 	}

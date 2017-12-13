@@ -78,9 +78,9 @@ extends Primitive
 	{
 		assert args.size() == 3;
 
-		final A_Number start = args.get(0);
-		final A_Number end = args.get(1);
-		final A_Number delta = args.get(2);
+		final AvailObject start = args.get(0);
+		final AvailObject end = args.get(1);
+		final AvailObject delta = args.get(2);
 		if (delta.equalsInt(0))
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);

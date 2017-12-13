@@ -70,6 +70,7 @@ extends AbstractWorkbenchAction
 		final JPanel panel = new JPanel(new BorderLayout(20, 20));
 		panel.setBorder(new EmptyBorder(30, 50, 30, 50));
 
+		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final ImageIcon logo = new ImageIcon(
 			this.getClass().getResource(
 				resourcePrefix + "Avail-logo-about.png"));
@@ -104,7 +105,7 @@ extends AbstractWorkbenchAction
 		aboutBox.pack();
 		final Point topLeft = workbench.getLocation();
 		aboutBox.setLocation(
-			(int)topLeft.getX() + 22, (int)topLeft.getY() + 22);
+			(int) topLeft.getX() + 22, (int) topLeft.getY() + 22);
 		aboutBox.setVisible(true);
 	}
 

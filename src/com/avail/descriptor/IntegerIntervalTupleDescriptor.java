@@ -267,15 +267,18 @@ extends NumericTupleDescriptor
 		final int newSize = end - start + 1;
 		if (newSize != oldSize)
 		{
-			final A_Number delta = object.slot(DELTA).makeImmutable();
-			final A_Number oldStartValue = object.slot(START);
+			final AvailObject delta = object.slot(DELTA).makeImmutable();
+			final AvailObject oldStartValue = object.slot(START);
 
-			final A_Number newStartValue = oldStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(fromInt(start - 1), true),
-				canDestroy);
-			final A_Number newEndValue = newStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(fromInt(newSize - 1), true),
-				false);
+			final AvailObject newStartValue =
+				(AvailObject) oldStartValue.plusCanDestroy(
+					fromInt(start - 1).multiplyByIntegerCanDestroy(delta, true),
+					canDestroy);
+			final AvailObject newEndValue =
+				(AvailObject) newStartValue.plusCanDestroy(
+					fromInt(newSize - 1).multiplyByIntegerCanDestroy(
+						delta, true),
+					false);
 
 			if (isMutable() && canDestroy)
 			{
@@ -543,9 +546,9 @@ extends NumericTupleDescriptor
 	 * @return The new interval.
 	 */
 	public static A_Tuple createInterval (
-		final A_Number start,
-		final A_Number end,
-		final A_Number delta)
+		final AvailObject start,
+		final AvailObject end,
+		final AvailObject delta)
 	{
 		assert !delta.equalsInt(0);
 
@@ -653,7 +656,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link IntegerIntervalTupleDescriptor}.
+	 * Construct a new {@code IntegerIntervalTupleDescriptor}.
 	 *
 	 * @param mutability The mutability of the new descriptor.
 	 */

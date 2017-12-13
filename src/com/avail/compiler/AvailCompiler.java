@@ -457,8 +457,7 @@ public final class AvailCompiler
 		 *
 		 * @return The (non-null) parent superexpressions list.
 		 */
-		@InnerAccess
-		PartialSubexpressionList superexpressions ()
+		@InnerAccess PartialSubexpressionList superexpressions ()
 		{
 			return stripNull(superexpressions);
 		}
@@ -4901,7 +4900,7 @@ public final class AvailCompiler
 		{
 			case LITERAL_NODE:
 			{
-				return (AvailObject)phrase.token();
+				return (AvailObject) phrase.token();
 			}
 			case LIST_NODE:
 			case PERMUTED_LIST_NODE:

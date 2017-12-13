@@ -79,8 +79,8 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 
 		final int multiplier = multiplierReg.in(interpreter);
 		final int multiplicand = multiplicandReg.in(interpreter);
-		final long longResult = (long)multiplier * (long)multiplicand;
-		final int intResult = (int)longResult;
+		final long longResult = (long) multiplier * (long) multiplicand;
+		final int intResult = (int) longResult;
 		if (longResult == intResult)
 		{
 			productReg.set(intResult, interpreter);

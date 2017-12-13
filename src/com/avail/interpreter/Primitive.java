@@ -913,7 +913,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	private final Statistic resultTypeCheckingNanos = new Statistic(
 		getClass().getSimpleName() + " (checking result)",
-		StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS);
+		StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS);
 
 	/**
 	 * Record that some number of nanoseconds were just expended checking the

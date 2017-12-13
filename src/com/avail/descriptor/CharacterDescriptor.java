@@ -83,7 +83,7 @@ extends Descriptor
 		final int indent)
 	{
 		aStream.append("¢");
-		final int codePoint = (int)object.slot(CODE_POINT);
+		final int codePoint = (int) object.slot(CODE_POINT);
 		// Check for linefeed, carriage return, tab, double quote ("), and
 		// backslash (\).  These have pretty escape forms inside string
 		// literals.
@@ -146,14 +146,14 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_CodePoint (final AvailObject object)
 	{
-		return (int)object.slot(CODE_POINT);
+		return (int) object.slot(CODE_POINT);
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCharacterWithCodePoint(
-			(int)object.slot(CODE_POINT));
+			(int) object.slot(CODE_POINT));
 	}
 
 	@Override @AvailMethod
@@ -167,7 +167,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final int codePoint = (int)object.slot(CODE_POINT);
+		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint >= 0 && codePoint <= 255)
 		{
 			return hashesOfByteCharacters[codePoint];
@@ -213,7 +213,7 @@ extends Descriptor
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
-		final int codePoint = (int)object.slot(CODE_POINT);
+		final int codePoint = (int) object.slot(CODE_POINT);
 		// Force marshaling to Java's primitive int type.
 		if (Integer.TYPE.equals(classHint))
 		{
@@ -243,7 +243,7 @@ extends Descriptor
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		final int codePoint = (int)object.slot(CODE_POINT);
+		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint < 256)
 		{
 			return SerializerOperation.BYTE_CHARACTER;

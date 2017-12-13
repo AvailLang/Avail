@@ -37,6 +37,7 @@ import com.avail.interpreter.Interpreter;
 
 import javax.annotation.Nullable;
 
+import static java.lang.Math.sqrt;
 import static java.lang.String.format;
 
 /**
@@ -149,8 +150,24 @@ implements Comparable<PerInterpreterStatistic>
 	 */
 	public synchronized double variance ()
 	{
-		final long c = count;
-		return c <= 1L ? 0.0 : sumOfDeltaSquares / (c - 1L);
+		return computeVariance(count, sumOfDeltaSquares);
+	}
+
+	/**
+	 * Given a count of samples and the sum of squares of their differences from
+	 * the mean, compute the variance.
+	 *
+	 * @param theCount
+	 *        The number of samples.
+	 * @param theSumOfDeltaSquares
+	 *        The sum of the squares of distances from the mean of the samples.
+	 * @return The statistical variance.
+	 */
+	private static double computeVariance (
+		final long theCount,
+		final double theSumOfDeltaSquares)
+	{
+		return theCount <= 1L ? 0.0 : theSumOfDeltaSquares / (theCount - 1L);
 	}
 
 	/**
@@ -163,49 +180,44 @@ implements Comparable<PerInterpreterStatistic>
 	 */
 	public double standardDeviation ()
 	{
-		return Math.sqrt(variance());
+		return sqrt(variance());
 	}
 
 	/**
 	 * Describe this statistic as though its samples are durations in
 	 * nanoseconds.
 	 *
-	 * @param builder Where to describe this statistic.
+	 * @param builder
+	 *        Where to describe this statistic.
+	 * @param unit
+	 *        The {@link ReportingUnit units} to use to report the statistic.
 	 */
-	public void describeNanosecondsOn (
-		final StringBuilder builder)
+	public void describeOn (
+		final StringBuilder builder,
+		final ReportingUnit unit)
 	{
 		final long capturedCount;
 		final double capturedMean;
+		final double capturedSumOfDeltaSquares;
 		// Read multiple fields coherently.
 		synchronized (this)
 		{
 			capturedCount = count;
 			capturedMean = mean;
+			capturedSumOfDeltaSquares = sumOfDeltaSquares;
 		}
-		final double nanoseconds = capturedMean * capturedCount;
-		builder.append(format(
-			nanoseconds >= 999_999_500.0
-				? "%1$, 8.3f s  "
-				: nanoseconds >= 999_999.5
-					? "%2$, 8.3f ms "
-					: "%3$, 8.3f µs ",
-			nanoseconds / 1.0e9,
-			nanoseconds / 1.0e6,
-			nanoseconds / 1.0e3));
-		builder.append(format("[N=%,10d] ", capturedCount));
+		final double standardDeviation =
+			sqrt(computeVariance(capturedCount, capturedSumOfDeltaSquares));
+		builder.append(
+			unit.describe(
+				capturedCount, capturedMean, 0.0, false));
+		builder.append(format(" [N=%,10d] ", capturedCount));
 		// We could use a chi (x) with a line over it, "\u0304x", but this makes
 		// the text area REALLY SLOW.  Like, over ten seconds to insert a report
 		// from running Avail for five seconds.  So we spell out "mean".
-		builder.append(format(
-			capturedMean >= 999_999_500.0
-				? "(mean=%1$, 8.3f s)"
-				: capturedMean >= 999_999.5
-					? "(mean=%2$, 8.3f ms)"
-					: "(mean=%3$, 8.3f \u00b5s)",
-			capturedMean / 1.0e9,
-			capturedMean / 1.0e6,
-			capturedMean / 1.0e3));
+		builder.append("(mean=");
+		builder.append(unit.describe(1, capturedMean, standardDeviation, true));
+		builder.append(")");
 	}
 
 	/**

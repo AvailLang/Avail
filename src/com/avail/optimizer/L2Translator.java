@@ -48,6 +48,7 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.performance.Statistic;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,12 +56,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
+import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
+import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 
@@ -285,7 +283,6 @@ public final class L2Translator
 	 */
 	private L2Translator ()
 	{
-		// Use a dummy raw function to keep it happy.
 		codeOrNull = null;
 		optimizationLevel = OptimizationLevel.UNOPTIMIZED;
 		interpreter = null;
@@ -347,15 +344,38 @@ public final class L2Translator
 		// first instruction so that L1Ext_doPushLabel can always find it. Since
 		// we only translate one method at a time, the first instruction always
 		// represents the start of this compiledCode.
+		final long beforeL1Naive = System.nanoTime();
 		final L1Translator translator = new L1Translator(this);
 		translator.translateL1Instructions();
+		final long afterL1Naive = System.nanoTime();
+		translateL1Stat.record(
+			afterL1Naive - beforeL1Naive,
+			interpreter().interpreterIndex);
+
 		initialBlock = translator.initialBlock;
 		afterOptionalInitialPrimitiveBlock =
 			translator.afterOptionalInitialPrimitiveBlock;
-		translator.controlFlowGraph.optimize();
+		translator.controlFlowGraph.optimize(interpreter());
+
+		final long beforeChunkGeneration = System.nanoTime();
 		createChunk(translator.controlFlowGraph);
 		assert theCode.startingChunk() == chunk;
+		final long afterChunkGeneration = System.nanoTime();
+		finalGenerationStat.record(
+			afterChunkGeneration - beforeChunkGeneration,
+			interpreter().interpreterIndex);
 	}
+
+	/** Statistics about the naive L1 to L2 translation. */
+	private static final Statistic translateL1Stat = new Statistic(
+		"L1 naive translation", L2_OPTIMIZATION_TIME);
+
+	/**
+	 * Statistics about final chunk generation from the optimized {@link
+	 * L2ControlFlowGraph}.
+	 */
+	private static final Statistic finalGenerationStat = new Statistic(
+		"Final chunk generation", L2_OPTIMIZATION_TIME);
 
 	/**
 	 * Run the translator on the provided {@link A_RawFunction} to produce an
@@ -397,7 +417,25 @@ public final class L2Translator
 		interpreter.argsBuffer.addAll(savedArguments);
 		interpreter.skipReturnCheck = savedSkip;
 		interpreter.latestResult(savedFailureValue);
+		translationSizeStat.record(
+			translator.chunk().instructions.length,
+			interpreter.interpreterIndex);
+		translationDependenciesStat.record(
+			translator.contingentValues.setSize(),
+			interpreter.interpreterIndex);
 	}
+
+	/** Statistic for number of instructions in L2 translations. */
+	private static final Statistic translationSizeStat =
+		new Statistic(
+			"L2 instruction count",
+			L2_TRANSLATION_VALUES);
+
+	/** Statistic for number of methods depended on by L2 translations. */
+	private static final Statistic translationDependenciesStat =
+		new Statistic(
+			"Number of methods depended upon",
+			L2_TRANSLATION_VALUES);
 
 	/**
 	 * Create a chunk that will perform a naive translation of the current

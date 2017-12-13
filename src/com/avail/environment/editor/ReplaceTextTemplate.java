@@ -54,14 +54,14 @@ public class ReplaceTextTemplate
 	/**
 	 * The {@link PrefixTrie} that contains the templates.
 	 */
-	private final @Nonnull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
+	private final PrefixTrie<String> prefixTrie = new PrefixTrie<>();
 
 	/**
 	 * Answer the {@link PrefixTrie} that contains the templates.
 	 *
 	 * @return A {@code PrefixTrie}.
 	 */
-	public @Nonnull PrefixTrie<String> prefixTrie ()
+	public PrefixTrie<String> prefixTrie ()
 	{
 		return prefixTrie;
 	}
@@ -69,13 +69,13 @@ public class ReplaceTextTemplate
 	/**
 	 * The {@link Properties} where the templates are stored.
 	 */
-	private final @Nonnull Properties properties = new Properties();
+	private final Properties properties = new Properties();
 
 	/**
 	 * The name of the {@link Properties} {@link File} where the templates are
 	 * stored.
 	 */
-	private static final @Nonnull String propertiesFileName =
+	private static final String propertiesFileName =
 		AvailWorkbench.resourcePrefix + "template.properties";
 
 	/**
@@ -140,8 +140,8 @@ public class ReplaceTextTemplate
 	 * @return {@code true} if added; {@code false} otherwise.
 	 */
 	public boolean addTemplate (
-		final @Nonnull String key,
-		final @Nonnull String value)
+		final String key,
+		final String value)
 	{
 		if (properties.containsKey(key))
 		{
@@ -162,8 +162,8 @@ public class ReplaceTextTemplate
 	 * @return {@code true} if changed; {@code false} otherwise.
 	 */
 	public boolean editTemplate (
-		final @Nonnull String key,
-		final @Nonnull String value)
+		final String key,
+		final String value)
 	{
 		if (!properties.containsKey(key))
 		{
@@ -181,7 +181,7 @@ public class ReplaceTextTemplate
 	 *        The property name to remove.
 	 */
 	public void removeTemplate (
-		final @Nonnull String key)
+		final String key)
 	{
 		if (properties.remove(key) != null)
 		{

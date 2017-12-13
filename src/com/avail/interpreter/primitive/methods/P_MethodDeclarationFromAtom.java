@@ -107,6 +107,7 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
+			fiber.priority(),
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->
@@ -144,18 +145,24 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(ATOM.o(), mostGeneralFunctionType()), TOP.o());
+			functionType(
+				tuple(
+					ATOM.o(),
+					mostGeneralFunctionType()),
+				TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(possibleErrors, true));
+				E_METHOD_IS_SEALED
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

@@ -58,12 +58,12 @@ extends FXWindowTask
 	/**
 	 * The {@link File} directory this new module will be placed in.
 	 */
-	private final @Nonnull File directory;
+	private final File directory;
 
 	/**
 	 * The base portion of the qualified name.
 	 */
-	private final @Nonnull String baseQualifiedName;
+	private final String baseQualifiedName;
 
 	/**
 	 * The {@link ModuleName#qualifiedName} of the new module.
@@ -76,13 +76,13 @@ extends FXWindowTask
 	 * @param leaf
 	 *        The name of the module.
 	 */
-	public void setQualifiedName (final @Nonnull String leaf)
+	public void setQualifiedName (final String leaf)
 	{
 		qualifiedName = baseQualifiedName + leaf;
 	}
 
 	@Override
-	public @Nonnull Scene newScene ()
+	public Scene newScene ()
 	{
 		return new NewModuleWindow(
 			310,
@@ -160,8 +160,8 @@ extends FXWindowTask
 	 */
 	public NewModuleTask (
 		final AvailWorkbench workbench,
-		final @Nonnull File directory,
-		final @Nonnull String baseQualifiedName,
+		final File directory,
+		final String baseQualifiedName,
 		final int width,
 		final int height)
 	{

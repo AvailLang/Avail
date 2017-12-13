@@ -116,6 +116,7 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
+			fiber.priority(),
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->

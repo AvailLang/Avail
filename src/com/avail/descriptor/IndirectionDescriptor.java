@@ -383,7 +383,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object)
@@ -737,7 +737,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideIntoIntegerCanDestroy(
@@ -909,7 +909,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsInteger (
 		final AvailObject object,
-		final A_Number anAvailInteger)
+		final AvailObject anAvailInteger)
 	{
 		return o_Traversed(object).equalsInteger(anAvailInteger);
 	}
@@ -1064,7 +1064,7 @@ extends AbstractDescriptor
 	@Override
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger)
+		final AvailObject anInteger)
 	{
 		return o_Traversed(object).numericCompareToInteger(anInteger);
 	}
@@ -1437,7 +1437,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).multiplyByIntegerCanDestroy(
@@ -1713,7 +1713,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).subtractFromIntegerCanDestroy(
@@ -5032,12 +5032,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).tupleCodePointAt(index);
 	}
 
-	@Override
-	Statistic o_DynamicLookupStatistic (final AvailObject object)
-	{
-		return o_Traversed(object).dynamicLookupStatistic();
-	}
-
 	@Override @AvailMethod
 	A_Phrase o_OriginatingPhrase (final AvailObject object)
 	{
@@ -5137,5 +5131,17 @@ extends AbstractDescriptor
 	A_Type o_ConstantTypeAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).constantTypeAt(index);
+	}
+
+	@Override
+	Statistic o_ReturnerCheckStat (final AvailObject object)
+	{
+		return o_Traversed(object).returnerCheckStat();
+	}
+
+	@Override
+	Statistic o_ReturneeCheckStat (final AvailObject object)
+	{
+		return o_Traversed(object).returneeCheckStat();
 	}
 }

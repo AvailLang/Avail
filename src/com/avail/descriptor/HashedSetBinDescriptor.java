@@ -258,7 +258,7 @@ extends SetBinDescriptor
 			entry = entry.setBinAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
-				(byte)(level + 1),
+				(byte) (level + 1),
 				canDestroy);
 			final int delta = entry.setBinSize() - previousBinSize;
 			if (delta == 0)
@@ -639,7 +639,7 @@ extends SetBinDescriptor
 	{
 		final AvailObject instance = createUninitializedBin(
 			level, localSize, totalSize, hash, bitVector, unionKindOrNil);
-		final AvailObject subBin = emptyLinearSetBin((byte)(level + 1));
+		final AvailObject subBin = emptyLinearSetBin((byte) (level + 1));
 		for (int i = 1; i <= localSize; i++)
 		{
 			instance.setSlot(BIN_ELEMENT_AT_, i, subBin);
@@ -693,7 +693,7 @@ extends SetBinDescriptor
 			TypeTag.SET_HASHED_BIN_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class, level);
-		shift = (byte)(level * 6);
+		shift = (byte) (level * 6);
 		assert level < 32;
 	}
 

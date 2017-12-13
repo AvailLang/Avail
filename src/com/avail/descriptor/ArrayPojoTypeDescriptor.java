@@ -90,6 +90,11 @@ extends PojoTypeDescriptor
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param <T> The element type.
 	 */
+	@SuppressWarnings({
+		"AbstractClassNeverImplemented",
+		"AbstractClassWithoutAbstractMethods",
+		"unused"
+	})
 	abstract static class PojoArray<T>
 	implements Cloneable, Serializable
 	{
@@ -424,7 +429,7 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ArrayPojoTypeDescriptor}.
+	 * Construct a new {@code ArrayPojoTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

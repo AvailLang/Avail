@@ -61,6 +61,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,6 +72,8 @@ import java.util.Map.Entry;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -291,7 +294,7 @@ public final class Interpreter
 			final Thread thread = Thread.currentThread();
 			log(
 				thread instanceof AvailThread
-					? ((AvailThread)thread).interpreter.fiber
+					? ((AvailThread) thread).interpreter.fiber
 					: null,
 				logger,
 				level,
@@ -304,7 +307,7 @@ public final class Interpreter
 	 * The approximate maximum number of bytes to log per fiber before throwing
 	 * away the earliest 25%.
 	 */
-	private static final int maxFiberLogLength = 10_000_000;
+	private static final int maxFiberLogLength = 1_000_000;
 
 	/**
 	 * Log a message.
@@ -800,7 +803,7 @@ public final class Interpreter
 	 */
 	public void latestResult (final @Nullable A_BasicObject newResult)
 	{
-		latestResult = (AvailObject)newResult;
+		latestResult = (AvailObject) newResult;
 		if (debugL2)
 		{
 			//noinspection StringConcatenationMissingWhitespace
@@ -1357,7 +1360,7 @@ public final class Interpreter
 	{
 		// assert index > 0;
 		// assert anAvailObject != null;
-		pointers[index] = (AvailObject)anAvailObject;
+		pointers[index] = (AvailObject) anAvailObject;
 	}
 
 	/**
@@ -2031,12 +2034,12 @@ public final class Interpreter
 	/**
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()
 	 * suspended} {@linkplain FiberDescriptor fiber} to execute for a while as a
-	 * {@linkplain AvailRuntime#whenLevelOneUnsafeDo(AvailTask) Level One-unsafe
-	 * task}. If the fiber completes normally, then call its {@linkplain
-	 * A_Fiber#resultContinuation() result continuation} with its final answer.
-	 * If the fiber terminates abnormally, then call its {@linkplain
-	 * A_Fiber#failureContinuation() failure continuation} with the terminal
-	 * {@linkplain Throwable throwable}.
+	 * {@linkplain AvailRuntime#whenLevelOneUnsafeDo(int, Continuation0)} Level
+	 * One-unsafe task}. If the fiber completes normally, then call its
+	 * {@linkplain A_Fiber#resultContinuation() result continuation} with its
+	 * final answer. If the fiber terminates abnormally, then call its
+	 * {@linkplain A_Fiber#failureContinuation() failure continuation} with the
+	 * terminal {@linkplain Throwable throwable}.
 	 *
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
@@ -2055,6 +2058,7 @@ public final class Interpreter
 		// We cannot simply run the specified function, we must queue a task to
 		// run when Level One safety is no longer required.
 		runtime.whenLevelOneUnsafeDo(
+			aFiber.priority(),
 			AvailTask.forFiberResumption(
 				aFiber,
 				() ->
@@ -2346,8 +2350,10 @@ public final class Interpreter
 		}
 		else
 		{
-			recordCheckedReturnFromTo(
-				returner.code(), returnee.code(), after - before);
+			returner.code().returnerCheckStat().record(
+				after - before, interpreterIndex);
+			returnee.code().returneeCheckStat().record(
+				after - before, interpreterIndex);
 		}
 		if (!checkOk)
 		{
@@ -2530,9 +2536,51 @@ public final class Interpreter
 	}
 
 	/**
+	 * {@link Statistic} measuring the performance of dynamic lookups, keyed by
+	 * the number of definitions in the method being looked up.  Tho name of the
+	 * statistic includes this count, as well as the name of the first bundle
+	 * encountered which had that count.
+	 */
+	@GuardedBy("dynamicLookupStatsLock")
+	private static final Map<Integer, Statistic>
+		dynamicLookupStatsByCount = new HashMap<>();
+
+	/**
+	 * The lock that protects access to {@link #dynamicLookupStatsByCount}.
+	 */
+	private static final ReadWriteLock dynamicLookupStatsLock =
+		new ReentrantReadWriteLock();
+
+	/**
+	 * A <em>non-static</em> field of this interpreter that holds a mapping from
+	 * the number of definitions considered in a lookup, to a {@link
+	 * PerInterpreterStatistic} specific to this interpreter.  This is accessed
+	 * without a lock, and only by the thread accessing this interpreter (other
+	 * than to view the momentary statistics).
+	 *
+	 * <p>If the desired key is not found, acquire the {@link
+	 * #dynamicLookupStatsLock} with read access, extracting the {@link
+	 * PerInterpreterStatistic} from the {@link Statistic} in {@link
+	 * #dynamicLookupStatsByCount}.  If the key was not present, release the
+	 * lock, acquire it for write access, try looking it up again (in case the
+	 * map changed while the lock wasn't held), and if necessary add a new entry
+	 * for that size, including the bundle name as an example in the name of the
+	 * statistic.</p>
+	 */
+	private final Map<Integer, PerInterpreterStatistic>
+		dynamicLookupPerInterpreterStat = new HashMap<>();
+
+	/**
 	 * Record the fact that a lookup in the specified {@link
 	 * MessageBundleDescriptor message bundle} has just taken place, and that it
 	 * took the given time in nanoseconds.
+	 *
+	 * <p>At the moment, we only record the duration of the lookup, and we do so
+	 * under a statistic tied to the number of definitions in the bundle's
+	 * method.  We do, however, record the name of the first looked up bundle
+	 * having that number of definitions.</p>
+	 *
+	 * <p>Before 2017.12, we used to do this:</p>
 	 *
 	 * <p>Multiple runs will create distinct message bundles, but we'd like them
 	 * aggregated.  Therefore we store each statistic not only under the bundle
@@ -2544,143 +2592,93 @@ public final class Interpreter
 	 * @param bundle A message bundle in which a lookup has just taken place.
 	 * @param nanos A {@code double} indicating how many nanoseconds it took.
 	 */
-	public synchronized void recordDynamicLookup (
+	public void recordDynamicLookup (
 		final A_Bundle bundle,
 		final double nanos)
 	{
-		final Statistic stat = bundle.dynamicLookupStatistic();
-		stat.record(nanos, interpreterIndex);
-	}
-
-	/**
-	 * Detailed statistics about checked non-primitive returns.  There is an
-	 * array of {@link Map}s, indexed by {@link Interpreter#interpreterIndex}.
-	 * Each map is from the {@link A_RawFunction} being returned from to another
-	 * map.  That map is from the raw function being return <em>into</em>, and
-	 * the value is a {@link PerInterpreterStatistic}.  There should be no
-	 * contention on the locks during accumulation, but the array of maps must
-	 * be aggregated before being displayed.  Note that both the inner and outer
-	 * maps are weak-keyed ({@link WeakHashMap}).  A second structure, {@link
-	 * #checkedReturnMapsByString}, strongly keeps mappings from equivalently
-	 * named raw function pairs to the {@link Statistic}s that hold the same
-	 * {@link PerInterpreterStatistic}s.
-	 */
-	@SuppressWarnings("unchecked")
-	private static final Map<
-			A_RawFunction, Map<A_RawFunction, PerInterpreterStatistic>>[]
-		checkedReturnMaps = new Map[AvailRuntime.maxInterpreters];
-
-	static
-	{
-		for (int i = 0; i < AvailRuntime.maxInterpreters; i++)
+		final int size = bundle.bundleMethod().definitionsTuple().tupleSize();
+		@Nullable PerInterpreterStatistic perInterpreterStat =
+			dynamicLookupPerInterpreterStat.get(size);
+		if (perInterpreterStat == null)
 		{
-			checkedReturnMaps[i] = new WeakHashMap<>();
-		}
-	}
-
-	/**
-	 * Detailed statistics about checked non-primitive returns.  This is a
-	 * (strong) {@link Map} that flattens statistics into equally named from/to
-	 * pairs of {@link A_RawFunction}s.  Its keys are the string representation
-	 * of <from,to> pairs of raw functions.  Its values are {@link Statistic}s,
-	 * the same ones that contain the {@link PerInterpreterStatistic}s found in
-	 * {@link #checkedReturnMaps}.  This combination allows us to hold
-	 * statistics correctly even when unloading/loading modules, while requiring
-	 * only minimal lock contention during statistics gathering.
-	 */
-	private static final Map<A_String, Statistic>
-		checkedReturnMapsByString = new HashMap<>();
-
-	/**
-	 * Record the fact that when returning from the specified returner into the
-	 * returnee, the return value was checked against the expected type, and it
-	 * took the specified number of nanoseconds.
-	 *
-	 * @param returner
-	 *        The {@link A_RawFunction} which was returning.
-	 * @param returnee
-	 *        The {@link A_RawFunction} being returned into.
-	 * @param nanos
-	 *        The number of nanoseconds it took to check the result type.
-	 */
-	public void recordCheckedReturnFromTo (
-		final A_RawFunction returner,
-		final A_RawFunction returnee,
-		final double nanos)
-	{
-		final Map<A_RawFunction, Map<A_RawFunction, PerInterpreterStatistic>>
-			outerMap = checkedReturnMaps[interpreterIndex];
-		final Map<A_RawFunction, PerInterpreterStatistic> submap =
-			outerMap.computeIfAbsent(returner, k -> new WeakHashMap<>());
-		PerInterpreterStatistic perInterpreterStatistic = submap.get(returnee);
-		if (perInterpreterStatistic == null)
-		{
-			final String nameString =
-				"Return from "
-					+ returner.methodName().asNativeString()
-					+ " to "
-					+ returnee.methodName().asNativeString();
-			final A_String stringKey = stringFrom(nameString);
-			//noinspection SynchronizationOnStaticField
-			synchronized (checkedReturnMapsByString)
+			// See if we can find it in the global map.
+			dynamicLookupStatsLock.readLock().lock();
+			@Nullable Statistic globalStat;
+			try
 			{
-				final Statistic statistic =
-					checkedReturnMapsByString.computeIfAbsent(
-						stringKey,
-						k -> new Statistic(
-							nameString,
-							StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS));
-				perInterpreterStatistic =
-					statistic.statistics[interpreterIndex];
-				submap.put(returnee, perInterpreterStatistic);
+				globalStat = dynamicLookupStatsByCount.get(size);
 			}
+			finally
+			{
+				dynamicLookupStatsLock.readLock().unlock();
+			}
+
+			if (globalStat == null)
+			{
+				// It didn't exist when we looked for it while holding the read
+				// lock.  Having released the read lock, grab the write lock,
+				// double-check for the element, then if necessary create it.
+				dynamicLookupStatsLock.writeLock().lock();
+				try
+				{
+					globalStat = dynamicLookupStatsByCount.get(size);
+					if (globalStat == null)
+					{
+						// Create it.
+						globalStat = new Statistic(
+							"Dynamic lookup time for size "
+								+ size
+								+ " (example: "
+								+ bundle.message().atomName()
+								+ ")",
+							StatisticReport.DYNAMIC_LOOKUP_TIME);
+						dynamicLookupStatsByCount.put(size, globalStat);
+					}
+				}
+				finally
+				{
+					dynamicLookupStatsLock.writeLock().unlock();
+				}
+			}
+			perInterpreterStat =
+				stripNull(globalStat).statistics[interpreterIndex];
+			dynamicLookupPerInterpreterStat.put(size, perInterpreterStat);
 		}
-		perInterpreterStatistic.record(nanos);
+		perInterpreterStat.record(nanos);
 	}
 
 	/**
-	 * Top-level statement evaluation statistics, keyed by module and then line
-	 * number.
+	 * Top-level statement evaluation statistics, keyed by module.
 	 */
-	private static final Map<A_Module, Map<Integer, Statistic>>
+	private static final Map<A_Module, Statistic>
 		topStatementEvaluationStats = new WeakHashMap<>();
 
 	/**
 	 * Record the fact that a statement starting at the given line number in the
 	 * given module just took some number of nanoseconds to run.
 	 *
+	 * <p>As of 2017.12, we no longer record a separate statistic for each
+	 * top-level statement, so the line number is ignored.</p>
+	 *
 	 * @param sample The number of nanoseconds.
 	 * @param module The module containing the top-level statement that ran.
-	 * @param lineNumber The line number of the statement that ran.
+	 * @param lineNumber The line number of the statement that ran.  Ignored.
 	 */
 	public void recordTopStatementEvaluation (
 		final double sample,
 		final A_Module module,
 		final int lineNumber)
 	{
-		Statistic statistic;
+		final Statistic statistic;
 		//noinspection SynchronizationOnStaticField
 		synchronized (topStatementEvaluationStats)
 		{
 			final A_Module moduleTraversed = module.traversed();
-			final Map<Integer, Statistic> submap =
-				topStatementEvaluationStats.computeIfAbsent(
-					moduleTraversed,
-					k -> new HashMap<>());
-			statistic = submap.get(lineNumber);
-			if (statistic == null)
-			{
-				@SuppressWarnings("StringBufferReplaceableByString")
-				final StringBuilder builder = new StringBuilder();
-				builder.append("[#");
-				builder.append(lineNumber);
-				builder.append("] of ");
-				builder.append(module.moduleName().asNativeString());
-				statistic = new Statistic(
-					builder.toString(),
-					StatisticReport.TOP_LEVEL_STATEMENTS);
-				submap.put(lineNumber, statistic);
-			}
+			statistic = topStatementEvaluationStats.computeIfAbsent(
+				moduleTraversed,
+				mod -> new Statistic(
+					mod.moduleName().asNativeString(),
+					StatisticReport.TOP_LEVEL_STATEMENTS));
 		}
 		statistic.record(sample, interpreterIndex);
 	}

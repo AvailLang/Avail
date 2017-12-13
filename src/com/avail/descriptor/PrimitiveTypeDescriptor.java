@@ -133,7 +133,7 @@ extends TypeDescriptor
 	 */
 	private static Types extractEnum (final AvailObject object)
 	{
-		return ((PrimitiveTypeDescriptor)object.descriptor).primitiveType;
+		return ((PrimitiveTypeDescriptor) object.descriptor).primitiveType;
 	}
 
 	/**

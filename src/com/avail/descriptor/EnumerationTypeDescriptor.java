@@ -87,9 +87,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
  * TupleTypeDescriptor#stringType() string} as a member (string being one
  * of the many subtypes of tuple).  This condition ensures that enumerations
  * satisfy metacovariance, which states that types' types vary the same way as
- * the types: <span style="border-width:thin; border-style:solid"><nobr>
- * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
- * T(x)&sube;T(y))</nobr></span>.
+ * the types: <span style="border-width:thin; border-style:solid; white-space:
+ * nowrap">&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y
+ * &rarr; T(x)&sube;T(y))</span>.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

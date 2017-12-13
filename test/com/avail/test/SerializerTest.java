@@ -238,7 +238,7 @@ public final class SerializerTest
 			"Serialization stream was not fully emptied");
 		final @Nullable AvailObject objectAfter = deserializer().deserialize();
 		assert objectAfter == null;
-		return (AvailObject)newObject;
+		return (AvailObject) newObject;
 	}
 
 	/**

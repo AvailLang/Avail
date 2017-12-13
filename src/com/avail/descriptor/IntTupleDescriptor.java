@@ -125,7 +125,7 @@ extends NumericTupleDescriptor
 			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
-		final int intValue = ((AvailObject)newElement).extractInt();
+		final int intValue = ((AvailObject) newElement).extractInt();
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -754,7 +754,7 @@ extends NumericTupleDescriptor
 			slotIndex++)
 		{
 			long combined = generator.value(tupleIndex++) & 0xFFFF_FFFFL;
-			combined += ((long)generator.value(tupleIndex++)) << 32L;
+			combined += ((long) generator.value(tupleIndex++)) << 32L;
 			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
 		}
 		if ((size & 1) == 1)

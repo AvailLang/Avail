@@ -73,7 +73,7 @@ public class AvailArea
 	/**
 	 * A reference to the {@link AvailWorkbench}.
 	 */
-	private final @Nonnull AvailWorkbench workbench;
+	private final AvailWorkbench workbench;
 
 	/**
 	 * The last string search value.
@@ -84,13 +84,13 @@ public class AvailArea
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link ReplaceTextTemplate#prefixTrie}.
 	 */
-	private final @Nonnull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
+	private final ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
 
 	/**
 	 * A {@link List} of {@link KeyComboAction}s to be performed on various
 	 * key presses.
 	 */
-	private final @Nonnull List<KeyComboAction> keyComboActions =
+	private final List<KeyComboAction> keyComboActions =
 		new ArrayList<>();
 
 	/**
@@ -100,7 +100,7 @@ public class AvailArea
 	 *        A reference to the {@link AvailWorkbench}.
 	 */
 	public AvailArea (
-		final @Nonnull AvailWorkbench workbench)
+		final AvailWorkbench workbench)
 	{
 		this.workbench = workbench;
 		addNode(workbench.replaceTextTemplate.prefixTrie().root());
@@ -117,7 +117,7 @@ public class AvailArea
 	 * @param actions
 	 *        The array of {@code KeyComboAction}s to add.
 	 */
-	private void addKeyCombos (final @Nonnull KeyComboAction... actions)
+	private void addKeyCombos (final KeyComboAction... actions)
 	{
 		keyComboActions.addAll(Arrays.asList(actions));
 		setOnKeyPressed(event -> keyComboActions.forEach(a -> a.event(event)));
@@ -166,7 +166,7 @@ public class AvailArea
 	 * @return The requested templates.
 	 */
 	@Nonnull List<String> templateMatchesFor (
-		final @Nonnull String prefix)
+		final String prefix)
 	{
 		final PrefixNode<String> node = getNode(prefix);
 
@@ -184,7 +184,7 @@ public class AvailArea
 	 * @return The requested menu items.
 	 */
 	@Nonnull List<MenuItem> templateMenuItemsFor (
-		final @Nonnull List<String> templates,
+		final List<String> templates,
 		final int prefixStart)
 	{
 		return templates.stream()
@@ -213,7 +213,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	public @Nonnull KeyComboAction codeCompletionAction ()
+	public KeyComboAction codeCompletionAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -289,7 +289,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @Nonnull KeyComboAction gotoLineAction ()
+	private KeyComboAction gotoLineAction ()
 	{
 		final Function<Integer, Integer> clamp =
 			i -> Math.max(0, Math.min(i, getLength() - 1));
@@ -329,7 +329,7 @@ public class AvailArea
 	 *
 	 * @return A {@code Continuation0}.
 	 */
-	private @Nonnull Continuation0 finder ()
+	private Continuation0 finder ()
 	{
 		return () ->
 		{
@@ -363,7 +363,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @Nonnull KeyComboAction findAction ()
+	private KeyComboAction findAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -401,7 +401,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @Nonnull KeyComboAction findNextAction ()
+	private KeyComboAction findNextAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -432,12 +432,12 @@ public class AvailArea
 	 *
 	 * @return A {@code PrefixNode}.
 	 */
-	private @Nonnull PrefixNode<String> currentNode ()
+	private PrefixNode<String> currentNode ()
 	{
 		return path.getLast();
 	}
 
-	private @Nullable PrefixNode<String> getNode (final @Nonnull String prefix)
+	private @Nullable PrefixNode<String> getNode (final String prefix)
 	{
 		if (prefix.length() > 0)
 		{

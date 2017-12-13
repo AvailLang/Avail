@@ -91,7 +91,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger)
+		final AvailObject anInteger)
 	{
 		// Infinities are either above or below all integer, depending on sign.
 		return sign == Sign.POSITIVE ? MORE : LESS;
@@ -219,7 +219,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return object;
@@ -262,7 +262,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return zero();
@@ -306,7 +306,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		if (anInteger.equalsInt(0))
@@ -362,7 +362,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return object.isPositive()

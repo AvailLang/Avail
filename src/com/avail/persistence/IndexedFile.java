@@ -1011,7 +1011,7 @@ public abstract class IndexedFile
 			compressionBlockSize = buffer.getInt();
 			fanout = buffer.getInt();
 			previousMasterPosition =
-				((long)bufferSize + pageSize - 1) / pageSize * pageSize;
+				((long) bufferSize + pageSize - 1) / pageSize * pageSize;
 			masterPosition = previousMasterPosition + masterNodeSize();
 			finished = true;
 		}
@@ -1222,7 +1222,7 @@ public abstract class IndexedFile
 			master().serialNumber++;
 			master().writeTo(b);
 			final FileLock shortTermLock = channel().lock(
-				pageSize, (long)masterNodeSize() << 1L, false);
+				pageSize, (long) masterNodeSize() << 1L, false);
 			try
 			{
 				channel().position(masterPosition);
@@ -1449,7 +1449,7 @@ public abstract class IndexedFile
 		try
 		{
 			final FileLock fileLock = channel().lock(
-				pageSize, (long)masterNodeSize() << 1L, false);
+				pageSize, (long) masterNodeSize() << 1L, false);
 			try
 			{
 				// Determine the newest valid master node.

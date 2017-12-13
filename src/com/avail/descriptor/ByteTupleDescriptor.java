@@ -137,7 +137,7 @@ extends NumericTupleDescriptor
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			object.descriptor = descriptorFor(MUTABLE, newSize);
-			object.setByteSlot(RAW_LONG_AT_, newSize, (short)intValue);
+			object.setByteSlot(RAW_LONG_AT_, newSize, (short) intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
 		}
@@ -147,7 +147,7 @@ extends NumericTupleDescriptor
 			object,
 			0,
 			(originalSize & 7) == 0 ? 1 : 0);
-		result.setByteSlot(RAW_LONG_AT_, newSize, (short)intValue);
+		result.setByteSlot(RAW_LONG_AT_, newSize, (short) intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -682,7 +682,7 @@ extends NumericTupleDescriptor
 		{
 			final long c = generator.value(tupleIndex++);
 			assert (c & 255) == c;
-			result.setByteSlot(RAW_LONG_AT_, index, (short)c);
+			result.setByteSlot(RAW_LONG_AT_, index, (short) c);
 		}
 		assert tupleIndex == size + 1;
 		return result;

@@ -414,7 +414,7 @@ extends Descriptor
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than
 		// the second one?
-		final A_Tuple anotherTuple = (A_Tuple)anotherObject;
+		final A_Tuple anotherTuple = (A_Tuple) anotherObject;
 		return object.bitsPerEntry() < anotherTuple.bitsPerEntry();
 	}
 

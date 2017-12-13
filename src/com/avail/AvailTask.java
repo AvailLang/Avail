@@ -68,12 +68,13 @@ implements Comparable<AvailTask>, Runnable
 	 *        A fiber.
 	 * @param body
 	 *        What to do to resume execution of the fiber.
-	 * @return A task that sets the execution state of the fiber to {@linkplain
-	 *         ExecutionState#RUNNING running}, binds it to this {@linkplain
-	 *         AvailThread thread}'s {@linkplain Interpreter interpreter}, and
-	 *         then runs the specified continuation.
+	 * @return A {@link Continuation0} that sets the execution state of the
+	 *         fiber to {@linkplain ExecutionState#RUNNING running}, binds it to
+	 *         the running {@linkplain AvailThread thread}'s {@linkplain
+	 *         Interpreter interpreter}, and then runs the specified
+	 *         continuation.
 	 */
-	public static AvailTask forFiberResumption (
+	public static Continuation0 forFiberResumption (
 		final A_Fiber fiber,
 		final Continuation0 body)
 	{
@@ -81,75 +82,70 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		return new AvailTask(fiber.priority())
+		return () ->
 		{
-			@Override
-			public void value ()
+			final Interpreter interpreter = Interpreter.current();
+			assert interpreter.fiberOrNull() == null;
+			fiber.lock(() ->
 			{
-				final Interpreter interpreter = Interpreter.current();
-				assert interpreter.fiberOrNull() == null;
-				fiber.lock(() ->
+				assert fiber.executionState().indicatesSuspension();
+				final boolean bound =
+					fiber.getAndSetSynchronizationFlag(BOUND, true);
+				assert !bound;
+				final boolean wasScheduled =
+					fiber.getAndSetSynchronizationFlag(SCHEDULED, false);
+				assert wasScheduled;
+				fiber.executionState(RUNNING);
+				interpreter.fiber(fiber, "forFiberResumption");
+			});
+			try
+			{
+				body.value();
+			}
+			catch (final PrimitiveThrownException e)
+			{
+				// If execution failed, terminate the fiber and invoke its
+				// failure continuation with the throwable.
+				interpreter.adjustUnreifiedCallDepthBy(
+					-interpreter.unreifiedCallDepth());
+				if (!fiber.executionState().indicatesTermination())
 				{
-					assert fiber.executionState().indicatesSuspension();
-					final boolean bound =
-						fiber.getAndSetSynchronizationFlag(BOUND, true);
-					assert !bound;
-					final boolean wasScheduled =
-						fiber.getAndSetSynchronizationFlag(
-							SCHEDULED, false);
-					assert wasScheduled;
-					fiber.executionState(RUNNING);
- 					interpreter.fiber(fiber, "forFiberResumption");
-				});
-				try
-				{
-					body.value();
+					assert interpreter.fiberOrNull() == fiber;
+					interpreter.abortFiber();
 				}
-				catch (final PrimitiveThrownException e)
+				else
 				{
-					// If execution failed, terminate the fiber and invoke its
-					// failure continuation with the throwable.
-					interpreter.adjustUnreifiedCallDepthBy(
-						-interpreter.unreifiedCallDepth());
-					if (!fiber.executionState().indicatesTermination())
-					{
-						assert interpreter.fiberOrNull() == fiber;
-						interpreter.abortFiber();
-					}
-					else
-					{
-						fiber.executionState(ABORTED);
-					}
-					fiber.failureContinuation().value(e);
+					fiber.executionState(ABORTED);
+				}
+				fiber.failureContinuation().value(e);
+				fiber.executionState(RETIRED);
+				interpreter.runtime().unregisterFiber(fiber);
+			}
+			finally
+			{
+				// This is the first point at which *some other* Thread may
+				// have had a chance to resume the fiber and update its
+				// state.
+				final @Nullable Continuation0 postExit =
+					interpreter.postExitContinuation();
+				if (postExit != null)
+				{
+					interpreter.postExitContinuation(null);
+					postExit.value();
+				}
+			}
+			// If the fiber has terminated, then report its result via its
+			// result continuation.
+			fiber.lock(() ->
+			{
+				if (fiber.executionState() == TERMINATED)
+				{
+					fiber.resultContinuation().value(fiber.fiberResult());
 					fiber.executionState(RETIRED);
 					interpreter.runtime().unregisterFiber(fiber);
 				}
-				finally
-				{
-					// This is the first point at which *some other* Thread may
-					// have had a chance to resume the fiber and update its
-					// state.
-					final @Nullable Continuation0 postExit =
-						interpreter.postExitContinuation();
-					if (postExit != null)
-					{
-						interpreter.postExitContinuation(null);
-						postExit.value();
-					}
-				}
-				// If the fiber has terminated, then report its result via its
-				// result continuation.
-				fiber.lock(() ->
-				{
-					if (fiber.executionState() == TERMINATED)
-					{
-						fiber.resultContinuation().value(fiber.fiberResult());
-						fiber.executionState(RETIRED);
-						interpreter.runtime().unregisterFiber(fiber);
-					}
-				});
-				assert interpreter.fiberOrNull() == null;
-			}
+			});
+			assert interpreter.fiberOrNull() == null;
 		};
 	}
 
@@ -166,10 +162,10 @@ implements Comparable<AvailTask>, Runnable
 	 *        A fiber.
 	 * @param continuation
 	 *        What to do to on behalf of the unbound fiber.
-	 * @return A task that runs the specified continuation, and handles any
-	 *         errors appropriately.
+	 * @return A {@link Continuation0} that runs the provided continuation and
+	 *         handles any errors appropriately.
 	 */
-	public static AvailTask forUnboundFiber (
+	public static Continuation0 forUnboundFiber (
 		final A_Fiber fiber,
 		final Continuation0 continuation)
 	{
@@ -177,28 +173,24 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		return new AvailTask(fiber.priority())
+		return () ->
 		{
-			@Override
-			public void value ()
+			final boolean wasScheduled =
+				fiber.getAndSetSynchronizationFlag(SCHEDULED, false);
+			assert wasScheduled;
+			try
 			{
-				final boolean wasScheduled = fiber.getAndSetSynchronizationFlag(
-					SCHEDULED, false);
-				assert wasScheduled;
-				try
-				{
-					continuation.value();
-				}
-				catch (final Throwable e)
-				{
-					// If execution failed for any reason, then terminate the
-					// fiber and invoke its failure continuation with the
-					// throwable.
-					fiber.executionState(ABORTED);
-					fiber.failureContinuation().value(e);
-				}
-				assert Interpreter.current().fiberOrNull() == null;
+				continuation.value();
 			}
+			catch (final Throwable e)
+			{
+				// If execution failed for any reason, then terminate the
+				// fiber and invoke its failure continuation with the
+				// throwable.
+				fiber.executionState(ABORTED);
+				fiber.failureContinuation().value(e);
+			}
+			assert Interpreter.current().fiberOrNull() == null;
 		};
 	}
 

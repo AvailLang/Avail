@@ -168,7 +168,7 @@ extends SetBinDescriptor
 		final AvailObject result;
 		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
-			final byte shift = (byte)(6 * myLevel);
+			final byte shift = (byte) (6 * myLevel);
 			assert shift < 32;
 			int bitPosition = (elementObjectHash >>> shift) & 63;
 			long bitVector = 1L << bitPosition;

@@ -1679,9 +1679,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the subtype relationship is reflexive.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x&isin;T</sub>&thinsp;x&sube;x
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testSubtypeReflexivity ()
@@ -1703,10 +1703,10 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the subtype relationship is transitive.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&sube;y&thinsp;&and;&thinsp;y&sube;z
 	 *     &rarr; x&sube;z)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testSubtypeTransitivity ()
@@ -1732,9 +1732,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the subtype relationship is asymmetric.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sub;y &rarr; &not;y&sub;x)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testSubtypeAsymmetry ()
@@ -1755,9 +1755,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that types are closed with respect to the type union operator.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testUnionClosure ()
@@ -1777,9 +1777,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type union operator is reflexive.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cup;x&thinsp;=&thinsp;x)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testUnionReflexivity ()
@@ -1796,9 +1796,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type union operator is commutative.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y = y&cup;x)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testUnionCommutativity ()
@@ -1825,9 +1825,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type union operator is associative.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testUnionAssociativity ()
@@ -1865,9 +1865,9 @@ public class TypeConsistencyTest
 	/**
 	 * Test that types are closed with respect to the type intersection
 	 * operator.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testIntersectionClosure ()
@@ -1888,9 +1888,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type intersection operator is reflexive.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cap;x&thinsp;=&thinsp;x)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testIntersectionReflexivity ()
@@ -1907,9 +1907,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type intersection operator is commutative.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y = y&cap;x)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testIntersectionCommutativity ()
@@ -1938,9 +1938,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Test that the type intersection operator is associative.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cap;y)&cap;z = x&cap;(y&cap;z)
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testIntersectionAssociativity ()
@@ -2000,7 +2000,7 @@ public class TypeConsistencyTest
 		final String name;
 
 		/**
-		 * Construct a new {@link TypeRelation}, supplying the relation name.
+		 * Construct a new {@code TypeRelation}, supplying the relation name.
 		 *
 		 * @param name What to call the new relation.
 		 */
@@ -2012,9 +2012,9 @@ public class TypeConsistencyTest
 
 	/**
 	 * Check the covariance of some {@link TypeRelation}.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Co(x)&sube;Co(y))
-	 * </nobr></span>
+	 * </span>
 	 *
 	 * @param relation The covariant {@linkplain TypeRelation} to check.
 	 */
@@ -2040,9 +2040,9 @@ public class TypeConsistencyTest
 	/**
 	 * Check that the subtype relation <em>contravaries</em> with the given
 	 * {@link TypeRelation}.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
-	 * </nobr></span>
+	 * </span>.
 	 *
 	 * @param relation The contravariant {@linkplain TypeRelation} to check.
 	 */
@@ -2142,9 +2142,9 @@ public class TypeConsistencyTest
 	/**
 	 * Test that the subtype relation <em>contravaries</em> with function
 	 * argument type.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testFunctionArgumentContravariance ()
@@ -2164,9 +2164,9 @@ public class TypeConsistencyTest
 	 * Check that the subtype relation covaries under the "type-of" mapping.
 	 * This is simply covariance of metatypes, which is abbreviated as
 	 * metacovariance.
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testMetacovariance ()
@@ -2184,9 +2184,9 @@ public class TypeConsistencyTest
 	/**
 	 * Check that the type union of two types' types is the same as the type of
 	 * their type union.  Namely,
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testTypeUnionMetainvariance ()
@@ -2204,7 +2204,8 @@ public class TypeConsistencyTest
 				assertEQ(
 					T_xuy,
 					TxuTy,
-					"type union metainvariance: x=%s, y=%s, T(x∪y)=%s, T(x)∪T(y)=%s",
+					"type union metainvariance: "
+						+ "x=%s, y=%s, T(x∪y)=%s, T(x)∪T(y)=%s",
 					x,
 					y,
 					T_xuy,
@@ -2217,9 +2218,9 @@ public class TypeConsistencyTest
 	/**
 	 * Check that the type intersection of two types' types is the same as the
 	 * type of their type intersection.  Namely,
-	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * <span style="border-width:thin; border-style:solid; white-space:nowrap">
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))
-	 * </nobr></span>
+	 * </span>
 	 */
 	@Test
 	public void testTypeIntersectionMetainvariance ()

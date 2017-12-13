@@ -674,8 +674,9 @@ public final class L1Translator
 	 * Generate code to reify a continuation in a fresh register, then use
 	 * that register in a supplied code-generating action.  Then generate code
 	 * to get into an equivalent state after resuming the reified continuation,
-	 * jumping to the given resumeBlock.  The code generator is left at an
-	 * unreachable position.
+	 * jumping to the given resumeBlock.  Code generation then continues at the
+	 * resumeBlock, possibly after postamble instructions have been generated in
+	 * it.
 	 *
 	 * <p>Use the passed registers to populate the continuation's current slots
 	 * and function, but use the state of this translator to determine the rest
@@ -766,6 +767,25 @@ public final class L1Translator
 			L2_JUMP.instance,
 			new L2PcOperand(
 				resumeBlock, readSlotsOnReturnIntoReified, liveConstants));
+		// Merge the flow (reified and continued, versus not reified).
+		startBlock(resumeBlock);
+		for (int i = 0; i < slots.length; i++)
+		{
+			final L2ReadPointerOperand slotReader =
+				readSlotsOnReturnIntoReified[i];
+			final @Nullable A_BasicObject constant =
+				slotReader.constantOrNull();
+			if (constant != null)
+			{
+				// This slot is constant-valued.  Even though we've already
+				// populated it via an explode instruction in the reification
+				// path, write a move-constant into the slot register to
+				// (1) potentially make the explode instruction dead, and
+				// (2) allow the move-constant to drift forward safely in the
+				// instruction stream.
+				moveConstantToSlot(constant, i + 1);
+			}
+		}
 	}
 
 	/**
@@ -1518,11 +1538,10 @@ public final class L1Translator
 					newContinuationReg),
 			onReturn,
 			TO_RETURN_INTO);
-
 		// This is reached either (1) after a normal return from the invoke, or
 		// (2) after reification, a return into the reified continuation, and
 		// the subsequent explosion of the continuation into slot registers.
-		startBlock(onReturn);
+
 		final A_Type functionType = functionToCallReg.type();
 		final A_Type functionReturnType =
 			functionType.isSubtypeOf(mostGeneralFunctionType())
@@ -1550,11 +1569,6 @@ public final class L1Translator
 			if (guaranteedType.isSubtypeOf(expectedType))
 			{
 				// Elide the return check, since the primitive guaranteed it.
-				if (guaranteedType.equals(expectedType))
-				{
-					// Exact match.
-					return resultReg;
-				}
 				// Do a move to strengthen the type.
 				final L2WritePointerOperand strongerResultWrite =
 					newObjectRegisterWriter(guaranteedType, null);
@@ -2066,9 +2080,7 @@ public final class L1Translator
 					continuationReg),
 			merge,
 			TO_RESUME);
-
 		// And now... either we're back or we never left.
-		startBlock(merge);
 	}
 
 	/**
@@ -2238,9 +2250,17 @@ public final class L1Translator
 
 		startBlock(afterOptionalInitialPrimitiveBlock);
 		liveConstants.clear();
+		// While it's true that invalidation may only take place when no Avail
+		// code is running (even when evicting old chunks), and it's also the
+		// case that invalidation causes the chunk to be disconnected from its
+		// compiled code, it's still the case that a *label* continuation
+		// created at an earlier time still refers to the invalid chunk.  Ensure
+		// it can fall back gracefully to L1 (the default chunk) by entering it
+		// at offset 0.  There can't be a primitive for such continuations, so
+		// offset 1 (after the L2_TRY_PRIMITIVE) would also work.
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(-9));  // Default chunk can't be invalidated.
+			new L2ImmediateOperand(0));
 
 		// Do any reoptimization before capturing arguments.
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)

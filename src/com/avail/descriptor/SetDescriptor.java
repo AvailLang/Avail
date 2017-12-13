@@ -468,7 +468,7 @@ extends Descriptor
 			root.setBinAddingElementHashLevelCanDestroy(
 				newElementObject,
 				elementHash,
-				(byte)0,
+				(byte) 0,
 				canDestroy && isMutable());
 		if (newRootBin.setBinSize() == oldSize)
 		{

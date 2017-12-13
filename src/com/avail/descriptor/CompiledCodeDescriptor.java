@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailTask;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
@@ -44,6 +43,9 @@ import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1OperandType;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Chunk.Generation;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -52,12 +54,13 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.AvailRuntime.currentRuntime;
@@ -79,6 +82,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -286,6 +290,10 @@ extends Descriptor
 		 */
 		final AtomicLong countdownToReoptimize = new AtomicLong(0);
 
+		volatile @Nullable Statistic returnerCheckStat = null;
+
+		volatile @Nullable Statistic returneeCheckStat = null;
+
 		/**
 		 * A boolean indicating whether the current {@linkplain
 		 * CompiledCodeDescriptor compiled code object} has been run during the
@@ -336,8 +344,8 @@ extends Descriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
-		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+		final List<AvailObjectFieldHelper> fields =
+			new ArrayList<>(asList(super.o_DescribeForDebugger(object)));
 		for (int i = 1, end = object.numOuters(); i <= end; i++)
 		{
 			fields.add(
@@ -423,42 +431,41 @@ extends Descriptor
 	public static void resetCodeCoverageDetailsThen (final Continuation0 resume)
 	{
 		currentRuntime().whenLevelOneSafeDo(
-			new AvailTask(FiberDescriptor.commandPriority)
+			FiberDescriptor.commandPriority,
+			() ->
 			{
-				@Override
-				public void value ()
+				L2Chunk.invalidationLock.lock();
+				try
 				{
-					L2Chunk.invalidationLock.lock();
-					try
+					// Loop over each instance, setting the touched flag to
+					// false and discarding optimizations.
+					for (final A_RawFunction function : activeRawFunctions)
 					{
-						// Loop over each instance, setting the touched flag to
-						// false and discarding optimizations.
-						for (final A_RawFunction function : activeRawFunctions)
+						final AvailObject object = (AvailObject) function;
+						getInvocationStatistic(object).hasRun = false;
+						if (!function.module().equalsNil())
 						{
-							final AvailObject object = (AvailObject) function;
-							getInvocationStatistic(object).hasRun = false;
-							if (!function.module().equalsNil())
-							{
-								object.startingChunk().invalidate();
-							}
+							object.startingChunk().invalidate(
+								invalidationForCodeCoverage);
 						}
-						currentRuntime().whenLevelOneUnsafeDo(
-							new AvailTask(FiberDescriptor.commandPriority)
-							{
-								@Override
-								public void value ()
-								{
-									resume.value();
-								}
-							});
 					}
-					finally
-					{
-						L2Chunk.invalidationLock.unlock();
-					}
+					currentRuntime().whenLevelOneUnsafeDo(
+						FiberDescriptor.commandPriority, resume);
+				}
+				finally
+				{
+					L2Chunk.invalidationLock.unlock();
 				}
 			});
 	}
+
+	/**
+	 * The {@link Statistic} tracking the cost of invalidations for code
+	 * coverage analysis.
+	 */
+	private static final Statistic invalidationForCodeCoverage = new Statistic(
+		"(invalidation for code coverage)",
+		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	/**
 	 * Contains and presents the details of this raw function pertinent to code
@@ -562,45 +569,36 @@ extends Descriptor
 		final Continuation1NotNull<List<CodeCoverageReport>> resume)
 	{
 		currentRuntime().whenLevelOneSafeDo(
-			new AvailTask(FiberDescriptor.commandPriority)
+			FiberDescriptor.commandPriority,
+			() ->
 			{
-				@Override
-				public void value ()
-				{
-					final List<CodeCoverageReport> reports =
-						new ArrayList<>(activeRawFunctions.size());
+				final List<CodeCoverageReport> reports =
+					new ArrayList<>(activeRawFunctions.size());
 
-					// Loop over each instance, creating its report object.
-					for (final A_RawFunction function : activeRawFunctions)
+				// Loop over each instance, creating its report object.
+				for (final A_RawFunction function : activeRawFunctions)
+				{
+					final A_Module module = function.module();
+					if (!module.equalsNil())
 					{
-						final A_Module module = function.module();
-						if (!module.equalsNil())
+						final CodeCoverageReport report =
+							new CodeCoverageReport(
+								getInvocationStatistic(
+									(AvailObject) function).hasRun,
+								function.startingChunk()
+									!= L2Chunk.unoptimizedChunk(),
+								function.startingLineNumber(),
+								module.moduleName().asNativeString(),
+								function.methodName().asNativeString());
+						if (!reports.contains(report))
 						{
-							final CodeCoverageReport report =
-								new CodeCoverageReport(
-									getInvocationStatistic(
-										(AvailObject) function).hasRun,
-									function.startingChunk()
-										!= L2Chunk.unoptimizedChunk(),
-									function.startingLineNumber(),
-									module.moduleName().asNativeString(),
-									function.methodName().asNativeString());
-							if (!reports.contains(report))
-							{
-								reports.add(report);
-							}
+							reports.add(report);
 						}
 					}
-					currentRuntime().whenLevelOneUnsafeDo(
-						new AvailTask(FiberDescriptor.commandPriority)
-						{
-							@Override
-							public void value ()
-							{
-								resume.value(reports);
-							}
-						});
 				}
+				currentRuntime().whenLevelOneUnsafeDo(
+					FiberDescriptor.commandPriority,
+					() -> resume.value(reports));
 			});
 	}
 
@@ -811,15 +809,21 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_PrimitiveNumber (final AvailObject object)
 	{
-		// Answer the primitive number I should try before falling back on
-		// the Avail code.  Zero indicates not-a-primitive.
+		// Answer the primitive number I should try before falling back on the
+		// Avail code.  Zero indicates not-a-primitive.
 		return object.slot(PRIMITIVE);
 	}
 
 	@Override @AvailMethod
 	L2Chunk o_StartingChunk (final AvailObject object)
 	{
-		return object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
+		final L2Chunk chunk =
+			object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
+		if (chunk != L2Chunk.unoptimizedChunk())
+		{
+			Generation.usedChunk(chunk);
+		}
+		return chunk;
 	}
 
 	@Override @AvailMethod
@@ -907,6 +911,10 @@ extends Descriptor
 		}
 	}
 
+	/** The Avail string "Unknown function". */
+	static final A_String unknownFunctionName =
+		stringFrom("Unknown function").makeShared();
+
 	@Override @AvailMethod
 	A_String o_MethodName (final AvailObject object)
 	{
@@ -915,7 +923,7 @@ extends Descriptor
 			propertyAtom.getAtomProperty(methodNameKeyAtom());
 		if (methodName.equalsNil())
 		{
-			return stringFrom("Unknown function");
+			return unknownFunctionName;
 		}
 		return methodName;
 	}
@@ -1127,7 +1135,7 @@ extends Descriptor
 
 		// Fill in the literals.
 		int dest = 1;
-		for (final A_Tuple tuple : Arrays.asList(
+		for (final A_Tuple tuple : asList(
 			literals, outerTypes, localVariableTypes, localConstantTypes))
 		{
 			for (final AvailObject literal : tuple)
@@ -1253,5 +1261,79 @@ extends Descriptor
 	public static A_Atom originatingPhraseKeyAtom ()
 	{
 		return originatingPhraseKeyAtom;
+	}
+
+	/**
+	 * A {@link ConcurrentMap} from A_String to Statistic, used to record type
+	 * checks during returns from raw functions having the indicated name.
+	 */
+	static final ConcurrentMap<A_String, Statistic>
+		returnerCheckStatisticsByName = new ConcurrentHashMap<>();
+
+	/**
+	 * Answer the {@link Statistic} used to record the cost of explicitly type
+	 * checking returns from the raw function.  These are also collected into
+	 * the {@link #returnerCheckStatisticsByName}, to ensure unloading/reloading
+	 * a module will reuse the same statistic objects.
+	 *
+	 * @param object The raw function.
+	 * @return A {@link Statistic}, creating one if necessary.
+	 */
+	@Override
+	Statistic o_ReturnerCheckStat (
+		final AvailObject object)
+	{
+		final InvocationStatistic invocationStat =
+			getInvocationStatistic(object);
+		@Nullable Statistic returnerStat = invocationStat.returnerCheckStat;
+		if (returnerStat == null)
+		{
+			// Look it up by name, creating it if necessary.
+			final A_String name = object.methodName();
+			returnerStat = returnerCheckStatisticsByName.computeIfAbsent(
+				name,
+				string -> new Statistic(
+					"Checked return from " + name.asNativeString(),
+					StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS));
+			invocationStat.returnerCheckStat = returnerStat;
+		}
+		return returnerStat;
+	}
+
+	/**
+	 * A {@link ConcurrentMap} from A_String to Statistic, used to record type
+	 * checks during returns into raw functions having the indicated name.
+	 */
+	static final ConcurrentMap<A_String, Statistic>
+		returneeCheckStatisticsByName = new ConcurrentHashMap<>();
+
+	/**
+	 * Answer the {@link Statistic} used to record the cost of explicitly type
+	 * checking returns back into the raw function.  These are also collected
+	 * into the {@link #returneeCheckStatisticsByName}, to ensure
+	 * unloading/reloading a module will reuse the same statistic objects.
+	 *
+	 * @param object The raw function.
+	 * @return A {@link Statistic}, creating one if necessary.
+	 */
+	@Override
+	Statistic o_ReturneeCheckStat (
+		final AvailObject object)
+	{
+		final InvocationStatistic invocationStat =
+			getInvocationStatistic(object);
+		@Nullable Statistic returneeStat = invocationStat.returneeCheckStat;
+		if (returneeStat == null)
+		{
+			// Look it up by name, creating it if necessary.
+			final A_String name = object.methodName();
+			returneeStat = returneeCheckStatisticsByName.computeIfAbsent(
+				name,
+				string -> new Statistic(
+					"Checked return into " + name.asNativeString(),
+					StatisticReport.NON_PRIMITIVE_RETURNEE_TYPE_CHECKS));
+			invocationStat.returneeCheckStat = returneeStat;
+		}
+		return returneeStat;
 	}
 }

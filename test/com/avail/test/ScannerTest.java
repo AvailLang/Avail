@@ -302,20 +302,20 @@ public final class ScannerTest
 			final @Nullable A_BasicObject literal;
 			if (object instanceof Double)
 			{
-				literal = fromDouble((Double)object);
+				literal = fromDouble((Double) object);
 			}
 			else if (object instanceof Float)
 			{
-				literal = fromFloat((Float)object);
+				literal = fromFloat((Float) object);
 			}
 			else if (object instanceof Number)
 			{
-				final long asLong = ((Number)object).longValue();
+				final long asLong = ((Number) object).longValue();
 				literal = fromLong(asLong);
 			}
 			else if (object instanceof String)
 			{
-				literal = stringFrom((String)object);
+				literal = stringFrom((String) object);
 			}
 			else
 			{

@@ -193,7 +193,7 @@ abstract class AbstractAvailObject
 		final int newObjectSlotsCount);
 
 	/**
-	 * Construct a new {@link AbstractAvailObject}.
+	 * Construct a new {@code AbstractAvailObject}.
 	 *
 	 * @param descriptor
 	 *        The {@linkplain AbstractDescriptor descriptor} that initially

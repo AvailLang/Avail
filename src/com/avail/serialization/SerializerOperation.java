@@ -235,7 +235,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)3);
+			return fromUnsignedByte((short) 3);
 		}
 	},
 
@@ -258,7 +258,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)4);
+			return fromUnsignedByte((short) 4);
 		}
 	},
 
@@ -281,7 +281,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)5);
+			return fromUnsignedByte((short) 5);
 		}
 	},
 
@@ -304,7 +304,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)6);
+			return fromUnsignedByte((short) 6);
 		}
 	},
 
@@ -327,7 +327,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)7);
+			return fromUnsignedByte((short) 7);
 		}
 	},
 
@@ -350,7 +350,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)8);
+			return fromUnsignedByte((short) 8);
 		}
 	},
 
@@ -373,7 +373,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)9);
+			return fromUnsignedByte((short) 9);
 		}
 	},
 
@@ -396,7 +396,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return fromUnsignedByte((short)10);
+			return fromUnsignedByte((short) 10);
 		}
 	},
 
@@ -716,8 +716,8 @@ public enum SerializerOperation
 			final double doubleValue = object.extractDouble();
 			final long doubleBits = doubleToRawLongBits(doubleValue);
 			return array(
-				fromInt((int)(doubleBits >> 32)),
-				fromInt((int)doubleBits));
+				fromInt((int) (doubleBits >> 32)),
+				fromInt((int) doubleBits));
 		}
 
 		@Override
@@ -728,7 +728,7 @@ public enum SerializerOperation
 			final int highBits = subobjects[0].extractInt();
 			final int lowBits = subobjects[1].extractInt();
 			final long doubleBits =
-				(((long)highBits) << 32)
+				(((long) highBits) << 32)
 				+ (lowBits & 0xFFFFFFFFL);
 			final double doubleValue = longBitsToDouble(doubleBits);
 			return fromDouble(doubleValue);
@@ -3461,7 +3461,7 @@ public enum SerializerOperation
 		assert decomposed.length == operands.length;
 		for (int i = 0; i < decomposed.length; i++)
 		{
-			operands[i].write((AvailObject)decomposed[i], serializer);
+			operands[i].write((AvailObject) decomposed[i], serializer);
 		}
 	}
 

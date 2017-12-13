@@ -78,8 +78,8 @@ public class L2_ADD_INT_TO_INT extends L2Operation
 
 		final int addend = addendReg.in(interpreter);
 		final int augend = augendReg.in(interpreter);
-		final long longResult = (long)addend + (long)augend;
-		final int intResult = (int)longResult;
+		final long longResult = (long) addend + (long) augend;
+		final int intResult = (int) longResult;
 		if (longResult == intResult)
 		{
 			sumReg.set(intResult, interpreter);

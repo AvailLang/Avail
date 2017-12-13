@@ -195,8 +195,8 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 	{
 		assert instruction.operation == instance;
 
-		final List<L2ReadPointerOperand> inputRegs =
-			instruction.readVectorRegisterAt(0);
+//		final List<L2ReadPointerOperand> inputRegs =
+//			instruction.readVectorRegisterAt(0);
 //		final L2WritePointerOperand destinationReg =
 //			instruction.writeObjectRegisterAt(1);
 

@@ -182,7 +182,7 @@ public class AvailObjectFieldHelper
 			else if (val instanceof AvailObject)
 			{
 				builder.append(' ');
-				builder.append(((AvailObject)val).nameForDebugger());
+				builder.append(((AvailObject) val).nameForDebugger());
 			}
 			else if (val instanceof AvailIntegerValueHelper)
 			{
@@ -204,7 +204,7 @@ public class AvailObjectFieldHelper
 			else if (value instanceof String)
 			{
 				builder.append(" = Java String: ");
-				builder.append((String)val);
+				builder.append((String) val);
 			}
 			else if (value instanceof String[])
 			{

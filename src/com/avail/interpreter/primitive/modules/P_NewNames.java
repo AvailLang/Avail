@@ -87,9 +87,10 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(MODULE.o()), mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				stringType(),
-				ATOM.o()));
+			functionType(
+				tuple(
+					MODULE.o()),
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers(), stringType(), ATOM.o()));
 	}
 }

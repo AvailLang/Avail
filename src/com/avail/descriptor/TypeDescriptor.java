@@ -565,7 +565,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
-		throw unsupportedOperationException();
+		return true;
 	}
 
 	@Override @AvailMethod

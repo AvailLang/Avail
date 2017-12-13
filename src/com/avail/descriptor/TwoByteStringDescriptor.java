@@ -122,11 +122,14 @@ extends StringDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character)newElement).codePoint()) & ~0xFFFF)
-				!= 0)
+		if (originalSize >= maximumCopySize || !newElement.isCharacter())
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = tuple(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int intValue = ((A_Character) newElement).codePoint();
+		if ((intValue & ~0xFFFF) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = tuple(newElement);
@@ -388,7 +391,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -486,7 +489,7 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TwoByteStringDescriptor}.
+	 * Construct a new {@code TwoByteStringDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -513,10 +516,9 @@ extends StringDescriptor
 		int i = 0;
 		for (final int excess : new int[] {0,3,2,1})
 		{
-			for (final Mutability mut : Mutability.values())
-			{
-				descriptors[i++] = new TwoByteStringDescriptor(mut, excess);
-			}
+			descriptors[i++] = new TwoByteStringDescriptor(MUTABLE, excess);
+			descriptors[i++] = new TwoByteStringDescriptor(IMMUTABLE, excess);
+			descriptors[i++] = new TwoByteStringDescriptor(SHARED, excess);
 		}
 	}
 
@@ -542,8 +544,8 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string}
-	 * with the specified number of elements.
+	 * Create a new mutable two-byte string with the specified number of
+	 * elements.
 	 *
 	 * @param size The number of elements in the new tuple.
 	 * @return The new tuple, initialized to null characters (code point 0).
@@ -556,12 +558,8 @@ extends StringDescriptor
 	/**
 	 * Answer a mutable copy of object that also only holds 16-bit characters.
 	 *
-	 * @param object
-	 *            The {@linkplain TwoByteStringDescriptor two-byte string} to
-	 *            copy.
-	 * @return
-	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
-	 *            with the same content as the argument.
+	 * @param object The two-byte string to copy.
+	 * @return A new two-byte string with the same content as the argument.
 	 */
 	private A_String copyAsMutableTwoByteString (final AvailObject object)
 	{
@@ -573,12 +571,11 @@ extends StringDescriptor
 	 * suitable to describe a tuple with the given number of elements.
 	 *
 	 * @param flag
-	 *            Whether the requested descriptor should be mutable.
+	 *        Whether the requested descriptor should be mutable.
 	 * @param size
-	 *            How many elements are in a tuple to be represented by the
-	 *            descriptor.
-	 * @return
-	 *            A {@link TwoByteStringDescriptor} suitable for representing a
+	 *        How many elements are in a tuple to be represented by the
+	 *        descriptor.
+	 * @return A {@code TwoByteStringDescriptor} suitable for representing a
 	 *            two-byte string of the given mutability and {@link
 	 *            AvailObject#tupleSize() size}.
 	 */
@@ -643,7 +640,7 @@ extends StringDescriptor
 		{
 			final long c = generator.value(counter++);
 			assert (c & 0xFFFF) == c;
-			result.setShortSlot(RAW_LONGS_, index, (int)c);
+			result.setShortSlot(RAW_LONGS_, index, (int) c);
 		}
 		return result;
 	}

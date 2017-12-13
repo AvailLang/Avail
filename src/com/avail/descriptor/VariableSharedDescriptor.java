@@ -40,6 +40,8 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -426,16 +428,23 @@ extends VariableDescriptor
 		{
 			// Copy the set of chunks to avoid modification during iteration.
 			final Set<L2Chunk> originalSet = pojo.javaObjectNotNull();
-			final Set<L2Chunk> chunksToInvalidate =
-				new HashSet<>(originalSet);
+			final Set<L2Chunk> chunksToInvalidate = new HashSet<>(originalSet);
 			for (final L2Chunk chunk : chunksToInvalidate)
 			{
-				chunk.invalidate();
+				chunk.invalidate(invalidationForSlowVariable);
 			}
 			// The chunk invalidations should have removed all dependencies.
 			assert originalSet.isEmpty();
 		}
 	}
+
+	/**
+	 * The {@link Statistic} tracking the cost of invalidations for a change to
+	 * a nearly-constant variable.
+	 */
+	private static final Statistic invalidationForSlowVariable = new Statistic(
+		"(invalidation for slow variable change)",
+		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	@Override @AvailMethod
 	A_Variable o_AddWriteReactor (

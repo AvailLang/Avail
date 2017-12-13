@@ -445,7 +445,7 @@ public final class AvailBuilder
 	{
 		final CRC32 checksum = new CRC32();
 		checksum.update(bytes);
-		final int checksumInt = (int)checksum.getValue();
+		final int checksumInt = (int) checksum.getValue();
 		final ByteBuffer combined = ByteBuffer.allocate(bytes.length + 4);
 		combined.put(bytes);
 		combined.putInt(checksumInt);
@@ -475,7 +475,7 @@ public final class AvailBuilder
 			ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
 		final Checksum checksum = new CRC32();
 		checksum.update(bytes, 0, bytes.length - 4);
-		if ((int)checksum.getValue() != storedChecksum)
+		if ((int) checksum.getValue() != storedChecksum)
 		{
 			throw new MalformedSerialStreamException(null);
 		}
@@ -1045,10 +1045,9 @@ public final class AvailBuilder
 			// purely read-only at this point.
 			assert moduleName != null;
 			assert completionAction != null;
-			runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
-			{
-				@Override
-				public void value()
+			runtime.whenLevelOneSafeDo(
+				loaderPriority,
+				() ->
 				{
 					final LoadedModule loadedModule =
 						stripNull(getLoadedModule(moduleName));
@@ -1077,8 +1076,7 @@ public final class AvailBuilder
 								moduleName);
 							completionAction.value();
 						});
-				}
-			});
+				});
 		}
 
 		/**

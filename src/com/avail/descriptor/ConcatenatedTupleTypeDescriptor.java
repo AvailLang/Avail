@@ -186,10 +186,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * A {@link ConcatenatedTupleTypeDescriptor concatenated tuple type} isn't
-	 * a very fast representation to use, even though it's easy to construct.
-	 * </p>
+	 * <p>A concatenated tuple type isn't a very fast representation to use,
+	 * even though it's easy to construct.</p>
 	 */
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
@@ -534,8 +532,8 @@ extends TypeDescriptor
 	 * an indirection object to the actual tupleType.
 	 *
 	 * @param object
-	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
-	 *        type} to transform.
+	 *        The object instance of {@code ConcatenatedTupleTypeDescriptor} to
+	 *        transform.
 	 */
 	private void becomeRealTupleType (final AvailObject object)
 	{
@@ -740,7 +738,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ConcatenatedTupleTypeDescriptor}.
+	 * Construct a new {@code ConcatenatedTupleTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

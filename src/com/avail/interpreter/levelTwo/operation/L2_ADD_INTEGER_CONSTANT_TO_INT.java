@@ -75,8 +75,8 @@ public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);
 
 		final int addend = addendReg.in(interpreter);
-		final long longResult = (long)addend + (long)augend;
-		final int intResult = (int)longResult;
+		final long longResult = (long) addend + (long) augend;
+		final int intResult = (int) longResult;
 		if (longResult == intResult)
 		{
 			sumReg.set(intResult, interpreter);
@@ -87,14 +87,5 @@ public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 			interpreter.offset(outOfRangeOffset);
 		}
 		return null;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Normally an operation that conditionally jumps would count as having
-		// a side-effect, but if nobody wants the value that was computed then
-		// we should be free to just remove this instruction.
-		return false;
 	}
 }

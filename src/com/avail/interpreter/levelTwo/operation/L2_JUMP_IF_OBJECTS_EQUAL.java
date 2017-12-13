@@ -129,11 +129,11 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final L2ReadPointerOperand secondReg =
 			instruction.readObjectRegisterAt(1);
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand notEqual = instruction.pcAt(3);
+//		final L2PcOperand ifEqual = instruction.pcAt(2);
+//		final L2PcOperand notEqual = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
-		final RegisterSet fallThroughSet = registerSets.get(0);
+//		final RegisterSet fallThroughSet = registerSets.get(0);
 		final RegisterSet postJumpSet = registerSets.get(1);
 
 		// In the path where the registers compared equal, we can deduce that

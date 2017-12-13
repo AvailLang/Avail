@@ -57,7 +57,7 @@ public class EditModuleTask
 extends AbstractWorkbenchTask
 implements WindowListener
 {
-	private final @Nonnull JFrame frame;
+	private final JFrame frame;
 
 	@Override
 	protected void executeTask () throws Exception

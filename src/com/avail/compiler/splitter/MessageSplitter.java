@@ -1162,7 +1162,7 @@ public final class MessageSplitter
 						final Expression alternation =
 							subgroup.beforeDagger.expressions.get(0);
 						subexpression =
-							new NumberedChoice((Alternation)alternation);
+							new NumberedChoice((Alternation) alternation);
 						messagePartPosition++;
 					}
 				}

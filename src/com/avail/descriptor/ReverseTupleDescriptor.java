@@ -372,7 +372,7 @@ extends TupleDescriptor
 		final A_Tuple aTuple)
 	{
 		return object.slot(ORIGIN_TUPLE).
-			equals(((AvailObject)aTuple).slot(ORIGIN_TUPLE));
+			equals(((AvailObject) aTuple).slot(ORIGIN_TUPLE));
 	}
 
 	@Override

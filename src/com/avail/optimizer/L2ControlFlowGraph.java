@@ -32,9 +32,9 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.annotations.InnerAccess;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -44,13 +44,15 @@ import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -59,6 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.disjoint;
 import static java.util.Collections.emptySet;
@@ -78,6 +81,8 @@ public final class L2ControlFlowGraph
 
 	/** The basic blocks, in their original creation order. */
 	private final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
+
+	private @Nullable L2RegisterColorer colorer = null;
 
 	/**
 	 * An {@link AtomicInteger} used to quickly generate unique integers which
@@ -119,7 +124,7 @@ public final class L2ControlFlowGraph
 	 *
 	 * @return {@code true} if any blocks were removed, otherwise {@code false}.
 	 */
-	private boolean removeUnreachableBlocks ()
+	@InnerAccess boolean removeUnreachableBlocks ()
 	{
 		final Deque<L2BasicBlock> blocksToVisit =
 			basicBlockOrder.stream()
@@ -223,7 +228,7 @@ public final class L2ControlFlowGraph
 	 * a side-effect or produce a value ultimately used by an instruction that
 	 * has a side-effect.
 	 */
-	private void removeDeadCode ()
+	@InnerAccess void removeDeadCode ()
 	{
 		//noinspection StatementWithEmptyBody
 		while (removeUnreachableBlocks() || removeDeadInstructions()) { }
@@ -234,7 +239,7 @@ public final class L2ControlFlowGraph
 	 * split it by inserting a new block along it.  Note that we do this
 	 * regardless of whether the target block has any phi functions.
 	 */
-	private void transformToEdgeSplitSSA ()
+	@InnerAccess void transformToEdgeSplitSSA ()
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
@@ -263,7 +268,7 @@ public final class L2ControlFlowGraph
 	/**
 	 * Determine which registers are live-in for each block.
 	 */
-	private void computeLivenessAtEachEdge ()
+	@InnerAccess void computeLivenessAtEachEdge ()
 	{
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
@@ -316,7 +321,7 @@ public final class L2ControlFlowGraph
 	 * block.  This avoids having to consider later whether to attempt to move
 	 * such instructions into successor blocks.
 	 */
-	private void considerSideEffectRegistersLive ()
+	@InnerAccess void considerSideEffectRegistersLive ()
 	{
 		final Set<L2Register> registers = new HashSet<>();
 		for (final L2Register register : allRegisters())
@@ -358,7 +363,7 @@ public final class L2ControlFlowGraph
 	 *
 	 * <p>Requires and preserves edge-split SSA form.</p>
 	 */
-	private void postponeConditionallyUsedValues ()
+	@InnerAccess void postponeConditionallyUsedValues ()
 	{
 		boolean changed;
 		do
@@ -505,11 +510,10 @@ public final class L2ControlFlowGraph
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	private void insertPhiMoves ()
+	@InnerAccess void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
-			final List<L2Instruction> instructionsToPrepend = new ArrayList<>();
 			final Iterator<L2Instruction> instructionIterator =
 				block.instructions().iterator();
 			while (instructionIterator.hasNext())
@@ -529,9 +533,6 @@ public final class L2ControlFlowGraph
 					instruction.sourceRegisters();
 				final int fanIn = predecessors.size();
 				assert fanIn == phiSources.size();
-				@Nullable A_BasicObject constant = null;
-				final List<L2ReadPointerOperand> sourceReaders =
-					L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(instruction);
 
 				// Insert a non-SSA move in each predecessor block.
 				for (int i = 0; i < fanIn; i++)
@@ -562,9 +563,40 @@ public final class L2ControlFlowGraph
 				instructionIterator.remove();
 				instruction.justRemoved();
 			}
-			block.instructions().addAll(0, instructionsToPrepend);
-			instructionsToPrepend.forEach(L2Instruction::justAdded);
 		}
+	}
+
+	/**
+	 * Determine which pairs of registers have to be simultaneously live and
+	 * potentially holding distinct values.
+	 */
+	@InnerAccess void computeInterferenceGraph ()
+	{
+		colorer = new L2RegisterColorer(this);
+		colorer.computeInterferenceGraph();
+	}
+
+	/**
+	 * For each {@link L2_MOVE} instruction, if the register groups associated
+	 * with the source and destination registers don't have an interference edge
+	 * between them then merge the groups together.  The resulting merged group
+	 * should have interferences with each group that the either the source
+	 * register's group or the destination register's group had interferences
+	 * with.
+	 */
+	@InnerAccess void coalesceNoninterferingMoves ()
+	{
+		stripNull(colorer).coalesceNoninterferingMoves();
+	}
+
+	/**
+	 * Assign final coloring to each register based on the interference graph
+	 * and coalescing map.
+	 */
+	@InnerAccess void computeColors ()
+	{
+		stripNull(colorer).computeColors();
+		colorer = null;
 	}
 
 	/**
@@ -574,7 +606,7 @@ public final class L2ControlFlowGraph
 	 * {@link L2Register#uniqueValue} that's the same as its {@link
 	 * L2Register#finalIndex}.
 	 */
-	public void replaceRegistersByColor ()
+	@InnerAccess void replaceRegistersByColor ()
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
@@ -623,7 +655,7 @@ public final class L2ControlFlowGraph
 	 * form, and is certainly not after this, since removed moves are the SSA
 	 * definition points for their target registers.
 	 */
-	private void removeSameColorMoves ()
+	@InnerAccess void removeSameColorMoves ()
 	{
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
@@ -647,7 +679,7 @@ public final class L2ControlFlowGraph
 	 * Any control flow edges that land on jumps should be redirected to the
 	 * ultimate target of the jump, taking into account chains of jumps.
 	 */
-	private void adjustEdgesToJumps ()
+	@InnerAccess void adjustEdgesLeadingToJumps ()
 	{
 		boolean changed;
 		do
@@ -697,7 +729,7 @@ public final class L2ControlFlowGraph
 	 * predecessors have been placed (or if there are only cycle unplaced, pick
 	 * one arbitrarily).</p>
 	 */
-	private void orderBlocks ()
+	@InnerAccess void orderBlocks ()
 	{
 		final Map<L2BasicBlock, Mutable<Integer>> countdowns = new HashMap<>();
 		for (final L2BasicBlock block : basicBlockOrder)
@@ -1073,105 +1105,141 @@ public final class L2ControlFlowGraph
 	/**
 	 * Perform a basic sanity check on the instruction graph.
 	 *
-	 * @param registerIdFunction
-	 *        A function that transforms a register into the index that should
-	 *        be used to identify it.  This allows pre-colored and post-colored
-	 *        register uses to be treated differently.
+	 * @param interpreter
+	 *        The current {@link Interpreter}.
 	 */
-	private void sanityCheck (
-		final Function<L2Register, Integer> registerIdFunction)
+	private void sanityCheck (final Interpreter interpreter)
 	{
 		if (shouldSanityCheck)
 		{
+			final long before = System.nanoTime();
 			checkBlocksAndInstructions();
 			checkUniqueOperands();
 			checkEdgesAndPhis();
-			checkRegistersAreInitialized(registerIdFunction);
+			checkRegistersAreInitialized(L2Register::uniqueValue);
+			final long after = System.nanoTime();
+			sanityCheckStat.record(
+				after - before, interpreter.interpreterIndex);
 		}
 	}
 
-	/**
-	 * Optimize the graph of instructions.
-	 */
-	public void optimize ()
+	enum OPTIMIZATION_PHASE
 	{
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Start by eliminating debris created during the initial L1 → L2
+		 * translation.
+		 */
+		REMOVE_DEAD_CODE_1(L2ControlFlowGraph::removeDeadCode),
 
-		// Remove all unreachable blocks, and any reachable instructions that
-		// neither have an effect nor produce a value that is transitively
-		// consumed by a later instruction that has an effect.
-		removeDeadCode();
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Transform into SSA edge-split form, to avoid inserting redundant
+		 * phi-moves.
+		 */
+		BECOME_EDGE_SPLIT_SSA(L2ControlFlowGraph::transformToEdgeSplitSSA),
 
-		// Transform into SSA edge-split form, to avoid inserting redundant
-		// phi-moves.
-		transformToEdgeSplitSSA();
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Find multi-way instructions (at the ends of basic blocks) where
+		 * along
+		 * some outbound edges a value is live, but along other edges from the
+		 * same block, the value is not live.  If it's safe, we move the
+		 * defining instruction forward along the edges where it's live,
+		 * thereby
+		 * not having to execute it along paths where it's not actually live.
+		 */
+		COMPUTE_LIVENESS_AT_EDGES(
+			L2ControlFlowGraph::computeLivenessAtEachEdge),
 
-		// Find multi-way instructions (at the ends of basic blocks) where along
-		// some outbound edges a value is live, but along other edges from the
-		// same block, the value is not live.  If it's safe, we move the
-		// defining instruction forward along the edges where it's live, thereby
-		// not having to execute it along paths where it's not actually live.
-		computeLivenessAtEachEdge();
-		considerSideEffectRegistersLive();
-		postponeConditionallyUsedValues();
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * For each register defined by an instruction with a side-effect, mark
+		 * that register as live in each edge of the graph.
+		 */
+		CONSIDER_SIDE_EFFECT_REGISTERS_LIVE(
+			L2ControlFlowGraph::considerSideEffectRegistersLive),
 
-		// Insert phi moves, which makes it no longer in SSA form.
-		insertPhiMoves();
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Attempt to slide forward any definition instructions that we can.
+		 * If
+		 * they hit the end of a diverging block in which the defined registers
+		 * are only needed by one successor, continue moving the instruction
+		 * into that branch.
+		 *
+		 * TODO MvG - Eventually track will-use and might-use separately, and
+		 * allow the instruction to be replicated into all might-use paths,
+		 * introducing additional registers and phis as needed.
+		 */
+		POSTPONE_CONDITIONALLY_USED_VALUES(
+			L2ControlFlowGraph::postponeConditionallyUsedValues),
 
-		// Remove constant moves made unnecessary by the introduction of new
-		// constant moves after phis (the ones that are constant-valued).
-		removeDeadCode();
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Insert phi moves, which makes it no longer in SSA form.
+		 */
+		INSERT_PHI_MOVES(
+			L2ControlFlowGraph::insertPhiMoves),
 
-		// Compute the register-coloring interference graph while we're just out
-		// of SSA form – phis have been replaced by moves on incoming edges.
-		final L2RegisterColorer colorer = new L2RegisterColorer(this);
-		colorer.computeInterferenceGraph();
+		/**
+		 * Remove constant moves made unnecessary by the introduction of new
+		 * constant moves after phis (the ones that are constant-valued).
+		 */
+		REMOVE_DEAD_CODE_2(L2ControlFlowGraph::removeDeadCode),
 
-		// Color all registers, using the previously computed interference
-		// graph.  This creates a dense finalIndex numbering for the registers
-		// in such a way that no two registers that have to maintain distinct
-		// values at the same time will have the same number.
-		colorer.coalesceNoninterferingMoves();
-		colorer.computeColors();
-		sanityCheck(L2Register::finalIndex);
+		/**
+		 * Compute the register-coloring interference graph while we're just
+		 * out
+		 * of SSA form – phis have been replaced by moves on incoming edges.
+		 */
+		COMPUTE_INTERFERENCE_GRAPH(
+			L2ControlFlowGraph::computeInterferenceGraph),
 
-		// Create a replacement register for each used color (of each kind).
-		// Transform each reference to an old register into a reference to the
-		// replacement, updating structures as needed.
-		replaceRegistersByColor();
-		sanityCheck(L2Register::finalIndex);
-		sanityCheck(L2Register::uniqueValue);
+		/**
+		 * Color all registers, using the previously computed interference
+		 * graph.  This creates a dense finalIndex numbering for the registers
+		 * in such a way that no two registers that have to maintain distinct
+		 * values at the same time will have the same number.
+		 */
+		COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
+			L2ControlFlowGraph::coalesceNoninterferingMoves),
 
-		// Remove moves between registers with the same color.  This may expose
-		// edges-to-jumps that would otherwise be concealed by useless moves.
-		removeSameColorMoves();
-		sanityCheck(L2Register::finalIndex);
+		/** Computed and assign final register colors. */
+		ASSIGN_REGISTER_COLORS(L2ControlFlowGraph::computeColors),
 
-		// Every L2PcOperand that leads to an L2_JUMP should now be redirected
-		// to the target of the jump (transitively, if the jump leads to another
-		// jump).  We specifically do this after inserting phi moves to ensure
-		// we don't jump past irremovable phi moves.
-		adjustEdgesToJumps();
-		sanityCheck(L2Register::finalIndex);
+		/**
+		 * Create a replacement register for each used color (of each kind).
+		 * Transform each reference to an old register into a reference to the
+		 * replacement, updating structures as needed.
+		 */
+		REPLACE_REGISTERS_BY_COLOR(L2ControlFlowGraph::replaceRegistersByColor),
 
-		// Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
-		// have become unreachable.
-		removeUnreachableBlocks();
-		sanityCheck(L2Register::finalIndex);
+		/**
+		 * Remove any remaining moves between two registers of the same color.
+		 */
+		REMOVE_SAME_COLOR_MOVES(L2ControlFlowGraph::removeSameColorMoves),
 
-		// Choose an order for the blocks.  This isn't important while we're
-		// interpreting L2Chunks, but it will ultimately affect the quality of
-		// JVM translation.  Prefer to have the target block of an unconditional
-		// jump to follow the jump, since final code generation elides the jump.
-		orderBlocks();
-		sanityCheck(L2Register::finalIndex);
+		/**
+		 * Every L2PcOperand that leads to an L2_JUMP should now be redirected
+		 * to the target of the jump (transitively, if the jump leads to
+		 * another
+		 * jump).  We specifically do this after inserting phi moves to ensure
+		 * we don't jump past irremovable phi moves.
+		 */
+		ADJUST_EDGES_LEADING_TO_JUMPS(
+			L2ControlFlowGraph::adjustEdgesLeadingToJumps),
 
-		// MvG TODO - Optimizations ideas:
+		/**
+		 * Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
+		 * have become unreachable.
+		 */
+		REMOVE_UNREACHABLE_BLOCKS(L2ControlFlowGraph::removeUnreachableBlocks),
+
+		/**
+		 * Choose an order for the blocks.  This isn't important while we're
+		 * interpreting L2Chunks, but it will ultimately affect the quality of
+		 * JVM translation.  Prefer to have the target block of an
+		 * unconditional
+		 * jump to follow the jump, since final code generation elides the jump.
+		 */
+		ORDER_BLOCKS(L2ControlFlowGraph::orderBlocks);
+
+		// Additional optimization ideas:
 		//    -Strengthen the types of all registers and register uses.
 		//    -Ask instructions to regenerate if they want.
 		//    -When optimizing, keep track of when a TypeRestriction on a phi
@@ -1185,8 +1253,55 @@ public final class L2ControlFlowGraph
 		//    -Splitting for int32s.
 		//    -Leverage more inter-primitive identities.
 		//    -JVM target.
+
+		/** The optimization action to perform for this pass. */
+		final Continuation1<L2ControlFlowGraph> action;
+
+		/** The {@link Statistic} for tracking this pass's cost. */
+		final Statistic stat;
+
+		/**
+		 * Create the enumeration value.
+		 *
+		 * @param action The action to perform for this pass.
+		 */
+		OPTIMIZATION_PHASE (final Continuation1<L2ControlFlowGraph> action)
+		{
+			this.action = action;
+			this.stat = new Statistic(
+				name(),
+				StatisticReport.L2_OPTIMIZATION_TIME);
+		}
 	}
 
+	/**
+	 * Optimize the graph of instructions.
+	 */
+	public void optimize (final Interpreter interpreter)
+	{
+		for (final OPTIMIZATION_PHASE phase : OPTIMIZATION_PHASE.values())
+		{
+			final long before = System.nanoTime();
+			phase.action.value(this);
+			final long after = System.nanoTime();
+			phase.stat.record(
+				after - before, interpreter.interpreterIndex);
+			sanityCheck(interpreter);
+		}
+	}
+
+	/** Statistic for tracking the cost of sanity checks. */
+	private static final Statistic sanityCheckStat = new Statistic(
+		"(Sanity check)",
+		StatisticReport.L2_OPTIMIZATION_TIME);
+
+	/**
+	 * Produce the final list of instructions.  Should only be called after
+	 * all optimizations have been performed.
+	 *
+	 * @param instructions
+	 *        The list of instructions to populate.
+	 */
 	public void generateOn (final List<L2Instruction> instructions)
 	{
 		for (final L2BasicBlock block : basicBlockOrder)

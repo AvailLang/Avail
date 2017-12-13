@@ -136,7 +136,12 @@ extends JFrame
 	/**
 	 * The prefix string for resources related to the workbench.
 	 */
-	public static final @Nonnull String resourcePrefix = "/resources/workbench/";
+	public static final String resourcePrefix = "/resources/workbench/";
+
+	public static String resource (final String localResourceName)
+	{
+		return resourcePrefix + localResourceName;
+	}
 
 	/** Determine at startup whether we're on a Mac. */
 	public static final boolean runningOnMac =
@@ -157,7 +162,7 @@ extends JFrame
 	 * does not permit the current working directory to be changed, it is safe
 	 * to cache the answer at class-loading time.
 	 */
-	public static final @Nonnull File currentWorkingDirectory;
+	public static final File currentWorkingDirectory;
 
 	// Obtain the current working directory. Try to resolve this location to its
 	// real path. If resolution fails, then just use the value of the "user.dir"
@@ -899,18 +904,18 @@ extends JFrame
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
-	public @Nonnull Path documentationPath =
+	public Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
 
 	/**
 	 * A {@link Map} from a module template name to a module template.
 	 */
-	public @Nonnull ModuleTemplates moduleTemplates;
+	public ModuleTemplates moduleTemplates;
 
 	/**
 	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
 	 */
-	public final @Nonnull ReplaceTextTemplate replaceTextTemplate =
+	public final ReplaceTextTemplate replaceTextTemplate =
 		new ReplaceTextTemplate();
 
 	/**
@@ -933,8 +938,8 @@ extends JFrame
 	 *        The template file.
 	 */
 	public void addModuleTemplate (
-		final @Nonnull String templateName,
-		final @Nonnull File file)
+		final String templateName,
+		final File file)
 	{
 		if (!file.exists())
 		{
@@ -1396,7 +1401,7 @@ extends JFrame
 					{
 						// Add a top-level package.
 						final ModuleRootNode strongParentNode =
-							(ModuleRootNode)parentNode;
+							(ModuleRootNode) parentNode;
 						final ModuleRoot thisRoot =
 							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
@@ -1408,7 +1413,7 @@ extends JFrame
 						// Add a non-top-level package.
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
-							(ModuleOrPackageNode)parentNode;
+							(ModuleOrPackageNode) parentNode;
 						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
 							strongParentNode.resolvedModuleName();
@@ -1477,7 +1482,7 @@ extends JFrame
 					{
 						// Add a top-level module (directly in a root).
 						final ModuleRootNode strongParentNode =
-							(ModuleRootNode)parentNode;
+							(ModuleRootNode) parentNode;
 						final ModuleRoot thisRoot =
 							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
@@ -1489,7 +1494,7 @@ extends JFrame
 						// Add a non-top-level module.
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
-							(ModuleOrPackageNode)parentNode;
+							(ModuleOrPackageNode) parentNode;
 						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
 							strongParentNode.resolvedModuleName();
@@ -1800,11 +1805,11 @@ extends JFrame
 			(DefaultMutableTreeNode) path.getLastPathComponent();
 		if (selection instanceof EntryPointNode)
 		{
-			return ((EntryPointNode)selection).resolvedModuleName();
+			return ((EntryPointNode) selection).resolvedModuleName();
 		}
 		if (selection instanceof EntryPointModuleNode)
 		{
-			return ((EntryPointModuleNode)selection).resolvedModuleName();
+			return ((EntryPointModuleNode) selection).resolvedModuleName();
 		}
 		return null;
 	}
@@ -2462,7 +2467,7 @@ extends JFrame
 		 *        The name of the template.
 		 * @return The requested template or an empty string.
 		 */
-		public String get (final @Nonnull String templateName)
+		public String get (final String templateName)
 		{
 			return moduleTemplates.getOrDefault(templateName, "");
 		}
@@ -2477,8 +2482,8 @@ extends JFrame
 		 * @return A string containing filled out template.
 		 */
 		public String createNewModuleFromTemplate (
-			final @Nonnull String templateName,
-			final @Nonnull String moduleName)
+			final String templateName,
+			final String moduleName)
 		{
 			final String year = Integer.toString(LocalDateTime.ofInstant(
 				Instant.now(), ZoneOffset.UTC).getYear());
@@ -2498,7 +2503,7 @@ extends JFrame
 			/**
 			 * The pattern that can be replaced in the template.
 			 */
-			private final @Nonnull String pattern;
+			private final String pattern;
 
 			/**
 			 * Answer the result of a filled out template.
@@ -2510,8 +2515,8 @@ extends JFrame
 			 * @return A filled out template.
 			 */
 			static String replace (
-				final @Nonnull String template,
-				final @Nonnull String... replacements)
+				final String template,
+				final String... replacements)
 			{
 				final Replaceable[] replaceables = Replaceable.values();
 
@@ -2532,7 +2537,7 @@ extends JFrame
 			 * @param pattern
 			 *        The replacement pattern.
 			 */
-			Replaceable (final @Nonnull String pattern)
+			Replaceable (final String pattern)
 			{
 				this.pattern = pattern;
 			}
@@ -2588,7 +2593,7 @@ extends JFrame
 		 *        A string in some encoding compatible with that produced
 		 *        by {@link #stringToStore()}.
 		 */
-		public ModuleTemplates (final @Nonnull String input)
+		public ModuleTemplates (final String input)
 		{
 			if (!input.isEmpty())
 			{
@@ -3177,7 +3182,7 @@ extends JFrame
 	 * Create a menu with the given name and entries, which can be null to
 	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
 	 */
-	private static @Nonnull JMenu menu (
+	private static JMenu menu (
 		final String name,
 		final Object... actionsAndSubmenus)
 	{
@@ -3214,7 +3219,7 @@ extends JFrame
 	}
 
 	/** Answer the pane wrapped in a JScrollPane. */
-	private static @Nonnull JScrollPane createScrollPane (
+	private static JScrollPane createScrollPane (
 		final Component innerComponent)
 	{
 		final JScrollPane scrollPane = new JScrollPane();

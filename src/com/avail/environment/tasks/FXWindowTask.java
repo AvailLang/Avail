@@ -57,7 +57,7 @@ implements WindowListener
 	/**
 	 * The {@link JFrame} that the {@link Scene} is in.
 	 */
-	private final @Nonnull JFrame frame;
+	private final JFrame frame;
 
 	/**
 	 * The width of the {@link JFrame}.
@@ -119,7 +119,7 @@ implements WindowListener
 	 *
 	 * @return A {@link Scene}.
 	 */
-	public abstract @Nonnull Scene newScene ();
+	public abstract Scene newScene ();
 
 	/**
 	 * A method that positions the {@link #frame} appropriately at creation.
@@ -147,7 +147,7 @@ implements WindowListener
 	 * @param message
 	 *        The error message.
 	 */
-	public void erroredClose (final @Nonnull String message)
+	public void erroredClose (final String message)
 	{
 		EventQueue.invokeLater(() ->
 		{
@@ -213,8 +213,8 @@ implements WindowListener
 	 *        The height of the JFrame.
 	 */
 	public FXWindowTask (
-		final @Nonnull AvailWorkbench workbench,
-		final @Nonnull String title,
+		final AvailWorkbench workbench,
+		final String title,
 		final boolean resizable,
 		final int width,
 		final int height)
@@ -245,8 +245,8 @@ implements WindowListener
 	 */
 	public FXWindowTask (
 		final AvailWorkbench workbench,
-		final @Nonnull ResolvedModuleName moduleName,
-		final @Nonnull String title,
+		final ResolvedModuleName moduleName,
+		final String title,
 		final boolean resizable,
 		final int width,
 		final int height)

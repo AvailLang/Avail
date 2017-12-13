@@ -477,7 +477,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -707,7 +707,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -1003,7 +1003,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -1282,7 +1282,7 @@ extends AbstractDescriptor
 	@Override
 	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -2304,7 +2304,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsInteger (
 		final AvailObject object,
-		final A_Number anAvailInteger)
+		final AvailObject anAvailInteger)
 	{
 		return false;
 	}
@@ -2419,7 +2419,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsTwoByteString (
 		final AvailObject object,
-		final A_String aString)
+		final A_String aTwoByteString)
 	{
 		return false;
 	}
@@ -3294,7 +3294,7 @@ extends AbstractDescriptor
 	@Override
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger)
+		final AvailObject anInteger)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4893,12 +4893,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Statistic o_DynamicLookupStatistic (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_IsGlobal (
 		final AvailObject object)
 	{
@@ -4971,6 +4965,18 @@ extends AbstractDescriptor
 	void o_IsSourceOfCycle (
 		final AvailObject object,
 		final boolean isSourceOfCycle)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Statistic o_ReturnerCheckStat (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Statistic o_ReturneeCheckStat (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

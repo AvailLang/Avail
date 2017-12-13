@@ -43,7 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
@@ -55,9 +55,9 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.stream.Collectors.toList;
@@ -72,6 +72,7 @@ import static java.util.stream.Collectors.toList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2Operation
 {
 	/**
@@ -121,83 +122,6 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * The ordinal of this {@code L2Operation}, made available via the {@link
-	 * #ordinal()} message.  The assignment of ordinals to operations depends on
-	 * the order in which the operations are first encontered in the code
-	 * generator (or elsewhere), so don't rely on specific numeric values.
-	 */
-	private final int ordinal;
-
-	/**
-	 * The ordinal of this {@code L2Operation}.  Note that the assignment of
-	 * ordinals to operations depends on the order in which the operations are
-	 * first encountered in the code generator, so don't rely on numeric values.
-	 *
-	 * <p>
-	 * Among other things, this is intended as a disincentive to discourage the
-	 * exposition of anything related to level two in media that outlive or
-	 * otherwise exceed the scope of an invocation of the Avail virtual machine
-	 * (i.e., files, communication channels, etc).  If such a mechanism becomes
-	 * truly desirable in the future (despite it potentially acting as a
-	 * hindrance against advancement of the level two instruction set and
-	 * optimization engine), one could choose to initialize the classes in some
-	 * particular order, thus defining the canon of level two operations.
-	 * </p>
-	 *
-	 * <p>
-	 * One more warning for good measure:  The level two instructions produced
-	 * by the optimizer take into account (and are themselves taken into account
-	 * by) the specific sets of definitions of relevant methods.  For
-	 * example, the function [1+2;] may be tentatively folded to produce the
-	 * constant 3, irrespective of the current environment's definition of a
-	 * "_+_" operation.  Within a virtual machine, such level two code will be
-	 * made contingent upon the "_+_" method's set of definitions, being
-	 * invalidated automatically if a definition is added or removed.  Any
-	 * attempt to simply plug such level two code into another environment is
-	 * surely fraught with disaster, or at least great peril.
-	 * </p>
-	 *
-	 * @return The operation's ordinal, used in {@link L2Chunk level two
-	 *         wordcodes}.
-	 */
-	public int ordinal ()
-	{
-		return ordinal;
-	}
-
-	/**
-	 * The {@linkplain L2Operation operations} that have been encountered thus
-	 * far, organized as an array indexed by the operations' {@linkplain
-	 * #ordinal ordinals}. The array might be padded on the right with nulls.
-	 */
-	static final L2Operation[] values = new L2Operation[200];
-
-	/** Synchronization for the values array. */
-	static final ReentrantLock valuesLock = new ReentrantLock();
-
-	/**
-	 * Answer an array of {@code L2Operation operations} which have been
-	 * encountered thus far, indexed by {@link #ordinal}.  It may be padded with
-	 * nulls.
-	 *
-	 * <p>
-	 * The array may be replaced when new operations are encountered, so do not
-	 * cache it elsewhere.
-	 * </p>
-	 *
-	 * @return The known operations.
-	 */
-	public static L2Operation[] values ()
-	{
-		return values;
-	}
-
-	/**
-	 * How many distinct kinds of operations have been encountered so far.
-	 */
-	private static int numValues = 0;
-
-	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
 	 */
@@ -213,19 +137,10 @@ public abstract class L2Operation
 		name = className;
 		statisticInNanoseconds = new Statistic(
 			className, StatisticReport.L2_OPERATIONS);
-		valuesLock.lock();
-		try
-		{
-			ordinal = numValues;
-			values[ordinal] = this;
-			//noinspection AssignmentToStaticFieldFromInstanceMethod
-			numValues++;
-		}
-		finally
-		{
-			valuesLock.unlock();
-		}
 	}
+
+	/** An empty array of ints. */
+	static int[] emptyIntArray = new int[0];
 
 	/**
 	 * Initialize a fresh {@code L2Operation}.
@@ -236,35 +151,26 @@ public abstract class L2Operation
 	 */
 	public L2Operation init (final L2NamedOperandType... theNamedOperandTypes)
 	{
-		// Static class initialization causes this to happen, and L2Operation
-		// subclasses may be first encountered by separate threads. Therefore we
-		// must synchronize on the valuesLock.
-		valuesLock.lock();
-		try
-		{
-			assert namedOperandTypes == null;
-			namedOperandTypes = theNamedOperandTypes;
+		assert namedOperandTypes == null;
+		namedOperandTypes = theNamedOperandTypes.clone();
 
-			// The number of targets won't be large, so don't worry about the
-			// quadratic cost.  An N-way dispatch would be a different story.
-			int[] indices = {};
-			for (int index = 0; index < namedOperandTypes.length; index++)
-			{
-				final L2NamedOperandType namedOperandType =
-					namedOperandTypes[index];
-				if (namedOperandType.operandType() == L2OperandType.PC)
-				{
-					indices = Arrays.copyOf(indices, indices.length + 1);
-					indices[indices.length - 1] = index;
-				}
-			}
-			labelOperandIndices = indices;
-			altersControlFlow = indices.length > 0 || !reachesNextInstruction();
-		}
-		finally
+		// The number of targets won't be large, so don't worry about the
+		// quadratic cost.  An N-way dispatch would be a different story.
+		final List<Integer> labelIndicesList = new ArrayList<>(2);
+		for (int index = 0; index < namedOperandTypes.length; index++)
 		{
-			valuesLock.unlock();
+			final L2NamedOperandType namedOperandType =
+				namedOperandTypes[index];
+			if (namedOperandType.operandType() == L2OperandType.PC)
+			{
+				labelIndicesList.add(index);
+			}
 		}
+		labelOperandIndices = labelIndicesList.isEmpty()
+			? emptyIntArray
+			: labelIndicesList.stream().mapToInt(Integer::intValue).toArray();
+		altersControlFlow = labelOperandIndices.length > 0
+			|| !reachesNextInstruction();
 		return this;
 	}
 
@@ -427,8 +333,8 @@ public abstract class L2Operation
 	 * Answer whether this operation is a move between (compatible) registers.
 	 *
 	 * @return {@code true} if this operation simply moves data between two
-	 *         registers of the same {@link L2Register.RegisterKind}, otherwise
-	 *         {@code false}.
+	 *         registers of the same {@link RegisterKind}, otherwise {@code
+	 *         false}.
 	 */
 	public boolean isMove ()
 	{

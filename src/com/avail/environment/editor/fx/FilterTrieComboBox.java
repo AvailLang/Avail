@@ -59,13 +59,13 @@ extends FilterComboBox<String>
 	/**
 	 * The {@link PrefixTrie} that backs
 	 */
-	private final @Nonnull PrefixTrie<T> prefixTrie;
+	private final PrefixTrie<T> prefixTrie;
 
 	/**
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link #prefixTrie}.
 	 */
-	private final @Nonnull ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
+	private final ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
 
 	/**
 	 * Add a {@link PrefixNode} to the {@link #path}.
@@ -84,7 +84,7 @@ extends FilterComboBox<String>
 	 *
 	 * @return A {@code PrefixNode}.
 	 */
-	private @Nonnull PrefixNode<T> currentNode ()
+	private PrefixNode<T> currentNode ()
 	{
 		return path.getLast();
 	}
@@ -93,7 +93,7 @@ extends FilterComboBox<String>
 	 * A {@link Collection} of Strings that represent the content presently
 	 * available from this point forward in the {@link #path}.
 	 */
-	private @Nonnull Collection<String> visibleWordList =
+	private Collection<String> visibleWordList =
 		Collections.emptyList();
 
 	/**
@@ -107,7 +107,7 @@ extends FilterComboBox<String>
 	}
 
 	@Override
-	protected @Nonnull Collection<String> generateVisibleList ()
+	protected Collection<String> generateVisibleList ()
 	{
 		return visibleWordList;
 	}
@@ -225,9 +225,9 @@ extends FilterComboBox<String>
 	 *        The backing {@link PrefixTrie}.
 	 */
 	public FilterTrieComboBox (
-		final @Nonnull BiFunction<String, String, Boolean> matcher,
-		final @Nonnull Continuation0 enterBehavior,
-		final @Nonnull PrefixTrie<T> prefixTrie)
+		final BiFunction<String, String, Boolean> matcher,
+		final Continuation0 enterBehavior,
+		final PrefixTrie<T> prefixTrie)
 	{
 		super(prefixTrie.root().words(), matcher, enterBehavior);
 		this.prefixTrie = prefixTrie;
@@ -243,8 +243,8 @@ extends FilterComboBox<String>
 	 *        The backing {@link PrefixTrie}.
 	 */
 	public FilterTrieComboBox (
-		final @Nonnull BiFunction<String, String, Boolean> matcher,
-		final @Nonnull PrefixTrie<T> prefixTrie)
+		final BiFunction<String, String, Boolean> matcher,
+		final PrefixTrie<T> prefixTrie)
 	{
 		super(prefixTrie.root().words(), matcher);
 		this.prefixTrie = prefixTrie;

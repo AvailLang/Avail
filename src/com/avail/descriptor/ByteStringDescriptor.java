@@ -135,7 +135,7 @@ extends StringDescriptor
 		{
 			// Enlarge it in place, using more of the final partial long field.
 			object.descriptor = descriptorFor(MUTABLE, newSize);
-			object.setByteSlot(RAW_LONGS_, newSize, (short)intValue);
+			object.setByteSlot(RAW_LONGS_, newSize, (short) intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
 		}
@@ -145,7 +145,7 @@ extends StringDescriptor
 			object,
 			0,
 			(originalSize & 7) == 0 ? 1 : 0);
-		result.setByteSlot(RAW_LONGS_, newSize, (short)intValue);
+		result.setByteSlot(RAW_LONGS_, newSize, (short) intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -346,7 +346,7 @@ extends StringDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		return generateByteString(
-			size, i -> (char)object.byteSlot(RAW_LONGS_, size + 1 - i));
+			size, i -> (char) object.byteSlot(RAW_LONGS_, size + 1 - i));
 	}
 
 	@Override @AvailMethod
@@ -533,7 +533,7 @@ extends StringDescriptor
 		{
 			final long c = generator.value(counter++);
 			assert (c & 255) == c;
-			result.setByteSlot(RAW_LONGS_, index, (short)c);
+			result.setByteSlot(RAW_LONGS_, index, (short) c);
 		}
 		return result;
 	}

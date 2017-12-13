@@ -324,15 +324,15 @@ public final class L2RegisterColorer
 								smallSet = group2;
 								largeSet = group1;
 							}
-							interferences.successorsOf(smallSet).forEach(
-								neighborOfSmall ->
-								{
-									assert neighborOfSmall != largeSet;
-									interferences.includeEdge(
-										largeSet, neighborOfSmall);
-									interferences.includeEdge(
-										neighborOfSmall, largeSet);
-								});
+							for (final RegisterGroup neighborOfSmall :
+								interferences.successorsOf(smallSet))
+							{
+								assert neighborOfSmall != largeSet;
+								interferences.includeEdge(
+									largeSet, neighborOfSmall);
+								interferences.includeEdge(
+									neighborOfSmall, largeSet);
+							}
 							interferences.exciseVertex(smallSet);
 							// Merge the smallSet elements into the largeSet.
 							for (final L2Register r : smallSet.registers)
@@ -348,7 +348,7 @@ public final class L2RegisterColorer
 	}
 
 	/**
-	 * Determine colors for all registers.  We use a trivial coloring algorithm
+	 * Determine colors for all registers.  We use a simple coloring algorithm
 	 * here, since both L2 and the JVM have an effectively unbounded number of
 	 * virtual registers, and we're merely interested in keeping the color count
 	 * as reasonably close to minimal as we can.

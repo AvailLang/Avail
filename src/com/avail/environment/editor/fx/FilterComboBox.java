@@ -61,12 +61,12 @@ extends ComboBox<T>
 	 * A {@link BiFunction} that accepts the typed String and an object from
 	 * the {@link ComboBox} option list.
 	 */
-	final @Nonnull BiFunction<String, T, Boolean> matcher;
+	final BiFunction<String, T, Boolean> matcher;
 
 	/**
 	 * A {@link Continuation0} that is run when {@link KeyCode#ENTER} is hit.
 	 */
-	private @Nonnull Continuation0 enterBehavior = () -> {};
+	private Continuation0 enterBehavior = () -> {};
 
 	/**
 	 * Perform an action when the following characters are not pressed:
@@ -138,7 +138,7 @@ extends ComboBox<T>
 	 * @param behavior
 	 *        A {@link Continuation0}.
 	 */
-	public void enterBehavior (final @Nonnull Continuation0 behavior)
+	public void enterBehavior (final Continuation0 behavior)
 	{
 		this.enterBehavior = behavior;
 	}
@@ -172,7 +172,7 @@ extends ComboBox<T>
 	 * @param options
 	 *        The collection to add.
 	 */
-	public final void addOptions (final @Nonnull Collection<T> options)
+	public final void addOptions (final Collection<T> options)
 	{
 		getItems().addAll(options);
 		optionList = getItems();
@@ -184,7 +184,7 @@ extends ComboBox<T>
 	 *
 	 * @return A {@link Collection}.
 	 */
-	protected @Nonnull Collection<T> generateVisibleList ()
+	protected Collection<T> generateVisibleList ()
 	{
 		final List<T> list = new ArrayList<>();
 		for (final T aData : stripNull(optionList))
@@ -212,8 +212,8 @@ extends ComboBox<T>
 	 *        is hit.
 	 */
 	public FilterComboBox (
-		final @Nonnull  BiFunction<String, T, Boolean> matcher,
-		final @Nonnull Continuation0 enterBehavior)
+		final BiFunction<String, T, Boolean> matcher,
+		final Continuation0 enterBehavior)
 	{
 		this.matcher = matcher;
 		this.enterBehavior = enterBehavior;
@@ -241,7 +241,7 @@ extends ComboBox<T>
 	 *        from the {@link ComboBox} option list.
 	 */
 	public FilterComboBox (
-		final @Nonnull  BiFunction<String, T, Boolean> matcher)
+		final BiFunction<String, T, Boolean> matcher)
 	{
 		this(matcher, () -> {});
 	}
@@ -258,9 +258,9 @@ extends ComboBox<T>
 	 *        A {@link Continuation0} that is run when {@link KeyCode#ENTER}
 	 */
 	public FilterComboBox (
-		final @Nonnull Collection<T> items,
-		final @Nonnull BiFunction<String, T, Boolean> matcher,
-		final @Nonnull Continuation0 enterBehavior)
+		final Collection<T> items,
+		final BiFunction<String, T, Boolean> matcher,
+		final Continuation0 enterBehavior)
 	{
 		this(matcher, enterBehavior);
 		addOptions(items);
@@ -276,8 +276,8 @@ extends ComboBox<T>
 	 *        from the {@link ComboBox} option list.
 	 */
 	public FilterComboBox (
-		final @Nonnull Collection<T> items,
-		final @Nonnull BiFunction<String, T, Boolean> matcher)
+		final Collection<T> items,
+		final BiFunction<String, T, Boolean> matcher)
 	{
 		this(matcher, () -> {});
 		addOptions(items);
@@ -286,7 +286,7 @@ extends ComboBox<T>
 	/**
 	 * The {@link EventHandler} associated with this {@link FilterComboBox}.
 	 */
-	private final @Nonnull EventHandler<KeyEvent> eventHandler =
+	private final EventHandler<KeyEvent> eventHandler =
 		new EventHandler<KeyEvent>()
 	{
 		/**

@@ -21,7 +21,7 @@ public class PrefixNode<T>
 	/**
 	 * The {@link Map} that holds the next nodes in the trie.
 	 */
-	private final @Nonnull Map<Character, PrefixNode<T>> children =
+	private final Map<Character, PrefixNode<T>> children =
 		new HashMap<>();
 
 	/**
@@ -37,7 +37,7 @@ public class PrefixNode<T>
 	/**
 	 * An object to lock editing to this {@link PrefixNode}.
 	 */
-	private final @Nonnull Object lock = new Object();
+	private final Object lock = new Object();
 
 	/**
 	 * Answer the {@link #content}.
@@ -53,7 +53,7 @@ public class PrefixNode<T>
 	 * The list of viable complete prefix word from this point in the
 	 * {@link PrefixTrie}.
 	 */
-	private @Nonnull List<String> words = new ArrayList<>();
+	private List<String> words = new ArrayList<>();
 
 	/**
 	 * Add a word to this {@link PrefixNode}.
@@ -61,7 +61,7 @@ public class PrefixNode<T>
 	 * @param word
 	 *        The word to add.
 	 */
-	private void addWord (final @Nonnull String word)
+	private void addWord (final String word)
 	{
 		synchronized (lock)
 		{
@@ -76,7 +76,7 @@ public class PrefixNode<T>
 	 *
 	 * @return A {@link List}.
 	 */
-	public final @Nonnull List<String> words ()
+	public final List<String> words ()
 	{
 		return words;
 	}
@@ -91,8 +91,8 @@ public class PrefixNode<T>
 	 *        {@code null}.
 	 */
 	public void addWord (
-		final @Nonnull String word,
-		final @Nonnull T contents)
+		final String word,
+		final T contents)
 	{
 
 		addWord(word);
@@ -121,7 +121,7 @@ public class PrefixNode<T>
 	 *        The word to search.
 	 */
 	public @Nullable PrefixNode<T> searchTrie (
-		final @Nonnull String word)
+		final String word)
 	{
 		if (word.length() - 1 > depth)
 		{
@@ -146,8 +146,8 @@ public class PrefixNode<T>
 	 *        A {@link Consumer} that accepts a {@link PrefixNode}.
 	 */
 	public @Nullable PrefixNode<T> searchTrie (
-		final @Nonnull String word,
-		final @Nonnull Consumer<PrefixNode<T>> acceptEachNode)
+		final String word,
+		final Consumer<PrefixNode<T>> acceptEachNode)
 	{
 		if (word.length() - 1 > depth)
 		{

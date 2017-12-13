@@ -104,10 +104,10 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 		}
 		// Remainder is always non-negative.
 		final long remainder = dividend - (quotient * divisor);
-		if (quotient == (int)quotient && remainder == (int)remainder)
+		if (quotient == (int) quotient && remainder == (int) remainder)
 		{
-			quotientReg.set((int)quotient, interpreter);
-			remainderReg.set((int)remainder, interpreter);
+			quotientReg.set((int) quotient, interpreter);
+			remainderReg.set((int) remainder, interpreter);
 			interpreter.offset(successIndex);
 		}
 		else

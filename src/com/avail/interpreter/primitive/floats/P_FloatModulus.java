@@ -71,7 +71,7 @@ public final class P_FloatModulus extends Primitive
 		final float fa = a.extractFloat();
 		final float fb = b.extractFloat();
 		final float div = fa / fb;
-		final float mod = fa - (float)floor(div) * fb;
+		final float mod = fa - (float) floor(div) * fb;
 		return interpreter.primitiveSuccess(
 			objectFromFloatRecycling(mod, a, b, true));
 	}

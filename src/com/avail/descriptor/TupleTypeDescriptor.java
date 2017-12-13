@@ -598,6 +598,7 @@ extends TypeDescriptor
 	 * @param defaultType The type of remaining elements of conforming tuples.
 	 * @return A canonized tuple type with the specified properties.
 	 */
+	@SuppressWarnings("TailRecursion")
 	public static A_Type tupleTypeForSizesTypesDefaultType (
 		final A_Type sizeRange,
 		final A_Tuple typeTuple,
@@ -715,11 +716,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Transform a {@link TupleTypeDescriptor tuple type} into another tuple
-	 * type by {@linkplain Transformer1 transforming} each of the element types.
-	 * Assume the transformation is stable.  The resulting tuple type should
-	 * have the same size range as the input tuple type, except if normalization
-	 * produces {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * Transform a tuple type into another tuple type by {@linkplain
+	 * Transformer1 transforming} each of the element types.  Assume the
+	 * transformation is stable.  The resulting tuple type should have the same
+	 * size range as the input tuple type, except if normalization produces
+	 * {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 *
 	 * @param aTupleType
 	 *        A tuple type whose element types should be transformed.
@@ -746,8 +747,8 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain TupleTypeDescriptor tuple type} with the specified
-	 * parameters.  These must already have been canonized by the caller.
+	 * Create a tuple type with the specified parameters.  These must already
+	 * have been canonized by the caller.
 	 *
 	 * @param sizeRange The allowed sizes of conforming tuples.
 	 * @param typeTuple The types of the initial elements of conforming tuples.

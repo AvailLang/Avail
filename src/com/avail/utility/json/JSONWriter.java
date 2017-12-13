@@ -1127,7 +1127,7 @@ implements AutoCloseable
 			state.checkCanEndDocument();
 			return writer.toString();
 		}
-		catch (final @Nonnull Throwable e)
+		catch (final Throwable e)
 		{
 			// Do not allow an exception of any stripe to derail the
 			// stringification operation.

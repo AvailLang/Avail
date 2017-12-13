@@ -126,6 +126,9 @@ extends Descriptor
 	/** The priority of command execution tasks. */
 	public static final int commandPriority = 50;
 
+	/** The priority for invalidating expired L2 chunks in bulk. */
+	public static final int bulkL2InvalidationPriority = 90;
+
 	/**
 	 * The advisory interrupt request flags. The flags declared as enumeration
 	 * values within this {@code enum} are the interrupt request flags.
@@ -467,7 +470,7 @@ extends Descriptor
 		 * in which logging should take place for this fiber.  This is a very
 		 * fast way of doing logging, since it doesn't have to write to disk or
 		 * update a user interface component, and garbage collection of a fiber
-		 * whiche has terminated typically also collects that fiber's log.
+		 * which has terminated typically also collects that fiber's log.
 		 */
 		DEBUG_LOG
 	}
@@ -702,7 +705,7 @@ extends Descriptor
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
-		return all()[(int)object.mutableSlot(EXECUTION_STATE)];
+		return all()[(int) object.mutableSlot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod

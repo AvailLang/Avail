@@ -362,7 +362,7 @@ public final class RegisterSet
 	 * @return The set of all {@link L2Register}s known to contain the same
 	 *         value as the given register.
 	 */
-	private @Nonnull Set<L2Register> allEquivalentRegisters (
+	private Set<L2Register> allEquivalentRegisters (
 		final L2Register register)
 	{
 		Set<L2Register> equivalents = new HashSet<>(3);

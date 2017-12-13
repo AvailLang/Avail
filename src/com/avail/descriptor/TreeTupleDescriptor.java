@@ -715,7 +715,7 @@ extends TupleDescriptor
 			// Fits in a single node.
 			final AvailObject newNode = newLike(
 				tuple1.descriptor().mutable(),
-				(AvailObject)tuple1,
+				(AvailObject) tuple1,
 				count2,
 				((count1 + count2 + 1) >> 1) - ((count1 + 1) >> 1));
 			int size = tuple1.tupleSize();

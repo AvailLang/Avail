@@ -574,7 +574,7 @@ public class CompilationContext
 	public LexingState lexingStateAt (final int position, final int lineNumber)
 	{
 		// First try to read it inside a (shared) read lock.
-		final Long key = (((long)lineNumber) << 32) + position;
+		final Long key = (((long) lineNumber) << 32) + position;
 		lexingStatesLock.readLock().lock();
 		LexingState state;
 		try

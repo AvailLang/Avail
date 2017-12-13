@@ -284,7 +284,7 @@ implements A_BasicObject
 		long word = longSlots[wordIndex];
 		final int leftShift = (zeroBasedSubscript & 0x07) << 3;
 		word &= ~(0xFFL << leftShift);
-		word |= ((long)aByte) << leftShift;
+		word |= ((long) aByte) << leftShift;
 		longSlots[wordIndex] = word;
 	}
 
@@ -303,7 +303,7 @@ implements A_BasicObject
 	{
 		checkSlot(field);
 		final long word = longSlots[field.ordinal() + ((shortIndex - 1) >>> 2)];
-		return (int)((word >>> ((shortIndex - 1 & 3) << 4)) & 0xFFFF);
+		return (int) ((word >>> ((shortIndex - 1 & 3) << 4)) & 0xFFFF);
 	}
 
 	/**
@@ -326,7 +326,7 @@ implements A_BasicObject
 		final int wordIndex = field.ordinal() + ((shortIndex - 1) >>> 2);
 		long word = longSlots[wordIndex];
 		word &= ~(0xFFFFL << shift);
-		word |= ((long)aShort) << shift;
+		word |= ((long) aShort) << shift;
 		longSlots[wordIndex] = word;
 	}
 
@@ -344,7 +344,7 @@ implements A_BasicObject
 	{
 		checkSlot(field);
 		final long word = longSlots[field.ordinal() + ((intIndex - 1) >>> 1)];
-		return (int)(word >> ((intIndex - 1 & 1) << 5));
+		return (int) (word >> ((intIndex - 1 & 1) << 5));
 	}
 
 	/**
@@ -622,7 +622,7 @@ implements A_BasicObject
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
+		objectSlots[field.ordinal()] = (AvailObject) anAvailObject;
 	}
 
 	/**
@@ -644,7 +644,7 @@ implements A_BasicObject
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		objectSlots[field.ordinal()] = (AvailObject)aContinuation;
+		objectSlots[field.ordinal()] = (AvailObject) aContinuation;
 	}
 
 	/**
@@ -682,7 +682,7 @@ implements A_BasicObject
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
 		objectSlots[field.ordinal() + subscript - 1] =
-			(AvailObject)anAvailObject;
+			(AvailObject) anAvailObject;
 	}
 
 	/**
@@ -1171,7 +1171,7 @@ implements A_BasicObject
 			final long longMidVal = longSlots[mid >>> 1];
 			// The following shift maintains the little-Endian convention set up
 			// by intSlot() and setIntSlot().
-			final int midVal = (int)(longMidVal >>> ((mid & 1) << 5));
+			final int midVal = (int) (longMidVal >>> ((mid & 1) << 5));
 			if (midVal < key)
 			{
 				low = mid + 1;
@@ -1222,13 +1222,13 @@ implements A_BasicObject
 	public boolean equals (final @Nullable Object another)
 	{
 		assert another instanceof AvailObject;
-		return descriptor.o_Equals((AvailObject)this, (AvailObject)another);
+		return descriptor.o_Equals((AvailObject) this, (AvailObject) another);
 	}
 
 	@Override
 	public final int hashCode ()
 	{
-		return descriptor.o_Hash((AvailObject)this);
+		return descriptor.o_Hash((AvailObject) this);
 	}
 
 	/**
@@ -1248,7 +1248,7 @@ implements A_BasicObject
 			return tag;
 		}
 		// Fall back on computing the tag with a slower polymorphic method.
-		return descriptor.o_ComputeTypeTag((AvailObject)this);
+		return descriptor.o_ComputeTypeTag((AvailObject) this);
 	}
 
 	/**

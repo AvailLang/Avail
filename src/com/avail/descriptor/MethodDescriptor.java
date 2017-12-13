@@ -64,6 +64,8 @@ import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -952,7 +954,7 @@ extends Descriptor
 		final Set<L2Chunk> originalSet = pojo.javaObjectNotNull();
 		for (final L2Chunk chunk : new ArrayList<>(originalSet))
 		{
-			chunk.invalidate();
+			chunk.invalidate(invalidationsFromMethodChange);
 		}
 		// The chunk invalidations should have removed all dependencies.
 		assert originalSet.isEmpty();
@@ -977,6 +979,15 @@ extends Descriptor
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
 	}
+
+	/**
+	 * {@link Statistic} for tracking the cost of invalidating chunks due to a
+	 * change in a dependency.
+	 */
+	private static final Statistic invalidationsFromMethodChange =
+		new Statistic(
+			"(invalidation from dependent method change)",
+			StatisticReport.L2_OPTIMIZATION_TIME);
 
 	/**
 	 * Construct a new {@code MethodDescriptor}.

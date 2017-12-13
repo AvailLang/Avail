@@ -88,7 +88,7 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 		if (d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE)
 		{
 			// Common case -- it fits in an int.
-			return interpreter.primitiveSuccess(fromInt((int)d));
+			return interpreter.primitiveSuccess(fromInt((int) d));
 		}
 		final boolean neg = d < 0.0d;
 		d = abs(d);
@@ -99,7 +99,7 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 		for (int i = slots; i >= 1; --i)
 		{
 			final long intSlice = (int) d;
-			out.rawUnsignedIntegerAtPut(i, (int)intSlice);
+			out.rawUnsignedIntegerAtPut(i, (int) intSlice);
 			d -= intSlice;
 			d = scalb(d, 32);
 		}

@@ -373,7 +373,7 @@ public final class L2Instruction
 	 */
 	public AvailObject constantAt (final int operandIndex)
 	{
-		return ((L2ConstantOperand)operands[operandIndex]).object;
+		return ((L2ConstantOperand) operands[operandIndex]).object;
 	}
 
 	/**
@@ -388,7 +388,7 @@ public final class L2Instruction
 	 */
 	public A_Bundle bundleAt (final int operandIndex)
 	{
-		return ((L2SelectorOperand)operands[operandIndex]).bundle;
+		return ((L2SelectorOperand) operands[operandIndex]).bundle;
 	}
 
 	/**
@@ -400,7 +400,7 @@ public final class L2Instruction
 	 */
 	public int immediateAt (final int operandIndex)
 	{
-		return ((L2ImmediateOperand)operands[operandIndex]).value;
+		return ((L2ImmediateOperand) operands[operandIndex]).value;
 	}
 
 	/**
@@ -415,7 +415,7 @@ public final class L2Instruction
 	 */
 	public L2PcOperand pcAt (final int operandIndex)
 	{
-		return ((L2PcOperand)operands[operandIndex]);
+		return ((L2PcOperand) operands[operandIndex]);
 	}
 
 	/**
@@ -439,7 +439,7 @@ public final class L2Instruction
 	 */
 	public Primitive primitiveAt (final int operandIndex)
 	{
-		return ((L2PrimitiveOperand)operands[operandIndex]).primitive;
+		return ((L2PrimitiveOperand) operands[operandIndex]).primitive;
 	}
 
 	/**
@@ -501,7 +501,7 @@ public final class L2Instruction
 	public List<L2ReadPointerOperand> readVectorRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2ReadVectorOperand)operands[operandIndex]).elements();
+		return ((L2ReadVectorOperand) operands[operandIndex]).elements();
 	}
 
 	/**
@@ -515,6 +515,6 @@ public final class L2Instruction
 	public List<L2WritePointerOperand> writeVectorRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2WriteVectorOperand)operands[operandIndex]).elements();
+		return ((L2WriteVectorOperand) operands[operandIndex]).elements();
 	}
 }

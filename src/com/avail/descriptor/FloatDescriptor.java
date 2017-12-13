@@ -249,14 +249,14 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		final double sum = addDoubleAndIntegerCanDestroy(
 			getDouble(object),
 			anInteger,
 			canDestroy);
-		return fromFloatRecycling((float)sum, object, canDestroy);
+		return fromFloatRecycling((float) sum, object, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -310,7 +310,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		// Do the math with doubles so that spurious overflows *can't* happen.
@@ -319,7 +319,7 @@ extends AbstractNumberDescriptor
 		// should safely hold any integer that wouldn't cause the quotient to go
 		// out of finite float range.
 		return fromFloatRecycling(
-			(float)(anInteger.extractDouble() / getDouble(object)),
+			(float) (anInteger.extractDouble() / getDouble(object)),
 			object,
 			canDestroy);
 	}
@@ -458,7 +458,7 @@ extends AbstractNumberDescriptor
 		final boolean canDestroy)
 	{
 		return fromFloatRecycling(
-			(float)(sign.limitDouble() * getFloat(object)),
+			(float) (sign.limitDouble() * getFloat(object)),
 			object,
 			canDestroy);
 	}
@@ -466,14 +466,14 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		// Do the math with doubles to avoid intermediate overflow of the
 		// integer in the case that the product could still be represented as a
 		// float.
 		return fromFloatRecycling(
-			(float)(anInteger.extractDouble() * getDouble(object)),
+			(float) (anInteger.extractDouble() * getDouble(object)),
 			object,
 			canDestroy);
 	}
@@ -556,7 +556,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger)
+		final AvailObject anInteger)
 	{
 		final double thisDouble = getDouble(object);
 		return compareDoubleAndInteger(thisDouble, anInteger);
@@ -587,7 +587,7 @@ extends AbstractNumberDescriptor
 		final boolean canDestroy)
 	{
 		return fromFloatRecycling(
-			((float)sign.limitDouble()) - getFloat(object),
+			((float) sign.limitDouble()) - getFloat(object),
 			object,
 			canDestroy);
 	}
@@ -595,11 +595,11 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return fromFloatRecycling(
-			(float)(addDoubleAndIntegerCanDestroy(
+			(float) (addDoubleAndIntegerCanDestroy(
 				0.0d - getDouble(object), anInteger, canDestroy)),
 			object,
 			canDestroy);

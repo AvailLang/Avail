@@ -47,6 +47,10 @@ import static com.avail.utility.Nulls.stripNull;
  * This marks the entry point into optimized (level two) code.  At entry, the
  * arguments are expected to be in the {@link Interpreter#argsBuffer}.  Set up
  * fresh registers for this chunk, but do not write to them yet.
+ *
+ * <p>This instruction also occurs at places that a reified continuation can be
+ * re-entered, such as returning into it, restarting it, or continuing it after
+ * an interrupt has been handled.</p>
  */
 public class L2_ENTER_L2_CHUNK extends L2Operation
 {

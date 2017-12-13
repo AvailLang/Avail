@@ -326,7 +326,7 @@ extends Expression
 		}
 		else
 		{
-			((Optional)expression).emitInRunThen(
+			((Optional) expression).emitInRunThen(
 				generator,
 				subexpressionType,
 				() -> emitRunOn(

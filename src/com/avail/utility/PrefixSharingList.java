@@ -193,7 +193,7 @@ public final class PrefixSharingList<E>
 				flatList.addAll(0, pointer.allButLast);
 				break;
 			}
-			pointer = (PrefixSharingList<E>)pointer.allButLast;
+			pointer = (PrefixSharingList<E>) pointer.allButLast;
 		}
 		// Replace the cached flat lists until we hit a non-PrefixSharingList
 		// or a PrefixSharingList with its flat list already set.
@@ -204,7 +204,7 @@ public final class PrefixSharingList<E>
 			pointer.cachedFlatListOrMore = flatList;
 			if (pointer.allButLast instanceof PrefixSharingList<?>)
 			{
-				pointer = (PrefixSharingList<E>)pointer.allButLast;
+				pointer = (PrefixSharingList<E>) pointer.allButLast;
 			}
 			else
 			{
@@ -215,7 +215,7 @@ public final class PrefixSharingList<E>
 	}
 
 	@Override
-	public @Nonnull Iterator<E> iterator ()
+	public Iterator<E> iterator ()
 	{
 		final List<E> flatList = cacheFlatListOrMore();
 		final int mySize = size;
@@ -329,7 +329,7 @@ public final class PrefixSharingList<E>
 		if (originalList instanceof PrefixSharingList<?>)
 		{
 			final PrefixSharingList<E2>strongOriginal =
-				(PrefixSharingList<E2>)originalList;
+				(PrefixSharingList<E2>) originalList;
 			final @Nullable List<E2> butLast = strongOriginal.allButLast;
 			if (butLast != null)
 			{
@@ -356,25 +356,25 @@ public final class PrefixSharingList<E>
 	@Override
 	public boolean addAll (
 		final int index,
-		final @Nonnull Collection<? extends E> c)
+		final Collection<? extends E> c)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public @Nonnull ListIterator<E> listIterator ()
+	public ListIterator<E> listIterator ()
 	{
 		return subList(0, size).listIterator();
 	}
 
 	@Override
-	public @Nonnull ListIterator<E> listIterator (final int index)
+	public ListIterator<E> listIterator (final int index)
 	{
 		return subList(0, size).listIterator(index);
 	}
 
 	@Override
-	public @Nonnull List<E> subList (final int fromIndex, final int toIndex)
+	public List<E> subList (final int fromIndex, final int toIndex)
 	{
 		if (fromIndex < 0)
 		{

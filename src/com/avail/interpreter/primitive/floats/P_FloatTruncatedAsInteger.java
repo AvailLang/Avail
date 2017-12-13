@@ -97,7 +97,7 @@ public final class P_FloatTruncatedAsInteger extends Primitive
 		if (f >= Integer.MIN_VALUE && f <= Integer.MAX_VALUE)
 		{
 			// Common case -- it fits in an int.
-			return interpreter.primitiveSuccess(fromInt((int)f));
+			return interpreter.primitiveSuccess(fromInt((int) f));
 		}
 		f = abs(f);
 		final int exponent = getExponent(f);
@@ -107,7 +107,7 @@ public final class P_FloatTruncatedAsInteger extends Primitive
 		for (int i = slots; i >= 1; --i)
 		{
 			final long intSlice = (int) f;
-			out.rawUnsignedIntegerAtPut(i, (int)intSlice);
+			out.rawUnsignedIntegerAtPut(i, (int) intSlice);
 			f -= intSlice;
 			f = scalb(f, 32);
 		}

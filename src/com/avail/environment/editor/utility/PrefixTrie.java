@@ -22,14 +22,14 @@ public class PrefixTrie<T>
 	/**
 	 * The root {@link PrefixNode}.
 	 */
-	private final @Nonnull PrefixNode<T> root = new PrefixNode<>(-1);
+	private final PrefixNode<T> root = new PrefixNode<>(-1);
 
 	/**
 	 * Answer the {@link #root}.
 	 *
 	 * @return A {@link PrefixNode}.
 	 */
-	public @Nonnull PrefixNode<T> root ()
+	public PrefixNode<T> root ()
 	{
 		return root;
 	}
@@ -49,8 +49,8 @@ public class PrefixTrie<T>
 	 *        The {@link PrefixNode#content}.
 	 */
 	public void addWord (
-		final @Nonnull String word,
-		final @Nonnull T content)
+		final String word,
+		final T content)
 	{
 		boolean addWord = false;
 		synchronized (lock)
@@ -80,8 +80,8 @@ public class PrefixTrie<T>
 	 * @return A {@code PrefixNode} if one exists; {@code null} otherwise.
 	 */
 	public @Nullable PrefixNode<T> searchNode (
-		final @Nonnull String word,
-		final @Nonnull Consumer<PrefixNode<T>> acceptEachNode)
+		final String word,
+		final Consumer<PrefixNode<T>> acceptEachNode)
 	{
 		return root.searchTrie(word, acceptEachNode);
 	}
@@ -93,7 +93,7 @@ public class PrefixTrie<T>
 	 *        The String to find.
 	 * @return A {@code PrefixNode} if one exists; {@code null} otherwise.
 	 */
-	public @Nullable PrefixNode<T> searchNode (final @Nonnull String word)
+	public @Nullable PrefixNode<T> searchNode (final String word)
 	{
 		return root.searchTrie(word);
 	}
@@ -104,7 +104,7 @@ public class PrefixTrie<T>
 	 *
 	 * @return A list.
 	 */
-	public @Nonnull List<NodeContent<T>> wordContent ()
+	public List<NodeContent<T>> wordContent ()
 	{
 		final List<NodeContent<T>> wordTemplates = new ArrayList<>();
 		root.words().forEach(word ->
@@ -131,12 +131,12 @@ public class PrefixTrie<T>
 		/**
 		 * The word spelled up to the originating {@link PrefixNode}.
 		 */
-		public final @Nonnull String word;
+		public final String word;
 
 		/**
 		 * The content at the originating {@link PrefixNode}.
 		 */
-		public final @Nonnull T content;
+		public final T content;
 
 		/**
 		 * Construct a {@link NodeContent}.
@@ -147,8 +147,8 @@ public class PrefixTrie<T>
 		 *        The {@link PrefixNode#content}.
 		 */
 		NodeContent (
-			final @Nonnull String word,
-			final @Nonnull T content)
+			final String word,
+			final T content)
 		{
 			this.word = word;
 			this.content = content;

@@ -106,8 +106,8 @@ public final class ArithmeticTest
 		-3.7e37f,
 		3.7e-37f,
 		3.7e-37f,
-		(float)Math.PI,
-		(float)Math.E,
+		(float) Math.PI,
+		(float) Math.E,
 		Float.NaN,
 		Float.NEGATIVE_INFINITY,
 		Float.POSITIVE_INFINITY
@@ -123,7 +123,7 @@ public final class ArithmeticTest
 	 * In particular, use twenty bits of precision to compare floats.
 	 * </p>
 	 */
-	static final float FloatEpsilon = (float)Math.pow(0.5, 20.0);
+	static final float FloatEpsilon = (float) Math.pow(0.5, 20.0);
 
 	static void assertEqualFloatsOrNan (final float a, final float b)
 	{

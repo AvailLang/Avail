@@ -36,6 +36,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
+import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
@@ -237,6 +238,20 @@ extends A_BasicObject
 	 *         implementation is not linked to a primitive.
 	 */
 	int primitiveNumber();
+
+	/**
+	 * Answer a {@link Statistic} for recording returns from this raw function.
+	 *
+	 * @return The statistic.
+	 */
+	Statistic returnerCheckStat();
+
+	/**
+	 * Answer a {@link Statistic} for recording returns into this raw function.
+	 *
+	 * @return The statistic.
+	 */
+	Statistic returneeCheckStat();
 
 	/**
 	 * Specify that a {@linkplain A_Method method} with the given name includes

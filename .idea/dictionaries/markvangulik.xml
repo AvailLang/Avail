@@ -5,6 +5,7 @@
       <w>availuator</w>
       <w>backquote</w>
       <w>backquoted</w>
+      <w>bytecodes</w>
       <w>callees</w>
       <w>callerless</w>
       <w>choosable</w>
@@ -29,6 +30,7 @@
       <w>inlineable</w>
       <w>inlined</w>
       <w>inlining</w>
+      <w>ints</w>
       <w>invalidations</w>
       <w>iterable</w>
       <w>leapt</w>
@@ -38,6 +40,7 @@
       <w>looper</w>
       <w>metacharacter</w>
       <w>metatype</w>
+      <w>metavariance</w>
       <w>monomorphic</w>
       <w>multimethod</w>
       <w>multimethods</w>
@@ -101,6 +104,7 @@
       <w>tuples</w>
       <w>unbackquoted</w>
       <w>uncached</w>
+      <w>underflows</w>
       <w>uninstantiable</w>
       <w>unparseable</w>
       <w>unpopped</w>

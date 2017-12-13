@@ -33,7 +33,6 @@
 package com.avail.performance;
 
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MessageBundleTreeDescriptor;
 import com.avail.utility.Pair;
@@ -43,6 +42,9 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import static com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL;
+import static com.avail.performance.ReportingUnit.NANOSECONDS;
 
 /**
  * The statistic reports requested of the compiler:
@@ -63,42 +65,60 @@ import java.util.List;
 public enum StatisticReport
 {
 	/** Statistics for executing parsing instructions. */
-	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations"),
+	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),
 
 	/**
 	 * Statistics for {@link MessageBundleTreeDescriptor#o_Expand(AvailObject,
 	 * A_Module) expanding} ParsingOperations.
 	 */
-	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations"),
+	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 
 	/** Level-Two Operations report. */
-	L2_OPERATIONS("L2 Operations"),
+	L2_OPERATIONS("L2 Operations", NANOSECONDS),
 
-	/** The Dynamic Lookups report. */
-	DYNAMIC_LOOKUPS("Dynamic Lookups"),
+	/** A breakdown of the time spent in L2 optimization phases. */
+	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
+
+	/** Dimensionless values related to L2Chunk creation. */
+	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
 
 	/** The Primitives report. */
-	PRIMITIVES("Primitives"),
+	PRIMITIVES("Primitives", NANOSECONDS),
+
+	/** The Dynamic Lookups report. */
+	DYNAMIC_LOOKUP_TIME("Dynamic Lookup Time", NANOSECONDS),
 
 	/** The Primitive Return Type Checks report. */
-	PRIMITIVE_RETURN_TYPE_CHECKS("Primitive Return Type Checks"),
+	PRIMITIVE_RETURNER_TYPE_CHECKS("Primitive Return Type Checks", NANOSECONDS),
 
 	/**
-	 * The Non-primitive Return Type Checks report.  This collects contextual
-	 * timings for non-primitive returns that had to check the type of the
-	 * return result.  They're organized by the {@link A_RawFunction} that the
-	 * return is from, and the {@link A_RawFunction} that it's to.
+	 * Non-primitive Return Type Checks report, organized by the returning raw
+	 * function name.  This collects contextual timings for non-primitive
+	 * returns that had to check the type of the return result.
 	 */
-	NON_PRIMITIVE_RETURN_TYPE_CHECKS("Nonprimitive Return Type Checks"),
+	NON_PRIMITIVE_RETURNER_TYPE_CHECKS(
+		"Non-primitive Returner Type Checks", NANOSECONDS),
 
-	/** Report for outermost statements of modules that are loaded. */
-	TOP_LEVEL_STATEMENTS("Top Level Statements"),
+	/**
+	 * Non-primitive Return Type Checks report, organized by the raw function
+	 * being returned into.  This collects contextual timings for non-primitive
+	 * returns that had to check the type of the return result.
+	 */
+	NON_PRIMITIVE_RETURNEE_TYPE_CHECKS(
+		"Non-primitive Returnee Type Checks", NANOSECONDS),
 
-	/** Report for time spent updating text in workbench transcript. */
-	WORKBENCH_TRANSCRIPT("Workbench transcript");
+	/** Outermost statements of modules that are loaded. */
+	TOP_LEVEL_STATEMENTS("Top Level Statements By Module", NANOSECONDS),
+
+	/** Time spent updating text in workbench transcript. */
+	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS);
+
 
 	/** The title of the StatisticReport. */
-	private String title;
+	private final String title;
+
+	/** The units which the contained reports use. */
+	private final ReportingUnit unit;
 
 	/**
 	 * @return The title associated with the StatisticReport.
@@ -109,13 +129,22 @@ public enum StatisticReport
 	}
 
 	/**
-	 * Create an enumerated {@link StatisticReport}.
+	 * @return The {@link ReportingUnit} of the statistics.
+	 */
+	public ReportingUnit unit ()
+	{
+		return unit;
+	}
+
+	/**
+	 * Create the enumeration value.
 	 *
 	 * @param title The title of the statistic report.
 	 */
-	StatisticReport (final String title)
+	StatisticReport (final String title, final ReportingUnit unit)
 	{
 		this.title = title;
+		this.unit = unit;
 	}
 
 	/**
@@ -125,7 +154,7 @@ public enum StatisticReport
 	final List<Statistic> statistics = new ArrayList<>();
 
 	/**
-	 * Register a {@link Statistic} with this {@link StatisticReport}.  This
+	 * Register a {@link Statistic} with this {@code StatisticReport}.  This
 	 * happens when the statistic is first created, as part of its constructor.
 	 * Access to the {@link List} of {@link #statistics} is synchronized on the
 	 * list, to ensure atomic access among registrations and between
@@ -208,7 +237,7 @@ public enum StatisticReport
 	}
 
 	/**
-	 * Output the appropriate {@linkplain StatisticReport reports}.
+	 * Output the appropriate {@code StatisticReport reports}.
 	 *
 	 * @param reports
 	 *        The compiler configuration where the report settings are stored.
@@ -238,7 +267,7 @@ public enum StatisticReport
 			}
 			for (final Pair<String, PerInterpreterStatistic> pair : pairs)
 			{
-				pair.second().describeNanosecondsOn(builder);
+				pair.second().describeOn(builder, report.unit());
 				builder.append(" ");
 				builder.append(pair.first());
 				builder.append('\n');

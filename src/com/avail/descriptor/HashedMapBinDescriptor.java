@@ -204,7 +204,7 @@ extends MapBinDescriptor
 	@Override @AvailMethod
 	int o_MapBinSize (final AvailObject object)
 	{
-		return (int)object.slot(BIN_SIZE);
+		return (int) object.slot(BIN_SIZE);
 	}
 
 	/**
@@ -362,7 +362,7 @@ extends MapBinDescriptor
 					key,
 					keyHash,
 					value,
-					(byte)(myLevel + 1),
+					(byte) (myLevel + 1),
 					canDestroy);
 			delta = newSubBin.mapBinSize() - oldSubBinSize;
 			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash;
@@ -399,7 +399,7 @@ extends MapBinDescriptor
 			}
 			final A_BasicObject newSingleBin =
 				createSingleLinearMapBin(
-					key, keyHash, value, (byte)(myLevel + 1));
+					key, keyHash, value, (byte) (myLevel + 1));
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin);
 			for (int i = physicalIndex; i <= objectEntryCount; i++)
 			{
@@ -465,7 +465,7 @@ extends MapBinDescriptor
 		}
 		// There's an entry which might contain the key and value.  Count the
 		// 1-bits below it to compute its zero-relative physicalIndex.
-		final int oldSize = (int)object.slot(BIN_SIZE);
+		final int oldSize = (int) object.slot(BIN_SIZE);
 		final int oldKeysHash = object.slot(KEYS_HASH);
 		final long masked = vector & (1L << logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
@@ -778,7 +778,7 @@ extends MapBinDescriptor
 			TypeTag.MAP_HASHED_BIN_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class, level);
-		shift = (byte)(level * 6);
+		shift = (byte) (level * 6);
 		assert shift < 32;
 	}
 

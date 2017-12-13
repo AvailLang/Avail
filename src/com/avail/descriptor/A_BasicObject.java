@@ -515,8 +515,9 @@ extends JSONFriendly
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anAvailInteger
 	 */
-	boolean equalsInteger (A_Number anAvailInteger);
+	boolean equalsInteger (AvailObject anAvailInteger);
 
 	/**
 	 * Dispatch to the descriptor.

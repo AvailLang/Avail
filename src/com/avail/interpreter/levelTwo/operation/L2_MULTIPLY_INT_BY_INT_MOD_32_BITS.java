@@ -76,8 +76,8 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 
 		final int multiplier = multiplierReg.in(interpreter);
 		final int multiplicand = multiplicandReg.in(interpreter);
-		final long longResult = (long)multiplier * (long)multiplicand;
-		productReg.set((int)longResult, interpreter);
+		final long longResult = (long) multiplier * (long) multiplicand;
+		productReg.set((int) longResult, interpreter);
 		return null;
 	}
 

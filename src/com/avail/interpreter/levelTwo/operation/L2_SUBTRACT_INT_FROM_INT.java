@@ -79,8 +79,8 @@ public class L2_SUBTRACT_INT_FROM_INT extends L2Operation
 
 		final int subtrahend = subtrahendReg.in(interpreter);
 		final int minuend = minuendReg.in(interpreter);
-		final long longResult = (long)minuend - (long)subtrahend;
-		final int intResult = (int)longResult;
+		final long longResult = (long) minuend - (long) subtrahend;
+		final int intResult = (int) longResult;
 		if (longResult == intResult)
 		{
 			differenceReg.set(intResult, interpreter);

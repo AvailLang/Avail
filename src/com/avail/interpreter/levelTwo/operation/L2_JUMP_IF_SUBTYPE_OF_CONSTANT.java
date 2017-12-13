@@ -151,12 +151,12 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 		final L2ReadPointerOperand typeReg =
 			instruction.readObjectRegisterAt(0);
 		final A_Type constantType = instruction.constantAt(1);
-		final L2PcOperand isSubtype = instruction.pcAt(2);
-		final L2PcOperand notSubtype = instruction.pcAt(3);
+//		final L2PcOperand isSubtype = instruction.pcAt(2);
+//		final L2PcOperand notSubtype = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
 		final RegisterSet isSubtypeSet = registerSets.get(0);
-		final RegisterSet notSubtypeSet = registerSets.get(1);
+//		final RegisterSet notSubtypeSet = registerSets.get(1);
 
 		assert isSubtypeSet.hasTypeAt(typeReg.register());
 		//noinspection StatementWithEmptyBody

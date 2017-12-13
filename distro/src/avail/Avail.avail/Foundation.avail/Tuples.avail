@@ -3482,7 +3482,7 @@ Private method "insertion sort_with_" is
 		k : [2..10] := i;
 		While j > 1 ∧ comparator(output[k], output[j]) do
 		[
-			output := output[k↔j];
+			output := eject output[k↔j];
 			k--;
 			j--;
 		];

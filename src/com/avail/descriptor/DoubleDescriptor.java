@@ -259,7 +259,7 @@ extends AbstractNumberDescriptor
 	{
 		final AvailObject result =
 			canDestroy && recyclable1.descriptor().isMutable()
-			? (AvailObject)recyclable1
+			? (AvailObject) recyclable1
 			: mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(LONG_BITS, castAsLong);
@@ -294,7 +294,7 @@ extends AbstractNumberDescriptor
 		final AvailObject result;
 		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
-			result = (AvailObject)recyclable1;
+			result = (AvailObject) recyclable1;
 		}
 		else if (canDestroy && recyclable2.descriptor().isMutable())
 		{
@@ -364,7 +364,7 @@ extends AbstractNumberDescriptor
 	@Override
 	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		final double sum = addDoubleAndIntegerCanDestroy(
@@ -425,7 +425,7 @@ extends AbstractNumberDescriptor
 	@Override
 	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return fromDoubleRecycling(
@@ -502,15 +502,15 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	float o_ExtractFloat (final AvailObject object)
 	{
-		return (float)getDouble(object);
+		return (float) getDouble(object);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		final long bits = object.slot(LONG_BITS);
-		final int low = (int)(bits >> 32);
-		final int high = (int)bits;
+		final int low = (int) (bits >> 32);
+		final int high = (int) bits;
 		return (low ^ 0x29F2EAB8) * multiplier - (high ^ 0x47C453FD);
 	}
 
@@ -579,7 +579,7 @@ extends AbstractNumberDescriptor
 	@Override
 	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return fromDoubleRecycling(
@@ -646,7 +646,7 @@ extends AbstractNumberDescriptor
 	@Override
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final A_Number anInteger)
+		final AvailObject anInteger)
 	{
 		return compareDoubleAndInteger(getDouble(object), anInteger);
 	}
@@ -692,7 +692,7 @@ extends AbstractNumberDescriptor
 	@Override
 	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return fromDoubleRecycling(

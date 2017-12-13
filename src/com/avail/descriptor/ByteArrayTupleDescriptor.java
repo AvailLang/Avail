@@ -282,7 +282,7 @@ extends NumericTupleDescriptor
 			// case.
 			final byte[] originalBytes = object.byteArray();
 			final AvailObject result = generateByteTupleFrom(
-				size, i -> (short)(originalBytes[i + start - 2] & 255));
+				size, i -> (short) (originalBytes[i + start - 2] & 255));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -475,7 +475,7 @@ extends NumericTupleDescriptor
 		}
 		// Clobber the object in place...
 		final byte theByte =
-			(byte) ((AvailObject)newValueObject).extractUnsignedByte();
+			(byte) ((AvailObject) newValueObject).extractUnsignedByte();
 		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		array[index - 1] = theByte;
 		object.hashOrZero(0);
@@ -520,7 +520,7 @@ extends NumericTupleDescriptor
 		// case.
 		final byte[] originalBytes = object.byteArray();
 		final AvailObject result = generateByteTupleFrom(
-			size, i -> (short)(originalBytes[size - i] & 255));
+			size, i -> (short) (originalBytes[size - i] & 255));
 		result.hashOrZero(0);
 		return result;
 

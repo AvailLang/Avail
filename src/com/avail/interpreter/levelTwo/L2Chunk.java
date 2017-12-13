@@ -32,15 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
@@ -52,15 +44,27 @@ import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A Level Two chunk represents an optimized implementation of a {@linkplain
@@ -136,6 +140,222 @@ public final class L2Chunk
 	 * code (0).
 	 */
 	final int offsetAfterInitialTryPrimitive;
+
+	/**
+	 * An indication of how recently this chunk has been accessed, expressed as
+	 * a reference to a {@link Generation}.
+	 */
+	volatile @Nullable Generation generation = Generation.newest;
+
+	public static class Generation
+	{
+		/**
+		 * The {@link Deque} of {@link Generation}s.  New ones are added with
+		 * {@link Deque#addFirst(Object)}, and older ones are removed with
+		 * {@link Deque#removeLast()} (while invalidating the contained chunks).
+		 */
+		@GuardedBy("generationsLock")
+		private static final Deque<Generation> generations = new ArrayDeque<>();
+
+		/** The lock for accessing the {@link Deque} of {@link Generation}s. */
+		private static final ReadWriteLock generationsLock =
+			new ReentrantReadWriteLock();
+
+		/**
+		 * A {@link Generation} that has not yet been added to the {@link
+		 * #generations} {@link Deque}.  When this becomes fuller than
+		 * approximately {@link #maximumNewestGenerationSize}, queue it and
+		 * create a new one.
+		 */
+		public static volatile Generation newest = new Generation();
+
+		/**
+		 * The maximum number of chunks to place in this generation before
+		 * creating a newer one.  If the working set of chunks is larger than
+		 * this, there is a risk of thrashing (invalidating and recompiling
+		 * a lot of {@link L2Chunk}s), which is balanced against overconsumption
+		 * of memory by chunks.
+		 */
+		private static final int maximumNewestGenerationSize = 300;
+
+		/**
+		 * The approximate maximum number of chunks that should exist at any
+		 * time.  When there are significantly more chunks than this, the ones
+		 * in the oldest generations will be invalidated.
+		 */
+		private static final int maximumTotalChunkCount = 2000;
+
+		/**
+		 * The weak set of {@link L2Chunk}s in this generation.
+		 */
+		private final Set<L2Chunk> chunks =
+			Collections.synchronizedSet(
+				Collections.newSetFromMap(
+					new WeakHashMap<L2Chunk, Boolean>()));
+
+		/**
+		 * Record a newly created chunk in the latest generation, triggering
+		 * eviction of some of the least recently used chunks if necessary.
+		 *
+		 * @param newChunk The new chunk to track.
+		 */
+		public static void addNewChunk (final L2Chunk newChunk)
+		{
+			newChunk.generation = newest;
+			newest.chunks.add(newChunk);
+			if (newest.chunks.size() > maximumNewestGenerationSize)
+			{
+				generationsLock.writeLock().lock();
+				try
+				{
+					Generation lastGenerationToKeep = newest;
+					generations.addFirst(newest);
+					newest = new Generation();
+					int liveCount = 0;
+					for (final Generation gen : generations)
+					{
+						final int genSize = gen.chunks.size();
+						liveCount += genSize;
+						if (liveCount < maximumTotalChunkCount)
+						{
+							lastGenerationToKeep = gen;
+						}
+						else
+						{
+							break;
+						}
+					}
+					// Remove the obsolete generations, gathering the chunks.
+					final List<L2Chunk> chunksToInvalidate = new ArrayList<>();
+					while (generations.getLast() != lastGenerationToKeep)
+					{
+						chunksToInvalidate.addAll(
+							generations.removeLast().chunks);
+					}
+					// Remove empty generations that would otherwise be kept.
+					final List<Generation> toKeep = generations.stream()
+						.filter(g -> !g.chunks.isEmpty())
+						.collect(toList());
+					generations.clear();
+					generations.addAll(toKeep);
+
+					if (!chunksToInvalidate.isEmpty())
+					{
+						// Queue a task to safely invalidate the evicted chunks.
+						currentRuntime().whenLevelOneSafeDo(
+							FiberDescriptor.bulkL2InvalidationPriority,
+							() ->
+							{
+								L2Chunk.invalidationLock.lock();
+								try
+								{
+									chunksToInvalidate.forEach(
+										c -> c.invalidate(
+											invalidationsFromEviction));
+								}
+								finally
+								{
+									L2Chunk.invalidationLock.unlock();
+								}
+							});
+					}
+				}
+				finally
+				{
+					generationsLock.writeLock().unlock();
+				}
+			}
+		}
+
+		/**
+		 * {@link Statistic} for tracking the cost of invalidating chunks due to
+		 * cache eviction (to limit the number of {@link L2Chunk}s in memory).
+		 * */
+		private static final Statistic invalidationsFromEviction =
+			new Statistic(
+				"(invalidation from eviction)",
+				StatisticReport.L2_OPTIMIZATION_TIME);
+
+		/**
+		 * Deal with the fact that the given chunk has just been invoked,
+		 * resumed, restarted, or otherwise continued.  Optimize for the most
+		 * common case that the chunk is already in the newest generation, but
+		 * also make it reasonably quick to move it there from an older
+		 * generation.
+		 *
+		 * @param chunk The {@link L2Chunk} that has just been used.
+		 */
+		public static void usedChunk (final L2Chunk chunk)
+		{
+			final Generation theNewest = newest;
+			final @Nullable Generation oldGen = chunk.generation;
+			if (chunk.generation == theNewest)
+			{
+				// The chunk is already in the newest generation, which should
+				// be the most common case by far.  Do nothing.
+				return;
+			}
+			// Move the chunk to the newest generation.  Create a newer
+			// generation if it fills up.
+			if (oldGen != null)
+			{
+				oldGen.chunks.remove(chunk);
+			}
+			theNewest.chunks.add(chunk);
+			chunk.generation = theNewest;
+			if (theNewest.chunks.size() > maximumNewestGenerationSize)
+			{
+				generationsLock.writeLock().lock();
+				try
+				{
+					generations.add(newest);
+					newest = new Generation();
+					// Even though simply using a chunk doesn't exert any cache
+					// pressure, we might accumulate a bunch of empty
+					// generations that simply take up space.  Be generous and
+					// only bother scanning if there are so many generations
+					// that there's definitely at least one empty one.
+					if (generations.size() > maximumTotalChunkCount)
+					{
+						final List<Generation> nonemptyGenerations =
+							generations.stream()
+								.filter(g -> !g.chunks.isEmpty())
+								.collect(toList());
+						generations.clear();
+						generations.addAll(nonemptyGenerations);
+					}
+				}
+				finally
+				{
+					generationsLock.writeLock().unlock();
+				}
+			}
+		}
+
+		/**
+		 * An {@link L2Chunk} has been invalidated.  Remove it from its
+		 * generation.
+		 *
+		 * @param chunk
+		 *        The invalidated {@link L2Chunk} to remove from its generation.
+		 */
+		public static void removeInvalidatedChunk (final L2Chunk chunk)
+		{
+			final @Nullable Generation gen = chunk.generation;
+			if (gen != null)
+			{
+				gen.chunks.remove(chunk);
+				chunk.generation = null;
+			}
+		}
+
+		@Override
+		public String toString ()
+		{
+			return super.toString() + " (size=" + chunks.size() + ")";
+		}
+
+	}
 
 	/**
 	 * A flag indicating whether this chunk is valid or if it has been
@@ -217,21 +437,34 @@ public final class L2Chunk
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
 		if (this == unoptimizedChunk)
 		{
 			return "Default chunk";
 		}
-		builder.append(format(
-			"Chunk #%08x",
-			System.identityHashCode(this)));
+		final StringBuilder builder = new StringBuilder();
 		if (!isValid())
 		{
-			builder.append(" (INVALID)");
+			builder.append("[INVALID] ");
+		}
+		builder.append(
+			format(
+				"Chunk #%08x",
+				System.identityHashCode(this)));
+		if (code != null)
+		{
+			final A_String codeName = code.methodName();
+			builder.append(" for ");
+			builder.append(codeName);
 		}
 		return builder.toString();
 	}
 
+	/**
+	 * An enumeration of different ways to enter or re-enter a continuation.
+	 * In the event that the continuation's chunk has been invalidated, these
+	 * enumeration values indicate the offset that should be used within the
+	 * default chunk.
+	 */
 	public enum ChunkEntryPoint
 	{
 		/**
@@ -287,8 +520,18 @@ public final class L2Chunk
 		 */
 		TO_RESTART(1);
 
+		/**
+		 * The offset within the default chunk at which to continue if a chunk
+		 * has been invalidated.
+		 */
 		public final int offsetInDefaultChunk;
 
+		/**
+		 * Create the enumeration value.
+		 *
+		 * @param offsetInDefaultChunk
+		 *        An offset within the default chunk.
+		 */
 		ChunkEntryPoint (final int offsetInDefaultChunk)
 		{
 			this.offsetInDefaultChunk = offsetInDefaultChunk;
@@ -305,7 +548,6 @@ public final class L2Chunk
 	{
 		return offsetAfterInitialTryPrimitive;
 	}
-
 
 	/**
 	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
@@ -406,7 +648,8 @@ public final class L2Chunk
 			theInstructions,
 			controlFlowGraph,
 			contingentValues);
-		if (code != null)
+		final boolean codeNotNull = code != null;
+		if (codeNotNull)
 		{
 			code.setStartingChunkAndReoptimizationCountdown(
 				chunk,
@@ -415,6 +658,10 @@ public final class L2Chunk
 		for (final A_ChunkDependable value : contingentValues)
 		{
 			value.addDependentChunk(chunk);
+		}
+		if (codeNotNull)
+		{
+			Generation.addNewChunk(chunk);
 		}
 		return chunk;
 	}
@@ -483,9 +730,14 @@ public final class L2Chunk
 	 * dependency information.  It's up to any re-entry points within this
 	 * optimized code to determine that invalidation has happened,
 	 * using the default chunk.</p>
+	 *
+	 * @param invalidationStatistic
+	 *        The {@link Statistic} under which this invalidation should be
+	 *        recorded.
 	 */
-	public void invalidate ()
+	public void invalidate (final Statistic invalidationStatistic)
 	{
+		final long before = System.nanoTime();
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
 		final A_Set contingents = contingentValues.makeImmutable();
@@ -503,6 +755,11 @@ public final class L2Chunk
 			code.setStartingChunkAndReoptimizationCountdown(
 				unoptimizedChunk(), countdownForInvalidatedCode());
 		}
+		Generation.removeInvalidatedChunk(this);
+		final long after = System.nanoTime();
+		// Use interpreter #0, since the invalidationLock prevents concurrent
+		// updates.
+		invalidationStatistic.record(after - before, 0);
 	}
 
 	/**

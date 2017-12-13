@@ -631,7 +631,7 @@ implements
 	 */
 	@Override
 	public A_Number addToIntegerCanDestroy (
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor.o_AddToIntegerCanDestroy(
@@ -1315,7 +1315,7 @@ implements
 	 * {@code AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #divideIntoIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#divideIntoIntegerCanDestroy(AvailObject, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
 	 * #divideIntoInfinityCanDestroy(Sign, boolean)
 	 * divideIntoInfinityCanDestroy}, where actual implementations of the
@@ -1401,9 +1401,7 @@ implements
 		final boolean canDestroy)
 	{
 		return descriptor.o_DivideIntoInfinityCanDestroy(
-			this,
-			sign,
-			canDestroy);
+			this, sign, canDestroy);
 	}
 
 	/**
@@ -1425,13 +1423,11 @@ implements
 	 */
 	@Override
 	public A_Number divideIntoIntegerCanDestroy (
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor.o_DivideIntoIntegerCanDestroy(
-			this,
-			anInteger,
-			canDestroy);
+			this, anInteger, canDestroy);
 	}
 
 	@Override
@@ -1458,7 +1454,38 @@ implements
 	@Override
 	public boolean equals (final A_BasicObject another)
 	{
-		return this == another || descriptor.o_Equals(this, another);
+		if (this == another)
+		{
+			return true;
+		}
+		if (!descriptor.o_Equals(this, another))
+		{
+			return false;
+		}
+		// They're equal.  Try to turn one into an indirection to the other.
+		final AvailObject traversed1 = traversed();
+		final AvailObject traversed2 = another.traversed();
+		if (traversed1 == traversed2)
+		{
+			return true;
+		}
+		if (!traversed1.descriptor().isShared())
+		{
+			if (!traversed2.descriptor().isShared()
+				&& traversed1.isBetterRepresentationThan(traversed2))
+			{
+				traversed2.becomeIndirectionTo(traversed1.makeImmutable());
+			}
+			else
+			{
+				traversed1.becomeIndirectionTo(traversed2.makeImmutable());
+			}
+		}
+		else if (!traversed2.descriptor().isShared())
+		{
+			traversed2.becomeIndirectionTo(traversed1.makeImmutable());
+		}
+		return true;
 	}
 
 	/**
@@ -1719,7 +1746,7 @@ implements
 
 	@Override
 	public boolean equalsInteger (
-		final A_Number anAvailInteger)
+		final AvailObject anAvailInteger)
 	{
 		return descriptor.o_EqualsInteger(this, anAvailInteger);
 	}
@@ -2697,7 +2724,7 @@ implements
 	 * the {@code AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #subtractFromIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
 	 * #subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
@@ -2807,13 +2834,11 @@ implements
 	 */
 	@Override
 	public A_Number multiplyByIntegerCanDestroy (
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor.o_MultiplyByIntegerCanDestroy(
-			this,
-			anInteger,
-			canDestroy);
+			this, anInteger, canDestroy);
 	}
 
 	@Override
@@ -2934,7 +2959,7 @@ implements
 	 * {@code AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #addToIntegerCanDestroy(A_Number, boolean) addToIntegerCanDestroy} or
+	 * A_Number#addToIntegerCanDestroy(AvailObject, boolean) addToIntegerCanDestroy} or
 	 * {@link #addToInfinityCanDestroy(Sign, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
 	 * operation should reside.</p>
@@ -3307,9 +3332,7 @@ implements
 		final boolean canDestroy)
 	{
 		return descriptor.o_SubtractFromInfinityCanDestroy(
-			this,
-			sign,
-			canDestroy);
+			this, sign, canDestroy);
 	}
 
 	/**
@@ -3330,13 +3353,11 @@ implements
 	 */
 	@Override
 	public A_Number subtractFromIntegerCanDestroy (
-		final A_Number anInteger,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor.o_SubtractFromIntegerCanDestroy(
-			this,
-			anInteger,
-			canDestroy);
+			this, anInteger, canDestroy);
 	}
 
 	/**
@@ -3344,7 +3365,7 @@ implements
 	 * {@code AvailObject result}.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
-	 * #multiplyByIntegerCanDestroy(A_Number, boolean)
+	 * A_Number#multiplyByIntegerCanDestroy(AvailObject, boolean)
 	 * multiplyByIntegerCanDestroy} or {@linkplain
 	 * #multiplyByInfinityCanDestroy(Sign, boolean)
 	 * multiplyByInfinityCanDestroy}, where actual implementations of the
@@ -3365,9 +3386,7 @@ implements
 		final boolean canDestroy)
 	{
 		return descriptor.o_TimesCanDestroy(
-			this,
-			aNumber,
-			canDestroy);
+			this, aNumber, canDestroy);
 	}
 
 	/**
@@ -4334,7 +4353,7 @@ implements
 	}
 
 	@Override
-	public Order numericCompareToInteger (final A_Number anInteger)
+	public Order numericCompareToInteger (final AvailObject anInteger)
 	{
 		return descriptor.o_NumericCompareToInteger(this, anInteger);
 	}
@@ -5715,12 +5734,6 @@ implements
 	}
 
 	@Override
-	public Statistic dynamicLookupStatistic ()
-	{
-		return descriptor.o_DynamicLookupStatistic(this);
-	}
-
-	@Override
 	public boolean equalsListNodeType (final A_Type aListNodeType)
 	{
 		return descriptor.o_EqualsListNodeType(this, aListNodeType);
@@ -5953,5 +5966,17 @@ implements
 	public A_Type constantTypeAt (final int index)
 	{
 		return descriptor.o_ConstantTypeAt(this, index);
+	}
+
+	@Override
+	public Statistic returnerCheckStat ()
+	{
+		return descriptor.o_ReturnerCheckStat(this);
+	}
+
+	@Override
+	public Statistic returneeCheckStat ()
+	{
+		return descriptor.o_ReturneeCheckStat(this);
 	}
 }

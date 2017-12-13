@@ -150,12 +150,12 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final L2ReadPointerOperand valueReg =
 			instruction.readObjectRegisterAt(0);
 		final A_Type type = instruction.constantAt(1);
-		final L2PcOperand isKind = instruction.pcAt(2);
-		final L2PcOperand notKind = instruction.pcAt(3);
+//		final L2PcOperand isKind = instruction.pcAt(2);
+//		final L2PcOperand notKind = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
 		final RegisterSet isKindSet = registerSets.get(0);
-		final RegisterSet notKindSet = registerSets.get(1);
+//		final RegisterSet notKindSet = registerSets.get(1);
 
 		final A_Type existingType = isKindSet.typeAt(valueReg.register());
 		final A_Type intersection = existingType.typeIntersection(type);

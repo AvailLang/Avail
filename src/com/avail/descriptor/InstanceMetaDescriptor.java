@@ -62,18 +62,18 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
  *
  * <p>
  * Instance metas preserve metacovariance:
- * <span style="border-width:thin; border-style:solid"><nobr>
+ * <span style="border-width:thin; border-style:solid; white-space:nowrap">
  * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
- * T(x)&sube;T(y))</nobr></span>.
+ * T(x)&sube;T(y))</span>.
  * </p>
  *
  * <p>
  * The uniform use of instance types trivially ensures the additional, stronger
  * property we call <em>metavariance</em>, which states that every type has a
  * unique type of its own:
- * <span style="border-width:thin; border-style:solid"><nobr>
+ * <span style="border-width:thin; border-style:solid; white-space: nowrap">
  * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv;
- * T(x)&ne;T(y))</nobr></span>.
+ * T(x)&ne;T(y))</span>.
  * Note that metavariance requires this to hold for all types, but instance
  * types ensure this condition holds for all objects.
  * </p>

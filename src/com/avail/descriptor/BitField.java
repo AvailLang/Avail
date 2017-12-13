@@ -181,7 +181,7 @@ implements Comparable<BitField>
 	 */
 	int extractFromLong (final long longValue)
 	{
-		return (int)((longValue >>> shift) & lowMask);
+		return (int) ((longValue >>> shift) & lowMask);
 	}
 
 	/**
@@ -195,6 +195,6 @@ implements Comparable<BitField>
 	long replaceBits (final long longValue, final int bitFieldValue)
 	{
 		return (longValue & invertedMask)
-			| ((((long)bitFieldValue) << shift) & mask);
+			| ((((long) bitFieldValue) << shift) & mask);
 	}
 }

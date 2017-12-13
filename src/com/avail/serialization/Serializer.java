@@ -280,7 +280,7 @@ public class Serializer
 				operation = object.serializerOperation();
 			}
 			instruction = new SerializerInstruction(
-				(AvailObject)object,
+				(AvailObject) object,
 				operation);
 			encounteredObjects.put(object, instruction);
 		}
@@ -329,7 +329,7 @@ public class Serializer
 					public void value ()
 					{
 						operands[index].trace(
-							(AvailObject)subobjects[index],
+							(AvailObject) subobjects[index],
 							Serializer.this);
 					}
 
@@ -422,7 +422,7 @@ public class Serializer
 			assert !variable.value().equalsNil();
 			final SerializerInstruction assignment =
 				new SerializerInstruction(
-					(AvailObject)variable,
+					(AvailObject) variable,
 					SerializerOperation.ASSIGN_TO_VARIABLE);
 			assignment.index(instructionsWritten);
 			instructionsWritten++;
@@ -433,7 +433,7 @@ public class Serializer
 		// Finally, write a checkpoint to say there's something ready for the
 		// deserializer to answer.
 		final SerializerInstruction checkpoint = new SerializerInstruction(
-			(AvailObject)object,
+			(AvailObject) object,
 			SerializerOperation.CHECKPOINT);
 		checkpoint.index(instructionsWritten);
 		instructionsWritten++;

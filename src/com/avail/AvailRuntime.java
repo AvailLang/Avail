@@ -277,7 +277,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nonnull Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailFile-" + counter.incrementAndGet());
@@ -294,7 +294,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nonnull Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailSocket-" + counter.incrementAndGet());
@@ -591,10 +591,10 @@ public final class AvailRuntime
 			int h = fileHandle.hashCode();
 			h *= multiplier;
 			h ^= 0xD198EA23;
-			h += (int)(startPosition >> 32);
+			h += (int) (startPosition >> 32);
 			h *= multiplier;
 			h ^= 0x918F7711;
-			h += (int)startPosition;
+			h += (int) startPosition;
 			h *= multiplier;
 			h ^= 0x32AE891D;
 			return h;
@@ -2064,14 +2064,14 @@ public final class AvailRuntime
 	@InnerAccess int incompleteLevelOneUnsafeTasks = 0;
 
 	/**
-	 * Has {@linkplain #whenLevelOneUnsafeDo(AvailTask) Level One safety}
-	 * been requested?
+	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
+	 * safety} been requested?
 	 */
 	@InnerAccess volatile boolean levelOneSafetyRequested = false;
 
 	/**
-	 * Has {@linkplain #whenLevelOneUnsafeDo(AvailTask) Level One safety}
-	 * been requested?
+	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
+	 * safety} been requested?
 	 *
 	 * @return {@code true} if Level One safety has been requested, {@code
 	 *         false} otherwise.
@@ -2086,19 +2086,25 @@ public final class AvailRuntime
 	 * executed as a Level One-unsafe task at such a time as there are no Level
 	 * One-safe tasks running.
 	 *
-	 * @param unsafeTask
-	 *        What to do when Level One safety is not required.
+	 * @param priority
+	 *        The priority of the {@link AvailTask} to queue.  It must be in the
+	 *        range [0..255].
+	 * @param unsafeAction
+	 *        The {@link Continuation0} to perform when Level One safety is not
+	 *        required.
 	 */
-	public void whenLevelOneUnsafeDo (final AvailTask unsafeTask)
+	public void whenLevelOneUnsafeDo (
+		final int priority,
+		final Continuation0 unsafeAction)
 	{
-		final AvailTask wrapped = new AvailTask(unsafeTask.priority)
+		final AvailTask wrapped = new AvailTask(priority)
 		{
 			@Override
 			public void value ()
 			{
 				try
 				{
-					unsafeTask.run();
+					unsafeAction.value();
 				}
 				catch (final Exception e)
 				{
@@ -2160,19 +2166,25 @@ public final class AvailRuntime
 	 * executed as a Level One-safe task at such a time as there are no Level
 	 * One-unsafe tasks running.
 	 *
-	 * @param safeTask
-	 *        What to do when Level One safety is ensured.
+	 * @param priority
+	 *        The priority of the {@link AvailTask} to queue.  It must be in the
+	 *        range [0..255].
+	 * @param safeAction
+	 *        The {@link Continuation0} to execute when Level One safety is
+	 *        ensured.
 	 */
-	public void whenLevelOneSafeDo (final AvailTask safeTask)
+	public void whenLevelOneSafeDo (
+		final int priority,
+		final Continuation0 safeAction)
 	{
-		final AvailTask wrapped = new AvailTask(safeTask.priority)
+		final AvailTask task = new AvailTask(priority)
 		{
 			@Override
 			public void value ()
 			{
 				try
 				{
-					safeTask.run();
+					safeAction.value();
 				}
 				catch (final Exception e)
 				{
@@ -2213,11 +2225,11 @@ public final class AvailRuntime
 			if (incompleteLevelOneUnsafeTasks == 0)
 			{
 				incompleteLevelOneSafeTasks++;
-				execute(wrapped);
+				execute(task);
 			}
 			else
 			{
-				levelOneSafeTasks.add(wrapped);
+				levelOneSafeTasks.add(task);
 			}
 		}
 		finally

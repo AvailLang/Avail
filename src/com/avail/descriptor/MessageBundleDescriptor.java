@@ -34,14 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Map;
 
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor
 	.newParsingPlan;
@@ -49,7 +45,6 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 
 /**
@@ -114,13 +109,7 @@ extends Descriptor
 		 * A_DefinitionParsingPlan}.  The keys should always agree with the
 		 * {@link A_Method}'s collection of definitions and macro definitions.
 		 */
-		DEFINITION_PARSING_PLANS,
-
-		/**
-		 * A pojo holding the {@link Statistic} for dynamic lookups of this
-		 * bundle, or others with the same name (say from reloading a module).
-		 */
-		DYNAMIC_LOOKUP_STATS_POJO;
+		DEFINITION_PARSING_PLANS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -177,13 +166,6 @@ extends Descriptor
 	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		return object.slot(DEFINITION_PARSING_PLANS);
-	}
-
-	@Override
-	Statistic o_DynamicLookupStatistic (final AvailObject object)
-	{
-		final A_BasicObject pojo = object.slot(DYNAMIC_LOOKUP_STATS_POJO);
-		return pojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -279,7 +261,6 @@ extends Descriptor
 	{
 		return SerializerOperation.MESSAGE_BUNDLE;
 	}
-
 
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
@@ -380,13 +361,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Statistics about dynamic lookups, keyed by the message bundle's message's
-	 * print representation (an Avail string).
-	 */
-	private static final Map<A_String, Statistic> dynamicLookupStatsByString =
-		new HashMap<>();
-
-	/**
 	 * Create a new {@link A_Bundle message bundle} for the given message.  Add
 	 * the bundle to the method's collection of {@linkplain
 	 * MethodDescriptor.ObjectSlots#OWNING_BUNDLES owning bundles}.
@@ -425,23 +399,6 @@ extends Descriptor
 			plans = plans.mapAtPuttingCanDestroy(definition, plan, true);
 		}
 		result.setSlot(DEFINITION_PARSING_PLANS, plans);
-
-		// Look up the statistic by name, so that multiple loads of a module
-		// will accumulate.
-		final String nameString = methodName.toString();
-		final A_String name = stringFrom(nameString).makeShared();
-		final Statistic stat;
-		synchronized (dynamicLookupStatsByString)
-		{
-			stat = dynamicLookupStatsByString.computeIfAbsent(
-				name,
-				k -> new Statistic(
-					"Lookup " + nameString,
-					StatisticReport.DYNAMIC_LOOKUPS));
-		}
-		final A_BasicObject pojo = identityPojo(stat);
-		result.setSlot(DYNAMIC_LOOKUP_STATS_POJO, pojo);
-
 		result.makeShared();
 		method.methodAddBundle(result);
 		return result;

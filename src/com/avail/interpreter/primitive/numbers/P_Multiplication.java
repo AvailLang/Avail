@@ -113,7 +113,7 @@ extends Primitive
 			final A_Set bInstances = bType.instances();
 			// Compute the Cartesian product as an enumeration if there will
 			// be few enough entries.
-			if (aInstances.setSize() * (long)bInstances.setSize() < 100)
+			if (aInstances.setSize() * (long) bInstances.setSize() < 100)
 			{
 				A_Set answers = emptySet();
 				for (final A_Number aInstance : aInstances)

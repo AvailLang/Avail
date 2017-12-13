@@ -193,8 +193,8 @@ extends Primitive
 			/ alignment * alignment;
 		final long bufferCount = (augmentedEnd + 1 - augmentedStart)
 			/ alignment;
-		assert bufferCount == (int)bufferCount;
-		final List<A_Tuple> buffers = new ArrayList<>((int)bufferCount);
+		assert bufferCount == (int) bufferCount;
+		final List<A_Tuple> buffers = new ArrayList<>((int) bufferCount);
 		// Collect the initial run of either cache hits or cache misses.  Limit
 		// the number of bytes actually returned to that first run, either
 		// concatenating buffers for a run of hits or fetching into a big buffer
