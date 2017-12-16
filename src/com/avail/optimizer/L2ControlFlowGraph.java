@@ -266,13 +266,17 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * Determine which registers are live-in for each block.
+	 * Determine which registers are live-in for each block.  We distinguish
+	 * between always-live-in, where all future paths from the start of a block
+	 * lead to a use of the register, and sometimes-live-in, where at least one
+	 * future path from the start of the block leads to a use of the register.
 	 */
 	@InnerAccess void computeLivenessAtEachEdge ()
 	{
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
-			block.liveInRegisters.clear();
+			block.alwaysLiveInRegisters.clear();
+			block.sometimesLiveInRegisters.clear();
 		}
 
 		// The deque and the set maintain the same membership.
@@ -282,11 +286,21 @@ public final class L2ControlFlowGraph
 		{
 			final L2BasicBlock block = workQueue.removeLast();
 			workSet.remove(block);
-			// Take the union of the outbound edges' known live registers.
-			final Set<L2Register> knownLive = new HashSet<>();
-			for (final L2PcOperand edge : block.successorEdges())
+			// Take the union of the outbound edges' sometimes-live registers.
+			// Also find the intersection of those edges' always-live registers.
+			final Set<L2Register> alwaysLive = new HashSet<>();
+			final List<L2PcOperand> successorEdges = block.successorEdges();
+			if (!successorEdges.isEmpty())
 			{
-				knownLive.addAll(edge.targetBlock().liveInRegisters);
+				alwaysLive.addAll(
+					successorEdges.get(0).targetBlock().alwaysLiveInRegisters);
+			}
+			final Set<L2Register> sometimesLive = new HashSet<>();
+			for (final L2PcOperand edge : successorEdges)
+			{
+				sometimesLive.addAll(
+					edge.targetBlock().sometimesLiveInRegisters);
+				alwaysLive.retainAll(edge.targetBlock().alwaysLiveInRegisters);
 			}
 			// Now work backward through each instruction, removing registers
 			// that it writes, and adding registers that it reads.
@@ -294,10 +308,14 @@ public final class L2ControlFlowGraph
 			for (int i = instructions.size() - 1; i >= 0; i--)
 			{
 				final L2Instruction instruction = instructions.get(i);
-				knownLive.removeAll(instruction.destinationRegisters());
-				knownLive.addAll(instruction.sourceRegisters());
+				sometimesLive.removeAll(instruction.destinationRegisters());
+				sometimesLive.addAll(instruction.sourceRegisters());
+				alwaysLive.removeAll(instruction.destinationRegisters());
+				alwaysLive.addAll(instruction.sourceRegisters());
 			}
-			final boolean changed = block.liveInRegisters.addAll(knownLive);
+			boolean changed =
+				block.sometimesLiveInRegisters.addAll(sometimesLive);
+			changed |= block.alwaysLiveInRegisters.addAll(alwaysLive);
 			if (changed)
 			{
 				// We added to the known live registers of this block.
@@ -333,35 +351,28 @@ public final class L2ControlFlowGraph
 		}
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
-			block.liveInRegisters.addAll(registers);
+			block.sometimesLiveInRegisters.addAll(registers);
+			block.alwaysLiveInRegisters.addAll(registers);
 		}
 	}
 
 	/**
-	 * If a block has successor blocks with differing live-in sets, for each
-	 * such register that's live at one successor but not another, try to move
-	 * the defining instruction forward along the path where it's needed.  The
-	 * goal is to avoid executing the instruction along paths where it's
-	 * <em>not</em> needed.
+	 * Try to move any side-effectless defining instructions to later points in
+	 * the control flow graph.  If such an instruction defines a register that's
+	 * used in the same basic block, don't bother moving it.  Also don't attempt
+	 * to move it if it's always-live-in at each successor block, since the
+	 * point of moving it forward is to avoid inessential computations.
 	 *
-	 * <p>If there are multiple successor blocks that need the register (say, a
-	 * three-way branch where two branches use it), don't bother moving the
-	 * instruction.  We'd have to either (1) break SSA by duplicating the
-	 * instruction, or (2) find the dominator, and move the instruction
-	 * there.</p>
+	 * <p>So in the remaining case that the register is used in only some
+	 * future paths, we attempt to move copies of the instruction into each
+	 * successor that may require it.  Note that this can be <em>all</em> of the
+	 * successors, if some of them are only maybe-live-in.</p>
 	 *
-	 * <p>Also, consider a block that defines X, then defines Y using X (i.e.,
-	 * an instruction reads X and writes Y).  If Y is used by all successors,
-	 * there's no advantage in trying to move the definition of X forward, since
-	 * it really would have been needed to be calculated along all paths anyhow,
-	 * since Y was needed.</p>
+	 * <p>This process is repeated until no more instructions are eligible to
+	 * move forward.</p>
 	 *
-	 * <p>We deal with that by failing to move X past its use to compute Y.  In
-	 * the other scenario where Y was only used in some successor blocks and
-	 * could be moved, we'll get another chance on a subsequent loop to see if X
-	 * can also move.</p>
-	 *
-	 * <p>Requires and preserves edge-split SSA form.</p>
+	 * <p>This requires edge-split SSA form as input, but duplicated defining
+	 * instructions break SSA.</p>
 	 */
 	@InnerAccess void postponeConditionallyUsedValues ()
 	{
@@ -378,25 +389,35 @@ public final class L2ControlFlowGraph
 				for (int i = instructions.size() - 1; i >= 0; i--)
 				{
 					final L2Instruction instruction = instructions.get(i);
-					final @Nullable L2BasicBlock blockToMoveTo =
-						blockToMoveTo(instruction);
-					if (blockToMoveTo != null)
+					final @Nullable List<L2BasicBlock> blocksToMoveTo =
+						successorBlocksToMoveTo(instruction);
+					if (blocksToMoveTo != null)
 					{
+						assert !blocksToMoveTo.isEmpty();
 						changed = true;
-						final L2Instruction newInstruction =
-							new L2Instruction(
-								blockToMoveTo,
-								instruction.operation,
-								instruction.operands);
-						blockToMoveTo.insertInstruction(0, newInstruction);
-
+						for (final L2BasicBlock destinationBlock
+							: blocksToMoveTo)
+						{
+							final L2Instruction newInstruction =
+								new L2Instruction(
+									destinationBlock,
+									instruction.operation,
+									instruction.operands);
+							destinationBlock.insertInstruction(
+								0, newInstruction);
+							// None of the registers defined by the instruction
+							// should be live-in any more at the new block.
+							destinationBlock.sometimesLiveInRegisters.removeAll(
+								newInstruction.destinationRegisters());
+							destinationBlock.alwaysLiveInRegisters.removeAll(
+								newInstruction.destinationRegisters());
+							destinationBlock.sometimesLiveInRegisters.addAll(
+								newInstruction.sourceRegisters());
+							destinationBlock.alwaysLiveInRegisters.addAll(
+								newInstruction.sourceRegisters());
+						}
 						block.instructions().remove(instruction);
 						instruction.justRemoved();
-
-						// None of the registers defined by the instruction
-						// should be live-in any more at the new block.
-						blockToMoveTo.liveInRegisters.removeAll(
-							newInstruction.destinationRegisters());
 					}
 				}
 			}
@@ -405,15 +426,15 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * Answer whether it's safe to move this instruction to the start of exactly
-	 * one of its successor block.  Assumes {@link #computeLivenessAtEachEdge()}
-	 * has already run.
+	 * If this instruction can be moved/duplicated into one or more successor
+	 * blocks, answer a {@link List} of those blocks.  Otherwise answer {@code
+	 * null}.
 	 *
 	 * @param instruction The instruction to analyze.
-	 * @return The successor {@link L2BasicBlock} to which the instruction can
+	 * @return The successor {@link L2BasicBlock}s to which the instruction can
 	 *         be moved, or {@code null} if there is no such successor block.
 	 */
-	private static @Nullable L2BasicBlock blockToMoveTo (
+	private static @Nullable List<L2BasicBlock> successorBlocksToMoveTo (
 		final L2Instruction instruction)
 	{
 		if (instruction.hasSideEffect()
@@ -431,36 +452,39 @@ public final class L2ControlFlowGraph
 		if (successorEdges.size() == 1)
 		{
 			// There's only one successor edge.  Since the CFG is in edge-split
-			// SSA form, the successor might have multiple predecessors.  Don't
-			// move across the edge in that case, since it may cause the
-			// instruction to run in situations that it doesn't need to.
+			// form, the successor might have multiple predecessors.  Don't move
+			// across the edge in that case, since it may cause the instruction
+			// to run in situations that it doesn't need to.  When code
+			// splitting is eventually implemented, it should clean up this case
+			// by duplicating the successor block just for this edge.
 			final L2BasicBlock successor = successorEdges.get(0).targetBlock();
 			if (successor.predecessorEdges().size() > 1)
 			{
 				return null;
 			}
 		}
-		// Examine the successors, determining which ones require *any* of the
-		// destination registers of the instruction.  If there are multiple,
-		// give up.
-		@Nullable L2BasicBlock candidate = null;
+		final List<L2BasicBlock> destinations = new ArrayList<>();
+		boolean shouldMoveInstruction = false;
 		for (final L2PcOperand edge : successorEdges)
 		{
 			final L2BasicBlock targetBlock = edge.targetBlock();
-			assert targetBlock.predecessorEdges().size() <= 1
-				: "CFG is not in edge-split SSA form";
-			if (!disjoint(written, targetBlock.liveInRegisters))
+			assert targetBlock.predecessorEdges().size() == 1
+				: "CFG is not in edge-split form";
+			if (!targetBlock.alwaysLiveInRegisters.containsAll(written))
 			{
-				//noinspection VariableNotUsedInsideIf
-				if (candidate != null)
-				{
-					// There are multiple candidate successor blocks.  Don't
-					// move the instruction.
-					return null;
-				}
-				candidate = targetBlock;
+				shouldMoveInstruction = true;
+			}
+			if (!disjoint(targetBlock.sometimesLiveInRegisters, written))
+			{
+				destinations.add(targetBlock);
 			}
 		}
+		if (!shouldMoveInstruction)
+		{
+			// It was always-live-in for every successor.
+			return null;
+		}
+
 		// Now see if there are any intervening instructions that consume any of
 		// the given instruction's outputs.  That would keep it from moving.
 		final List<L2Instruction> instructions = block.instructions();
@@ -478,7 +502,8 @@ public final class L2ControlFlowGraph
 				return null;
 			}
 		}
-		return candidate;
+		assert !destinations.isEmpty();
+		return destinations;
 	}
 
 	/**

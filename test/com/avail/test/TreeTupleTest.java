@@ -460,8 +460,7 @@ public class TreeTupleTest
 			.tupleAtPuttingCanDestroy(17, fromInt(9), true)
 			.makeImmutable();
 
-		A_Tuple nybbleTupleReverse;
-		nybbleTupleReverse = mutableObjectOfSize(17);
+		A_Tuple nybbleTupleReverse = mutableObjectOfSize(17);
 		nybbleTupleReverse = nybbleTupleReverse
 			.tupleAtPuttingCanDestroy(1, fromInt(9), true)
 			.tupleAtPuttingCanDestroy(16, fromInt(7), true)

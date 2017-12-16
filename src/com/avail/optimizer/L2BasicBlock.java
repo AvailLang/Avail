@@ -107,13 +107,24 @@ public final class L2BasicBlock
 	private boolean hasControlFlowAtEnd = false;
 
 	/**
-	 * This is only populated during optimization, while the control flow graph
-	 * is still in SSA form.  When populated, it contains the registers which
-	 * are known to be live at the start of the block.  These are registers
-	 * which have definitely been written before each predecessor edge, and will
-	 * be read in this block or at least one of its descendants.
+	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
+	 * are consumed along all future paths after the start of this block.  This
+	 * is only populated during optimization, while the control flow graph is
+	 * still in SSA form.
+	 *
+	 * <p>This is a superset of {@link #sometimesLiveInRegisters}.</p>
 	 */
-	public final Set<L2Register> liveInRegisters = new HashSet<>();
+	public final Set<L2Register> alwaysLiveInRegisters = new HashSet<>();
+
+	/**
+	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
+	 * are consumed along at least one future after the start of this block.
+	 * This is only populated during optimization, while the control flow graph
+	 * is still in SSA form.
+	 *
+	 * <p>This is a subset of {@link #alwaysLiveInRegisters}.</p>
+	 */
+	public final Set<L2Register> sometimesLiveInRegisters = new HashSet<>();
 
 	/**
 	 * Answer the descriptive name of this basic block.

@@ -1534,7 +1534,7 @@ public final class L1Translator
 			constantRegister(nil),
 			newContinuationReg ->
 				addInstruction(
-					L2_RETURN_NO_CHECK.instance,
+					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
 					newContinuationReg),
 			onReturn,
 			TO_RETURN_INTO);

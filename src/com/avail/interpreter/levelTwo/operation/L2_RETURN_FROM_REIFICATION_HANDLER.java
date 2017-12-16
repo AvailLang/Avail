@@ -1,5 +1,5 @@
 /**
- * L2_RETURN_NO_CHECK.java
+ * L2_RETURN_FROM_REIFICATION_HANDLER.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -54,13 +54,13 @@ import static com.avail.utility.Nulls.stripNull;
  * the return value, which is only possible when returning a continuation to the
  * reification handler.
  */
-public class L2_RETURN_NO_CHECK extends L2Operation
+public class L2_RETURN_FROM_REIFICATION_HANDLER extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_RETURN_NO_CHECK().init(
+		new L2_RETURN_FROM_REIFICATION_HANDLER().init(
 			READ_POINTER.is("return value"));
 
 	@Override
