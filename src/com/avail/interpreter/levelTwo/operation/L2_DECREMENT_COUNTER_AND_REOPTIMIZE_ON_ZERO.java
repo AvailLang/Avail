@@ -44,6 +44,8 @@ import com.avail.optimizer.StackReifier;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.optimizer.L2Translator.OptimizationLevel
+	.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -78,7 +80,7 @@ extends L2Operation
 					L2Chunk.countdownForNewlyOptimizedCode());
 				L2Translator.translateToLevelTwo(
 					code,
-					OptimizationLevel.all()[targetOptimizationLevel],
+					optimizationLevel(targetOptimizationLevel),
 					interpreter);
 				final L2Chunk chunk = stripNull(code.startingChunk());
 				interpreter.chunk = chunk;

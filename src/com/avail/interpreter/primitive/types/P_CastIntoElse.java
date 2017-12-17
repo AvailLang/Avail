@@ -255,12 +255,12 @@ public final class P_CastIntoElse extends Primitive
 				new L2PcOperand(
 					castBlock,
 					translator.slotRegisters(),
-					translator.liveConstants(),
+					translator.currentManifest(),
 					valueReg.restrictedTo(typeTest, null)),
 				new L2PcOperand(
 					elseBlock,
 					translator.slotRegisters(),
-					translator.liveConstants(),
+					translator.currentManifest(),
 					valueReg.restrictedWithoutType(typeTest)));
 		}
 		else

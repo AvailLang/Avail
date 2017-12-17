@@ -32,22 +32,21 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
@@ -71,10 +70,10 @@ public class L2PcOperand extends L2Operand
 	private final L2ReadPointerOperand[] slotRegisters;
 
 	/**
-	 * A map from constant values to registers holding them at this control flow
+	 * The manifest linking semantic values and registers at this control flow
 	 * edge.
 	 */
-	private Map<A_BasicObject, L2ReadPointerOperand> liveConstants;
+	private L2ValueManifest manifest;
 
 	/**
 	 * The collection of {@link PhiRestriction}s along this particular control
@@ -96,6 +95,9 @@ public class L2PcOperand extends L2Operand
 	 * @param slotRegisters
 	 *        The array of {@link L2ReadPointerOperand}s that hold the virtual
 	 *        continuation's state when following this control flow edge.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that records which {@link L2Register}s
+	 *        hold which {@link L2SemanticValue}s.
 	 * @param phiRestrictions
 	 *        Additional register type and value restrictions to apply along
 	 *        this control flow edge.
@@ -103,12 +105,12 @@ public class L2PcOperand extends L2Operand
 	public L2PcOperand (
 		final L2BasicBlock targetBlock,
 		final L2ReadPointerOperand[] slotRegisters,
-		final Map<A_BasicObject, L2ReadPointerOperand> liveConstants,
+		final L2ValueManifest manifest,
 		final PhiRestriction... phiRestrictions)
 	{
 		this.targetBlock = targetBlock;
 		this.slotRegisters = slotRegisters.clone();
-		this.liveConstants = new HashMap<>(liveConstants);
+		this.manifest = new L2ValueManifest(manifest);
 		this.phiRestrictions = phiRestrictions.clone();
 	}
 
@@ -133,14 +135,14 @@ public class L2PcOperand extends L2Operand
 	}
 
 	/**
-	 * Answer the map from constants to the constant-valued registers that are
-	 * live along this edge.
+	 * Answer the {@link L2ValueManifest} for this edge, which describes which
+	 * {@link L2Register}s hold which {@link L2SemanticValue}s.
 	 *
-	 * @return A map from constants to registers.
+	 * @return This edge's {@link L2ValueManifest}.
 	 */
-	public Map<A_BasicObject, L2ReadPointerOperand> liveConstants ()
+	public L2ValueManifest manifest ()
 	{
-		return liveConstants;
+		return manifest;
 	}
 
 	@Override
@@ -194,12 +196,9 @@ public class L2PcOperand extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("Pc(%d: %s)[Consts=%s]",
+		return format("Pc(%d: %s)",
 			targetBlock.offset(),
-			targetBlock.name(),
-			liveConstants.values().stream()
-				.map(L2ReadPointerOperand::register)
-				.collect(toList()));
+			targetBlock.name());
 	}
 
 	/**
@@ -241,7 +240,7 @@ public class L2PcOperand extends L2Operand
 			newBlock,
 			L2_JUMP.instance,
 			new L2PcOperand(
-				garbageBlock, slotRegisters, liveConstants, phiRestrictions));
+				garbageBlock, slotRegisters, manifest, phiRestrictions));
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
@@ -250,7 +249,7 @@ public class L2PcOperand extends L2Operand
 
 		// Create a new edge from the original source to the new block.
 		final L2PcOperand newEdge = new L2PcOperand(
-			newBlock, slotRegisters, liveConstants, phiRestrictions);
+			newBlock, slotRegisters, manifest, phiRestrictions);
 		newEdge.instruction = originalSource;
 		newBlock.predecessorEdges().add(newEdge);
 

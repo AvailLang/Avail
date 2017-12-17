@@ -32,13 +32,10 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
@@ -51,9 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -329,7 +324,7 @@ public final class L2BasicBlock
 			// Irremovable blocks are entry points, and don't require any
 			// registers to be defined yet, so ignore any registers that appear
 			// to be defined (they're really not).
-			translator.liveConstants.clear();
+			translator.currentManifest.clear();
 			return;
 		}
 		// Create phi operations.
@@ -381,46 +376,12 @@ public final class L2BasicBlock
 		}
 		// Keep constants that are common to all incoming paths.  Create phi
 		// functions if the registers disagree.
-		translator.liveConstants.clear();
-		outerLoop:
-		for (final A_BasicObject constant
-			: predecessorEdges.get(0).liveConstants().keySet())
-		{
-			final List<L2ReadPointerOperand> registerReads =
-				new ArrayList<>(predecessorEdges.size());
-			for (final L2PcOperand predecessorEdge : predecessorEdges)
-			{
-				final @Nullable L2ReadPointerOperand registerRead =
-					predecessorEdge.liveConstants().get(constant);
-				if (registerRead == null)
-				{
-					continue outerLoop;
-				}
-				registerReads.add(registerRead);
-			}
-			if (registerReads.stream()
-				.map(L2ReadPointerOperand::register)
-				.distinct()
-				.count() == 1)
-			{
-				// The same register holds this constant in all predecessors.
-				translator.liveConstants.put(constant, registerReads.get(0));
-			}
-			else
-			{
-				// Create a phi function for the constant.
-				final A_Type type = constant.equalsNil()
-					? TOP.o()
-					: instanceTypeOrMetaOn(constant);
-				final L2WritePointerOperand newWrite =
-					translator.newObjectRegisterWriter(type, constant);
-				translator.addInstruction(
-					L2_PHI_PSEUDO_OPERATION.instance,
-					new L2ReadVectorOperand(registerReads),
-					newWrite);
-				translator.liveConstants.put(constant, newWrite.read());
-			}
-		}
+		translator.currentManifest.clear();
+		translator.currentManifest.populateFromIntersection(
+			predecessorEdges.stream()
+				.map(L2PcOperand::manifest)
+				.collect(toList()),
+			translator);
 	}
 
 	/**

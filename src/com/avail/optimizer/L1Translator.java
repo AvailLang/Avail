@@ -54,15 +54,16 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
+import com.avail.optimizer.values.Frame;
+import com.avail.optimizer.values.L2SemanticConstant;
+import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
 
@@ -148,6 +149,10 @@ public final class L1Translator
 	 */
 	private int stackp;
 
+	/**
+	 * The exact function that we're translating, if known.  This is only
+	 * non-null if the function captures no outers.
+	 */
 	private final @Nullable A_Function exactFunctionOrNull;
 
 	/** The control flow graph being generated. */
@@ -202,7 +207,7 @@ public final class L1Translator
 			// out all phi information here.
 		}
 		return new L2PcOperand(
-			unreachableBlock, new L2ReadPointerOperand[0], liveConstants);
+			unreachableBlock, new L2ReadPointerOperand[0], currentManifest);
 	}
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
@@ -231,21 +236,28 @@ public final class L1Translator
 	private final L2ReadPointerOperand[] slotRegisters;
 
 	/**
-	 * Keep track of all constant-valued registers that are live at the current
-	 * generation point, so that they can be reused as needed.  This is
-	 * especially handy for {@code nil}.
+	 * Use this {@link L2ValueManifest} to track which {@link L2Register} holds
+	 * which {@link L2SemanticValue} at the current code generation point.
 	 */
-	final Map<A_BasicObject, L2ReadPointerOperand> liveConstants =
-		new HashMap<>();
+	L2ValueManifest currentManifest = new L2ValueManifest();
 
 	/**
-	 * Answer the current map of {@link #liveConstants}.
-	 *
-	 * @return A map from {@link A_BasicObject} to {@link L2ReadPointerOperand}.
+	 * A {@link Frame} that represents the invocation of the raw function that
+	 * we're translating.  Inlined functions will have a different Frame created
+	 * for them at their call site.
 	 */
-	public Map<A_BasicObject, L2ReadPointerOperand> liveConstants ()
+	private final Frame topFrame = new Frame(null);
+
+	/**
+	 * Answer the current {@link L2ValueManifest}, which tracks which {@link
+	 * L2Register} holds which {@link L2SemanticValue} at the current code
+	 * generation point.
+	 *
+	 * @return The current {@link L2ValueManifest}.
+	 */
+	public L2ValueManifest currentManifest ()
 	{
-		return liveConstants;
+		return currentManifest;
 	}
 
 	/**
@@ -617,8 +629,9 @@ public final class L1Translator
 	 */
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
+		final L2SemanticConstant constant = new L2SemanticConstant(value);
 		final @Nullable L2ReadPointerOperand existingConstant =
-			liveConstants.get(value);
+			currentManifest.semanticValueToRegister(constant);
 		if (existingConstant != null)
 		{
 			return existingConstant;
@@ -633,7 +646,7 @@ public final class L1Translator
 			new L2ConstantOperand(value),
 			registerWrite);
 		final L2ReadPointerOperand read = registerWrite.read();
-		liveConstants.put(value, read);
+		currentManifest.addBinding(constant, read);
 		return read;
 	}
 
@@ -668,6 +681,17 @@ public final class L1Translator
 		final L2WritePointerOperand destinationRegister)
 	{
 		addInstruction(L2_MOVE.instance, sourceRegister, destinationRegister);
+		final @Nullable L2SemanticValue sourceSemanticValue =
+			currentManifest.registerToSemanticValue(sourceRegister.register());
+		if (sourceSemanticValue == null)
+		{
+			currentManifest.removeBinding(destinationRegister.register());
+		}
+		else
+		{
+			currentManifest.addBinding(
+				sourceSemanticValue, destinationRegister.read());
+		}
 	}
 
 	/**
@@ -745,8 +769,8 @@ public final class L1Translator
 			new L2PcOperand(
 				onReturnIntoReified,
 				readSlotsOnReturnIntoReified,
-				liveConstants),
-			new L2PcOperand(afterCreation, slots, liveConstants));
+				currentManifest),
+			new L2PcOperand(afterCreation, slots, currentManifest));
 
 		startBlock(afterCreation);
 		// Right after creating the continuation.
@@ -754,7 +778,7 @@ public final class L1Translator
 
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
-		liveConstants.clear();
+		currentManifest.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk));
@@ -766,7 +790,7 @@ public final class L1Translator
 		addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(
-				resumeBlock, readSlotsOnReturnIntoReified, liveConstants));
+				resumeBlock, readSlotsOnReturnIntoReified, currentManifest));
 		// Merge the flow (reified and continued, versus not reified).
 		startBlock(resumeBlock);
 		for (int i = 0; i < slots.length; i++)
@@ -825,10 +849,7 @@ public final class L1Translator
 	public L2PcOperand edgeTo (
 		final L2BasicBlock targetBlock)
 	{
-		return new L2PcOperand(
-			targetBlock,
-			slotRegisters(),
-			liveConstants);
+		return new L2PcOperand(targetBlock, slotRegisters(), currentManifest);
 	}
 
 	/**
@@ -1523,8 +1544,8 @@ public final class L1Translator
 			functionToCallReg,
 			new L2ReadVectorOperand(arguments),
 			new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-			new L2PcOperand(onReturn, slotsIfReified, liveConstants),
-			new L2PcOperand(onReification, slotsIfReified, liveConstants));
+			new L2PcOperand(onReturn, slotsIfReified, currentManifest),
+			new L2PcOperand(onReification, slotsIfReified, currentManifest));
 
 		// Reification has been requested while the call is in progress.
 		startBlock(onReification);
@@ -1631,12 +1652,12 @@ public final class L1Translator
 				new L2PcOperand(
 					passedCheck,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					valueReg.restrictedTo(expectedType, null)),
 				new L2PcOperand(
 					failedCheck,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					valueReg.restrictedTo(TOP.o(), null)));
 		}
 
@@ -1698,7 +1719,7 @@ public final class L1Translator
 	 *
 	 * <p>We must either generate no code and answer {@code null}, or generate
 	 * code that has the same effect as having run the function in the register
-	 * without fear of reification or abnormal control flow.  Constant folding,
+	 * without fear of reification or abnormal control flow.  L2SemanticConstant folding,
 	 * for example, can output a simple {@link L2_MOVE_CONSTANT} into a suitable
 	 * register answered by this method.</p>
 	 *
@@ -1882,7 +1903,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupSucceeded,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					new PhiRestriction(
 						functionReg.register(),
 						functionTypeUnion,
@@ -1892,7 +1913,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupFailed,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					new PhiRestriction(
 						errorCodeReg.register(),
 						L2_LOOKUP_BY_VALUES.lookupErrorsType,
@@ -1959,7 +1980,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupSucceeded,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					new PhiRestriction(
 						functionReg.register(),
 						functionTypeUnion,
@@ -1969,7 +1990,7 @@ public final class L1Translator
 				new L2PcOperand(
 					lookupFailed,
 					slotRegisters(),
-					liveConstants,
+					currentManifest,
 					new PhiRestriction(
 						errorCodeReg.register(),
 						L2_LOOKUP_BY_VALUES.lookupErrorsType,
@@ -2249,7 +2270,7 @@ public final class L1Translator
 			edgeTo(afterOptionalInitialPrimitiveBlock));
 
 		startBlock(afterOptionalInitialPrimitiveBlock);
-		liveConstants.clear();
+		currentManifest.clear();
 		// While it's true that invalidation may only take place when no Avail
 		// code is running (even when evicting old chunks), and it's also the
 		// case that invalidation causes the chunk to be disconnected from its
@@ -2408,9 +2429,9 @@ public final class L1Translator
 		final L2ReadPointerOperand[] emptySlots = new L2ReadPointerOperand[0];
 		addInstruction(
 			L2_INTERPRET_LEVEL_ONE.instance,
-			new L2PcOperand(reenterFromCallBlock, emptySlots, liveConstants),
+			new L2PcOperand(reenterFromCallBlock, emptySlots, currentManifest),
 			new L2PcOperand(
-				reenterFromInterruptBlock, emptySlots, liveConstants));
+				reenterFromInterruptBlock, emptySlots, currentManifest));
 
 		// 4,5. If reified, calls return here.
 		startBlock(reenterFromCallBlock);
@@ -2418,7 +2439,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, emptySlots, liveConstants));
+			new L2PcOperand(loopBlock, emptySlots, currentManifest));
 
 		// 6,7. If reified, interrupts return here.
 		startBlock(reenterFromInterruptBlock);
@@ -2426,7 +2447,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, emptySlots, liveConstants));
+			new L2PcOperand(loopBlock, emptySlots, currentManifest));
 	}
 
 	@Override
@@ -2749,7 +2770,9 @@ public final class L1Translator
 			new L2ReadVectorOperand(vectorWithOnlyArgsPreserved),
 			destReg,
 			new L2PcOperand(
-				initialBlock, new L2ReadPointerOperand[0], emptyMap()),
+				initialBlock,
+				new L2ReadPointerOperand[0],
+				new L2ValueManifest()),
 			edgeTo(afterCreation));
 		startBlock(afterCreation);
 

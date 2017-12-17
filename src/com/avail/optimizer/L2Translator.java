@@ -134,14 +134,17 @@ public final class L2Translator
 		private static final OptimizationLevel[] all = values();
 
 		/**
-		 * Answer an array of all {@code OptimizationLevel} enumeration values.
+		 * Answer the {@code OptimizationLevel} for the given ordinal value.
 		 *
-		 * @return An array of all {@code OptimizationLevel} enum values.  Do
-		 * not modify the array.
+		 * @param targetOptimizationLevel
+		 *        The ordinal value, an {@code int}.
+		 * @return The corresponding {@code OptimizationLevel}, failing if the
+		 *         ordinal was out of range.
 		 */
-		public static OptimizationLevel[] all ()
+		public static OptimizationLevel optimizationLevel (
+			final int targetOptimizationLevel)
 		{
-			return all;
+			return all[targetOptimizationLevel];
 		}
 	}
 
