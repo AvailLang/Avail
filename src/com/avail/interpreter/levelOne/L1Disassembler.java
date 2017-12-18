@@ -209,7 +209,7 @@ public final class L1Disassembler
 			{
 				nybble = 16 + nybbles.extractNybbleFromTupleAt(pc++);
 			}
-			final L1Operation operation = L1Operation.all()[nybble];
+			final L1Operation operation = L1Operation.lookup(nybble);
 			final L1OperandType[] operandTypes = operation.operandTypes();
 			builder.append(operation.name());
 			if (operandTypes.length > 0)

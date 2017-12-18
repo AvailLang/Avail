@@ -1,5 +1,5 @@
 /**
- * L2SemanticValue.java
+ * L2SemanticOuter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,24 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import static com.avail.descriptor.AvailObject.multiplier;
 
 /**
- * An {@code L2SemanticValue} represents a value stably computed from constants,
- * arguments, and potentially unstable values acquired by specific previous
- * instructions – e.g., fetching the current time at a specific position in a
- * sequence of L2 instructions, or the result of a non-primitive call to another
- * function.
+ * A semantic value which represents a numbered outer variable in the function
+ * of some {@link Frame}.
  */
-public abstract class L2SemanticValue
+public final class L2SemanticOuter extends L2SemanticValue
 {
+	/** The {@link Frame} for which this is an outer of its function. */
+	public final Frame frame;
+
+	/** The one-based index of the outer of the function. */
+	public final int outerIndex;
+
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to ensure it's
-	 * immutable.
+	 * Create a new {@code L2SemanticArgument} semantic value.
 	 *
- 	 * @return The {@link L2SemanticMakeImmutable}.
+	 * @param frame
+	 *        The frame for which this represents an outer.
+	 * @param outerIndex
+	 *        The one-based index of the outer in the frame's function.
 	 */
-	public L2SemanticMakeImmutable immutable ()
+	public L2SemanticOuter (final Frame frame, final int outerIndex)
 	{
-		return new L2SemanticMakeImmutable(this);
+		this.frame = frame;
+		this.outerIndex = outerIndex;
+	}
+
+	@Override
+	public boolean equals (final Object obj)
+	{
+		if (!(obj instanceof L2SemanticOuter))
+		{
+			return false;
+		}
+		final L2SemanticOuter outer = (L2SemanticOuter) obj;
+		return frame.equals(outer.frame)
+			&& outerIndex == outer.outerIndex;
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return (frame.hashCode() + outerIndex) * multiplier;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "Outer #" + outerIndex + " of " + frame;
 	}
 }

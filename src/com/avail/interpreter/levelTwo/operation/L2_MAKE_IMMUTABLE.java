@@ -34,18 +34,24 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
- * Force the specified object to be immutable.  Maintenance of
- * conservative sticky-bit reference counts is mostly separated out into
- * this operation to allow code transformations to obviate the need for it
- * in certain non-obvious circumstances.
+ * Force the specified object to be immutable.  Maintenance of conservative
+ * sticky-bit reference counts is mostly separated out into this operation to
+ * allow code transformations to obviate the need for it in certain non-obvious
+ * circumstances.
+ *
+ * <p>To keep this instruction from being neither removed due to not having
+ * side-effect, nor kept from being re-ordered due to having side-effect, the
+ * instruction has an input and an output, the latter of which should be the
+ * only way to use the value after this instruction.  Accidentally using the
+ * input value again would be incorrect, since that use could be re-ordered to a
+ * point before this instruction.</p>
  */
 public class L2_MAKE_IMMUTABLE extends L2Operation
 {
@@ -54,34 +60,23 @@ public class L2_MAKE_IMMUTABLE extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_MAKE_IMMUTABLE().init(
-			READ_POINTER.is("object"));
+			READ_POINTER.is("input"),
+			WRITE_POINTER.is("output"));
 
 	@Override
 	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
-		final int objectRegNumber =
+		final int inputRegNumber =
 			instruction.readObjectRegisterAt(0).finalIndex();
+		final int outputRegNumber =
+			instruction.writeObjectRegisterAt(1).finalIndex();
 		return interpreter ->
 		{
-			interpreter.pointerAt(objectRegNumber).makeImmutable();
+			interpreter.pointerAtPut(
+				outputRegNumber,
+				interpreter.pointerAt(inputRegNumber).makeImmutable());
 			return null;
 		};
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Marking the object immutable is a side effect.
-		return true;
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		// It just has a side-effect.
 	}
 }

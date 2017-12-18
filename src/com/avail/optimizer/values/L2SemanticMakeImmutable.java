@@ -1,5 +1,5 @@
 /**
- * L2SemanticValue.java
+ * L2SemanticMakeImmutable.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,24 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-
 /**
- * An {@code L2SemanticValue} represents a value stably computed from constants,
- * arguments, and potentially unstable values acquired by specific previous
- * instructions – e.g., fetching the current time at a specific position in a
- * sequence of L2 instructions, or the result of a non-primitive call to another
- * function.
+ * A semantic value which ensures the inner semantic value being wrapped has
+ * been made immutable.
  */
-public abstract class L2SemanticValue
+public final class L2SemanticMakeImmutable extends L2SemanticValue
 {
+	/** The semantic value that is wrapped with the immutability assurance. */
+	public final L2SemanticValue innerSemanticValue;
+
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to ensure it's
-	 * immutable.
+	 * Create a new {@code L2SemanticMakeImmutable} semantic value.
 	 *
- 	 * @return The {@link L2SemanticMakeImmutable}.
+	 * @param innerSemanticValue
+	 *        The semantic value being wrapped.
 	 */
+	L2SemanticMakeImmutable (
+		final L2SemanticValue innerSemanticValue)
+	{
+		assert !(innerSemanticValue instanceof  L2SemanticMakeImmutable);
+		this.innerSemanticValue = innerSemanticValue;
+	}
+
+	@Override
 	public L2SemanticMakeImmutable immutable ()
 	{
-		return new L2SemanticMakeImmutable(this);
+		// It's already immutable.  Immutability wrapping is idempotent.
+		return this;
+	}
+
+	@Override
+	public boolean equals (final Object obj)
+	{
+		if (!(obj instanceof L2SemanticMakeImmutable))
+		{
+			return false;
+		}
+		final L2SemanticMakeImmutable inner = (L2SemanticMakeImmutable) obj;
+		return innerSemanticValue.equals(inner.innerSemanticValue);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return innerSemanticValue.hashCode() ^ 0xB9E019AE;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "Immutable(" + innerSemanticValue + ")";
 	}
 }

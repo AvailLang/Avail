@@ -233,7 +233,7 @@ public class L1Decompiler
 		{
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			final L1Operation op = L1Operation.all()[nybble];
+			final L1Operation op = L1Operation.lookup(nybble);
 			op.dispatch(dispatcher);
 		}
 		// Infallible primitives don't have nybblecodes, except ones marked as
@@ -748,7 +748,7 @@ public class L1Decompiler
 		{
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			L1Operation.all()[nybble + 16].dispatch(this);
+			L1Operation.lookup(nybble + 16).dispatch(this);
 		}
 
 		@Override

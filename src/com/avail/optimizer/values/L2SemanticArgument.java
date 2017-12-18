@@ -64,8 +64,7 @@ public final class L2SemanticArgument extends L2SemanticValue
 		{
 			return false;
 		}
-		final L2SemanticArgument
-			arg = (L2SemanticArgument) obj;
+		final L2SemanticArgument arg = (L2SemanticArgument) obj;
 		return frame.equals(arg.frame)
 			&& argumentIndex == arg.argumentIndex;
 	}

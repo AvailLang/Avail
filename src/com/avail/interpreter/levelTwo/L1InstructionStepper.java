@@ -218,7 +218,7 @@ public final class L1InstructionStepper
 			{
 				nybble = nybbles.extractNybbleFromTupleAt(pc++) + 16;
 			}
-			final L1Operation nybblecode = L1Operation.all()[nybble];
+			final L1Operation nybblecode = L1Operation.lookup(nybble);
 			if (debugL1)
 			{
 				final int savePc = pc;

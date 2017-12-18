@@ -1,5 +1,5 @@
 /**
- * L2SemanticValue.java
+ * L2SemanticFunction.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,24 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-
 /**
- * An {@code L2SemanticValue} represents a value stably computed from constants,
- * arguments, and potentially unstable values acquired by specific previous
- * instructions – e.g., fetching the current time at a specific position in a
- * sequence of L2 instructions, or the result of a non-primitive call to another
- * function.
+ * A semantic value which represents the current function while running code for
+ * a particular {@link Frame}.
  */
-public abstract class L2SemanticValue
+public final class L2SemanticFunction extends L2SemanticValue
 {
+	/** The frame for which this represents the current function. */
+	public final Frame frame;
+
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to ensure it's
-	 * immutable.
+	 * Create a new {@code L2SemanticFunction} semantic value.
 	 *
- 	 * @return The {@link L2SemanticMakeImmutable}.
+	 * @param frame
+	 *        The frame for which this represents the invoked function.
 	 */
-	public L2SemanticMakeImmutable immutable ()
+	public L2SemanticFunction (final Frame frame)
 	{
-		return new L2SemanticMakeImmutable(this);
+		this.frame = frame;
+	}
+
+	@Override
+	public boolean equals (final Object obj)
+	{
+		return obj instanceof L2SemanticFunction
+			&& frame.equals(((L2SemanticFunction) obj).frame);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return frame.hashCode() + 0xF1AE6003;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "Function of " + frame;
 	}
 }

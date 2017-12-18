@@ -56,6 +56,9 @@ import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticConstant;
+import com.avail.optimizer.values.L2SemanticFunction;
+import com.avail.optimizer.values.L2SemanticMakeImmutable;
+import com.avail.optimizer.values.L2SemanticOuter;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
@@ -64,6 +67,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
 
@@ -102,7 +106,6 @@ import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -470,19 +473,74 @@ public final class L1Translator
 	 */
 	private L2ReadPointerOperand getCurrentFunction ()
 	{
+		final L2SemanticFunction semanticFunction =
+			new L2SemanticFunction(topFrame);
+		final @Nullable L2ReadPointerOperand existingRead =
+			currentManifest.semanticValueToRegister(semanticFunction);
+		if (existingRead != null)
+		{
+			return existingRead;
+		}
+		// We have to get it into a register.
+		final L2ReadPointerOperand functionRead;
 		if (exactFunctionOrNull != null)
 		{
 			// The exact function is known.
-			return constantRegister(exactFunctionOrNull);
+			functionRead = constantRegister(exactFunctionOrNull);
 		}
-		// The exact function isn't known, but we know the raw function, so
-		// we statically know the function type.
-		final L2WritePointerOperand functionWrite =
-			newObjectRegisterWriter(code().functionType(), null);
-		addInstruction(
-			L2_GET_CURRENT_FUNCTION.instance,
-			functionWrite);
-		return functionWrite.read();
+		else
+		{
+			// The exact function isn't known, but we know the raw function, so
+			// we statically know the function type.
+			final L2WritePointerOperand functionWrite =
+				newObjectRegisterWriter(code().functionType(), null);
+			addInstruction(
+				L2_GET_CURRENT_FUNCTION.instance,
+				functionWrite);
+			functionRead = functionWrite.read();
+		}
+		currentManifest.addBinding(semanticFunction, functionRead);
+		return functionRead;
+	}
+
+	/**
+	 * Write instructions to extract a numbered outer from the current function,
+	 * and answer an {@link L2ReadPointerOperand} for the register that will
+	 * hold the outer value afterward.
+	 */
+	private L2ReadPointerOperand getOuterRegister (
+		final int outerIndex,
+		final A_Type outerType)
+	{
+		final L2SemanticOuter semanticOuter =
+			new L2SemanticOuter(topFrame, outerIndex);
+		@Nullable L2ReadPointerOperand outerRead =
+			currentManifest.semanticValueToRegister(semanticOuter);
+		if (outerRead != null)
+		{
+			return outerRead;
+		}
+		if (outerType.instanceCount().equalsInt(1)
+			&& !outerType.isInstanceMeta())
+		{
+			// The exact outer is known statically.
+			moveConstantToSlot(outerType.instance(), stackp);
+			outerRead = readSlot(stackp);
+		}
+		else
+		{
+			final L2ReadPointerOperand functionRead = getCurrentFunction();
+			final L2WritePointerOperand outerWrite =
+				newObjectRegisterWriter(outerType, null);
+			addInstruction(
+				L2_MOVE_OUTER_VARIABLE.instance,
+				new L2ImmediateOperand(outerIndex),
+				functionRead,
+				outerWrite);
+			outerRead = outerWrite.read();
+		}
+		currentManifest.addBinding(semanticOuter, outerRead);
+		return outerRead;
 	}
 
 	/**
@@ -669,7 +727,10 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate instruction(s) to move from one register to another.
+	 * Generate instruction(s) to move from one register to another.  Remove the
+	 * associations between the source register and its {@link
+	 * L2SemanticValue}s, and replace them with associations to the destination
+	 * register.
 	 *
 	 * @param sourceRegister
 	 *        Where to read the AvailObject.
@@ -681,17 +742,50 @@ public final class L1Translator
 		final L2WritePointerOperand destinationRegister)
 	{
 		addInstruction(L2_MOVE.instance, sourceRegister, destinationRegister);
-		final @Nullable L2SemanticValue sourceSemanticValue =
-			currentManifest.registerToSemanticValue(sourceRegister.register());
-		if (sourceSemanticValue == null)
+		currentManifest.replaceRegister(sourceRegister, destinationRegister);
+	}
+
+	/**
+	 * Generate code to ensure an immutable version of the given register is
+	 * written to the returned register.  Update the {@link #currentManifest} to
+	 * indicate the returned register should be used for all of given register's
+	 * semantic values, as well as the immutable forms of each of the semantic
+	 * values.
+	 *
+	 * @param sourceRegister
+	 *        The register that was given.
+	 * @return The resulting register, holding an immutable version of the given
+	 *         register.
+	 */
+	private L2ReadPointerOperand makeImmutable (
+		final L2ReadPointerOperand sourceRegister)
+	{
+		final L2WritePointerOperand destinationWrite =
+			newObjectRegisterWriter(
+				sourceRegister.type(), sourceRegister.constantOrNull());
+		addInstruction(
+			L2_MAKE_IMMUTABLE.instance,
+			sourceRegister,
+			destinationWrite);
+		final L2ReadPointerOperand destinationRead = destinationWrite.read();
+
+		final @Nullable Set<L2SemanticValue> semanticValues =
+			currentManifest.registerToSemanticValues(sourceRegister.register());
+		if (semanticValues != null)
 		{
-			currentManifest.removeBinding(destinationRegister.register());
+			// Ensure attempts to look up semantic values that were attached to
+			// the sourceRegister now produce the destination register.  Also
+			// ensure attempts to look up the immutable-wrapped versions of the
+			// semantic values that were attached to the sourceRegister will
+			// produce the destination register.
+			for (final L2SemanticValue semanticValue : semanticValues)
+			{
+				currentManifest.addBinding(
+					semanticValue.immutable(), destinationRead);
+			}
+			currentManifest.replaceRegister(sourceRegister, destinationWrite);
 		}
-		else
-		{
-			currentManifest.addBinding(
-				sourceSemanticValue, destinationRegister.read());
-		}
+		return destinationRead;
 	}
 
 	/**
@@ -2356,7 +2450,7 @@ public final class L1Translator
 		{
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			L1Operation.all()[nybble].dispatch(this);
+			L1Operation.lookup(nybble).dispatch(this);
 		}
 		// Generate the implicit return after the instruction sequence.
 		addInstruction(
@@ -2484,38 +2578,27 @@ public final class L1Translator
 		final int localIndex = getInteger();
 		stackp--;
 		final L2ReadPointerOperand source = readSlot(localIndex);
-		moveRegister(
-			source,
-			writeSlot(stackp, source.type(), source.constantOrNull()));
-		addInstruction(L2_MAKE_IMMUTABLE.instance, readSlot(stackp));
+		forceSlotRegister(stackp, makeImmutable(source));
 	}
 
 	@Override
 	public void L1_doPushLastOuter ()
 	{
 		final int outerIndex = getInteger();
-		stackp--;
 		final A_Type outerType = code().outerTypeAt(outerIndex);
-		if (outerType.instanceCount().equalsInt(1)
-			&& !outerType.isInstanceMeta())
+		stackp--;
+		final L2SemanticMakeImmutable semanticImmutableOuter =
+			new L2SemanticOuter(topFrame, outerIndex).immutable();
+		@Nullable L2ReadPointerOperand immutableOuterRegister =
+			currentManifest.semanticValueToRegister(semanticImmutableOuter);
+		if (immutableOuterRegister == null)
 		{
-			// The exact outer is known statically.
-			moveConstantToSlot(outerType.instance(), stackp);
+			immutableOuterRegister = makeImmutable(
+				getOuterRegister(outerIndex, outerType));
 		}
-		else
-		{
-			// The exact outer isn't known statically, but we still have its
-			// type information.
-			final L2ReadPointerOperand functionTempRead = getCurrentFunction();
-			addInstruction(
-				L2_MOVE_OUTER_VARIABLE.instance,
-				new L2ImmediateOperand(outerIndex),
-				functionTempRead,
-				writeSlot(stackp, outerType, null));
-			// Simplify the logic related to L1's nilling of mutable outers upon
-			// their final use.
-			addInstruction(L2_MAKE_IMMUTABLE.instance, readSlot(stackp));
-		}
+		// For now, simplify the logic related to L1's nilling of mutable outers
+		// upon their final use.  Just make it immutable instead.
+		forceSlotRegister(stackp, immutableOuterRegister);
 	}
 
 	@Override
@@ -2575,15 +2658,17 @@ public final class L1Translator
 	{
 		final int outerIndex = getInteger();
 		final A_Type outerType = code().outerTypeAt(outerIndex);
-		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		stackp--;
-		addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
-			functionReg,
-			writeSlot(stackp, outerType, null));
-		addInstruction(
-			L2_MAKE_IMMUTABLE.instance, readSlot(stackp));
+		final L2SemanticMakeImmutable semanticImmutableOuter =
+			new L2SemanticOuter(topFrame, outerIndex).immutable();
+		@Nullable L2ReadPointerOperand immutableOuterRegister =
+			currentManifest.semanticValueToRegister(semanticImmutableOuter);
+		if (immutableOuterRegister == null)
+		{
+			immutableOuterRegister = makeImmutable(
+				getOuterRegister(outerIndex, outerType));
+		}
+		forceSlotRegister(stackp, immutableOuterRegister);
 	}
 
 	@Override
@@ -2600,9 +2685,9 @@ public final class L1Translator
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
+		stackp--;
 		final L2WritePointerOperand tempVarReg =
 			newObjectRegisterWriter(outerType, null);
-		stackp--;
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
@@ -2619,20 +2704,11 @@ public final class L1Translator
 	{
 		final int outerIndex = getInteger();
 		final A_Type outerType = code().outerTypeAt(outerIndex);
-		final L2ReadPointerOperand functionReg = getCurrentFunction();
-		final L2WritePointerOperand tempVarReg =
-			newObjectRegisterWriter(outerType, null);
-//		addInstruction(
-//			L2_MAKE_IMMUTABLE.instance,
-//			readSlot(stackp));
-		addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
-			functionReg,
-			tempVarReg);
+		final L2ReadPointerOperand tempVarReg =
+			getOuterRegister(outerIndex, outerType);
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
-			tempVarReg.read(),
+			tempVarReg,
 			readSlot(stackp));
 		stackp++;
 	}
@@ -2699,18 +2775,12 @@ public final class L1Translator
 		final int outerIndex = getInteger();
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
-		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		stackp--;
-		final L2WritePointerOperand tempVarReg =
-			newObjectRegisterWriter(outerType, null);
-		addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
-			functionReg,
-			tempVarReg);
+		final L2ReadPointerOperand outerRead =
+			getOuterRegister(outerIndex, outerType);
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
-			tempVarReg.read(),
+			outerRead,
 			writeSlot(stackp, innerType, null));
 	}
 
@@ -2721,7 +2791,7 @@ public final class L1Translator
 		// add 16 to get the L1Operation's ordinal.
 		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
-		L1Operation.all()[nybble + 16].dispatch(this);
+		L1Operation.lookup(nybble + 16).dispatch(this);
 	}
 
 	@Override
@@ -2825,17 +2895,9 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doDuplicate ()
 	{
-		final L2ReadPointerOperand sourceReg = readSlot(stackp);
-		addInstruction(
-			L2_MAKE_IMMUTABLE.instance,
-			sourceReg);
+		final L2ReadPointerOperand source = readSlot(stackp);
 		stackp--;
-		moveRegister(
-			sourceReg,
-			writeSlot(
-				stackp,
-				sourceReg.type(),
-				sourceReg.constantOrNull()));
+		forceSlotRegister(stackp, makeImmutable(source));
 	}
 
 	@Override

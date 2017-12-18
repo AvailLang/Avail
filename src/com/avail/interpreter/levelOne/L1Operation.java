@@ -428,14 +428,15 @@ public enum L1Operation
 	private static final L1Operation[] all = values();
 
 	/**
-	 * Answer an array of all {@code L1Operation} enumeration values.
+	 * Answer the {@code L1Operation} enumeration value having the given
+	 * ordinal.  Must be in bounds of the defined ordinals.
 	 *
-	 * @return An array of all {@code L1Operation} enum values.  Do not
-	 *         modify the array.
+	 * @param ordinal The ordinal of the {@code L1Operation} to look up.
+	 * @return The looked up {@code L1Operation}.
 	 */
-	public static L1Operation[] all ()
+	public static L1Operation lookup (final int ordinal)
 	{
-		return all;
+		return all[ordinal];
 	}
 
 	/**
