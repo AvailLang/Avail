@@ -34,7 +34,7 @@ package com.avail.optimizer.values;
  * A semantic value which represents the current function while running code for
  * a particular {@link Frame}.
  */
-public final class L2SemanticFunction extends L2SemanticValue
+final class L2SemanticFunction extends L2SemanticValue
 {
 	/** The frame for which this represents the current function. */
 	public final Frame frame;
@@ -45,7 +45,7 @@ public final class L2SemanticFunction extends L2SemanticValue
 	 * @param frame
 	 *        The frame for which this represents the invoked function.
 	 */
-	public L2SemanticFunction (final Frame frame)
+	L2SemanticFunction (final Frame frame)
 	{
 		this.frame = frame;
 	}

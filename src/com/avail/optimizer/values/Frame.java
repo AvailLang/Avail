@@ -94,4 +94,42 @@ public final class Frame
 		}
 		return "frame at depth " + depth;
 	}
+
+	/**
+	 * Answer the {@link L2SemanticValue} representing this frame's function.
+	 *
+	 * @return This frame's {@link L2SemanticFunction}.
+	 */
+	public L2SemanticValue function ()
+	{
+		return new L2SemanticFunction(this);
+	}
+
+	/**
+	 * Answer the {@link L2SemanticValue} representing one of this frame's
+	 * function's captured outer values.
+	 *
+	 * @param outerIndex
+	 *        The subscript of the outer value to retrieve from the function
+	 *        running for this frame.
+	 * @return The {@link L2SemanticValue} representing the specified outer.
+	 */
+	public L2SemanticValue outer (final int outerIndex)
+	{
+		return new L2SemanticOuter(this, outerIndex);
+	}
+
+	/**
+	 * Answer the {@link L2SemanticValue} representing one of this frame's
+	 * arguments.
+	 *
+	 * @param argumentIndex
+	 *        The subscript of the argument to retrieve from the virtual
+	 *        continuation running for this frame.
+	 * @return The {@link L2SemanticValue} representing the specified argument.
+	 */
+	public L2SemanticValue argument (final int argumentIndex)
+	{
+		return new L2SemanticArgument(this, argumentIndex);
+	}
 }

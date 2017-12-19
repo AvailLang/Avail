@@ -55,9 +55,12 @@ import static com.avail.utility.Nulls.stripNull;
 /**
  * The given function is invoked.  The function may be a primitive, and the
  * primitive may succeed, fail, or replace the current continuation (after
- * reifying the stack).  An immediate, if true ({@code 1}), indicates that the
- * VM can elide the check of the return type (because it has already been proven
- * for this circumstance).
+ * reifying the stack).  It may also trigger reification of this frame by
+ * Java-returning a {@link StackReifier} instead of null.
+ *
+ * <p>An immediate, if true ({@code 1}), indicates that the VM can elide the
+ * check of the return type (because it has already been proven for this
+ * circumstance).</p>
  */
 public class L2_INVOKE extends L2Operation
 {

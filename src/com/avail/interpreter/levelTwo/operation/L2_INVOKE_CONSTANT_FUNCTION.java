@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -53,11 +52,14 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
- * The given immediate function is invoked. The function may be a primitive, and
- * the primitive may succeed, fail, or change the current continuation. The
- * given continuation is the caller. An immediate, if true ({@code 1}),
- * indicates that the VM can elide the check of the return type (because it has
- * already been proven for this circumstance).
+ * The given (constant) function is invoked.  The function may be a primitive,
+ * and the primitive may succeed, fail, or replace the current continuation
+ * (after reifying the stack).  It may also trigger reification of this frame by
+ * Java-returning a {@link StackReifier} instead of null.
+ *
+ * <p>An immediate, if true ({@code 1}), indicates that the VM can elide the
+ * check of the return type (because it has already been proven for this
+ * circumstance).</p>
  */
 public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 {
@@ -76,7 +78,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
-		final AvailObject constantFunction = instruction.constantAt(0);
+		final AvailObject calledFunction = instruction.constantAt(0);
 		final List<L2ReadPointerOperand> argumentRegs =
 			instruction.readVectorRegisterAt(1);
 		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
@@ -87,18 +89,9 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 		final int[] argumentRegNumbers = argumentRegs.stream()
 			.mapToInt(L2ReadPointerOperand::finalIndex)
 			.toArray();
-		final A_RawFunction code = constantFunction.code();
 
 		return interpreter ->
 		{
-			interpreter.argsBuffer.clear();
-			for (final int argumentRegNumber : argumentRegNumbers)
-			{
-				interpreter.argsBuffer.add(
-					interpreter.pointerAt(argumentRegNumber));
-			}
-			interpreter.skipReturnCheck = skipReturnCheck;
-
 			final A_Function savedFunction = stripNull(interpreter.function);
 			final L2Chunk savedChunk = stripNull(interpreter.chunk);
 			final int savedOffset = interpreter.offset;
@@ -106,8 +99,20 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			final int[] savedInts = interpreter.integers;
 			assert savedChunk.instructions[savedOffset - 1] == instruction;
 
-			interpreter.chunk = code.startingChunk();
+			interpreter.argsBuffer.clear();
+			for (final int argumentRegNumber : argumentRegNumbers)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argumentRegNumber));
+			}
+
+			interpreter.function = calledFunction;
+			interpreter.chunk = calledFunction.code().startingChunk();
 			interpreter.offset = 0;
+			interpreter.skipReturnCheck = skipReturnCheck;
+			// Safety
+			interpreter.pointers = Interpreter.emptyPointersArray;
+			interpreter.integers = Interpreter.emptyIntArray;
 			final @Nullable StackReifier reifier = interpreter.runChunk();
 			try
 			{
@@ -130,13 +135,18 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 						interpreter.integers = savedInts;
 						interpreter.returnNow = false;
 						assert !interpreter.exitNow;
+						final String oldModeString =
+							interpreter.debugModeString;
+						if (Interpreter.debugL2)
+						{
+							interpreter.debugModeString += "REIFY L2 ";
+						}
 						final @Nullable StackReifier reifier2 =
 							interpreter.runChunk();
 						assert reifier2 == null
 							: "Off-ramp must not cause reification!";
 						// The off-ramp "returned" the callerless continuation
 						// that captures this frame.
-						interpreter.returnNow = false;
 						final A_Continuation continuation =
 							interpreter.latestResult();
 						if (Interpreter.debugL2)
@@ -145,11 +155,12 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 								Interpreter.loggerDebugL2,
 								Level.FINER,
 								"{0}Push reified continuation "
-									+ "for invoke-const-fn: {1}",
+									+ "for L2_INVOKE_CONSTANT_FUNCTION: {1}",
 								interpreter.debugModeString,
 								continuation.function().code().methodName());
 						}
 						reifier.pushContinuation(continuation);
+						interpreter.debugModeString = oldModeString;
 					}
 					return reifier;
 				}
@@ -185,5 +196,15 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 	{
 		// Never remove invocations -- but inlining might make them go away.
 		return true;
+	}
+
+	@Override
+	public String debugNameIn (
+		final L2Instruction instruction)
+	{
+		final A_Function exactFunction = instruction.constantAt(0);
+		return name()
+			+ ": "
+			+ exactFunction.code().methodName().asNativeString();
 	}
 }

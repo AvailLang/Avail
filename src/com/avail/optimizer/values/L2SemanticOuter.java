@@ -36,7 +36,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * A semantic value which represents a numbered outer variable in the function
  * of some {@link Frame}.
  */
-public final class L2SemanticOuter extends L2SemanticValue
+final class L2SemanticOuter extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is an outer of its function. */
 	public final Frame frame;
@@ -52,7 +52,7 @@ public final class L2SemanticOuter extends L2SemanticValue
 	 * @param outerIndex
 	 *        The one-based index of the outer in the frame's function.
 	 */
-	public L2SemanticOuter (final Frame frame, final int outerIndex)
+	L2SemanticOuter (final Frame frame, final int outerIndex)
 	{
 		this.frame = frame;
 		this.outerIndex = outerIndex;

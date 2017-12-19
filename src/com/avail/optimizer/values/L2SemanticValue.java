@@ -31,6 +31,8 @@
  */
 package com.avail.optimizer.values;
 
+import com.avail.descriptor.A_BasicObject;
+
 /**
  * An {@code L2SemanticValue} represents a value stably computed from constants,
  * arguments, and potentially unstable values acquired by specific previous
@@ -38,6 +40,7 @@ package com.avail.optimizer.values;
  * sequence of L2 instructions, or the result of a non-primitive call to another
  * function.
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2SemanticValue
 {
 	/**
@@ -46,8 +49,19 @@ public abstract class L2SemanticValue
 	 *
  	 * @return The {@link L2SemanticMakeImmutable}.
 	 */
-	public L2SemanticMakeImmutable immutable ()
+	public L2SemanticValue immutable ()
 	{
 		return new L2SemanticMakeImmutable(this);
+	}
+
+	/**
+	 * Answer the semantic value representing a particular constant value.
+	 *
+	 * @param value The actual Avail value.
+	 * @return A {@link L2SemanticConstant} representing the constant.
+	 */
+	public static L2SemanticValue constant (final A_BasicObject value)
+	{
+		return new L2SemanticConstant(value);
 	}
 }

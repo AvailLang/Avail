@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * in that case the actual {@link L2Instruction} must be supplied, to ensure it
  * isn't executed too many or too few times.
  */
-public final class L2SemanticPrimitiveInvocation extends L2SemanticValue
+final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 {
 	/**
 	 * The {@link Primitive} whose invocation is being represented.

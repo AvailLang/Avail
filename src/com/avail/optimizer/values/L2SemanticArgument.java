@@ -35,7 +35,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 /**
  * A semantic value which represents an argument of some {@link Frame}.
  */
-public final class L2SemanticArgument extends L2SemanticValue
+final class L2SemanticArgument extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is an argument. */
 	public final Frame frame;
@@ -51,7 +51,7 @@ public final class L2SemanticArgument extends L2SemanticValue
 	 * @param argumentIndex
 	 *        The one-based index of the argument to that frame.
 	 */
-	public L2SemanticArgument (final Frame frame, final int argumentIndex)
+	L2SemanticArgument (final Frame frame, final int argumentIndex)
 	{
 		this.frame = frame;
 		this.argumentIndex = argumentIndex;

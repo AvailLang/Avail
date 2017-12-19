@@ -55,10 +55,6 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
-import com.avail.optimizer.values.L2SemanticConstant;
-import com.avail.optimizer.values.L2SemanticFunction;
-import com.avail.optimizer.values.L2SemanticMakeImmutable;
-import com.avail.optimizer.values.L2SemanticOuter;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
@@ -473,8 +469,7 @@ public final class L1Translator
 	 */
 	private L2ReadPointerOperand getCurrentFunction ()
 	{
-		final L2SemanticFunction semanticFunction =
-			new L2SemanticFunction(topFrame);
+		final L2SemanticValue semanticFunction = topFrame.function();
 		final @Nullable L2ReadPointerOperand existingRead =
 			currentManifest.semanticValueToRegister(semanticFunction);
 		if (existingRead != null)
@@ -512,8 +507,7 @@ public final class L1Translator
 		final int outerIndex,
 		final A_Type outerType)
 	{
-		final L2SemanticOuter semanticOuter =
-			new L2SemanticOuter(topFrame, outerIndex);
+		final L2SemanticValue semanticOuter = topFrame.outer(outerIndex);
 		@Nullable L2ReadPointerOperand outerRead =
 			currentManifest.semanticValueToRegister(semanticOuter);
 		if (outerRead != null)
@@ -687,7 +681,7 @@ public final class L1Translator
 	 */
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
-		final L2SemanticConstant constant = new L2SemanticConstant(value);
+		final L2SemanticValue constant = L2SemanticValue.constant(value);
 		final @Nullable L2ReadPointerOperand existingConstant =
 			currentManifest.semanticValueToRegister(constant);
 		if (existingConstant != null)
@@ -1125,8 +1119,9 @@ public final class L1Translator
 				allPossible, argumentTypes, null);
 		final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
 		// If a reification exception happens while an L2_INVOKE is in progress,
-		// it will run the instructions at the off-ramp up to an L2_RETURN –
-		// which will return the reified (but callerless) continuation.
+		// it will run the instructions at the off-ramp up to an
+		// L2_RETURN_FROM_REIFICATION_HANDLER – which will return the reified
+		// (but callerless) continuation.
 		//TODO MvG - Take into account any arguments constrained to be constants
 		//even though they're types.  At the moment, some calls still have to
 		//check for ⊥'s type (not ⊥), just to report ambiguity, even though the
@@ -1315,9 +1310,7 @@ public final class L1Translator
 				final TypeRestriction failed =
 					argBeforeTest.restriction().minus(tested);
 				final L2ReadPointerOperand argUponFailure =
-					new L2ReadPointerOperand(
-						memento.argumentBeforeComparison.register(),
-						failed);
+					new L2ReadPointerOperand(argBeforeTest.register(),failed);
 				arguments.set(memento.argumentIndexToTest - 1, argUponFailure);
 				startBlock(memento.failCheckBasicBlock);
 			},
@@ -1633,13 +1626,30 @@ public final class L1Translator
 			createBasicBlock("returned from call of " + invocationName);
 		final L2BasicBlock onReification =
 			createBasicBlock("reification during call of " + invocationName);
-		addInstruction(
-			L2_INVOKE.instance,
-			functionToCallReg,
-			new L2ReadVectorOperand(arguments),
-			new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-			new L2PcOperand(onReturn, slotsIfReified, currentManifest),
-			new L2PcOperand(onReification, slotsIfReified, currentManifest));
+		final @Nullable A_BasicObject constantFunction =
+			functionToCallReg.constantOrNull();
+		if (constantFunction != null)
+		{
+			addInstruction(
+				L2_INVOKE_CONSTANT_FUNCTION.instance,
+				new L2ConstantOperand(constantFunction),
+				new L2ReadVectorOperand(arguments),
+				new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
+				new L2PcOperand(onReturn, slotsIfReified, currentManifest),
+				new L2PcOperand(
+					onReification, slotsIfReified, currentManifest));
+		}
+		else
+		{
+			addInstruction(
+				L2_INVOKE.instance,
+				functionToCallReg,
+				new L2ReadVectorOperand(arguments),
+				new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
+				new L2PcOperand(onReturn, slotsIfReified, currentManifest),
+				new L2PcOperand(
+					onReification, slotsIfReified, currentManifest));
+		}
 
 		// Reification has been requested while the call is in progress.
 		startBlock(onReification);
@@ -1813,9 +1823,9 @@ public final class L1Translator
 	 *
 	 * <p>We must either generate no code and answer {@code null}, or generate
 	 * code that has the same effect as having run the function in the register
-	 * without fear of reification or abnormal control flow.  L2SemanticConstant folding,
-	 * for example, can output a simple {@link L2_MOVE_CONSTANT} into a suitable
-	 * register answered by this method.</p>
+	 * without fear of reification or abnormal control flow.  L2SemanticConstant
+	 * folding, for example, can output a simple {@link L2_MOVE_CONSTANT} into a
+	 * suitable register answered by this method.</p>
 	 *
 	 * @param functionToCallReg
 	 *        The register containing the function to invoke.
@@ -2398,12 +2408,16 @@ public final class L1Translator
 			final A_Type tupleType = code().functionType().argsTupleType();
 			final List<L2WritePointerOperand> argRegs =
 				IntStream.rangeClosed(1, numArgs)
-					.mapToObj(
-						i -> writeSlot(i, tupleType.typeAtIndex(i), null))
+					.mapToObj(i -> writeSlot(i, tupleType.typeAtIndex(i), null))
 					.collect(toList());
 			addInstruction(
 				L2_GET_ARGUMENTS.instance,
 				new L2WriteVectorOperand(argRegs));
+			for (int i = 1; i <= numArgs; i++)
+			{
+				currentManifest.addBinding(
+					topFrame.argument(i), argRegs.get(i - 1).read());
+			}
 		}
 
 		// Create the locals.
@@ -2587,8 +2601,8 @@ public final class L1Translator
 		final int outerIndex = getInteger();
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		stackp--;
-		final L2SemanticMakeImmutable semanticImmutableOuter =
-			new L2SemanticOuter(topFrame, outerIndex).immutable();
+		final L2SemanticValue semanticImmutableOuter =
+			topFrame.outer(outerIndex).immutable();
 		@Nullable L2ReadPointerOperand immutableOuterRegister =
 			currentManifest.semanticValueToRegister(semanticImmutableOuter);
 		if (immutableOuterRegister == null)
@@ -2659,8 +2673,8 @@ public final class L1Translator
 		final int outerIndex = getInteger();
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		stackp--;
-		final L2SemanticMakeImmutable semanticImmutableOuter =
-			new L2SemanticOuter(topFrame, outerIndex).immutable();
+		final L2SemanticValue semanticImmutableOuter =
+			topFrame.outer(outerIndex).immutable();
 		@Nullable L2ReadPointerOperand immutableOuterRegister =
 			currentManifest.semanticValueToRegister(semanticImmutableOuter);
 		if (immutableOuterRegister == null)

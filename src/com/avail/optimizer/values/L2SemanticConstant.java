@@ -35,7 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 /**
  * A semantic value which is a particular actual constant value.
  */
-public final class L2SemanticConstant extends L2SemanticValue
+final class L2SemanticConstant extends L2SemanticValue
 {
 	public final A_BasicObject value;
 
@@ -44,7 +44,7 @@ public final class L2SemanticConstant extends L2SemanticValue
 	 *
 	 * @param value The actual value of the constant.
 	 */
-	public L2SemanticConstant (final A_BasicObject value)
+	L2SemanticConstant (final A_BasicObject value)
 	{
 		this.value = value;
 	}

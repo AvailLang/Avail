@@ -45,7 +45,7 @@ import com.avail.interpreter.primitive.controlflow
  * semantic value doesn't have a notion of value or register <em>directly</em>
  * associated with it, only through a manifest.
  */
-public final class L2SemanticLabel extends L2SemanticValue
+final class L2SemanticLabel extends L2SemanticValue
 {
 	/** The frame for which this is a {@code Label}. */
 	public final Frame frame;
@@ -56,7 +56,7 @@ public final class L2SemanticLabel extends L2SemanticValue
 	 * @param frame
 	 *        The frame for which this represents a label.
 	 */
-	public L2SemanticLabel (final Frame frame)
+	L2SemanticLabel (final Frame frame)
 	{
 		this.frame = frame;
 	}

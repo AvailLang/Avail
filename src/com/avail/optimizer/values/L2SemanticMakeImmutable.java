@@ -34,7 +34,7 @@ package com.avail.optimizer.values;
  * A semantic value which ensures the inner semantic value being wrapped has
  * been made immutable.
  */
-public final class L2SemanticMakeImmutable extends L2SemanticValue
+final class L2SemanticMakeImmutable extends L2SemanticValue
 {
 	/** The semantic value that is wrapped with the immutability assurance. */
 	public final L2SemanticValue innerSemanticValue;
@@ -53,7 +53,7 @@ public final class L2SemanticMakeImmutable extends L2SemanticValue
 	}
 
 	@Override
-	public L2SemanticMakeImmutable immutable ()
+	public L2SemanticValue immutable ()
 	{
 		// It's already immutable.  Immutability wrapping is idempotent.
 		return this;
