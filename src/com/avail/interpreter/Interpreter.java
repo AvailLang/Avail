@@ -2207,8 +2207,8 @@ public final class Interpreter
 	 * @param result
 	 *        The result of the primitive.
 	 * @param skipReturnCheck
- *        Whether successful completion of the primitive will always produce
- *        something of the expected type, allowing us to elide the check of
+	 *        Whether successful completion of the primitive will always produce
+	 *        something of the expected type, allowing us to elide the check of
 	 */
 	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,

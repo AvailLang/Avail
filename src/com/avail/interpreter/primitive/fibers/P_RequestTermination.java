@@ -92,6 +92,7 @@ extends Primitive
 			switch (oldState)
 			{
 				case ASLEEP:
+				{
 					// Try to cancel the task (if any). This is best
 					// effort only.
 					final @Nullable TimerTask task = fiber.wakeupTask();
@@ -101,14 +102,19 @@ extends Primitive
 						fiber.wakeupTask(null);
 					}
 					fiber.executionState(SUSPENDED);
+					final Primitive fiberSuspendingPrimitive =
+						stripNull(
+							fiber.suspendingFunction().code().primitive());
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
-						this,
+						fiberSuspendingPrimitive,
 						nil,
 						true);
 					break;
+				}
 				case PARKED:
+				{
 					// Resume the fiber.
 					assert !hadPermit :
 						"Should not have been parked with a permit";
@@ -117,7 +123,7 @@ extends Primitive
 						stripNull(
 							fiber.suspendingFunction().code().primitive());
 					assert fiberSuspendingPrimitive
-							== P_ParkCurrentFiber.instance
+						== P_ParkCurrentFiber.instance
 						|| fiberSuspendingPrimitive == P_Sleep.instance;
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
@@ -126,6 +132,7 @@ extends Primitive
 						nil,
 						true);
 					break;
+				}
 				case UNSTARTED:
 				case RUNNING:
 				case SUSPENDED:
@@ -133,7 +140,9 @@ extends Primitive
 				case TERMINATED:
 				case ABORTED:
 				case RETIRED:
+				{
 					break;
+				}
 			}
 		});
 		return interpreter.primitiveSuccess(nil);

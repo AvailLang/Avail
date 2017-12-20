@@ -70,6 +70,7 @@ Names
 	"first index of_where_",
 	"first index of…in_§where_",
 	"For each…,…in|of_§do_",
+	"insertion index of|for_in_with_",
 	"last index of_where_",
 	"last index of…in_§where_",
 	"left fold_through_",
@@ -4757,4 +4758,84 @@ Semantic restriction "only_" is
 	tType : tuple meta
 |
 	tType[1]
+];
+
+/**
+ * Given a tuple which is already sorted by a comparator, i.e.,
+ * comparator(aTuple[i], aTuple[i+1]) for all i in [1..|aTuple| - 1], determine
+ * the position at which to insert a new element which maintains the sort order.
+ *
+ * If the comparator answers true for equal elements, this answers the position
+ * just after the last occurrence of any values equal to the element being
+ * added, if any.  If the comparator answers false for equal elements, the
+ * returned position is the index of the first equal element, if any, or the
+ * index of the first value greater than the value.
+ *
+ * If the element is greater than all other elements in the tuple (or equal to
+ * the last element for a comparator that returns true for equal elements),
+ * answer the first index beyond the size of the tuple (i.e., |aTuple|+1).
+ *
+ * To actually accomplish the insertion, given that the value "split" was
+ * returned from this method, the resulting tuple will be:
+ *    aTuple[..split-1] ++ <element> ++ aTuple[split..]
+ *
+ * @method "insertion index of|for_in_with_"
+ * @param "element" "any"
+ * @param "aTuple" "tuple"
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * @returns "natural number"
+ * @category "Tuples" "Queries"
+ */
+Public method "insertion index of|for_in_with_" is
+[
+	element : any,
+	aTuple : tuple,
+	comparator : [⊥, ⊥]→boolean
+|
+	low : natural number := 1;
+	high : whole number := |aTuple|;
+	Until low > high do
+	[
+		mid ::= (high + low + 1) >> 1;
+		midValue ::= aTuple[mid];
+		if comparator(midValue, element) then
+		[
+			low := mid + 1;
+		]
+		else
+		[
+			high := mid - 1;
+		];
+	];
+	low
+] : natural number;
+
+Semantic restriction "insertion index of|for_in_with_" is
+[
+	element : any's type,
+	tupleType : tuple's type,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union : type := ∪ tupleType[1..|tupleType's leading types|+1];
+	union := union ∪ element;
+	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+
+	[1 .. ⎡tupleType⎤ + 2)
 ];

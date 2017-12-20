@@ -141,12 +141,6 @@ extends Descriptor
 		 * in an {@link A_Continuation} representing an activation of this raw
 		 * function, the number of arguments, the number of local variables, and
 		 * the number of local constants.
-		 *
-		 * A compound field consisting of the number of outer variables/values
-		 * to be captured by my {@linkplain FunctionDescriptor functions}, the
-		 * variable number of slots that should be allocated for a {@linkplain
-		 * ContinuationDescriptor continuation} running this code, the number of
-		 * local variables, and the number of arguments.
 		 */
 		NUM_SLOTS_ARGS_LOCALS_AND_CONSTS;
 

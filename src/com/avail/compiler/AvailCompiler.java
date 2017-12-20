@@ -4528,6 +4528,14 @@ public final class AvailCompiler
 			new MutableOrNull<>();
 		compilationContext.setNoMoreWorkUnits(() ->
 		{
+			if (compilationContext.diagnostics.isShuttingDown)
+			{
+				// Some of the tasks may have been bypassed due to the pending
+				// shutdown, so don't assume afterWhitespaceHolder.value has
+				// been set.
+				afterFail.value();
+				return;
+			}
 			final List<ParserState> afterWhitespace =
 				afterWhitespaceHolder.value();
 			if (afterWhitespace.size() == 1)
@@ -5463,7 +5471,6 @@ public final class AvailCompiler
 			new Mutable<>(emptySet());
 		parseTree.childrenDo(node ->
 		{
-			assert node != null;
 			if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
 			{
 				final A_Phrase declaration = node.declaration();

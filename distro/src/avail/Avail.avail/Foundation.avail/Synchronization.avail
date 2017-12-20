@@ -232,18 +232,18 @@ Public method "priority enqueue_on_" is
 	queue : ↑parking queue
 |
 	lockAcquired : boolean;
-	/* Spin on compare-and-swap until the parking queue can be updated.
-	 * Order the fibers by descending priority, then ascending seniority on the
-	 * parking queue; the latter is accomplished automatically because merge
-	 * sort is stable.
+	/* Spin on compare-and-swap until the parking queue can be updated.  Order
+	 * the fibers by descending priority, then ascending seniority on the
+	 * parking queue; the latter is accomplished by using ≥ instead of >.
 	 */
 	Until
 	[
 		basis ::= ↓queue;
-		sorted ::= merge sort basis ++ <aFiber>
+		index ::= insertion index of aFiber in basis
 			with [a : fiber, b : fiber | a's priority ≥ b's priority];
+		withFiber ::= basis[..index - 1] ++ <aFiber> ++ basis[index..];
 		swapped ::= atomically compare queue to basis and,
-			if equal, store sorted;
+			if equal, store withFiber;
 		If swapped then [lockAcquired := basis is empty;];
 		swapped
 	];
