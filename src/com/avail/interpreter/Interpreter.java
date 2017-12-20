@@ -1310,6 +1310,11 @@ public final class Interpreter
 	 */
 	private int unreifiedCallDepth = 0;
 
+	/**
+	 * The maximum depth of the Java call stack, measured in unreified chunks.
+	 */
+	private static final int maxUnreifiedCallDepth = 50;
+
 	/** The {@link A_Function} being executed. */
 	public @Nullable A_Function function;
 
@@ -1485,6 +1490,7 @@ public final class Interpreter
 	public boolean isInterruptRequested ()
 	{
 		return runtime.levelOneSafetyRequested()
+			|| unreifiedCallDepth > maxUnreifiedCallDepth
 			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED);
 	}

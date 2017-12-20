@@ -47,8 +47,7 @@ public final class Frame
 	 * The frame that was active at the site of the invocation that this
 	 * frame represents.
 	 */
-	public final @Nullable
-	Frame outerFrame;
+	public final @Nullable Frame outerFrame;
 
 	/**
 	 * Construct a new {@code Frame} representing a call within the given
