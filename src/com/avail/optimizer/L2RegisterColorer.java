@@ -388,7 +388,10 @@ public final class L2RegisterColorer
 			// removing them from the graphCopy, along with their connected
 			// edges.  This reduces the cardinality of connected nodes.
 			stack.addAll(withFewest);
-			withFewest.forEach(graphCopy::exciseVertex);
+			for (RegisterGroup registerGroup : withFewest)
+			{
+				graphCopy.exciseVertex(registerGroup);
+			}
 		}
 		// We've now stacked all nodes in a pretty good order for assigning
 		// colors as we pop them.  In particular, if during the pushing phase we
@@ -402,15 +405,25 @@ public final class L2RegisterColorer
 		{
 			final RegisterGroup group = stack.removeLast();
 			neighbors.clear();
-			interferences.successorsOf(group).stream()
-				.mapToInt(RegisterGroup::finalIndex)
-				.filter(i -> i != -1)
-				.forEach(neighbors::set);
+			for (final RegisterGroup registerGroup
+				: interferences.successorsOf(group))
+			{
+				int index = registerGroup.finalIndex();
+				if (index != -1)
+				{
+					neighbors.set(index);
+				}
+			}
 			final int color = neighbors.nextClearBit(0);
 			group.setFinalIndex(color);
 		}
-		assert registerGroups.keySet().stream().allMatch(
-			r -> r.finalIndex() != -1);
+		for (L2Register r : registerGroups.keySet())
+		{
+			if (r.finalIndex() == -1)
+			{
+				throw new AssertionError();
+			}
+		}
 	}
 
 	@Override

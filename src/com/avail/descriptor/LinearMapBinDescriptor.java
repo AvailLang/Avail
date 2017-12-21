@@ -149,7 +149,7 @@ extends MapBinDescriptor
 	 * entries and it's not already at the bottom allowable level ({@link
 	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
 	 */
-	public static final int thresholdToHash = 50;
+	static final int thresholdToHash = 50;
 
 	/**
 	 * Check this linear map bin for internal consistency.
@@ -195,7 +195,7 @@ extends MapBinDescriptor
 	 *        LinearMapBinDescriptor}.
 	 * @return The number of entries in the bin.
 	 */
-	@InnerAccess static int entryCount (final AvailObject object)
+	private static int entryCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount() >> 1;
 	}
@@ -630,7 +630,7 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	static AvailObject createEmptyLinearMapBin (
+	private static AvailObject createEmptyLinearMapBin (
 		final byte myLevel)
 	{
 		final AvailObject bin = newObjectIndexedIntegerIndexedDescriptor(
@@ -675,7 +675,7 @@ extends MapBinDescriptor
 	 * The number of distinct levels at which {@linkplain LinearMapBinDescriptor
 	 * linear bins} may occur.
 	 */
-	static final byte numberOfLevels = 8;
+	private static final byte numberOfLevels = 8;
 
 	/**
 	 * Answer a suitable descriptor for a linear bin with the specified

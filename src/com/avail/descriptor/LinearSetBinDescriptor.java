@@ -108,6 +108,9 @@ extends SetBinDescriptor
 	 */
 	private static final int thresholdToHash = 10;
 
+	/** Whether to do sanity checks on linear set bins' hashes. */
+	private static final boolean checkBinHashes = false;
+
 	/**
 	 * Check that this linear bin has a correct setBinHash.
 	 *
@@ -115,16 +118,19 @@ extends SetBinDescriptor
 	 */
 	private static void checkBinHash (final AvailObject object)
 	{
-		assert object.descriptor instanceof LinearSetBinDescriptor;
-		final int stored = object.setBinHash();
-		int calculated = 0;
-		for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
+		if (checkBinHashes)
 		{
-			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
-			final int subBinHash = subBin.hash();
-			calculated += subBinHash;
+			assert object.descriptor instanceof LinearSetBinDescriptor;
+			final int stored = object.setBinHash();
+			int calculated = 0;
+			for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
+			{
+				final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
+				final int subBinHash = subBin.hash();
+				calculated += subBinHash;
+			}
+			assert calculated == stored : "Failed bin hash cross-check";
 		}
-		assert calculated == stored : "Failed bin hash cross-check";
 	}
 
 	@Override @AvailMethod
@@ -387,26 +393,6 @@ extends SetBinDescriptor
 	}
 
 	/**
-	 * Create a mutable linear bin at the specified level with the given size
-	 * and bin hash. The caller is responsible for initializing the elements
-	 * and making them immutable if necessary.
-	 *
-	 * @param level The level of the new bin.
-	 * @param size The number of elements in the new bin.
-	 * @param hash The hash of the bin's elements, or zero if unknown.
-	 * @return A new linear set bin with uninitialized element slots.
-	 */
-	public static AvailObject createBin (
-		final byte level,
-		final int size,
-		final int hash)
-	{
-		final AvailObject instance = descriptorFor(MUTABLE, level).create(size);
-		instance.setSlot(BIN_HASH, hash);
-		return instance;
-	}
-
-	/**
 	 * Create a mutable 2-element linear bin at the specified level and with the
 	 * specified elements. The caller is responsible for making the elements
 	 * immutable if necessary.
@@ -416,7 +402,7 @@ extends SetBinDescriptor
 	 * @param secondElement The second element of the new bin.
 	 * @return A 2-element set bin.
 	 */
-	public static AvailObject createLinearSetBinPair (
+	static AvailObject createLinearSetBinPair (
 		final byte level,
 		final A_BasicObject firstElement,
 		final A_BasicObject secondElement)
@@ -433,7 +419,7 @@ extends SetBinDescriptor
 	 * The number of distinct levels at which {@linkplain LinearSetBinDescriptor
 	 * linear bins} may occur.
 	 */
-	static final byte numberOfLevels = 6;
+	private static final byte numberOfLevels = 6;
 
 	/**
 	 * Answer a suitable descriptor for a linear bin with the specified
@@ -517,9 +503,9 @@ extends SetBinDescriptor
 	{
 		for (int i = 0; i < numberOfLevels; i++)
 		{
-			final AvailObject bin = createBin((byte) i, 0, 0);
-			bin.makeShared();
-			emptyBins[i] = bin;
+			final AvailObject bin = descriptorFor(MUTABLE, (byte) i).create(0);
+			bin.setSlot(BIN_HASH, 0);
+			emptyBins[i] = bin.makeShared();
 		}
 	}
 

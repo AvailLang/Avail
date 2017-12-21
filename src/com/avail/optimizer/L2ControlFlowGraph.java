@@ -334,25 +334,35 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * Determine which registers are written by instructions which have side
-	 * effects.  Add all such registers to the live-in sets of <em>each</em>
-	 * block.  This avoids having to consider later whether to attempt to move
-	 * such instructions into successor blocks.
+	 * For each instruction with side effect and output registers, add the
+	 * registers to the sometimes and always live-in sets of each immediate
+	 * successor block of the one containing the instruction.  This avoids
+	 * having to consider later whether to attempt to move such instructions
+	 * into successor blocks.
 	 */
 	@InnerAccess void considerSideEffectRegistersLive ()
 	{
-		final Set<L2Register> registers = new HashSet<>();
-		for (final L2Register register : allRegisters())
-		{
-			if (register.definition().hasSideEffect())
-			{
-				registers.add(register);
-			}
-		}
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
-			block.sometimesLiveInRegisters.addAll(registers);
-			block.alwaysLiveInRegisters.addAll(registers);
+			for (final L2Instruction instruction : block.instructions())
+			{
+				if (instruction.hasSideEffect())
+				{
+					final List<L2Register> destinationRegisters =
+						instruction.destinationRegisters();
+					if (!destinationRegisters.isEmpty())
+					{
+						for (final L2PcOperand edge : block.successorEdges())
+						{
+							final L2BasicBlock targetBlock = edge.targetBlock();
+							targetBlock.sometimesLiveInRegisters.addAll(
+								destinationRegisters);
+							targetBlock.alwaysLiveInRegisters.addAll(
+								destinationRegisters);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -371,8 +381,8 @@ public final class L2ControlFlowGraph
 	 * <p>This process is repeated until no more instructions are eligible to
 	 * move forward.</p>
 	 *
-	 * <p>This requires edge-split SSA form as input, but duplicated defining
-	 * instructions break SSA.</p>
+	 * <p>This requires edge-split SSA form as input, but the duplicated
+	 * defining instructions break SSA.</p>
 	 */
 	@InnerAccess void postponeConditionallyUsedValues ()
 	{
@@ -1148,7 +1158,7 @@ public final class L2ControlFlowGraph
 		}
 	}
 
-	enum OPTIMIZATION_PHASE
+	enum OptimizationPhase
 	{
 		/**
 		 * Start by eliminating debris created during the initial L1 → L2
@@ -1163,43 +1173,41 @@ public final class L2ControlFlowGraph
 		BECOME_EDGE_SPLIT_SSA(L2ControlFlowGraph::transformToEdgeSplitSSA),
 
 		/**
-		 * Find multi-way instructions (at the ends of basic blocks) where
-		 * along
-		 * some outbound edges a value is live, but along other edges from the
-		 * same block, the value is not live.  If it's safe, we move the
-		 * defining instruction forward along the edges where it's live,
-		 * thereby
-		 * not having to execute it along paths where it's not actually live.
+		 * Determine which registers are sometimes-live-in and/or always-live-in
+		 * at each edge, in preparation for postponing instructions that don't
+		 * have their outputs consumed in the same block, and aren't
+		 * always-live-in in every successor.
 		 */
 		COMPUTE_LIVENESS_AT_EDGES(
 			L2ControlFlowGraph::computeLivenessAtEachEdge),
 
 		/**
 		 * For each register defined by an instruction with a side-effect, mark
-		 * that register as live in each edge of the graph.
+		 * that register as always-live-in (and sometimes-live-in) at each edge
+		 * out of that instruction's block.
 		 */
 		CONSIDER_SIDE_EFFECT_REGISTERS_LIVE(
 			L2ControlFlowGraph::considerSideEffectRegistersLive),
 
 		/**
-		 * Attempt to slide forward any definition instructions that we can.
-		 * If
-		 * they hit the end of a diverging block in which the defined registers
-		 * are only needed by one successor, continue moving the instruction
-		 * into that branch.
+		 * Try to move any side-effectless instructions to later points in the
+		 * control flow graph.  If such an instruction defines a register that's
+		 * used in the same basic block, don't bother moving it.  Also don't
+		 * attempt to move it if it's always-live-in at each successor block,
+		 * since the point of moving it forward is to avoid inessential
+		 * computations.
 		 *
-		 * TODO MvG - Eventually track will-use and might-use separately, and
-		 * allow the instruction to be replicated into all might-use paths,
-		 * introducing additional registers and phis as needed.
+		 * <p>Note that this breaks SSA by duplicating defining instructions.
+		 * </p>
 		 */
 		POSTPONE_CONDITIONALLY_USED_VALUES(
 			L2ControlFlowGraph::postponeConditionallyUsedValues),
 
 		/**
-		 * Insert phi moves, which makes it no longer in SSA form.
+		 * Insert phi moves along preceding edges.  This requires the CFG to be
+		 * in edge-split form, although strict SSA isn't required.
 		 */
-		INSERT_PHI_MOVES(
-			L2ControlFlowGraph::insertPhiMoves),
+		INSERT_PHI_MOVES(L2ControlFlowGraph::insertPhiMoves),
 
 		/**
 		 * Remove constant moves made unnecessary by the introduction of new
@@ -1209,8 +1217,7 @@ public final class L2ControlFlowGraph
 
 		/**
 		 * Compute the register-coloring interference graph while we're just
-		 * out
-		 * of SSA form – phis have been replaced by moves on incoming edges.
+		 * out of SSA form – phis have been replaced by moves on incoming edges.
 		 */
 		COMPUTE_INTERFERENCE_GRAPH(
 			L2ControlFlowGraph::computeInterferenceGraph),
@@ -1258,8 +1265,7 @@ public final class L2ControlFlowGraph
 		/**
 		 * Choose an order for the blocks.  This isn't important while we're
 		 * interpreting L2Chunks, but it will ultimately affect the quality of
-		 * JVM translation.  Prefer to have the target block of an
-		 * unconditional
+		 * JVM translation.  Prefer to have the target block of an unconditional
 		 * jump to follow the jump, since final code generation elides the jump.
 		 */
 		ORDER_BLOCKS(L2ControlFlowGraph::orderBlocks);
@@ -1290,7 +1296,7 @@ public final class L2ControlFlowGraph
 		 *
 		 * @param action The action to perform for this pass.
 		 */
-		OPTIMIZATION_PHASE (final Continuation1<L2ControlFlowGraph> action)
+		OptimizationPhase (final Continuation1<L2ControlFlowGraph> action)
 		{
 			this.action = action;
 			this.stat = new Statistic(
@@ -1304,7 +1310,7 @@ public final class L2ControlFlowGraph
 	 */
 	public void optimize (final Interpreter interpreter)
 	{
-		for (final OPTIMIZATION_PHASE phase : OPTIMIZATION_PHASE.values())
+		for (final OptimizationPhase phase : OptimizationPhase.values())
 		{
 			final long before = System.nanoTime();
 			phase.action.value(this);
@@ -1321,8 +1327,8 @@ public final class L2ControlFlowGraph
 		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	/**
-	 * Produce the final list of instructions.  Should only be called after
-	 * all optimizations have been performed.
+	 * Produce the final list of instructions.  Should only be called after all
+	 * optimizations have been performed.
 	 *
 	 * @param instructions
 	 *        The list of instructions to populate.

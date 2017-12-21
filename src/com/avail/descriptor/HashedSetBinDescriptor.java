@@ -139,6 +139,9 @@ extends SetBinDescriptor
 		BIN_ELEMENT_AT_;
 	}
 
+	/** Whether to do sanity checks on hashed set bins' hashes. */
+	private static final boolean checkBinHashes = false;
+
 	/**
 	 * Check that this linear bin has a correct binHash.
 	 *
@@ -146,16 +149,19 @@ extends SetBinDescriptor
 	 */
 	static void checkHashedSetBin (final AvailObject object)
 	{
-		assert object.descriptor instanceof HashedSetBinDescriptor;
-		final int stored = object.setBinHash();
-		int calculated = 0;
-		for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
+		if (checkBinHashes)
 		{
-			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
-			final int subBinHash = subBin.setBinHash();
-			calculated += subBinHash;
+			assert object.descriptor instanceof HashedSetBinDescriptor;
+			final int stored = object.setBinHash();
+			int calculated = 0;
+			for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
+			{
+				final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
+				final int subBinHash = subBin.setBinHash();
+				calculated += subBinHash;
+			}
+			assert calculated == stored : "Failed bin hash cross-check";
 		}
-		assert calculated == stored : "Failed bin hash cross-check";
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -288,9 +294,8 @@ extends SetBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				objectToModify = newLike(descriptorFor(
-					MUTABLE,
-					level), object, 0, 0);
+				objectToModify = newLike(
+					descriptorFor(MUTABLE, level), object, 0, 0);
 			}
 			objectToModify.setSlot(BIN_HASH, previousTotalHash + hashDelta);
 			objectToModify.setSlot(BIN_SIZE, newSize);
@@ -444,9 +449,7 @@ extends SetBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				result = newLike(descriptorFor(
-					MUTABLE,
-					level), object, 0, 0);
+				result = newLike(descriptorFor(MUTABLE, level), object, 0, 0);
 			}
 			result.setSlot(BIN_ELEMENT_AT_, physicalIndex, replacementEntry);
 			result.setSlot(BIN_HASH, oldTotalHash + deltaHash);
@@ -596,7 +599,7 @@ extends SetBinDescriptor
 	 *            union of the elements' types.
 	 * @return A new hashed set bin with uninitialized sub-bin slots.
 	 */
-	public static AvailObject createUninitializedBin (
+	private static AvailObject createUninitializedBin (
 		final byte level,
 		final int localSize,
 		final int totalSize,
@@ -629,7 +632,7 @@ extends SetBinDescriptor
 	 *            union of the elements' types.
 	 * @return A new hashed set bin with emptySet linear sub-bins.
 	 */
-	public static AvailObject createInitializedBin (
+	static AvailObject createInitializedBin (
 		final byte level,
 		final int localSize,
 		final int totalSize,
@@ -710,8 +713,7 @@ extends SetBinDescriptor
 		{
 			for (final Mutability mut : Mutability.values())
 			{
-				descriptors[target++] =
-					new HashedSetBinDescriptor(mut, level);
+				descriptors[target++] = new HashedSetBinDescriptor(mut, level);
 			}
 		}
 	}

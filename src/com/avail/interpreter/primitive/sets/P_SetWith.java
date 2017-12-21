@@ -53,9 +53,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Answer a new {@linkplain SetDescriptor
- * set} like the argument but including the new {@linkplain AvailObject
- * element}. If it was already present, answer the original set.
+ * <strong>Primitive:</strong> Answer a new {@linkplain SetDescriptor set} like
+ * the argument but including the new {@linkplain AvailObject element}.  If it
+ * was already present, answer the original set.
  */
 public final class P_SetWith extends Primitive
 {

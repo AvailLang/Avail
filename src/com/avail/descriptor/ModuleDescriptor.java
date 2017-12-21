@@ -460,22 +460,14 @@ extends Descriptor
 		final AvailObject object,
 		final A_Atom trueName)
 	{
-		// Add the trueName to the current public scope.
+		// Add the atom to the current public scope.
 		synchronized (object)
 		{
 			final A_String string = trueName.atomName();
 			A_Map names = object.slot(IMPORTED_NAMES);
-			A_Set set;
-			if (names.hasKey(string))
-			{
-				set = names.mapAt(string);
-			}
-			else
-			{
-				set = emptySet();
-			}
-			set = set.setWithElementCanDestroy(trueName, false);
-			names = names.mapAtPuttingCanDestroy(string, set, true);
+			A_Set set = names.hasKey(string) ? names.mapAt(string) : emptySet();
+			names = names.mapAtPuttingCanDestroy(
+				string, set.setWithElementCanDestroy(trueName, false), true);
 			object.setSlot(IMPORTED_NAMES, names.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
@@ -489,7 +481,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Set trueNames)
 	{
-		// Add the trueName to the current public scope.
+		// Add the set of atoms to the current public scope.
 		synchronized (object)
 		{
 			A_Map names = object.slot(IMPORTED_NAMES);
@@ -537,25 +529,17 @@ extends Descriptor
 		final AvailObject object,
 		final A_Atom trueName)
 	{
-		// Add the trueName to the current private scope.
+		// Add the atom to the current private scope.
 		synchronized (object)
 		{
 			final A_String string = trueName.atomName();
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
-			A_Set set;
-			if (privateNames.hasKey(string))
-			{
-				set = privateNames.mapAt(string);
-			}
-			else
-			{
-				set = emptySet();
-			}
+			A_Set set = privateNames.hasKey(string)
+				? privateNames.mapAt(string)
+				: emptySet();
 			set = set.setWithElementCanDestroy(trueName, false);
 			privateNames = privateNames.mapAtPuttingCanDestroy(
-				string,
-				set,
-				true);
+				string, set, true);
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
@@ -569,7 +553,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Set trueNames)
 	{
-		// Add the set of trueName atoms to the current private scope.
+		// Add the set of atoms to the current private scope.
 		synchronized (object)
 		{
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
@@ -581,9 +565,7 @@ extends Descriptor
 					: emptySet();
 				set = set.setWithElementCanDestroy(trueName, true);
 				privateNames = privateNames.mapAtPuttingCanDestroy(
-					string,
-					set,
-					true);
+					string, set, true);
 			}
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
