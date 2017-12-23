@@ -123,7 +123,6 @@ public final class P_IfFalseThenElse extends Primitive
 			emptyList(),   // takes no arguments.
 			TOP.o(),
 			true,
-			translator.slotRegisters(),
 			"else clause");
 	}
 }

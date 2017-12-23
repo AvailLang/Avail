@@ -120,15 +120,15 @@ public final class Frame
 
 	/**
 	 * Answer the {@link L2SemanticValue} representing one of this frame's
-	 * arguments.
+	 * slots.
 	 *
-	 * @param argumentIndex
-	 *        The subscript of the argument to retrieve from the virtual
+	 * @param slotIndex
+	 *        The subscript of the slot to retrieve from the virtual
 	 *        continuation running for this frame.
-	 * @return The {@link L2SemanticValue} representing the specified argument.
+	 * @return The {@link L2SemanticValue} representing the specified slot.
 	 */
-	public L2SemanticValue argument (final int argumentIndex)
+	public L2SemanticValue slot (final int slotIndex)
 	{
-		return new L2SemanticArgument(this, argumentIndex);
+		return new L2SemanticSlot(this, slotIndex);
 	}
 }

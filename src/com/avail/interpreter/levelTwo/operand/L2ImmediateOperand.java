@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import static java.lang.String.format;
 
@@ -53,7 +52,7 @@ public class L2ImmediateOperand extends L2Operand
 	public final int value;
 
 	/**
-	 * Construct a new {@link L2ImmediateOperand} with the specified {@code int}
+	 * Construct a new {@code L2ImmediateOperand} with the specified {@code int}
 	 * value.
 	 *
 	 * @param value The constant {@code int} itself.

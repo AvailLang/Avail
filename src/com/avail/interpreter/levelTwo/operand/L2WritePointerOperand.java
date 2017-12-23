@@ -34,24 +34,16 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 import java.util.Map;
-
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static java.lang.String.format;
 
 /**
  * An {@code L2WritePointerOperand} is an operand of type {@link

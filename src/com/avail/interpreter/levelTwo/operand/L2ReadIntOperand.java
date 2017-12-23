@@ -38,8 +38,6 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
-import com.sun.org.apache.bcel.internal.generic.L2I;
 
 import javax.annotation.Nullable;
 import java.util.List;

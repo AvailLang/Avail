@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
@@ -108,8 +109,13 @@ public final class L2ValueManifest
 		this.semanticValueToRegister = new HashMap<>(
 			originalManifest.semanticValueToRegister);
 		this.registerToSemanticValues = new HashMap<>();
-		originalManifest.registerToSemanticValues.forEach(
-			(k, v) -> registerToSemanticValues.put(k, new HashSet<>(v)));
+		for (final Entry<L2Register, Set<L2SemanticValue>> entry
+			: originalManifest.registerToSemanticValues.entrySet())
+		{
+			registerToSemanticValues.put(
+				entry.getKey(), new HashSet<>(entry.getValue()));
+		}
+
 	}
 
 	/**
@@ -165,32 +171,62 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Replace all bindings for the sourceRegister with bindings to the same
-	 * {@link L2SemanticValue}s for the destinationRegister.
+	 * Record the fact that the given semantic value no longer has any register
+	 * mapped to it.
 	 *
-	 * @param sourceRegister
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to disassociate from its register.
+	 */
+	public void removeBinding (
+		final L2SemanticValue semanticValue)
+	{
+		final L2ReadPointerOperand oldRegisterRead =
+			semanticValueToRegister.remove(semanticValue);
+		if (oldRegisterRead != null)
+		{
+			final L2ObjectRegister oldRegister = oldRegisterRead.register();
+			final @Nullable Set<L2SemanticValue> semanticValues =
+				registerToSemanticValues.get(oldRegister);
+			if (semanticValues != null)
+			{
+				semanticValues.remove(semanticValue);
+				if (semanticValues.isEmpty())
+				{
+					registerToSemanticValues.remove(oldRegister);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Replace all bindings for the sourceRead's register with bindings to the
+	 * same {@link L2SemanticValue}s for the destinationWrite's register.
+	 *
+	 * @param sourceRead
 	 *        The source of the register-register move.
-	 * @param destinationRegister
+	 * @param destinationWrite
 	 *        The destination of the register-register move.
 	 */
 	public void replaceRegister (
-		final L2ReadPointerOperand sourceRegister,
-		final L2WritePointerOperand destinationRegister)
+		final L2ReadPointerOperand sourceRead,
+		final L2WritePointerOperand destinationWrite)
 	{
+		final L2Register sourceRegister = sourceRead.register();
 		final @Nullable Set<L2SemanticValue> sourceSemanticValues =
-			registerToSemanticValues.get(sourceRegister.register());
-		final L2ReadPointerOperand destinationRead = destinationRegister.read();
+			registerToSemanticValues.get(sourceRegister);
 		if (sourceSemanticValues != null)
 		{
+			final L2ReadPointerOperand destinationRead =
+				destinationWrite.read();
 			for (final L2SemanticValue semanticValue : sourceSemanticValues)
 			{
 				assert semanticValueToRegister.get(semanticValue).register()
-					== sourceRegister.register();
+					== sourceRegister;
 				semanticValueToRegister.put(semanticValue, destinationRead);
 			}
-			registerToSemanticValues.remove(sourceRegister.register());
+			registerToSemanticValues.remove(sourceRegister);
 			registerToSemanticValues.put(
-				destinationRegister.register(),
+				destinationWrite.register(),
 				new HashSet<>(sourceSemanticValues));
 		}
 	}
@@ -234,8 +270,12 @@ public final class L2ValueManifest
 			final L2ValueManifest soleManifest = manifests.get(0);
 			semanticValueToRegister.putAll(
 				soleManifest.semanticValueToRegister);
-			soleManifest.registerToSemanticValues.forEach(
-				(k, v) -> registerToSemanticValues.put(k, new HashSet<>(v)));
+			for (final Entry<L2Register, Set<L2SemanticValue>> entry
+				: soleManifest.registerToSemanticValues.entrySet())
+			{
+				registerToSemanticValues.put(
+					entry.getKey(), new HashSet<>(entry.getValue()));
+			}
 			return;
 		}
 		final Iterator<L2ValueManifest> iterator = manifests.iterator();

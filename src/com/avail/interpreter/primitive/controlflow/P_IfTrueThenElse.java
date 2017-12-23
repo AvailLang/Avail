@@ -123,7 +123,6 @@ public final class P_IfTrueThenElse extends Primitive
 			emptyList(),   // takes no arguments.
 			TOP.o(),
 			true,
-			translator.slotRegisters(),
 			"then clause");
 	}
 }

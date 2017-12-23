@@ -38,7 +38,6 @@ import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 /**
  * An {@code L2SelectorOperand} is an operand of type {@link

@@ -40,13 +40,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 import java.util.Map;
 
@@ -55,8 +52,6 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static java.lang.String.format;
 
 /**
  * An {@code L2ReadPointerOperand} is an operand of type {@link
@@ -200,12 +195,12 @@ public class L2ReadPointerOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("Read(");
-		builder.append(register);
-		builder.append(register.restriction().suffixString());
-		builder.append(")");
-		return builder.toString();
+		//noinspection StringConcatenationMissingWhitespace
+		return
+			"Read("
+				+ register
+				+ register.restriction().suffixString()
+				+ ")";
 	}
 
 	/**

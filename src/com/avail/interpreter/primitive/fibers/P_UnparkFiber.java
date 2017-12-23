@@ -54,6 +54,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Unpark the specified {@linkplain
@@ -95,18 +96,21 @@ extends Primitive
 			{
 				// Wake up the fiber.
 				fiber.executionState(SUSPENDED);
+				final Primitive suspendingPrimitive =
+					stripNull(fiber.suspendingFunction().code().primitive());
+				assert suspendingPrimitive == P_ParkCurrentFiber.instance
+					|| suspendingPrimitive == P_AttemptJoinFiber.instance;
 				resumeFromSuccessfulPrimitive(
 					currentRuntime(),
 					fiber,
-					P_ParkCurrentFiber.instance,
+					suspendingPrimitive,
 					nil,
 					skipReturnCheck);
 			}
 			else
 			{
 				// Save the permit for next time.
-				fiber.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, false);
+				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
 			}
 		});
 		return interpreter.primitiveSuccess(nil);

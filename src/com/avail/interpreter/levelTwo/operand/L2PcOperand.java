@@ -64,16 +64,10 @@ public class L2PcOperand extends L2Operand
 	private @Nullable L2Instruction instruction;
 
 	/**
-	 * An array of {@link L2ReadPointerOperand}s, representing the slots of the
-	 * virtual continuation when following this control flow edge.
-	 */
-	private final L2ReadPointerOperand[] slotRegisters;
-
-	/**
 	 * The manifest linking semantic values and registers at this control flow
 	 * edge.
 	 */
-	private L2ValueManifest manifest;
+	private final L2ValueManifest manifest;
 
 	/**
 	 * The collection of {@link PhiRestriction}s along this particular control
@@ -92,9 +86,6 @@ public class L2PcOperand extends L2Operand
 	 *
 	 * @param targetBlock
 	 *        The {@link L2BasicBlock} The target basic block.
-	 * @param slotRegisters
-	 *        The array of {@link L2ReadPointerOperand}s that hold the virtual
-	 *        continuation's state when following this control flow edge.
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that records which {@link L2Register}s
 	 *        hold which {@link L2SemanticValue}s.
@@ -104,12 +95,10 @@ public class L2PcOperand extends L2Operand
 	 */
 	public L2PcOperand (
 		final L2BasicBlock targetBlock,
-		final L2ReadPointerOperand[] slotRegisters,
 		final L2ValueManifest manifest,
 		final PhiRestriction... phiRestrictions)
 	{
 		this.targetBlock = targetBlock;
-		this.slotRegisters = slotRegisters.clone();
 		this.manifest = new L2ValueManifest(manifest);
 		this.phiRestrictions = phiRestrictions.clone();
 	}
@@ -118,20 +107,6 @@ public class L2PcOperand extends L2Operand
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.PC;
-	}
-
-	/**
-	 * Answer the captured array of {@link L2ReadPointerOperand}s which
-	 * correspond to the virtual continuation's state when traversing this
-	 * control flow graph edge.
-	 *
-	 * <p>Do not modify this array.</p>
-	 *
-	 * @return An array of {@link L2ReadPointerOperand}s.
-	 */
-	public L2ReadPointerOperand[] slotRegisters ()
-	{
-		return slotRegisters;
 	}
 
 	/**
@@ -240,7 +215,7 @@ public class L2PcOperand extends L2Operand
 			newBlock,
 			L2_JUMP.instance,
 			new L2PcOperand(
-				garbageBlock, slotRegisters, manifest, phiRestrictions));
+				garbageBlock, manifest, phiRestrictions));
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
@@ -249,7 +224,7 @@ public class L2PcOperand extends L2Operand
 
 		// Create a new edge from the original source to the new block.
 		final L2PcOperand newEdge = new L2PcOperand(
-			newBlock, slotRegisters, manifest, phiRestrictions);
+			newBlock, manifest, phiRestrictions);
 		newEdge.instruction = originalSource;
 		newBlock.predecessorEdges().add(newEdge);
 

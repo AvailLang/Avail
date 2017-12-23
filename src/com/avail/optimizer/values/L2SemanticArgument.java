@@ -1,5 +1,5 @@
 /**
- * L2SemanticArgument.java
+ * L2SemanticSlot.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.descriptor.A_Continuation;
+
 import static com.avail.descriptor.AvailObject.multiplier;
 
 /**
- * A semantic value which represents an argument of some {@link Frame}.
+ * A semantic value which represents a slot of some {@link Frame}'s effective
+ * {@link A_Continuation}.
  */
-final class L2SemanticArgument extends L2SemanticValue
+final class L2SemanticSlot extends L2SemanticValue
 {
-	/** The {@link Frame} for which this is an argument. */
+	/** The {@link Frame} for which this is a virtualized slot. */
 	public final Frame frame;
 
-	/** The one-based index of the argument of this {@link Frame}. */
-	public final int argumentIndex;
+	/** The one-based index of the slot in its {@link Frame}. */
+	public final int slotIndex;
 
 	/**
-	 * Create a new {@code L2SemanticArgument} semantic value.
+	 * Create a new {@code L2SemanticSlot} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents an argument.
-	 * @param argumentIndex
-	 *        The one-based index of the argument to that frame.
+	 *        The frame for which this represents a slot of a virtualized
+	 *        continuation.
+	 * @param slotIndex
+	 *        The one-based index of the slot in that frame.
 	 */
-	L2SemanticArgument (final Frame frame, final int argumentIndex)
+	L2SemanticSlot (final Frame frame, final int slotIndex)
 	{
 		this.frame = frame;
-		this.argumentIndex = argumentIndex;
+		this.slotIndex = slotIndex;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		if (!(obj instanceof L2SemanticArgument))
+		if (!(obj instanceof L2SemanticSlot))
 		{
 			return false;
 		}
-		final L2SemanticArgument arg = (L2SemanticArgument) obj;
-		return frame.equals(arg.frame)
-			&& argumentIndex == arg.argumentIndex;
+		final L2SemanticSlot slot = (L2SemanticSlot) obj;
+		return frame.equals(slot.frame)
+			&& slotIndex == slot.slotIndex;
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return (frame.hashCode() ^ argumentIndex) * multiplier;
+		return (frame.hashCode() ^ slotIndex) * multiplier;
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "Argument #" + argumentIndex + " of " + frame;
+		return "Slot #" + slotIndex + " of " + frame;
 	}
 }

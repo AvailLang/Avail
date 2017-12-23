@@ -32,22 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
@@ -63,9 +57,6 @@ public class L2ReadVectorOperand extends L2Operand
 	 */
 	private final List<L2ReadPointerOperand> elements;
 
-	/** A lazily computed list of the type constraints of my elements. */
-	private final List<A_Type> types;
-
 	/**
 	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
 	 * List} of {@link L2ReadPointerOperand}s.
@@ -76,19 +67,18 @@ public class L2ReadVectorOperand extends L2Operand
 		final List<L2ReadPointerOperand> elements)
 	{
 		this.elements = unmodifiableList(elements);
-		this.types = unmodifiableList(
-			elements.stream()
-				.map(L2ReadPointerOperand::type)
-				.collect(toList()));
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
 	public L2Operand clone ()
 	{
-		final List<L2ReadPointerOperand> clonedElements = elements.stream()
-			.map(r -> (L2ReadPointerOperand) r.clone())
-			.collect(toList());
+		final List<L2ReadPointerOperand> clonedElements =
+			new ArrayList<>(elements.size());
+		for (L2ReadPointerOperand element : elements)
+		{
+			clonedElements.add((L2ReadPointerOperand) element.clone());
+		}
 		return new L2ReadVectorOperand(clonedElements);
 	}
 
@@ -104,17 +94,6 @@ public class L2ReadVectorOperand extends L2Operand
 	public List<L2ReadPointerOperand> elements ()
 	{
 		return elements;
-	}
-
-	/**
-	 * Answer a {@link List} of the {@link A_Type}s bounding each corresponding
-	 * element.
-	 *
-	 * @return The list of types.
-	 */
-	public List<A_Type> types ()
-	{
-		return types;
 	}
 
 	@Override

@@ -15,12 +15,14 @@
       <w>cyclicity</w>
       <w>deconstructor</w>
       <w>deduplication</w>
+      <w>denormalized</w>
       <w>disassembly</w>
       <w>dominator</w>
       <w>endian</w>
       <w>endianness</w>
       <w>fanout</w>
       <w>fixup</w>
+      <w>foldable</w>
       <w>guillemet</w>
       <w>guillemets</w>
       <w>gulik</w>
@@ -29,6 +31,7 @@
       <w>indexable</w>
       <w>inlineable</w>
       <w>inlined</w>
+      <w>inlines</w>
       <w>inlining</w>
       <w>ints</w>
       <w>invalidations</w>
@@ -37,7 +40,9 @@
       <w>lexed</w>
       <w>lexing</w>
       <w>lexings</w>
+      <w>lookups</w>
       <w>looper</w>
+      <w>megamorphic</w>
       <w>metacharacter</w>
       <w>metatype</w>
       <w>metavariance</w>
@@ -57,6 +62,7 @@
       <w>parameterize</w>
       <w>parameterized</w>
       <w>pojo</w>
+      <w>postamble</w>
       <w>pragmas</w>
       <w>prefilter</w>
       <w>prequalified</w>
@@ -73,6 +79,7 @@
       <w>reoptimizes</w>
       <w>reoptimizing</w>
       <w>shareds</w>
+      <w>stackp</w>
       <w>stringified</w>
       <w>stringifier</w>
       <w>stringifiers</w>

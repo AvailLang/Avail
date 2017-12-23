@@ -96,10 +96,9 @@ extends Primitive
 		{
 			if (!joinee.executionState().indicatesTermination())
 			{
-				joinee.joiningFibers(joinee.joiningFibers()
-					.setWithElementCanDestroy(
-						current,
-						false));
+				joinee.joiningFibers(
+					joinee.joiningFibers().setWithElementCanDestroy(
+						current, false));
 				shouldPark.value = true;
 			}
 		});
@@ -117,8 +116,7 @@ extends Primitive
 				}
 				else
 				{
-					result.value =
-						interpreter.primitiveSuccess(nil);
+					result.value = interpreter.primitiveSuccess(nil);
 				}
 			});
 		}
@@ -133,13 +131,16 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralFiberType()), TOP.o());
+			functionType(
+				tuple(
+					mostGeneralFiberType()),
+				TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF));
+		return enumerationWith(
+			set(E_FIBER_CANNOT_JOIN_ITSELF));
 	}
 }

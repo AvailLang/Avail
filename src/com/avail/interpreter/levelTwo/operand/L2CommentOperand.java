@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 /**
  * An {@code L2CommentOperand} holds a descriptive string during level two

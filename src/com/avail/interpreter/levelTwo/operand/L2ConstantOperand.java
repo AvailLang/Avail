@@ -36,7 +36,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import static java.lang.String.format;
 

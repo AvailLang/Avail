@@ -191,15 +191,6 @@ public final class L2BasicBlock
 		final L2PcOperand predecessorEdge)
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
-		if (hasStartedCodeGeneration)
-		{
-			assert predecessorEdge.slotRegisters().length == 0;
-			predecessorEdges.forEach(
-				e ->
-				{
-					assert e.slotRegisters().length == 0;
-				});
-		}
 		predecessorEdges.add(predecessorEdge);
 	}
 
@@ -288,37 +279,6 @@ public final class L2BasicBlock
 	 */
 	void startIn (final L1Translator translator)
 	{
-		final int numSlots;
-		if (predecessorEdges.isEmpty())
-		{
-			numSlots = translator.numSlots;
-		}
-		else
-		{
-			numSlots = predecessorEdges.get(0).slotRegisters().length;
-			for (int i = 1; i < predecessorEdges.size(); i++)
-			{
-				assert predecessorEdges.get(i).slotRegisters().length
-					== numSlots;
-			}
-			assert numSlots <= translator.numSlots;
-		}
-		final List<List<L2ReadPointerOperand>> sourcesBySlot =
-			new ArrayList<>();
-		for (int i = numSlots; i > 0; i--)
-		{
-			sourcesBySlot.add(new ArrayList<>());
-		}
-		// Determine the sets of registers feeding each slot index.
-		for (final L2PcOperand edge : predecessorEdges)
-		{
-			final L2ReadPointerOperand[] edgeSlots = edge.slotRegisters();
-			assert edgeSlots.length == numSlots;
-			for (int i = 0; i < numSlots; i++)
-			{
-				sourcesBySlot.get(i).add(edgeSlots[i]);
-			}
-		}
 		if (isIrremovable())
 		{
 			// Irremovable blocks are entry points, and don't require any
@@ -327,61 +287,16 @@ public final class L2BasicBlock
 			translator.currentManifest.clear();
 			return;
 		}
-		// Create phi operations.
-		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
-		{
-			final List<L2ReadPointerOperand> registerReads =
-				sourcesBySlot.get(slotIndex - 1);
-			if (registerReads.contains(null))
-			{
-				// At least one of the inputs has no definition for that slot.
-				// Treat it as inaccessible here as well.
-				translator.forceSlotRegister(slotIndex, null);
-				continue;
-			}
-			@Nullable L2ObjectRegister commonRegister =
-				registerReads.get(0).register();
-			TypeRestriction unionRestriction =
-				registerReads.get(0).restriction();
-			for (int i = 1; i < registerReads.size(); i++)
-			{
-				final L2ReadPointerOperand read = registerReads.get(i);
-				unionRestriction = unionRestriction.union(read.restriction());
-				if (read.register() != commonRegister)
-				{
-					commonRegister = null;
-				}
-			}
-
-			if (commonRegister != null)
-			{
-				// All predecessors set up this register the same way, so
-				// this register doesn't need a phi function.  However, this
-				// might not be the *current* register, due to block
-				// creation order.  Bring the translator into agreement.
-				translator.forceSlotRegister(
-					slotIndex,
-					new L2ReadPointerOperand(commonRegister, unionRestriction));
-				continue;
-			}
-			// Create a phi instruction to merge these sources together
-			// into a new register at that slot index.
-			translator.addInstruction(
-				L2_PHI_PSEUDO_OPERATION.instance,
-				new L2ReadVectorOperand(registerReads),
-				translator.writeSlot(
-					slotIndex,
-					unionRestriction.type,
-					unionRestriction.constantOrNull));
-		}
-		// Keep constants that are common to all incoming paths.  Create phi
-		// functions if the registers disagree.
+		// Keep semantic values that are common to all incoming paths.  Create
+		// phi functions if the registers disagree.
 		translator.currentManifest.clear();
+		final List<L2ValueManifest> manifests = new ArrayList<>();
+		for (final L2PcOperand predecessorEdge : predecessorEdges)
+		{
+			manifests.add(predecessorEdge.manifest());
+		}
 		translator.currentManifest.populateFromIntersection(
-			predecessorEdges.stream()
-				.map(L2PcOperand::manifest)
-				.collect(toList()),
-			translator);
+			manifests, translator);
 	}
 
 	/**

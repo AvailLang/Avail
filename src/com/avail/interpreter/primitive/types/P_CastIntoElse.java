@@ -240,7 +240,6 @@ public final class P_CastIntoElse extends Primitive
 					passedTest ? singletonList(valueReg) : emptyList(),
 					TOP.o(),
 					true,
-					translator.slotRegisters(),
 					passedTest
 						? "no-check cast body"
 						: "no-check cast failure");
@@ -254,12 +253,10 @@ public final class P_CastIntoElse extends Primitive
 				new L2ConstantOperand(typeTest),
 				new L2PcOperand(
 					castBlock,
-					translator.slotRegisters(),
 					translator.currentManifest(),
 					valueReg.restrictedTo(typeTest, null)),
 				new L2PcOperand(
 					elseBlock,
-					translator.slotRegisters(),
 					translator.currentManifest(),
 					valueReg.restrictedWithoutType(typeTest)));
 		}
@@ -295,7 +292,6 @@ public final class P_CastIntoElse extends Primitive
 				singletonList(valueReg),
 				TOP.o(),
 				true,
-				translator.slotRegisters(),
 				"cast body");
 		translator.addInstruction(
 			L2_JUMP.instance,
@@ -310,7 +306,6 @@ public final class P_CastIntoElse extends Primitive
 				emptyList(),
 				TOP.o(),
 				true,
-				translator.slotRegisters(),
 				"cast else");
 		translator.addInstruction(
 			L2_JUMP.instance,

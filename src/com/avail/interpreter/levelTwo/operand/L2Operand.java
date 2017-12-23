@@ -36,9 +36,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.utility.PublicCloneable;
-import com.avail.utility.evaluation.Transformer2;
 
 import java.util.List;
 import java.util.Map;

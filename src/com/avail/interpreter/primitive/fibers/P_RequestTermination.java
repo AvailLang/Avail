@@ -119,16 +119,15 @@ extends Primitive
 					assert !hadPermit :
 						"Should not have been parked with a permit";
 					fiber.executionState(SUSPENDED);
-					final Primitive fiberSuspendingPrimitive =
+					final Primitive suspendingPrimitive =
 						stripNull(
 							fiber.suspendingFunction().code().primitive());
-					assert fiberSuspendingPrimitive
-						== P_ParkCurrentFiber.instance
-						|| fiberSuspendingPrimitive == P_Sleep.instance;
+					assert suspendingPrimitive == P_ParkCurrentFiber.instance
+						|| suspendingPrimitive == P_AttemptJoinFiber.instance;
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
-						fiberSuspendingPrimitive,
+						suspendingPrimitive,
 						nil,
 						true);
 					break;

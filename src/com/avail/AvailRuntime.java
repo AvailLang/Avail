@@ -49,6 +49,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
@@ -2020,9 +2021,9 @@ public final class AvailRuntime
 	 * #levelOneUnsafeTasks -unsafe} queues and counters.
 	 *
 	 * <p>For example, an {@link L2Chunk} may not be {@linkplain
-	 * L2Chunk#invalidate() invalidated} while any {@linkplain FiberDescriptor
-	 * fiber} is {@linkplain ExecutionState#RUNNING running} a Level Two chunk.
-	 * These two activities are mutually exclusive.</p>
+	 * L2Chunk#invalidate(Statistic) invalidated} while any {@linkplain
+	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
+	 * Level Two chunk.  These two activities are mutually exclusive.</p>
 	 */
 	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
@@ -2032,9 +2033,10 @@ public final class AvailRuntime
 	 * #levelOneUnsafeTasks Level One-unsafe tasks} are running.
 	 *
 	 * <p>For example, a {@linkplain L2Chunk Level Two chunk} may not be
-	 * {@linkplain L2Chunk#invalidate() invalidated} while any {@linkplain
-	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
-	 * Level Two chunk. These two activities are mutually exclusive.</p>
+	 * {@linkplain L2Chunk#invalidate(Statistic) invalidated} while any
+	 * {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING
+	 * running} a Level Two chunk. These two activities are mutually exclusive.
+	 * </p>
 	 */
 	@InnerAccess
 	final Queue<AvailTask> levelOneSafeTasks =

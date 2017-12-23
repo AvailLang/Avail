@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import static java.lang.String.format;
 

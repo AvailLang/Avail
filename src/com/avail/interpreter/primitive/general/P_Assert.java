@@ -202,7 +202,6 @@ public final class P_Assert extends Primitive
 				arguments.get(1)),
 			TOP.o(),
 			true,
-			translator.slotRegisters(),
 			"assertion failure");
 		translator.addInstruction(
 			L2_JUMP.instance,

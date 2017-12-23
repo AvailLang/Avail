@@ -1368,30 +1368,6 @@ public final class Interpreter
 		pointers[index] = (AvailObject) anAvailObject;
 	}
 
-	/**
-	 * Write a Java null to an object register. Register zero is reserved for
-	 * read-only use, and always contains the Avail
-	 * {@linkplain NilDescriptor#nil nil}.
-	 *
-	 * @param index
-	 *        The object register index to overwrite.
-	 */
-	public void clearPointerAt (final int index)
-	{
-		// assert index > 0;
-		pointers[index] = null;
-	}
-
-	/**
-	 * Restore the array of pointer registers, discarding the current array.
-	 *
-	 * @param replacementPointers The pointer registers to restore.
-	 */
-	public void restorePointers (final AvailObject[] replacementPointers)
-	{
-		pointers = replacementPointers;
-	}
-
 	/** An empty array used for clearing the integers quickly. */
 	public static final int[] emptyIntArray = new int[0];
 
