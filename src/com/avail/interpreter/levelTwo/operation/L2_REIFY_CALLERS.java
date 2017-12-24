@@ -40,6 +40,8 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.StackReifier;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 
@@ -58,8 +60,8 @@ import static com.avail.utility.Nulls.stripNull;
  * <p>If the top frame is reified this way, {@link L2_GET_CURRENT_CONTINUATION}
  * can be used to create label continuations.</p>
  *
- * <p>The sole operand is a flag that indicates whether to actually capture the
- * frames (1) or just discard them (0).</p>
+ * <p>The "capture frames" operand is a flag that indicates whether to actually
+ * capture the frames (1) or just discard them (0).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -70,7 +72,8 @@ public class L2_REIFY_CALLERS extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_REIFY_CALLERS().init(
-			IMMEDIATE.is("capture frames"));
+			IMMEDIATE.is("capture frames"),
+			IMMEDIATE.is("statistic category"));
 
 	@Override
 	public @Nullable StackReifier step (
@@ -78,6 +81,7 @@ public class L2_REIFY_CALLERS extends L2Operation
 		final Interpreter interpreter)
 	{
 		final boolean actuallyReify = instruction.immediateAt(0) != 0;
+		final int categoryIndex = instruction.immediateAt(1);
 
 		//TODO MvG - Rework for JVM translation...
 		// Capture the interpreter's state, reify the frames, and as an
@@ -98,6 +102,7 @@ public class L2_REIFY_CALLERS extends L2Operation
 		return new StackReifier(
 			actuallyReify,
 			interpreter.unreifiedCallDepth() - 1,
+			StatisticCategory.categories[categoryIndex].statistic,
 			() ->
 			{
 				interpreter.function = savedFunction;
@@ -108,6 +113,22 @@ public class L2_REIFY_CALLERS extends L2Operation
 				// Return into the Interpreter's run loop.
 			});
 	}
+
+	public enum StatisticCategory
+	{
+		INTERRUPT_OFFRAMP_IN_L2,
+		PUSH_LABEL_IN_L2,
+		ABANDON_BEFORE_RESTART_IN_L2;
+
+		/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
+		public final Statistic statistic =
+			new Statistic(
+				"Explicit L2_REIFY_CALLERS for " + name(),
+				StatisticReport.REIFICATIONS);
+
+		public static final StatisticCategory[] categories = values();
+	}
+
 
 	@Override
 	public boolean hasSideEffect ()

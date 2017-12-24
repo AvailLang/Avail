@@ -45,6 +45,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 
@@ -153,16 +155,24 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 				continuation.argOrLocalOrStackAtPut(
 					i, interpreter.pointerAt(i));
 			}
-			return interpreter.reifyThen(() ->
-			{
-				// Push the continuation from above onto the reified stack.
-				interpreter.reifiedContinuation = continuation.replacingCaller(
-					stripNull(interpreter.reifiedContinuation));
-				interpreter.processInterrupt(interpreter.reifiedContinuation);
-			});
+			return interpreter.reifyThen(
+				reificationForInterruptInL1Stat,
+				() ->
+				{
+					// Push the continuation from above onto the reified stack.
+					interpreter.reifiedContinuation = continuation.replacingCaller(
+						stripNull(interpreter.reifiedContinuation));
+					interpreter.processInterrupt(interpreter.reifiedContinuation);
+				});
 		}
 		return null;
 	}
+
+	/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
+	private static final Statistic reificationForInterruptInL1Stat =
+		new Statistic(
+			"Reification for interrupt in L1 preamble",
+			StatisticReport.REIFICATIONS);
 
 	@Override
 	protected void propagateTypes (

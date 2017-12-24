@@ -72,12 +72,9 @@ import static java.util.Arrays.asList;
 
 /**
  * <strong>Primitive:</strong> Assert the specified {@link
- * EnumerationTypeDescriptor#booleanType() predicate} or raise an
- * {@link AvailAssertionFailedException} (in Java) that contains the
- * provided {@linkplain TupleTypeDescriptor#stringType() message}.
- *
- * <p>It's marked with {@link Flag#SwitchesContinuation} to force the stack to
- * be reified, for debugging convenience.</p>
+ * EnumerationTypeDescriptor#booleanType() predicate} or raise an {@link
+ * AvailAssertionFailedException} (in Java) that contains the provided
+ * {@linkplain TupleTypeDescriptor#stringType() message}.
  */
 public final class P_Assert extends Primitive
 {
@@ -86,7 +83,7 @@ public final class P_Assert extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_Assert().init(
-			2, Unknown, CanSuspend, SwitchesContinuation, CannotFail);
+			2, Unknown, CanSuspend, CannotFail);
 
 	@Override
 	public Result attempt (

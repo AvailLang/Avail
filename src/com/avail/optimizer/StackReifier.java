@@ -32,10 +32,12 @@
 
 package com.avail.optimizer;
 
+import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 
 import java.util.ArrayList;
@@ -84,6 +86,12 @@ public final class StackReifier
 	private final List<A_Continuation> continuationsNewestFirst =
 		new ArrayList<>();
 
+	/** The {@link System#nanoTime()} when this stack reifier was created. */
+	public final long startNanos;
+
+	/** The {@link Statistic} under which to record this reification. */
+	public final Statistic reificationStatistic;
+
 	/**
 	 * Construct a new {@code StackReifier}.
 	 *
@@ -93,17 +101,24 @@ public final class StackReifier
 	 *        The number of reified continuations that we expect to collect.
 	 *        This should be zero if actuallyReify is false, otherwise the
 	 *        number of entries we expect in {@link #continuationsNewestFirst}.
+	 * @param reificationStatistic
+	 *        The {@link Statistic} under which to record this reification once
+	 *        it completes.  The timing of this event spans from this creation
+	 *        until just before the {@link #postReificationAction} action runs.
 	 * @param postReificationAction
 	 *        The action to perform after the Java stack has been fully reified.
 	 */
 	public StackReifier (
 		final boolean actuallyReify,
 		final int expectedDepth,
+		final Statistic reificationStatistic,
 		final Continuation0 postReificationAction)
 	{
 		this.actuallyReify = actuallyReify;
 		this.expectedDepth = expectedDepth;
 		this.postReificationAction = postReificationAction;
+		this.startNanos = System.nanoTime();
+		this.reificationStatistic = reificationStatistic;
 	}
 
 	/**
@@ -171,5 +186,19 @@ public final class StackReifier
 	public Continuation0 postReificationAction ()
 	{
 		return postReificationAction;
+	}
+
+	/**
+	 * Record the fact that a reification has completed.  The specific {@link
+	 * Statistic} under which to record it was provided to the constructor.
+	 *
+	 * @param interpreterIndex
+	 *        The current {@link AvailThread}'s {@link Interpreter}'s index,
+	 *        used for contention-free statistics gathering.
+	 */
+	public void recordCompletedReification (final int interpreterIndex)
+	{
+		final long endNanos = System.nanoTime();
+		reificationStatistic.record(endNanos - startNanos, interpreterIndex);
 	}
 }

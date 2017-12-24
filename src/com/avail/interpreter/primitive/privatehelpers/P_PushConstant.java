@@ -55,13 +55,11 @@ import static com.avail.utility.Nulls.stripNull;
  * Extract the first literal from the {@linkplain CompiledCodeDescriptor
  * compiled code} that the interpreter has squirreled away for this purpose.
  *
- * <p>Note that we must not set the CanInline flag, since L2 invocations of L2
- * functions don't go to the effort to set up the {@link Interpreter#function}
- * field.  Instead, we rely on {@link #tryToGenerateSpecialInvocation(
- * L2ReadPointerOperand, List, List, L1Translator)} to generate an {@link
- * L2_MOVE_CONSTANT}.  Note that we also have to suppress CanFold, which doesn't
- * really cost us anything since it'll the tryToGenerate… will do its own
- * folding.</p>
+ * <p>This mechanism relies on {@link #tryToGenerateSpecialInvocation(
+ * L2ReadPointerOperand, List, List, L1Translator)} always producing specialized
+ * L2 code – i.e., a constant move.  Note that {@link Flag#CanInline} normally
+ * skips making the actual called function available, so we must be careful to
+ * expose it for the customized code generator.</p>
  */
 public final class P_PushConstant extends Primitive
 {
@@ -70,7 +68,7 @@ public final class P_PushConstant extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushConstant().init(
-			-1, SpecialForm, Private, CannotFail);
+			-1, SpecialForm, Private, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

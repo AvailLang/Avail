@@ -35,6 +35,7 @@ package com.avail.performance;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.optimizer.StackReifier;
 import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
@@ -81,6 +82,9 @@ public enum StatisticReport
 
 	/** Dimensionless values related to L2Chunk creation. */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
+
+	/** Reifications of the Java stack.  See {@link StackReifier}.  */
+	REIFICATIONS("Java stack reifications", NANOSECONDS),
 
 	/** The Primitives report. */
 	PRIMITIVES("Primitives", NANOSECONDS),

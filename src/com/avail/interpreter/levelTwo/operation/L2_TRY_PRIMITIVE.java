@@ -165,15 +165,17 @@ extends L2Operation
 					final boolean newReturnNow = interpreter.returnNow;
 					final @Nullable AvailObject newReturnValue =
 						newReturnNow ? interpreter.latestResult() : null;
-					return interpreter.abandonStackThen(() ->
-					{
-						interpreter.reifiedContinuation = newContinuation;
-						interpreter.function = newFunction;
-						interpreter.chunk = newChunk;
-						interpreter.offset = newOffset;
-						interpreter.returnNow = newReturnNow;
-						interpreter.latestResult(newReturnValue);
-					});
+					return interpreter.abandonStackThen(
+						primitive.reificationAbandonmentStat(),
+						() ->
+						{
+							interpreter.reifiedContinuation = newContinuation;
+							interpreter.function = newFunction;
+							interpreter.chunk = newChunk;
+							interpreter.offset = newOffset;
+							interpreter.returnNow = newReturnNow;
+							interpreter.latestResult(newReturnValue);
+						});
 				}
 				case FIBER_SUSPENDED:
 				{
@@ -199,68 +201,72 @@ extends L2Operation
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
 
-		return interpreter.reifyThen(() ->
-		{
-			assert interpreter.unreifiedCallDepth() == 0
-				: "Should have reified the stack for Non-inlineable primitive";
-			interpreter.chunk = savedChunk;
-			interpreter.offset = savedOffset;
-			interpreter.pointers = savedPointers;
-			interpreter.integers = savedInts;
-			interpreter.function = function;
-
-			if (Interpreter.debugL2)
+		return interpreter.reifyThen(
+			primitive.reificationForNoninlineStat(),
+			() ->
 			{
-				Interpreter.log(
-					Interpreter.loggerDebugL2,
-					Level.FINER,
-					"{0}          reified, now starting {1}",
-					interpreter.debugModeString,
-					primitive.name());
-			}
-			final Result result = interpreter.attemptPrimitive(
-				primitive, interpreter.skipReturnCheck);
-			switch (result)
-			{
-				case SUCCESS:
-				{
-					interpreter.returnNow = true;
-					interpreter.returningFunction = function;
-					break;
-				}
-				case FAILURE:
-				{
-					// Continue in this frame where it left off, right after
-					// the L2_TRY_PRIMITIVE instruction.
-					assert !interpreter.returnNow;
-					break;
-				}
-				case READY_TO_INVOKE:
-				{
-					assert false : "Invoking primitives should be inlineable";
-					break;
-				}
-				case CONTINUATION_CHANGED:
-				{
-					// Inline and non-inline primitives are each allowed to
-					// change the continuation.  The stack has already been
-					// reified here, so just continue in whatever frame was set
-					// up by the continuation.
-					assert primitive.hasFlag(SwitchesContinuation);
-					break;
-				}
-				case FIBER_SUSPENDED:
-				{
-					// Set the exitNow flag to ensure the interpreter will wind
-					// down correctly.  It should be in a state where all frames
-					// have been reified, so returnNow would be unnecessary.
-					assert interpreter.exitNow;
-					interpreter.returnNow = false;
-					break;
-				}
-			}
+				assert interpreter.unreifiedCallDepth() == 0
+					: "Should have reified stack for non-inlineable primitive";
+				interpreter.chunk = savedChunk;
+				interpreter.offset = savedOffset;
+				interpreter.pointers = savedPointers;
+				interpreter.integers = savedInts;
+				interpreter.function = function;
 
-		});
+				if (Interpreter.debugL2)
+				{
+					Interpreter.log(
+						Interpreter.loggerDebugL2,
+						Level.FINER,
+						"{0}          reified, now starting {1}",
+						interpreter.debugModeString,
+						primitive.name());
+				}
+				final Result result = interpreter.attemptPrimitive(
+					primitive, interpreter.skipReturnCheck);
+				switch (result)
+				{
+					case SUCCESS:
+					{
+						interpreter.returnNow = true;
+						interpreter.returningFunction = function;
+						break;
+					}
+					case FAILURE:
+					{
+						// Continue in this frame where it left off, right after
+						// the L2_TRY_PRIMITIVE instruction.
+						assert !interpreter.returnNow;
+						break;
+					}
+					case READY_TO_INVOKE:
+					{
+						assert false
+							: "Invoking primitives should be inlineable";
+						break;
+					}
+					case CONTINUATION_CHANGED:
+					{
+						// Inline and non-inline primitives are each allowed to
+						// change the continuation.  The stack has already been
+						// reified here, so just continue in whatever frame was
+						// set up by the continuation.
+						assert primitive.hasFlag(SwitchesContinuation);
+						break;
+					}
+					case FIBER_SUSPENDED:
+					{
+						// Set the exitNow flag to ensure the interpreter will
+						// wind down correctly.  It should be in a state where
+						// all frames have been reified, so returnNow would be
+						// unnecessary.
+						assert interpreter.exitNow;
+						interpreter.returnNow = false;
+						break;
+					}
+				}
+
+			});
 	}
 
 	@Override

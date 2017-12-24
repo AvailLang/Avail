@@ -41,6 +41,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS
+	.StatisticCategory;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.optimizer.L1Translator;
 
@@ -130,7 +132,9 @@ public final class P_RestartContinuation extends Primitive
 		// frame information on the way out, rather than capturing it.
 		translator.addInstruction(
 			L2_REIFY_CALLERS.instance,
-			new L2ImmediateOperand(0));
+			new L2ImmediateOperand(0),
+			new L2ImmediateOperand(
+				StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.ordinal()));
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION.instance,
 			arguments.get(0));

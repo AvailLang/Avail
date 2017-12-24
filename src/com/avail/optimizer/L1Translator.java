@@ -48,6 +48,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS
+	.StatisticCategory;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -2128,7 +2130,9 @@ public final class L1Translator
 		// Reify everybody else, starting at the caller.
 		addInstruction(
 			L2_REIFY_CALLERS.instance,
-			new L2ImmediateOperand(1));
+			new L2ImmediateOperand(1),
+			new L2ImmediateOperand(
+				StatisticCategory.INTERRUPT_OFFRAMP_IN_L2.ordinal()));
 		// Extract that caller.
 		final L2ReadPointerOperand callerReg = getCurrentContinuation();
 
@@ -2765,7 +2769,9 @@ public final class L1Translator
 		final L2ReadIntOperand skipReturnCheckRead = getSkipReturnCheck();
 		addInstruction(
 			L2_REIFY_CALLERS.instance,
-			new L2ImmediateOperand(1));
+			new L2ImmediateOperand(1),
+			new L2ImmediateOperand(
+				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()));
 		final L2ReadPointerOperand continuationRead = getCurrentContinuation();
 		final L2BasicBlock afterCreation =
 			createBasicBlock("after push label");

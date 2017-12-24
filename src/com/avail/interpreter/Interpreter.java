@@ -1781,6 +1781,7 @@ public final class Interpreter
 						? reifier.assembleContinuation(
 							stripNull(reifiedContinuation))
 						: nil;
+				reifier.recordCompletedReification(interpreterIndex);
 				chunk = null; // The postReificationAction should set this up.
 				reifier.postReificationAction().value();
 				if (exitNow)
@@ -1917,21 +1918,26 @@ public final class Interpreter
 	 * @param skipReturnCheckFlag
 	 *        Whether when the function completes it can skip checking the
 	 *        result's type.
+	 * @param reificationStatistic
+	 *        The {@link Statistic} under which to record this reification.
 	 * @return The {@link StackReifier} that collects reified continuations on
 	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
-		final boolean skipReturnCheckFlag)
+		final boolean skipReturnCheckFlag,
+		final Statistic reificationStatistic)
 	{
-		return reifyThen(() ->
-		{
-			argsBuffer.clear();
-			skipReturnCheck = skipReturnCheckFlag;
-			function = functionToCall;
-			chunk = functionToCall.code().startingChunk();
-			offset = 0;
-		});
+		return reifyThen(
+			reificationStatistic,
+			() ->
+			{
+				argsBuffer.clear();
+				skipReturnCheck = skipReturnCheckFlag;
+				function = functionToCall;
+				chunk = functionToCall.code().startingChunk();
+				offset = 0;
+			});
 	}
 
 	/**
@@ -1944,6 +1950,8 @@ public final class Interpreter
 	 * @param skipReturnCheckFlag
 	 *        Whether when the function completes it can skip checking the
 	 *        result's type.
+	 * @param reificationStatistic
+	 *        The {@link Statistic} under which to record this reification.
 	 * @param arg1
 	 *        The first argument of the function.
 	 * @param arg2
@@ -1956,21 +1964,24 @@ public final class Interpreter
 	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
 		final boolean skipReturnCheckFlag,
+		final Statistic reificationStatistic,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2,
 		final A_BasicObject arg3)
 	{
-		return reifyThen(() ->
-		{
-			argsBuffer.clear();
-			argsBuffer.add((AvailObject) arg1);
-			argsBuffer.add((AvailObject) arg2);
-			argsBuffer.add((AvailObject) arg3);
-			skipReturnCheck = skipReturnCheckFlag;
-			function = functionToCall;
-			chunk = functionToCall.code().startingChunk();
-			offset = 0;
-		});
+		return reifyThen(
+			reificationStatistic,
+			() ->
+			{
+				argsBuffer.clear();
+				argsBuffer.add((AvailObject) arg1);
+				argsBuffer.add((AvailObject) arg2);
+				argsBuffer.add((AvailObject) arg3);
+				skipReturnCheck = skipReturnCheckFlag;
+				function = functionToCall;
+				chunk = functionToCall.code().startingChunk();
+				offset = 0;
+			});
 	}
 
 	/**
@@ -1979,6 +1990,8 @@ public final class Interpreter
 	 * A_Continuation}s along the way.  The outer interpreter loop should catch
 	 * this, then run the provided {@link Continuation0}.
 	 *
+	 * @param reificationStatistic
+	 *        The {@link Statistic} under which to record this reification.
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
@@ -1986,11 +1999,15 @@ public final class Interpreter
 	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThen (
+		final Statistic reificationStatistic,
 		final Continuation0 postReificationAction)
 	{
 		// Note that the *current* frame isn't reified, so subtract one.
 		return new StackReifier(
-			true, unreifiedCallDepth() - 1, postReificationAction);
+			true,
+			unreifiedCallDepth() - 1,
+			reificationStatistic,
+			postReificationAction);
 	}
 
 	/**
@@ -2000,6 +2017,9 @@ public final class Interpreter
 	 * postReificationAction, which should set up the interpreter to continue
 	 * running.
 	 *
+	 * @param reificationStatistic
+	 *        The {@link Statistic} under which to record this stack
+	 *        abandonment.
 	 * @param postReificationAction
 	 *        The action to perform (in the outer interpreter loop) after the
 	 *        entire stack is reified.
@@ -2008,9 +2028,11 @@ public final class Interpreter
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
 	public StackReifier abandonStackThen (
+		final Statistic reificationStatistic,
 		final Continuation0 postReificationAction)
 	{
-		return new StackReifier(false, 0, postReificationAction);
+		return new StackReifier(
+			false, 0, reificationStatistic, postReificationAction);
 	}
 
 	/**

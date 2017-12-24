@@ -43,6 +43,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.StackReifier;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.IndexedGenerator;
 
 import javax.annotation.Nullable;
@@ -96,6 +98,24 @@ public final class L1InstructionStepper
 
 	/** The current stack position as would be seen in a continuation. */
 	public int stackp;
+
+	/** The {@link Statistic} for reifications prior to label creation in L1. */
+	private static final Statistic reificationBeforeLabelCreationStat =
+		new Statistic(
+			"Reification before label creation in L1",
+			StatisticReport.REIFICATIONS);
+
+	/** The {@link Statistic} for reifications prior to label creation in L1. */
+	private static final Statistic reificationForFailedVariableGetStat =
+		new Statistic(
+			"Reification for failed variable-get in L1",
+			StatisticReport.REIFICATIONS);
+
+	/** The {@link Statistic} for reifications prior to label creation in L1. */
+	private static final Statistic reificationForFailedLookupStat =
+		new Statistic(
+			"Reification before failed lookup in L1",
+			StatisticReport.REIFICATIONS);
 
 	/**
 	 * Construct a new {@code L1InstructionStepper}.
@@ -510,6 +530,7 @@ public final class L1InstructionStepper
 					final int savedStackp = stackp;
 
 					return interpreter.reifyThen(
+						reificationBeforeLabelCreationStat,
 						() ->
 						{
 							// The Java stack has been reified into Avail
@@ -738,7 +759,8 @@ public final class L1InstructionStepper
 			// handler.  We can probably avoid or postpone reification as well.
 			return interpreter.reifyThenCall0(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				true);
+				true,
+				reificationForFailedVariableGetStat);
 		}
 	}
 
@@ -971,6 +993,7 @@ public final class L1InstructionStepper
 		return interpreter.reifyThenCall3(
 			interpreter.runtime().invalidMessageSendFunction(),
 			true,
+			reificationForFailedLookupStat,
 			errorCode.numericCode(),
 			method,
 			tupleFromList(interpreter.argsBuffer));

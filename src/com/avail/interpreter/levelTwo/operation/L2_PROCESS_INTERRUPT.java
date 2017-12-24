@@ -39,6 +39,8 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -62,6 +64,15 @@ extends L2Operation
 		new L2_PROCESS_INTERRUPT().init(
 			READ_POINTER.is("continuation"));
 
+	/**
+	 * {@link Statistic} for recording the stack abandonment that this operation
+	 * causes, always popping a single frame from the stack.
+	 */
+	private static Statistic abandonmentStat =
+		new Statistic(
+			"(abandon one layer for L2_PROCESS_INTERRUPT)",
+			StatisticReport.REIFICATIONS);
+
 	@Override
 	public @Nullable StackReifier step (
 		final L2Instruction instruction,
@@ -74,6 +85,7 @@ extends L2Operation
 		interpreter.reifiedContinuation = continuation;
 		assert interpreter.unreifiedCallDepth() == 1;
 		return interpreter.abandonStackThen(
+			abandonmentStat,
 			() -> interpreter.processInterrupt(continuation));
 	}
 
