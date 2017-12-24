@@ -50,6 +50,14 @@ public final class Frame
 	public final @Nullable Frame outerFrame;
 
 	/**
+	 * Private constructor for creating the top frame.
+	 */
+	private Frame ()
+	{
+		this.outerFrame = null;
+	}
+
+	/**
 	 * Construct a new {@code Frame} representing a call within the given
 	 * frame.
 	 *
@@ -57,7 +65,7 @@ public final class Frame
 	 *        The frame that was active at the point where an invocation of
 	 *        this frame occurred.
 	 */
-	public Frame (final @Nullable Frame outerFrame)
+	public Frame (final Frame outerFrame)
 	{
 		this.outerFrame = outerFrame;
 	}
@@ -131,4 +139,10 @@ public final class Frame
 	{
 		return new L2SemanticSlot(this, slotIndex);
 	}
+
+	/**
+	 * The top semantic frame.  This is the frame for which L1 → L2 translation
+	 * takes place, other than inlining.
+	 */
+	public static final Frame topFrame = new Frame();
 }

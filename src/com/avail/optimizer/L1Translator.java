@@ -56,7 +56,6 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
-import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
@@ -101,6 +100,7 @@ import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
 import static com.avail.optimizer.L2Translator.*;
+import static com.avail.optimizer.values.Frame.topFrame;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -138,6 +138,13 @@ public final class L1Translator
 	 * and the stack slots.
 	 */
 	final int numSlots;
+
+	/**
+	 * The {@link L2SemanticValue}s corresponding with to slots of the virtual
+	 * continuation.  These indices are zero-based, but the slot numbering is
+	 * one-based.
+	 */
+	private final L2SemanticValue[] semanticSlots;
 
 	/**
 	 * The current level one nybblecode program counter during naive translation
@@ -185,6 +192,18 @@ public final class L1Translator
 	private @Nullable L2BasicBlock unreachableBlock = null;
 
 	/**
+	 * Answer the {@link L2SemanticValue} representing the virtual continuation
+	 * slot having the given one-based index.
+	 *
+	 * @param index The one-based slot number.
+	 * @return The {@link L2SemanticValue} for that slot.
+	 */
+	private L2SemanticValue semanticSlot (final int index)
+	{
+		return semanticSlots[index - 1];
+	}
+
+	/**
 	 * Answer the current {@link A_RawFunction}, which must not be null here.
 	 */
 	private A_RawFunction code ()
@@ -220,13 +239,6 @@ public final class L1Translator
 	L2ValueManifest currentManifest = new L2ValueManifest();
 
 	/**
-	 * A {@link Frame} that represents the invocation of the raw function that
-	 * we're translating.  Inlined functions will have a different Frame created
-	 * for them at their call site.
-	 */
-	private final Frame topFrame = new Frame(null);
-
-	/**
 	 * Answer the current {@link L2ValueManifest}, which tracks which {@link
 	 * L2Register} holds which {@link L2SemanticValue} at the current code
 	 * generation point.
@@ -255,6 +267,11 @@ public final class L1Translator
 			this.pc = 1;
 			this.stackp = numSlots + 1;
 			this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
+			this.semanticSlots = new L2SemanticValue[numSlots];
+			for (int i = 1; i <= numSlots; i++)
+			{
+				semanticSlots[i - 1] = topFrame.slot(i);
+			}
 		}
 		else
 		{
@@ -264,6 +281,7 @@ public final class L1Translator
 			this.pc = -1;
 			this.stackp = -1;
 			this.exactFunctionOrNull = null;
+			this.semanticSlots = new L2SemanticValue[0];
 		}
 	}
 
@@ -365,7 +383,7 @@ public final class L1Translator
 	private L2ReadPointerOperand readSlot (final int slotIndex)
 	{
 		return stripNull(
-			currentManifest.semanticValueToRegister(topFrame.slot(slotIndex)));
+			currentManifest.semanticValueToRegister(semanticSlot(slotIndex)));
 	}
 
 	/**
@@ -383,7 +401,7 @@ public final class L1Translator
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		final L2SemanticValue semanticValue = topFrame.slot(slotNumber);
+		final L2SemanticValue semanticValue = semanticSlot(slotNumber);
 		currentManifest.removeBinding(semanticValue);
 		final L2WritePointerOperand writer =
 			newObjectRegisterWriter(type, constantOrNull);
@@ -407,7 +425,7 @@ public final class L1Translator
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
-		final L2SemanticValue semanticValue = topFrame.slot(slotIndex);
+		final L2SemanticValue semanticValue = semanticSlot(slotIndex);
 		currentManifest.removeBinding(semanticValue);
 		currentManifest.addBinding(semanticValue, register);
 	}
@@ -823,7 +841,7 @@ public final class L1Translator
 			new ArrayList<>(numSlots);
 		for (int i = 1; i <= numSlots; i++)
 		{
-			final L2SemanticValue semanticValue = topFrame.slot(i);
+			final L2SemanticValue semanticValue = semanticSlot(i);
 			final L2ReadPointerOperand read = stripNull(
 				currentManifest.semanticValueToRegister(semanticValue));
 			readSlotsBefore.add(read);
@@ -865,7 +883,7 @@ public final class L1Translator
 		for (int i = 1; i <= numSlots; i++)
 		{
 			currentManifest.addBinding(
-				topFrame.slot(i),
+				semanticSlot(i),
 				writeSlotsAfter.get(i - 1).read());
 		}
 		addInstruction(

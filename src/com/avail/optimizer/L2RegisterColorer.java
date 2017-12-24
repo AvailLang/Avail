@@ -388,7 +388,7 @@ public final class L2RegisterColorer
 			// removing them from the graphCopy, along with their connected
 			// edges.  This reduces the cardinality of connected nodes.
 			stack.addAll(withFewest);
-			for (RegisterGroup registerGroup : withFewest)
+			for (final RegisterGroup registerGroup : withFewest)
 			{
 				graphCopy.exciseVertex(registerGroup);
 			}
@@ -408,7 +408,7 @@ public final class L2RegisterColorer
 			for (final RegisterGroup registerGroup
 				: interferences.successorsOf(group))
 			{
-				int index = registerGroup.finalIndex();
+				final int index = registerGroup.finalIndex();
 				if (index != -1)
 				{
 					neighbors.set(index);
@@ -417,12 +417,9 @@ public final class L2RegisterColorer
 			final int color = neighbors.nextClearBit(0);
 			group.setFinalIndex(color);
 		}
-		for (L2Register r : registerGroups.keySet())
+		for (final L2Register register : registerGroups.keySet())
 		{
-			if (r.finalIndex() == -1)
-			{
-				throw new AssertionError();
-			}
+			assert register.finalIndex() != -1;
 		}
 	}
 
