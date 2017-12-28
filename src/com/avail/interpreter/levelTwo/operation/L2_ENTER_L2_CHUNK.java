@@ -77,7 +77,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		{
 			// Jump to the corresponding entry point of the default chunk
 			// instead.
-			interpreter.chunk = L2Chunk.unoptimizedChunk();
+			interpreter.chunk = L2Chunk.unoptimizedChunk;
 			interpreter.offset = instruction.immediateAt(0);
 			// Safety.
 			interpreter.pointers = Interpreter.emptyPointersArray;

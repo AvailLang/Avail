@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -88,9 +87,11 @@ public class L2_INVOKE extends L2Operation
 		final int onReification = instruction.pcOffsetAt(4);
 
 		// Pre-decode the argument registers as much as possible.
-		final int[] argumentRegNumbers = argumentRegs.stream()
-			.mapToInt(L2ReadPointerOperand::finalIndex)
-			.toArray();
+		final int[] argumentRegNumbers = new int[argumentRegs.size()];
+		for (int i = argumentRegs.size() - 1; i >= 0; i--)
+		{
+			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
+		}
 
 		return interpreter ->
 		{
@@ -145,25 +146,27 @@ public class L2_INVOKE extends L2Operation
 						{
 							interpreter.debugModeString += "REIFY L2 ";
 						}
+						interpreter.activeReifier = reifier;
+						interpreter.latestResult(null);
 						final @Nullable StackReifier reifier2 =
 							interpreter.runChunk();
 						assert reifier2 == null
 							: "Off-ramp must not cause reification!";
-						// The off-ramp "returned" the callerless continuation
-						// that captures this frame.
-						final A_Continuation continuation =
-							interpreter.latestResult();
+						// The off-ramp had the responsibility to get the
+						// activeReifier from the interpreter and call
+						// pushContinuation() for each frame that it represented
+						// (may be >1 due to inlining).
+						assert interpreter.latestResultOrNull() == null;
 						if (Interpreter.debugL2)
 						{
 							Interpreter.log(
 								Interpreter.loggerDebugL2,
 								Level.FINER,
-								"{0}Push reified continuation "
+								"{0}Pushed reified continuation(s) "
 									+ "for L2_INVOKE: {1}",
 								interpreter.debugModeString,
-								continuation.function().code().methodName());
+								savedFunction.code().methodName());
 						}
-						reifier.pushContinuation(continuation);
 						interpreter.debugModeString = oldModeString;
 					}
 					return reifier;

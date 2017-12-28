@@ -37,6 +37,9 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import javax.annotation.Nullable;
 
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
+
 /**
  * This mechanism allows type information for an {@link L2ObjectRegister} to
  * be restricted along a branch.  A good example is a type-testing
@@ -51,12 +54,12 @@ public final class PhiRestriction
 	 * The {@link L2ObjectRegister} which is to be restricted along this
 	 * control flow branch.
 	 */
-	final L2ObjectRegister register;
+	public final L2ObjectRegister register;
 
 	/**
 	 * The {@link TypeRestriction} being placed on the register.
 	 */
-	final TypeRestriction typeRestriction;
+	public final TypeRestriction typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
@@ -76,6 +79,6 @@ public final class PhiRestriction
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		this.register = register;
-		this.typeRestriction = new TypeRestriction(type, constantOrNull);
+		this.typeRestriction = restriction(type, constantOrNull);
 	}
 }

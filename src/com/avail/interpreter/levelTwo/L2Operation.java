@@ -46,6 +46,7 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -350,6 +351,30 @@ public abstract class L2Operation
 	public boolean isPhi ()
 	{
 		return false;
+	}
+
+	/**
+	 * Write the given instruction's equivalent effect through the given {@link
+	 * L2Inliner}.  The given {@link L2Instruction}'s {@linkplain
+	 * L2Instruction#operation operation} must be the current receiver.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} for which to write an equivalent effect
+	 *        to the inliner.
+	 * @param transformedOperands
+	 *        The operands of the instruction, already transformed for the
+	 *        inliner.
+	 * @param inliner
+	 *        The {@link L2Inliner} through which to write the instruction's
+	 *        equivalent effect.
+	 */
+	public void emitTransformedInstruction (
+		final L2Instruction instruction,
+		final L2Operand[] transformedOperands,
+		final L2Inliner inliner)
+	{
+		assert instruction.operation == this;
+		inliner.emitInstruction(this, transformedOperands);
 	}
 
 	/**

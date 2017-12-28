@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.optimizer.L2Inliner;
+
 /**
  * {@code L2IntegerRegister} models the conceptual usage of a register that can
  * store a machine integer.
@@ -63,6 +65,13 @@ extends L2Register
 		final L2IntegerRegister result = new L2IntegerRegister(finalIndex());
 		result.setFinalIndex(finalIndex());
 		return result;
+	}
+
+	@Override
+	public L2IntegerRegister copyForInliner (
+		final L2Inliner inliner)
+	{
+		return inliner.targetTranslator.newIntegerRegister();
 	}
 
 	@Override

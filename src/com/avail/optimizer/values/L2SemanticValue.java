@@ -32,6 +32,7 @@
 package com.avail.optimizer.values;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
  * An {@code L2SemanticValue} represents a value stably computed from constants,
@@ -64,4 +65,21 @@ public abstract class L2SemanticValue
 	{
 		return new L2SemanticConstant(value);
 	}
+
+	/**
+	 * Transform the receiver.  If it's composed of parts, transform them with
+	 * the supplied {@link Transformer1NotNull}s.
+	 *
+	 * @param semanticValueTransformer
+	 *        How to transform {@code L2SemanticValue} parts of the receiver,
+	 *        (not the receiver itself).
+	 * @param frameTransformer
+	 *        How to transform {@link Frame} parts of the receiver.
+	 * @return The transformed {@code L2SemanticValue}, possibly the receiver if
+	 *         the result of the transformation would have been an equal value.
+	 */
+	public abstract L2SemanticValue transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer);
 }

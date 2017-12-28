@@ -13,6 +13,7 @@
       <w>codepoints</w>
       <w>colorer</w>
       <w>contravariance</w>
+      <w>covariantly</w>
       <w>cyclicity</w>
       <w>deconstructor</w>
       <w>deduplication</w>
@@ -32,8 +33,10 @@
       <w>indexable</w>
       <w>inlineable</w>
       <w>inlined</w>
+      <w>inliner</w>
       <w>inlines</w>
       <w>inlining</w>
+      <w>intra</w>
       <w>ints</w>
       <w>invalidations</w>
       <w>iterable</w>

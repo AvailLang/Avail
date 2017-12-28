@@ -1,5 +1,5 @@
 /**
- * L2SemanticFunction.java
+ * L2SemanticSlot.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.descriptor.A_Continuation;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
+import static com.avail.descriptor.AvailObject.multiplier;
+
 /**
- * A semantic value which represents the current function while running code for
- * a particular {@link Frame}.
+ * A semantic value which represents a slot of some {@link Frame}'s effective
+ * {@link A_Continuation}.
  */
-final class L2SemanticFunction extends L2SemanticValue
+final class L2SemanticSlot extends L2SemanticValue
 {
-	/** The frame for which this represents the current function. */
+	/** The {@link Frame} for which this is a virtualized slot. */
 	public final Frame frame;
 
+	/** The one-based index of the slot in its {@link Frame}. */
+	public final int slotIndex;
+
 	/**
-	 * Create a new {@code L2SemanticFunction} semantic value.
+	 * Create a new {@code L2SemanticSlot} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents the invoked function.
+	 *        The frame for which this represents a slot of a virtualized
+	 *        continuation.
+	 * @param slotIndex
+	 *        The one-based index of the slot in that frame.
 	 */
-	L2SemanticFunction (final Frame frame)
+	L2SemanticSlot (final Frame frame, final int slotIndex)
 	{
 		this.frame = frame;
+		this.slotIndex = slotIndex;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		return obj instanceof L2SemanticFunction
-			&& frame.equals(((L2SemanticFunction) obj).frame);
+		if (!(obj instanceof L2SemanticSlot))
+		{
+			return false;
+		}
+		final L2SemanticSlot slot = (L2SemanticSlot) obj;
+		return frame.equals(slot.frame)
+			&& slotIndex == slot.slotIndex;
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame.hashCode() + 0xF1AE6003;
+		return (frame.hashCode() ^ slotIndex) * multiplier;
 	}
 
 	@Override
-	public L2SemanticFunction transform (
+	public L2SemanticSlot transform (
 		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
 		final Transformer1NotNull<Frame, Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.value(frame);
-		return newFrame.equals(frame) ? this : new L2SemanticFunction(newFrame);
+		return newFrame.equals(frame)
+			? this
+			: new L2SemanticSlot(newFrame, slotIndex);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "Function of " + frame;
+		return "Slot #" + slotIndex + " of " + frame;
 	}
 }

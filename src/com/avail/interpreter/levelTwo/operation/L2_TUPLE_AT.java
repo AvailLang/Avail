@@ -1,5 +1,5 @@
 /**
- * L2_ADD_INT_TO_INT_MOD_32_BITS.java
+ * L2_TUPLE_AT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,50 +29,77 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.utility.evaluation.Transformer1NotNullArg;
 
-import javax.annotation.Nullable;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
- * Add the value in one int register to another int register, truncating the
- * result to fit in the second register.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * Extract an element at a known index from a {@link TupleDescriptor tuple}
+ * into an {@link L2ObjectRegister}.  The index is known to be within range.
  */
-public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
+public class L2_TUPLE_AT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
-			READ_INT.is("addend"),
-			READ_INT.is("augend"),
-			WRITE_INT.is("sum"));
+		new L2_TUPLE_AT().init(
+			READ_POINTER.is("tuple"),
+			IMMEDIATE.is("subscript"),
+			WRITE_POINTER.is("extracted element"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ReadIntOperand addendReg = instruction.readIntRegisterAt(0);
-		final L2ReadIntOperand augendReg = instruction.readIntRegisterAt(1);
-		final L2WriteIntOperand sumReg = instruction.writeIntRegisterAt(2);
+		final int tupleRegIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int tupleIndex = instruction.immediateAt(1);
+		final int elementRegIndex =
+			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		final int addend = addendReg.in(interpreter);
-		final int augend = augendReg.in(interpreter);
-		sumReg.set(augend + addend, interpreter);
-		return null;
+		return interpreter ->
+		{
+			interpreter.pointerAtPut(
+				elementRegIndex,
+				interpreter.pointerAt(tupleRegIndex)
+					.tupleAt(tupleIndex)
+					.makeImmutable());
+			return null;
+		};
+	}
+
+	@Override
+	protected void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
+		final L2Translator translator)
+	{
+		final L2ReadPointerOperand tupleReg =
+			instruction.readObjectRegisterAt(0);
+		final int tupleIndex = instruction.immediateAt(1);
+		final L2WritePointerOperand elementReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final A_Type tupleType = tupleReg.type();
+		// Make all the contained types immutable.
+		tupleType.makeImmutable();
+		registerSet.typeAtPut(
+			elementReg.register(),
+			tupleType.typeAtIndex(tupleIndex),
+			instruction);
 	}
 }

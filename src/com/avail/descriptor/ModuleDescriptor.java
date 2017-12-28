@@ -58,7 +58,6 @@ import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
@@ -465,7 +464,8 @@ extends Descriptor
 		{
 			final A_String string = trueName.atomName();
 			A_Map names = object.slot(IMPORTED_NAMES);
-			A_Set set = names.hasKey(string) ? names.mapAt(string) : emptySet();
+			final A_Set set =
+				names.hasKey(string) ? names.mapAt(string) : emptySet();
 			names = names.mapAtPuttingCanDestroy(
 				string, set.setWithElementCanDestroy(trueName, false), true);
 			object.setSlot(IMPORTED_NAMES, names.makeShared());
@@ -961,17 +961,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new empty anonymous {@code module}.  Pre-add the module
-	 * itself to its {@linkplain SetDescriptor set} of ancestor modules.
-	 *
-	 * @return The new module.
-	 */
-	public static A_Module anonymousModule ()
-	{
-		return newModule(stringFrom("/«fake-root»/«anonymous»"));
-	}
-
-	/**
 	 * Construct a new empty {@code module}.  Pre-add the module itself to its
 	 * {@linkplain SetDescriptor set} of ancestor modules.
 	 *
@@ -1009,7 +998,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ModuleDescriptor}.
+	 * Construct a new {@code ModuleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

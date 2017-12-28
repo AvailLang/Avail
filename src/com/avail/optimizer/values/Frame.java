@@ -30,7 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
 
@@ -44,18 +47,23 @@ import javax.annotation.Nullable;
 public final class Frame
 {
 	/**
-	 * The frame that was active at the site of the invocation that this
-	 * frame represents.
+	 * The frame that was active at the site of the invocation that this frame
+	 * represents.
 	 */
 	public final @Nullable Frame outerFrame;
 
 	/**
-	 * Private constructor for creating the top frame.
+	 * The actual {@link CompiledCodeDescriptor raw function} that's associated
+	 * with semantic values tied to this frame.
 	 */
-	private Frame ()
-	{
-		this.outerFrame = null;
-	}
+	public final A_RawFunction code;
+
+	/**
+	 * The symbolic name to use to describe this frame.  Note that it does not
+	 * affect the identity of the frame, which is what's used for comparing and
+	 * hashing.
+	 */
+	public final String debugName;
 
 	/**
 	 * Construct a new {@code Frame} representing a call within the given
@@ -63,18 +71,29 @@ public final class Frame
 	 *
 	 * @param outerFrame
 	 *        The frame that was active at the point where an invocation of
-	 *        this frame occurred.
+	 *        this frame occurred, or {@code null} if this is the outermost
+	 *        frame.
+	 * @param code
+	 *        The actual {@link A_RawFunction} that has the L1 code for this
+	 *        frame.
+	 * @param debugName
+	 *        What to name this frame.
 	 */
-	public Frame (final Frame outerFrame)
+	public Frame (
+		final @Nullable Frame outerFrame,
+		final A_RawFunction code,
+		final String debugName)
 	{
 		this.outerFrame = outerFrame;
+		this.code = code;
+		this.debugName = debugName;
 	}
 
 	/**
 	 * Answer the depth of this frame, which is how many invocations deep it
 	 * is relative to the outermost frame represented by an {@link L2Chunk}.
-	 * Note that frames compare by identity, so two frames with the same
-	 * depth are not necessarily equal.
+	 * Note that frames compare by identity, so two frames with the same depth
+	 * are not necessarily equal.
 	 *
 	 * @return The depth of the frame, where {@code 1} is the outermost
 	 *         frame of a chunk.
@@ -94,12 +113,7 @@ public final class Frame
 	@Override
 	public String toString ()
 	{
-		final int depth = depth();
-		if (depth == 1)
-		{
-			return "top frame";
-		}
-		return "frame at depth " + depth;
+		return debugName;
 	}
 
 	/**
@@ -141,8 +155,40 @@ public final class Frame
 	}
 
 	/**
-	 * The top semantic frame.  This is the frame for which L1 → L2 translation
-	 * takes place, other than inlining.
+	 * Answer the {@link L2SemanticValue} representing the return result from
+	 * this frame.
+	 *
+	 * @return The {@link L2SemanticValue} representing the return result.
 	 */
-	public static final Frame topFrame = new Frame();
+	public L2SemanticValue result ()
+	{
+		return new L2SemanticResult(this);
+	}
+
+	/**
+	 * Transform the receiver via the given {@link Transformer1NotNull}.
+	 *
+	 * @param topFrameReplacement
+	 *        The {@code Frame} to substituted for the top frame of the code
+	 *        being inlined.
+	 * @param frameTransformer
+	 *        How to transform {@code Frame} parts of the receiver.
+	 * @return The transformed {@code Frame}, possibly the receiver if the
+	 *         result of the transformation would have been an equal value.
+	 */
+	public Frame transform (
+		final Frame topFrameReplacement,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		if (outerFrame == null)
+		{
+			return topFrameReplacement;
+		}
+		final Frame newOuterFrame = frameTransformer.value(outerFrame);
+		if (newOuterFrame.equals(outerFrame))
+		{
+			return this;
+		}
+		return new Frame(newOuterFrame, code, debugName + " (inlined)");
+	}
 }

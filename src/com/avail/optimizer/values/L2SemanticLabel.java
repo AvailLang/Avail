@@ -32,6 +32,7 @@
 package com.avail.optimizer.values;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
  * A semantic value which represents a label continuation created for the
@@ -72,6 +73,16 @@ final class L2SemanticLabel extends L2SemanticValue
 	public int hashCode ()
 	{
 		return frame.hashCode() ^ 0x3D9D8132;
+	}
+
+	@Override
+	public L2SemanticLabel transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		final Frame newFrame = frameTransformer.value(frame);
+		return newFrame.equals(frame) ? this : new L2SemanticLabel(newFrame);
 	}
 
 	@Override

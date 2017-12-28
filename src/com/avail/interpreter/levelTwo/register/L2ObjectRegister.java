@@ -36,6 +36,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.L2Inliner;
 
 import javax.annotation.Nullable;
 
@@ -80,7 +81,7 @@ extends L2Register
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		super(debugValue);
-		this.restriction = new TypeRestriction(type, constantOrNull);
+		this.restriction = TypeRestriction.restriction(type, constantOrNull);
 	}
 
 	/**
@@ -100,6 +101,16 @@ extends L2Register
 			finalIndex(), TOP.o(), null);
 		result.setFinalIndex(finalIndex());
 		return result;
+	}
+
+	@Override
+	public L2ObjectRegister copyForInliner (
+		final L2Inliner inliner)
+	{
+		return new L2ObjectRegister(
+			inliner.targetTranslator.nextUnique(),
+			restriction.type,
+			restriction.constantOrNull);
 	}
 
 	@Override

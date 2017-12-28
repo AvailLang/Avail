@@ -41,7 +41,6 @@ import java.util.List;
 
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.TupleDescriptor.tuple;

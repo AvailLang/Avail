@@ -35,6 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
 
 import javax.annotation.Nullable;
 
@@ -43,6 +44,7 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -80,7 +82,49 @@ public final class TypeRestriction
 	 *        Either {@code null} or the exact value that some value somewhere
 	 *        must equal.
 	 */
-	public TypeRestriction (
+	private TypeRestriction (
+		final A_Type type,
+		final @Nullable A_BasicObject constantOrNull)
+	{
+		// Make the Avail objects immutable.  They'll be made Shared if they
+		// survive the L2 translation and end up in an L2Chunk.
+		this.type = type.makeImmutable();
+		this.constantOrNull = constantOrNull == null
+			? null
+			: constantOrNull.makeImmutable();
+	}
+
+	/**
+	 * The {@link TypeRestriction} for a register that holds {@link
+	 * NilDescriptor#nil}.
+	 */
+	private static final TypeRestriction nilRestriction =
+		new TypeRestriction(TOP.o(), nil);
+
+	/**
+	 * The {@link TypeRestriction} for a register that any value whatsoever,
+	 * including {@link NilDescriptor#nil}.
+	 */
+	private static final TypeRestriction topRestriction =
+		new TypeRestriction(TOP.o(), null);
+
+	/**
+	 * The {@link TypeRestriction} for a register that cannot hold any value.
+	 * This can be useful for cleanly dealing with unreachable code.
+	 */
+	private static final TypeRestriction bottomRestriction =
+		new TypeRestriction(bottom(), null);
+
+	/**
+	 * Create or reuse an immutable {@code TypeRestriction}.
+	 *
+	 * @param type
+	 *        The Avail type that constrains some value somewhere.
+	 * @param constantOrNull
+	 *        Either {@code null} or the exact value that some value somewhere
+	 *        must equal.
+	 */
+	public static TypeRestriction restriction (
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
@@ -88,39 +132,25 @@ public final class TypeRestriction
 		{
 			if (constantOrNull.equalsNil())
 			{
-				this.type = TOP.o();
-				this.constantOrNull = constantOrNull;
+				return nilRestriction;
 			}
-			else if (!constantOrNull.isInstanceOf(type))
+			if (!constantOrNull.isInstanceOf(type))
 			{
-				this.type = bottom();
-				this.constantOrNull = null;
+				return bottomRestriction;
 			}
-			else
-			{
-				this.type = instanceTypeOrMetaOn(constantOrNull);
-				this.constantOrNull = constantOrNull;
-			}
+			return new TypeRestriction(
+				instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
-		else if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
+		if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
 		{
 			// Extract the sole possible value.
-			this.type = type;
-			this.constantOrNull = type.instance();
+			return new TypeRestriction(type, type.instance());
 		}
-		else
+		if (type.equals(TOP.o()))
 		{
-			this.type = type;
-			this.constantOrNull = null;
+			return topRestriction;
 		}
-
-		// Make the Avail objects immutable.  They'll be made Shared if they
-		// survive the L2 translation and end up in an L2Chunk.
-		this.type.makeImmutable();
-		if (this.constantOrNull != null)
-		{
-			this.constantOrNull.makeImmutable();
-		}
+		return new TypeRestriction(type, null);
 	}
 
 	/**
@@ -140,15 +170,14 @@ public final class TypeRestriction
 			&& constantOrNull.equals(other.constantOrNull))
 		{
 			// The two restrictions are for the same constant value.
-			return new TypeRestriction(
-				constantOrNull.equalsNil()
-					? TOP.o()
-					: instanceTypeOrMetaOn(constantOrNull),
-				constantOrNull);
+			return constantOrNull.equalsNil()
+				? nilRestriction
+				: restriction(
+					instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
 		else
 		{
-			return new TypeRestriction(type.typeUnion(other.type), null);
+			return restriction(type.typeUnion(other.type), null);
 		}
 	}
 
@@ -172,17 +201,17 @@ public final class TypeRestriction
 			{
 				// The two constants conflict.  Code using this register should
 				// not be reachable, but allow it to be generated for now.
-				return new TypeRestriction(bottom(), null);
+				return bottomRestriction;
 			}
 			// Rely on normalization to reject the constant if the type
 			// intersection is vacuous (bottom).
-			return new TypeRestriction(
+			return restriction(
 				type.typeIntersection(other.type),
 				constantOrNull);
 		}
 		// The receiver wasn't a single constant.  Just do an intersection and
 		// let normalization deal with the special cases.
-		return new TypeRestriction(
+		return restriction(
 			type.typeIntersection(other.type),
 			other.constantOrNull);
 	}
@@ -203,12 +232,12 @@ public final class TypeRestriction
 		if (type.isSubtypeOf(other.type))
 		{
 			// Exclude everything.
-			return new TypeRestriction(bottom(), null);
+			return bottomRestriction;
 		}
 		if (constantOrNull != null)
 		{
 			// The constant was not excluded by the subtype test above.
-			return new TypeRestriction(type, constantOrNull);
+			return restriction(type, constantOrNull);
 		}
 		if (type.isEnumeration() && !type.isInstanceMeta())
 		{
@@ -226,11 +255,11 @@ public final class TypeRestriction
 			}
 			// If it reduced to one element, let normalization pull out the
 			// constant.  It's known here not to be a meta.
-			return new TypeRestriction(enumerationWith(filteredSet), null);
+			return restriction(enumerationWith(filteredSet), null);
 		}
 		// Ignore the type subtraction, at least until we've implemented
 		// negative type restrictions.
-		return new TypeRestriction(type, null);
+		return restriction(type, null);
 	}
 
 	/**

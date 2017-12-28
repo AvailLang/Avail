@@ -46,7 +46,6 @@ import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

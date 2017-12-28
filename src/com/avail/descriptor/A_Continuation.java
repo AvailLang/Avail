@@ -153,7 +153,7 @@ extends A_BasicObject
 	 * Answer the current {@link L2Chunk} to run when resuming this {@linkplain
 	 * ContinuationDescriptor continuation}.  Always check that the chunk is
 	 * still {@linkplain L2Chunk#isValid() valid}, otherwise the {@linkplain
-	 * L2Chunk#unoptimizedChunk()} should be resumed instead.
+	 * L2Chunk#unoptimizedChunk} should be resumed instead.
 	 *
 	 * @return The L2Chunk to resume if the chunk is still valid.
 	 */

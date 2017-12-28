@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -81,6 +81,16 @@ public class L2ReadIntOperand extends L2Operand
 		final L2IntegerRegister register)
 	{
 		this.register = register;
+	}
+
+	/**
+	 * Answer this integer-read's {@link L2IntegerRegister}.
+	 *
+	 * @return The {@link L2IntegerRegister}.
+	 */
+	public L2IntegerRegister register ()
+	{
+		return register;
 	}
 
 	@Override

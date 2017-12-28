@@ -284,7 +284,7 @@ extends A_BasicObject
 	 * A_RawFunction function implementation}.
 	 *
 	 * @return The backing chunk for this function implementation. This will be
-	 *         the {@linkplain L2Chunk#unoptimizedChunk() special unoptimized
+	 *         the {@linkplain L2Chunk#unoptimizedChunk special unoptimized
 	 *         chunk} prior to conversion by the {@linkplain L2Translator
 	 *         Level Two translator}.
 	 */

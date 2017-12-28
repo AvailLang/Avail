@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer.values;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
  * A semantic value which is a particular actual constant value.
@@ -60,6 +61,17 @@ final class L2SemanticConstant extends L2SemanticValue
 	public int hashCode ()
 	{
 		return value.hashCode();
+	}
+
+
+	@Override
+	public L2SemanticConstant transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		// Semantic constants need no transformation when inlining.
+		return this;
 	}
 
 	@Override

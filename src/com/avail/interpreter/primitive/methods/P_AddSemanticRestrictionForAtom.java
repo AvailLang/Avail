@@ -41,7 +41,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 

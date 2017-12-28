@@ -42,8 +42,9 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 
@@ -63,6 +64,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -421,7 +426,7 @@ public final class L2Chunk
 	 * ContinuationDescriptor continuation} or {@linkplain
 	 * CompiledCodeDescriptor raw function} may refer to an invalid chunk, but
 	 * attempts to resume or invoke (respectively) such a chunk are detected and
-	 * cause the {@link #unoptimizedChunk()} to be substituted instead.  We
+	 * cause the {@link #unoptimizedChunk} to be substituted instead.  We
 	 * don't have to worry about an Interpreter holding onto a chunk when it
 	 * becomes invalid, because invalidation can only happen when the runtime
 	 * temporarily inhibits running Avail code, and all fibers have had their
@@ -468,7 +473,7 @@ public final class L2Chunk
 	public enum ChunkEntryPoint
 	{
 		/**
-		 * The {@link #unoptimizedChunk()} entry point to jump to if a primitive
+		 * The {@link #unoptimizedChunk} entry point to jump to if a primitive
 		 * was attempted but failed, and we need to run the (unoptimized, L1)
 		 * alternative code.
 		 */
@@ -476,20 +481,20 @@ public final class L2Chunk
 
 		/**
 		 * The entry point to jump to when continuing execution of a non-reified
-		 * {@link #unoptimizedChunk() unoptimized} frame after reifying its
+		 * {@link #unoptimizedChunk unoptimized} frame after reifying its
 		 * caller chain.
 		 *
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
-		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
 		AFTER_REIFICATION(3),
 
 		/**
 		 * The entry point to which to jump when returning into a continuation
-		 * that's running the {@link #unoptimizedChunk()}.
+		 * that's running the {@link #unoptimizedChunk}.
 		 *
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
-		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
 		TO_RETURN_INTO(4),
 
@@ -498,7 +503,7 @@ public final class L2Chunk
 		 * into a continuation that's running the {@link #unoptimizedChunk}.
 		 *
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
-		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
 		TO_RESUME(6),
 
@@ -516,7 +521,7 @@ public final class L2Chunk
 		 * exclusive.</p>
 		 *
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
-		 * L2Translator#L2Translator()} when that chunk is created.</p>
+		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
 		TO_RESTART(1);
 
@@ -652,8 +657,7 @@ public final class L2Chunk
 		if (codeNotNull)
 		{
 			code.setStartingChunkAndReoptimizationCountdown(
-				chunk,
-				L2Chunk.countdownForNewlyOptimizedCode());
+				chunk, L2Chunk.countdownForNewlyOptimizedCode());
 		}
 		for (final A_ChunkDependable value : contingentValues)
 		{
@@ -753,7 +757,7 @@ public final class L2Chunk
 			// updated the same way, so the re-entry points have to check for
 			// validity (jumping to a suitable L1 entry point instead).
 			code.setStartingChunkAndReoptimizationCountdown(
-				unoptimizedChunk(), countdownForInvalidatedCode());
+				unoptimizedChunk, countdownForInvalidatedCode());
 		}
 		Generation.removeInvalidatedChunk(this);
 		final long after = System.nanoTime();
@@ -766,20 +770,63 @@ public final class L2Chunk
 	 * The special {@linkplain L2Chunk level two chunk} that is used to
 	 * interpret level one nybblecodes until a piece of {@linkplain
 	 * CompiledCodeDescriptor compiled code} has been executed some number of
-	 * times.
+	 * times (specified in {@link #countdownForNewCode()}).
 	 */
-	private static final L2Chunk unoptimizedChunk =
-		L2Translator.createChunkForFirstInvocation();
+	public static final L2Chunk unoptimizedChunk = createDefaultChunk();
 
 	/**
-	 * Return the special {@code L2Chunk} that is used to interpret level one
-	 * nybblecodes until a piece of {@linkplain CompiledCodeDescriptor compiled
-	 * code} has been executed some threshold number of times and optimized.
+	 * Create a default {@code L2Chunk} that decrements a counter in an invoked
+	 * {@link A_RawFunction}, optimizing it into a new chunk when it hits zero,
+	 * otherwise interpreting the raw function's nybblecodes.
 	 *
-	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
+	 * @return An {@code L2Chunk} to use for code that has not yet been
+	 *         translated to level two.
 	 */
-	public static L2Chunk unoptimizedChunk ()
+	private static L2Chunk createDefaultChunk ()
 	{
-		return unoptimizedChunk;
+		final L2BasicBlock initialBlock = new L2BasicBlock("Default entry");
+		final L2BasicBlock reenterFromRestartBlock =
+			new L2BasicBlock("Default restart");
+		final L2BasicBlock loopBlock =
+			new L2BasicBlock("Default loop");
+		final L2BasicBlock reenterFromCallBlock =
+			new L2BasicBlock("Default return from call");
+		final L2BasicBlock reenterFromInterruptBlock =
+			new L2BasicBlock("Default reentry from interrupt");
+
+		final L2ControlFlowGraph controlFlowGraph =
+			L1Translator.generateDefaultChunkControlFlowGraph(
+				initialBlock,
+				reenterFromRestartBlock,
+				loopBlock,
+				reenterFromCallBlock,
+				reenterFromInterruptBlock);
+
+		final List<L2Instruction> instructions = new ArrayList<>();
+		controlFlowGraph.generateOn(instructions);
+		for (final L2Instruction instruction : instructions)
+		{
+			instruction.setAction();
+		}
+		final L2Chunk defaultChunk = L2Chunk.allocate(
+			null,
+			0,
+			0,
+			0,
+			reenterFromRestartBlock.offset(),
+			instructions,
+			controlFlowGraph,
+			emptySet());
+
+		assert initialBlock.offset() == 0;
+		assert reenterFromRestartBlock.offset()
+			== TO_RESTART.offsetInDefaultChunk;
+		assert loopBlock.offset() == 3;
+		assert reenterFromCallBlock.offset()
+			== TO_RETURN_INTO.offsetInDefaultChunk;
+		assert reenterFromInterruptBlock.offset()
+			== TO_RESUME.offsetInDefaultChunk;
+
+		return defaultChunk;
 	}
 }

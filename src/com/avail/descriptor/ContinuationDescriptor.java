@@ -64,6 +64,7 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor
 	.newVariableWithContentType;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -371,7 +372,7 @@ extends Descriptor
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
-		if (chunk != L2Chunk.unoptimizedChunk() && chunk.isValid())
+		if (chunk != unoptimizedChunk && chunk.isValid())
 		{
 			Generation.usedChunk(chunk);
 		}

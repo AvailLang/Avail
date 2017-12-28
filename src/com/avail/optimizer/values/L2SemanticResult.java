@@ -1,5 +1,5 @@
 /**
- * L2SemanticSlot.java
+ * L2SemanticResult.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,58 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.descriptor.A_Continuation;
-
-import static com.avail.descriptor.AvailObject.multiplier;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
- * A semantic value which represents a slot of some {@link Frame}'s effective
- * {@link A_Continuation}.
+ * A semantic value which represents the return value produced by the invocation
+ * corresponding to a particular {@link Frame}.
  */
-final class L2SemanticSlot extends L2SemanticValue
+final class L2SemanticResult extends L2SemanticValue
 {
-	/** The {@link Frame} for which this is a virtualized slot. */
+	/** The frame for which this represents the return value. */
 	public final Frame frame;
 
-	/** The one-based index of the slot in its {@link Frame}. */
-	public final int slotIndex;
-
 	/**
-	 * Create a new {@code L2SemanticSlot} semantic value.
+	 * Create a new {@code L2SemanticResult} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents a slot of a virtualized
-	 *        continuation.
-	 * @param slotIndex
-	 *        The one-based index of the slot in that frame.
+	 *        The frame for which this represents the return result.
 	 */
-	L2SemanticSlot (final Frame frame, final int slotIndex)
+	L2SemanticResult (final Frame frame)
 	{
 		this.frame = frame;
-		this.slotIndex = slotIndex;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		if (!(obj instanceof L2SemanticSlot))
-		{
-			return false;
-		}
-		final L2SemanticSlot slot = (L2SemanticSlot) obj;
-		return frame.equals(slot.frame)
-			&& slotIndex == slot.slotIndex;
+		return obj instanceof L2SemanticResult
+			&& frame.equals(((L2SemanticResult) obj).frame);
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return (frame.hashCode() ^ slotIndex) * multiplier;
+		return frame.hashCode() ^ 0x6ABDC9DB;
+	}
+
+	@Override
+	public L2SemanticResult transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		final Frame newFrame = frameTransformer.value(frame);
+		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "Slot #" + slotIndex + " of " + frame;
+		return "Result of " + frame;
 	}
 }

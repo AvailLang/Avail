@@ -66,11 +66,12 @@ import static com.avail.exceptions.AvailErrorCode
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain ContinuationDescriptor
- * continuation}. It will execute as unoptimized code via the {@linkplain
- * L2Chunk#unoptimizedChunk()}.  Fail if the provided function is an infallible
+ * continuation}. It will execute as unoptimized code via the {@link
+ * L2Chunk#unoptimizedChunk}.  Fail if the provided function is an infallible
  * primitive.
  */
 public final class P_CreateContinuation extends Primitive
@@ -107,7 +108,7 @@ public final class P_CreateContinuation extends Primitive
 			pc.extractInt(),
 			stackp.extractInt(),
 			false,
-			L2Chunk.unoptimizedChunk(),
+			unoptimizedChunk,
 			TO_RETURN_INTO.offsetInDefaultChunk);
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
 		{

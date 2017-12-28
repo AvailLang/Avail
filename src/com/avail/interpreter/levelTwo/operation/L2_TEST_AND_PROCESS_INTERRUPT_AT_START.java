@@ -1,5 +1,5 @@
 /**
- * L2_UNDEFINE_REGISTERS.java
+ * L2_TEST_AND_PROCESS_INTERRUPT_AT_START.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -31,56 +31,93 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
 /**
- * This instruction should be elided before final code generation.  It indicates
- * that each of {@link L2WritePointerOperand} registers should be treated as
- * having no value.  This is a consequence of SSA form, where each register
- * requires a defining instruction.
+ * Perform a complex interrupt processing operation:
+ *
+ * <ul>
+ *     <li></li>
+ * </ul>
+ *
+ * Handle an interrupt that has been requested.  The reified continuation is
+ * provided as an operand.  The continuation should be in a state that's ready
+ * to continue executing after the interrupt (expecting this continuation to be
+ * the top reified frame, which will typically be exploded back into registers
+ * as a first step).
  */
-public class L2_UNDEFINE_REGISTERS extends L2Operation
+public class L2_TEST_AND_PROCESS_INTERRUPT_AT_START
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_UNDEFINE_REGISTERS().init(
-			WRITE_VECTOR.is("registers to invalidate")
-		);
+		new L2_TEST_AND_PROCESS_INTERRUPT_AT_START().init(
+			READ_POINTER.is("continuation"));
+
+	/**
+	 * {@link Statistic} for recording the stack abandonment that this operation
+	 * causes, always popping a single frame from the stack.
+	 */
+	private static Statistic abandonmentStat =
+		new Statistic(
+			"(abandon one layer for L2_PROCESS_INTERRUPT)",
+			StatisticReport.REIFICATIONS);
 
 	@Override
 	public @Nullable StackReifier step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		throw new RuntimeException(
-			"This L2 instruction should have been eliminated.");
+		final L2ReadPointerOperand continuationReg =
+			instruction.readObjectRegisterAt(0);
+
+		final AvailObject continuation = continuationReg.in(interpreter);
+		interpreter.reifiedContinuation = continuation;
+		assert interpreter.unreifiedCallDepth() == 1;
+		return interpreter.abandonStackThen(
+			abandonmentStat,
+			() -> interpreter.processInterrupt(continuation));
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Don't remove this kind of instruction.
+		return true;
+	}
+
+	@Override
+	public boolean reachesNextInstruction ()
+	{
+		// Fiber will eventually resume with the provided continuation.
+		return false;
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final List<L2WritePointerOperand> registers =
-			instruction.writeVectorRegisterAt(0);
-		for (final L2WritePointerOperand reg : registers)
-		{
-			registerSet.removeConstantAt(reg.register());
-			registerSet.removeTypeAt(reg.register());
-		}
+		// It doesn't reach the next instruction, and it doesn't mention where
+		// to resume.  That was dealt with by previous instructions that
+		// assembled a continuation to resume.
+		assert registerSets.size() == 0;
 	}
 }

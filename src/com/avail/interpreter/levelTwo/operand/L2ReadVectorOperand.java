@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -75,7 +75,7 @@ public class L2ReadVectorOperand extends L2Operand
 	{
 		final List<L2ReadPointerOperand> clonedElements =
 			new ArrayList<>(elements.size());
-		for (L2ReadPointerOperand element : elements)
+		for (final L2ReadPointerOperand element : elements)
 		{
 			clonedElements.add((L2ReadPointerOperand) element.clone());
 		}
@@ -125,15 +125,19 @@ public class L2ReadVectorOperand extends L2Operand
 		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
-		elements.forEach(
-			read -> read.replaceRegisters(registerRemap, instruction));
+		for (final L2ReadPointerOperand read : elements)
+		{
+			read.replaceRegisters(registerRemap, instruction);
+		}
 	}
 
 	@Override
 	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
 	{
-		elements.forEach(
-			read -> read.addSourceRegistersTo(sourceRegisters));
+		for (final L2ReadPointerOperand read : elements)
+		{
+			read.addSourceRegistersTo(sourceRegisters);
+		}
 	}
 
 	@Override

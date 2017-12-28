@@ -39,7 +39,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;

@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -516,5 +517,37 @@ public final class L2Instruction
 		final int operandIndex)
 	{
 		return ((L2WriteVectorOperand) operands[operandIndex]).elements();
+	}
+
+	/**
+	 * Transform this instruction's operands for the given {@link L2Inliner}.
+	 *
+	 * @param inliner
+	 *        The {@link L2Inliner} through which to write this instruction's
+	 *        equivalent effect.
+	 */
+	public L2Operand[] transformOperands (final L2Inliner inliner)
+	{
+		final L2Operand[] newOperands = new L2Operand[operands.length];
+		for (int i = 0; i < operands.length; i++)
+		{
+			newOperands[i] = inliner.transformOperand(operands[i]);
+		}
+		return newOperands;
+	}
+
+	/**
+	 * Write the equivalent of this instruction through the given {@link
+	 * L2Inliner}.  Certain types of {@link L2Operation}s are transformed in
+	 * ways specific to inlining.
+	 *
+	 * @param inliner
+	 *        The {@link L2Inliner} through which to write this instruction's
+	 *        equivalent effect.
+	 */
+	public void transformAndEmitOn (final L2Inliner inliner)
+	{
+		operation.emitTransformedInstruction(
+			this, transformOperands(inliner), inliner);
 	}
 }

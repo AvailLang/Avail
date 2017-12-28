@@ -34,21 +34,14 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -279,17 +272,16 @@ public final class L2BasicBlock
 	 */
 	void startIn (final L1Translator translator)
 	{
+		translator.currentManifest.clear();
 		if (isIrremovable())
 		{
 			// Irremovable blocks are entry points, and don't require any
 			// registers to be defined yet, so ignore any registers that appear
 			// to be defined (they're really not).
-			translator.currentManifest.clear();
 			return;
 		}
 		// Keep semantic values that are common to all incoming paths.  Create
 		// phi functions if the registers disagree.
-		translator.currentManifest.clear();
 		final List<L2ValueManifest> manifests = new ArrayList<>();
 		for (final L2PcOperand predecessorEdge : predecessorEdges)
 		{

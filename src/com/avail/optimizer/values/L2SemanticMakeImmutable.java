@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.utility.evaluation.Transformer1NotNull;
+
 /**
  * A semantic value which ensures the inner semantic value being wrapped has
  * been made immutable.
@@ -74,6 +76,19 @@ final class L2SemanticMakeImmutable extends L2SemanticValue
 	public int hashCode ()
 	{
 		return innerSemanticValue.hashCode() ^ 0xB9E019AE;
+	}
+
+	@Override
+	public L2SemanticMakeImmutable transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		final L2SemanticValue newInner =
+			semanticValueTransformer.value(innerSemanticValue);
+		return (newInner.equals(innerSemanticValue))
+			? this
+			: new L2SemanticMakeImmutable(newInner);
 	}
 
 	@Override

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerIntervalTupleDescriptor;

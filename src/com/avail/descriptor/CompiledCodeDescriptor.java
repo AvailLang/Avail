@@ -81,6 +81,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
@@ -226,8 +227,8 @@ extends Descriptor
 		/**
 		 * The {@linkplain L2Chunk level two chunk} that should be invoked
 		 * whenever this code is started. The chunk may no longer be {@link
-		 * L2Chunk#isValid() valid}, in which case the {@linkplain
-		 * L2Chunk#unoptimizedChunk() default chunk} will be substituted until
+		 * L2Chunk#isValid() valid}, in which case the {@link
+		 * L2Chunk#unoptimizedChunk} will be substituted until
 		 * the next reoptimization.
 		 */
 //		@HideFieldJustForPrinting
@@ -580,7 +581,7 @@ extends Descriptor
 								getInvocationStatistic(
 									(AvailObject) function).hasRun,
 								function.startingChunk()
-									!= L2Chunk.unoptimizedChunk(),
+									!= unoptimizedChunk,
 								function.startingLineNumber(),
 								module.moduleName().asNativeString(),
 								function.methodName().asNativeString());
@@ -813,7 +814,7 @@ extends Descriptor
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
-		if (chunk != L2Chunk.unoptimizedChunk())
+		if (chunk != unoptimizedChunk)
 		{
 			Generation.usedChunk(chunk);
 		}
@@ -1124,7 +1125,7 @@ extends Descriptor
 		code.setSlot(NYBBLES, nybbles);
 		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, nil);
-		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
+		code.setSlot(STARTING_CHUNK, unoptimizedChunk.chunkPojo);
 		code.setSlot(INVOCATION_STATISTIC, identityPojo(statistic));
 
 		// Fill in the literals.

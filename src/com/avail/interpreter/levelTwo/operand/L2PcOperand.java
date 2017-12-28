@@ -77,7 +77,7 @@ public class L2PcOperand extends L2Operand
 	 *
 	 * TODO MvG - This is not yet used.
 	 */
-	private final PhiRestriction[] phiRestrictions;
+	public final PhiRestriction[] phiRestrictions;
 
 	/**
 	 * Construct a new {@code L2PcOperand} with the specified {@link
@@ -214,8 +214,7 @@ public class L2PcOperand extends L2Operand
 		final L2Instruction jump = new L2Instruction(
 			newBlock,
 			L2_JUMP.instance,
-			new L2PcOperand(
-				garbageBlock, manifest, phiRestrictions));
+			new L2PcOperand(garbageBlock, manifest, phiRestrictions));
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);

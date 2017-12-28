@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,6 +36,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 
 import java.util.Collection;
@@ -170,7 +171,7 @@ public abstract class L2Register
 	public L2Instruction definitionSkippingMoves ()
 	{
 		assert definitions.size() == 1;
-		L2Instruction definition = definitions.iterator().next();
+		final L2Instruction definition = definitions.iterator().next();
 		if (definition.operation.isMove())
 		{
 			final List<L2Register> sources = definition.sourceRegisters();
@@ -233,7 +234,18 @@ public abstract class L2Register
 	 * Answer a new register like this one, but where the uniqueValue has been
 	 * set to the finalIndex.
 	 *
-	 * @return The new {@link L2Register}.
+	 * @return The new {@code L2Register}.
 	 */
 	public abstract L2Register copyAfterColoring ();
+
+	/**
+	 * Answer a copy of the receiver.  Subclasses can be covariantly stronger in
+	 * the return type.
+	 *
+	 * @param inliner
+	 *        The {@link L2Inliner} for which copying is requested.
+	 * @return A copy of the receiver.
+	 */
+	public abstract L2Register copyForInliner (
+		final L2Inliner inliner);
 }

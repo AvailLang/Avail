@@ -135,9 +135,9 @@ public final class StackReifier
 	 * pushed onto the {@link #continuationsNewestFirst} list.
 	 *
 	 * @param alreadyReifiedContinuation
-	 *            The previously reified continuation just beyond the current
-	 *            layers being reified.  Can be {@linkplain NilDescriptor#nil}
-	 *            to indicate the outermost execution frame.
+	 *        The previously reified continuation just beyond the current layers
+	 *        being reified.  Can be {@linkplain NilDescriptor#nil} to indicate
+	 *        the outermost execution frame.
 	 * @return The fully assembled reified continuation.
 	 */
 	public A_Continuation assembleContinuation (
@@ -152,6 +152,7 @@ public final class StackReifier
 		{
 			final A_Continuation next = continuationsNewestFirst.get(index);
 			assert next.descriptor().isMutable();
+			assert next.caller().equalsNil();
 			current = next.replacingCaller(current);
 		}
 		continuationsNewestFirst.clear();

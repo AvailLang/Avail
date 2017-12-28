@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
-
 import java.util.logging.Level;
 
 import static com.avail.interpreter.Interpreter.debugL1;

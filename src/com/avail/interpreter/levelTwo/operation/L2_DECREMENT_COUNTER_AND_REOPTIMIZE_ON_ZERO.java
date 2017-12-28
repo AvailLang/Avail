@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.OptimizationLevel;
 import com.avail.optimizer.StackReifier;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 

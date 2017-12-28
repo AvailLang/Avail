@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+
+import com.avail.optimizer.L2Inliner;
 
 /**
  * {@code L2FloatRegister} models the conceptual usage of a register that can
@@ -64,6 +66,13 @@ extends L2Register
 		final L2FloatRegister result = new L2FloatRegister(finalIndex());
 		result.setFinalIndex(finalIndex());
 		return result;
+	}
+
+	@Override
+	public L2FloatRegister copyForInliner (
+		final L2Inliner inliner)
+	{
+		return inliner.targetTranslator.newFloatRegister();
 	}
 
 	@Override

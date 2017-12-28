@@ -115,7 +115,6 @@ public final class L2ValueManifest
 			registerToSemanticValues.put(
 				entry.getKey(), new HashSet<>(entry.getValue()));
 		}
-
 	}
 
 	/**
@@ -229,6 +228,17 @@ public final class L2ValueManifest
 				destinationWrite.register(),
 				new HashSet<>(sourceSemanticValues));
 		}
+	}
+
+	/**
+	 * Answer a copy of the map from {@link L2SemanticValue} to {@link
+	 * L2ReadPointerOperand}.
+	 *
+	 * @return The indicated {@link Map}.
+	 */
+	public Map<L2SemanticValue, L2ReadPointerOperand> bindings ()
+	{
+		return new HashMap<>(semanticValueToRegister);
 	}
 
 	/**

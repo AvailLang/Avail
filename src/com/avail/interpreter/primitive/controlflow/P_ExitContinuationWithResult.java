@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;

@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.utility.evaluation.Transformer1NotNull;
+
 import static com.avail.descriptor.AvailObject.multiplier;
 
 /**
@@ -45,7 +47,7 @@ final class L2SemanticOuter extends L2SemanticValue
 	public final int outerIndex;
 
 	/**
-	 * Create a new {@code L2SemanticArgument} semantic value.
+	 * Create a new {@code L2SemanticOuter} semantic value.
 	 *
 	 * @param frame
 	 *        The frame for which this represents an outer.
@@ -74,6 +76,18 @@ final class L2SemanticOuter extends L2SemanticValue
 	public int hashCode ()
 	{
 		return (frame.hashCode() + outerIndex) * multiplier;
+	}
+
+	@Override
+	public L2SemanticOuter transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		final Frame newFrame = frameTransformer.value(frame);
+		return newFrame.equals(frame)
+			? this
+			: new L2SemanticOuter(newFrame, outerIndex);
 	}
 
 	@Override

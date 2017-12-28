@@ -519,7 +519,7 @@ public final class L1InstructionStepper
 						assert !arg.equalsNil();
 						args.add(arg);
 					}
-					assert interpreter.chunk == unoptimizedChunk();
+					assert interpreter.chunk == unoptimizedChunk;
 
 					final A_Function savedFunction =
 						stripNull(interpreter.function);
@@ -537,7 +537,7 @@ public final class L1InstructionStepper
 							// continuations.  Run this before continuing the L2
 							// interpreter.
 							interpreter.function = savedFunction;
-							interpreter.chunk = unoptimizedChunk();
+							interpreter.chunk = unoptimizedChunk;
 							interpreter.offset =
 								AFTER_REIFICATION.offsetInDefaultChunk;
 							interpreter.pointers = savedPointers;
@@ -555,7 +555,7 @@ public final class L1InstructionStepper
 									savedFunction,
 									stripNull(interpreter.reifiedContinuation),
 									savedSkip,
-									unoptimizedChunk(),
+									unoptimizedChunk,
 									TO_RESTART.offsetInDefaultChunk,
 									args);
 
@@ -817,15 +817,11 @@ public final class L1InstructionStepper
 							savedPc,   // Right after the set-variable.
 							savedStackp,
 							false,
-							unoptimizedChunk(),
+							unoptimizedChunk,
 							TO_RESUME.offsetInDefaultChunk);
-					for (
-						int i = 1, limit = code.numSlots();
-						i <= limit;
-						i++)
+					for (int i = code.numSlots(); i > 0; i--)
 					{
-						continuation
-							.argOrLocalOrStackAtPut(i, pointerAt(i));
+						continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
 					}
 					if (Interpreter.debugL2)
 					{
@@ -841,7 +837,7 @@ public final class L1InstructionStepper
 				}
 				interpreter.integers = savedInts;
 				interpreter.pointers = savedPointers;
-				interpreter.chunk = unoptimizedChunk();
+				interpreter.chunk = unoptimizedChunk;
 				interpreter.offset = savedOffset;
 				interpreter.function = savedFunction;
 				nybbles = savedNybbles;
@@ -882,7 +878,7 @@ public final class L1InstructionStepper
 		}
 
 		final A_Function savedFunction = stripNull(interpreter.function);
-		assert interpreter.chunk == unoptimizedChunk();
+		assert interpreter.chunk == unoptimizedChunk;
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
@@ -919,7 +915,7 @@ public final class L1InstructionStepper
 							savedPc,
 							savedStackp,
 							false,
-							unoptimizedChunk(),
+							unoptimizedChunk,
 							TO_RETURN_INTO.offsetInDefaultChunk);
 					for (
 						int i = savedFunction.code().numSlots();
@@ -946,7 +942,7 @@ public final class L1InstructionStepper
 		{
 			interpreter.pointers = savedPointers;
 			interpreter.integers = savedInts;
-			interpreter.chunk = unoptimizedChunk();
+			interpreter.chunk = unoptimizedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
 			nybbles = savedNybbles;

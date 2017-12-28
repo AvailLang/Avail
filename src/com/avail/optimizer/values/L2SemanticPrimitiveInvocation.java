@@ -32,8 +32,8 @@
 package com.avail.optimizer.values;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,43 +59,29 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	public final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
-	 * The optional {@link L2Instruction} which executes the primitive.  Note
-	 * that this can be {@code null} if the primitive is infallible, stable, and
-	 * side-effect free for the given arguments.
-	 */
-	public final @Nullable L2Instruction optionalInstruction;
-
-	/**
 	 * The hash value of the receiver, computed during construction.
 	 */
 	public int hashOrZero;
 
 	/**
-	 * Create a new {@code L2SemanticArgument} semantic value.
+	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
 	 *
 	 * @param primitive
 	 *        The primitive whose invocation is being represented.
 	 * @param argumentSemanticValues
-	 *        The argument semantic values.
-	 * @param optionalInstruction
-	 *        An {@link L2Instruction} that is the invocation of this primitive,
-	 *        or {@code null} if the primitive is infallible, stable, and
-	 *        side-effect free for the given arguments.
+	 *        The semantic values.
 	 */
 	public L2SemanticPrimitiveInvocation (
 		final Primitive primitive,
-		final List<L2SemanticValue> argumentSemanticValues,
-		final @Nullable L2Instruction optionalInstruction)
+		final List<L2SemanticValue> argumentSemanticValues)
 	{
 		this.primitive = primitive;
 		this.argumentSemanticValues = new ArrayList<>(argumentSemanticValues);
-		this.optionalInstruction = optionalInstruction;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-
 		if (!(obj instanceof L2SemanticPrimitiveInvocation))
 		{
 			return false;
@@ -107,8 +93,7 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 		final L2SemanticPrimitiveInvocation
 			invocation = (L2SemanticPrimitiveInvocation) obj;
 		return primitive == invocation.primitive
-			&& argumentSemanticValues.equals(invocation.argumentSemanticValues)
-			&& optionalInstruction == invocation.optionalInstruction;
+			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
 	}
 
 	@Override
@@ -129,6 +114,29 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	}
 
 	@Override
+	public L2SemanticPrimitiveInvocation transform (
+		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+			semanticValueTransformer,
+		final Transformer1NotNull<Frame, Frame> frameTransformer)
+	{
+		final int numArgs = argumentSemanticValues.size();
+		final List<L2SemanticValue> newArguments = new ArrayList<>(numArgs);
+		for (final L2SemanticValue argument : argumentSemanticValues)
+		{
+			newArguments.add(semanticValueTransformer.value(argument));
+		}
+		for (int i = 0; i < numArgs; i++)
+		{
+			if (!newArguments.get(i).equals(argumentSemanticValues.get(i)))
+			{
+				return new L2SemanticPrimitiveInvocation(
+					primitive, newArguments);
+			}
+		}
+		return this;
+	}
+
+	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
@@ -146,17 +154,6 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 			first = false;
 		}
 		builder.append(")");
-		if (optionalInstruction != null)
-		{
-			builder.append("[for instruction: ");
-			builder.append(optionalInstruction.operation);
-			if (optionalInstruction.offset() != -1)
-			{
-				builder.append("@");
-				builder.append(optionalInstruction.offset());
-			}
-			builder.append("]");
-		}
 		return builder.toString();
 	}
 }

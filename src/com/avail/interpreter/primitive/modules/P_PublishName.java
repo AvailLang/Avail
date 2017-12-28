@@ -42,7 +42,6 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 

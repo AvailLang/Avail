@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Number;

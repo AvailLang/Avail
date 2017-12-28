@@ -40,18 +40,18 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 
 /**
  * Synthesize a new {@link FunctionDescriptor function} from the provided
@@ -155,7 +155,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 
 		return new L2ReadPointerOperand(
 			outerRegs.get(outerIndex - 1).register(),
-			new TypeRestriction(intersection, null));
+			restriction(intersection, null));
 	}
 
 	/**

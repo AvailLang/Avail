@@ -1701,8 +1701,8 @@ public final class AvailRuntime
 			SpecialMethodAtom.SEAL.atom,
 			SpecialMethodAtom.SEMANTIC_RESTRICTION.atom,
 			SpecialMethodAtom.LEXER_DEFINER.atom,
-			ObjectTypeDescriptor.exceptionAtom(),
-			ObjectTypeDescriptor.stackDumpAtom(),
+			exceptionAtom(),
+			stackDumpAtom(),
 			pojoSelfTypeAtom()));
 
 		for (final A_Atom atom : specialAtomsList)
@@ -2300,6 +2300,7 @@ public final class AvailRuntime
 
 	static
 	{
+		//noinspection ConstantConditions
 		if (recordL2PerThread)
 		{
 			threadBean.setThreadCpuTimeEnabled(true);

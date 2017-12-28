@@ -125,6 +125,7 @@ import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RESTART;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Double.doubleToRawLongBits;
@@ -1556,7 +1557,7 @@ public enum SerializerOperation
 					pcInteger.extractInt(),
 					stackpInteger.extractInt(),
 					false,
-					L2Chunk.unoptimizedChunk(),
+					unoptimizedChunk,
 					pcInteger.equalsInt(0)
 						? TO_RESTART.offsetInDefaultChunk
 						: TO_RETURN_INTO.offsetInDefaultChunk);

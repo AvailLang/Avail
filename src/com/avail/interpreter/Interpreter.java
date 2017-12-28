@@ -852,6 +852,12 @@ public final class Interpreter
 	public @Nullable A_Function returningFunction;
 
 	/**
+	 * A field that holds the current {@link StackReifier} when running
+	 * reification clauses.
+	 */
+	public @Nullable StackReifier activeReifier = null;
+
+	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
 	 * shouldn't include the {@link L2Instruction}s executed while the invoked
 	 * function is running (e.g., other L2_INVOKE instructions).  Accumulate
@@ -1848,7 +1854,7 @@ public final class Interpreter
 	 * rebuilds the register set from the top reified continuation, but it won't
 	 * expect a return value.  These re-entry points should perform validity
 	 * checks on the chunk, allowing an orderly off-ramp into the {@link
-	 * L2Chunk#unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
+	 * L2Chunk#unoptimizedChunk} (which simply interprets the L1 nybblecodes).
 	 *
 	 * @return {@code null} if returning normally, otherwise a {@link
 	 *          StackReifier} to effect reification.

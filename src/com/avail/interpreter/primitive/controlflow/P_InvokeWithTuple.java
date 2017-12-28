@@ -42,12 +42,12 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
-import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
 import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
@@ -283,22 +283,27 @@ extends Primitive
 		{
 			final A_Tuple constantTuple =
 				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
-			argsTupleReaders =
-				IntStream.rangeClosed(1, argsSize)
-					.mapToObj(constantTuple::tupleAt)
-					.map(translator::constantRegister)
-					.collect(toList());
+			argsTupleReaders = new ArrayList<>(argsSize);
+			for (final AvailObject element : constantTuple)
+			{
+				argsTupleReaders.add(translator.constantRegister(element));
+			}
 		}
 		else
 		{
-			translator.addInstruction(
-				L2_EXPLODE_TUPLE.instance,
-				tupleReg,
-				new L2WriteVectorOperand(argsTupleWriters));
-			argsTupleReaders =
-				argsTupleWriters.stream()
-					.map(L2WritePointerOperand::read)
-					.collect(toList());
+			for (int i = 1; i <= argsSize; i++)
+			{
+				translator.addInstruction(
+					L2_TUPLE_AT_CONSTANT.instance,
+					tupleReg,
+					new L2ImmediateOperand(i),
+					argsTupleWriters.get(i));
+			}
+			argsTupleReaders = new ArrayList<>();
+			for (final L2WritePointerOperand elementWriter : argsTupleWriters)
+			{
+				argsTupleReaders.add(elementWriter.read());
+			}
 		}
 
 		// Fold out the call of this primitive, replacing it with an invoke of

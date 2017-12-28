@@ -50,12 +50,14 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS
 	.StatisticCategory;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
+import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation1;
@@ -99,11 +101,13 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static com.avail.optimizer.L2Translator.*;
-import static com.avail.optimizer.values.Frame.topFrame;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -125,7 +129,7 @@ public final class L1Translator
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
 	 * into level two code.
 	 */
-	final @Nullable A_RawFunction code;
+	final A_RawFunction code;
 
 	/**
 	 * The nybblecodes being optimized.
@@ -138,6 +142,12 @@ public final class L1Translator
 	 * and the stack slots.
 	 */
 	final int numSlots;
+
+	/**
+	 * The topmost Frame for translation, which corresponds with the provided
+	 * {@link A_RawFunction} in {@link #code}.
+	 */
+	final Frame topFrame;
 
 	/**
 	 * The {@link L2SemanticValue}s corresponding with to slots of the virtual
@@ -236,7 +246,7 @@ public final class L1Translator
 	 * Use this {@link L2ValueManifest} to track which {@link L2Register} holds
 	 * which {@link L2SemanticValue} at the current code generation point.
 	 */
-	L2ValueManifest currentManifest = new L2ValueManifest();
+	final L2ValueManifest currentManifest = new L2ValueManifest();
 
 	/**
 	 * Answer the current {@link L2ValueManifest}, which tracks which {@link
@@ -259,29 +269,17 @@ public final class L1Translator
 	L1Translator (final L2Translator translator)
 	{
 		this.translator = translator;
-		if (translator.codeOrNull != null)
+		this.code = translator.code;
+		this.topFrame = new Frame(null, this.code, "top frame");
+		this.nybbles = code.nybbles();
+		this.numSlots = code.numSlots();
+		this.pc = 1;
+		this.stackp = numSlots + 1;
+		this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
+		this.semanticSlots = new L2SemanticValue[numSlots];
+		for (int i = 1; i <= numSlots; i++)
 		{
-			this.code = translator.codeOrNull;
-			this.nybbles = code.nybbles();
-			this.numSlots = code.numSlots();
-			this.pc = 1;
-			this.stackp = numSlots + 1;
-			this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
-			this.semanticSlots = new L2SemanticValue[numSlots];
-			for (int i = 1; i <= numSlots; i++)
-			{
-				semanticSlots[i - 1] = topFrame.slot(i);
-			}
-		}
-		else
-		{
-			this.code = null;
-			this.nybbles = emptyTuple();
-			this.numSlots = 0;
-			this.pc = -1;
-			this.stackp = -1;
-			this.exactFunctionOrNull = null;
-			this.semanticSlots = new L2SemanticValue[0];
+			semanticSlots[i - 1] = topFrame.slot(i);
 		}
 	}
 
@@ -443,6 +441,12 @@ public final class L1Translator
 		forceSlotRegister(slotIndex, constantRegister(nil));
 	}
 
+	/** Answer the next register number, unique within the chunk. */
+	public int nextUnique ()
+	{
+		return controlFlowGraph.nextUnique();
+	}
+
 	/**
 	 * Allocate a new {@link L2ObjectRegister}.  Answer an {@link
 	 * L2WritePointerOperand} that writes to it, using the given type and
@@ -454,8 +458,7 @@ public final class L1Translator
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		return new L2WritePointerOperand(
-			controlFlowGraph.nextUnique(), type, constantOrNull);
+		return new L2WritePointerOperand(nextUnique(), type, constantOrNull);
 	}
 
 	/**
@@ -464,10 +467,20 @@ public final class L1Translator
 	 *
 	 * @return The new register.
 	 */
-	private L2IntegerRegister newIntegerRegister ()
+	public L2IntegerRegister newIntegerRegister ()
 	{
-		return new L2IntegerRegister(
-			controlFlowGraph.nextUnique());
+		return new L2IntegerRegister(nextUnique());
+	}
+
+	/**
+	 * Allocate a fresh {@linkplain L2FloatRegister integer register} that
+	 * nobody else has used yet.
+	 *
+	 * @return The new register.
+	 */
+	public L2FloatRegister newFloatRegister ()
+	{
+		return new L2FloatRegister(nextUnique());
 	}
 
 	/**
@@ -1258,8 +1271,7 @@ public final class L1Translator
 				// be replaced with a fail-strengthened reader during the
 				// intraInternalNode, then replaced with whatever it was upon
 				// entry to this subtree during the postInternalNode.
-				final TypeRestriction tested =
-					new TypeRestriction(intersection, null);
+				final TypeRestriction tested = restriction(intersection, null);
 				final L2ReadPointerOperand passedTestArg =
 					new L2ReadPointerOperand(
 						arg.register(),
@@ -1280,7 +1292,7 @@ public final class L1Translator
 				final L2ReadPointerOperand argBeforeTest =
 					memento.argumentBeforeComparison;
 				final TypeRestriction tested =
-					new TypeRestriction(memento.typeToTest, null);
+					restriction(memento.typeToTest, null);
 				final TypeRestriction failed =
 					argBeforeTest.restriction().minus(tested);
 				final L2ReadPointerOperand argUponFailure =
@@ -1625,7 +1637,7 @@ public final class L1Translator
 			newContinuationReg ->
 				addInstruction(
 					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
-					newContinuationReg),
+					new L2ReadVectorOperand(singletonList(newContinuationReg))),
 			onReturn,
 			TO_RETURN_INTO);
 		// This is reached either (1) after a normal return from the invoke, or
@@ -1806,7 +1818,7 @@ public final class L1Translator
 		if (primitiveOrNull != null)
 		{
 			// It's a primitive function.
-			final Interpreter interpreter = translator.interpreter();
+			final Interpreter interpreter = translator.interpreter;
 			if (primitiveOrNull.hasFlag(CanFold))
 			{
 				// It can be folded, if supplied with constants.
@@ -2422,10 +2434,12 @@ public final class L1Translator
 			L1Operation.lookup(nybble).dispatch(this);
 		}
 		// Generate the implicit return after the instruction sequence.
+		final L2ReadPointerOperand readResult = readSlot(stackp);
 		addInstruction(
 			L2_RETURN.instance,
-			readSlot(stackp),
+			readResult,
 			getSkipReturnCheck());
+		currentManifest.addBinding(topFrame.result(), readResult);
 		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
 
@@ -2439,8 +2453,10 @@ public final class L1Translator
 
 	/**
 	 * Generate the {@link L2ControlFlowGraph} of {@link L2Instruction}s for the
-	 * {@link L2Chunk#unoptimizedChunk()}.
+	 * {@link L2Chunk#unoptimizedChunk}.
 	 *
+	 * @param initialBlock
+	 *        The block to initially entry the default chunk for a call.
 	 * @param reenterFromRestartBlock
 	 *        The block to reenter to {@link P_RestartContinuation} an
 	 *        {@link A_Continuation}.
@@ -2451,12 +2467,14 @@ public final class L1Translator
 	 * @param reenterFromInterruptBlock
 	 *        The entry point for resuming from an interrupt.
 	 */
-	void generateDefaultChunk (
+	public static L2ControlFlowGraph generateDefaultChunkControlFlowGraph (
+		final L2BasicBlock initialBlock,
 		final L2BasicBlock reenterFromRestartBlock,
 		final L2BasicBlock loopBlock,
 		final L2BasicBlock reenterFromCallBlock,
 		final L2BasicBlock reenterFromInterruptBlock)
 	{
+		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 		initialBlock.makeIrremovable();
 		loopBlock.makeIrremovable();
 		reenterFromRestartBlock.makeIrremovable();
@@ -2464,52 +2482,61 @@ public final class L1Translator
 		reenterFromInterruptBlock.makeIrremovable();
 
 		// 0. First try to run it as a primitive.
-		startBlock(initialBlock);
-		addInstruction(
-			L2_TRY_PRIMITIVE.instance);
-		// This instruction gets stripped out.
-//		addInstruction(
-//			L2_JUMP.instance,
-//			edgeTo(reenterFromCallBlock, emptySlots));
+		controlFlowGraph.startBlock(initialBlock);
+		initialBlock.addInstruction(
+			new L2Instruction(initialBlock, L2_TRY_PRIMITIVE.instance));
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
 		// 1. Update counter and maybe optimize *before* extracting arguments.
-		afterOptionalInitialPrimitiveBlock = reenterFromRestartBlock;
-		startBlock(reenterFromRestartBlock);
-		addInstruction(
-			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
-			new L2ImmediateOperand(
-				OptimizationLevel.FIRST_TRANSLATION.ordinal()));
-
+		controlFlowGraph.startBlock(reenterFromRestartBlock);
+		reenterFromRestartBlock.addInstruction(
+			new L2Instruction(
+				reenterFromRestartBlock,
+				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
+				new L2ImmediateOperand(
+					OptimizationLevel.FIRST_TRANSLATION.ordinal())));
 		// 2. Build registers, get arguments, create locals, capture primitive
 		// failure value, if any.
-		addInstruction(
-			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
+		reenterFromRestartBlock.addInstruction(
+			new L2Instruction(
+				reenterFromRestartBlock,
+				L2_PREPARE_NEW_FRAME_FOR_L1.instance));
 
 		// 3. The main L1 interpreter loop.
-		startBlock(loopBlock);
-		addInstruction(
-			L2_INTERPRET_LEVEL_ONE.instance,
-			new L2PcOperand(reenterFromCallBlock, currentManifest),
-			new L2PcOperand(
-				reenterFromInterruptBlock, currentManifest));
+		controlFlowGraph.startBlock(loopBlock);
+		loopBlock.addInstruction(
+			new L2Instruction(
+				loopBlock,
+				L2_INTERPRET_LEVEL_ONE.instance,
+				new L2PcOperand(reenterFromCallBlock, new L2ValueManifest()),
+				new L2PcOperand(
+					reenterFromInterruptBlock, new L2ValueManifest())));
 
 		// 4,5. If reified, calls return here.
-		startBlock(reenterFromCallBlock);
-		addInstruction(
-			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
-		addInstruction(
-			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, currentManifest));
+		controlFlowGraph.startBlock(reenterFromCallBlock);
+		reenterFromCallBlock.addInstruction(
+			new L2Instruction(
+				reenterFromCallBlock,
+				L2_REENTER_L1_CHUNK_FROM_CALL.instance));
+		reenterFromCallBlock.addInstruction(
+			new L2Instruction(
+				reenterFromCallBlock,
+				L2_JUMP.instance,
+				new L2PcOperand(loopBlock, new L2ValueManifest())));
 
 		// 6,7. If reified, interrupts return here.
-		startBlock(reenterFromInterruptBlock);
-		addInstruction(
-			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
-		addInstruction(
-			L2_JUMP.instance,
-			new L2PcOperand(loopBlock, currentManifest));
+		controlFlowGraph.startBlock(reenterFromInterruptBlock);
+		reenterFromInterruptBlock.addInstruction(
+			new L2Instruction(
+				reenterFromInterruptBlock,
+				L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance));
+		reenterFromInterruptBlock.addInstruction(
+			new L2Instruction(
+				reenterFromInterruptBlock,
+				L2_JUMP.instance,
+				new L2PcOperand(loopBlock, new L2ValueManifest())));
+		return controlFlowGraph;
 	}
 
 	@Override
@@ -2618,7 +2645,6 @@ public final class L1Translator
 			L2_GET_VARIABLE_CLEARING.instance,
 			readSlot(index),
 			writeSlot(stackp, innerType, null));
-
 	}
 
 	@Override

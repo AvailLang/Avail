@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.AvailTask;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
