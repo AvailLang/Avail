@@ -199,8 +199,10 @@ public final class L2Translator
 
 		for (final L2Instruction instruction : instructions)
 		{
-			Arrays.stream(instruction.operands).forEach(
-				operand -> operand.dispatchOperand(registerCounter));
+			for (final L2Operand operand : instruction.operands)
+			{
+				operand.dispatchOperand(registerCounter);
+			}
 			instruction.setAction();
 		}
 
@@ -287,10 +289,6 @@ public final class L2Translator
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,
 			interpreter.interpreterIndex);
-
-		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
-		jvmTranslator.translate();
-		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
 
 	/** Statistics about the naive L1 to L2 translation. */
@@ -351,10 +349,6 @@ public final class L2Translator
 		translationDependenciesStat.record(
 			translator.contingentValues.setSize(),
 			interpreter.interpreterIndex);
-
-		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
-		jvmTranslator.translate();
-		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
 
 	/** Statistic for number of instructions in L2 translations. */

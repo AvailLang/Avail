@@ -64,8 +64,8 @@ extends ClassLoader
 	 * Answer an instance of a {@link JVMChunk} {@linkplain Class
 	 * implementation} that is defined by the given bytes.
 	 *
-	 * @param chunk
-	 *        The source {@link L2Chunk}.
+	 * @param chunkName
+	 *        The name of the {@link L2Chunk}.
 	 * @param className
 	 *        The class name.
 	 * @param classBytes
@@ -79,7 +79,7 @@ extends ClassLoader
 	 *         if no such instance could be constructed.
 	 */
 	@Nullable JVMChunk newJVMChunkFrom (
-		final L2Chunk chunk,
+		final String chunkName,
 		final String className,
 		final byte[] classBytes,
 		final Object[] params)
@@ -122,7 +122,7 @@ extends ClassLoader
 				Level.SEVERE,
 				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
 				className,
-				chunk.toString(),
+				chunkName,
 				Strings.traceFor(e));
 			return null;
 		}

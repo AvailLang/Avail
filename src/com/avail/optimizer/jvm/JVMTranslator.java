@@ -54,6 +54,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.*;
@@ -70,10 +71,11 @@ import static org.objectweb.asm.Type.*;
  */
 public final class JVMTranslator
 {
-	/**
-	 * The current {@link L2Chunk chunk} being translated.
-	 */
-	public final L2Chunk chunk;
+	/** The descriptive (non-unique) name of this chunk. */
+	public final String chunkName;
+
+	/** The array of {@link L2Instruction}s to translate to JVM bytecodes. */
+	public final L2Instruction[] instructions;
 
 	/**
 	 * The {@link ClassWriter} responsible for writing the {@link JVMChunk}
@@ -94,15 +96,20 @@ public final class JVMTranslator
 	public final String classInternalName;
 
 	/**
-	 * Construct a new {@code JVMTranslator} to translate the specified
-	 * {@link L2Chunk} to a {@link JVMChunk}.
+	 * Construct a new {@code JVMTranslator} to translate the specified array of
+	 * {@link L2Instruction}s to a {@link JVMChunk}.
 	 *
-	 * @param chunk
-	 *        The source L2Chunk.
+	 * @param chunkName
+	 *        The descriptive (non-unique) name of the chunk being translated.
+	 * @param instructions
+	 *        The source {@link L2Instruction}s.
 	 */
-	public JVMTranslator (final L2Chunk chunk)
+	public JVMTranslator (
+		final String chunkName,
+		final L2Instruction[] instructions)
 	{
-		this.chunk = chunk;
+		this.chunkName = chunkName;
+		this.instructions = instructions.clone();
 		classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
 		className = String.format(
 			"com.avail.optimizer.jvm.generated.JVMChunk_%s",
@@ -129,7 +136,7 @@ public final class JVMTranslator
 	 */
 	private void generateStaticFields ()
 	{
-		for (final L2Instruction instruction : chunk.instructions)
+		for (final L2Instruction instruction : instructions)
 		{
 			final FieldVisitor field = classWriter.visitField(
 				ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
@@ -171,7 +178,6 @@ public final class JVMTranslator
 			getInternalName(JVMChunkClassLoader.class),
 			"parameters",
 			getDescriptor(Object[].class));
-		final L2Instruction[] instructions = chunk.instructions;
 		for (int i = 0, limit = instructions.length; i < limit; i++)
 		{
 			if (i < limit - 1)
@@ -478,7 +484,6 @@ public final class JVMTranslator
 			true);
 		// Create all of the labels that we're going to need for the JVM
 		// tableswitch instruction.
-		final L2Instruction[] instructions = chunk.instructions;
 		instructionLabels = new Label[instructions.length];
 		final Label badOffsetLabel = new Label();
 		for (int i = 0, limit = instructionLabels.length; i < limit; i++)
@@ -555,12 +560,11 @@ public final class JVMTranslator
 	/**
 	 * Answer the generated {@link JVMChunk}.
 	 *
-	 * @return The generated {@code JVMChunk}, or {@code null} if no chunk could
-	 *         be constructed.
+	 * @return The generated {@code JVMChunk}.
 	 */
-	public @Nullable JVMChunk jvmChunk ()
+	public JVMChunk jvmChunk ()
 	{
-		return jvmChunk;
+		return stripNull(jvmChunk);
 	}
 
 	/**
@@ -619,9 +623,9 @@ public final class JVMTranslator
 		}
 		final JVMChunkClassLoader loader = new JVMChunkClassLoader();
 		jvmChunk = loader.newJVMChunkFrom(
-			chunk,
+			chunkName,
 			className,
 			classBytes,
-			chunk.instructions);
+			instructions);
 	}
 }

@@ -59,7 +59,7 @@ public interface ExecutableChunk
 	 * register set from the top reified continuation, but it won't expect a
 	 * return value. These re-entry points should perform validity checks on the
 	 * chunk, allowing an orderly off-ramp into the {@link
-	 * L2Chunk#unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
+	 * L2Chunk#unoptimizedChunk} (which simply interprets the L1 nybblecodes).
 	 *
 	 * @param interpreter
 	 *        An interpreter that is appropriately setup to execute the

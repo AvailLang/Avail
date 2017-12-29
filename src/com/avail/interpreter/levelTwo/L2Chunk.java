@@ -43,19 +43,18 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,11 +70,7 @@ import java.util.logging.Level;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
-import static com.avail.utility.Nulls.stripNull;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -83,30 +78,24 @@ import static java.util.stream.Collectors.toList;
  * A Level Two chunk represents an optimized implementation of a {@linkplain
  * CompiledCodeDescriptor compiled code object}.
  *
- * <p>
- * The chunks are held onto by {@linkplain WeakReference weak references} in a
- * list (keyed by chunk index). When a chunk expires due to not being referred
- * to by any code or continuations, its weak reference is added to a queue from
- * which chunk index recycling takes place.  The weak references also keep track
- * of the contingent methods.  The methods maintain the reverse relation by
- * keeping track of the indices of all chunks that depend on them.  When an
- * method changes (due to a method being added or removed), the dependent chunks
- * can be marked as invalid and eviscerated (to reclaim memory).  When an
- * attempt is made to use an invalidated chunk by invoking a compiled code
- * object or returning into a continuation, the reference to the chunk is
- * replaced by a reference to the default chunk (and a continuation gets its
- * offset set to the level one dispatch loop).  When all references to the chunk
- * have been so replaced, the chunk's weak reference will appear on the
- * ReferenceQueue, allowing the index to be recycled.
- * </p>
+ * <p>An {@link A_RawFunction} refers to the L2Chunk that it should run in its
+ * place.  An {@link A_Continuation} also refers to the L2Chunk that allows the
+ * continuation to be returned into, restarted, or resumed after an interrupt.
+ * The {@link Generation} mechanism maintains approximate age information of
+ * chunks, in particular how long it has been since a chunk was last used, so
+ * that the least recently used chunks can be evicted when there are too many
+ * chunks in memory.</p>
  *
- * <p>
- * Eventually we can limit the number of valid chunks by linking the weak
- * references together into an LRU ring.  When adding a new chunk to a "full"
- * ring, the oldest element can simply be invalidated, removing it from the
- * ring.  The level two interpreter is already instrumented to call
- * moveToHead() at appropriate times.
- * </p>
+ * <p>A chunk also keeps track of the methods that it depends on, and the
+ * methods keep track of which chunks depend on them.  New method definitions
+ * can be added – or existing ones removed – only while all fiber execution is
+ * paused.  At this time, the chunks that depend on the changed method are
+ * marked as invalid.  Each {@link A_RawFunction} associated (1:1) with an
+ * invalidated chunk has its {@link A_RawFunction#startingChunk()} reset to the
+ * default chunk.  Existing continuations may still be referring to the invalid
+ * chunk – but not Java call frames, since all fibers are paused.  When resuming
+ * a continuation, its chunk's validity is immediately checked, and if it's
+ * invalid, the default chunk is resumed at a suitable entry point instead.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -653,6 +642,10 @@ implements ExecutableChunk
 		final L2ControlFlowGraph controlFlowGraph,
 		final A_Set contingentValues)
 	{
+		final JVMTranslator jvmTranslator = new JVMTranslator(
+			code == null ? "DEFAULT" : code.methodName().asNativeString(),
+			theInstructions.toArray(new L2Instruction[theInstructions.size()]));
+		jvmTranslator.translate();
 		final L2Chunk chunk = new L2Chunk(
 			code,
 			numObjects,
@@ -661,7 +654,8 @@ implements ExecutableChunk
 			offsetAfterInitialTryPrimitive,
 			theInstructions,
 			controlFlowGraph,
-			contingentValues);
+			contingentValues,
+			jvmTranslator.jvmChunk());
 		final boolean codeNotNull = code != null;
 		if (codeNotNull)
 		{
@@ -700,6 +694,8 @@ implements ExecutableChunk
 	 *        prior to conversion from SSA to support inlining.
 	 * @param contingentValues
 	 *        The set of contingent {@link A_ChunkDependable}.
+	 * @param executableChunk
+	 *        The {@link JVMChunk} permanently associated with this L2Chunk.
 	 */
 	private L2Chunk (
 		final @Nullable A_RawFunction code,
@@ -709,7 +705,8 @@ implements ExecutableChunk
 		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> instructions,
 		final L2ControlFlowGraph controlFlowGraph,
-		final A_Set contingentValues)
+		final A_Set contingentValues,
+		final JVMChunk executableChunk)
 	{
 		// A new chunk starts out valid.
 		this.valid = true;
@@ -722,6 +719,7 @@ implements ExecutableChunk
 			new L2Instruction[instructions.size()]);
 		this.controlFlowGraph = controlFlowGraph;
 		this.contingentValues = contingentValues;
+		this.executableChunk = executableChunk;
 	}
 
 	/**
@@ -878,6 +876,7 @@ implements ExecutableChunk
 		{
 			instruction.setAction();
 		}
+
 		final L2Chunk defaultChunk = L2Chunk.allocate(
 			null,
 			0,
@@ -896,10 +895,6 @@ implements ExecutableChunk
 			== TO_RETURN_INTO.offsetInDefaultChunk;
 		assert reenterFromInterruptBlock.offset()
 			== TO_RESUME.offsetInDefaultChunk;
-
-		final JVMTranslator jvmTranslator = new JVMTranslator(defaultChunk);
-		jvmTranslator.translate();
-		defaultChunk.executableChunk = jvmTranslator.jvmChunk();
 
 		return defaultChunk;
 	}
