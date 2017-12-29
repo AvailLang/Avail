@@ -39,6 +39,9 @@ import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Method;
+
 /**
  * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
  * Machine. It is produced by a {@link JVMTranslator} on behalf of an {@link
@@ -81,5 +84,71 @@ implements ExecutableChunk
 			"String bad offset %d (valid: 0-%d)",
 			offset,
 			max));
+	}
+
+	/**
+	 * Answer the L1 source code for the specified {@link JVMChunk}, if any is
+	 * available.
+	 *
+	 * @param chunk
+	 *        The {@code JVMChunk}.
+	 * @return The L1 source, or {@code null} if no source is available.
+	 */
+	public static @Nullable String l1Source (final JVMChunk chunk)
+	{
+		try
+		{
+			final Class<? extends JVMChunk> cl = chunk.getClass();
+			final Method m = cl.getMethod("runChunk", Interpreter.class);
+			final JVMChunkL1Source an = m.getAnnotation(JVMChunkL1Source.class);
+			return String.join("", an.source());
+		}
+		catch (final Throwable e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Answer the L1 source code, if any is available.
+	 *
+	 * @return The L1 source, or {@code null} if no source is available.
+	 */
+	public @Nullable String l1Source ()
+	{
+		return l1Source(this);
+	}
+
+	/**
+	 * Answer the L2 source code for the specified {@link JVMChunk}, if any is
+	 * available.
+	 *
+	 * @param chunk
+	 *        The {@code JVMChunk}.
+	 * @return The L2 source, or {@code null} if no source is available.
+	 */
+	public static @Nullable String l2Source (final JVMChunk chunk)
+	{
+		try
+		{
+			final Class<? extends JVMChunk> cl = chunk.getClass();
+			final Method m = cl.getMethod("runChunk", Interpreter.class);
+			final JVMChunkL2Source an = m.getAnnotation(JVMChunkL2Source.class);
+			return String.join("", an.source());
+		}
+		catch (final Throwable e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Answer the L2 source code, if any is available.
+	 *
+	 * @return The L2 source, or {@code null} if no source is available.
+	 */
+	public @Nullable String l2Source ()
+	{
+		return l2Source(this);
 	}
 }

@@ -117,7 +117,7 @@ implements ExecutableChunk
 	 * The optimized, non-SSA {@link L2ControlFlowGraph} from which the chunk
 	 * was created.  Useful for debugging.
 	 */
-	final L2ControlFlowGraph controlFlowGraph;
+	public final L2ControlFlowGraph controlFlowGraph;
 
 	/** The code that was translated to L2.  Null for the default (L1) chunk. */
 	final @Nullable A_RawFunction code;
@@ -897,7 +897,8 @@ implements ExecutableChunk
 		assert reenterFromInterruptBlock.offset()
 			== TO_RESUME.offsetInDefaultChunk;
 
-		final JVMTranslator jvmTranslator = new JVMTranslator(defaultChunk);
+		final JVMTranslator jvmTranslator =
+			new JVMTranslator(null, defaultChunk);
 		jvmTranslator.translate();
 		defaultChunk.executableChunk = jvmTranslator.jvmChunk();
 

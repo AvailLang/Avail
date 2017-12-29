@@ -32,13 +32,16 @@
 
 package com.avail.optimizer.jvm;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -50,10 +53,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.IdentityHashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
 import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static java.lang.Math.min;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.*;
@@ -70,6 +75,11 @@ import static org.objectweb.asm.Type.*;
  */
 public final class JVMTranslator
 {
+	/**
+	 * The source {@link A_RawFunction L1 code}.
+	 */
+	public final @Nullable A_RawFunction code;
+
 	/**
 	 * The current {@link L2Chunk chunk} being translated.
 	 */
@@ -97,11 +107,17 @@ public final class JVMTranslator
 	 * Construct a new {@code JVMTranslator} to translate the specified
 	 * {@link L2Chunk} to a {@link JVMChunk}.
 	 *
+	 * @param code
+	 *        The source {@linkplain A_RawFunction L1 code}, or {@code null} for
+	 *        the {@linkplain L2Chunk#unoptimizedChunk unoptimized chunk}.
 	 * @param chunk
-	 *        The source L2Chunk.
+	 *        The source {@code L2Chunk}.
 	 */
-	public JVMTranslator (final L2Chunk chunk)
+	public JVMTranslator (
+		final @Nullable A_RawFunction code,
+		final L2Chunk chunk)
 	{
+		this.code = code;
 		this.chunk = chunk;
 		classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
 		className = String.format(
@@ -473,6 +489,50 @@ public final class JVMTranslator
 			0,
 			getDescriptor(Nonnull.class),
 			true);
+		if (debugDumpClassBytesToFiles)
+		{
+			// Note that we have to break the sources up if they are too large
+			// for the constant pool.
+			if (code != null)
+			{
+				final StringBuilder disassembly = new StringBuilder();
+				L1Disassembler.disassemble(
+					code, disassembly, new IdentityHashMap<>(), 0);
+				final AnnotationVisitor annotation = method.visitAnnotation(
+					getDescriptor(JVMChunkL1Source.class),
+					true);
+				final AnnotationVisitor array = annotation.visitArray("source");
+				for (
+					int i = 0, limit = disassembly.length();
+					i < limit;
+					i += 32767)
+				{
+					final int len = min(32767, limit - i);
+					array.visit(
+						null,
+						disassembly.substring(i, i + len));
+				}
+				array.visitEnd();
+				annotation.visitEnd();
+			}
+			final String transcript = chunk.controlFlowGraph.toString();
+			final AnnotationVisitor annotation = method.visitAnnotation(
+				getDescriptor(JVMChunkL2Source.class),
+				true);
+			final AnnotationVisitor array = annotation.visitArray("source");
+			for (
+				int i = 0, limit = transcript.length();
+				i < limit;
+				i += 32767)
+			{
+				final int len = min(32767, limit - i);
+				array.visit(
+					null,
+					transcript.substring(i, i + len));
+			}
+			array.visitEnd();
+			annotation.visitEnd();
+		}
 		method.visitAnnotation(
 			getDescriptor(Nullable.class),
 			true);

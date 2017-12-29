@@ -287,10 +287,6 @@ public final class L2Translator
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,
 			interpreter.interpreterIndex);
-
-		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
-		jvmTranslator.translate();
-		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
 
 	/** Statistics about the naive L1 to L2 translation. */
@@ -352,7 +348,7 @@ public final class L2Translator
 			translator.contingentValues.setSize(),
 			interpreter.interpreterIndex);
 
-		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
+		final JVMTranslator jvmTranslator = new JVMTranslator(code, chunk);
 		jvmTranslator.translate();
 		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
