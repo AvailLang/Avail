@@ -32,6 +32,10 @@
 
 package com.avail.utility;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Formatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -238,5 +242,31 @@ public final class Strings
 			.matcher(originalString)
 			.replaceAll(
 				Matcher.quoteReplacement("\n" + tabs(increasedIndentation)));
+	}
+
+	/**
+	 * Answer the stringification of the {@linkplain StackTraceElement stack
+	 * trace} for the specified {@linkplain Throwable exception}.
+	 *
+	 * @param e
+	 *        A {@link Throwable}.
+	 * @return The stringification of the stack trace.
+	 */
+	public static String traceFor (final Throwable e)
+	{
+		try
+		{
+			final ByteArrayOutputStream traceBytes =
+				new ByteArrayOutputStream();
+			@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
+			final PrintStream trace = new PrintStream(
+				traceBytes, true, StandardCharsets.UTF_8.name());
+			return new String(traceBytes.toByteArray(), StandardCharsets.UTF_8);
+		}
+		catch (final UnsupportedEncodingException x)
+		{
+			assert false : "This never happens!";
+			throw new RuntimeException(x);
+		}
 	}
 }

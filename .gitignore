@@ -1,6 +1,7 @@
 /.apt_generated
 /.metadata
 /bin
+/debug
 /.cdtproject
 /.classpath
 /.settings

@@ -259,6 +259,10 @@ public final class Interpreter
 		Logger.getLogger(Interpreter.class.getCanonicalName() + ".debugL2");
 
 	/** A {@linkplain Logger logger}. */
+	public static final Logger loggerDebugJVM =
+		Logger.getLogger(Interpreter.class.getCanonicalName() + ".debugJVM");
+
+	/** A {@linkplain Logger logger}. */
 	private static final Logger loggerDebugPrimitives =
 		Logger.getLogger(
 			Interpreter.class.getCanonicalName() + ".debugPrimitives");
@@ -273,6 +277,7 @@ public final class Interpreter
 		mainLogger.setLevel(level);
 		loggerDebugL1.setLevel(level);
 		loggerDebugL2.setLevel(level);
+		loggerDebugJVM.setLevel(level);
 		loggerDebugPrimitives.setLevel(level);
 	}
 
@@ -1863,55 +1868,13 @@ public final class Interpreter
 	{
 		adjustUnreifiedCallDepthBy(1);
 		assert !exitNow;
-		while (!returnNow)
+		@Nullable StackReifier reifier = null;
+		while (!returnNow && !exitNow && reifier == null)
 		{
-			final L2Instruction instruction =
-				stripNull(chunk).instructions[offset++];
-			if (Interpreter.debugL2)
-			{
-				log(
-					loggerDebugL2,
-					Level.FINER,
-					"{0}L2 start[#{1}]: {2}",
-					debugModeString,
-					offset - 1,
-					instruction.operation.debugNameIn(instruction));
-			}
-
-			final long nanosToExcludeBeforeStep = nanosToExclude;
-			final long timeBefore = System.nanoTime();
-			final @Nullable StackReifier reifier =
-				instruction.action.value(this);
-			// Even though some primitives may suspend the current fiber, the
-			// code still returns here after suspending.  Close enough.  Also,
-			// this chunk may call other chunks (on the Java stack), so we have
-			// to subtract out the cost of other instructions executed during
-			// this one... and count this instruction's *total* execution time
-			// as something to be subtracted from any outer instructions.
-			final long deltaTime = System.nanoTime() - timeBefore;
-			final long exclude = nanosToExclude - nanosToExcludeBeforeStep;
-			instruction.operation.statisticInNanoseconds.record(
-				deltaTime - exclude, interpreterIndex);
-			nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
-			final boolean isReifying = reifier != null;
-			if (Interpreter.debugL2)
-			{
-				log(
-					loggerDebugL2,
-					Level.FINER,
-					"{0}L2 end{1}: {2}",
-					debugModeString,
-					isReifying ? "-for-reify" : "",
-					instruction.operation.debugNameIn(instruction));
-			}
-			if (isReifying)
-			{
-				adjustUnreifiedCallDepthBy(-1);
-				return reifier;
-			}
+			reifier = stripNull(chunk).runChunk(this);
 		}
 		adjustUnreifiedCallDepthBy(-1);
-		return null;
+		return reifier;
 	}
 
 	/**

@@ -36,12 +36,18 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -90,5 +96,42 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitInsn(POP);
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		// Check to see if the chunk has become the unoptimized chunk. If so,
+		// then return into the interpreter. The interpreter should loop
+		// immediately, calling into the unoptimized chunk.
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(L2Chunk.class),
+			"unoptimizedChunk",
+			getDescriptor(L2Chunk.class));
+		final Label continueLabel = new Label();
+		method.visitJumpInsn(IF_ACMPNE, continueLabel);
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
 	}
 }

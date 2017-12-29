@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 
@@ -82,7 +83,7 @@ extends A_BasicObject
 	 *        reoptimizing this function implementation in the event that the
 	 *        countdown reaches zero ({@code 0}).
 	 */
-	void decrementCountdownToReoptimize (Continuation0 continuation);
+	void decrementCountdownToReoptimize (Continuation1NotNull<Boolean> continuation);
 
 	/**
 	 * Answer the {@linkplain FunctionTypeDescriptor function type} associated

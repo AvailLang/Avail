@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -39,12 +42,22 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.utility.Nulls;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the reification clause of the current {@link L2Chunk}.  This
@@ -110,5 +123,25 @@ public class L2_RETURN_FROM_REIFICATION_HANDLER extends L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return false;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
 	}
 }

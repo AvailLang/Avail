@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
@@ -44,12 +45,17 @@ import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +66,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
@@ -68,6 +75,7 @@ import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -76,20 +84,20 @@ import static java.util.stream.Collectors.toList;
  * CompiledCodeDescriptor compiled code object}.
  *
  * <p>
- * The chunks are held onto by weak references in a list (keyed by chunk index).
- * When a chunk expires due to not being referred to by any code or
- * continuations, its weak reference is added to a queue from which chunk index
- * recycling takes place.  The weak references also keep track of the contingent
- * methods.  The methods maintain the reverse relation
- * by keeping track of the indices of all chunks that depend on them.  When an
- * method changes (due to a method being added or removed), the
- * dependent chunks can be marked as invalid and eviscerated (to reclaim
- * memory).  When an attempt is made to use an invalidated chunk by invoking a
- * compiled code object or returning into a continuation, the reference to the
- * chunk is replaced by a reference to the default chunk (and a continuation
- * gets its offset set to the level one dispatch loop).  When all references to
- * the chunk have been so replaced, the chunk's weak reference will appear on
- * the ReferenceQueue, allowing the index to be recycled.
+ * The chunks are held onto by {@linkplain WeakReference weak references} in a
+ * list (keyed by chunk index). When a chunk expires due to not being referred
+ * to by any code or continuations, its weak reference is added to a queue from
+ * which chunk index recycling takes place.  The weak references also keep track
+ * of the contingent methods.  The methods maintain the reverse relation by
+ * keeping track of the indices of all chunks that depend on them.  When an
+ * method changes (due to a method being added or removed), the dependent chunks
+ * can be marked as invalid and eviscerated (to reclaim memory).  When an
+ * attempt is made to use an invalidated chunk by invoking a compiled code
+ * object or returning into a continuation, the reference to the chunk is
+ * replaced by a reference to the default chunk (and a continuation gets its
+ * offset set to the level one dispatch loop).  When all references to the chunk
+ * have been so replaced, the chunk's weak reference will appear on the
+ * ReferenceQueue, allowing the index to be recycled.
  * </p>
  *
  * <p>
@@ -103,6 +111,7 @@ import static java.util.stream.Collectors.toList;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class L2Chunk
+implements ExecutableChunk
 {
 	/**
 	 * The optimized, non-SSA {@link L2ControlFlowGraph} from which the chunk
@@ -716,6 +725,67 @@ public final class L2Chunk
 	}
 
 	/**
+	 * An {@link ExecutableChunk} that implements the logic of this {@link
+	 * L2Chunk} more directly, and should be executed instead by {@link
+	 * #runChunk(Interpreter)}.
+	 */
+	public @Nullable ExecutableChunk executableChunk;
+
+	@Override
+	public @Nullable StackReifier runChunk (final Interpreter interpreter)
+	{
+		final @Nullable StackReifier reifier;
+		if (executableChunk != null)
+		{
+			// If there's an ExecutableChunk that implements our logic, then
+			// execute it instead.
+			reifier = executableChunk.runChunk(interpreter);
+		}
+		else
+		{
+			final L2Instruction instruction =
+				instructions[interpreter.offset++];
+			if (Interpreter.debugL2)
+			{
+				Interpreter.log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}L2 start[#{1}]: {2}",
+					interpreter.debugModeString,
+					interpreter.offset - 1,
+					instruction.operation.debugNameIn(instruction));
+			}
+
+			final long nanosToExcludeBeforeStep = interpreter.nanosToExclude;
+			final long timeBefore = System.nanoTime();
+			reifier = instruction.runAction(interpreter);
+			// Even though some primitives may suspend the current fiber, the
+			// code still returns here after suspending.  Close enough.  Also,
+			// this chunk may call other chunks (on the Java stack), so we have
+			// to subtract out the cost of other instructions executed during
+			// this one... and count this instruction's *total* execution time
+			// as something to be subtracted from any outer instructions.
+			final long deltaTime = System.nanoTime() - timeBefore;
+			final long exclude =
+				interpreter.nanosToExclude - nanosToExcludeBeforeStep;
+			instruction.operation.statisticInNanoseconds.record(
+				deltaTime - exclude, interpreter.interpreterIndex);
+			interpreter.nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
+			if (Interpreter.debugL2)
+			{
+				Interpreter.log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}L2 end{1}: {2}",
+					interpreter.debugModeString,
+					reifier != null ? "-for-reify" : "",
+					instruction.operation.debugNameIn(instruction));
+			}
+		}
+		return reifier;
+	}
+
+	/**
 	 * Something that this {@code L2Chunk} depended on has changed. This must
 	 * have been because it was optimized in a way that relied on some aspect of
 	 * the available definitions (e.g., monomorphic inlining), so we need to
@@ -826,6 +896,10 @@ public final class L2Chunk
 			== TO_RETURN_INTO.offsetInDefaultChunk;
 		assert reenterFromInterruptBlock.offset()
 			== TO_RESUME.offsetInDefaultChunk;
+
+		final JVMTranslator jvmTranslator = new JVMTranslator(defaultChunk);
+		jvmTranslator.translate();
+		defaultChunk.executableChunk = jvmTranslator.jvmChunk();
 
 		return defaultChunk;
 	}

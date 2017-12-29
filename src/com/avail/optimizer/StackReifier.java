@@ -122,8 +122,8 @@ public final class StackReifier
 	}
 
 	/**
-	 * Answer whether this throwable should cause reification (rather than just
-	 * clearing the Java stack).
+	 * Answer whether this {@link StackReifier} should cause reification (rather
+	 * than just clearing the Java stack).
 	 */
 	public boolean actuallyReify ()
 	{
@@ -181,8 +181,8 @@ public final class StackReifier
 	 * Answer the {@link Continuation0} that should be executed after all frames
 	 * have been reified.
 	 *
-	 * @return The post-reification action, captured when this throwable was
-	 *         created.
+	 * @return The post-reification action, captured when this
+	 *         {@link StackReifier} was created.
 	 */
 	public Continuation0 postReificationAction ()
 	{

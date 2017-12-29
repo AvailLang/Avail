@@ -2081,7 +2081,7 @@ implements
 
 	@Override
 	public void decrementCountdownToReoptimize (
-		final Continuation0 continuation)
+		final Continuation1NotNull<Boolean> continuation)
 	{
 		descriptor.o_DecrementCountdownToReoptimize(this, continuation);
 	}

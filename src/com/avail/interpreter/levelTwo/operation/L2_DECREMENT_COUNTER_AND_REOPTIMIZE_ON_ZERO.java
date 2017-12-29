@@ -40,12 +40,18 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.optimizer.L2Translator.OptimizationLevel
 	.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
@@ -73,14 +79,17 @@ extends L2Operation
 		{
 			final A_Function function = stripNull(interpreter.function);
 			final A_RawFunction code = function.code();
-			code.decrementCountdownToReoptimize(() ->
+			code.decrementCountdownToReoptimize(optimize ->
 			{
-				code.countdownToReoptimize(
-					L2Chunk.countdownForNewlyOptimizedCode());
-				L2Translator.translateToLevelTwo(
-					code,
-					optimizationLevel(targetOptimizationLevel),
-					interpreter);
+				if (optimize)
+				{
+					code.countdownToReoptimize(
+						L2Chunk.countdownForNewlyOptimizedCode());
+					L2Translator.translateToLevelTwo(
+						code,
+						optimizationLevel(targetOptimizationLevel),
+						interpreter);
+				}
 				final L2Chunk chunk = stripNull(code.startingChunk());
 				interpreter.chunk = chunk;
 				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
@@ -93,5 +102,43 @@ extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		final int savedChunkLocal = translator.nextLocal(false);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		method.visitVarInsn(ASTORE, savedChunkLocal);
+		translator.generateRunAction(method, instruction);
+		method.visitInsn(POP);
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, savedChunkLocal);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		final Label continueLabel = new Label();
+		method.visitJumpInsn(IF_ACMPEQ, continueLabel);
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
 	}
 }

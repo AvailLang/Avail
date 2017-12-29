@@ -43,12 +43,19 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the object equals the constant.
@@ -154,5 +161,51 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 	{
 		final AvailObject constant = instruction.constantAt(1);
 		return name() + "(const=" + constant.typeTag() + ")";
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int valueRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+//		final A_BasicObject constant = instruction.constantAt(1);
+		final int ifEqual = instruction.pcOffsetAt(2);
+		final int ifUnequal = instruction.pcOffsetAt(3);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, valueRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitFieldInsn(
+			GETSTATIC,
+			translator.classInternalName,
+			instructionFieldName(instruction),
+			getDescriptor(instruction.getClass()));
+		emitIntConstant(method,1);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(L2Instruction.class),
+			"constantAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_BasicObject.class),
+			"equals",
+			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
+			true);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[ifEqual]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[ifUnequal]);
 	}
 }

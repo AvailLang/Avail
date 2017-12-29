@@ -32,17 +32,28 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Jump to the target if the object is numerically greater than the constant.
@@ -84,5 +95,14 @@ public class L2_JUMP_IF_GREATER_THAN_CONSTANT extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

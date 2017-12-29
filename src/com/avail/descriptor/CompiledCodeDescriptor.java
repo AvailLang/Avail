@@ -630,7 +630,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
-		final Continuation0 continuation)
+		final Continuation1NotNull<Boolean> continuation)
 	{
 		final InvocationStatistic invocationStatistic =
 			getInvocationStatistic(object);
@@ -648,10 +648,8 @@ extends Descriptor
 				// reoptimized, the counter was reset to something positive,
 				// but it has already been decremented back below zero.
 				// Either way, reoptimize now.
-				if (invocationStatistic.countdownToReoptimize.get() <= 0)
-				{
-					continuation.value();
-				}
+				continuation.value(
+					invocationStatistic.countdownToReoptimize.get() <= 0);
 			}
 		}
 	}

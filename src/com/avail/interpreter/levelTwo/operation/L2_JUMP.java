@@ -39,10 +39,14 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.GOTO;
 
 /**
  * Unconditionally jump to the level two offset in my only operand.
@@ -102,5 +106,17 @@ public class L2_JUMP extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.pcAt(0);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int offset = instruction.pcOffsetAt(0);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[offset]);
 	}
 }

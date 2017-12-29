@@ -45,11 +45,19 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.INT_TYPE;
 
 /**
  * Jump to the target if the object is an instance of the constant type.
@@ -175,5 +183,51 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	{
 		final AvailObject constant = instruction.constantAt(1);
 		return name() + "(const type=" + constant.typeTag() + ")";
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int valueRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+//		final A_Type type = instruction.constantAt(1);
+		final int isKindIndex = instruction.pcOffsetAt(2);
+		final int notKindIndex = instruction.pcOffsetAt(3);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, valueRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitFieldInsn(
+			GETSTATIC,
+			translator.classInternalName,
+			instructionFieldName(instruction),
+			getDescriptor(instruction.getClass()));
+		emitIntConstant(method,1);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(L2Instruction.class),
+			"constantAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_BasicObject.class),
+			"isInstanceOf",
+			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
+			true);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[isKindIndex]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[notKindIndex]);
 	}
 }

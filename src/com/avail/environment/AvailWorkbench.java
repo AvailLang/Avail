@@ -62,7 +62,6 @@ import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.sun.javafx.application.PlatformImpl;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -1197,6 +1196,17 @@ extends JFrame
 	 */
 	@InnerAccess final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
 		new ToggleDebugInterpreterPrimitives(this);
+
+	/** The {@linkplain ToggleRecordL2InstructionTimingsInJVM toggle JVM debug action}. */
+	@InnerAccess
+	final ToggleRecordL2InstructionTimingsInJVM
+		toggleRecordL2InstructionTimingsInJVM =
+			new ToggleRecordL2InstructionTimingsInJVM(this);
+
+	/** The {@linkplain ToggleDebugDumpJVM toggle JVM dump debug action}. */
+	@InnerAccess
+	final ToggleDebugDumpJVM toggleDebugDumpJVM =
+		new ToggleDebugDumpJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
@@ -2812,6 +2822,10 @@ extends JFrame
 						new JCheckBoxMenuItem(toggleDebugL1),
 						new JCheckBoxMenuItem(toggleDebugL2),
 						new JCheckBoxMenuItem(toggleDebugPrimitives),
+						null,
+						new JCheckBoxMenuItem(
+							toggleRecordL2InstructionTimingsInJVM),
+						new JCheckBoxMenuItem(toggleDebugDumpJVM),
 						null,
 					parserIntegrityCheckAction, null,
 					graphAction));

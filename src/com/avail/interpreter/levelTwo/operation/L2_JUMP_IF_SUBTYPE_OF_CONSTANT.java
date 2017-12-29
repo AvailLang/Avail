@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -44,12 +45,21 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Conditionally jump, depending on whether the type to check is a subtype of
@@ -182,5 +192,51 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int typeRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+//		final A_Type constantType = instruction.constantAt(1);
+		final int isSubtypeIndex = instruction.pcOffsetAt(2);
+		final int notSubtypeIndex = instruction.pcOffsetAt(3);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, typeRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitFieldInsn(
+			GETSTATIC,
+			translator.classInternalName,
+			instructionFieldName(instruction),
+			getDescriptor(instruction.getClass()));
+		emitIntConstant(method,1);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(L2Instruction.class),
+			"constantAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Type.class),
+			"isSubtypeOf",
+			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
+			true);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[isSubtypeIndex]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[notSubtypeIndex]);
 	}
 }

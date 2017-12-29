@@ -48,6 +48,7 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 
 import javax.annotation.Nullable;
@@ -286,6 +287,10 @@ public final class L2Translator
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,
 			interpreter.interpreterIndex);
+
+		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
+		jvmTranslator.translate();
+		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
 
 	/** Statistics about the naive L1 to L2 translation. */
@@ -334,17 +339,22 @@ public final class L2Translator
 			code, optimizationLevel, interpreter);
 
 		translator.translate();
+		final L2Chunk chunk = translator.chunk();
 		interpreter.function = savedFunction;
 		interpreter.argsBuffer.clear();
 		interpreter.argsBuffer.addAll(savedArguments);
 		interpreter.skipReturnCheck = savedSkip;
 		interpreter.latestResult(savedFailureValue);
 		translationSizeStat.record(
-			translator.chunk().instructions.length,
+			chunk.instructions.length,
 			interpreter.interpreterIndex);
 		translationDependenciesStat.record(
 			translator.contingentValues.setSize(),
 			interpreter.interpreterIndex);
+
+		final JVMTranslator jvmTranslator = new JVMTranslator(chunk);
+		jvmTranslator.translate();
+		chunk.executableChunk = jvmTranslator.jvmChunk();
 	}
 
 	/** Statistic for number of instructions in L2 translations. */

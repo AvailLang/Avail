@@ -38,14 +38,17 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.POP;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -132,5 +135,32 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(5);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+//		final int callerRegIndex =
+//			instruction.readObjectRegisterAt(0).finalIndex();
+//		final int functionRegIndex =
+//			instruction.readObjectRegisterAt(1).finalIndex();
+//		final int levelOnePC = instruction.immediateAt(2);
+//		final int levelOneStackp = instruction.immediateAt(3);
+//		final int skipReturnRegIndex =
+//			instruction.readIntRegisterAt(4).finalIndex();
+//		final List<L2ReadPointerOperand> slots =
+//			instruction.readVectorRegisterAt(5);
+//		final int destRegIndex =
+//			instruction.writeObjectRegisterAt(6).finalIndex();
+//		final int onRampOffset = instruction.pcOffsetAt(7);
+		final int fallThroughOffset = instruction.pcOffsetAt(8);
+
+		super.translateToJVM(translator, method, instruction);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[fallThroughOffset]);
 	}
 }

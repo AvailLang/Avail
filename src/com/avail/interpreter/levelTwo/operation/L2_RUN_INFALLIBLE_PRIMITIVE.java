@@ -45,7 +45,10 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +57,8 @@ import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ARETURN;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -104,18 +109,18 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(argumentRegNumber));
 			}
-			// Only primitive 340 is infallible and yet needs the function, and
-			// it's always folded.  In the case that primitive 340 is known to
-			// produce the wrong type at some site (potentially dead code due to
-			// inlining of an unreachable branch), it is converted to an
-			// explicit failure instruction.  Thus we can pass null.  Note also
-			// that primitives which have to suspend the fiber (to perform a
-			// level one unsafe operation and then switch back to level one safe
-			// mode) must *never* be inlined, otherwise they couldn't reach a
-			// safe inter-nybblecode position.  Also, the skipReturnCheck flag
-			// doesn't come into play for infallible primitives, since we would
-			// check it after it runs -- but this is the no-check version
-			// anyhow, so we don't check it at all.
+			// Only primitive P_PushConstant is infallible and yet needs the
+			// function, and it's always folded.  In the case that
+			// P_PushConstant is known to produce the wrong type at some site
+			// (potentially dead code due to inlining of an unreachable branch),
+			// it is converted to an explicit failure instruction.  Thus we can
+			// pass null.  Note also that primitives which have to suspend the
+			// fiber (to perform a level one unsafe operation and then switch
+			// back to level one safe mode) must *never* be inlined, otherwise
+			// they couldn't reach a safe inter-nybblecode position.  Also, the
+			// skipReturnCheck flag doesn't come into play for infallible
+			// primitives, since we would check it after it runs -- but this is
+			// the no-check version anyhow, so we don't check it at all.
 			final A_Function savedFunction = stripNull(interpreter.function);
 			// Eligible primitives MUST NOT access this.
 			interpreter.function = null;
@@ -218,5 +223,28 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(1);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final Primitive primitive = instruction.primitiveAt(0);
+//		final List<L2ReadPointerOperand> argumentRegs =
+//			instruction.readVectorRegisterAt(1);
+//		final int resultRegNumber =
+//			instruction.writeObjectRegisterAt(2).finalIndex();
+
+		super.translateToJVM(translator, method, instruction);
+		if (primitive.hasFlag(Flag.SwitchesContinuation))
+		{
+			// If the primitive can switch continuation, then we should return
+			// to our caller to force any updates to the chunk and offset to
+			// take effect.
+			method.visitInsn(ACONST_NULL);
+			method.visitInsn(ARETURN);
+		}
 	}
 }

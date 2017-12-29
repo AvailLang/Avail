@@ -2251,7 +2251,7 @@ extends AbstractDescriptor
 	@Override
 	void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
-		final Continuation0 continuation)
+		final Continuation1NotNull<Boolean> continuation)
 	{
 		o_Traversed(object).decrementCountdownToReoptimize(continuation);
 	}

@@ -39,9 +39,15 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Use the {@link Interpreter#levelOneStepper} to execute the Level One
@@ -110,5 +116,40 @@ extends L2Operation
 		// Keep this instruction from being removed, since it's only used
 		// by the default chunk.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		final Label checkReturnNowLabel = new Label();
+		method.visitJumpInsn(IFNULL, checkReturnNowLabel);
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
+		method.visitLabel(checkReturnNowLabel);
+		final Label continueLabel = new Label();
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"returnNow",
+			BOOLEAN_TYPE.getDescriptor());
+		method.visitJumpInsn(IFEQ, continueLabel);
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
 	}
 }

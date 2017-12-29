@@ -43,13 +43,21 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.logging.Level;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Expect the AvailObject (pointers) array and int array to still reflect the
@@ -256,16 +264,15 @@ extends L2Operation
 					}
 					case FIBER_SUSPENDED:
 					{
-						// Set the exitNow flag to ensure the interpreter will
-						// wind down correctly.  It should be in a state where
-						// all frames have been reified, so returnNow would be
-						// unnecessary.
+						// The exitNow flag is set to ensure the interpreter
+						// will wind down correctly.  It should be in a state
+						// where all frames have been reified, so returnNow
+						// would be unnecessary.
 						assert interpreter.exitNow;
 						interpreter.returnNow = false;
 						break;
 					}
 				}
-
 			});
 	}
 
@@ -284,5 +291,67 @@ extends L2Operation
 	{
 		// It could fail and jump.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		final int savedChunkLocal = translator.nextLocal(false);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, instruction.offset() + 1);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"offset",
+			INT_TYPE.getDescriptor());
+		method.visitVarInsn(ASTORE, savedChunkLocal);
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		final Label checkReturnNowLabel = new Label();
+		method.visitJumpInsn(IFNULL, checkReturnNowLabel);
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
+		method.visitLabel(checkReturnNowLabel);
+		final Label checkChunkChangedLabel = new Label();
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"returnNow",
+			BOOLEAN_TYPE.getDescriptor());
+		method.visitJumpInsn(IFEQ, checkChunkChangedLabel);
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
+		method.visitLabel(checkChunkChangedLabel);
+		final Label continueLabel = new Label();
+		method.visitVarInsn(ALOAD, savedChunkLocal);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		method.visitJumpInsn(IF_ACMPEQ, continueLabel);
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
 	}
 }

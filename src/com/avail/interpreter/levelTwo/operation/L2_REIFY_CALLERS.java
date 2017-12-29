@@ -40,13 +40,20 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMCodeGenerationUtility;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Throw a {@link StackReifier}, which unwinds the Java stack to the
@@ -137,5 +144,34 @@ public class L2_REIFY_CALLERS extends L2Operation
 		// instruction from being re-ordered to a place where the interpreter's
 		// top reified continuation is no longer the right one.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		// This instruction unconditionally requests reification, so we don't
+		// need to conditionalize the areturn.
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, instruction.offset() + 1);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"offset",
+			INT_TYPE.getDescriptor());
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
 	}
 }

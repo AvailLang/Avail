@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -43,12 +44,18 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Branch based on whether the two values are equal to each other.
@@ -169,5 +176,48 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int firstRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int secondRegisterIndex =
+			instruction.readObjectRegisterAt(1).finalIndex();
+		final int ifEqualIndex = instruction.pcOffsetAt(2);
+		final int notEqualIndex = instruction.pcOffsetAt(3);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, firstRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, secondRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_BasicObject.class),
+			"equals",
+			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
+			true);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[ifEqualIndex]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[notEqualIndex]);
 	}
 }

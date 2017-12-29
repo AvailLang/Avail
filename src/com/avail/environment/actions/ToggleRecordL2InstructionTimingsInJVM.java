@@ -1,5 +1,5 @@
-/**
- * L2_JUMP_IF_LESS_THAN_CONSTANT.java
+/*
+ * ToggleRecordL2InstructionTimingsInJVM.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,70 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.environment.actions;
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.StackReifier;
+import com.avail.environment.AvailWorkbench;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.awt.event.ActionEvent;
 
 /**
- * Jump to the target if the object is numerically less than the constant.
+ * A {@code ToggleRecordL2InstructionTimingsInJVM} toggles the flag that
+ * indicates whether to write debug information about JVM translation and
+ * execution to the transcript and/or log.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_LESS_THAN_CONSTANT extends L2Operation
+@SuppressWarnings("serial")
+public class ToggleRecordL2InstructionTimingsInJVM
+extends AbstractWorkbenchAction
 {
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
+	{
+		//noinspection AssignmentToStaticFieldFromInstanceMethod
+		JVMTranslator.debugRecordL2InstructionTimings ^= true;
+	}
+
 	/**
-	 * Initialize the sole instance.
+	 * Construct a new {@code ToggleRecordL2InstructionTimingsInJVM}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_LESS_THAN_CONSTANT().init(
-			PC.is("target"),
-			READ_POINTER.is("value"),
-			CONSTANT.is("constant"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
+	public ToggleRecordL2InstructionTimingsInJVM (
+		final AvailWorkbench workbench)
 	{
-		final int target = instruction.pcOffsetAt(0);
-		final L2ReadPointerOperand objectReg =
-			instruction.readObjectRegisterAt(1);
-		final A_Number constant = instruction.constantAt(2);
-
-		final Order comparison =
-			objectReg.in(interpreter).numericCompare(constant);
-		if (comparison.isLess())
-		{
-			interpreter.offset(target);
-		}
-		return null;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		throw new UnsupportedOperationException();
+		super(workbench, "Record L2 timings in JVM");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Toggle code generation for recording timings of "
+				+ "L2Instructions translated to JVM.");
+		putValue(
+			SELECTED_KEY, JVMTranslator.debugRecordL2InstructionTimings);
 	}
 }

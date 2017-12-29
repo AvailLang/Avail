@@ -50,10 +50,12 @@ import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -62,6 +64,10 @@ import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.stream.Collectors.toList;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Type.*;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -529,5 +535,34 @@ public abstract class L2Operation
 	{
 		assert instruction.operation == this;
 		return name();
+	}
+
+	/**
+	 * Translate the specified {@link L2Instruction} into corresponding JVM
+	 * instructions.
+	 *
+	 * @param translator
+	 *        The {@link JVMTranslator} responsible for the translation.
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param instruction
+	 *        The {@link L2Instruction} to translate.
+	 */
+	public void translateToJVM (
+		JVMTranslator translator,
+		MethodVisitor method,
+		L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitInsn(POP);
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
 	}
 }

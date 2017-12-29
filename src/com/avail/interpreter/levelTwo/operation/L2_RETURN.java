@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -40,13 +41,20 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.utility.Nulls;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the current {@link L2Chunk} with the given return value.  The
@@ -106,5 +114,92 @@ public class L2_RETURN extends L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return false;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int valueRegIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int skipCheckIndex =
+			instruction.readIntRegisterAt(1).finalIndex();
+
+		// interpreter.latestResult(interpreter.pointerAt(valueRegIndex))
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitInsn(DUP);
+		emitIntConstant(method, valueRegIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"latestResult",
+			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
+			false);
+		// interpreter.skipReturnCheck =
+		//    interpreter.integerAt(skipCheckIndex) != 0
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitInsn(DUP);
+		emitIntConstant(method, skipCheckIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"integerAt",
+			getMethodDescriptor(INT_TYPE, INT_TYPE),
+			false);
+		final Label skipReturnCheckTrueLabel = new Label();
+		method.visitJumpInsn(IFNE, skipReturnCheckTrueLabel);
+		emitIntConstant(method, 0);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"skipReturnCheck",
+			BOOLEAN_TYPE.getDescriptor());
+		final Label setReturnNowLabel = new Label();
+		method.visitJumpInsn(GOTO, setReturnNowLabel);
+		method.visitLabel(skipReturnCheckTrueLabel);
+		emitIntConstant(method, 1);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"skipReturnCheck",
+			BOOLEAN_TYPE.getDescriptor());
+		method.visitLabel(setReturnNowLabel);
+		// interpreter.returnNow = true
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, 1);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"returnNow",
+			BOOLEAN_TYPE.getDescriptor());
+		// interpreter.returningFunction = stripNull(interpreter.function)
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitInsn(DUP);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"function",
+			getDescriptor(A_Function.class));
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(Nulls.class),
+			"stripNull",
+			getMethodDescriptor(getType(Object.class), getType(Object.class)),
+			false);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"returningFunction",
+			getDescriptor(A_Function.class));
+		method.visitInsn(ACONST_NULL);
+		method.visitInsn(ARETURN);
 	}
 }

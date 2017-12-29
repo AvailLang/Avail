@@ -48,8 +48,11 @@ import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +186,20 @@ public final class L2Instruction
 	public void setAction ()
 	{
 		action = operation.actionFor(this);
+	}
+
+	/**
+	 * Execute this {@linkplain #action} of this {@linkplain L2Instruction
+	 * instruction} upon the specified {@linkplain Interpreter interpreter}.
+	 *
+	 * @param interpreter
+	 *        The {@code Interpreter}.
+	 * @return {@code null} if the step completes normally, or a {@link
+	 *         StackReifier} if the instruction triggers stack reification.
+	 */
+	public @Nullable StackReifier runAction (final Interpreter interpreter)
+	{
+		return action.value(interpreter);
 	}
 
 	/**
@@ -549,5 +566,19 @@ public final class L2Instruction
 	{
 		operation.emitTransformedInstruction(
 			this, transformOperands(inliner), inliner);
+	}
+
+	/**
+	 * Translate the {@link L2Instruction} into corresponding JVM instructions.
+	 *
+	 * @param translator
+	 *        The {@link JVMTranslator} responsible for the translation.
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 */
+	public void translateToJVM (JVMTranslator translator, MethodVisitor method)
+	{
+		operation.translateToJVM(translator, method, this);
 	}
 }

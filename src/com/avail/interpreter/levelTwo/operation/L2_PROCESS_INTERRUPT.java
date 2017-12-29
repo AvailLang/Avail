@@ -41,11 +41,17 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Handle an interrupt that has been requested.  The reified continuation is
@@ -113,5 +119,27 @@ extends L2Operation
 		// to resume.  That was dealt with by previous instructions that
 		// assembled a continuation to resume.
 		assert registerSets.size() == 0;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		// This instruction unconditionally requests reification, so we don't
+		// need to conditionalize the areturn.
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
 	}
 }

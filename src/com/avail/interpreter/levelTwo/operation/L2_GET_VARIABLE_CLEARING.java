@@ -43,13 +43,20 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.descriptor.VariableTypeDescriptor
 	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.INT_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Extract the value of a variable, while simultaneously clearing it. If the
@@ -142,5 +149,34 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	public boolean isVariableGet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+//		final int variableRegIndex =
+//			instruction.readObjectRegisterAt(0).finalIndex();
+//		final int destRegIndex =
+//			instruction.writeObjectRegisterAt(1).finalIndex();
+		final int successIndex = instruction.pcOffsetAt(2);
+		final int failureIndex = instruction.pcOffsetAt(3);
+
+		super.translateToJVM(translator, method, instruction);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"offset",
+			INT_TYPE.getDescriptor());
+		emitIntConstant(method, successIndex);
+		method.visitJumpInsn(
+			IF_ICMPNE,
+			stripNull(translator.instructionLabels)[failureIndex]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[successIndex]);
 	}
 }

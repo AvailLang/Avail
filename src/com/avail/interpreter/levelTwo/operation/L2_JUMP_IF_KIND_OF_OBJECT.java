@@ -32,7 +32,9 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -43,12 +45,20 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the value is an instance of the type.
@@ -159,5 +169,48 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int valueRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int typeRegisterIndex =
+			instruction.readObjectRegisterAt(1).finalIndex();
+		final int isKindOffset = instruction.pcOffsetAt(2);
+		final int isNotKindOffset = instruction.pcOffsetAt(3);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, valueRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		emitIntConstant(method, typeRegisterIndex);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"pointerAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_BasicObject.class),
+			"isInstanceOf",
+			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
+			true);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[isKindOffset]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[isNotKindOffset]);
 	}
 }

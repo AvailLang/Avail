@@ -31,17 +31,28 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
@@ -92,5 +103,29 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 		// for an interrupt request, which doesn't commute well with other
 		// instructions.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
+		final int offsetIfNotInterrupt = instruction.pcOffsetAt(1);
+
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"isInterruptRequested",
+			getMethodDescriptor(BOOLEAN_TYPE),
+			false);
+		method.visitJumpInsn(
+			IFNE,
+			stripNull(translator.instructionLabels)[offsetIfInterrupt]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[offsetIfNotInterrupt]);
 	}
 }

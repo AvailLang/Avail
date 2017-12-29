@@ -46,6 +46,8 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -59,6 +61,11 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.INT_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to
@@ -220,5 +227,37 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			registerSet.typeAtPut(
 				functionReg.register(), enumType, instruction);
 		}
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+//		final A_Bundle bundle = instruction.bundleAt(0);
+//		final List<L2ReadPointerOperand> argRegs =
+//			instruction.readVectorRegisterAt(1);
+//		final L2WritePointerOperand functionReg =
+//			instruction.writeObjectRegisterAt(2);
+//		final L2WritePointerOperand errorCodeReg =
+//			instruction.writeObjectRegisterAt(3);
+		final int lookupSucceeded = instruction.pcOffsetAt(4);
+		final int lookupFailed = instruction.pcOffsetAt(5);
+
+		super.translateToJVM(translator, method, instruction);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"offset",
+			INT_TYPE.getDescriptor());
+		emitIntConstant(method, lookupSucceeded);
+		method.visitJumpInsn(
+			IF_ICMPNE,
+			stripNull(translator.instructionLabels)[lookupFailed]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[lookupSucceeded]);
 	}
 }

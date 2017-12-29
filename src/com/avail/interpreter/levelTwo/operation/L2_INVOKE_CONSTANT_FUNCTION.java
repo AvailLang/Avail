@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -42,7 +41,10 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -50,6 +52,7 @@ import java.util.logging.Level;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -96,10 +99,8 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 		{
 			final A_Function savedFunction = stripNull(interpreter.function);
 			final L2Chunk savedChunk = stripNull(interpreter.chunk);
-			final int savedOffset = interpreter.offset;
 			final AvailObject[] savedPointers = interpreter.pointers;
 			final int[] savedInts = interpreter.integers;
-			assert savedChunk.instructions[savedOffset - 1] == instruction;
 
 			interpreter.argsBuffer.clear();
 			for (final int argumentRegNumber : argumentRegNumbers)
@@ -147,6 +148,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 						interpreter.latestResult(null);
 						final @Nullable StackReifier reifier2 =
 							interpreter.runChunk();
+						interpreter.activeReifier = null;
 						assert reifier2 == null
 							: "Off-ramp must not cause reification!";
 						// The off-ramp had the responsibility to get the
@@ -210,5 +212,39 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 		return name()
 			+ ": "
 			+ exactFunction.code().methodName().asNativeString();
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+//		final AvailObject calledFunction = instruction.constantAt(0);
+//		final List<L2ReadPointerOperand> argumentRegs =
+//			instruction.readVectorRegisterAt(1);
+//		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
+		final int onNormalReturn = instruction.pcOffsetAt(3);
+//		final int onReification = instruction.pcOffsetAt(4);
+
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		final Label continueLabel = new Label();
+		method.visitJumpInsn(IFNULL, continueLabel);
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[onNormalReturn]);
 	}
 }

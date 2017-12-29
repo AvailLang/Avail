@@ -3211,7 +3211,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_DecrementCountdownToReoptimize (
 		AvailObject object,
-		Continuation0 continuation);
+		Continuation1NotNull<Boolean> continuation);
 
 	/**
 	 * @param object

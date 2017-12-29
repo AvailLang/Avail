@@ -47,6 +47,9 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
@@ -57,6 +60,7 @@ import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * This operation is only used when entering a function that uses the
@@ -189,5 +193,29 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		// Keep this instruction from being removed, since it's only used
 		// by the default chunk.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsPrologue(method, instruction);
+		}
+		translator.generateRunAction(method, instruction);
+		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		if (JVMTranslator.debugRecordL2InstructionTimings)
+		{
+			translator.generateRecordTimingsEpilogue(method, instruction);
+		}
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		final Label continueLabel = new Label();
+		method.visitJumpInsn(IFNULL, continueLabel);
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		method.visitInsn(ARETURN);
+		method.visitLabel(continueLabel);
 	}
 }

@@ -44,6 +44,8 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -52,6 +54,11 @@ import static com.avail.descriptor.VariableTypeDescriptor
 	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.INT_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Assign a value to a {@linkplain VariableDescriptor variable}.
@@ -157,5 +164,34 @@ extends L2Operation
 	public boolean isVariableSet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+//		final L2ReadPointerOperand variableReg =
+//			instruction.readObjectRegisterAt(0);
+//		final L2ReadPointerOperand valueReg =
+//			instruction.readObjectRegisterAt(1);
+		final int succeeded = instruction.pcOffsetAt(2);
+		final int failed = instruction.pcOffsetAt(3);
+
+		super.translateToJVM(translator, method, instruction);
+		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"offset",
+			INT_TYPE.getDescriptor());
+		emitIntConstant(method, succeeded);
+		method.visitJumpInsn(
+			IF_ICMPNE,
+			stripNull(translator.instructionLabels)[failed]);
+		method.visitJumpInsn(
+			GOTO,
+			stripNull(translator.instructionLabels)[succeeded]);
 	}
 }
