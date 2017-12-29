@@ -225,7 +225,7 @@ public final class JVMTranslator
 	private void generateConstructorV ()
 	{
 		final MethodVisitor method = classWriter.visitMethod(
-			ACC_PUBLIC,
+			ACC_PUBLIC | ACC_MANDATED,
 			"<init>",
 			getMethodDescriptor(VOID_TYPE),
 			null,
