@@ -95,8 +95,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Lazily compute and install the expression type of the specified
-	 * {@linkplain PermutedListNodeDescriptor object}.
+	 * Lazily compute and install the expression type of the specified permuted
+	 * list phrase.
 	 *
 	 * @param object An object.
 	 * @return A type.
@@ -159,7 +159,7 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.slot(LIST).emitAllValuesOn(codeGenerator);
-		codeGenerator.emitPermute(object.permutation());
+		codeGenerator.emitPermute(object.tokens(), object.permutation());
 	}
 
 	@Override @AvailMethod
@@ -169,8 +169,8 @@ extends ParseNodeDescriptor
 	{
 		object.slot(LIST).emitAllValuesOn(codeGenerator);
 		final A_Tuple permutation = object.slot(PERMUTATION);
-		codeGenerator.emitPermute(permutation);
-		codeGenerator.emitMakeTuple(permutation.tupleSize());
+		codeGenerator.emitPermute(object.tokens(), permutation);
+		codeGenerator.emitMakeTuple(object.tokens(), permutation.tupleSize());
 	}
 
 	@Override @AvailMethod
@@ -300,6 +300,12 @@ extends ParseNodeDescriptor
 		return tupleTypeForTypes(types);
 	}
 
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(LIST).tokens();
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
@@ -335,9 +341,9 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain PermutedListNodeDescriptor permuted list node}
-	 * from the given {@linkplain ListNodeDescriptor list node} and {@linkplain
-	 * TupleDescriptor permutation}.
+	 * Create a new permuted list phrase from the given {@linkplain
+	 * ListNodeDescriptor list node} and {@linkplain TupleDescriptor
+	 * permutation}.
 	 *
 	 * @param list
 	 *        The list node to wrap.
@@ -358,7 +364,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link PermutedListNodeDescriptor}.
+	 * Construct a new {@code PermutedListNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

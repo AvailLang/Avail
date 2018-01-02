@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -41,22 +43,28 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * Push either a local variable (the variable itself) or an argument.
+ * Push either a local variable (the variable itself), a local constant, or an
+ * argument.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailPushLocalVariable extends AvailPushVariable
 {
 	/**
-	 * Construct a new {@link AvailPushLocalVariable}.
+	 * Construct a new {@code AvailPushLocalVariable}.
 	 *
-	 * @param variableIndex The index that the local variable will occupy at
-	 *                      runtime within a {@linkplain ContinuationDescriptor
-	 *                      continuation}.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param variableIndex
+	 *        The index that the local variable will occupy at runtime within a
+	 *        {@linkplain ContinuationDescriptor continuation}.
 	 */
-	public AvailPushLocalVariable (final int variableIndex)
+	public AvailPushLocalVariable (
+		final A_Tuple relevantTokens,
+		final int variableIndex)
 	{
-		super(variableIndex);
+		super(relevantTokens, variableIndex);
 	}
 
 	@Override
@@ -82,15 +90,11 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
 	 *
-	 * <p>
-	 * The data lists are keyed by local or outer index.  Each entry is either
-	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
-	 * previous time a get or push happened.
-	 * </p>
+	 * <p>The data lists are keyed by local or outer index.  Each entry is
+	 * either null or a {@link AvailVariableAccessNote}, which keeps track of
+	 * the previous time a get or push happened.</p>
 	 *
-	 * <p>
-	 * The receiver pushes a local variable or an argument.
-	 * </p>
+	 * <p>The receiver pushes a local variable or an argument.</p>
 	 */
 	@Override
 	public void fixUsageFlags (
@@ -120,11 +124,5 @@ public class AvailPushLocalVariable extends AvailPushVariable
 			previousGet.canClear(false);
 		}
 		note.previousPush(this);
-	}
-
-	@Override
-	public boolean isLocalUse ()
-	{
-		return true;
 	}
 }

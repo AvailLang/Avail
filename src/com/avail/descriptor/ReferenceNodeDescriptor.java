@@ -135,8 +135,7 @@ extends ParseNodeDescriptor
 	{
 		final A_Phrase declaration = object.slot(VARIABLE).declaration();
 		declaration.declarationKind().emitVariableReferenceForOn(
-			declaration,
-			codeGenerator);
+			object.tokens(), declaration, codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -199,6 +198,12 @@ extends ParseNodeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.REFERENCE_PHRASE;
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(VARIABLE).tokens();
 	}
 
 	@Override

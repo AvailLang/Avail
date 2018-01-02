@@ -35,7 +35,7 @@ import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
 import com.avail.environment.editor.utility.PrefixNode;
-import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation0;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -132,7 +132,7 @@ public class AvailArea
 	 * @return The prefix at the current caret.
 	 */
 	@Nonnull String prefixAtCaret (
-		final @Nullable Mutable<Integer> prefixStartHolder)
+		final @Nullable MutableInt prefixStartHolder)
 	{
 		// Determine the intended prefix for filtering the code completion
 		// list by scanning backward from the caret to the nearest word
@@ -218,7 +218,7 @@ public class AvailArea
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				final Mutable<Integer> prefixStart = new Mutable<>(0);
+				final MutableInt prefixStart = new MutableInt(0);
 				final String prefix = prefixAtCaret(prefixStart);
 				// Determine which templates match the prefix.
 				final List<String> matches = templateMatchesFor(prefix);

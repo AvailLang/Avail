@@ -450,7 +450,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return volatileSlotHelper.volatileRead(longSlots, field.ordinal());
+			return VolatileSlotHelper.volatileRead(longSlots, field.ordinal());
 		}
 		else
 		{
@@ -474,7 +474,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			volatileSlotHelper.volatileWrite(
+			VolatileSlotHelper.volatileWrite(
 				longSlots, field.ordinal(), anInteger);
 		}
 		else
@@ -520,7 +520,7 @@ implements A_BasicObject
 				oldFieldValue = mutableSlot(bitField.integerSlot);
 				newFieldValue = bitField.replaceBits(oldFieldValue, anInteger);
 			}
-			while (!volatileSlotHelper.compareAndSet(
+			while (!VolatileSlotHelper.compareAndSet(
 				longSlots,
 				bitField.integerSlotIndex,
 				oldFieldValue,
@@ -550,7 +550,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return volatileSlotHelper.volatileRead(
+			return VolatileSlotHelper.volatileRead(
 				longSlots, field.ordinal() + subscript - 1);
 		}
 		else
@@ -577,7 +577,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			volatileSlotHelper.volatileWrite(
+			VolatileSlotHelper.volatileWrite(
 				longSlots, field.ordinal() + subscript - 1, anInteger);
 		}
 		else
@@ -698,7 +698,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return volatileSlotHelper.volatileRead(
+			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal());
 		}
 		else
@@ -724,11 +724,11 @@ implements A_BasicObject
 	 * slots with volatile access, but there are ways around it.  For now, use
 	 * Sun's Unsafe class.
 	 *
-	 * <p>In sandboxed environments where this is not possible we'll need to
+	 * <p>In sand-boxed environments where this is not possible we'll need to
 	 * change this to use subclassing, and do volatile reads or nilpotent
 	 * compare-and-set writes of the descriptor field at the appropriate times
 	 * to ensure happens-before/after.  However, compare-and-set semantics will
-	 * be much harder to accomplish.
+	 * be much harder to accomplish.</p>
 	 */
 	private static final class VolatileSlotHelper
 	{
@@ -767,7 +767,7 @@ implements A_BasicObject
 			longArrayShift = Integer.numberOfTrailingZeros(delta);
 		}
 
-		@InnerAccess long volatileRead (
+		@InnerAccess static long volatileRead (
 			final long[] longs,
 			final int subscript)
 		{
@@ -777,7 +777,7 @@ implements A_BasicObject
 			return unsafe.getLongVolatile(longs, byteOffset);
 		}
 
-		@InnerAccess void volatileWrite (
+		@InnerAccess static void volatileWrite (
 			final long[] longs,
 			final int subscript,
 			final long value)
@@ -788,7 +788,7 @@ implements A_BasicObject
 			unsafe.putLongVolatile(longs, byteOffset, value);
 		}
 
-		@InnerAccess boolean compareAndSet (
+		@InnerAccess static boolean compareAndSet (
 			final long[] longs,
 			final int subscript,
 			final long expected,
@@ -815,7 +815,7 @@ implements A_BasicObject
 			objectArrayShift = Integer.numberOfTrailingZeros(delta);
 		}
 
-		@InnerAccess AvailObject volatileRead (
+		@InnerAccess static AvailObject volatileRead (
 			final AvailObject[] objects,
 			final int subscript)
 		{
@@ -825,7 +825,7 @@ implements A_BasicObject
 			return (AvailObject) unsafe.getObjectVolatile(objects, byteOffset);
 		}
 
-		@InnerAccess void volatileWrite (
+		@InnerAccess static void volatileWrite (
 			final AvailObject[] objects,
 			final int subscript,
 			final AvailObject value)
@@ -836,7 +836,7 @@ implements A_BasicObject
 			unsafe.putObjectVolatile(objects, byteOffset, value);
 		}
 
-		@InnerAccess boolean compareAndSet (
+		@InnerAccess static boolean compareAndSet (
 			final AvailObject[] objects,
 			final int subscript,
 			final AvailObject expected,
@@ -849,13 +849,6 @@ implements A_BasicObject
 				objects, byteOffset, expected, value);
 		}
 	}
-
-	/**
-	 * The global instance of the {@link VolatileSlotHelper}, used for volatile
-	 * and compare-and-set operations on both AvailObject and long slots.
-	 */
-	private static final VolatileSlotHelper volatileSlotHelper =
-		new VolatileSlotHelper();
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
@@ -872,7 +865,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return volatileSlotHelper.volatileRead(
+			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal() + subscript - 1);
 		}
 		else
@@ -894,7 +887,7 @@ implements A_BasicObject
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return volatileSlotHelper.volatileRead(
+			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal());
 		}
 		else
@@ -922,7 +915,7 @@ implements A_BasicObject
 		{
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
-			volatileSlotHelper.volatileWrite(
+			VolatileSlotHelper.volatileWrite(
 				objectSlots,
 				field.ordinal() + subscript - 1,
 				anAvailObject.makeShared());
@@ -951,7 +944,7 @@ implements A_BasicObject
 		{
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
-			volatileSlotHelper.volatileWrite(
+			VolatileSlotHelper.volatileWrite(
 				objectSlots, field.ordinal(), anAvailObject.makeShared());
 		}
 		else

@@ -52,8 +52,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode
@@ -374,12 +373,13 @@ public final class P_BootstrapBlockMacro extends Primitive
 			? 0
 			: tokens.tupleAt(1).lineNumber();
 		final A_Phrase block = newBlockNode(
-			argumentDeclarationsList,
+			tupleFromList(argumentDeclarationsList),
 			primNumber,
-			allStatements,
+			tupleFromList(allStatements),
 			returnType,
 			exceptionsSet,
-			lineNumber);
+			lineNumber,
+			tokens);
 		block.makeImmutable();
 		// Pop and discard the top entry from the scope stack.
 		final A_Fiber fiber = interpreter.fiber();

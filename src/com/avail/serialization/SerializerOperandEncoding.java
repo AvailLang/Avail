@@ -35,6 +35,7 @@ package com.avail.serialization;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.MapDescriptor;
@@ -47,6 +48,7 @@ import java.io.OutputStream;
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NybbleTupleDescriptor
@@ -85,7 +87,7 @@ enum SerializerOperandEncoding
 		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return (AvailObject) fromInt(deserializer.readByte());
+			return fromInt(deserializer.readByte());
 		}
 	},
 
@@ -150,7 +152,7 @@ enum SerializerOperandEncoding
 			{
 				intValue = deserializer.readShort();
 			}
-			return (AvailObject) fromInt(intValue);
+			return fromInt(intValue);
 		}
 	},
 
@@ -179,10 +181,9 @@ enum SerializerOperandEncoding
 		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return (AvailObject) fromInt(deserializer.readShort());
+			return fromInt(deserializer.readShort());
 		}
 	},
-
 
 	/**
 	 * This is an {@link AvailObject} that's always an {@linkplain
@@ -205,7 +206,7 @@ enum SerializerOperandEncoding
 		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return (AvailObject) fromInt(deserializer.readInt());
+			return fromInt(deserializer.readInt());
 		}
 	},
 
@@ -233,10 +234,9 @@ enum SerializerOperandEncoding
 		{
 			final int intValue = deserializer.readInt();
 			final long longValue = intValue & 0xFFFFFFFFL;
-			return (AvailObject) fromLong(longValue);
+			return fromLong(longValue);
 		}
 	},
-
 
 	/**
 	 * This is an {@link AvailObject} that occurred previously in the sequence
@@ -465,6 +465,38 @@ enum SerializerOperandEncoding
 				ignored ->
 					fromCodePoint(readCompressedPositiveInt(deserializer))
 			);
+		}
+	},
+
+	/**
+	 * This is a {@linkplain TupleDescriptor tuple} of integers in the range
+	 * [0..2^31-1], written as a compressed size and a sequence of compressed
+	 * ints.
+	 */
+	COMPRESSED_INT_TUPLE
+	{
+		@Override
+		void write (
+			final AvailObject object,
+			final Serializer serializer)
+		{
+			final int tupleSize = object.tupleSize();
+			writeCompressedPositiveInt(tupleSize, serializer);
+			for (final A_Number element : object)
+			{
+				writeCompressedPositiveInt(element.extractInt(), serializer);
+			}
+		}
+
+		@Override
+		final AvailObject read (final Deserializer deserializer)
+		{
+			final int tupleSize = readCompressedPositiveInt(deserializer);
+			final AvailObject newTuple = generateIntTupleFrom(
+				tupleSize,
+				ignored -> readCompressedPositiveInt(deserializer));
+			newTuple.makeImmutable();
+			return newTuple;
 		}
 	},
 

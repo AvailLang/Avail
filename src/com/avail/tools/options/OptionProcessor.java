@@ -32,7 +32,7 @@
 
 package com.avail.tools.options;
 
-import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.ParagraphFormatter;
 import com.avail.utility.ParagraphFormatterStream;
 import com.avail.utility.evaluation.Continuation1;
@@ -107,7 +107,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 
 	/** A mapping from option key to times encountered during processing. */
 	private final
-	EnumMap<OptionKeyType, Mutable<Integer>> timesEncountered;
+	EnumMap<OptionKeyType, MutableInt> timesEncountered;
 
 	/**
 	 * Construct a new <code>{@link OptionProcessor}</code>.
@@ -126,14 +126,12 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 		final Collection<Option<OptionKeyType>> options)
 	{
 		allKeywords.putAll(keywords);
-		allOptions = new EnumMap<>(
-			optionKeyType);
-		timesEncountered = new EnumMap<>(
-			optionKeyType);
+		allOptions = new EnumMap<>(optionKeyType);
+		timesEncountered = new EnumMap<>(optionKeyType);
 		for (final Option<OptionKeyType> option : options)
 		{
 			allOptions.put(option.key(), option);
-			timesEncountered.put(option.key(), new Mutable<>(0));
+			timesEncountered.put(option.key(), new MutableInt(0));
 		}
 	}
 

@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -62,8 +64,11 @@ public class AvailSuperCall extends AvailCall
 	final int superUnionIndex;
 
 	/**
-	 * Construct a new {@link AvailSuperCall}.
+	 * Construct a new {@code AvailSuperCall}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param messageIndex
 	 *        The index of the literal that holds the message (a {@linkplain
 	 *        MethodDescriptor method}).
@@ -74,17 +79,17 @@ public class AvailSuperCall extends AvailCall
 	 *        method lookup.
 	 */
 	public AvailSuperCall (
+		final A_Tuple relevantTokens,
 		final int messageIndex,
 		final int verifyIndex,
 		final int superUnionIndex)
 	{
-		super(messageIndex, verifyIndex);
+		super(relevantTokens, messageIndex, verifyIndex);
 		this.superUnionIndex = superUnionIndex;
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
 		writeIntegerOn(index, aStream);

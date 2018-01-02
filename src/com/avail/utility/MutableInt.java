@@ -1,5 +1,5 @@
 /**
- * AvailInstructionWithIndex.java
+ * MutableInt.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,48 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.utility;
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
 
 /**
- * This abstract subclass of {@link AvailInstruction} introduces a generic
- * index whose interpretation is left to subclasses.
+ * Support explicit mutable wrapping of <em>int</em> variables.  This is used
+ * specifically for allowing non-final variables to be used by inner classes.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
-public abstract class AvailInstructionWithIndex extends AvailInstruction
+public class MutableInt
 {
 	/**
-	 * A generic index to be interpreted by subclasses.  Must be non-negative.
+	 * Expose a public field for readability.  For instance, one could declare
+	 * something {@code "final MutableInt x = new MutableInt(9);"} and then have
+	 * code within inner classes like {@code "x.value = 5"} or {@code
+	 * "x.value++"}.
 	 */
-	final int index;
+	public int value;
 
 	/**
-	 * Answer the generic index recorded at construction time.
+	 * Constructor that takes an initial value.
 	 *
-	 * @return The index.
+	 * @param value The initial value.
 	 */
-	public int index ()
+	public MutableInt (final int value)
 	{
-		return index;
+		this.value = value;
 	}
 
-	/**
-	 * Construct a new {@code AvailInstructionWithIndex}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param index A generic, non-negative index to record.  Subclasses
-	 *        interpret this value however they need.
-	 */
-	public AvailInstructionWithIndex (
-		final A_Tuple relevantTokens,
-		final int index)
+	@Override
+	public String toString ()
 	{
-		super(relevantTokens);
-		this.index = index;
+		return Integer.toString(value);
 	}
 }

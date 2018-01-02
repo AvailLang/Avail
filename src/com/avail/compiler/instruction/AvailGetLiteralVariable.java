@@ -32,6 +32,7 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.io.ByteArrayOutputStream;
@@ -45,20 +46,21 @@ public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 {
 
 	/**
-	 * Construct a new {@link AvailGetLiteralVariable}.
+	 * Construct a new {@code AvailGetLiteralVariable}.
 	 *
-	 * @param index The index of the literal holding the variable whose
-	 *              content should be pushed.
+	 * @param index
+	 *        The index of the literal holding the variable whose content should
+	 *        be pushed.
 	 */
-	public AvailGetLiteralVariable (final int index)
+	public AvailGetLiteralVariable (
+		final A_Tuple relevantTokens,
+		final int index)
 	{
-		super(index);
+		super(relevantTokens, index);
 	}
 
-
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doGetLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);

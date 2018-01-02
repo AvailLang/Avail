@@ -318,8 +318,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the element at the given index in the tuple object.
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
-		return (AvailObject) fromUnsignedByte(
-			(short) (buffer.get(index - 1) & 0xFF));
+		return fromUnsignedByte((short) (buffer.get(index - 1) & 0xFF));
 	}
 
 	@Override @AvailMethod

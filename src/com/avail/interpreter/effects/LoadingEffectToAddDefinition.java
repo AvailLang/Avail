@@ -53,7 +53,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 	final A_Definition definition;
 
 	/**
-	 * Construct a new {@link LoadingEffectToAddDefinition}.
+	 * Construct a new {@code LoadingEffectToAddDefinition}.
 	 *
 	 * @param definition The definition being added.
 	 */
@@ -72,14 +72,17 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 		{
 			// Push the bundle's atom.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(atom));
 			// Push the function type.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(definition.bodySignature()));
 			// Call the abstract definition loading method.
 			writer.write(
+				0,
 				L1Operation.L1_doCall,
 				writer.addLiteral(SpecialMethodAtom.ABSTRACT_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
@@ -89,14 +92,17 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 		{
 			// Push the bundle's atom.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(atom));
 			// Push the function type.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(definition.bodySignature()));
 			// Call the forward definition loading method.
 			writer.write(
+				0,
 				L1Operation.L1_doCall,
 				writer.addLiteral(SpecialMethodAtom.FORWARD_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
@@ -107,18 +113,22 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			// NOTE: The prefix functions are dealt with as separate effects.
 			// Push the bundle's atom.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(atom));
 			// Push the tuple of macro prefix functions.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(definition.prefixFunctions()));
 			// Push the macro body function.
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(definition.bodyBlock()));
 			// Call the macro definition method.
 			writer.write(
+				0,
 				L1Operation.L1_doCall,
 				writer.addLiteral(SpecialMethodAtom.MACRO_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
@@ -127,14 +137,17 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 		assert definition.isMethodDefinition();
 		// Push the bundle's atom.
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(atom));
 		// Push the body function.
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(definition.bodyBlock()));
 		// Call the definition loading method.
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.METHOD_DEFINER.bundle),
 			writer.addLiteral(Types.TOP.o()));

@@ -59,7 +59,7 @@ import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
-import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
@@ -132,11 +132,6 @@ public final class L1Translator
 	final A_RawFunction code;
 
 	/**
-	 * The nybblecodes being optimized.
-	 */
-	private final A_Tuple nybbles;
-
-	/**
 	 * The number of slots in the virtualized continuation.  This includes the
 	 * arguments, the locals (including the optional primitive failure result),
 	 * and the stack slots.
@@ -160,7 +155,7 @@ public final class L1Translator
 	 * The current level one nybblecode program counter during naive translation
 	 * to level two.
 	 */
-	private int pc;
+	private final MutableInt pc = new MutableInt(1);
 
 	/**
 	 * The current stack depth during naive translation to level two.
@@ -271,9 +266,8 @@ public final class L1Translator
 		this.translator = translator;
 		this.code = translator.code;
 		this.topFrame = new Frame(null, this.code, "top frame");
-		this.nybbles = code.nybbles();
 		this.numSlots = code.numSlots();
-		this.pc = 1;
+		assert pc.value == 1;
 		this.stackp = numSlots + 1;
 		this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
 		this.semanticSlots = new L2SemanticValue[numSlots];
@@ -346,27 +340,6 @@ public final class L1Translator
 		}
 		// This includes the case of there being no outers.
 		return createFunction(theCode, tupleFromList(outerConstants));
-	}
-
-	/**
-	 * Answer an integer extracted at the current program counter.  The
-	 * program counter will be adjusted to skip over the integer.
-	 *
-	 * @return The integer encoded at the current nybblecode position.
-	 */
-	private int getInteger ()
-	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
-		final int shift = firstNybble << 2;
-		int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
-		int value = 0;
-		while (count-- > 0)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
-		}
-		final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
-		final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
-		return value + lowOff + (highOff << 4);
 	}
 
 	/**
@@ -870,7 +843,7 @@ public final class L1Translator
 			L2_CREATE_CONTINUATION.instance,
 			caller,
 			function,
-			new L2ImmediateOperand(pc),
+			new L2ImmediateOperand(pc.value),
 			new L2ImmediateOperand(stackp),
 			getSkipReturnCheck(),
 			new L2ReadVectorOperand(readSlotsBefore),
@@ -1104,7 +1077,7 @@ public final class L1Translator
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			MethodDescriptor.runtimeDispatcher.createRoot(
 				allPossible, argumentTypes, null);
-		final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
+		final MutableInt branchLabelCounter = new MutableInt(1);
 		// If a reification exception happens while an L2_INVOKE is in progress,
 		// it will run the instructions at the off-ramp up to an
 		// L2_RETURN_FROM_REIFICATION_HANDLER – which will return the reified
@@ -2427,11 +2400,10 @@ public final class L1Translator
 		emitInterruptOffRamp();
 
 		// Transliterate each level one nybblecode into L2Instructions.
-		while (pc <= nybbles.tupleSize())
+		final int numNybbles = code.numNybbles();
+		while (pc.value <= numNybbles)
 		{
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
-			L1Operation.lookup(nybble).dispatch(this);
+			code.nextNybblecodeOperation(pc).dispatch(this);
 		}
 		// Generate the implicit return after the instruction sequence.
 		final L2ReadPointerOperand readResult = readSlot(stackp);
@@ -2542,15 +2514,19 @@ public final class L1Translator
 	@Override
 	public void L1_doCall ()
 	{
-		final A_Bundle bundle = code().literalAt(getInteger());
-		final A_Type expectedType = code().literalAt(getInteger());
+		final A_Bundle bundle =
+			code().literalAt(code.nextNybblecodeOperand(pc));
+
+		final A_Type expectedType = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		generateCall(bundle, expectedType, bottom());
 	}
 
 	@Override
 	public void L1_doPushLiteral ()
 	{
-		final AvailObject constant = code().literalAt(getInteger());
+		final AvailObject constant = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		stackp--;
 		moveConstantToSlot(constant, stackp);
 	}
@@ -2558,7 +2534,7 @@ public final class L1Translator
 	@Override
 	public void L1_doPushLastLocal ()
 	{
-		final int localIndex = getInteger();
+		final int localIndex = code.nextNybblecodeOperand(pc);
 		stackp--;
 		final L2ReadPointerOperand source = readSlot(localIndex);
 		moveRegister(
@@ -2570,7 +2546,7 @@ public final class L1Translator
 	@Override
 	public void L1_doPushLocal ()
 	{
-		final int localIndex = getInteger();
+		final int localIndex = code.nextNybblecodeOperand(pc);
 		stackp--;
 		final L2ReadPointerOperand source = readSlot(localIndex);
 		forceSlotRegister(stackp, makeImmutable(source));
@@ -2579,7 +2555,7 @@ public final class L1Translator
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		final int outerIndex = getInteger();
+		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		stackp--;
 		final L2SemanticValue semanticImmutableOuter =
@@ -2599,8 +2575,9 @@ public final class L1Translator
 	@Override
 	public void L1_doClose ()
 	{
-		final int count = getInteger();
-		final A_RawFunction codeLiteral = code().literalAt(getInteger());
+		final int count = code.nextNybblecodeOperand(pc);
+		final A_RawFunction codeLiteral = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		final List<L2ReadPointerOperand> outers = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
 		{
@@ -2626,7 +2603,7 @@ public final class L1Translator
 	@Override
 	public void L1_doSetLocal ()
 	{
-		final int localIndex = getInteger();
+		final int localIndex = code.nextNybblecodeOperand(pc);
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			readSlot(localIndex),
@@ -2637,7 +2614,7 @@ public final class L1Translator
 	@Override
 	public void L1_doGetLocalClearing ()
 	{
-		final int index = getInteger();
+		final int index = code.nextNybblecodeOperand(pc);
 		stackp--;
 		final A_Type outerType = code().localTypeAt(index - code().numArgs());
 		final A_Type innerType = outerType.readType();
@@ -2650,7 +2627,7 @@ public final class L1Translator
 	@Override
 	public void L1_doPushOuter ()
 	{
-		final int outerIndex = getInteger();
+		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		stackp--;
 		final L2SemanticValue semanticImmutableOuter =
@@ -2675,7 +2652,7 @@ public final class L1Translator
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		final int outerIndex = getInteger();
+		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
@@ -2696,7 +2673,7 @@ public final class L1Translator
 	@Override
 	public void L1_doSetOuter ()
 	{
-		final int outerIndex = getInteger();
+		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final L2ReadPointerOperand tempVarReg =
 			getOuterRegister(outerIndex, outerType);
@@ -2710,7 +2687,7 @@ public final class L1Translator
 	@Override
 	public void L1_doGetLocal ()
 	{
-		final int index = getInteger();
+		final int index = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().localTypeAt(index - code().numArgs());
 		final A_Type innerType = outerType.readType();
 		stackp--;
@@ -2723,7 +2700,7 @@ public final class L1Translator
 	@Override
 	public void L1_doMakeTuple ()
 	{
-		final int count = getInteger();
+		final int count = code.nextNybblecodeOperand(pc);
 		final List<L2ReadPointerOperand> vector = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
 		{
@@ -2766,7 +2743,7 @@ public final class L1Translator
 	@Override
 	public void L1_doGetOuter ()
 	{
-		final int outerIndex = getInteger();
+		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
 		stackp--;
@@ -2781,11 +2758,7 @@ public final class L1Translator
 	@Override
 	public void L1_doExtension ()
 	{
-		// The extension nybblecode was encountered.  Read another nybble and
-		// add 16 to get the L1Operation's ordinal.
-		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-		pc++;
-		L1Operation.lookup(nybble + 16).dispatch(this);
+		assert false : "Illegal dispatch nybblecode";
 	}
 
 	@Override
@@ -2842,7 +2815,8 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doGetLiteral ()
 	{
-		final A_Variable literalVariable = code().literalAt(getInteger());
+		final A_Variable literalVariable = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		stackp--;
 		if (literalVariable.isInitializedWriteOnceVariable()
 			&& literalVariable.valueWasStablyComputed())
@@ -2870,7 +2844,8 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doSetLiteral ()
 	{
-		final A_Variable literalVariable = code().literalAt(getInteger());
+		final A_Variable literalVariable = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			constantRegister(literalVariable),
@@ -2892,7 +2867,8 @@ public final class L1Translator
 		// Move into the permuted temps, then back to the stack.  This puts the
 		// responsibility for optimizing away extra moves (by coloring the
 		// registers) on the optimizer.
-		final A_Tuple permutation = code().literalAt(getInteger());
+		final A_Tuple permutation = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		final int size = permutation.tupleSize();
 		final L2WritePointerOperand[] temps = new L2WritePointerOperand[size];
 		for (int i = size; i >= 1; i--)
@@ -2916,16 +2892,19 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		final AvailObject method = code().literalAt(getInteger());
-		final AvailObject expectedType = code().literalAt(getInteger());
-		final AvailObject superUnionType = code().literalAt(getInteger());
+		final AvailObject method = code().literalAt(
+			code.nextNybblecodeOperand(pc));
+		final AvailObject expectedType = code().literalAt(
+			code.nextNybblecodeOperand(pc));
+		final AvailObject superUnionType = code().literalAt(
+			code.nextNybblecodeOperand(pc));
 		generateCall(method, expectedType, superUnionType);
 	}
 
 	@Override
 	public void L1Ext_doSetSlot ()
 	{
-		final int destinationIndex = getInteger();
+		final int destinationIndex = code.nextNybblecodeOperand(pc);
 		final L2ReadPointerOperand source = readSlot(stackp);
 		moveRegister(
 			source,

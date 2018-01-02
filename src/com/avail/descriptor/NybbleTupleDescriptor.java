@@ -482,7 +482,7 @@ extends NumericTupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
-		return (AvailObject) fromUnsignedByte(getNybble(object, index));
+		return fromUnsignedByte(getNybble(object, index));
 	}
 
 	@Override @AvailMethod

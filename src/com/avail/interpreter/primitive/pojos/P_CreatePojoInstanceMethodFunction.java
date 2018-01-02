@@ -187,14 +187,17 @@ extends Primitive
 			zeroOrMoreOf(RAW_POJO.o()));
 		writer.returnType(TOP.o());
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(failFunction));
 		writer.write(
+			0,
 			L1Operation.L1_doGetLocal,
 			writer.createLocal(
 				variableTypeFor(pojoTypeForClass(Throwable.class))));
-		writer.write(L1Operation.L1_doMakeTuple, 1);
+		writer.write(0, L1Operation.L1_doMakeTuple, 1);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(bottom()));
@@ -217,24 +220,29 @@ extends Primitive
 			method.getGenericReturnType(), pojoType.typeVariables());
 		writer.returnType(returnType);
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(innerFunction));
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(equalityPojo(method)));
 		final int limit = allParamTypes.size();
 		for (int i = 1; i <= limit; i++)
 		{
-			writer.write(L1Operation.L1_doPushLocal, i);
+			writer.write(0, L1Operation.L1_doPushLocal, i);
 		}
 		writer.write(
+			0,
 			L1Operation.L1_doMakeTuple,
 			allParamTypes.size() - 1);
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(marshaledTypesTuple));
-		writer.write(L1Operation.L1_doMakeTuple, 4);
+		writer.write(0, L1Operation.L1_doMakeTuple, 4);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(returnType));

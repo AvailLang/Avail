@@ -216,7 +216,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link RawPojoDescriptor}.
+	 * Construct a new {@code RawPojoDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -240,8 +240,7 @@ extends Descriptor
 		equalityPojo(Object.class).makeShared();
 
 	/**
-	 * Answer a {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
-	 * {@linkplain Class class}.
+	 * Answer a raw pojo for {@link Object}'s {@linkplain Class class}.
 	 *
 	 * @return A raw pojo that represents {@code Object}.
 	 */
@@ -255,7 +254,7 @@ extends Descriptor
 		identityPojo(null).makeShared();
 
 	/**
-	 * Answer the {@code null} {@linkplain RawPojoDescriptor pojo}.
+	 * Answer the {@code null} raw pojo.
 	 *
 	 * @return The {@code null} pojo.
 	 */

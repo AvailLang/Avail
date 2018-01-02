@@ -41,7 +41,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -144,7 +143,12 @@ extends ParseNodeDescriptor
 		 * <em>has not yet been normalized</em> (e.g., removing types that are
 		 * subtypes of types that are also present in the set).
 		 */
-		DECLARED_EXCEPTIONS
+		DECLARED_EXCEPTIONS,
+
+		/**
+		 * The tuple of tokens forming this block phrase, if any.
+		 */
+		TOKENS;
 	}
 
 	@Override
@@ -287,60 +291,45 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_StatementsTuple (final AvailObject object)
-	{
-		return object.slot(STATEMENTS_TUPLE);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ResultType (final AvailObject object)
-	{
-		return object.slot(RESULT_TYPE);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_NeededVariables (final AvailObject object)
-	{
-		return object.mutableSlot(NEEDED_VARIABLES);
-	}
-
-	@Override @AvailMethod
-	void o_NeededVariables (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Tuple neededVariables)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		object.setMutableSlot(NEEDED_VARIABLES, neededVariables);
+		for (final AvailObject argument : object.argumentsTuple())
+		{
+			action.value(argument);
+		}
+		for (final AvailObject statement : object.statementsTuple())
+		{
+			action.value(statement);
+		}
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		A_Tuple arguments = object.argumentsTuple();
+		for (int i = 1; i <= arguments.tupleSize(); i++)
+		{
+			arguments = arguments.tupleAtPuttingCanDestroy(
+				i, aBlock.valueNotNull(arguments.tupleAt(i)), true);
+		}
+		object.setSlot(ARGUMENTS_TUPLE, arguments);
+		A_Tuple statements = object.statementsTuple();
+		for (int i = 1; i <= statements.tupleSize(); i++)
+		{
+			statements = statements.tupleAtPuttingCanDestroy(
+				i, aBlock.valueNotNull(statements.tupleAt(i)), true);
+		}
+		object.setSlot(STATEMENTS_TUPLE, statements);
 	}
 
 	@Override @AvailMethod
 	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return object.slot(DECLARED_EXCEPTIONS);
-	}
-
-	@Override @AvailMethod
-	@Nullable Primitive o_Primitive (final AvailObject object)
-	{
-		return Primitive.byNumber(object.slot(PRIMITIVE));
-	}
-
-	@Override @AvailMethod
-	int o_StartingLineNumber (final AvailObject object)
-	{
-		return object.slot(STARTING_LINE_NUMBER);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		final List<A_Type> argumentTypes =
-			new ArrayList<>(object.argumentsTuple().tupleSize());
-		for (final A_Phrase argDeclaration : object.argumentsTuple())
-		{
-			argumentTypes.add(argDeclaration.declaredType());
-		}
-		return
-			functionType(tupleFromList(argumentTypes), object.resultType());
 	}
 
 	/**
@@ -366,27 +355,15 @@ extends ParseNodeDescriptor
 			final A_Function function =
 				createFunction(compiledBlock, emptyTuple());
 			function.makeImmutable();
-			codeGenerator.emitPushLiteral(function);
+			codeGenerator.emitPushLiteral(object.tokens(), function);
 		}
 		else
 		{
 			codeGenerator.emitCloseCode(
+				object.tokens(),
 				compiledBlock,
 				object.neededVariables());
 		}
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		final @Nullable Primitive prim = object.primitive();
-		return
-			(((object.argumentsTuple().hash() * multiplier
-				+ object.statementsTuple().hash()) * multiplier
-				+ object.resultType().hash()) * multiplier
-				+ object.neededVariables().hash()) * multiplier
-				+ (prim == null ? 0 : prim.primitiveNumber) * multiplier
-			^ 0x05E6A04A;
 	}
 
 	@Override @AvailMethod
@@ -403,69 +380,18 @@ extends ParseNodeDescriptor
 			&& object.primitive() == aParseNode.primitive();
 	}
 
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
-	{
-		return BLOCK_NODE;
-	}
-
 	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		A_Tuple arguments = object.argumentsTuple();
-		for (int i = 1; i <= arguments.tupleSize(); i++)
+		final List<A_Type> argumentTypes =
+			new ArrayList<>(object.argumentsTuple().tupleSize());
+		for (final A_Phrase argDeclaration : object.argumentsTuple())
 		{
-			arguments = arguments.tupleAtPuttingCanDestroy(
-				i, aBlock.valueNotNull(arguments.tupleAt(i)), true);
+			argumentTypes.add(argDeclaration.declaredType());
 		}
-		object.setSlot(ARGUMENTS_TUPLE, arguments);
-		A_Tuple statements = object.statementsTuple();
-		for (int i = 1; i <= statements.tupleSize(); i++)
-		{
-			statements = statements.tupleAtPuttingCanDestroy(
-				i, aBlock.valueNotNull(statements.tupleAt(i)), true);
-		}
-		object.setSlot(STATEMENTS_TUPLE, statements);
+		return
+			functionType(tupleFromList(argumentTypes), object.resultType());
 	}
-
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
-	{
-		for (final AvailObject argument : object.argumentsTuple())
-		{
-			action.value(argument);
-		}
-		for (final AvailObject statement : object.statementsTuple())
-		{
-			action.value(statement);
-		}
-	}
-
-	@Override
-	void o_StatementsDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> continuation)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
-	{
-		// Make sure our neededVariables list has up-to-date information about
-		// the outer variables that are accessed in me, because they have to be
-		// captured when a function is made for me.
-
-		collectNeededVariablesOfOuterBlocks(object);
-	}
-
 
 	/**
 	 * Answer an Avail compiled block compiled from the given block node, using
@@ -487,34 +413,93 @@ extends ParseNodeDescriptor
 		return AvailCodeGenerator.generateFunction(module, object);
 	}
 
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		final @Nullable Primitive prim = object.primitive();
+		return
+			(((object.argumentsTuple().hash() * multiplier
+				   + object.statementsTuple().hash()) * multiplier
+				  + object.resultType().hash()) * multiplier
+				 + object.neededVariables().hash()) * multiplier
+				+ (prim == null ? 0 : prim.primitiveNumber) * multiplier
+				^ 0x05E6A04A;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_NeededVariables (final AvailObject object)
+	{
+		return object.mutableSlot(NEEDED_VARIABLES);
+	}
+
+	@Override @AvailMethod
+	void o_NeededVariables (
+		final AvailObject object,
+		final A_Tuple neededVariables)
+	{
+		object.setMutableSlot(NEEDED_VARIABLES, neededVariables);
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return BLOCK_NODE;
+	}
+
+	@Override @AvailMethod
+	@Nullable Primitive o_Primitive (final AvailObject object)
+	{
+		return Primitive.byNumber(object.slot(PRIMITIVE));
+	}
+
+	@Override @AvailMethod
+	A_Type o_ResultType (final AvailObject object)
+	{
+		return object.slot(RESULT_TYPE);
+	}
+
 	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.BLOCK_PHRASE;
 	}
 
-	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	@Override @AvailMethod
+	int o_StartingLineNumber (final AvailObject object)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("block phrase");
-		final int primitive = object.slot(PRIMITIVE);
-		writer.write("primitive");
-		writer.write(primitive);
-		writer.write("starting line");
-		writer.write(object.slot(STARTING_LINE_NUMBER));
-		writer.write("arguments");
-		object.slot(ARGUMENTS_TUPLE).writeTo(writer);
-		writer.write("statements");
-		object.slot(STATEMENTS_TUPLE).writeTo(writer);
-		writer.write("result type");
-		object.slot(RESULT_TYPE).writeTo(writer);
-		writer.write("needed variables");
-		object.slot(NEEDED_VARIABLES).writeTo(writer);
-		writer.write("declared exceptions");
-		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
-		writer.endObject();
+		return object.slot(STARTING_LINE_NUMBER);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_StatementsTuple (final AvailObject object)
+	{
+		return object.slot(STATEMENTS_TUPLE);
+	}
+
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1NotNull<A_Phrase> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(TOKENS);
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Make sure our neededVariables list has up-to-date information about
+		// the outer variables that are accessed in me, because they have to be
+		// captured when a function is made for me.
+
+		collectNeededVariablesOfOuterBlocks(object);
 	}
 
 	@Override
@@ -523,9 +508,9 @@ extends ParseNodeDescriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("block phrase");
-		final int primitive = object.slot(PRIMITIVE);
+		final @Nullable Primitive primitive = object.primitive();
 		writer.write("primitive");
-		writer.write(primitive);
+		writer.write(primitive == null ? "" : primitive.name());
 		writer.write("starting line");
 		writer.write(object.slot(STARTING_LINE_NUMBER));
 		writer.write("arguments");
@@ -538,6 +523,32 @@ extends ParseNodeDescriptor
 		object.slot(NEEDED_VARIABLES).writeSummaryTo(writer);
 		writer.write("declared exceptions");
 		object.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("block phrase");
+		final @Nullable Primitive primitive = object.primitive();
+		writer.write("primitive");
+		writer.write(primitive == null ? "" : primitive.name());
+		writer.write("starting line");
+		writer.write(object.slot(STARTING_LINE_NUMBER));
+		writer.write("arguments");
+		object.slot(ARGUMENTS_TUPLE).writeTo(writer);
+		writer.write("statements");
+		object.slot(STATEMENTS_TUPLE).writeTo(writer);
+		writer.write("result type");
+		object.slot(RESULT_TYPE).writeTo(writer);
+		writer.write("needed variables");
+		object.slot(NEEDED_VARIABLES).writeTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
+		writer.write("tokens");
+		object.slot(TOKENS).writeTo(writer);
 		writer.endObject();
 	}
 
@@ -638,46 +649,6 @@ extends ParseNodeDescriptor
 	/**
 	 * Construct a block phrase.
 	 *
-	 * @param argumentsList
-	 *            The {@linkplain List list} of {@linkplain
-	 *            DeclarationNodeDescriptor argument declarations}.
-	 * @param primitive
-	 *            The {@linkplain Primitive#primitiveNumber index} of the
-	 *            primitive that the resulting block will invoke.
-	 * @param statementsList
-	 *            The {@linkplain List list} of statement
-	 *            {@linkplain ParseNodeDescriptor nodes}.
-	 * @param resultType
-	 *            The {@linkplain TypeDescriptor type} that will be returned by
-	 *            the block.
-	 * @param declaredExceptions
-	 *            The {@linkplain SetDescriptor set} of exception types that may
-	 *            be raised by this block.  <em>This is not yet normalized.</em>
-	 * @param lineNumber
-	 *            The line number on which the block starts.
-	 * @return
-	 *            A block node.
-	 */
-public static A_Phrase newBlockNode (
-		final List<A_Phrase> argumentsList,
-		final int primitive,
-		final List<A_Phrase> statementsList,
-		final A_Type resultType,
-		final A_Set declaredExceptions,
-		final int lineNumber)
-	{
-		return newBlockNode(
-			tupleFromList(argumentsList),
-			primitive,
-			tupleFromList(statementsList),
-			resultType,
-			declaredExceptions,
-			lineNumber);
-	}
-
-	/**
-	 * Construct a block phrase.
-	 *
 	 * @param arguments
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        DeclarationNodeDescriptor argument declarations}.
@@ -693,7 +664,10 @@ public static A_Phrase newBlockNode (
 	 *        this block.  <em>This is not yet normalized.</em>
 	 * @param lineNumber
 	 *        The line number in the current module at which this block begins.
-	 * @return A block node.
+	 * @param tokens
+	 *        The {@link A_Tuple} of {@link A_Token}s contributing to this block
+	 *        phrase.
+	 * @return A block phrase.
 	 */
 	public static AvailObject newBlockNode (
 		final A_Tuple arguments,
@@ -701,7 +675,8 @@ public static A_Phrase newBlockNode (
 		final A_Tuple statements,
 		final A_Type resultType,
 		final A_Set declaredExceptions,
-		final int lineNumber)
+		final int lineNumber,
+		final A_Tuple tokens)
 	{
 		final List<A_Phrase> flattenedStatements =
 			new ArrayList<>(statements.tupleSize() + 3);
@@ -726,6 +701,7 @@ public static A_Phrase newBlockNode (
 		block.setSlot(RESULT_TYPE, resultType);
 		block.setSlot(NEEDED_VARIABLES, nil);
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
+		block.setSlot(TOKENS, tokens);
 		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
 		block.makeShared();
 		return block;
@@ -753,8 +729,8 @@ public static A_Phrase newBlockNode (
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
-		final Set<A_Phrase> providedByMe = new HashSet<>();
-		providedByMe.addAll(allLocallyDefinedVariables(object));
+		final Set<A_Phrase> providedByMe =
+			new HashSet<>(allLocallyDefinedVariables(object));
 		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
 		final List<A_Phrase> neededDeclarations = new ArrayList<>();
 		object.childrenDo(new Continuation1NotNull<A_Phrase>()

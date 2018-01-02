@@ -40,8 +40,10 @@ import java.io.ByteArrayOutputStream;
  * An {@link L1Operation} is encoded within a {@linkplain AvailObject#nybbles()
  * nybblecode stream} as an opcode followed by operands.  Opcodes less than 16
  * are encoded as a single nybble, and the others are represented as the
- * {@linkplain #L1_doExtension extension} nybble followed by the opcode minus
- * 16.
+ * {@linkplain #L1_doExtension extension} nybble (15), followed by the opcode
+ * minus 16.  This supports up to 31 distinct nybblecodes, the statically most
+ * frequently occurring of which should be assigned to the first 15 values
+ * (0-14) for compactness.
  *
  * <p>The operands are encoded in such a way that very small values occupy a
  * single nybble, but values up to {@link Integer#MAX_VALUE} are supported
@@ -59,7 +61,7 @@ public enum L1Operation
 	 * MethodDescriptor method} that contains a collection of {@linkplain
 	 * MethodDefinitionDescriptor method definitions} that might be
 	 * invoked.  The arguments are expected to already have been pushed. They
-	 * are popped set the stack and the literal specified by the second operand
+	 * are popped from the stack and the literal specified by the second operand
 	 * is pushed.  This is the expected type of the send.  When the invoked
 	 * method eventually returns, the proposed return value is checked
 	 * against the pushed type, and if it agrees then this stack entry is
@@ -89,10 +91,10 @@ public enum L1Operation
 
 	/**
 	 * Push a local variable -- not its value, but the variable itself.  This
-	 * should be the last use of the variable, so erase it set the continuation
+	 * should be the last use of the variable, so erase it from the continuation
 	 * at the same time.
 	 *
-	 * <p>Clearing the variable keeps the variable's reference count set
+	 * <p>Clearing the variable keeps the variable's reference count from
 	 * changing, so it may stay {@link AbstractDescriptor#isMutable() mutable}
 	 * if it was before.</p>
 	 *
@@ -128,7 +130,7 @@ public enum L1Operation
 
 	/**
 	 * Push an outer variable, i.e. a variable lexically captured by the current
-	 * function.  This should be the last use of the variable, so clear it set
+	 * function.  This should be the last use of the variable, so clear it from
 	 * the function if the function is still mutable.
 	 */
 	L1_doPushLastOuter(4, L1OperandType.OUTER)
@@ -141,7 +143,7 @@ public enum L1Operation
 	},
 
 	/**
-	 * Create a function set the specified number of pushed outer variables and
+	 * Create a function from the specified number of pushed outer variables and
 	 * the specified literal {@linkplain CompiledCodeDescriptor compiled code
 	 * object}.
 	 */
@@ -168,7 +170,7 @@ public enum L1Operation
 	},
 
 	/**
-	 * Extract the value set the specified local variable or constant.  If the
+	 * Extract the value from the specified local variable or constant.  If the
 	 * variable is mutable, null it out in the continuation.  Raise a suitable
 	 * runtime exception if the variable does not have a value.
 	 */
@@ -247,7 +249,7 @@ public enum L1Operation
 	},
 
 	/**
-	 * Pop the specified number of elements set the stack and assemble them
+	 * Pop the specified number of elements from the stack and assemble them
 	 * into a tuple.  Push the tuple.
 	 */
 	L1_doMakeTuple(13, L1OperandType.IMMEDIATE)
@@ -300,7 +302,7 @@ public enum L1Operation
 
 	/**
 	 * Get the value of a {@linkplain VariableDescriptor variable} literal.
-	 * This is used only to read set module variables.
+	 * This is used only to read from module variables.
 	 */
 	L1Ext_doGetLiteral(17, L1OperandType.LITERAL)
 	{
@@ -378,7 +380,7 @@ public enum L1Operation
 	 * A_Bundle message bundle} that is a particular naming of a {@linkplain
 	 * A_Method method} which itself contains a collection of {@linkplain
 	 * MethodDefinitionDescriptor method definitions} that might be
-	 * invoked.  The stack is expected to contain the top-level arguments, set
+	 * invoked.  The stack is expected to contain the top-level arguments, from
 	 * which their types will be extracted and assembled into a tuple type,
 	 * which itself will undergo a {@linkplain A_Type#typeUnion(A_Type)} with
 	 * this instruction's third operand, a literal tuple type.  The resulting
@@ -392,7 +394,7 @@ public enum L1Operation
 	 * disagrees, a runtime exception is thrown instead.</p>
 	 *
 	 * <p>The third operand specifies a literal which directs the method search.
-	 * The union of the tuple type derived set the actual arguments' types and
+	 * The union of the tuple type derived from the actual arguments' types and
 	 * this literal tuple type provides a tuple type that can be used to select
 	 * the method definition that will be invoked.</p>
 	 */

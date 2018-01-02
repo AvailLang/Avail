@@ -61,12 +61,14 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
+import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -5143,5 +5145,37 @@ extends AbstractDescriptor
 	Statistic o_ReturneeCheckStat (final AvailObject object)
 	{
 		return o_Traversed(object).returneeCheckStat();
+	}
+
+	@Override
+	L1Operation o_NextNybblecodeOperation (
+		final AvailObject object, final MutableInt pc)
+	{
+		return o_Traversed(object).nextNybblecodeOperation(pc);
+	}
+
+	@Override
+	int o_NextNybblecodeOperand (
+		final AvailObject object, final MutableInt pc)
+	{
+		return o_Traversed(object).nextNybblecodeOperand(pc);
+	}
+
+	@Override
+	int o_NumNybbles (final AvailObject object)
+	{
+		return o_Traversed(object).numNybbles();
+	}
+
+	@Override
+	A_Tuple o_LineNumberEncodedDeltas (final AvailObject object)
+	{
+		return o_Traversed(object).lineNumberEncodedDeltas();
+	}
+
+	@Override
+	int o_CurrentLineNumber (final AvailObject object)
+	{
+		return o_Traversed(object).currentLineNumber();
 	}
 }

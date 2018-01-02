@@ -210,7 +210,7 @@ extends AtomDescriptor
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
 		final Map<A_Atom, AvailObject> propertyMap =
 			propertyMapPojo.javaObjectNotNull();
-		final A_BasicObject value = propertyMap.get(key);
+		final @Nullable A_BasicObject value = propertyMap.get(key);
 		return value == null ? nil : (AvailObject) value;
 	}
 

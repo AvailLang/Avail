@@ -89,10 +89,11 @@ extends Primitive
 			nil, 0, nil);
 		writer.argumentTypes(ANY.o());
 		writer.returnType(stringType());
-		writer.write(L1Operation.L1_doPushLocal, 1);
+		writer.write(0, L1Operation.L1_doPushLocal, 1);
 		try
 		{
 			writer.write(
+				0,
 				L1Operation.L1_doCall,
 				writer.addLiteral(atom.bundleOrCreate()),
 				writer.addLiteral(stringType()));

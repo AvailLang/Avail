@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -63,33 +65,31 @@ import java.util.List;
  */
 public class AvailPushLabel extends AvailInstruction
 {
+	/**
+	 * Construct an instruction.  Capture the tokens that contributed to it.
+	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 */
+	public AvailPushLabel (final A_Tuple relevantTokens)
+	{
+		super(relevantTokens);
+	}
 
 	@Override
-	public void writeNybblesOn (
-		final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
 	}
 
-
 	/**
-	 * The instructions of a block are being iterated over.  Coordinate
-	 * optimizations between instructions using localData and outerData, two
-	 * {@linkplain List lists} manipulated by overrides of this method.  Treat
-	 * each instruction as though it is the last one in the block, and save
-	 * enough information in the lists to be able to undo consequences of this
-	 * assumption when a later instruction shows it to be unwarranted.
-	 * <p>
-	 * The data lists are keyed by local or outer index.  Each entry is either
-	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
-	 * previous time a get or push happened.
-	 * <p>
-	 * I push a label, which is a {@linkplain ContinuationDescriptor
+	 * <p>Push a label, which is a {@linkplain ContinuationDescriptor
 	 * continuation}.  Since the label can be restarted (which constructs new
 	 * locals while reusing the arguments), or exited (which has no static
 	 * effect on optimizations), I only have an effect on arguments and outer
 	 * variables.  Scan all arguments and outer variables and ensure the most
-	 * recent pushes are reset so that isLastAccess is false.
+	 * recent pushes are reset so that isLastAccess is false.</p>
 	 */
 	@Override
 	public void fixUsageFlags (
@@ -137,12 +137,5 @@ public class AvailPushLabel extends AvailInstruction
 				}
 			}
 		}
-	}
-
-
-	@Override
-	public boolean isPushLabel ()
-	{
-		return true;
 	}
 }

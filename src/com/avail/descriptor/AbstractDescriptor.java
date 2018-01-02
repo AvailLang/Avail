@@ -64,12 +64,14 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
+import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -666,12 +668,12 @@ public abstract class AbstractDescriptor
 		if (isMutable())
 		{
 			// Circled Latin capital letter M.
-			builder.append("\u24C2");
+			builder.append('\u24C2');
 		}
 		else if (isShared())
 		{
 			// Circled Latin capital letter S.
-			builder.append("\u24C8");
+			builder.append('\u24C8');
 		}
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
@@ -716,9 +718,17 @@ public abstract class AbstractDescriptor
 					value = object.slot(slot);
 					builder.append(slotName);
 				}
-				builder.append(" = ");
-				builder.append(value);
-				describeIntegerSlot(object, value, slot, builder);
+				final List<BitField> bitFields = bitFieldsFor(slot);
+				if (bitFields.isEmpty())
+				{
+					builder.append(" = ");
+					builder.append(value);
+				}
+				else
+				{
+					describeIntegerSlot(
+						object, value, slot, bitFields, builder);
+				}
 			}
 		}
 
@@ -844,18 +854,19 @@ public abstract class AbstractDescriptor
 	 * @param object The object containing the {@code int} value in some slot.
 	 * @param value The {@code int} value of the slot.
 	 * @param slot The {@linkplain IntegerSlotsEnum integer slot} definition.
+	 * @param bitFields The slot's {@link BitField}s, if any.
 	 * @param builder Where to write the description.
 	 */
 	static void describeIntegerSlot (
 		final AvailObject object,
 		final long value,
 		final IntegerSlotsEnum slot,
+		final List<BitField> bitFields,
 		final StringBuilder builder)
 	{
 		try
 		{
 			final String slotName = slot.name();
-			final List<BitField> bitFields = bitFieldsFor(slot);
 			if (bitFields.isEmpty())
 			{
 				final Field slotMirror = slot.getClass().getField(slotName);
@@ -909,12 +920,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Extract the {@link IntegerSlotsEnum integer slot}'s {@link List} of
-	 * {@link BitField}s.
+	 * {@link BitField}s, excluding ones marked with the annotation @{@link
+	 * HideFieldInDebugger}.
 	 *
 	 * @param slot The integer slot.
 	 * @return The slot's bit fields.
 	 */
-	private static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
+	static List<BitField> bitFieldsFor (
+		final IntegerSlotsEnum slot)
 	{
 		bitFieldsLock.readLock().lock();
 		try
@@ -934,8 +947,8 @@ public abstract class AbstractDescriptor
 		bitFieldsLock.writeLock().lock();
 		try
 		{
-			// Try again, this time holding the write lock to avoid
-			// multiple threads trying to populate the cache.
+			// Try again, this time holding the write lock to avoid multiple
+			// threads trying to populate the cache.
 			List<BitField> bitFields = bitFieldsCache.get(slot);
 			if (bitFields != null)
 			{
@@ -954,15 +967,18 @@ public abstract class AbstractDescriptor
 						final BitField bitField = (BitField) (field.get(null));
 						if (bitField.integerSlot == slot)
 						{
-							bitField.enumField =
-								field.getAnnotation(EnumField.class);
-							bitField.name = field.getName();
-							bitFields.add(bitField);
+							if (field.getAnnotation(HideFieldInDebugger.class)
+								== null)
+							{
+								bitField.enumField =
+									field.getAnnotation(EnumField.class);
+								bitField.name = field.getName();
+								bitFields.add(bitField);
+							}
 						}
 					}
 					catch (final IllegalAccessException e)
 					{
-						assert false;
 						throw new RuntimeException(e);
 					}
 				}
@@ -970,9 +986,12 @@ public abstract class AbstractDescriptor
 			if (bitFields.isEmpty())
 			{
 				// Save a little space.
-				return Collections.emptyList();
+				bitFields = Collections.emptyList();
 			}
-			Collections.sort(bitFields);
+			else
+			{
+				Collections.sort(bitFields);
+			}
 			bitFieldsCache.put(slot, bitFields);
 			return bitFields;
 		}
@@ -6733,4 +6752,40 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract Statistic o_ReturneeCheckStat (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param pc
+	 * @return
+	 */
+	abstract L1Operation o_NextNybblecodeOperation (
+		final AvailObject object,
+		final MutableInt pc);
+
+	/**
+	 * @param object
+	 * @param pc
+	 * @return
+	 */
+	abstract int o_NextNybblecodeOperand (
+		final AvailObject object,
+		final MutableInt pc);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_NumNybbles (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_LineNumberEncodedDeltas (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_CurrentLineNumber (final AvailObject object);
 }

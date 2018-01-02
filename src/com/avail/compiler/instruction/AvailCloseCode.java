@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -54,23 +56,28 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	final int numCopiedVars;
 
 	/**
-	 * Construct a new {@link AvailCloseCode}.
+	 * Construct a new {@code AvailCloseCode}.
 	 *
-	 * @param numCopiedVars The number of already-pushed variables to capture
-	 *                      in the function as outer variables.
-	 * @param codeIndex The index of the compiled code in the literals.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param numCopiedVars
+	 *        The number of already-pushed variables to capture in the function
+	 *        as outer variables.
+	 * @param codeIndex
+	 *        The index of the compiled code in the literals.
 	 */
 	public AvailCloseCode (
-			final int numCopiedVars,
-			final int codeIndex)
+		final A_Tuple relevantTokens,
+		final int numCopiedVars,
+		final int codeIndex)
 	{
-		super(codeIndex);
+		super(relevantTokens, codeIndex);
 		this.numCopiedVars = numCopiedVars;
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1_doClose.writeTo(aStream);
 		writeIntegerOn(numCopiedVars, aStream);

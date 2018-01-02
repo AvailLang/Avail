@@ -52,6 +52,8 @@ import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**
@@ -91,8 +93,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Lazily compute and install the expression type of the specified
-	 * {@linkplain ListNodeDescriptor object}.
+	 * Lazily compute and install the expression type of the specified list
+	 * phrase.
 	 *
 	 * @param object An object.
 	 * @return A type.
@@ -215,7 +217,7 @@ extends ParseNodeDescriptor
 		{
 			expr.emitValueOn(codeGenerator);
 		}
-		codeGenerator.emitMakeTuple(childNodes.tupleSize());
+		codeGenerator.emitMakeTuple(emptyTuple(), childNodes.tupleSize());
 	}
 
 	@Override @AvailMethod
@@ -375,6 +377,17 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		final List<A_Token> tokens = new ArrayList<>();
+		for (final A_Phrase expression : object.slot(EXPRESSIONS_TUPLE))
+		{
+			tokens.addAll(toList(expression.tokens()));
+		}
+		return tupleFromList(tokens);
+	}
+
+	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -397,13 +410,11 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain ListNodeDescriptor list node} from the given
-	 * {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor
-	 * expressions}.
+	 * Create a new list phrase from the given {@linkplain TupleDescriptor
+	 * tuple} of {@linkplain ParseNodeDescriptor expressions}.
 	 *
 	 * @param expressions
-	 *        The expressions to assemble into a {@linkplain ListNodeDescriptor
-	 *        list node}.
+	 *        The expressions to assemble into a list phrase.
 	 * @return The resulting list node.
 	 */
 	public static AvailObject newListNode (final A_Tuple expressions)
@@ -416,7 +427,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ListNodeDescriptor}.
+	 * Construct a new {@code ListNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -451,7 +462,7 @@ extends ParseNodeDescriptor
 		newListNode(emptyTuple()).makeShared();
 
 	/**
-	 * Answer the empty {@link ListNodeDescriptor list node}.
+	 * Answer the empty list phrase.
 	 *
 	 * @return The empty list node.
 	 */

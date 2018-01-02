@@ -34,9 +34,11 @@ package com.avail.descriptor;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
+import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
@@ -45,6 +47,9 @@ import javax.annotation.Nullable;
 /**
  * {@code A_RawFunction} is an interface that specifies the operations specific
  * to {@linkplain CompiledCodeDescriptor function implementations} in Avail.
+ *
+ * <p>An {@link A_Function} refers to its raw function, plus any outer values
+ * capture during function {@link L1Operation#L1_doClose closure}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -73,10 +78,10 @@ extends A_BasicObject
 	/**
 	 * Atomically decrement the countdown to reoptimization by the {@linkplain
 	 * L2Translator Level Two translator}. If the count reaches zero
-	 * ({@code 0}), then lock this {@linkplain A_RawFunction function
-	 * implementation}, thereby blocking concurrent applications of {@linkplain
-	 * A_Function functions} based on this function implementation, and then
-	 * evaluate the argument in order to effect reoptimization.
+	 * ({@code 0}), then lock this raw function, thereby blocking concurrent
+	 * applications of {@linkplain A_Function functions} derived from this raw
+	 * function, and then evaluate the argument in order to effect
+	 * reoptimization.
 	 *
 	 * @param continuation
 	 *        The {@linkplain Continuation0 continuation} responsible for
@@ -87,11 +92,23 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain FunctionTypeDescriptor function type} associated
-	 * with this {@linkplain A_RawFunction function implementation}.
+	 * with this raw function.
 	 *
 	 * @return The function type associated with this function implementation.
 	 */
 	A_Type functionType ();
+
+	/**
+	 * Answer the tuple of line number deltas for this ram function.  Each entry
+	 * encodes a signed offset in an unsigned entry.  There's an entry for each
+	 * nybblecode (not for each nybble).  The encoding uses the absolute value
+	 * of the delta from the previous instruction's line number, shifted left
+	 * once, adding one for negatives.  This allows nybble tuples and byte
+	 * tuples to be the usual representations for small functions.
+	 *
+	 * @return The function type associated with this function implementation.
+	 */
+	A_Tuple lineNumberEncodedDeltas ();
 
 	/**
 	 * Answer the {@code index}-th literal value of this {@linkplain
@@ -124,7 +141,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the name of the {@linkplain A_Method method} associated with this
-	 * {@linkplain A_RawFunction function implementation}.
+	 * raw function.
 	 *
 	 * @return The method name associated with this function implementation, or
 	 *         a {@linkplain A_String string} that indicates that the provenance
@@ -135,8 +152,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain A_Module module} that contains the {@linkplain
-	 * BlockNodeDescriptor block} that defines this {@linkplain A_RawFunction
-	 * function implementation}.
+	 * BlockNodeDescriptor block} that defines this raw function.
 	 *
 	 * @return The module, or {@linkplain NilDescriptor#nil nil} for synthetic
 	 *         function implementations.
@@ -144,21 +160,44 @@ extends A_BasicObject
 	A_Module module ();
 
 	/**
-	 * Answer the arity of this {@linkplain A_RawFunction function
-	 * implementation}.
+	 * Extract the nybblecode operation at the given pc (program counter),
+	 * updating it to the start of the first operand, or just past the operation
+	 * if none.
 	 *
-	 * @return The arity of this function implementation.
+	 * @param pc
+	 *        The {@link MutableInt} holding the index into the nybblecodes at
+	 *        which the operation is, and which will be updated to just after
+	 *        the operation, or the start of any operands.
+	 * @return The {@link L1Operation} found at the specified position.
+	 */
+	L1Operation nextNybblecodeOperation (final MutableInt pc);
+
+	/**
+	 * Extract the nybblecode operand at the given pc (program counter),
+	 * updating it to just past the operand.
+	 *
+	 * @param pc
+	 *        The {@link MutableInt} holding the index into the nybblecodes at
+	 *        which the operand is, and which will be updated to just after
+	 *        the operand.
+	 * @return The {@code int} operand at the specified position.
+	 */
+	int nextNybblecodeOperand (final MutableInt pc);
+
+	/**
+	 * Answer the arity of this raw function.
+	 *
+	 * @return The arity of this raw function.
 	 */
 	int numArgs ();
 
 	/**
 	 * Answer the number of slots to reserve for {@linkplain A_Continuation
-	 * continuations} based on this {@linkplain A_RawFunction function
-	 * implementation}. This is the arity, plus number of local variables, plus
-	 * number of stack slots.
+	 * continuations} based on this raw function. This is the arity, plus number
+	 * of local variables and constants, plus number of stack slots.
 	 *
-	 * @return The number of slots to reserve for executing this function
-	 *         implementation.
+	 * @return The number of continuation slots to reserve for executing this
+	 *         raw function.
 	 */
 	int numSlots ();
 
@@ -187,6 +226,15 @@ extends A_BasicObject
 	int numConstants ();
 
 	/**
+	 * Answer how many nybbles are taken up by the nybblecodes of this raw
+	 * function.
+	 *
+	 * @return The {@link A_Tuple#tupleSize() size} of this raw function's
+	 *         {@link #nybbles()}.
+	 */
+	int numNybbles ();
+
+	/**
 	 * Answer the number of outer variables specified by this {@linkplain
 	 * A_RawFunction function implementation}.
 	 *
@@ -196,7 +244,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain A_Tuple tuple} of nybblecodes that implements this
-	 * {@linkplain A_RawFunction function implementation}.
+	 * raw function.
 	 *
 	 * @return The instruction tuple for this function implementation.
 	 */
@@ -257,7 +305,7 @@ extends A_BasicObject
 	/**
 	 * Specify that a {@linkplain A_Method method} with the given name includes
 	 * a {@linkplain A_Definition definition} that (indirectly) includes this
-	 * {@linkplain A_RawFunction function implementation}.
+	 * raw function.
 	 *
 	 * @param methodName
 	 *        The method name to associate with this function implementation.
@@ -293,8 +341,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the starting line number for the {@linkplain BlockNodeDescriptor
-	 * block} that defines this {@linkplain A_RawFunction function
-	 * implementation}.
+	 * block} that defines this raw function.
 	 *
 	 * @return The starting line number, or zero ({@code 0}) for synthetic
 	 *         function implementations.
@@ -303,14 +350,12 @@ extends A_BasicObject
 
 	/**
 	 * Atomically increment the total number of invocations of {@linkplain
-	 * A_Function functions} based on this {@linkplain A_RawFunction function
-	 * implementation}.
+	 * A_Function functions} based on this raw function.
 	 */
 	void tallyInvocation ();
 
 	/**
-	 * Answer the total number of invocations of this {@linkplain A_RawFunction
-	 * function implementation}.
+	 * Answer the total number of invocations of this raw function.
 	 *
 	 * @return The total number of invocations of this function implementation.
 	 */

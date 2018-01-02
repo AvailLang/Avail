@@ -53,11 +53,10 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -320,14 +319,16 @@ extends Descriptor
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(function));
 		for (int i = 1; i <= numArgs; i++)
 		{
-			writer.write(L1Operation.L1_doPushLastLocal, i);
+			writer.write(0, L1Operation.L1_doPushLastLocal, i);
 		}
-		writer.write(L1Operation.L1_doMakeTuple, numArgs);
+		writer.write(0, L1Operation.L1_doMakeTuple, numArgs);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
@@ -397,20 +398,20 @@ extends Descriptor
 		final int lineNumber)
 	{
 		final A_Phrase block = newBlockNode(
-			emptyList(),
+			emptyTuple(),
 			0,
-			singletonList(phrase),
+			tuple(phrase),
 			TOP.o(),
 			emptySet(),
-			lineNumber);
+			lineNumber,
+			phrase.tokens());
 		BlockNodeDescriptor.recursivelyValidate(block);
 		final A_RawFunction compiledBlock = block.generateInModule(module);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a function with no copied data.
 		assert compiledBlock.numOuters() == 0;
-		final A_Function function =
-			createFunction(compiledBlock, emptyTuple());
+		final A_Function function = createFunction(compiledBlock, emptyTuple());
 		function.makeImmutable();
 		return function;
 	}
@@ -455,13 +456,14 @@ extends Descriptor
 				variableTypeFor(naturalNumbers()));
 			for (int i = 1; i <= numArgs; i++)
 			{
-				writer.write(L1Operation.L1_doPushLastLocal, i);
+				writer.write(lineNumber, L1Operation.L1_doPushLastLocal, i);
 			}
 			// Get the failure code.
-			writer.write(L1Operation.L1_doGetLocal, failureLocal);
+			writer.write(lineNumber, L1Operation.L1_doGetLocal, failureLocal);
 			// Put the arguments and failure code into a tuple.
-			writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
+			writer.write(lineNumber, L1Operation.L1_doMakeTuple, numArgs + 1);
 			writer.write(
+				lineNumber,
 				L1Operation.L1_doCall,
 				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 				writer.addLiteral(bottom()));
@@ -494,16 +496,18 @@ extends Descriptor
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(bottom());
 		writer.write(
+			0,
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(stringFrom(messageString)));
 		final int numArgs = paramTypes.tupleSize();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			writer.write(L1Operation.L1_doPushLastLocal, i);
+			writer.write(0, L1Operation.L1_doPushLastLocal, i);
 		}
 		// Put the error message and arguments into a tuple.
-		writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
+		writer.write(0, L1Operation.L1_doMakeTuple, numArgs + 1);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 			writer.addLiteral(bottom()));

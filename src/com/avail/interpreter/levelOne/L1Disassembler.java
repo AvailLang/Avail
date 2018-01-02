@@ -32,12 +32,11 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.NybbleTupleDescriptor;
+import com.avail.utility.MutableInt;
 
 import java.util.IdentityHashMap;
 
@@ -73,21 +72,21 @@ public final class L1Disassembler
 	final IdentityHashMap<A_BasicObject, Void> recursionMap;
 
 	/**
-	 * The number of tabs to output after each line break.
+	 * The current level one offset into the code.
 	 */
-	final int indent;
+	final MutableInt pc = new MutableInt(1);
 
 	/**
 	 * The level one {@linkplain NybbleTupleDescriptor nybblecodes tuple},
 	 * pre-extracted from the {@linkplain CompiledCodeDescriptor compiled code
 	 * object}.
 	 */
-	final A_Tuple nybbles;
+	final int numNybbles;
 
 	/**
-	 * The current level one offset into the code.
+	 * The number of tabs to output after each line break.
 	 */
-	int pc;
+	final int indent;
 
 
 	/**
@@ -101,13 +100,13 @@ public final class L1Disassembler
 		@Override
 		public void doImmediate ()
 		{
-			builder.append("immediate=").append(getInteger());
+			builder.append("immediate=").append(code.nextNybblecodeOperand(pc));
 		}
 
 		@Override
 		public void doLiteral ()
 		{
-			final int index = getInteger();
+			final int index = code.nextNybblecodeOperand(pc);
 			builder.append("literal#").append(index).append("=");
 			code.literalAt(index).printOnAvoidingIndent(
 				builder,
@@ -118,7 +117,7 @@ public final class L1Disassembler
 		@Override
 		public void doLocal ()
 		{
-			final int index = getInteger();
+			final int index = code.nextNybblecodeOperand(pc);
 			if (index <= code.numArgs())
 			{
 				builder.append("arg#").append(index);
@@ -132,7 +131,7 @@ public final class L1Disassembler
 		@Override
 		public void doOuter ()
 		{
-			builder.append("outer#").append(getInteger());
+			builder.append("outer#").append(code.nextNybblecodeOperand(pc));
 		}
 
 		@Override
@@ -189,10 +188,10 @@ public final class L1Disassembler
 		this.builder = builder;
 		this.recursionMap = recursionMap;
 		this.indent = indent;
-		this.nybbles = code.nybbles();
-		this.pc = 1;
+		this.numNybbles = code.numNybbles();
+		assert pc.value == 1;
 		boolean first = true;
-		while (pc <= nybbles.tupleSize())
+		while (pc.value <= numNybbles)
 		{
 			if (!first)
 			{
@@ -203,13 +202,9 @@ public final class L1Disassembler
 			{
 				builder.append("\t");
 			}
-			builder.append(pc).append(": ");
-			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
-			if (nybble == L1Operation.L1_doExtension.ordinal())
-			{
-				nybble = 16 + nybbles.extractNybbleFromTupleAt(pc++);
-			}
-			final L1Operation operation = L1Operation.lookup(nybble);
+			builder.append(pc.value).append(": ");
+
+			final L1Operation operation = code.nextNybblecodeOperation(pc);
 			final L1OperandType[] operandTypes = operation.operandTypes();
 			builder.append(operation.name());
 			if (operandTypes.length > 0)
@@ -226,28 +221,5 @@ public final class L1Disassembler
 				builder.append(")");
 			}
 		}
-	}
-
-	/**
-	 * Extract an encoded integer from the nybblecode instruction stream.  The
-	 * encoding uses only a nybble for very small operands, and can still
-	 * represent up to {@link Integer#MAX_VALUE} if necessary. Adjust the
-	 * {@link #pc program counter} to skip the integer.
-	 *
-	 * @return The integer extracted from the nybblecode stream.
-	 */
-	@InnerAccess int getInteger ()
-	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
-		final int shift = firstNybble << 2;
-		int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
-		int value = 0;
-		while (count-- > 0)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
-		}
-		final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
-		final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
-		return value + lowOff + (highOff << 4);
 	}
 }

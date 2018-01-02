@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -52,21 +54,28 @@ public class AvailCall extends AvailInstructionWithIndex
 	final int verifyIndex;
 
 	/**
-	 * Construct a new {@link AvailCall}.
+	 * Construct a new {@code AvailCall}.
 	 *
-	 * @param messageIndex The index of the literal that holds the message (a
-	 *                     {@linkplain MethodDescriptor method}).
-	 * @param verifyIndex The index of the literal that holds the return type.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param messageIndex
+	 *        The index of the literal that holds the message (a {@linkplain
+	 *        MethodDescriptor method}).
+	 * @param verifyIndex
+	 *        The index of the literal that holds the return type.
 	 */
-	public AvailCall (final int messageIndex, final int verifyIndex)
+	public AvailCall (
+		final A_Tuple relevantTokens,
+		final int messageIndex,
+		final int verifyIndex)
 	{
-		super(messageIndex);
+		super(relevantTokens, messageIndex);
 		this.verifyIndex = verifyIndex;
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1_doCall.writeTo(aStream);
 		writeIntegerOn(index, aStream);

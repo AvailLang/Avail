@@ -882,56 +882,60 @@ extends Descriptor
 		{
 			return SerializerOperation.NYBBLE_TUPLE;
 		}
-		boolean allChars = true;
-		boolean allInts = true;
-		int maxCodePoint = 0;
-		int maxInteger = 0;
-		for (int i = 1; i <= size; i++)
+
+		// Examine the first element to detect homogenous cases like numeric
+		// tuples or strings.
+		final AvailObject firstElement = object.tupleAt(1);
+		if (firstElement.isCharacter())
 		{
-			final AvailObject element = object.tupleAt(i);
-			if (allChars && element.isCharacter())
+			// See if we can use a string-like representation.
+			int maxCodePoint = firstElement.codePoint();
+			for (int i = 2; i <= size; i++)
 			{
-				allInts = false;
+				final AvailObject element = object.tupleAt(i);
+				if (!element.isCharacter())
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
 				maxCodePoint = max(maxCodePoint, element.codePoint());
 			}
-			else if (!allInts || !element.isInt())
+			return maxCodePoint <= 255
+				? SerializerOperation.BYTE_STRING
+				: maxCodePoint <= 65535
+					? SerializerOperation.SHORT_STRING
+					: SerializerOperation.ARBITRARY_STRING;
+		}
+
+		if (firstElement.isInt())
+		{
+			// See if we can use a numeric-tuple representation.
+			int maxInteger = firstElement.extractInt();
+			if (maxInteger < 0)
 			{
 				return SerializerOperation.GENERAL_TUPLE;
 			}
-			else
+			for (int i = 2; i <= size; i++)
 			{
+				final AvailObject element = object.tupleAt(i);
+				if (!element.isInt())
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
 				final int intValue = element.extractInt();
 				if (intValue < 0)
 				{
 					return SerializerOperation.GENERAL_TUPLE;
 				}
-				allChars = false;
 				maxInteger = max(maxInteger, intValue);
 			}
+			return maxInteger <= 15
+				? SerializerOperation.NYBBLE_TUPLE
+				: maxInteger <= 255
+					? SerializerOperation.BYTE_TUPLE
+					: SerializerOperation.INT_TUPLE;
 		}
-		if (allInts)
-		{
-			// assert !allChars;
-			if (maxInteger <= 15)
-			{
-				return SerializerOperation.NYBBLE_TUPLE;
-			}
-			if (maxInteger <= 255)
-			{
-				return SerializerOperation.BYTE_TUPLE;
-			}
-			return SerializerOperation.GENERAL_TUPLE;
-		}
-		// assert allChars && !allInts;
-		if (maxCodePoint <= 255)
-		{
-			return SerializerOperation.BYTE_STRING;
-		}
-		if (maxCodePoint <= 65535)
-		{
-			return SerializerOperation.SHORT_STRING;
-		}
-		return SerializerOperation.ARBITRARY_STRING;
+
+		return SerializerOperation.GENERAL_TUPLE;
 	}
 
 	/**

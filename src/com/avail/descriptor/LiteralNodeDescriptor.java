@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -51,8 +50,10 @@ import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -73,8 +74,8 @@ extends ParseNodeDescriptor
 		 * The token that was transformed into this literal.
 		 */
 		TOKEN,
-	}
 
+		}
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -86,35 +87,19 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Token o_Token (final AvailObject object)
-	{
-		return object.slot(TOKEN);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		final A_Token token = object.slot(TOKEN);
-		assert token.tokenType() == TokenType.LITERAL
-			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
-		final AvailObject literal = token.literal();
-		return instanceTypeOrMetaOn(literal).makeImmutable();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.token().hash() ^ 0x9C860C0D;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(TOKEN).equals(aParseNode.token());
+		// Do nothing.
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		// Do nothing.
 	}
 
 	@Override @AvailMethod
@@ -130,23 +115,40 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		codeGenerator.emitPushLiteral(object.slot(TOKEN).literal());
+		codeGenerator.emitPushLiteral(
+			tuple(object.token()), object.slot(TOKEN).literal());
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final A_Phrase aParseNode)
 	{
-		// Do nothing.
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.slot(TOKEN).equals(aParseNode.token());
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		// Do nothing.
+		final A_Token token = object.slot(TOKEN);
+		assert token.tokenType() == LITERAL
+			|| token.tokenType() == SYNTHETIC_LITERAL;
+		final AvailObject literal = token.literal();
+		return instanceTypeOrMetaOn(literal).makeImmutable();
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.token().hash() ^ 0x9C860C0D;
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return ParseNodeKind.LITERAL_NODE;
 	}
 
 	@Override
@@ -157,24 +159,30 @@ extends ParseNodeDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
-	{
-		// Do nothing.
-	}
-
 	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_PHRASE;
 	}
 
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	@Override @AvailMethod
+	A_Token o_Token (final AvailObject object)
 	{
-		return ParseNodeKind.LITERAL_NODE;
+		return object.slot(TOKEN);
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return tuple(object.slot(TOKEN));
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
 	}
 
 	@Override
@@ -198,8 +206,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain LiteralNodeDescriptor literal phrase} from a
-	 * {@linkplain LiteralTokenDescriptor literal token}.
+	 * Create a literal phrase from a {@linkplain LiteralTokenDescriptor literal
+	 * token}.
 	 *
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
@@ -212,8 +220,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a
-	 * {@linkplain LiteralTokenDescriptor literal token}.
+	 * Create a literal phrase from a {@linkplain LiteralTokenDescriptor literal
+	 * token}.
 	 *
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
@@ -227,14 +235,14 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain LiteralNodeDescriptor literal node} from an
-	 * {@link AvailObject}, the literal value itself. Automatically wrap the
-	 * value inside a synthetic literal token.
+	 * Create a literal phrase from an {@link AvailObject}, the literal value
+	 * itself.  Automatically wrap the value inside a synthetic literal token.
 	 *
 	 * @param literalValue The value that this literal node should produce.
 	 * @return The new literal node.
 	 */
-	public static AvailObject syntheticLiteralNodeFor (final A_BasicObject literalValue)
+	public static AvailObject syntheticLiteralNodeFor (
+		final A_BasicObject literalValue)
 	{
 		final AvailObject token = literalToken(
 			literalValue.isString()
@@ -250,7 +258,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link LiteralNodeDescriptor}.
+	 * Construct a new {@code LiteralNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

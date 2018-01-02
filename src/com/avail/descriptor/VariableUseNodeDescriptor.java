@@ -44,13 +44,19 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.DECLARATION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.FLAGS;
-import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.LAST_USE;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.DECLARATION;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.USE_TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots
+	.LAST_USE;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots
+	.DECLARATION;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots
+	.USE_TOKEN;
 
 /**
  * My instances represent the use of some {@linkplain DeclarationNodeDescriptor
@@ -96,8 +102,8 @@ extends ParseNodeDescriptor
 		 * that is being mentioned.
 		 */
 		DECLARATION
-	}
 
+		}
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
@@ -105,15 +111,63 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Token o_Token (final AvailObject object)
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		return object.slot(USE_TOKEN);
+		action.value(object.slot(DECLARATION));
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		object.setSlot(
+			DECLARATION, aBlock.valueNotNull(object.slot(DECLARATION)));
 	}
 
 	@Override @AvailMethod
 	A_Phrase o_Declaration (final AvailObject object)
 	{
 		return object.slot(DECLARATION);
+	}
+
+	@Override @AvailMethod
+	void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final A_Phrase declaration = object.slot(DECLARATION);
+		declaration.declarationKind().emitVariableValueForOn(
+			object.tokens(), declaration, codeGenerator);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final A_Phrase aParseNode)
+	{
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.slot(USE_TOKEN).equals(aParseNode.token())
+			&& object.slot(DECLARATION).equals(aParseNode.declaration())
+			&& object.isLastUse() == aParseNode.isLastUse();
+	}
+
+	@Override @AvailMethod
+	A_Type o_ExpressionType (final AvailObject object)
+	{
+		return object.slot(DECLARATION).declaredType();
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return
+			(object.slot(USE_TOKEN).hash()) * multiplier
+				+ object.slot(DECLARATION).hash()
+				^ 0x62CE7BA2;
 	}
 
 	@Override @AvailMethod
@@ -147,59 +201,16 @@ extends ParseNodeDescriptor
 		return object.slot(LAST_USE) != 0;
 	}
 
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		return object.slot(DECLARATION).declaredType();
+		return VARIABLE_USE_NODE;
 	}
 
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return
-			(object.slot(USE_TOKEN).hash()) * multiplier
-				+ object.slot(DECLARATION).hash()
-			^ 0x62CE7BA2;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
-		final AvailObject object,
-		final A_Phrase aParseNode)
-	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(USE_TOKEN).equals(aParseNode.token())
-			&& object.slot(DECLARATION).equals(aParseNode.declaration())
-			&& object.isLastUse() == aParseNode.isLastUse();
-	}
-
-	@Override @AvailMethod
-	void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		final A_Phrase declaration = object.slot(DECLARATION);
-		declaration.declarationKind().emitVariableValueForOn(
-			declaration,
-			codeGenerator);
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
-	{
-		action.value(object.slot(DECLARATION));
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
-	{
-		object.setSlot(
-			DECLARATION, aBlock.valueNotNull(object.slot(DECLARATION)));
+		return SerializerOperation.VARIABLE_USE_PHRASE;
 	}
 
 	@Override
@@ -211,23 +222,23 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Token o_Token (final AvailObject object)
+	{
+		return object.slot(USE_TOKEN);
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return tuple(object.slot(USE_TOKEN));
+	}
+
+	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
-	}
-
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
-	{
-		return VARIABLE_USE_NODE;
-	}
-
-	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.VARIABLE_USE_PHRASE;
 	}
 
 	@Override

@@ -123,12 +123,13 @@ extends Primitive
 				tuple(
 					nameLiteral,
 					newBlockNode(
-					emptyTuple(),
-					0,
-					tuple(specialObjectLiteral),
-					specialObjectLiteral.expressionType(),
-					emptySet(),
-					0))),
+						emptyTuple(),
+						0,
+						tuple(specialObjectLiteral),
+						specialObjectLiteral.expressionType(),
+						emptySet(),
+						0,
+						emptyTuple()))),
 			TOP.o());
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
@@ -165,7 +166,8 @@ extends Primitive
 						LITERAL_NODE.create(
 							specialObjectLiteral.expressionType()),
 						emptySet(),
-						0))),
+						0,
+						emptyTuple()))),
 			TOP.o());
 		return interpreter.primitiveSuccess(
 			newSequence(

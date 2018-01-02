@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.io.ByteArrayOutputStream;
@@ -41,29 +43,29 @@ import java.io.ByteArrayOutputStream;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailMakeTuple extends AvailInstruction
+public class AvailMakeTuple extends AvailInstructionWithIndex
 {
 	/**
-	 * The size of the tuple to create.
-	 */
-	final int count;
-
-	@Override
-	public void writeNybblesOn (
-		final ByteArrayOutputStream aStream)
-	{
-		L1Operation.L1_doMakeTuple.writeTo(aStream);
-		writeIntegerOn(count, aStream);
-	}
-
-	/**
-	 * Construct a new {@link AvailMakeTuple} that consumes the specified number
+	 * Construct a new {@code AvailMakeTuple} that consumes the specified number
 	 * of elements from the stack to create a tuple.
 	 *
-	 * @param count The number of stack elements to pop to make a tuple.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param index
+	 *        The number of stack elements to pop to make a tuple.
 	 */
-	public AvailMakeTuple (final int count)
+	public AvailMakeTuple (
+		final A_Tuple relevantTokens,
+		final int index)
 	{
-		this.count = count;
+		super(relevantTokens, index);
+	}
+
+	@Override
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	{
+		L1Operation.L1_doMakeTuple.writeTo(aStream);
+		writeIntegerOn(index, aStream);
 	}
 }

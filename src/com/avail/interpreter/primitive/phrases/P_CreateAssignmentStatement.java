@@ -49,6 +49,7 @@ import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode
@@ -102,7 +103,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
-		final A_Phrase assignment = newAssignment(variable, expression, false);
+		final A_Phrase assignment = newAssignment(
+			variable, expression, emptyTuple(), false);
 		return interpreter.primitiveSuccess(assignment);
 	}
 

@@ -151,12 +151,17 @@ extends ParseNodeDescriptor
 		final A_Type superUnionType = arguments.superUnionType();
 		if (superUnionType.isBottom())
 		{
-			codeGenerator.emitCall(argCount, bundle, object.expressionType());
+			codeGenerator.emitCall(
+				object.tokens(), argCount, bundle, object.expressionType());
 		}
 		else
 		{
 			codeGenerator.emitSuperCall(
-				argCount, bundle, object.expressionType(), superUnionType);
+				object.tokens(),
+				argCount,
+				bundle,
+				object.expressionType(),
+				superUnionType);
 		}
 	}
 

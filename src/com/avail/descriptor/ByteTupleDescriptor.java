@@ -460,8 +460,7 @@ extends NumericTupleDescriptor
 	{
 		//  Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject) fromUnsignedByte(
-			object.byteSlot(RAW_LONG_AT_, index));
+		return fromUnsignedByte(object.byteSlot(RAW_LONG_AT_, index));
 	}
 
 	@Override @AvailMethod

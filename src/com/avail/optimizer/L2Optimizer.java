@@ -50,7 +50,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation1;
 
@@ -741,11 +741,11 @@ public final class L2Optimizer
 	 */
 	@InnerAccess void orderBlocks ()
 	{
-		final Map<L2BasicBlock, Mutable<Integer>> countdowns = new HashMap<>();
+		final Map<L2BasicBlock, MutableInt> countdowns = new HashMap<>();
 		for (final L2BasicBlock block : blocks)
 		{
 			countdowns.put(
-				block, new Mutable<>(block.predecessorEdges().size()));
+				block, new MutableInt(block.predecessorEdges().size()));
 		}
 		final List<L2BasicBlock> order =
 			new ArrayList<>(blocks.size());
@@ -768,7 +768,7 @@ public final class L2Optimizer
 				block.successorEdges().forEach(
 					edge ->
 					{
-						final @Nullable Mutable<Integer> countdown =
+						final @Nullable MutableInt countdown =
 							countdowns.get(edge.targetBlock());
 						// Note that the entry may have been removed to break a
 						// cycle.  See below.
@@ -785,7 +785,7 @@ public final class L2Optimizer
 				// a node at random, preferring one that has had at least one
 				// predecessor placed.
 				@Nullable L2BasicBlock victim = null;
-				for (final Entry<L2BasicBlock, Mutable<Integer>> entry
+				for (final Entry<L2BasicBlock, MutableInt> entry
 					: countdowns.entrySet())
 				{
 					if (entry.getValue().value

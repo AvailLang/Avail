@@ -45,7 +45,7 @@ public class AvailIntegerValueHelper
 	 */
 	public final long longValue;
 
-	/** Construct a new {@link AvailIntegerValueHelper}.
+	/** Construct a new {@code AvailIntegerValueHelper}.
 	 *
 	 * @param longValue The {@code long} value.
 	 */

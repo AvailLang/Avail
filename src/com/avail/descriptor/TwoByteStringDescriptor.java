@@ -77,7 +77,12 @@ extends StringDescriptor
 
 		/**
 		 * The raw 64-bit ({@code long}s) that constitute the representation of
-		 * the {@linkplain TwoByteStringDescriptor two-byte string}.
+		 * the string of two-byte characters.  Each long contains up to four
+		 * characters occupying 16 bits each, in little-endian order.  Only the
+		 * last long can be incomplete, and is required to have zeros for the
+		 * unused elements.  The descriptor instances include the field
+		 * {@link #unusedShortsOfLastLong}, which indicates how many (0-3) of
+		 * the 16-bit subfields of the last long are unused.
 		 */
 		RAW_LONGS_;
 

@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.io.ByteArrayOutputStream;
@@ -45,6 +47,18 @@ import java.io.ByteArrayOutputStream;
 public class AvailDuplicate
 extends AvailInstruction
 {
+	/**
+	 * Construct an {@code AvailDuplicate} instruction.
+	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 */
+	public AvailDuplicate (final A_Tuple relevantTokens)
+	{
+		super(relevantTokens);
+	}
+
 	@Override
 	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{

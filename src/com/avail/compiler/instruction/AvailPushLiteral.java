@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -46,21 +48,23 @@ import java.io.ByteArrayOutputStream;
  */
 public class AvailPushLiteral extends AvailInstructionWithIndex
 {
-
 	/**
-	 * Construct a new {@link AvailPushLiteral}.
+	 * Construct a new {@code AvailPushLiteral}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param literalIndex The index of the literal being pushed.
 	 */
-	public AvailPushLiteral (final int literalIndex)
+	public AvailPushLiteral (
+		final A_Tuple relevantTokens,
+		final int literalIndex)
 	{
-		super(literalIndex);
+		super(relevantTokens, literalIndex);
 	}
 
-
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1_doPushLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);

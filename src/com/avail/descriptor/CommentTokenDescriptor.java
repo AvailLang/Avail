@@ -34,11 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
 
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
@@ -51,7 +50,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class CommentTokenDescriptor
+public final class CommentTokenDescriptor
 extends TokenDescriptor
 {
 	//this.string().asNativeString() - gets at the string contents.
@@ -89,6 +88,7 @@ extends TokenDescriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
+		@HideFieldInDebugger
 		static final BitField START =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 
@@ -142,6 +142,7 @@ extends TokenDescriptor
 		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
 		 * </p>
 		 */
+		@HideFieldJustForPrinting
 		NEXT_LEXING_STATE_POJO;
 
 		static
@@ -189,8 +190,7 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain CommentTokenDescriptor comment
-	 * token}.
+	 * Create and initialize a new comment token.
 	 *
 	 * @param string
 	 *        The token text.
@@ -224,40 +224,18 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Construct a new {@link CommentTokenDescriptor}.
-	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
-	 */
-	public CommentTokenDescriptor (
-		final Mutability mutability,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(
-			mutability,
-			TypeTag.TOKEN_TAG,
-			objectSlotsEnumClass,
-			integerSlotsEnumClass);
-	}
-
-	/**
-	 * Construct a new {@link CommentTokenDescriptor}.
+	 * Construct a new {@code CommentTokenDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
 	private CommentTokenDescriptor (final Mutability mutability)
 	{
-		this(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.TOKEN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link LiteralTokenDescriptor}. */

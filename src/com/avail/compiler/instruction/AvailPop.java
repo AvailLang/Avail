@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -45,9 +47,20 @@ import java.io.ByteArrayOutputStream;
  */
 public class AvailPop extends AvailInstruction
 {
+	/**
+	 * Construct an instruction.  Capture the tokens that contributed to it.
+	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 */
+	public AvailPop (final A_Tuple relevantTokens)
+	{
+		super(relevantTokens);
+	}
+
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1_doPop.writeTo(aStream);
 	}

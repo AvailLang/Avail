@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -48,15 +50,20 @@ import java.util.List;
 public class AvailGetOuterVariable extends AvailGetVariable
 {
 	/**
-	 * Construct a new {@link AvailGetOuterVariable}.
+	 * Construct a new {@code AvailGetOuterVariable}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param outerIndex
-	 *            The index of the variable in a {@linkplain FunctionDescriptor
-	 *            function's} list of outer variables.
+	 *        The index of the variable in a {@linkplain FunctionDescriptor
+	 *        function's} list of outer variables.
 	 */
-	public AvailGetOuterVariable (final int outerIndex)
+	public AvailGetOuterVariable (
+		final A_Tuple relevantTokens,
+		final int outerIndex)
 	{
-		super(outerIndex);
+		super(relevantTokens, outerIndex);
 	}
 
 	@Override

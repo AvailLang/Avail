@@ -53,7 +53,7 @@ public class LoadingEffectToRunPrimitive extends LoadingEffect
 	final A_BasicObject[] arguments;
 
 	/**
-	 * Construct a new {@link LoadingEffectToRunPrimitive}.
+	 * Construct a new {@code LoadingEffectToRunPrimitive}.
 	 *
 	 * @param primitiveBundle The primitive {@link A_Bundle} to invoke.
 	 * @param arguments The argument values for the primitive.
@@ -64,7 +64,7 @@ public class LoadingEffectToRunPrimitive extends LoadingEffect
 	{
 		assert primitiveBundle.bundleMethod().numArgs() == arguments.length;
 		this.primitiveBundle = primitiveBundle;
-		this.arguments = arguments;
+		this.arguments = arguments.clone();
 	}
 
 	@Override
@@ -74,11 +74,13 @@ public class LoadingEffectToRunPrimitive extends LoadingEffect
 		for (final A_BasicObject argument : arguments)
 		{
 			writer.write(
+				0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(argument));
 		}
 		// Call the primitive, leaving the return value on the stack.
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(primitiveBundle),
 			writer.addLiteral(Types.TOP.o()));

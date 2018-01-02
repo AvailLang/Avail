@@ -89,7 +89,7 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 		{
 			interpreter.pointerAtPut(dest++, continuation.stackAt(i));
 		}
-		interpreter.levelOneStepper.pc = continuation.pc();
+		interpreter.levelOneStepper.pc.value = continuation.pc();
 		interpreter.levelOneStepper.stackp = continuation.stackp();
 		return null;
 	}

@@ -178,7 +178,10 @@ extends ParseNodeDescriptor
 	void o_EmitAllValuesOn (
 		final AvailObject object, final AvailCodeGenerator codeGenerator)
 	{
-		object.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator);
+		codeGenerator.setTokensWhile(
+			object.slot(MACRO_ORIGINAL_SEND).tokens(),
+			() ->
+				object.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator));
 	}
 
 	@Override @AvailMethod
@@ -186,7 +189,9 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator);
+		codeGenerator.setTokensWhile(
+			object.slot(MACRO_ORIGINAL_SEND).tokens(),
+			() -> object.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator));
 	}
 
 	@Override @AvailMethod
@@ -194,7 +199,10 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator);
+		codeGenerator.setTokensWhile(
+			object.slot(MACRO_ORIGINAL_SEND).tokens(),
+			() ->
+				object.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator));
 	}
 
 	@Override @AvailMethod
@@ -417,7 +425,7 @@ extends ParseNodeDescriptor
 	@Override
 	A_Tuple o_Tokens (final AvailObject object)
 	{
-		return object.slot(OUTPUT_PARSE_NODE).tokens();
+		return object.slot(MACRO_ORIGINAL_SEND).tokens();
 	}
 
 	@Override

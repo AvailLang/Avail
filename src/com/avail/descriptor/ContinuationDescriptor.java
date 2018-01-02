@@ -48,6 +48,7 @@ import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
@@ -187,6 +188,20 @@ extends Descriptor
 			|| e == LEVEL_TWO_CHUNK;
 	}
 
+	/**
+	 * Set both my level one program counter and level one stack pointer.
+	 */
+	@Override @AvailMethod
+	void o_AdjustPcAndStackp (
+		final AvailObject object,
+		final int pc,
+		final int stackp)
+	{
+		assert isMutable();
+		object.setSlot(PROGRAM_COUNTER, pc);
+		object.setSlot(STACK_POINTER, stackp);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_ArgOrLocalOrStackAt (
 		final AvailObject object,
@@ -210,22 +225,47 @@ extends Descriptor
 		return object.slot(CALLER);
 	}
 
-	@Override @AvailMethod
-	A_Function o_Function (final AvailObject object)
+	@Override
+	int o_CurrentLineNumber (final AvailObject object)
 	{
-		return object.slot(FUNCTION);
+		final A_RawFunction code = object.function().code();
+		final A_Tuple encodedDeltas = code.lineNumberEncodedDeltas();
+		final MutableInt pc = new MutableInt(1);
+		final int continuationPc = object.pc();
+		int lineNumber = code.startingLineNumber();
+		int instructionCounter = 1;
+		while (pc.value < continuationPc)
+		{
+			final int encodedDelta =
+				encodedDeltas.tupleIntAt(instructionCounter++);
+			final int decodedDelta = (encodedDelta & 1) == 0
+				? encodedDelta >> 1
+				: -(encodedDelta >> 1);
+			lineNumber += decodedDelta;
+			// Now skip one nybblecode instruction.
+			final L1Operation op = code.nextNybblecodeOperation(pc);
+			for (int i = op.operandTypes().length - 1; i >= 0; i--)
+			{
+				code.nextNybblecodeOperand(pc);
+			}
+		}
+		return lineNumber;
 	}
 
+	/**
+	 * If immutable, copy the object as mutable, otherwise answer the original
+	 * mutable continuation.  This is used by the {@linkplain Interpreter
+	 * interpreter} to ensure it is always executing a mutable continuation and
+	 * is therefore always able to directly modify it.
+	 */
 	@Override @AvailMethod
-	int o_Pc (final AvailObject object)
+	A_Continuation o_EnsureMutable (final AvailObject object)
 	{
-		return object.slot(PROGRAM_COUNTER);
-	}
-
-	@Override @AvailMethod
-	int o_Stackp (final AvailObject object)
-	{
-		return object.slot(STACK_POINTER);
+		if (isMutable())
+		{
+			return object;
+		}
+		return AvailObjectRepresentation.newLike(mutable, object, 0, 0);
 	}
 
 	@Override @AvailMethod
@@ -271,6 +311,12 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	A_Function o_Function (final AvailObject object)
+	{
+		return object.slot(FUNCTION);
+	}
+
+	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		int h = 0x593599A;
@@ -313,18 +359,88 @@ extends Descriptor
 		}
 	}
 
+	@Override @AvailMethod
+	L2Chunk o_LevelTwoChunk (final AvailObject object)
+	{
+		final L2Chunk chunk =
+			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
+		if (chunk != unoptimizedChunk && chunk.isValid())
+		{
+			Generation.usedChunk(chunk);
+		}
+		return chunk;
+	}
+
+	@Override @AvailMethod
+	int o_LevelTwoOffset (final AvailObject object)
+	{
+		return (int) object.mutableSlot(LEVEL_TWO_OFFSET);
+	}
+
+	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append(super.o_NameForDebugger(object));
+		builder.append(": ");
+		final A_RawFunction code = object.function().code();
+		builder.append(code.methodName().asNativeString());
+		builder.append(":");
+		builder.append(object.currentLineNumber());
+		final @Nullable Primitive primitive =
+			code.primitive();
+		if (primitive == P_CatchException.instance)
+		{
+			builder.append(", CATCH var = ");
+			builder.append(object.argOrLocalOrStackAt(4).value().value());
+		}
+		return builder.toString();
+	}
+
 	/**
-	 * Set both my level one program counter and level one stack pointer.
+	 * Answer the number of slots allocated for arguments, locals, and stack
+	 * entries.
 	 */
 	@Override @AvailMethod
-	void o_AdjustPcAndStackp (
-		final AvailObject object,
-		final int pc,
-		final int stackp)
+	int o_NumSlots (final AvailObject object)
 	{
-		assert isMutable();
-		object.setSlot(PROGRAM_COUNTER, pc);
-		object.setSlot(STACK_POINTER, stackp);
+		return object.variableObjectSlotsCount();
+	}
+
+	@Override @AvailMethod
+	int o_Pc (final AvailObject object)
+	{
+		return object.slot(PROGRAM_COUNTER);
+	}
+
+	@Override
+	A_Continuation o_ReplacingCaller(
+		final AvailObject object,
+		final A_Continuation newCaller)
+	{
+		final AvailObject mutableVersion = isMutable()
+			? object
+			: AvailObjectRepresentation.newLike(mutable, object, 0, 0);
+		mutableVersion.setSlot(CALLER, newCaller);
+		return mutableVersion;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.CONTINUATION;
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		return object.slot(SKIP_RETURN_CHECK) != 0;
 	}
 
 	/**
@@ -350,100 +466,10 @@ extends Descriptor
 		object.setSlot(FRAME_AT_, subscript, anObject);
 	}
 
-
-	/**
-	 * If immutable, copy the object as mutable, otherwise answer the original
-	 * mutable continuation.  This is used by the {@linkplain Interpreter
-	 * interpreter} to ensure it is always executing a mutable continuation and
-	 * is therefore always able to directly modify it.
-	 */
 	@Override @AvailMethod
-	A_Continuation o_EnsureMutable (final AvailObject object)
+	int o_Stackp (final AvailObject object)
 	{
-		if (isMutable())
-		{
-			return object;
-		}
-		return AvailObjectRepresentation.newLike(mutable, object, 0, 0);
-	}
-
-	@Override @AvailMethod
-	L2Chunk o_LevelTwoChunk (final AvailObject object)
-	{
-		final L2Chunk chunk =
-			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
-		if (chunk != unoptimizedChunk && chunk.isValid())
-		{
-			Generation.usedChunk(chunk);
-		}
-		return chunk;
-	}
-
-	@Override @AvailMethod
-	int o_LevelTwoOffset (final AvailObject object)
-	{
-		return (int) object.mutableSlot(LEVEL_TWO_OFFSET);
-	}
-
-	/**
-	 * Answer the number of slots allocated for arguments, locals, and stack
-	 * entries.
-	 */
-	@Override @AvailMethod
-	int o_NumSlots (final AvailObject object)
-	{
-		return object.variableObjectSlotsCount();
-	}
-
-	@Override
-	String o_NameForDebugger (final AvailObject object)
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(super.o_NameForDebugger(object));
-		builder.append(": ");
-		builder.append(object.function().code().methodName());
-		final @Nullable Primitive primitive =
-			object.function().code().primitive();
-		if (primitive == P_CatchException.instance)
-		{
-			builder.append(", CATCH var = ");
-			builder.append(object.argOrLocalOrStackAt(4).value().value());
-		}
-		return builder.toString();
-	}
-
-	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.CONTINUATION;
-	}
-
-	@Override
-	public boolean o_SkipReturnFlag (final AvailObject object)
-	{
-		return object.slot(SKIP_RETURN_CHECK) != 0;
-	}
-
-	@Override
-	A_Continuation o_ReplacingCaller(
-		final AvailObject object,
-		final A_Continuation newCaller)
-	{
-		//TODO MvG - Remove sanity check
-		assert object != newCaller;
-
-
-		final AvailObject mutableVersion = isMutable()
-			? object
-			: AvailObjectRepresentation.newLike(mutable, object, 0, 0);
-		mutableVersion.setSlot(CALLER, newCaller);
-		return mutableVersion;
+		return object.slot(STACK_POINTER);
 	}
 
 	/**
@@ -697,7 +723,7 @@ extends Descriptor
 						module.equalsNil()
 							? "?"
 							: module.moduleName().asNativeString(),
-						code.startingLineNumber());
+						frame.currentLineNumber());
 				}
 				assert allTypesIndex == allTypeNames.size();
 				javaContinuation.value(Arrays.asList(strings));

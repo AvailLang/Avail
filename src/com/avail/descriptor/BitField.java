@@ -110,13 +110,13 @@ implements Comparable<BitField>
 	 * Construct a new {@code BitField}.
 	 *
 	 * @param integerSlot
-	 *            The {@link IntegerSlotsEnum integer slot} in which this bit
-	 *            field occurs.
+	 *        The {@link IntegerSlotsEnum integer slot} in which this bit field
+	 *        occurs.
 	 * @param shift
-	 *            The bit position of the rightmost (lowest order) bit occupied
-	 *            by this {@code BitField}.
+	 *        The bit position of the rightmost (lowest order) bit occupied by
+	 *        this {@code BitField}.
 	 * @param bits
-	 *            The number of bits this {@code BitField} occupies.
+	 *        The number of bits this {@code BitField} occupies.
 	 */
 	public BitField (
 		final IntegerSlotsEnum integerSlot,

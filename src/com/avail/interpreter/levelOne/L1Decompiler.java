@@ -35,6 +35,7 @@ package com.avail.interpreter.levelOne;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
@@ -74,7 +75,6 @@ import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
 import static com.avail.utility.PrefixSharingList.last;
-import static java.util.Arrays.asList;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
@@ -91,6 +91,13 @@ public class L1Decompiler
 	 */
 	@InnerAccess
 	final A_RawFunction code;
+
+	/**
+	 * The number of nybbles in the nybblecodes of the raw function being
+	 * decompiled.
+	 */
+	@InnerAccess
+	final int numNybbles;
 
 	/**
 	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
@@ -131,16 +138,10 @@ public class L1Decompiler
 	final A_Phrase[] constants;
 
 	/**
-	 * The tuple of nybblecodes to decode.
-	 */
-	@InnerAccess
-	final A_Tuple nybbles;
-
-	/**
 	 * The current position in the instruction stream at which decompilation is
 	 * currently occurring.
 	 */
-	@InnerAccess int pc;
+	@InnerAccess final MutableInt pc = new MutableInt(1);
 
 	/**
 	 * Something to generate unique variable names from a prefix.
@@ -179,7 +180,7 @@ public class L1Decompiler
 	 *
 	 * @param aCodeObject
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
-	 * @param outerVars
+	 * @param outerDeclarations
 	 *        The array of outer variable declarations and literal nodes.
 	 * @param tempBlock
 	 *        A {@linkplain Transformer1NotNull transformer} that takes a prefix
@@ -187,12 +188,13 @@ public class L1Decompiler
 	 */
 	public L1Decompiler (
 		final A_RawFunction aCodeObject,
-		final A_Phrase[] outerVars,
+		final A_Phrase[] outerDeclarations,
 		final Transformer1NotNull<String, String> tempBlock)
 	{
+		assert pc.value == 1;
 		code = aCodeObject;
-		nybbles = code.nybbles();
-		outers = outerVars;
+		numNybbles = aCodeObject.numNybbles();
+		outers = outerDeclarations.clone();
 		tempGenerator = tempBlock;
 		args = new A_Phrase[code.numArgs()];
 		final A_Type tupleType = code.functionType().argsTupleType();
@@ -218,9 +220,9 @@ public class L1Decompiler
 				0,
 				0,
 				KEYWORD);
-			final A_Phrase decl = newVariable(
+			final A_Phrase declaration = newVariable(
 				token, code.localTypeAt(i).writeType(), nil, nil);
-			locals[i - 1] = decl;
+			locals[i - 1] = declaration;
 			mentionedLocals[i - 1] = false;
 		}
 		constants = new A_Phrase[code.numConstants()];
@@ -228,19 +230,15 @@ public class L1Decompiler
 		// the initialization for each, identified by an L1Ext_doSetSlot().
 
 		final DecompilerDispatcher dispatcher = new DecompilerDispatcher();
-		pc = 1;
-		while (pc <= nybbles.tupleSize())
+		while (pc.value <= numNybbles)
 		{
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
-			final L1Operation op = L1Operation.lookup(nybble);
-			op.dispatch(dispatcher);
+			code.nextNybblecodeOperation(pc).dispatch(dispatcher);
 		}
 		// Infallible primitives don't have nybblecodes, except ones marked as
 		// Primitive.Flag.SpecialForm.
-		if (pc > 1)
+		if (numNybbles > 0)
 		{
-			assert pc == nybbles.tupleSize() + 1;
+			assert pc.value == numNybbles + 1;
 			if (!endsWithPushNil)
 			{
 				statements.add(popExpression());
@@ -254,12 +252,13 @@ public class L1Decompiler
 			assert b : "Local constant was not mentioned";
 		}
 		block = newBlockNode(
-			asList(args),
+			tuple(args),
 			code.primitiveNumber(),
-			statements,
+			tupleFromList(statements),
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),
-			0);
+			0,
+			emptyTuple());
 	}
 
 	/**
@@ -303,30 +302,6 @@ public class L1Decompiler
 	public A_Phrase block ()
 	{
 		return block;
-	}
-
-	/**
-	 * Extract an encoded integer from the nybblecode instruction stream.  The
-	 * encoding uses only a nybble for very small operands, and can still
-	 * represent up to {@link Integer#MAX_VALUE} if necessary.
-	 * <p>
-	 * Adjust the {@link #pc program counter} to skip the integer.
-	 *
-	 * @return The integer extracted from the nybblecode stream.
-	 */
-	@InnerAccess int getInteger ()
-	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
-		final int shift = firstNybble << 2;
-		int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
-		int value = 0;
-		while (count-- > 0)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
-		}
-		final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
-		final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
-		return value + lowOff + (highOff << 4);
 	}
 
 	/**
@@ -408,8 +383,9 @@ public class L1Decompiler
 		@Override
 		public void L1_doCall ()
 		{
-			final A_Bundle bundle = code.literalAt(getInteger());
-			final A_Type type = code.literalAt(getInteger());
+			final A_Bundle bundle = code.literalAt(
+				code.nextNybblecodeOperand(pc));
+			final A_Type type = code.literalAt(code.nextNybblecodeOperand(pc));
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
 			@Nullable A_Tuple permutationTuple = null;
@@ -440,7 +416,8 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushLiteral ()
 		{
-			final AvailObject value = code.literalAt(getInteger());
+			final AvailObject value = code.literalAt(
+				code.nextNybblecodeOperand(pc));
 			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
 				final A_Phrase[] functionOuters =
@@ -477,7 +454,7 @@ public class L1Decompiler
 					// The last "statement" may just push nil.
 					// Such a statement will be re-synthesized during code
 					// generation, so don't bother reconstructing it now.
-					assert pc > nybbles.tupleSize()
+					assert pc.value > numNybbles
 						: "nil can only be (implicitly) pushed at the "
 						+ "end of a sequence of statements";
 					endsWithPushNil = true;
@@ -501,10 +478,11 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushLastLocal ()
 		{
-			final A_Phrase decl = argOrLocalOrConstant(getInteger());
-			final A_Phrase use = newUse(decl.token(), decl);
+			final A_Phrase declaration = argOrLocalOrConstant(
+				code.nextNybblecodeOperand(pc));
+			final A_Phrase use = newUse(declaration.token(), declaration);
 			use.isLastUse(true);
-			if (decl.declarationKind().isVariable())
+			if (declaration.declarationKind().isVariable())
 			{
 				pushExpression(use);
 			}
@@ -517,9 +495,10 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushLocal ()
 		{
-			final A_Phrase decl = argOrLocalOrConstant(getInteger());
-			final AvailObject use = newUse(decl.token(), decl);
-			if (decl.declarationKind().isVariable())
+			final A_Phrase declaration = argOrLocalOrConstant(
+				code.nextNybblecodeOperand(pc));
+			final AvailObject use = newUse(declaration.token(), declaration);
+			if (declaration.declarationKind().isVariable())
 			{
 				pushExpression(use);
 			}
@@ -538,8 +517,9 @@ public class L1Decompiler
 		@Override
 		public void L1_doClose ()
 		{
-			final int nOuters = getInteger();
-			final A_RawFunction theCode = code.literalAt(getInteger());
+			final int nOuters = code.nextNybblecodeOperand(pc);
+			final A_RawFunction theCode = code.literalAt(
+				code.nextNybblecodeOperand(pc));
 			final List<A_Phrase> theOuters = popExpressions(nOuters);
 			for (final A_Phrase outer : theOuters)
 			{
@@ -559,7 +539,7 @@ public class L1Decompiler
 		public void L1_doSetLocal ()
 		{
 			final int previousStatementCount = statements.size();
-			final int indexInFrame = getInteger();
+			final int indexInFrame = code.nextNybblecodeOperand(pc);
 			final A_Phrase declaration = argOrLocalOrConstant(indexInFrame);
 			assert declaration.declarationKind().isVariable();
 			if (statements.size() > previousStatementCount)
@@ -573,13 +553,14 @@ public class L1Decompiler
 				// the only places that could have a reference to the old
 				// declaration.
 				assert declaration.initializationExpression().equalsNil();
-				final A_Phrase replacementDecl = newVariable(
+				final A_Phrase replacementDeclaration = newVariable(
 					declaration.token(),
 					declaration.declaredType(),
 					declaration.typeExpression(),
 					popExpression());
-				locals[indexInFrame - code.numArgs() - 1] = replacementDecl;
-				statements.set(statements.size() - 1, replacementDecl);
+				locals[indexInFrame - code.numArgs() - 1] =
+					replacementDeclaration;
+				statements.set(statements.size() - 1, replacementDeclaration);
 				return;
 			}
 			// This assignment wasn't the first mention of the variable.
@@ -587,7 +568,7 @@ public class L1Decompiler
 			final A_Phrase variableUse =
 				newUse(declaration.token(), declaration);
 			final A_Phrase assignmentNode = newAssignment(
-				variableUse, valueNode, false);
+				variableUse, valueNode, emptyTuple(), false);
 			if (expressionStack.isEmpty()
 				|| peekExpression().parseNodeKind() != MARKER_NODE)
 			{
@@ -613,7 +594,7 @@ public class L1Decompiler
 		@Override
 		public void L1_doPushOuter ()
 		{
-			pushExpression(outers[getInteger() - 1]);
+			pushExpression(outers[code.nextNybblecodeOperand(pc) - 1]);
 		}
 
 		@Override
@@ -658,8 +639,9 @@ public class L1Decompiler
 		@Override
 		public void L1_doSetOuter ()
 		{
-			final A_Phrase outerExpr = outers[getInteger() - 1];
-			final A_Phrase outerDecl;
+			final A_Phrase outerExpr =
+				outers[code.nextNybblecodeOperand(pc) - 1];
+			final A_Phrase outerDeclaration;
 			if (outerExpr.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
 			{
 				// Writing into a synthetic literal (a byproduct of decompiling
@@ -668,18 +650,20 @@ public class L1Decompiler
 				final A_BasicObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
 					mostGeneralVariableType());
-				outerDecl = newModuleVariable(token, variableObject, nil, nil);
+				outerDeclaration =
+					newModuleVariable(token, variableObject, nil, nil);
 			}
 			else
 			{
 				assert outerExpr.isInstanceOfKind(
 					REFERENCE_NODE.mostGeneralType());
-				outerDecl = outerExpr.variable().declaration();
+				outerDeclaration = outerExpr.variable().declaration();
 			}
-			final A_Phrase variableUse = newUse(outerDecl.token(), outerDecl);
+			final A_Phrase variableUse =
+				newUse(outerDeclaration.token(), outerDeclaration);
 			final A_Phrase valueExpr = popExpression();
 			final A_Phrase assignmentNode =
-				newAssignment(variableUse, valueExpr, false);
+				newAssignment(variableUse, valueExpr, emptyTuple(), false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -698,16 +682,18 @@ public class L1Decompiler
 		@Override
 		public void L1_doGetLocal ()
 		{
-			final A_Phrase localDecl = argOrLocalOrConstant(getInteger());
-			assert localDecl.declarationKind().isVariable();
-			final AvailObject useNode = newUse(localDecl.token(), localDecl);
+			final A_Phrase localDeclaration = argOrLocalOrConstant(
+				code.nextNybblecodeOperand(pc));
+			assert localDeclaration.declarationKind().isVariable();
+			final AvailObject useNode =
+				newUse(localDeclaration.token(), localDeclaration);
 			pushExpression(useNode);
 		}
 
 		@Override
 		public void L1_doMakeTuple ()
 		{
-			final int count = getInteger();
+			final int count = code.nextNybblecodeOperand(pc);
 			@Nullable A_Tuple permutationTuple = null;
 			if (count > 1 && peekExpression().equals(PERMUTE.marker))
 			{
@@ -732,23 +718,21 @@ public class L1Decompiler
 		@Override
 		public void L1_doGetOuter ()
 		{
-			final A_Phrase outer = outers[getInteger() - 1];
+			final A_Phrase outer = outers[code.nextNybblecodeOperand(pc) - 1];
 			if (outer.parseNodeKindIsUnder(LITERAL_NODE))
 			{
 				pushExpression(outer);
 				return;
 			}
-			final A_Phrase outerDecl = outer.variable().declaration();
-			final A_Phrase use = newUse(outerDecl.token(), outerDecl);
+			final A_Phrase declaration = outer.variable().declaration();
+			final A_Phrase use = newUse(declaration.token(), declaration);
 			pushExpression(use);
 		}
 
 		@Override
 		public void L1_doExtension ()
 		{
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
-			L1Operation.lookup(nybble + 16).dispatch(this);
+			assert false : "Illegal dispatch nybblecode";
 		}
 
 		@Override
@@ -789,10 +773,11 @@ public class L1Decompiler
 				0,
 				0,
 				KEYWORD);
-			final A_BasicObject globalVar = code.literalAt(getInteger());
-			final A_Phrase decl =
+			final A_BasicObject globalVar = code.literalAt(
+				code.nextNybblecodeOperand(pc));
+			final A_Phrase declaration =
 				newModuleVariable(globalToken, globalVar, nil, nil);
-			pushExpression(newUse(globalToken, decl));
+			pushExpression(newUse(globalToken, declaration));
 		}
 
 		@Override
@@ -805,12 +790,13 @@ public class L1Decompiler
 				0,
 				0,
 				KEYWORD);
-			final AvailObject globalVar = code.literalAt(getInteger());
+			final AvailObject globalVar = code.literalAt(
+				code.nextNybblecodeOperand(pc));
 			final A_Phrase declaration =
 				newModuleVariable(globalToken, globalVar, nil, nil);
 			final A_Phrase varUse = newUse(globalToken, declaration);
 			final A_Phrase assignmentNode =
-				newAssignment(varUse, popExpression(), false);
+				newAssignment(varUse, popExpression(), emptyTuple(), false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -852,7 +838,8 @@ public class L1Decompiler
 			// level implicit list of arguments to a call.  It's also used for
 			// permuting both the arguments and their types in the case of a
 			// super-call to a bundle containing permutations.
-			final A_Tuple permutation = code.literalAt(getInteger());
+			final A_Tuple permutation = code.literalAt(
+				code.nextNybblecodeOperand(pc));
 			pushExpression(syntheticLiteralNodeFor(permutation));
 			pushExpression(PERMUTE.marker);
 		}
@@ -860,9 +847,11 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doSuperCall ()
 		{
-			final A_Bundle bundle = code.literalAt(getInteger());
-			final A_Type type = code.literalAt(getInteger());
-			final A_Type superUnionType = code.literalAt(getInteger());
+			final A_Bundle bundle = code.literalAt(
+				code.nextNybblecodeOperand(pc));
+			final A_Type type = code.literalAt(code.nextNybblecodeOperand(pc));
+			final A_Type superUnionType = code.literalAt(
+				code.nextNybblecodeOperand(pc));
 
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
@@ -882,7 +871,8 @@ public class L1Decompiler
 			// inline-assignment form of constant declaration, so we don't need
 			// to look for a DUP marker.
 			final int constSubscript =
-				getInteger() - code.numArgs() - code.numLocals() - 1;
+				code.nextNybblecodeOperand(pc)
+					- code.numArgs() - code.numLocals() - 1;
 			final A_Token token = newToken(
 				stringFrom(tempGenerator.value("const")),
 				emptyTuple(),
@@ -890,9 +880,10 @@ public class L1Decompiler
 				0,
 				0,
 				KEYWORD);
-			final A_Phrase constantDecl = newConstant(token, popExpression());
-			constants[constSubscript] = constantDecl;
-			statements.add(constantDecl);
+			final A_Phrase constantDeclaration =
+				newConstant(token, popExpression());
+			constants[constSubscript] = constantDeclaration;
+			statements.add(constantDeclaration);
 		}
 	}
 

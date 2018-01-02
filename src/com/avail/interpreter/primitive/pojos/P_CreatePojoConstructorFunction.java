@@ -158,14 +158,17 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 			instanceMeta(mostGeneralPojoType()));
 		writer.returnType(mostGeneralPojoType());
 		writer.write(
+			0,
 			L1_doPushLiteral,
 			writer.addLiteral(failFunction));
 		writer.write(
+			0,
 			L1_doGetLocal,
 			writer.createLocal(variableTypeFor(
 				pojoTypeForClass(Throwable.class))));
-		writer.write(L1_doMakeTuple, 1);
+		writer.write(0, L1_doMakeTuple, 1);
 		writer.write(
+			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
 			writer.addLiteral(bottom()));
@@ -180,23 +183,27 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(pojoType);
 		writer.write(
+			0,
 			L1_doPushLiteral,
 			writer.addLiteral(innerFunction));
 		writer.write(
+			0,
 			L1_doPushLiteral,
 			writer.addLiteral(
 				equalityPojo(constructor)));
 		for (int i = 1; i <= paramTypes.tupleSize(); i++)
 		{
-			writer.write(L1_doPushLocal, i);
+			writer.write(0, L1_doPushLocal, i);
 		}
-		writer.write(L1_doMakeTuple, paramTypes.tupleSize());
+		writer.write(0, L1_doMakeTuple, paramTypes.tupleSize());
 		writer.write(
+			0,
 			L1_doPushLiteral,
 			writer.addLiteral(marshaledTypesTuple));
-		writer.write(L1_doPushLiteral, writer.addLiteral(pojoType));
-		writer.write(L1_doMakeTuple, 4);
+		writer.write(0, L1_doPushLiteral, writer.addLiteral(pojoType));
+		writer.write(0, L1_doMakeTuple, 4);
 		writer.write(
+			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
 			writer.addLiteral(pojoType));

@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -51,6 +53,20 @@ import java.util.List;
  */
 public abstract class AvailInstruction
 {
+	/** The tuple of tokens that contributed to producing this instruction. */
+	private A_Tuple relevantTokens;
+
+	/**
+	 * Construct an instruction.  Capture the tokens that contributed to it.
+	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 */
+	public AvailInstruction (final A_Tuple relevantTokens)
+	{
+		this.relevantTokens = relevantTokens;
+	}
 
 	/**
 	 * Write a nybble-coded int in a variable-sized format to the {@linkplain
@@ -109,9 +125,7 @@ public abstract class AvailInstruction
 	 *
 	 * @param aStream Where to write the nybbles.
 	 */
-	public abstract void writeNybblesOn (
-		final ByteArrayOutputStream aStream);
-
+	public abstract void writeNybblesOn (final ByteArrayOutputStream aStream);
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -127,11 +141,14 @@ public abstract class AvailInstruction
 	 * previous use of the variable.
 	 * </p>
 	 *
-	 * @param localData A list of {@linkplain AvailVariableAccessNote}s, one for
-	 *                  each local variable.
-	 * @param outerData A list of {@linkplain AvailVariableAccessNote}s, one for
-	 *                  each outer variable.
-	 * @param codeGenerator The code generator.
+	 * @param localData
+	 *        A list of {@linkplain AvailVariableAccessNote}s, one for each
+	 *        local variable.
+	 * @param outerData
+	 *        A list of {@linkplain AvailVariableAccessNote}s, one for each
+	 *        outer variable.
+	 * @param codeGenerator
+	 *        The code generator.
 	 */
 	public void fixUsageFlags (
 		final List<AvailVariableAccessNote> localData,
@@ -139,17 +156,6 @@ public abstract class AvailInstruction
 		final AvailCodeGenerator codeGenerator)
 	{
 		// Do nothing here in the general case.
-	}
-
-
-	/**
-	 * Answer whether this instruction is a use of a local variable.
-	 *
-	 * @return False for this class, possibly true in a subclass.
-	 */
-	public boolean isLocalUse ()
-	{
-		return false;
 	}
 
 	/**
@@ -163,12 +169,41 @@ public abstract class AvailInstruction
 	}
 
 	/**
-	 * Answer whether this instruction is a use of a label variable.
+	 * Answer which line number to say that this instruction occurs on.  Use
+	 * the {@link #relevantTokens} as an approximation, but subclasses might be
+	 * able to be more precise.  Answer -1 if this instruction doesn't seem to
+	 * have a location in the source associated with it.
 	 *
-	 * @return False for this class, possibly true in a subclass.
+	 * @return The line number for this instruction, or {@code -1}.
 	 */
-	public boolean isPushLabel ()
+	public int lineNumber ()
 	{
-		return false;
+		if (relevantTokens.tupleSize() == 0)
+		{
+			return -1;
+		}
+		final A_Token firstToken = relevantTokens.tupleAt(1);
+		return firstToken.lineNumber();
+	}
+
+	/**
+	 * Get the tuple of tokens that contributed to producing this instruction.
+	 *
+	 * @return The {@link A_Tuple} of relevant {@link A_Token}s.
+	 */
+	public A_Tuple relevantTokens ()
+	{
+		return relevantTokens;
+	}
+
+	/**
+	 * Replace the tuple of tokens related to this instruction.
+	 *
+	 * @param relevantTokens
+	 *        The replacement {@link A_Tuple} of {@link A_Token}s.
+	 */
+	public void setRelevantTokens (final A_Tuple relevantTokens)
+	{
+		this.relevantTokens = relevantTokens;
 	}
 }

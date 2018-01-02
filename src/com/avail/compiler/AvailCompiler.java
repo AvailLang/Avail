@@ -61,6 +61,7 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
@@ -534,7 +535,7 @@ public final class AvailCompiler
 		assert compilationContext.getNoMoreWorkUnits() == null;
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
-		final Mutable<Integer> count = new Mutable<>(0);
+		final MutableInt count = new MutableInt(0);
 		final MutableOrNull<A_Phrase> solution = new MutableOrNull<>();
 		final MutableOrNull<ParserState> afterStatement = new MutableOrNull<>();
 		compilationContext.setNoMoreWorkUnits(() ->
@@ -1253,13 +1254,11 @@ public final class AvailCompiler
 							newListNode(
 								tuple(
 									syntheticLiteralNodeFor(module),
-									syntheticLiteralNodeFor(name), syntheticLiteralNodeFor
-									(varType),
+									syntheticLiteralNodeFor(name),
+									syntheticLiteralNodeFor(varType),
+									syntheticLiteralNodeFor(trueObject()),
 									syntheticLiteralNodeFor(
-										trueObject()),
-									syntheticLiteralNodeFor(
-										objectFromBoolean(
-											canSummarize)))),
+										objectFromBoolean(canSummarize)))),
 							TOP.o());
 						final A_Function creationFunction =
 							createFunctionForPhrase(
@@ -1295,6 +1294,7 @@ public final class AvailCompiler
 							newAssignment(
 								newUse(replacement.token(), newDeclaration),
 								syntheticLiteralNodeFor(val),
+								expression.tokens(),
 								false);
 						final A_Function assignFunction =
 							createFunctionForPhrase(
@@ -1360,6 +1360,7 @@ public final class AvailCompiler
 							replacement.token(),
 							newDeclaration),
 							replacement.initializationExpression(),
+						tuple(expression.token()),
 						false);
 					final A_Function assignFunction =
 						createFunctionForPhrase(
@@ -2213,7 +2214,7 @@ public final class AvailCompiler
 				// There's at least one non-whitespace token present at start.
 				result.add(start);
 			}
-			final Mutable<Integer> countdown = new Mutable<>(toSkip.size());
+			final MutableInt countdown = new MutableInt(toSkip.size());
 			for (final A_Token tokenToSkip : toSkip)
 			{
 				// Common case of an unambiguous whitespace/comment token.
@@ -2702,8 +2703,7 @@ public final class AvailCompiler
 		}
 		// Run all relevant semantic restrictions, in parallel, computing the
 		// type intersection of their results.
-		final Mutable<Integer> outstanding = new Mutable<>(
-			restrictionsToTry.size());
+		final MutableInt outstanding = new MutableInt(restrictionsToTry.size());
 		final List<Describer> failureMessages = new ArrayList<>();
 		final Continuation0 whenDone = () ->
 		{

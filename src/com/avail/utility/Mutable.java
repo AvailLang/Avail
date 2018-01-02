@@ -39,7 +39,7 @@ package com.avail.utility;
  * generated automatically by the Smalltalk -> Java translator after flow
  * analysis.
  * <p>
- * Say there's a variable called {@code outer} of type <code>Foo</code>,
+ * Say there's a variable called {@code outer} of type {@code Foo},
  * and you want to read and write it tuple within an inner class's methods.
  * Simply change its definition tuple "{@code Foo outer;}" to
  * "{@code Mutable<Foo> outer = new Mutable<Foo>();}" and change
@@ -49,7 +49,7 @@ package com.avail.utility;
  * Primitive Java types are accommodated via their boxed counterparts.  For
  * example, "{@code int x;}" becomes
  * "{@code Mutable<Integer> = new Mutable<Integer>();}", and
- * assignments like "{@code x = 5;}" become "<code>x.value = 5;</code>".
+ * assignments like "{@code x = 5;}" become "{@code x.value = 5;}".
  * Java's autoboxing takes care of the rest.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
@@ -61,7 +61,7 @@ public class Mutable<T>
 	 * Expose a public field for readability.  For instance, one could declare
 	 * something {@code "final Mutable<Integer> x = new Mutable<>(9);"} and
 	 * then have code within inner classes like {@code "x.value = 5"} or {@code
-	 * }"x.value++"}.
+	 * "x.value++"}.
 	 */
 	public T value;
 

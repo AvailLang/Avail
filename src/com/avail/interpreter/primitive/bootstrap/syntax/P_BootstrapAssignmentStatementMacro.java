@@ -33,14 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -50,10 +43,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
 import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
@@ -84,6 +74,9 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 	public static final Primitive instance =
 		new P_BootstrapAssignmentStatementMacro().init(
 			2, CannotFail, CanInline, Bootstrap);
+
+	/** The key to the all tokens tuple in the fiber's environment. */
+	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
@@ -117,7 +110,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			CLIENT_DATA_GLOBAL_KEY.atom);
 		final A_Map scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
 		final A_Module module = loader.module();
-		A_Phrase declaration = null;
+		@Nullable A_Phrase declaration = null;
 		if (scopeMap.hasKey(variableNameString))
 		{
 			declaration = scopeMap.mapAt(variableNameString);
@@ -160,8 +153,9 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 						valueExpression.expressionType(),
 						declarationFinal.declaredType()));
 		}
+		final A_Tuple tokens = clientData.mapAt(allTokensKey);
 		final A_Phrase assignment = newAssignment(
-			newUse(actualToken, declaration), valueExpression, false);
+			newUse(actualToken, declaration), valueExpression, tokens, false);
 		assignment.makeImmutable();
 		final A_Phrase assignmentAsStatement =
 			newExpressionAsStatement(assignment);

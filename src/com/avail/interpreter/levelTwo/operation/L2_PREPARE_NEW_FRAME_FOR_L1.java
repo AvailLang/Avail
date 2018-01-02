@@ -121,7 +121,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		{
 			interpreter.pointerAtPut(dest++, nil);
 		}
-		interpreter.levelOneStepper.pc = 1;
+		interpreter.levelOneStepper.pc.value = 1;
 		interpreter.levelOneStepper.stackp = numSlots + 1;
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)

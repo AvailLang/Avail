@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.io.ByteArrayOutputStream;
@@ -45,15 +47,20 @@ import java.io.ByteArrayOutputStream;
 public class AvailPermute extends AvailInstructionWithIndex
 {
 	/**
-	 * Construct a new {@link AvailPermute}.
+	 * Construct a new {@code AvailPermute}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param permutationIndex
 	 *        The literal index of the tuple with which to permute the top
 	 *        region of the stack.
 	 */
-	public AvailPermute (final int permutationIndex)
+	public AvailPermute (
+		final A_Tuple relevantTokens,
+		final int permutationIndex)
 	{
-		super(permutationIndex);
+		super(relevantTokens, permutationIndex);
 	}
 
 	@Override

@@ -45,12 +45,13 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.IS_INLINE;
-import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.EXPRESSION;
-import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.VARIABLE;
+import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots
+	.IS_INLINE;
+import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * My instances represent assignment statements.
@@ -92,7 +93,13 @@ extends ParseNodeDescriptor
 		 * The actual {@linkplain ParseNodeDescriptor expression} providing the
 		 * value to assign.
 		 */
-		EXPRESSION
+		EXPRESSION,
+
+		/**
+		 * The {@link A_Tuple} of {@link A_Token}s, if any, from which the
+		 * assignment was constructed.
+		 */
+		TOKENS;
 	}
 
 	@Override
@@ -173,7 +180,8 @@ extends ParseNodeDescriptor
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
-		declarationKind.emitVariableAssignmentForOn(declaration, codeGenerator);
+		declarationKind.emitVariableAssignmentForOn(
+			object.tokens(), declaration, codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -189,15 +197,15 @@ extends ParseNodeDescriptor
 		{
 			codeGenerator.emitDuplicate();
 			declarationKind.emitVariableAssignmentForOn(
-				declaration, codeGenerator);
+				object.tokens(), declaration, codeGenerator);
 		}
 		else
 		{
 			// This assignment is the last statement in a sequence.  Don't leak
 			// the assigned value, since it's *not* an inlined assignment.
 			declarationKind.emitVariableAssignmentForOn(
-				declaration, codeGenerator);
-			codeGenerator.emitPushLiteral(nil);
+				object.tokens(), declaration, codeGenerator);
+			codeGenerator.emitPushLiteral(emptyTuple(), nil);
 		}
 	}
 
@@ -267,6 +275,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(TOKENS);
+	}
+
+	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -293,15 +307,17 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using
-	 * the given {@linkplain VariableUseNodeDescriptor variable use} and
-	 * {@linkplain ParseNodeDescriptor expression}.  Also indicate whether the
-	 * assignment is inline (produces a value) or not (must be a statement).
+	 * Create a new assignment phrase using the given {@linkplain
+	 * VariableUseNodeDescriptor variable use} and {@linkplain
+	 * ParseNodeDescriptor expression}.  Also indicate whether the assignment is
+	 * inline (produces a value) or not (must be a statement).
 	 *
 	 * @param variableUse
 	 *        A use of the variable into which to assign.
 	 * @param expression
 	 *        The expression whose value should be assigned to the variable.
+	 * @param tokens
+	 *        The tuple of tokens that formed this assignment.
 	 * @param isInline
 	 *        {@code true} to create an inline assignment, {@code false}
 	 *        otherwise.
@@ -310,18 +326,20 @@ extends ParseNodeDescriptor
 	public static A_Phrase newAssignment (
 		final A_Phrase variableUse,
 		final A_Phrase expression,
+		final A_Tuple tokens,
 		final boolean isInline)
 	{
 		final AvailObject assignment = mutable.create();
 		assignment.setSlot(VARIABLE, variableUse);
 		assignment.setSlot(EXPRESSION, expression);
+		assignment.setSlot(TOKENS, tokens);
 		assignment.setSlot(IS_INLINE, isInline ? 1 : 0);
 		assignment.makeShared();
 		return assignment;
 	}
 
 	/**
-	 * Construct a new {@link AssignmentNodeDescriptor}.
+	 * Construct a new assignment phrase.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

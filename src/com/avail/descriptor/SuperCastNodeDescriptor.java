@@ -118,6 +118,17 @@ extends ParseNodeDescriptor
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
 	}
 
+	@Override @AvailMethod
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final A_Phrase aParseNode)
+	{
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.expression().equals(aParseNode.expression())
+			&& object.superUnionType().equals(aParseNode.superUnionType());
+	}
+
 	/**
 	 * Answer the expression producing the actual value.
 	 */
@@ -135,17 +146,6 @@ extends ParseNodeDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(TYPE_FOR_LOOKUP);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
-		final AvailObject object,
-		final A_Phrase aParseNode)
-	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.expression().equals(aParseNode.expression())
-			&& object.superUnionType().equals(aParseNode.superUnionType());
 	}
 
 	@Override @AvailMethod
@@ -171,6 +171,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.SUPER_CAST_PHRASE;
+	}
+
+	@Override
 	void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
@@ -185,9 +191,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	A_Tuple o_Tokens (final AvailObject object)
 	{
-		return SerializerOperation.SUPER_CAST_PHRASE;
+		return object.slot(EXPRESSION).tokens();
 	}
 
 	@Override @AvailMethod

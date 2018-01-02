@@ -47,6 +47,8 @@ import com.avail.interpreter.levelTwo.L2Chunk.Generation;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.IndexedIntGenerator;
+import com.avail.utility.MutableInt;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -67,6 +69,8 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor
 	.createAtomWithProperties;
+import static com.avail.descriptor.AvailObject
+	.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor
@@ -76,6 +80,8 @@ import static com.avail.descriptor.CompiledCodeTypeDescriptor
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -143,7 +149,22 @@ extends Descriptor
 		 * function, the number of arguments, the number of local variables, and
 		 * the number of local constants.
 		 */
-		NUM_SLOTS_ARGS_LOCALS_AND_CONSTS;
+		NUM_SLOTS_ARGS_LOCALS_AND_CONSTS,
+
+		/**
+		 * The sequence of nybbles, in little-endian order, starting with an
+		 * extra leading nybble indicating how many nybbles (0-15 of them) are
+		 * actually unused in the final long.  The nybblecodes describe what
+		 * {@linkplain L1Operation level one operations} to perform.
+		 *
+		 * <p>If there are no nybblecodes, do not reserve any longs.</p>
+		 *
+		 * <p>To compute the number of valid nybbles, produce zero if there are
+		 * no longs, otherwise multiply the number of longs by 16, subtract the
+		 * low nybble of the first long, and subtract one more to account for
+		 * the space taken by that first nybble.</p>
+		 */
+		NYBBLECODES_;
 
 		/**
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
@@ -212,13 +233,6 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain NybbleTupleDescriptor tuple of nybbles} that describe
-		 * what {@linkplain L1Operation level one operations} to perform.
-		 */
-		@HideFieldInDebugger
-		NYBBLES,
-
-		/**
 		 * The {@linkplain FunctionTypeDescriptor type} of any function
 		 * based on this {@linkplain CompiledCodeDescriptor compiled code}.
 		 */
@@ -252,7 +266,7 @@ extends Descriptor
 		/**
 		 * The literal objects that are referred to numerically by some of the
 		 * operands of {@linkplain L1Operation level one instructions} encoded
-		 * in the {@linkplain #NYBBLES nybblecodes}.
+		 * in the {@linkplain IntegerSlots#NYBBLECODES_}.
 		 */
 		@HideFieldInDebugger
 		LITERAL_AT_
@@ -655,9 +669,145 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	int o_NumNybbles (final AvailObject object)
+	{
+		final int longCount = object.variableIntegerSlotsCount();
+		if (longCount == 0)
+		{
+			// Special case: when there are no nybbles, don't reserve any longs.
+			return 0;
+		}
+		final long firstLong = object.slot(NYBBLECODES_, 1);
+		final int unusedNybbles = (int) firstLong & 15;
+		return (longCount << 4) - unusedNybbles - 1;
+	}
+
+	@Override @AvailMethod
 	A_Tuple o_Nybbles (final AvailObject object)
 	{
-		return object.slot(NYBBLES);
+		// Extract a tuple of nybbles.
+		final int longCount = object.variableIntegerSlotsCount();
+		if (longCount == 0)
+		{
+			// Special case: when there are no nybbles, don't reserve any longs.
+			return emptyTuple();
+		}
+		final long firstLong = object.slot(NYBBLECODES_, 1);
+		final int unusedNybbles = (int) firstLong & 15;
+		final int nybbleCount = (longCount << 4) - unusedNybbles - 1;
+		return generateNybbleTupleFrom(
+			nybbleCount,
+			new IndexedIntGenerator()
+			{
+				long currentLong = firstLong;
+
+				@Override
+				public int value (final int i)
+				{
+					final int subindex = i & 15;
+					if (subindex == 0)
+					{
+						currentLong = object.slot(NYBBLECODES_, (i >> 4) + 1);
+					}
+					return (int) (currentLong >> (subindex << 2)) & 15;
+				}
+			});
+	}
+
+	/** Control expensive sanity checks of nybblecode indexing. */
+	private static final boolean nybblecodeSanityCheck = true;
+
+	@Override @AvailMethod
+	L1Operation o_NextNybblecodeOperation (
+		final AvailObject object,
+		final MutableInt pc)
+	{
+		final int subindex = pc.value & 15;
+		if (nybblecodeSanityCheck)
+		{
+			final int nybbleCount;
+			final int longCount = object.variableIntegerSlotsCount();
+			if (longCount == 0)
+			{
+				// Special case: no nybbles, so no longs.
+				nybbleCount = 0;
+			}
+			else
+			{
+				final long firstLong = object.slot(NYBBLECODES_, 1);
+				final int unusedNybbles = 15 & (int) firstLong;
+				nybbleCount = (longCount << 4) - unusedNybbles - 1;
+			}
+			assert pc.value >= 1 && pc.value <= nybbleCount;
+		}
+		final int longIndex = (pc.value >> 4) + 1;
+		long currentLong = object.slot(NYBBLECODES_, longIndex);
+		final int shift = subindex << 2;
+		int nybble = 15 & (int) (currentLong >> shift);
+		if (nybble != 15)
+		{
+			pc.value++;
+			return L1Operation.lookup(nybble);
+		}
+		// It's an extended nybblecode.
+		pc.value += 2;
+		if (subindex == 15)
+		{
+			// The extension/op crossed a long boundary.
+			currentLong = object.slot(NYBBLECODES_, longIndex + 1);
+			nybble = 15 & (int) currentLong;
+			return L1Operation.lookup(nybble + 16);
+		}
+		// The extension/op didn't cross a long boundary.  Skip the fetch.
+		nybble = 15 & (int) (currentLong >> (shift + 4));
+		return L1Operation.lookup(nybble + 16);
+	}
+
+	@Override @AvailMethod
+	int o_NextNybblecodeOperand (
+		final AvailObject object,
+		final MutableInt pc)
+	{
+		final int subindex = pc.value & 15;
+		if (nybblecodeSanityCheck)
+		{
+			final int nybbleCount;
+			final int longCount = object.variableIntegerSlotsCount();
+			if (longCount == 0)
+			{
+				// Special case: no nybbles, so no longs.
+				nybbleCount = 0;
+			}
+			else
+			{
+				final long firstLong = object.slot(NYBBLECODES_, 1);
+				final int unusedNybbles = (int) firstLong & 15;
+				nybbleCount = (longCount << 4) - unusedNybbles - 1;
+			}
+			assert pc.value >= 1 && pc.value <= nybbleCount;
+		}
+		int longIndex = (pc.value >> 4) + 1;
+		long currentLong = object.slot(NYBBLECODES_, longIndex);
+		int shift = subindex << 2;
+		final int firstNybble = 15 & (int) (currentLong >> shift);
+		final int encodeShift = firstNybble << 2;
+		int count = 15 & (int) (0x8421_1100_0000_0000L >>> encodeShift);
+		pc.value += 1 + count;
+		int value = 0;
+		while (count-- > 0)
+		{
+			shift += 4;
+			if (shift == 64)
+			{
+				shift = 0;
+				currentLong = object.slot(NYBBLECODES_, ++longIndex);
+			}
+			value <<= 4;
+			value += 15 & (int) (currentLong >> shift);
+		}
+		final int lowOff = 15 & (int) (0x00AA_AA98_7654_3210L >>> encodeShift);
+		final int highOff = 15 & (int) (0x0032_1000_0000_0000L >>> encodeShift);
+		return value + lowOff + (highOff << 4);
 	}
 
 	@Override @AvailMethod
@@ -842,6 +992,20 @@ extends Descriptor
 			: lineInteger.extractInt();
 	}
 
+	/**
+	 * Note - Answers nil if there is no line number information.
+	 *
+	 * @param object The raw function.
+	 * @return The tuple of encoded line number deltas, or nil.
+	 */
+	@Override
+	A_Tuple o_LineNumberEncodedDeltas (
+		final AvailObject object)
+	{
+		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
+		return properties.getAtomProperty(lineNumberEncodedDeltasKeyAtom());
+	}
+
 	@Override @AvailMethod
 	A_Phrase o_OriginatingPhrase (final AvailObject object)
 	{
@@ -950,7 +1114,7 @@ extends Descriptor
 		writer.write("maximum stack depth");
 		writer.write(object.slot(FRAME_SLOTS));
 		writer.write("nybbles");
-		object.slot(NYBBLES).writeTo(writer);
+		object.nybbles().writeTo(writer);
 		writer.write("function type");
 		object.slot(FUNCTION_TYPE).writeTo(writer);
 		writer.write("method");
@@ -997,7 +1161,7 @@ extends Descriptor
 		writer.write("maximum stack depth");
 		writer.write(object.slot(FRAME_SLOTS));
 		writer.write("nybbles");
-		object.slot(NYBBLES).writeTo(writer);
+		object.nybbles().writeTo(writer);
 		writer.write("function type");
 		object.slot(FUNCTION_TYPE).writeSummaryTo(writer);
 		writer.write("method");
@@ -1047,17 +1211,36 @@ extends Descriptor
 	/**
 	 * Create a new compiled code object with the given properties.
 	 *
-	 * @param nybbles The nybblecodes.
-	 * @param stackDepth The maximum stack depth.
-	 * @param functionType The type that the code's functions will have.
-	 * @param primitive Which primitive to invoke, or zero.
-	 * @param literals A tuple of literals.
-	 * @param localVariableTypes A tuple of types of local variables.
-	 * @param localConstantTypes A tuple of types of local constants.
-	 * @param outerTypes A tuple of types of outer (captured) variables.
-	 * @param module The module in which the code occurs, or nil.
-	 * @param lineNumber The module line number on which this code starts.
-	 * @param originatingPhrase The {@link A_Phrase} from which this is built.
+	 * @param nybbles
+	 *        The nybblecodes.
+	 * @param stackDepth
+	 *        The maximum stack depth.
+	 * @param functionType
+	 *        The type that the code's functions will have.
+	 * @param primitive
+	 *        Which primitive to invoke, or zero.
+	 * @param literals
+	 *        A tuple of literals.
+	 * @param localVariableTypes
+	 *        A tuple of types of local variables.
+	 * @param localConstantTypes
+	 *        A tuple of types of local constants.
+	 * @param outerTypes
+	 *        A tuple of types of outer (captured) variables.
+	 * @param module
+	 *        The module in which the code occurs, or nil.
+	 * @param lineNumber
+	 *        The module line number on which this code starts.
+	 * @param lineNumberEncodedDeltas
+	 *        A sequence of integers, one per L1 nybblecode instruction,
+	 *        encoding the delta to add to the running line number to get to the
+	 *        line on which the syntax that led to that nybblecode occurs.  It
+	 *        starts at the given lineNumber.  Each encoded value is shifted
+	 *        left from the delta magnitude, and the low bit is zero for a
+	 *        positive delta, and one for a negative delta.  May be nil if line
+	 *        number information is not intended to be captured.
+	 * @param originatingPhrase
+	 *        The {@link A_Phrase} from which this is built.
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject newCompiledCode (
@@ -1071,6 +1254,7 @@ extends Descriptor
 		final A_Tuple outerTypes,
 		final A_Module module,
 		final int lineNumber,
+		final A_Tuple lineNumberEncodedDeltas,
 		final A_Phrase originatingPhrase)
 	{
 		if (primitive != null)
@@ -1107,8 +1291,11 @@ extends Descriptor
 		assert module.equalsNil() || module.isInstanceOf(MODULE.o());
 		assert lineNumber >= 0;
 
-		final AvailObject code = mutable.create(
-			numLiterals + numOuters + numLocals + numConstants);
+		final int nybbleCount = nybbles.tupleSize();
+		final AvailObject code = newObjectIndexedIntegerIndexedDescriptor(
+			numLiterals + numOuters + numLocals + numConstants,
+			nybbleCount == 0 ? 0 : (nybbleCount + 16) >> 4,
+			mutable);
 
 		final InvocationStatistic statistic = new InvocationStatistic();
 		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
@@ -1120,26 +1307,50 @@ extends Descriptor
 		code.setSlot(
 			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NUM_OUTERS, numOuters);
-		code.setSlot(NYBBLES, nybbles);
 		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, nil);
 		code.setSlot(STARTING_CHUNK, unoptimizedChunk.chunkPojo);
 		code.setSlot(INVOCATION_STATISTIC, identityPojo(statistic));
 
+		// Fill in the nybblecodes.
+		if (nybbleCount > 0)
+		{
+			int longIndex = 1;
+			long currentLong = (15 - nybbleCount) & 15;
+			for (int i = 1; i <= nybbleCount; i++)
+			{
+				final int subindex = i & 15;
+				if (subindex == 0)
+				{
+					code.setSlot(NYBBLECODES_, longIndex++, currentLong);
+					currentLong = 0;
+				}
+				final long nybble = nybbles.tupleIntAt(i);
+				currentLong |= nybble << (long) (subindex << 2);
+			}
+			// There's always a final write, either partial or full.
+			code.setSlot(NYBBLECODES_, longIndex, currentLong);
+		}
+
 		// Fill in the literals.
-		int dest = 1;
+		int literalIndex = 1;
 		for (final A_Tuple tuple : asList(
 			literals, outerTypes, localVariableTypes, localConstantTypes))
 		{
 			for (final AvailObject literal : tuple)
 			{
-				code.setSlot(LITERAL_AT_, dest++, literal);
+				code.setSlot(LITERAL_AT_, literalIndex++, literal);
 			}
 		}
 
 		final A_Atom propertyAtom = createAtomWithProperties(
 			emptyTuple(), module);
 		propertyAtom.setAtomProperty(lineNumberKeyAtom(), fromInt(lineNumber));
+		if (!lineNumberEncodedDeltas.equalsNil())
+		{
+			propertyAtom.setAtomProperty(
+				lineNumberEncodedDeltasKeyAtom(), lineNumberEncodedDeltas);
+		}
 		if (!originatingPhrase.equalsNil())
 		{
 			propertyAtom.setAtomProperty(
@@ -1236,6 +1447,23 @@ extends Descriptor
 	public static A_Atom lineNumberKeyAtom ()
 	{
 		return lineNumberKeyAtom;
+	}
+
+	/**
+	 * The key used to track the encoded line number deltas for a raw function.
+	 */
+	private static final A_Atom lineNumberEncodedDeltasKeyAtom =
+		createSpecialAtom("encoded line number deltas");
+
+	/**
+	 * Answer the key used to track the encoded line number deltas for a raw
+	 * function.
+	 *
+	 * @return A special atom.
+	 */
+	public static A_Atom lineNumberEncodedDeltasKeyAtom ()
+	{
+		return lineNumberEncodedDeltasKeyAtom;
 	}
 
 	/**

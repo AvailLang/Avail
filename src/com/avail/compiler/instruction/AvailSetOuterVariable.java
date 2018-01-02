@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -49,20 +51,24 @@ import java.util.List;
 public class AvailSetOuterVariable extends AvailInstructionWithIndex
 {
 	/**
-	 * Construct a new {@link AvailSetOuterVariable}.
+	 * Construct a new {@code AvailSetOuterVariable}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param outerIndex
-	 *            The index of the variable in a {@linkplain FunctionDescriptor
-	 *            function's} outer variables.
+	 *        The index of the variable in a {@linkplain FunctionDescriptor
+	 *        function's} outer variables.
 	 */
-	public AvailSetOuterVariable (final int outerIndex)
+	public AvailSetOuterVariable (
+		final A_Tuple relevantTokens,
+		final int outerIndex)
 	{
-		super(outerIndex);
+		super(relevantTokens, outerIndex);
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
@@ -71,23 +77,10 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 	}
 
 	/**
-	 * The instructions of a block are being iterated over.  Coordinate
-	 * optimizations between instructions using localData and outerData, two
-	 * {@linkplain List lists} manipulated by overrides of this method.  Treat
-	 * each instruction as though it is the last one in the block, and save
-	 * enough information in the lists to be able to undo consequences of this
-	 * assumption when a later instruction shows it to be unwarranted.
+	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * The data lists are keyed by local or outer index.  Each entry is either
-	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
-	 * previous time a get or push happened.
-	 * </p>
-	 *
-	 * <p>
-	 * The receiver sets the value of an outer variable, so it can't be an outer
-	 * reference to an argument (they aren't wrapped in a variable).
-	 * </p>
+	 * <p>The receiver sets the value of an outer variable, so it can't be an
+	 * outer reference to an argument (they aren't wrapped in a variable).</p>
 	 */
 	@Override
 	public void fixUsageFlags (

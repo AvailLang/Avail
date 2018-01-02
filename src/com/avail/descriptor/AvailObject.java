@@ -60,12 +60,14 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
+import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -5978,5 +5980,36 @@ implements
 	public Statistic returneeCheckStat ()
 	{
 		return descriptor.o_ReturneeCheckStat(this);
+	}
+
+	@Override
+	public L1Operation nextNybblecodeOperation (
+		final MutableInt pc)
+	{
+		return descriptor.o_NextNybblecodeOperation(this, pc);
+	}
+
+	@Override
+	public int nextNybblecodeOperand (final MutableInt pc)
+	{
+		return descriptor.o_NextNybblecodeOperand(this, pc);
+	}
+
+	@Override
+	public int numNybbles ()
+	{
+		return descriptor.o_NumNybbles(this);
+	}
+
+	@Override
+	public A_Tuple lineNumberEncodedDeltas ()
+	{
+		return descriptor.o_LineNumberEncodedDeltas(this);
+	}
+
+	@Override
+	public int currentLineNumber ()
+	{
+		return descriptor.o_CurrentLineNumber(this);
 	}
 }

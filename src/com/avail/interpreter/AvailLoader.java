@@ -52,6 +52,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.interpreter.primitive.bootstrap.lexing.*;
 import com.avail.io.TextInterface;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
@@ -402,8 +403,8 @@ public final class AvailLoader
 			final int codePoint,
 			final Continuation2<A_Set, Map<A_Lexer, Throwable>> continuation)
 		{
-			final Mutable<Integer> countdown =
-				new Mutable<>(allVisibleLexers.size());
+			final MutableInt countdown =
+				new MutableInt(allVisibleLexers.size());
 			if (countdown.value == 0)
 			{
 				continuation.value(emptySet(), emptyMap());

@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
@@ -84,6 +86,9 @@ extends Descriptor
 		 * The line number in the source file. Currently signed 28 bits, which
 		 * should be plenty.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField LINE_NUMBER =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
@@ -93,6 +98,7 @@ extends Descriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
+		@HideFieldInDebugger
 		static final BitField START =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 	}
@@ -133,6 +139,7 @@ extends Descriptor
 		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
 		 * </p>
 		 */
+		@HideFieldJustForPrinting
 		NEXT_LEXING_STATE_POJO;
 	}
 
@@ -195,16 +202,16 @@ extends Descriptor
 		private static final TokenType[] all = values();
 
 		/**
-		 * Answer an array of all {@code TokenType} enumeration values.
+		 * Answer the {@code TokenType} enumeration value having the given
+		 * ordinal.
 		 *
-		 * @return An array of all {@code TokenType} enum values.  Do not
-		 *         modify the array.
+		 * @param ordinal The {@link #ordinal()} of the {@code TokenType}.
+		 * @return The {@code TokenType}.
 		 */
-		public static TokenType[] all ()
+		public static TokenType lookup (final int ordinal)
 		{
-			return all;
+			return all[ordinal];
 		}
-
 	}
 
 	@Override
@@ -376,7 +383,7 @@ extends Descriptor
 	TokenType o_TokenType (final AvailObject object)
 	{
 		final int index = object.slot(TOKEN_TYPE_CODE);
-		return TokenType.all()[index];
+		return TokenType.lookup(index);
 	}
 
 	@Override

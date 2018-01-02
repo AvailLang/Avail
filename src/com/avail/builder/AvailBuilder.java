@@ -61,6 +61,7 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Generator;
 import com.avail.utility.Graph;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -2785,7 +2786,7 @@ public final class AvailBuilder
 					StandardOpenOption.TRUNCATE_EXISTING));
 			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
 				out.toString());
-			final Mutable<Integer> position = new Mutable<>(0);
+			final MutableInt position = new MutableInt(0);
 			channel.write(
 				buffer,
 				0,

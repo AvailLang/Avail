@@ -2001,7 +2001,7 @@ extends ExtendedIntegerDescriptor
 	 * @param aLong A Java {@code long}.
 	 * @return An {@link AvailObject}.
 	 */
-	public static A_Number fromLong (final long aLong)
+	public static AvailObject fromLong (final long aLong)
 	{
 		if (aLong == (aLong & 255))
 		{
@@ -2134,7 +2134,7 @@ extends ExtendedIntegerDescriptor
 	 * @param anInteger A Java {@code int}.
 	 * @return An {@link AvailObject}.
 	 */
-	public static A_Number fromUnsignedByte (final short anInteger)
+	public static AvailObject fromUnsignedByte (final short anInteger)
 	{
 		assert anInteger >= 0 && anInteger <= 255;
 		return immutableByteObjects[anInteger];

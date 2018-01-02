@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -41,7 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * Push the value of a variable stored as a literal.
+ * Push the value of a local variable.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -49,16 +51,21 @@ public class AvailGetLocalVariable extends AvailGetVariable
 {
 
 	/**
-	 * Construct a new {@link AvailGetLocalVariable}.
+	 * Construct a new {@code AvailGetLocalVariable}.
 	 *
-	 * @param variableIndex The index of the argument or local at runtime in a
-	 *                      {@linkplain ContinuationDescriptor continuation}.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param variableIndex
+	 *        The index of the argument or local at runtime in a {@linkplain
+	 *        ContinuationDescriptor continuation}.
 	 */
-	public AvailGetLocalVariable (final int variableIndex)
+	public AvailGetLocalVariable (
+		final A_Tuple relevantTokens,
+		final int variableIndex)
 	{
-		super(variableIndex);
+		super(relevantTokens, variableIndex);
 	}
-
 
 	@Override
 	public void writeNybblesOn (
@@ -77,7 +84,6 @@ public class AvailGetLocalVariable extends AvailGetVariable
 		writeIntegerOn(index, aStream);
 	}
 
-
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
@@ -85,13 +91,13 @@ public class AvailGetLocalVariable extends AvailGetVariable
 	 * each instruction as though it is the last one in the block, and save
 	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
-	 * <p>
-	 * The data lists are keyed by local or outer index.  Each entry is either
-	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
-	 * previous time a get or push happened.
-	 * <p>
-	 * I get the value of a local, so it can't be an argument (they aren't
-	 * wrapped in a variable).
+	 *
+	 * <p>The data lists are keyed by local or outer index.  Each entry is
+	 * either {@code null} or a {@link AvailVariableAccessNote}, which keeps
+	 * track of the previous time a get or push happened.</p>
+	 *
+	 * <p>I get the value of a local, so it can't be an argument (they aren't
+	 * wrapped in a variable).</p>
 	 */
 	@Override
 	public void fixUsageFlags (

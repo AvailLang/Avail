@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelOne;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -49,6 +50,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -61,7 +63,6 @@ import static com.avail.utility.Nulls.stripNull;
  */
 public class L1InstructionWriter
 {
-
 	/**
 	 * The stream of nybbles that have been generated thus far.
 	 */
@@ -70,14 +71,13 @@ public class L1InstructionWriter
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	final List<AvailObject> literals = new ArrayList<>();
+	@InnerAccess final List<AvailObject> literals = new ArrayList<>();
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
 	 * is from each literal object to its 1-based index.
 	 */
-	private final Map<A_BasicObject, Integer> reverseLiterals =
-		new HashMap<>();
+	private final Map<A_BasicObject, Integer> reverseLiterals = new HashMap<>();
 
 	/**
 	 * Locate or record the specified literal object.  Answer its 1-based index.
@@ -226,15 +226,29 @@ public class L1InstructionWriter
 		this.primitive = thePrimitive;
 	}
 
-	/**
-	 * The module containing this code.
-	 */
+	/** The module containing this code. */
 	final A_Module module;
 
-	/**
-	 * The line number at which this code starts.
-	 */
+	/** The line number at which this code starts. */
 	final int startingLineNumber;
+
+	/** The line number at which the current nybblecode is associated. */
+	public int currentLineNumber;
+
+	/**
+	 * For the start of each nybblecode instruction, indicate how much to add to
+	 * the code's starting line number to get to the line number in the source
+	 * that led to generation of that nybblecode.
+	 *
+	 * <p>The values are encoded to increase the odds that the tuple can be
+	 * represented as nybbles or unsigned bytes.  Expressions' evaluation can
+	 * sometimes effectively step backwards syntactically, so negative numbers
+	 * need to be encoded as well.  We use the low bit to distinguish forward
+	 * deltas (even) from backward deltas (odd), shifting right to get the
+	 * magnitude.  This introduces an intentional encoding hole (the value 1
+	 * represents negative zero), which we may exploit at a later date.</p>
+	 */
+	private final List<Integer> lineNumberEncodedDeltas = new ArrayList<>();
 
 	/**
 	 * The phrase that should be captured for this raw function.  {@link
@@ -260,6 +274,7 @@ public class L1InstructionWriter
 	{
 		this.module = module;
 		this.startingLineNumber = startingLineNumber;
+		this.currentLineNumber = startingLineNumber;
 		this.phrase = phrase;
 	}
 
@@ -337,9 +352,19 @@ public class L1InstructionWriter
 	 * @param operands The {@code int} operands for the operation.
 	 */
 	public void write (
+		final int lineNumber,
 		final L1Operation operation,
 		final int... operands)
 	{
+		final int newLineNumber =
+			lineNumber == 0 ? currentLineNumber : lineNumber;
+		final int delta = newLineNumber - currentLineNumber;
+		final int encodedDelta = delta < 0
+			? delta << 1
+			: -delta << 1 | 1;
+		lineNumberEncodedDeltas.add(encodedDelta);
+		currentLineNumber = newLineNumber;
+
 		stackTracker.track(operation, operands);
 		final byte opcode = (byte) operation.ordinal();
 		if (opcode <= 15)
@@ -356,7 +381,6 @@ public class L1InstructionWriter
 			writeOperand(operand);
 		}
 	}
-
 
 	/**
 	 * Extract the {@linkplain NybbleTupleDescriptor tuple of nybbles} encoding
@@ -401,6 +425,7 @@ public class L1InstructionWriter
 			tupleFromList(outerTypes),
 			module,
 			startingLineNumber,
+			tupleFromIntegerList(lineNumberEncodedDeltas),
 			phrase);
 	}
 }

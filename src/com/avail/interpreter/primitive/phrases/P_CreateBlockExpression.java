@@ -59,6 +59,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor
 	.containsOnlyStatements;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -128,7 +129,13 @@ extends Primitive
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
 		}
 		final AvailObject block = newBlockNode(
-			argDecls, primNumber, statements, resultType, exceptions, 0);
+			argDecls,
+			primNumber,
+			statements,
+			resultType,
+			exceptions,
+			0,
+			emptyTuple());
 		return interpreter.primitiveSuccess(block);
 	}
 

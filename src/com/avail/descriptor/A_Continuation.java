@@ -213,4 +213,11 @@ extends A_BasicObject
 	 *         the specified caller.
 	 */
 	A_Continuation replacingCaller (A_Continuation newCaller);
+
+	/**
+	 * Answer the line number associated with this continuation's current pc.
+	 *
+	 * @return The line number within the defining module.
+	 */
+	int currentLineNumber ();
 }

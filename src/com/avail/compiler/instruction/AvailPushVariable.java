@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
@@ -73,6 +75,9 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	/**
 	 * Construct a new {@code AvailPushVariable}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param variableIndex
 	 *        The index that the variable will occupy at runtime, either within
 	 *        a {@linkplain ContinuationDescriptor continuation} for arguments
@@ -80,8 +85,10 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	 *        FunctionDescriptor function}, or as a literal stored directly in
 	 *        {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	public AvailPushVariable (final int variableIndex)
+	public AvailPushVariable (
+		final A_Tuple relevantTokens,
+		final int variableIndex)
 	{
-		super(variableIndex);
+		super(relevantTokens, variableIndex);
 	}
 }

@@ -32,13 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.utility.Nulls;
-
 import javax.annotation.Nullable;
+
+import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
-import static java.lang.String.format;
 
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
@@ -131,7 +130,7 @@ public class AvailObjectFieldHelper
 	 */
 	private @Nullable String name;
 
-	/** Construct a new {@link AvailObjectFieldHelper}.
+	/** Construct a new {@code AvailObjectFieldHelper}.
 	 *
 	 * @param parentObject
 	 *            The object containing the value.
@@ -161,6 +160,7 @@ public class AvailObjectFieldHelper
 	 *
 	 * @return A {@link String}.
 	 */
+	@SuppressWarnings("unused")
 	public String nameForDebugger ()
 	{
 		@Nullable String string = name;
@@ -174,24 +174,32 @@ public class AvailObjectFieldHelper
 				builder.append(subscript);
 				builder.append(']');
 			}
-			final @Nullable Object val = value;
-			if (val == null)
+			if (value == null)
 			{
 				builder.append(" = Java null");
 			}
-			else if (val instanceof AvailObject)
+			else if (value instanceof AvailObject)
 			{
 				builder.append(' ');
-				builder.append(((AvailObject) val).nameForDebugger());
+				builder.append(((AvailObject) value).nameForDebugger());
 			}
-			else if (val instanceof AvailIntegerValueHelper)
+			else if (value instanceof AvailIntegerValueHelper)
 			{
 				try
 				{
+					final IntegerSlotsEnum strongSlot =
+						(IntegerSlotsEnum) slot;
+					final List<BitField> bitFields =
+						AbstractDescriptor.bitFieldsFor(strongSlot);
+					if (bitFields.isEmpty())
+					{
+						builder.append(" = ");
+					}
 					AbstractDescriptor.describeIntegerSlot(
 						(AvailObject) stripNull(parentObject),
-						((AvailIntegerValueHelper) val).longValue,
-						(IntegerSlotsEnum) slot,
+						((AvailIntegerValueHelper) value).longValue,
+						strongSlot,
+						bitFields,
 						builder);
 				}
 				catch (final RuntimeException e)
@@ -204,7 +212,7 @@ public class AvailObjectFieldHelper
 			else if (value instanceof String)
 			{
 				builder.append(" = Java String: ");
-				builder.append((String) val);
+				builder.append((String) value);
 			}
 			else if (value instanceof String[])
 			{
@@ -212,8 +220,7 @@ public class AvailObjectFieldHelper
 			}
 			else
 			{
-				builder.append(
-					" = " + val.getClass().getCanonicalName());
+				builder.append(" = ").append(value.getClass().getCanonicalName());
 			}
 			string = builder.toString();
 			name = string;
@@ -221,7 +228,8 @@ public class AvailObjectFieldHelper
 		return string;
 	}
 
-	public Object describeForDebugger ()
+	@SuppressWarnings("unused")
+	public @Nullable Object describeForDebugger ()
 	{
 		if (value instanceof AvailObject)
 		{

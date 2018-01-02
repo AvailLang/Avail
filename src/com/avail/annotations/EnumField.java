@@ -33,7 +33,9 @@
 package com.avail.annotations;
 
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BitField;
 import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.IntegerSlotsEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -51,6 +53,53 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface EnumField
 {
+	/**
+	 * A helper class for presenting values for {@link IntegerSlotsEnum} and
+	 * {@link BitField}s in alternative ways, for example as decimal numbers.
+	 *
+	 * <p>To use it this way, add an annotation like this to the slot or bit
+	 * field:</p>
+	 *
+	 * <pre>
+	 * &#64;EnumField(
+	 *     describedBy = Converter.class,
+	 *     lookupMethodName = "decimal")
+	 * </pre>
+	 */
+	final class Converter implements IntegerEnumSlotDescriptionEnum
+	{
+		final String string;
+
+		private Converter (final String string)
+		{
+			this.string = string;
+		}
+
+		/**
+		 * Present the {@code int} value in decimal.
+		 *
+		 * @param value The int to present.
+		 * @return An instance that presents it in decimal.
+		 */
+		public static Converter decimal (final int value)
+		{
+			return new Converter(Integer.toString(value));
+		}
+
+		@Override
+		public String name ()
+		{
+			return string;
+		}
+
+		@Override
+		public int ordinal ()
+		{
+			// Shouldn't be used.
+			return -1;
+		}
+	}
+
 	/**
 	 * This annotation field indicates the {@link Enum} responsible for
 	 * describing the integer slot to which the annotation is applied.  The

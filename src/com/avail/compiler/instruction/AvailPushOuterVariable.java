@@ -33,6 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -49,20 +51,24 @@ import java.util.List;
 public class AvailPushOuterVariable extends AvailPushVariable
 {
 	/**
-	 * Construct a new {@link AvailPushOuterVariable}.
+	 * Construct a new {@code AvailPushOuterVariable}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param variableIndex
-	 *            The index of the variable in a {@linkplain FunctionDescriptor
-	 *            function}'s captured outer variable.
+	 *        The index of the variable in a {@linkplain FunctionDescriptor
+	 *        function}'s captured outer variable.
 	 */
-	public AvailPushOuterVariable (final int variableIndex)
+	public AvailPushOuterVariable (
+		final A_Tuple relevantTokens,
+		final int variableIndex)
 	{
-		super(variableIndex);
+		super(relevantTokens, variableIndex);
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		if (isLastAccess)
 		{

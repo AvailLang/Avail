@@ -51,6 +51,8 @@ import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -120,10 +122,11 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLocalOrOuter(declarationNode);
+				codeGenerator.emitPushLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
@@ -150,6 +153,7 @@ extends ParseNodeDescriptor
 			 */
 			@Override
 			public void emitEffectForOn (
+				final A_Tuple tokens,
 				final A_Phrase object,
 				final AvailCodeGenerator codeGenerator)
 			{
@@ -158,10 +162,11 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLocalOrOuter(declarationNode);
+				codeGenerator.emitPushLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
@@ -200,6 +205,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitEffectForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
@@ -208,32 +214,35 @@ extends ParseNodeDescriptor
 				if (!expr.equalsNil())
 				{
 					expr.emitValueOn(codeGenerator);
-					codeGenerator.emitSetLocalOrOuter(declarationNode);
+					codeGenerator.emitSetLocalOrOuter(tokens, declarationNode);
 				}
 			}
 
 			@Override
 			public void emitVariableAssignmentForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitSetLocalOrOuter(declarationNode);
+				codeGenerator.emitSetLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
 			public void emitVariableReferenceForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLocalOrOuter(declarationNode);
+				codeGenerator.emitPushLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitGetLocalOrOuter(declarationNode);
+				codeGenerator.emitGetLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
@@ -263,20 +272,22 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitEffectForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				declarationNode.initializationExpression()
 					.emitValueOn(codeGenerator);
-				codeGenerator.emitSetLocalFrameSlot(declarationNode);
+				codeGenerator.emitSetLocalFrameSlot(tokens, declarationNode);
 			}
 
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLocalOrOuter(declarationNode);
+				codeGenerator.emitPushLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
@@ -301,26 +312,34 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableAssignmentForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitSetLiteral(declarationNode.literalObject());
+				codeGenerator.emitSetLiteral(
+					tokens, declarationNode.literalObject());
 			}
 
 			@Override
 			public void emitVariableReferenceForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLiteral(declarationNode.literalObject());
+				codeGenerator.emitPushLiteral(
+					tokens, declarationNode.literalObject());
 			}
 
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitGetLiteral(declarationNode.literalObject());
+				codeGenerator.emitGetLiteral(
+					// Technically, that's the declaration, not the use, but it
+					// should do for now.
+					declarationNode.tokens(), declarationNode.literalObject());
 			}
 
 			@Override
@@ -350,10 +369,12 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitGetLiteral(declarationNode.literalObject());
+				codeGenerator.emitGetLiteral(
+					tokens, declarationNode.literalObject());
 			}
 
 			@Override
@@ -381,10 +402,11 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableValueForOn (
+				final A_Tuple tokens,
 				final A_Phrase declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitGetLocalOrOuter(declarationNode);
+				codeGenerator.emitGetLocalOrOuter(tokens, declarationNode);
 			}
 
 			@Override
@@ -460,9 +482,9 @@ extends ParseNodeDescriptor
 		 * @return The array of {@code DeclarationKind} values.  Do not modify
 		 *         the array.
 		 */
-		public static DeclarationKind[] all ()
+		public static DeclarationKind lookup (final int ordinal)
 		{
-			return all;
+			return all[ordinal];
 		}
 
 		/**
@@ -520,10 +542,16 @@ extends ParseNodeDescriptor
 		/**
 		 * Emit an assignment to this variable.
 		 *
-		 * @param declarationNode The declaration that has this declarationKind.
-		 * @param codeGenerator Where to generate the assignment.
+		 * @param tokens
+		 *        The {@link A_Tuple} of {@link A_Token}s associated with this
+		 *        call.
+		 * @param declarationNode
+		 *        The declaration that has this declarationKind.
+		 * @param codeGenerator
+		 *        Where to generate the assignment.
 		 */
 		public void emitVariableAssignmentForOn (
+			final A_Tuple tokens,
 			final A_Phrase declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
@@ -533,10 +561,16 @@ extends ParseNodeDescriptor
 		/**
 		 * Emit a reference to this variable.
 		 *
-		 * @param declarationNode The declaration that has this declarationKind.
-		 * @param codeGenerator Where to emit the reference to this variable.
+		 * @param tokens
+		 *        The {@link A_Tuple} of {@link A_Token}s associated with this
+		 *        call.
+		 * @param declarationNode
+		 *        The declaration that has this declarationKind.
+		 * @param codeGenerator
+		 *        Where to emit the reference to this variable.
 		 */
 		public void emitVariableReferenceForOn (
+			final A_Tuple tokens,
 			final A_Phrase declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
@@ -546,10 +580,16 @@ extends ParseNodeDescriptor
 		/**
 		 * Emit a use of this variable.
 		 *
-		 * @param declarationNode The declaration that has this declarationKind.
-		 * @param codeGenerator Where to emit the use of this variable.
+		 * @param tokens
+		 *        The {@link A_Tuple} of {@link A_Token}s associated with this
+		 *        call.
+		 * @param declarationNode
+		 *        The declaration that has this declarationKind.
+		 * @param codeGenerator
+		 *        Where to emit the use of this variable.
 		 */
 		public void emitVariableValueForOn (
+			final A_Tuple tokens,
 			final A_Phrase declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
@@ -560,10 +600,16 @@ extends ParseNodeDescriptor
 		 * If this is an ordinary declaration then it was handled on a separate
 		 * pass.  Do nothing by default.
 		 *
-		 * @param object The declaration node.
-		 * @param codeGenerator Where to emit the declaration.
+		 * @param tokens
+		 *        The {@link A_Tuple} of {@link A_Token}s associated with this
+		 *        call.
+		 * @param object
+		 *        The declaration node.
+		 * @param codeGenerator
+		 *        Where to emit the declaration.
 		 */
 		public void emitEffectForOn (
+			final A_Tuple tokens,
 			final A_Phrase object,
 			final AvailCodeGenerator codeGenerator)
 		{
@@ -699,7 +745,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.declarationKind().emitEffectForOn(object, codeGenerator);
+		object.declarationKind().emitEffectForOn(
+			object.tokens(), object, codeGenerator);
 	}
 
 	/**
@@ -711,7 +758,7 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
-		codeGenerator.emitPushLiteral(nil);
+		codeGenerator.emitPushLiteral(emptyTuple(), nil);
 	}
 
 	@Override @AvailMethod
@@ -794,6 +841,12 @@ extends ParseNodeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.DECLARATION_PHRASE;
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return tuple(object.slot(TOKEN));
 	}
 
 	@Override

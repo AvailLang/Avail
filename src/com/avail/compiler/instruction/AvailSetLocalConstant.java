@@ -34,7 +34,8 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import javax.annotation.Nullable;
@@ -51,18 +52,22 @@ public class AvailSetLocalConstant extends AvailInstructionWithIndex
 	/**
 	 * Construct a new {@code AvailSetLocalConstant}.
 	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
 	 * @param index
 	 *        The local constant's index within a {@link A_Continuation}'s
 	 *        frame.
 	 */
-	public AvailSetLocalConstant (final int index)
+	public AvailSetLocalConstant (
+		final A_Tuple relevantTokens,
+		final int index)
 	{
-		super(index);
+		super(relevantTokens, index);
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doSetLocalSlot.writeTo(aStream);
 		writeIntegerOn(index, aStream);
@@ -76,16 +81,12 @@ public class AvailSetLocalConstant extends AvailInstructionWithIndex
 	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
 	 *
-	 * <p>
-	 * The data lists are keyed by local or outer index.  Each entry is either
-	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
-	 * previous time a get or push happened.
-	 * </p>
+	 * <p>The data lists are keyed by local or outer index.  Each entry is
+	 * either null or a {@link AvailVariableAccessNote}, which keeps track of
+	 * the previous time a get or push happened.</p>
 	 *
-	 * <p>
-	 * The receiver sets the value of a local variable, so it can't be an
-	 * argument (they aren't wrapped in a variable).
-	 * </p>
+	 * <p>The receiver sets the value of a local variable, so it can't be an
+	 * argument (they aren't wrapped in a variable).</p>
 	 */
 	@Override
 	public void fixUsageFlags (

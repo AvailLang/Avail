@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.io.ByteArrayOutputStream;
@@ -43,20 +45,24 @@ import java.io.ByteArrayOutputStream;
  */
 public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 {
-
 	/**
-	 * Construct a new {@link AvailSetLiteralVariable}.
+	 * Construct a new {@code AvailSetLiteralVariable}.
 	 *
-	 * @param variableLiteralIndex The index of the literal variable.
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 * @param variableLiteralIndex
+	 *        The index of the literal variable.
 	 */
-	public AvailSetLiteralVariable (final int variableLiteralIndex)
+	public AvailSetLiteralVariable (
+		final A_Tuple relevantTokens,
+		final int variableLiteralIndex)
 	{
-		super(variableLiteralIndex);
+		super(relevantTokens, variableLiteralIndex);
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doSetLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);

@@ -643,7 +643,9 @@ implements ExecutableChunk
 		final A_Set contingentValues)
 	{
 		final JVMTranslator jvmTranslator = new JVMTranslator(
+			code,
 			code == null ? "DEFAULT" : code.methodName().asNativeString(),
+			controlFlowGraph,
 			theInstructions.toArray(new L2Instruction[theInstructions.size()]));
 		jvmTranslator.translate();
 		final L2Chunk chunk = new L2Chunk(

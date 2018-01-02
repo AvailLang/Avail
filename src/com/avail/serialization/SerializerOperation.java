@@ -41,7 +41,6 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -121,8 +120,7 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
@@ -836,9 +834,32 @@ public enum SerializerOperation
 
 	/**
 	 * A {@linkplain TupleDescriptor tuple of integers} whose values all
+	 * fall in the range 0..2^31-1.
+	 */
+	INT_TUPLE(28, COMPRESSED_INT_TUPLE.as("tuple of ints"))
+	{
+		@Override
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
+		{
+			return array(object);
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return subobjects[0];
+		}
+	},
+
+	/**
+	 * A {@linkplain TupleDescriptor tuple of integers} whose values all
 	 * fall in the range 0..255.
 	 */
-	BYTE_TUPLE(28, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
+	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -861,7 +882,7 @@ public enum SerializerOperation
 	 * A {@linkplain TupleDescriptor tuple of integers} whose values fall in
 	 * the range 0..15.
 	 */
-	NYBBLE_TUPLE(29, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
+	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -877,29 +898,6 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			return subobjects[0];
-		}
-	},
-
-	/**
-	 * A {@linkplain SetDescriptor set}.  Convert it to a tuple and work with
-	 * that, converting it back to a set when deserializing.
-	 */
-	SET(30, TUPLE_OF_OBJECTS.as("tuple of objects"))
-	{
-		@Override
-		A_BasicObject[] decompose (
-			final AvailObject object,
-			final Serializer serializer)
-		{
-			return array(object.asTuple());
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			return subobjects[0].asSet();
 		}
 	},
 
@@ -1064,6 +1062,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Outer types"),
 		OBJECT_REFERENCE.as("Module name"),
 		UNSIGNED_INT.as("Line number"),
+		COMPRESSED_INT_TUPLE.as("Encoded line number deltas"),
 		OBJECT_REFERENCE.as("Originating phrase"))
 	{
 
@@ -1110,6 +1109,7 @@ public enum SerializerOperation
 				outerTypes,
 				moduleName,
 				fromInt(object.startingLineNumber()),
+				object.lineNumberEncodedDeltas(),
 				object.originatingPhrase());
 		}
 
@@ -1128,7 +1128,8 @@ public enum SerializerOperation
 			final A_Tuple outerTypes = subobjects[7];
 			final A_String moduleName = subobjects[8];
 			final A_Number lineNumberInteger = subobjects[9];
-			final A_Phrase originatingPhrase = subobjects[10];
+			final A_Tuple lineNumberEncodedDeltas = subobjects[10];
+			final A_Phrase originatingPhrase = subobjects[11];
 
 			final A_Type numArgsRange =
 				functionType.argsTupleType().sizeRange();
@@ -1151,6 +1152,7 @@ public enum SerializerOperation
 				outerTypes,
 				module,
 				lineNumberInteger.extractInt(),
+				lineNumberEncodedDeltas,
 				originatingPhrase);
 		}
 	},
@@ -1323,16 +1325,17 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A {@linkplain SetDescriptor set}.  Convert it to a tuple and work with
+	 * that, converting it back to a set when deserializing.
 	 */
-	RESERVED_41 (41)
+	SET(41, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array(object.asTuple());
 		}
 
 		@Override
@@ -1340,7 +1343,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return subobjects[0].asSet();
 		}
 	},
 
@@ -1386,7 +1389,7 @@ public enum SerializerOperation
 				trailingWhitespace,
 				start,
 				lineNumber,
-				TokenType.all()[tokenTypeOrdinal]);
+				TokenType.lookup(tokenTypeOrdinal));
 		}
 	},
 
@@ -1435,7 +1438,7 @@ public enum SerializerOperation
 				trailingWhitespace,
 				start,
 				lineNumber,
-				TokenType.all()[tokenTypeOrdinal],
+				TokenType.lookup(tokenTypeOrdinal),
 				literal);
 		}
 	},
@@ -2055,7 +2058,8 @@ public enum SerializerOperation
 	ASSIGNMENT_PHRASE (60,
 		BYTE.as("flags"),
 		OBJECT_REFERENCE.as("variable"),
-		OBJECT_REFERENCE.as("expression"))
+		OBJECT_REFERENCE.as("expression"),
+		OBJECT_REFERENCE.as("tokens"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2066,7 +2070,8 @@ public enum SerializerOperation
 			return array(
 				fromInt(isInline ? 1 : 0),
 				object.variable(),
-				object.expression());
+				object.expression(),
+				object.tokens());
 		}
 
 		@Override
@@ -2077,8 +2082,9 @@ public enum SerializerOperation
 			final A_Number isInline = subobjects[0];
 			final A_Phrase variableUse = subobjects[1];
 			final A_Phrase expression = subobjects[2];
+			final A_Tuple tokens = subobjects[3];
 			return newAssignment(
-				variableUse, expression, !isInline.equalsInt(0));
+				variableUse, expression, tokens, !isInline.equalsInt(0));
 		}
 	},
 
@@ -2091,7 +2097,8 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("statements tuple"),
 		OBJECT_REFERENCE.as("result type"),
 		TUPLE_OF_OBJECTS.as("declared exceptions"),
-		UNSIGNED_INT.as("starting line number"))
+		UNSIGNED_INT.as("starting line number"),
+		TUPLE_OF_OBJECTS.as("tokens"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2109,7 +2116,8 @@ public enum SerializerOperation
 				object.statementsTuple(),
 				object.resultType(),
 				object.declaredExceptions().asTuple(),
-				fromInt(object.startingLineNumber()));
+				fromInt(object.startingLineNumber()),
+				object.tokens());
 		}
 
 		@Override
@@ -2123,6 +2131,7 @@ public enum SerializerOperation
 			final A_Type resultType = subobjects[3];
 			final A_Tuple declaredExceptionsTuple = subobjects[4];
 			final A_Number startingLineNumber = subobjects[5];
+			final A_Tuple tokens = subobjects[6];
 			final int primitiveNumber;
 			if (primitiveName.tupleSize() == 0)
 			{
@@ -2140,7 +2149,8 @@ public enum SerializerOperation
 				statementsTuple,
 				resultType,
 				declaredExceptionsTuple.asSet(),
-				startingLineNumber.extractInt());
+				startingLineNumber.extractInt(),
+				tokens);
 		}
 	},
 
@@ -2189,7 +2199,7 @@ public enum SerializerOperation
 			final AvailObject literalObject = subobjects[5];
 
 			final DeclarationKind declarationKind =
-				DeclarationKind.all()[declarationKindNumber.extractInt()];
+				DeclarationKind.lookup(declarationKindNumber.extractInt());
 			return newDeclaration(
 				declarationKind,
 				token,

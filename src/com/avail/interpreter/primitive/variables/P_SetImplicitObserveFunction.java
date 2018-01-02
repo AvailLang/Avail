@@ -122,25 +122,29 @@ extends Primitive
 				TOP.o()));
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
 		writer.returnType(bottom());
-		writer.write(L1Operation.L1_doPushOuter, outerIndex);
-		writer.write(L1Operation.L1_doPushLocal, 1);
-		writer.write(L1Operation.L1_doPushLocal, 2);
-		writer.write(L1Operation.L1_doMakeTuple, 2);
+		writer.write(0, L1Operation.L1_doPushOuter, outerIndex);
+		writer.write(0, L1Operation.L1_doPushLocal, 1);
+		writer.write(0, L1Operation.L1_doPushLocal, 2);
+		writer.write(0, L1Operation.L1_doMakeTuple, 2);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(TOP.o()));
-		writer.write(L1Operation.L1_doPop);
-		writer.write(L1Operation.L1Ext_doPushLabel);
+		writer.write(0, L1Operation.L1_doPop);
+		writer.write(0, L1Operation.L1Ext_doPushLabel);
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
 			writer.addLiteral(variableTypeFor(mostGeneralContinuationType())));
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
 			writer.addLiteral(mostGeneralContinuationType()));
 		writer.write(
+			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
 			writer.addLiteral(bottom()));

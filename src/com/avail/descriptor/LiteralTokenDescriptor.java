@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
@@ -92,6 +93,7 @@ extends TokenDescriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
+		@HideFieldInDebugger
 		static final BitField START =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 
@@ -146,6 +148,7 @@ extends TokenDescriptor
 		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
 		 * </p>
 		 */
+		@HideFieldJustForPrinting
 		NEXT_LEXING_STATE_POJO,
 
 		/** The actual {@link AvailObject} wrapped by this token. */
@@ -192,15 +195,9 @@ extends TokenDescriptor
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN))
-		{
-			return true;
-		}
-		if (!aTypeObject.isLiteralTokenType())
-		{
-			return false;
-		}
-		return object.slot(LITERAL).isInstanceOf(aTypeObject.literalType());
+		return aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN)
+			|| aTypeObject.isLiteralTokenType()
+				&& object.slot(LITERAL).isInstanceOf(aTypeObject.literalType());
 	}
 
 	@Override

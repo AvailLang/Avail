@@ -82,32 +82,21 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Phrase o_Expression (final AvailObject object)
-	{
-		return object.slot(EXPRESSION);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		// Statements are always ⊤-valued.
-		return Types.TOP.o();
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(EXPRESSION).equals(aParseNode.expression());
+		action.value(object.slot(EXPRESSION));
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		return object.slot(EXPRESSION).hash() + 0x9088CDD8;
+		object.setSlot(
+			EXPRESSION,
+			aBlock.valueNotNull(object.slot(EXPRESSION)));
 	}
 
 	@Override @AvailMethod
@@ -129,37 +118,32 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final A_Phrase aParseNode)
 	{
-		object.setSlot(
-			EXPRESSION,
-			aBlock.valueNotNull(object.slot(EXPRESSION)));
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.slot(EXPRESSION).equals(aParseNode.expression());
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
+	A_Phrase o_Expression (final AvailObject object)
 	{
-		action.value(object.slot(EXPRESSION));
-	}
-
-	@Override
-	void o_StatementsDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> continuation)
-	{
-		continuation.value(object);
+		return object.slot(EXPRESSION);
 	}
 
 	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		// Do nothing.
+		// Statements are always ⊤-valued.
+		return Types.TOP.o();
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(EXPRESSION).hash() + 0x9088CDD8;
 	}
 
 	@Override @AvailMethod
@@ -175,14 +159,25 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("expression as statement phrase");
-		writer.write("expression");
-		object.slot(EXPRESSION).writeTo(writer);
-		writer.endObject();
+		continuation.value(object);
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(EXPRESSION).tokens();
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
 	}
 
 	@Override
@@ -193,6 +188,17 @@ extends ParseNodeDescriptor
 		writer.write("expression as statement phrase");
 		writer.write("expression");
 		object.slot(EXPRESSION).writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("expression as statement phrase");
+		writer.write("expression");
+		object.slot(EXPRESSION).writeTo(writer);
 		writer.endObject();
 	}
 

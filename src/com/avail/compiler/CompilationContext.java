@@ -165,7 +165,7 @@ public class CompilationContext
 	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
 	 * {@linkplain ModuleDescriptor modules}.
 	 */
-	@Nullable AvailLoader loader = null;
+	@Nullable AvailLoader loader;
 
 	public void setLoader (final AvailLoader loader)
 	{
@@ -369,8 +369,9 @@ public class CompilationContext
 		{
 			final long completed = getWorkUnitsCompleted();
 			final StringBuilder builder = new StringBuilder();
-			Throwable e = new Throwable().fillInStackTrace();
+			final Throwable e = new Throwable().fillInStackTrace();
 			builder.append(trace(e));
+			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 			final String trace = builder.toString().replaceAll(
 				"\\A.*\\R((.*\\R){6})(.|\\R)*\\z", "$1");
 			System.out.println(
@@ -772,6 +773,8 @@ public class CompilationContext
 	@InnerAccess synchronized void serializeAfterRunning (
 		final A_Function function)
 	{
+		final A_RawFunction code = function.code();
+		final int startingLineNumber = code.startingLineNumber();
 		if (loader().statementCanBeSummarized())
 		{
 			final List<LoadingEffect> effects = loader().recordedEffects();
@@ -784,31 +787,27 @@ public class CompilationContext
 				final L1InstructionWriter writer =
 					new L1InstructionWriter(
 						module,
-						function.code().startingLineNumber(),
-						function.code().originatingPhrase());
+						startingLineNumber,
+						code.originatingPhrase());
 				writer.argumentTypes();
 				writer.returnType(Types.TOP.o());
 				boolean first = true;
 				for (final LoadingEffect effect : effects)
 				{
-					if (first)
+					if (!first)
 					{
-						first = false;
-					}
-					else
-					{
-						writer.write(L1Operation.L1_doPop);
+						writer.write(startingLineNumber, L1Operation.L1_doPop);
 					}
 					effect.writeEffectTo(writer);
+					first = false;
 				}
 				final A_Function summaryFunction =
-					createFunction(
-						writer.compiledCode(), emptyTuple());
+					createFunction(writer.compiledCode(), emptyTuple());
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					System.out.println(
 						module.moduleName().asNativeString()
-							+ ":" + function.code().startingLineNumber()
+							+ ":" + startingLineNumber
 							+ " Summary -- " + function);
 				}
 				serializer.serialize(summaryFunction);
@@ -821,7 +820,7 @@ public class CompilationContext
 			{
 				System.out.println(
 					module
-						+ ":" + function.code().startingLineNumber()
+						+ ":" + startingLineNumber
 						+ " Unsummarized -- " + function);
 			}
 			serializer.serialize(function);

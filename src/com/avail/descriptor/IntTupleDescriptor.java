@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IndexedIntGenerator;
 import com.avail.utility.json.JSONWriter;
 
@@ -543,7 +544,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject) fromInt(object.intSlot(RAW_LONG_AT_, index));
+		return fromInt(object.intSlot(RAW_LONG_AT_, index));
 	}
 
 	@Override @AvailMethod

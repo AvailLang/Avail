@@ -100,7 +100,7 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 			interpreter.pointerAtPut(destination++, continuation.stackAt(i));
 		}
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
-		stepper.pc = continuation.pc();
+		stepper.pc.value = continuation.pc();
 		stepper.stackp = continuation.stackp();
 		if (!interpreter.skipReturnCheck)
 		{

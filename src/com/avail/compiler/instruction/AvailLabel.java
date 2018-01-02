@@ -32,6 +32,8 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.BlockNodeDescriptor;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 
@@ -40,21 +42,30 @@ import java.io.ByteArrayOutputStream;
 /**
  * An {@code AvailLabel} is a pseudo-instruction in the {@linkplain
  * AvailInstruction Level One instruction} set.  It represents a {@linkplain
- * DeclarationKind#LABEL label
- * node} in the parse tree of a {@linkplain BlockNodeDescriptor block}.  If a
- * label declaration occurs at all in a block, it must be the first statement of
- * the block.
+ * DeclarationKind#LABEL label node} in the parse tree of a {@linkplain
+ * BlockNodeDescriptor block}.  If a label declaration occurs at all in a block,
+ * it must be the first statement of the block.
  *
- * <p>
- * No actual nybblecodes are generated for an {@code AvailLabel}.  The only
+ * <p>No actual nybblecodes are generated for an {@code AvailLabel}.  The only
  * reason for a label pseudo-instruction to exist is to keep track of which
- * blocks require labels.
- * </p>
+ * blocks require labels.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailLabel extends AvailInstruction
 {
+	/**
+	 * Construct an instruction.  Capture the tokens that contributed to it.
+	 *
+	 * @param relevantTokens
+	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
+	 *        this instruction.
+	 */
+	public AvailLabel (final A_Tuple relevantTokens)
+	{
+		super(relevantTokens);
+	}
+
 	@Override
 	public void writeNybblesOn (
 		final ByteArrayOutputStream aStream)

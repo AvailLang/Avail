@@ -442,8 +442,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the element at the given index in the tuple object.
 		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return (AvailObject) fromUnsignedByte(
-			(short) (array[index - 1] & 0xFF));
+		return fromUnsignedByte((short) (array[index - 1] & 0xFF));
 	}
 
 	@Override
