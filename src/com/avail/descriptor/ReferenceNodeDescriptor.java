@@ -108,7 +108,6 @@ extends ParseNodeDescriptor
 			return
 				instanceType(declaration.literalObject());
 		}
-		assert kind == DeclarationKind.LOCAL_VARIABLE;
 		return variableTypeFor(variable.expressionType());
 	}
 

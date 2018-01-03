@@ -42,8 +42,11 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.MARKER_VALUE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.MARKER_NODE;
+import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots
+	.MARKER_VALUE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.MARKER_NODE;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -69,19 +72,6 @@ extends ParseNodeDescriptor
 		MARKER_VALUE
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MarkerValue (final AvailObject object)
-	{
-		return object.slot(MARKER_VALUE);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		// This shouldn't make a difference.
-		return TOP.o();
-	}
-
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -95,17 +85,27 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1NotNull<A_Phrase> action)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
 	void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		assert false : "A marker node can not generate code.";
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.markerValue().hash() ^ 0xCBCACACC;
 	}
 
 	@Override @AvailMethod
@@ -118,26 +118,29 @@ extends ParseNodeDescriptor
 			&& object.markerValue().equals(aParseNode.markerValue());
 	}
 
+	@Override @AvailMethod
+	A_Type o_ExpressionType (final AvailObject object)
+	{
+		// This shouldn't make a difference.
+		return TOP.o();
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.markerValue().hash() ^ 0xCBCACACC;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MarkerValue (final AvailObject object)
+	{
+		return object.slot(MARKER_VALUE);
+	}
+
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return MARKER_NODE;
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -154,6 +157,12 @@ extends ParseNodeDescriptor
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return emptyTuple();
 	}
 
 	@Override @AvailMethod

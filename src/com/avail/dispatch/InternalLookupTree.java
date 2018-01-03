@@ -103,7 +103,7 @@ public class InternalLookupTree<
 	 *        decision tree.  Each element corresponds with an argument position
 	 *        for the method.
 	 */
-	public InternalLookupTree (
+	InternalLookupTree (
 		final List<? extends Element> positiveElements,
 		final List<? extends Element> undecidedElements,
 		final List<A_Type> knownArgumentTypes)
@@ -204,7 +204,7 @@ public class InternalLookupTree<
 	 * @param adaptor
 	 *        The {@link LookupTreeAdaptor} to use for expanding the tree.
 	 */
-	private final void chooseCriterion (
+	private void chooseCriterion (
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{

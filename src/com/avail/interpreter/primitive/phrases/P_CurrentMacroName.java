@@ -55,7 +55,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send node
@@ -70,7 +70,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_CurrentMacroName().init(
-			0, Unknown);
+			0, CanInline);
 
 	@Override
 	public Result attempt (
@@ -98,13 +98,14 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(emptyTuple(), ATOM.o());
+			functionType(
+				emptyTuple(),
+				ATOM.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_NOT_EVALUATING_MACRO));
+		return enumerationWith(set(E_NOT_EVALUATING_MACRO));
 	}
 }

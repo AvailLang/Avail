@@ -326,6 +326,42 @@ public final class MessageSplitter
 	}
 
 	/**
+	 * Answer the index of the given permutation (tuple of integers), adding it
+	 * to the global {@link MessageSplitter#constantsList} if necessary.
+	 *
+	 * @param permutation
+	 *        The permutation whose globally unique one-based index should be
+	 *        determined.
+	 * @return The permutation's one-based index.
+	 */
+	@InnerAccess
+	public static int indexForPermutation (final A_Tuple permutation)
+	{
+		int checkedLimit = 0;
+		while (true)
+		{
+			final A_Tuple before = permutations.get();
+			final int newLimit = before.tupleSize();
+			for (int i = checkedLimit + 1; i <= newLimit; i++)
+			{
+				if (before.tupleAt(i).equals(permutation))
+				{
+					// Already exists.
+					return i;
+				}
+			}
+			final A_Tuple after =
+				before.appendCanDestroy(permutation, false).makeShared();
+			if (permutations.compareAndSet(before, after))
+			{
+				// Added it successfully.
+				return after.tupleSize();
+			}
+			checkedLimit = newLimit;
+		}
+	}
+
+	/**
 	 * Answer the index of the given constant, adding it to the global {@link
 	 * #constantsList} and {@link #constantsMap}} if necessary.
 	 *

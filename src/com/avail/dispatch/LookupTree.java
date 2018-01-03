@@ -31,8 +31,6 @@
  */
 
 package com.avail.dispatch;
-import com.avail.annotations.InnerAccess;
-import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Tuple;
@@ -56,42 +54,6 @@ public abstract class LookupTree<
 	Result extends A_BasicObject,
 	Memento>
 {
-	/**
-	 * Answer the index of the given permutation (tuple of integers), adding it
-	 * to the global {@link MessageSplitter#constantsList} if necessary.
-	 *
-	 * @param permutation
-	 *        The permutation whose globally unique one-based index should be
-	 *        determined.
-	 * @return The permutation's one-based index.
-	 */
-	@InnerAccess
-	public static int indexForPermutation (final A_Tuple permutation)
-	{
-		int checkedLimit = 0;
-		while (true)
-		{
-			final A_Tuple before = MessageSplitter.permutations.get();
-			final int newLimit = before.tupleSize();
-			for (int i = checkedLimit + 1; i <= newLimit; i++)
-			{
-				if (before.tupleAt(i).equals(permutation))
-				{
-					// Already exists.
-					return i;
-				}
-			}
-			final A_Tuple after =
-				before.appendCanDestroy(permutation, false).makeShared();
-			if (MessageSplitter.permutations.compareAndSet(before, after))
-			{
-				// Added it successfully.
-				return after.tupleSize();
-			}
-			checkedLimit = newLimit;
-		}
-	}
-
 	/**
 	 * Perform one step of looking up the most-specific {@link Result} that
 	 * matches the provided list of argument types.  Answer another {@link

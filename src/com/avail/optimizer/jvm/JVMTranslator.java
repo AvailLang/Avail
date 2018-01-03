@@ -82,13 +82,13 @@ public final class JVMTranslator
 	public final @Nullable A_RawFunction code;
 
 	/** The descriptive (non-unique) name of this chunk. */
-	public final String chunkName;
+	private final String chunkName;
 
 	/**
 	 * The {@link L2ControlFlowGraph} containing the instructions that are
 	 * translated to JVM bytecodes.
 	 */
-	public final L2ControlFlowGraph controlFlowGraph;
+	private final L2ControlFlowGraph controlFlowGraph;
 
 	/** The array of {@link L2Instruction}s to translate to JVM bytecodes. */
 	public final L2Instruction[] instructions;
@@ -294,8 +294,8 @@ public final class JVMTranslator
 	 *
 	 * @return The receiver local.
 	 */
-	@SuppressWarnings({"unused", "MethodMayBeStatic"})
-	public int receiverLocal ()
+	@SuppressWarnings("MethodMayBeStatic")
+	private int receiverLocal ()
 	{
 		return 0;
 	}
@@ -644,7 +644,7 @@ public final class JVMTranslator
 	 * @param classBytes
 	 *        The class bytes.
 	 */
-	public void dumpClassBytesToFile (final byte[] classBytes)
+	private void dumpClassBytesToFile (final byte[] classBytes)
 	{
 		try
 		{

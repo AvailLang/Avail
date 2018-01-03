@@ -73,9 +73,9 @@ extends ParseNodeDescriptor
 		/**
 		 * The token that was transformed into this literal.
 		 */
-		TOKEN,
+		TOKEN;
+	}
 
-		}
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,

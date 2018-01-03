@@ -50,6 +50,7 @@ import java.util.Set;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter
 	.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
@@ -432,8 +433,7 @@ extends Expression
 			assert listIsPushed;
 			final A_Tuple permutationTuple =
 				tupleFromIntegerList(permutedArguments);
-			final int permutationIndex =
-				LookupTree.indexForPermutation(permutationTuple);
+			final int permutationIndex = indexForPermutation(permutationTuple);
 			// This sequence was already collected into a list node as the
 			// arguments/groups were parsed.  Permute the list.
 			generator.flushDelayed();

@@ -53,6 +53,7 @@ import java.util.List;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter
 	.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -712,8 +713,7 @@ extends Expression
 			// Permute the list on top of stack.
 			final A_Tuple permutationTuple =
 				tupleFromIntegerList(beforeDagger.permutedArguments);
-			final int permutationIndex =
-				LookupTree.indexForPermutation(permutationTuple);
+			final int permutationIndex = indexForPermutation(permutationTuple);
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
@@ -796,8 +796,7 @@ extends Expression
 			}
 			final A_Tuple permutationTuple =
 				tupleFromIntegerList(adjustedPermutationList);
-			final int permutationIndex =
-				LookupTree.indexForPermutation(permutationTuple);
+			final int permutationIndex = indexForPermutation(permutationTuple);
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}

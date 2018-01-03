@@ -52,14 +52,14 @@ extends LookupTree<Element, Result, Memento>
 	private final Result finalResult;
 
 	/**
-	 * Construct a new {@link LeafLookupTree}.
+	 * Construct a new {@code LeafLookupTree}.
 	 *
 	 * @param finalResult
 	 *        The most specific definitions for the provided arguments.  Thus,
 	 *        if this is empty, there are no applicable definitions, and if
 	 *        there's more than one element the actual call is ambiguous.
 	 */
-	public LeafLookupTree (final Result finalResult)
+	LeafLookupTree (final Result finalResult)
 	{
 		this.finalResult = finalResult;
 	}

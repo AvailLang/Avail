@@ -136,13 +136,13 @@ public final class L1Translator
 	 * arguments, the locals (including the optional primitive failure result),
 	 * and the stack slots.
 	 */
-	final int numSlots;
+	private final int numSlots;
 
 	/**
 	 * The topmost Frame for translation, which corresponds with the provided
 	 * {@link A_RawFunction} in {@link #code}.
 	 */
-	final Frame topFrame;
+	private final Frame topFrame;
 
 	/**
 	 * The {@link L2SemanticValue}s corresponding with to slots of the virtual
@@ -367,7 +367,7 @@ public final class L1Translator
 	 *        The index into the continuation's slots.
 	 * @return A register write representing that continuation slot.
 	 */
-	L2WritePointerOperand writeSlot (
+	private L2WritePointerOperand writeSlot (
 		final int slotNumber,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
@@ -392,7 +392,7 @@ public final class L1Translator
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
-	void forceSlotRegister (
+	private void forceSlotRegister (
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
@@ -657,7 +657,7 @@ public final class L1Translator
 	 * @param slotIndex
 	 *        The index of the slot in which to write it.
 	 */
-	void moveConstantToSlot (
+	private void moveConstantToSlot (
 		final A_BasicObject value,
 		final int slotIndex)
 	{
@@ -703,7 +703,7 @@ public final class L1Translator
 	 * @param value The immediate int to write to a new int register.
 	 * @return The {@link L2ReadIntOperand} for the new register.
 	 */
-	L2ReadIntOperand constantIntRegister (final int value)
+	private L2ReadIntOperand constantIntRegister (final int value)
 	{
 		final L2WriteIntOperand registerWrite =
 			new L2WriteIntOperand(newIntegerRegister());
@@ -1930,16 +1930,25 @@ public final class L1Translator
 		final L2WritePointerOperand errorCodeReg = newObjectRegisterWriter(
 			TOP.o(), null);
 
-		final List<A_Type> argumentTypes = IntStream.rangeClosed(1, nArgs)
-			.mapToObj(
-				i -> arguments.get(i - 1).type().typeUnion(
-					superUnionType.typeAtIndex(i)))
-			.collect(toList());
-		final List<A_Function> possibleFunctions =
-			bundle.bundleMethod().filterByTypes(argumentTypes).stream()
-				.filter(A_Definition::isMethodDefinition)
-				.map(A_Definition::bodyBlock)
-				.collect(toList());
+		final List<A_Type> argumentTypes = new ArrayList<>();
+		for (int i = 1; i <= nArgs; i++)
+		{
+			argumentTypes.add(
+				arguments.get(i - 1).type().typeUnion(
+					superUnionType.typeAtIndex(i)));
+		}
+
+		final List<A_Function> possibleFunctions = new ArrayList<>();
+		for (A_Definition definition :
+			bundle.bundleMethod().filterByTypes(argumentTypes))
+		{
+			if (definition.isMethodDefinition())
+			{
+				A_Function bodyBlock = definition.bodyBlock();
+				possibleFunctions.add(bodyBlock);
+			}
+		}
+
 		final A_Type functionTypeUnion = enumerationWith(
 			setFromCollection(possibleFunctions));
 		if (superUnionType.isBottom())

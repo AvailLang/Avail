@@ -48,6 +48,7 @@ import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots
 	.STATEMENTS;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.FIRST_OF_SEQUENCE_NODE;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
@@ -63,6 +64,7 @@ import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 public final class FirstOfSequenceNodeDescriptor
 extends ParseNodeDescriptor
 {
+
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
@@ -80,54 +82,34 @@ extends ParseNodeDescriptor
 		 * {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence} node's
 		 * effective value will be.
 		 */
-		STATEMENTS
+		STATEMENTS;
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_Statements (final AvailObject object)
-	{
-		return object.slot(STATEMENTS);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		final A_Tuple statements = object.slot(STATEMENTS);
-		assert statements.tupleSize() > 0;
-		return statements.tupleAt(1).expressionType();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.slot(STATEMENTS).hash() ^ 0x70EDD231;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Continuation1NotNull<A_Phrase> action)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(STATEMENTS).equals(aParseNode.statements());
-	}
-
-	@Override @AvailMethod
-	void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		final A_Tuple statements = object.slot(STATEMENTS);
-		final int statementsCount = statements.tupleSize();
-		assert statements.tupleSize() > 0;
-		// Leave the first statement's value on the stack while evaluating the
-		// subsequent statements.
-		statements.tupleAt(1).emitValueOn(codeGenerator);
-		for (int i = 2; i <= statementsCount; i++)
+		for (final AvailObject statement : object.slot(STATEMENTS))
 		{
-			statements.tupleAt(i).emitEffectOn(codeGenerator);
+			action.value(statement);
 		}
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		A_Tuple statements = object.slot(STATEMENTS);
+		for (int i = 1; i <= statements.tupleSize(); i++)
+		{
+			statements = statements.tupleAtPuttingCanDestroy(
+				i,
+				aBlock.valueNotNull(statements.tupleAt(i)),
+				true);
+		}
+		object.setSlot(STATEMENTS, statements);
 	}
 
 	@Override @AvailMethod
@@ -155,49 +137,38 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	void o_EmitValueOn (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final AvailCodeGenerator codeGenerator)
 	{
-		A_Tuple statements = object.slot(STATEMENTS);
-		for (int i = 1; i <= statements.tupleSize(); i++)
+		final A_Tuple statements = object.slot(STATEMENTS);
+		final int statementsCount = statements.tupleSize();
+		assert statements.tupleSize() > 0;
+		// Leave the first statement's value on the stack while evaluating the
+		// subsequent statements.
+		statements.tupleAt(1).emitValueOn(codeGenerator);
+		for (int i = 2; i <= statementsCount; i++)
 		{
-			statements = statements.tupleAtPuttingCanDestroy(
-				i,
-				aBlock.valueNotNull(statements.tupleAt(i)),
-				true);
-		}
-		object.setSlot(STATEMENTS, statements);
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
-	{
-		for (final AvailObject statement : object.slot(STATEMENTS))
-		{
-			action.value(statement);
-		}
-	}
-
-	@Override
-	void o_StatementsDo (
-		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> continuation)
-	{
-		for (final A_Phrase statement : object.slot(STATEMENTS))
-		{
-			statement.statementsDo(continuation);
+			statements.tupleAt(i).emitEffectOn(codeGenerator);
 		}
 	}
 
 	@Override @AvailMethod
-	void o_ValidateLocally (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final @Nullable A_Phrase parent)
+		final A_Phrase aParseNode)
 	{
-		// Do nothing.
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.slot(STATEMENTS).equals(aParseNode.statements());
+	}
+
+	@Override @AvailMethod
+	A_Type o_ExpressionType (final AvailObject object)
+	{
+		final A_Tuple statements = object.slot(STATEMENTS);
+		assert statements.tupleSize() > 0;
+		return statements.tupleAt(1).expressionType();
 	}
 
 	@Override @AvailMethod
@@ -229,6 +200,12 @@ extends ParseNodeDescriptor
 		}
 	}
 
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(STATEMENTS).hash() ^ 0x70EDD231;
+	}
+
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
@@ -239,6 +216,37 @@ extends ParseNodeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FIRST_OF_SEQUENCE_PHRASE;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_Statements (final AvailObject object)
+	{
+		return object.slot(STATEMENTS);
+	}
+
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1NotNull<A_Phrase> continuation)
+	{
+		for (final A_Phrase statement : object.slot(STATEMENTS))
+		{
+			statement.statementsDo(continuation);
+		}
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return emptyTuple();
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
 	}
 
 	@Override

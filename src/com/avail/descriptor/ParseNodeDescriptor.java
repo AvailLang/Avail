@@ -287,6 +287,9 @@ extends Descriptor
 		return bottom();
 	}
 
+	@Override
+	abstract A_Tuple o_Tokens (final AvailObject object);
+
 	/**
 	 * Validate this node, throwing an exception if there is a problem.
 	 *

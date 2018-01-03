@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation
@@ -118,7 +119,7 @@ implements ExecutableChunk
 	 * dynamically expanded as needed only when starting or resuming a
 	 * {@link ContinuationDescriptor continuation}.
 	 */
-	final int numObjects;
+	private final int numObjects;
 
 	/**
 	 * The number of {@linkplain L2IntegerRegister integer registers} that
@@ -126,7 +127,7 @@ implements ExecutableChunk
 	 * register list to be dynamically expanded as needed only when starting
 	 * or resuming a continuation.
 	 */
-	final int numIntegers;
+	private final int numIntegers;
 
 	/**
 	 * The number of {@linkplain L2FloatRegister floating point registers}
@@ -134,7 +135,7 @@ implements ExecutableChunk
 	 * the register list to be dynamically expanded as needed only when
 	 * starting or resuming a continuation.
 	 */
-	final int numDoubles;
+	private final int numDoubles;
 
 	/**
 	 * The level two offset at which to start if the corresponding {@link
@@ -142,7 +143,7 @@ implements ExecutableChunk
 	 * failed.  If it's not a primitive, this is the offset of the start of the
 	 * code (0).
 	 */
-	final int offsetAfterInitialTryPrimitive;
+	private final int offsetAfterInitialTryPrimitive;
 
 	/**
 	 * An indication of how recently this chunk has been accessed, expressed as
@@ -170,13 +171,13 @@ implements ExecutableChunk
 		 * approximately {@link #maximumNewestGenerationSize}, queue it and
 		 * create a new one.
 		 */
-		public static volatile Generation newest = new Generation();
+		@InnerAccess static volatile Generation newest = new Generation();
 
 		/**
 		 * The maximum number of chunks to place in this generation before
 		 * creating a newer one.  If the working set of chunks is larger than
-		 * this, there is a risk of thrashing (invalidating and recompiling
-		 * a lot of {@link L2Chunk}s), which is balanced against overconsumption
+		 * this, there is a risk of thrashing (invalidating and recompiling a
+		 * lot of {@link L2Chunk}s), which is balanced against over-consumption
 		 * of memory by chunks.
 		 */
 		private static final int maximumNewestGenerationSize = 300;
@@ -202,7 +203,7 @@ implements ExecutableChunk
 		 *
 		 * @param newChunk The new chunk to track.
 		 */
-		public static void addNewChunk (final L2Chunk newChunk)
+		@InnerAccess static void addNewChunk (final L2Chunk newChunk)
 		{
 			newChunk.generation = newest;
 			newest.chunks.add(newChunk);
@@ -342,7 +343,7 @@ implements ExecutableChunk
 		 * @param chunk
 		 *        The invalidated {@link L2Chunk} to remove from its generation.
 		 */
-		public static void removeInvalidatedChunk (final L2Chunk chunk)
+		@InnerAccess static void removeInvalidatedChunk (final L2Chunk chunk)
 		{
 			final @Nullable Generation gen = chunk.generation;
 			if (gen != null)
@@ -368,14 +369,14 @@ implements ExecutableChunk
 	 * synchronization (and therefore memory coherence) before it can start
 	 * running again.
 	 */
-	boolean valid;
+	private boolean valid;
 
 	/**
 	 * The set of {@linkplain A_ChunkDependable contingent values} on which
 	 * this chunk depends. If one of these changes significantly, this chunk
 	 * must be invalidated (at which time this set will be emptied).
 	 */
-	A_Set contingentValues;
+	private A_Set contingentValues;
 
 	/**
 	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
@@ -559,7 +560,7 @@ implements ExecutableChunk
 	 *
 	 * @return The number of invocations before post-invalidate reoptimization.
 	 */
-	public static int countdownForInvalidatedCode ()
+	private static int countdownForInvalidatedCode ()
 	{
 		return 10;
 	}
@@ -729,7 +730,7 @@ implements ExecutableChunk
 	 * L2Chunk} more directly, and should be executed instead by {@link
 	 * #runChunk(Interpreter)}.
 	 */
-	public @Nullable ExecutableChunk executableChunk;
+	private final ExecutableChunk executableChunk;
 
 	@Override
 	public @Nullable StackReifier runChunk (final Interpreter interpreter)
