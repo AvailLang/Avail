@@ -127,4 +127,13 @@ extends ClassLoader
 			return null;
 		}
 	}
+
+	/**
+	 * Construct a new {@link JVMChunkClassLoader} that delegates to the same
+	 * {@link ClassLoader} that loaded {@link JVMChunk}.
+	 */
+	public JVMChunkClassLoader ()
+	{
+		super(JVMChunk.class.getClassLoader());
+	}
 }
