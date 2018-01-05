@@ -556,14 +556,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						else
 						{
 							buffer.rewind();
-							try
-							{
-								bytes.write(buffer.array());
-							}
-							catch (final IOException e)
-							{
-								assert false : "This never happens";
-							}
+							bytes.write(
+								buffer.array(),
+								buffer.position(),
+								buffer.remaining());
 							if (!state.value().isAcceptState())
 							{
 								buffer.clear();
