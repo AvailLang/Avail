@@ -1,4 +1,4 @@
-/**
+/*
  * WebSocketAdapter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import static com.avail.server.AvailServer.logger;
 import static com.avail.utility.Nulls.stripNull;
@@ -71,6 +72,7 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see <a href="http://tools.ietf.org/html/rfc6455">RFC 6455: The WebSocket Protocol</a>
  */
+@SuppressWarnings("UnnecessaryJavaDocLink")
 public final class WebSocketAdapter
 implements TransportAdapter<AsynchronousSocketChannel>
 {
@@ -209,6 +211,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @return {@code true} if this is an accept state, {@code false}
 		 *         otherwise.
 		 */
+		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 		public boolean isAcceptState ()
 		{
 			return false;
@@ -315,6 +318,13 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 */
 	private static class ClientRequest
 	{
+		/** A {@link Pattern} for splitting HTTP headers. */
+		private static final Pattern splitHeaders =
+			Pattern.compile("(?:\r\n)+");
+
+		/** A {@link Pattern} for identifying one or more spaces. */
+		private static final Pattern manySpaces = Pattern.compile(" +");
+
 		/** The {@linkplain HttpRequestMethod request method}. */
 		final HttpRequestMethod method;
 
@@ -362,7 +372,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final HttpStatusCode statusCode,
 			final String reason)
 		{
-			@SuppressWarnings("resource")
+			@SuppressWarnings({
+				"resource",
+				"IOResourceOpenedButNotSafelyClosed"
+			})
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				"HTTP/1.1 %03d %s\r\n\r\n"
@@ -398,6 +411,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						final @Nullable Throwable e,
 						final @Nullable Void unused)
 					{
+						//noinspection ObjectToString
 						logger.log(
 							Level.WARNING,
 							"unable to write HTTP response to " + channel,
@@ -428,10 +442,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final WebSocketAdapter adapter,
 			final String headersText)
 		{
-			final String[] headers = headersText.split("(?:\r\n)+");
+			final String[] headers = splitHeaders.split(headersText);
 			// Deal with the Request-Line specially.
 			final String requestLine = headers[0];
-			final String[] requestParts = requestLine.split(" +");
+			final String[] requestParts = manySpaces.split(requestLine);
 			if (requestParts.length != 3)
 			{
 				badRequest(
@@ -440,7 +454,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					"Invalid Request-Line");
 				return null;
 			}
-			final HttpRequestMethod method =
+			final @Nullable HttpRequestMethod method =
 				HttpRequestMethod.named(requestParts[0]);
 			if (method == null)
 			{
@@ -567,7 +581,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							}
 							else
 							{
-								final ClientRequest request =
+								final @Nullable ClientRequest request =
 									readRequest(
 										channel,
 										adapter,
@@ -603,6 +617,9 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	private static final class ClientHandshake
 	extends ClientRequest
 	{
+		/** A {@link Pattern} to recognize space padded commas. */
+		private static final Pattern paddedComma = Pattern.compile(" *, *");
+
 		/** The WebSocket key. */
 		final byte[] key;
 
@@ -668,7 +685,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final String connection = map.get("connection");
 			if (connection != null)
 			{
-				final String[] tokens = connection.split(" *, *");
+				final String[] tokens = paddedComma.split(connection);
 				boolean includesUpgrade = false;
 				for (final String token : tokens)
 				{
@@ -721,11 +738,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			}
 			final List<String> protocols = Arrays.asList(
 				map.containsKey("sec-websocket-protocol")
-				? map.get("sec-websocket-protocol").split(" *, *")
+				? paddedComma.split(map.get("sec-websocket-protocol"))
 				: new String[0]);
 			final List<String> extensions = Arrays.asList(
 				map.containsKey("sec-websocket-extensions")
-				? map.get("sec-websocket-extensions").split(" *, *")
+				? paddedComma.split(map.get("sec-websocket-extensions"))
 				: new String[0]);
 			return new ClientHandshake(request, key, protocols, extensions);
 		}
@@ -745,7 +762,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final WebSocketChannel channel,
 			final int badVersion)
 		{
-			@SuppressWarnings("resource")
+			@SuppressWarnings({
+				"resource",
+				"IOResourceOpenedButNotSafelyClosed"
+			})
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				"HTTP/1.1 %03d Bad Request\r\n"
@@ -784,6 +804,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						final @Nullable Throwable e,
 						final @Nullable Void unused)
 					{
+						//noinspection ObjectToString
 						logger.log(
 							Level.WARNING,
 							"unable to write HTTP response to " + channel,
@@ -826,6 +847,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			{
 				throw new RuntimeException("SHA-1 not available", e);
 			}
+			@SuppressWarnings("StringConcatenationMissingWhitespace")
 			final String stringKey = DatatypeConverter.printBase64Binary(key)
 				+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 			final byte[] acceptBytes =
@@ -843,7 +865,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @param extensions
 		 *        The selected extensions.
 		 */
-		public ServerHandshake (
+		ServerHandshake (
 			final byte[] key,
 			final List<String> protocols,
 			final List<String> extensions)
@@ -866,7 +888,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final AsynchronousSocketChannel channel,
 			final Continuation0 continuation)
 		{
-			@SuppressWarnings("resource")
+			@SuppressWarnings({
+				"resource",
+				"IOResourceOpenedButNotSafelyClosed"
+			})
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				"HTTP/1.1 %03d Switching Protocols\r\n"
@@ -966,7 +991,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					ClientRequest.receiveThen(
 						channel,
 						WebSocketAdapter.this,
-						request -> processRequest(request, channel));
+						request ->
+						{
+							assert request != null;
+							processRequest(request, channel);
+						});
 				}
 
 				@Override
@@ -1008,7 +1037,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			// Process a WebSocket request.
 			if (request.headers.containsKey("upgrade"))
 			{
-				final ClientHandshake handshake =
+				final @Nullable ClientHandshake handshake =
 					ClientHandshake.readClientHandshake(channel, request);
 				if (handshake != null)
 				{
@@ -1041,7 +1070,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				if (request.uri.startsWith("/doc")
 					&& server.configuration().shouldServeDocuments())
 				{
-					// TODO
+					// TODO: [TLS] Implement this!
 				}
 				else
 				{
@@ -1166,6 +1195,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 */
 		public static Opcode[] all ()
 		{
+			//noinspection AssignmentOrReturnOfFieldWithMutableType
 			return all;
 		}
 
@@ -1314,7 +1344,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		/**
 		 * Construct a new {@link Frame}.
 		 */
-		public Frame ()
+		Frame ()
 		{
 			// No implementation required.
 		}
@@ -2165,6 +2195,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param failure
 	 *        What to do if sending the frame fails.
 	 */
+	@SuppressWarnings("unused")
 	@InnerAccess void sendPing (
 		final WebSocketChannel channel,
 		final byte[] payloadData,
@@ -2189,6 +2220,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param failure
 	 *        What to do if sending the frame fails.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	@InnerAccess void sendPong (
 		final WebSocketChannel channel,
 		final byte[] payloadData,
