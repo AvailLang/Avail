@@ -1,4 +1,4 @@
-/**
+/*
  * Interpreter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -488,6 +488,7 @@ public final class Interpreter
 	 * @return An array of {@link AvailObjectFieldHelper} objects that help
 	 *         describe the logical structure of the receiver to the debugger.
 	 */
+	@SuppressWarnings("unused")
 	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
 		final Object[] outerArray =
@@ -2640,7 +2641,7 @@ public final class Interpreter
 	public void recordTopStatementEvaluation (
 		final double sample,
 		final A_Module module,
-		final int lineNumber)
+		final @SuppressWarnings("unused") int lineNumber)
 	{
 		final Statistic statistic;
 		//noinspection SynchronizationOnStaticField

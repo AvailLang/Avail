@@ -35,6 +35,7 @@ package com.avail.optimizer.jvm;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Disassembler;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -50,6 +51,8 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,7 +62,6 @@ import java.util.logging.Level;
 
 import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
 import static com.avail.utility.Nulls.stripNull;
-import static java.lang.Math.min;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.*;
@@ -255,6 +257,25 @@ public final class JVMTranslator
 			getMethodDescriptor(VOID_TYPE),
 			false);
 		method.visitInsn(RETURN);
+		method.visitMaxs(0, 0);
+		method.visitEnd();
+	}
+
+	/**
+	 * Generate the {@link JVMChunk#name()} method of the target {@link
+	 * JVMChunk}.
+	 */
+	private void generateName ()
+	{
+		final MethodVisitor method = classWriter.visitMethod(
+			ACC_PUBLIC,
+			"name",
+			getMethodDescriptor(getType(String.class)),
+			null,
+			null);
+		method.visitCode();
+		method.visitLdcInsn(chunkName);
+		method.visitInsn(ARETURN);
 		method.visitMaxs(0, 0);
 		method.visitEnd();
 	}
@@ -487,6 +508,92 @@ public final class JVMTranslator
 	}
 
 	/**
+	 * Dump the {@linkplain L1Operation L1 instructions} that comprise the
+	 * {@link A_RawFunction function} to an appropriately named file.
+	 *
+	 * @return The absolute path of the resultant file, for inclusion in a
+	 *         {@link JVMChunkL1Source} annotation of the generated {@link
+	 *         JVMChunk} subclass, or {@code null} if the file could not be
+	 *         written.
+	 */
+	private @Nullable String dumpL1SourceToFile ()
+	{
+		final @Nullable A_RawFunction function = code;
+		assert function != null;
+		try
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(chunkName);
+			builder.append(":\n\n");
+			L1Disassembler.disassemble(
+				function, builder, new IdentityHashMap<>(), 0);
+			final int lastSlash =
+				classInternalName.lastIndexOf('/');
+			final String pkg =
+				classInternalName.substring(0, lastSlash);
+			final Path tempDir = Paths.get("debug", "jvm");
+			final Path dir = tempDir.resolve(Paths.get(pkg));
+			Files.createDirectories(dir);
+			final String base = classInternalName.substring(lastSlash + 1);
+			final Path l1File = dir.resolve(base + ".l1");
+			final ByteBuffer buffer =
+				StandardCharsets.UTF_8.encode(builder.toString());
+			final byte[] bytes = new byte[buffer.limit()];
+			buffer.get(bytes);
+			Files.write(l1File, bytes);
+			return l1File.toAbsolutePath().toString();
+		}
+		catch (final IOException e)
+		{
+			Interpreter.log(
+				Interpreter.loggerDebugJVM,
+				Level.WARNING,
+				"unable to write L1 for generated class {0}",
+				classInternalName);
+			return null;
+		}
+	}
+
+	/**
+	 * Dump the {@link L2ControlFlowGraph} for the {@link L2Chunk} to an
+	 * appropriately named file.
+	 *
+	 * @return The absolute path of the resultant file, for inclusion in a
+	 *         {@link JVMChunkL2Source} annotation of the generated {@link
+	 *         JVMChunk} subclass.
+	 */
+	private @Nullable String dumpL2SourceToFile ()
+	{
+		try
+		{
+			final String transcript = chunkName + ":\n\n" + controlFlowGraph;
+			final int lastSlash =
+				classInternalName.lastIndexOf('/');
+			final String pkg =
+				classInternalName.substring(0, lastSlash);
+			final Path tempDir = Paths.get("debug", "jvm");
+			final Path dir = tempDir.resolve(Paths.get(pkg));
+			Files.createDirectories(dir);
+			final String base = classInternalName.substring(lastSlash + 1);
+			final Path l2File = dir.resolve(base + ".l2");
+			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(transcript);
+			final byte[] bytes = new byte[buffer.limit()];
+			buffer.get(bytes);
+			Files.write(l2File, bytes);
+			return l2File.toAbsolutePath().toString();
+		}
+		catch (final IOException e)
+		{
+			Interpreter.log(
+				Interpreter.loggerDebugJVM,
+				Level.WARNING,
+				"unable to write L2 for generated class {0}",
+				classInternalName);
+			return null;
+		}
+	}
+
+	/**
 	 * Generate the {@link JVMChunk#runChunk(Interpreter)} method of the target
 	 * {@link JVMChunk}.
 	 */
@@ -509,45 +616,28 @@ public final class JVMTranslator
 		{
 			// Note that we have to break the sources up if they are too large
 			// for the constant pool.
+			//noinspection VariableNotUsedInsideIf
 			if (code != null)
 			{
-				final StringBuilder disassembly = new StringBuilder();
-				L1Disassembler.disassemble(
-					code, disassembly, new IdentityHashMap<>(), 0);
-				final AnnotationVisitor annotation = method.visitAnnotation(
-					getDescriptor(JVMChunkL1Source.class),
-					true);
-				final AnnotationVisitor array = annotation.visitArray("source");
-				for (
-					int i = 0, limit = disassembly.length();
-					i < limit;
-					i += 32767)
+				final @Nullable String l1Path = dumpL1SourceToFile();
+				if (l1Path != null)
 				{
-					final int len = min(32767, limit - i);
-					array.visit(
-						null,
-						disassembly.substring(i, i + len));
+					final AnnotationVisitor annotation = method.visitAnnotation(
+						getDescriptor(JVMChunkL1Source.class),
+						true);
+					annotation.visit("sourcePath", l1Path);
+					annotation.visitEnd();
 				}
-				array.visitEnd();
+			}
+			final @Nullable String l2Path = dumpL2SourceToFile();
+			if (l2Path != null)
+			{
+				final AnnotationVisitor annotation = method.visitAnnotation(
+					getDescriptor(JVMChunkL2Source.class),
+					true);
+				annotation.visit("sourcePath", l2Path);
 				annotation.visitEnd();
 			}
-			final String transcript = controlFlowGraph.toString();
-			final AnnotationVisitor annotation = method.visitAnnotation(
-				getDescriptor(JVMChunkL2Source.class),
-				true);
-			final AnnotationVisitor array = annotation.visitArray("source");
-			for (
-				int i = 0, limit = transcript.length();
-				i < limit;
-				i += 32767)
-			{
-				final int len = min(32767, limit - i);
-				array.visit(
-					null,
-					transcript.substring(i, i + len));
-			}
-			array.visitEnd();
-			annotation.visitEnd();
 		}
 		method.visitAnnotation(
 			getDescriptor(Nullable.class),
@@ -619,7 +709,7 @@ public final class JVMTranslator
 	 * {@code true} if the bytes of generated {@link JVMChunk} subclasses should
 	 * be dumped to files for external debugging, {@code false} otherwise.
 	 */
-	public static boolean debugDumpClassBytesToFiles = false;
+	public static boolean debugDumpClassBytesToFiles = true;
 
 	/**
 	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be
@@ -684,6 +774,7 @@ public final class JVMTranslator
 		generateStaticFields();
 		generateStaticInitializer();
 		generateConstructorV();
+		generateName();
 		generateRunChunk();
 		classWriter.visitEnd();
 		final byte[] classBytes = classWriter.toByteArray();

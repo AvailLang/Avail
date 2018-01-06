@@ -39,10 +39,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.nio.file.Path;
 
 /**
- * {@code JVMChunkL1Source} captures the L1 {@linkplain A_RawFunction code} that
- * serves as the basis for the annotated {@linkplain
+ * {@code JVMChunkL1Source} captures an {@linkplain Path#isAbsolute() absolute}
+ * {@linkplain Path path} to the disassembled L1 {@linkplain A_RawFunction code}
+ * that serves as the basis for the annotated {@linkplain
  * JVMChunk#runChunk(Interpreter) method}, making it available in generated
  * class files. This annotation is only attached if {@link
  * JVMTranslator#debugDumpClassBytesToFiles} is enabled.
@@ -54,11 +56,11 @@ import java.lang.annotation.Target;
 public @interface JVMChunkL1Source
 {
 	/**
-	 * A textual rendition of the L1 {@linkplain A_RawFunction code} that serves
-	 * as the basis for the annotated {@linkplain JVMChunk#runChunk(Interpreter)
-	 * method}.
+	 * An {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the
+	 * disassembled L1 {@linkplain A_RawFunction code} that serves as the basis
+	 * for the annotated {@linkplain JVMChunk#runChunk(Interpreter) method}.
 	 *
-	 * @return The L1 source code.
+	 * @return The path to the L1 source code.
 	 */
-	String[] source ();
+	String sourcePath ();
 }

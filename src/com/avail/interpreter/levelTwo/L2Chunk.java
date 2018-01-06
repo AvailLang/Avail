@@ -1,4 +1,4 @@
-/**
+/*
  * L2Chunk.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -35,15 +35,13 @@ package com.avail.interpreter.levelTwo;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operation
-	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
@@ -56,17 +54,10 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
@@ -395,6 +386,7 @@ implements ExecutableChunk
 	 *
 	 * @return The count of float registers.
 	 */
+	@SuppressWarnings("unused")
 	public int numDoubles ()
 	{
 		return numDoubles;
@@ -436,6 +428,26 @@ implements ExecutableChunk
 	public boolean isValid ()
 	{
 		return valid;
+	}
+
+	/**
+	 * Answer a descriptive (non-unique) name for the specified {@link
+	 * A_RawFunction function}.
+	 *
+	 * @param code
+	 *        An arbitrary function, or {@code null} for the default {@code
+	 *        L2Chunk}.
+	 * @return The effective name of the function.
+	 */
+	private static String name (final @Nullable A_RawFunction code)
+	{
+		return code == null ? "«default»" : code.methodName().asNativeString();
+	}
+
+	@Override
+	public String name ()
+	{
+		return name(code);
 	}
 
 	@Override
@@ -645,7 +657,7 @@ implements ExecutableChunk
 	{
 		final JVMTranslator jvmTranslator = new JVMTranslator(
 			code,
-			code == null ? "DEFAULT" : code.methodName().asNativeString(),
+			name(code),
 			controlFlowGraph,
 			theInstructions.toArray(new L2Instruction[theInstructions.size()]));
 		jvmTranslator.translate();
@@ -735,55 +747,7 @@ implements ExecutableChunk
 	@Override
 	public @Nullable StackReifier runChunk (final Interpreter interpreter)
 	{
-		final @Nullable StackReifier reifier;
-		if (executableChunk != null)
-		{
-			// If there's an ExecutableChunk that implements our logic, then
-			// execute it instead.
-			reifier = executableChunk.runChunk(interpreter);
-		}
-		else
-		{
-			final L2Instruction instruction =
-				instructions[interpreter.offset++];
-			if (Interpreter.debugL2)
-			{
-				Interpreter.log(
-					Interpreter.loggerDebugL2,
-					Level.FINER,
-					"{0}L2 start[#{1}]: {2}",
-					interpreter.debugModeString,
-					interpreter.offset - 1,
-					instruction.operation.debugNameIn(instruction));
-			}
-
-			final long nanosToExcludeBeforeStep = interpreter.nanosToExclude;
-			final long timeBefore = System.nanoTime();
-			reifier = instruction.runAction(interpreter);
-			// Even though some primitives may suspend the current fiber, the
-			// code still returns here after suspending.  Close enough.  Also,
-			// this chunk may call other chunks (on the Java stack), so we have
-			// to subtract out the cost of other instructions executed during
-			// this one... and count this instruction's *total* execution time
-			// as something to be subtracted from any outer instructions.
-			final long deltaTime = System.nanoTime() - timeBefore;
-			final long exclude =
-				interpreter.nanosToExclude - nanosToExcludeBeforeStep;
-			instruction.operation.statisticInNanoseconds.record(
-				deltaTime - exclude, interpreter.interpreterIndex);
-			interpreter.nanosToExclude = nanosToExcludeBeforeStep + deltaTime;
-			if (Interpreter.debugL2)
-			{
-				Interpreter.log(
-					Interpreter.loggerDebugL2,
-					Level.FINER,
-					"{0}L2 end{1}: {2}",
-					interpreter.debugModeString,
-					reifier != null ? "-for-reify" : "",
-					instruction.operation.debugNameIn(instruction));
-			}
-		}
-		return reifier;
+		return executableChunk.runChunk(interpreter);
 	}
 
 	/**

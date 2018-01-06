@@ -47,7 +47,14 @@ import javax.annotation.Nullable;
 public interface ExecutableChunk
 {
 	/**
-	 * Run the {@link ExecutableChunk} to completion. Note that a {@linkplain
+	 * Answer a descriptive (non-unique) name for the {@code ExecutableChunk}.
+	 *
+	 * @return The effective name of the chunk.
+	 */
+	String name ();
+
+	/**
+	 * Run the {@code ExecutableChunk} to completion. Note that a {@linkplain
 	 * StackReifier reification} request may cut this short. Also note that the
 	 * supplied {@linkplain Interpreter interpreter} indicates the {@linkplain
 	 * Interpreter#offset offset} at which to start executing. For an initial

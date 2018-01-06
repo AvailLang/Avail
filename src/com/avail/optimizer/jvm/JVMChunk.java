@@ -41,6 +41,11 @@ import com.avail.optimizer.L2Translator.OptimizationLevel;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
@@ -59,12 +64,13 @@ import java.lang.reflect.Method;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassNeverImplemented")
 public abstract class JVMChunk
 implements ExecutableChunk
 {
 	/**
 	 * Throw a {@link RuntimeException} on account of a bad offset into the
-	 * calling generated {@link JVMChunk} subclass's {@link
+	 * calling generated {@code JVMChunk} subclass's {@link
 	 * #runChunk(Interpreter) runChunk}.
 	 *
 	 * @param offset
@@ -87,54 +93,22 @@ implements ExecutableChunk
 	}
 
 	/**
-	 * Answer the L1 source code for the specified {@link JVMChunk}, if any is
-	 * available.
-	 *
-	 * @param chunk
-	 *        The {@code JVMChunk}.
-	 * @return The L1 source, or {@code null} if no source is available.
-	 */
-	public static @Nullable String l1Source (final JVMChunk chunk)
-	{
-		try
-		{
-			final Class<? extends JVMChunk> cl = chunk.getClass();
-			final Method m = cl.getMethod("runChunk", Interpreter.class);
-			final JVMChunkL1Source an = m.getAnnotation(JVMChunkL1Source.class);
-			return String.join("", an.source());
-		}
-		catch (final Throwable e)
-		{
-			return null;
-		}
-	}
-
-	/**
 	 * Answer the L1 source code, if any is available.
 	 *
 	 * @return The L1 source, or {@code null} if no source is available.
 	 */
+	@SuppressWarnings("unused")
 	public @Nullable String l1Source ()
-	{
-		return l1Source(this);
-	}
-
-	/**
-	 * Answer the L2 source code for the specified {@link JVMChunk}, if any is
-	 * available.
-	 *
-	 * @param chunk
-	 *        The {@code JVMChunk}.
-	 * @return The L2 source, or {@code null} if no source is available.
-	 */
-	public static @Nullable String l2Source (final JVMChunk chunk)
 	{
 		try
 		{
-			final Class<? extends JVMChunk> cl = chunk.getClass();
+			final Class<? extends JVMChunk> cl = getClass();
 			final Method m = cl.getMethod("runChunk", Interpreter.class);
-			final JVMChunkL2Source an = m.getAnnotation(JVMChunkL2Source.class);
-			return String.join("", an.source());
+			final JVMChunkL1Source an = m.getAnnotation(JVMChunkL1Source.class);
+			final byte[] bytes = Files.readAllBytes(Paths.get(an.sourcePath()));
+			final CharBuffer buffer =
+				StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
+			return buffer.toString();
 		}
 		catch (final Throwable e)
 		{
@@ -147,8 +121,22 @@ implements ExecutableChunk
 	 *
 	 * @return The L2 source, or {@code null} if no source is available.
 	 */
+	@SuppressWarnings("unused")
 	public @Nullable String l2Source ()
 	{
-		return l2Source(this);
+		try
+		{
+			final Class<? extends JVMChunk> cl = getClass();
+			final Method m = cl.getMethod("runChunk", Interpreter.class);
+			final JVMChunkL2Source an = m.getAnnotation(JVMChunkL2Source.class);
+			final byte[] bytes = Files.readAllBytes(Paths.get(an.sourcePath()));
+			final CharBuffer buffer =
+				StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
+			return buffer.toString();
+		}
+		catch (final Throwable e)
+		{
+			return null;
+		}
 	}
 }
