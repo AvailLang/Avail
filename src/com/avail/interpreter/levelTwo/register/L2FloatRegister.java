@@ -78,7 +78,16 @@ extends L2Register
 	@Override
 	public String toString ()
 	{
-		//noinspection StringConcatenationMissingWhitespace
-		return "Float" + super.toString();
+		final StringBuilder builder = new StringBuilder();
+		builder.append("FloatReg");
+		if (finalIndex() != -1)
+		{
+			builder.append("[");
+			builder.append(finalIndex());
+			builder.append("]");
+		}
+		builder.append("@");
+		builder.append(uniqueValue);
+		return builder.toString();
 	}
 }

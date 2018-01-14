@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.objects;
 
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
@@ -75,8 +76,7 @@ public final class P_GetObjectTypeField extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Type objectType = args.get(0);
@@ -101,6 +101,7 @@ public final class P_GetObjectTypeField extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type objectMeta = argumentTypes.get(0);
@@ -127,7 +128,7 @@ public final class P_GetObjectTypeField extends Primitive
 			// Shift it up; a primitive invocation will return the field's type.
 			return instanceMeta(union);
 		}
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override

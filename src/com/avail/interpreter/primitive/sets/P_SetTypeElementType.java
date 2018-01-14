@@ -62,8 +62,7 @@ public final class P_SetTypeElementType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Type setType = args.get(0);

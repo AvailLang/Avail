@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeDescriptor;
@@ -65,8 +66,7 @@ public final class P_ParseNodeExpressionType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Phrase parseNode = args.get(0);
@@ -82,6 +82,7 @@ public final class P_ParseNodeExpressionType extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type phraseType = argumentTypes.get(0);

@@ -437,7 +437,7 @@ extends AbstractNumberDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		return Float.valueOf(getFloat(object));
+		return getFloat(object);
 	}
 
 	@Override @AvailMethod

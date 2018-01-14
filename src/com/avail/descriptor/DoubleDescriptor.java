@@ -550,7 +550,7 @@ extends AbstractNumberDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		return Double.valueOf(getDouble(object));
+		return getDouble(object);
 	}
 
 	@Override

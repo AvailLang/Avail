@@ -91,6 +91,8 @@ public class L2ReadPointerOperand extends L2Operand
 		this.register = register;
 		this.restriction =
 			restriction == null ? register.restriction() : restriction;
+		assert this.restriction.type.isSubtypeOf(register.restriction().type)
+			: "Read restriction is weaker than register's restriction";
 	}
 
 	/**

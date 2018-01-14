@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.types;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
@@ -60,8 +61,7 @@ public final class P_TypeIntersection extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Type type1 = args.get(0);
@@ -82,11 +82,11 @@ public final class P_TypeIntersection extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type meta1 = argumentTypes.get(0);
 		final A_Type meta2 = argumentTypes.get(1);
-
 		return meta1.typeIntersection(meta2);  // by metavariance
 	}
 }

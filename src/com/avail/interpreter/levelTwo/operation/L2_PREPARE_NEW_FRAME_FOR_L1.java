@@ -45,9 +45,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
@@ -147,7 +147,6 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 					nil,
 					1,  // start of function
 					numSlots + 1,   // empty stack
-					interpreter.skipReturnCheck,
 					unoptimizedChunk,
 					TO_RESUME.offsetInDefaultChunk);
 			for (
@@ -163,9 +162,11 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 				() ->
 				{
 					// Push the continuation from above onto the reified stack.
-					interpreter.reifiedContinuation = continuation.replacingCaller(
-						stripNull(interpreter.reifiedContinuation));
-					interpreter.processInterrupt(interpreter.reifiedContinuation);
+					interpreter.reifiedContinuation =
+						continuation.replacingCaller(
+							stripNull(interpreter.reifiedContinuation));
+					interpreter.processInterrupt(
+						interpreter.reifiedContinuation);
 				});
 		}
 		return null;

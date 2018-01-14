@@ -284,6 +284,7 @@ public final class Interpreter
 	/**
 	 * Log a message.
 	 *
+	 * @param logger The logger on which to log.
 	 * @param level The verbosity level at which to log.
 	 * @param message The message pattern to log.
 	 * @param arguments The arguments to fill into the message pattern.
@@ -318,6 +319,7 @@ public final class Interpreter
 	 * Log a message.
 	 *
 	 * @param affectedFiber The affected fiber or null.
+	 * @param logger The logger on which to log.
 	 * @param level The verbosity level at which to log.
 	 * @param message The message pattern to log.
 	 * @param arguments The arguments to fill into the message pattern.
@@ -401,6 +403,8 @@ public final class Interpreter
 	 * Answer how many continuations would be created from Java stack frames at
 	 * the current execution point (or the nearest place reification may be
 	 * triggered).
+	 *
+	 * @return The current number of unreified frames.
 	 */
 	public int unreifiedCallDepth ()
 	{
@@ -643,6 +647,8 @@ public final class Interpreter
 	 *
 	 * @param newFiber
 	 *        The fiber to run.
+	 * @param tempDebug
+	 *        A string describing the context of this operation.
 	 */
 	public void fiber (final @Nullable A_Fiber newFiber, final String tempDebug)
 	{
@@ -883,8 +889,6 @@ public final class Interpreter
 	 *
 	 * @param args
 	 *        The {@link List} of arguments to the primitive.
-	 * @param skipCheck
-	 *        Whether the result will need to be dynamically type-checked.
 	 * @param action
 	 *        The action supplied by the client that itself takes two actions
 	 *        for succeeding and failing the primitive at a later time.
@@ -892,7 +896,6 @@ public final class Interpreter
 	 */
 	public Result suspendAndDo (
 		final List<AvailObject> args,
-		final boolean skipCheck,
 		final Continuation2NotNull<
 				Continuation1NotNull<A_BasicObject>,
 				Continuation1NotNull<AvailErrorCode>>
@@ -913,8 +916,7 @@ public final class Interpreter
 						theRuntime,
 						currentFiber,
 						prim,
-						result,
-						skipCheck);
+						result);
 				},
 				failureCode ->
 				{
@@ -924,8 +926,7 @@ public final class Interpreter
 						currentFiber,
 						failureCode.numericCode(),
 						primitiveFunction,
-						copiedArgs,
-						skipCheck);
+						copiedArgs);
 				}));
 		return primitiveSuspend(primitiveFunction);
 	}
@@ -1199,8 +1200,7 @@ public final class Interpreter
 							currentRuntime(),
 							joiner,
 							P_AttemptJoinFiber.instance,
-							nil,
-							true);
+							nil);
 					}
 				});
 			}
@@ -1243,19 +1243,10 @@ public final class Interpreter
 	 *
 	 * @param primitive
 	 *        The {@link Primitive} to invoke.
-	 * @param skipCheck
-	 *        Whether to skip checking the return result if the primitive
-	 *        attempt succeeds.  It should only skip the check if the VM
-	 *        guarantees the type produced at the current call site will satisfy
-	 *        the expected type at the call site.  To simplify the design, the
-	 *        primitive {@link A_Function}'s Avail backup code, if any, must
-	 *        also satisfy the call site.  This is usually the case anyhow,
-	 *        because most primitive backup Avail code produces type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public Result attemptPrimitive (
-		final Primitive primitive,
-		final boolean skipCheck)
+		final Primitive primitive)
 	{
 		if (debugPrimitives)
 		{
@@ -1270,7 +1261,7 @@ public final class Interpreter
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success =
-			primitive.attempt(argsBuffer, this, skipCheck);
+			primitive.attempt(argsBuffer, this);
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1442,12 +1433,6 @@ public final class Interpreter
 	 * invocations.
 	 */
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
-
-	/**
-	 * An indicator that the current {@link #function} can safely skip checking
-	 * the type of its result when it returns to its caller.
-	 */
-	public boolean skipReturnCheck;
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
@@ -1631,7 +1616,8 @@ public final class Interpreter
 	 * {@link P_CatchException}. Write the specified marker into its primitive
 	 * failure variable to indicate the current exception handling state.
 	 *
-	 * @param marker An exception handling state marker.
+	 * @param guardVariable The primitive failure variable to update.
+	 * @param marker An exception handling state marker (integer).
 	 * @return The {@link Result success state}.
 	 */
 	public Result markGuardVariable (
@@ -1724,8 +1710,7 @@ public final class Interpreter
 	/**
 	 * Prepare the {@code Interpreter} to execute the given {@link
 	 * FunctionDescriptor function} with the arguments provided in {@link
-	 * #argsBuffer}.  The {@link #skipReturnCheck} should also have been set,
-	 * based on the call site.
+	 * #argsBuffer}.
 	 *
 	 * @param aFunction
 	 *        The function to begin executing.
@@ -1885,9 +1870,6 @@ public final class Interpreter
 	 *
 	 * @param functionToCall
 	 *        What zero-argument function to invoke after reification.
-	 * @param skipReturnCheckFlag
-	 *        Whether when the function completes it can skip checking the
-	 *        result's type.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
 	 * @return The {@link StackReifier} that collects reified continuations on
@@ -1895,7 +1877,6 @@ public final class Interpreter
 	 */
 	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
-		final boolean skipReturnCheckFlag,
 		final Statistic reificationStatistic)
 	{
 		return reifyThen(
@@ -1903,7 +1884,6 @@ public final class Interpreter
 			() ->
 			{
 				argsBuffer.clear();
-				skipReturnCheck = skipReturnCheckFlag;
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
@@ -1917,9 +1897,6 @@ public final class Interpreter
 	 *
 	 * @param functionToCall
 	 *        What three-argument function to invoke after reification.
-	 * @param skipReturnCheckFlag
-	 *        Whether when the function completes it can skip checking the
-	 *        result's type.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
 	 * @param arg1
@@ -1933,7 +1910,6 @@ public final class Interpreter
 	 */
 	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
-		final boolean skipReturnCheckFlag,
 		final Statistic reificationStatistic,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2,
@@ -1947,7 +1923,6 @@ public final class Interpreter
 				argsBuffer.add((AvailObject) arg1);
 				argsBuffer.add((AvailObject) arg2);
 				argsBuffer.add((AvailObject) arg3);
-				skipReturnCheck = skipReturnCheckFlag;
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
@@ -2120,8 +2095,6 @@ public final class Interpreter
 				}
 				interpreter.chunk = function.code().startingChunk();
 				interpreter.offset = 0;
-				// Always check the type of the outermost return value.
-				interpreter.skipReturnCheck = false;
 			});
 	}
 
@@ -2170,7 +2143,8 @@ public final class Interpreter
 	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
 	 * {@linkplain Result#SUCCESS successful} {@linkplain Primitive primitive}.
 	 * This method is an entry point.
-	 *  @param runtime
+	 *
+	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
@@ -2180,16 +2154,12 @@ public final class Interpreter
 	 *        primitive.
 	 * @param result
 	 *        The result of the primitive.
-	 * @param skipReturnCheck
-	 *        Whether successful completion of the primitive will always produce
-	 *        something of the expected type, allowing us to elide the check of
 	 */
 	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
 		final Primitive resumingPrimitive,
-		final A_BasicObject result,
-		final boolean skipReturnCheck)
+		final A_BasicObject result)
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
@@ -2216,7 +2186,6 @@ public final class Interpreter
 					interpreter.function = null;
 					interpreter.chunk = null;
 					interpreter.offset = Integer.MAX_VALUE;
-					interpreter.skipReturnCheck = skipReturnCheck;
 				}
 				else
 				{
@@ -2224,7 +2193,6 @@ public final class Interpreter
 					interpreter.function = continuation.function();
 					interpreter.chunk = continuation.levelTwoChunk();
 					interpreter.offset = continuation.levelTwoOffset();
-					interpreter.skipReturnCheck = skipReturnCheck;
 					// Clear the fiber's continuation slot while it's active.
 					aFiber.continuation(nil);
 				}
@@ -2247,19 +2215,13 @@ public final class Interpreter
 	 *        The primitive failure {@linkplain FunctionDescriptor function}.
 	 * @param args
 	 *        The arguments to the primitive.
-	 * @param skipReturnCheck
-	 *        Whether this failed primitive's backup Avail code will always
-	 *        produce something of the expected type, allowing us to elide the
-	 *        return check when the non-primitive part of this function
-	 *        eventually completes.
 	 */
 	public static void resumeFromFailedPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
 		final A_BasicObject failureValue,
 		final A_Function failureFunction,
-		final List<AvailObject> args,
-		final boolean skipReturnCheck)
+		final List<AvailObject> args)
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
@@ -2283,7 +2245,6 @@ public final class Interpreter
 				interpreter.argsBuffer.clear();
 				interpreter.argsBuffer.addAll(args);
 				interpreter.latestResult(failureValue);
-				interpreter.skipReturnCheck = skipReturnCheck;
 				final L2Chunk chunk = code.startingChunk();
 				interpreter.chunk = chunk;
 				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
@@ -2641,7 +2602,7 @@ public final class Interpreter
 	public void recordTopStatementEvaluation (
 		final double sample,
 		final A_Module module,
-		final @SuppressWarnings("unused") int lineNumber)
+		@SuppressWarnings("unused") final int lineNumber)
 	{
 		final Statistic statistic;
 		//noinspection SynchronizationOnStaticField

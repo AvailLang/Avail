@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.variables;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
@@ -73,8 +74,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final AvailObject var = args.get(0);
@@ -101,6 +101,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type varType = argumentTypes.get(0);

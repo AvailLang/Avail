@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS
 	.StatisticCategory;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
 import java.util.List;
 
@@ -75,8 +76,7 @@ public final class P_RestartContinuation extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Continuation originalCon = args.get(0);
@@ -119,11 +119,13 @@ public final class P_RestartContinuation extends Primitive
 	}
 
 	@Override
-	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run
@@ -144,6 +146,6 @@ public final class P_RestartContinuation extends Primitive
 		translator.startBlock(
 			translator.createBasicBlock(
 				"unreachable after L2_RESTART_CONTINUATION"));
-		return translator.newObjectRegisterWriter(bottom(), null).read();
+		return true;
 	}
 }

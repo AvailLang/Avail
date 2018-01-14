@@ -1096,7 +1096,7 @@ extends Descriptor
 	 *        A_Phrase phrase} {@link A_Type type} to {@link
 	 *        A_DefinitionParsingPlan}.
 	 */
-	private void updateForPlan (
+	private static void updateForPlan (
 		final AvailObject bundleTree,
 		final A_DefinitionParsingPlan plan,
 		final int pc,

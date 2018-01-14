@@ -296,19 +296,16 @@ public final class L1InstructionStepper
 							interpreter.debugModeString,
 							result.typeTag().name());
 					}
-					if (!interpreter.skipReturnCheck)
+					final @Nullable StackReifier returnCheckReifier =
+						interpreter.checkReturnType(
+							result, expectedReturnType, function);
+					if (returnCheckReifier != null)
 					{
-						final @Nullable StackReifier returnCheckReifier =
-							interpreter.checkReturnType(
-								result, expectedReturnType, function);
-						if (returnCheckReifier != null)
-						{
-							// Reification is happening within the handling of
-							// the failed return type check.
-							return returnCheckReifier;
-						}
-						// The return check passed.  Fall through.
+						// Reification is happening within the handling of
+						// the failed return type check.
+						return returnCheckReifier;
 					}
+					// The return check passed.  Fall through.
 					assert stackp <= code.numSlots();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
@@ -507,7 +504,6 @@ public final class L1InstructionStepper
 						stripNull(interpreter.function);
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
-					final boolean savedSkip = interpreter.skipReturnCheck;
 					final int savedPc = pc.value;
 					final int savedStackp = stackp;
 
@@ -524,7 +520,6 @@ public final class L1InstructionStepper
 								AFTER_REIFICATION.offsetInDefaultChunk;
 							interpreter.pointers = savedPointers;
 							interpreter.integers = savedInts;
-							interpreter.skipReturnCheck = savedSkip;
 							pc.value = savedPc;
 							stackp = savedStackp;
 
@@ -536,7 +531,6 @@ public final class L1InstructionStepper
 								createLabelContinuation(
 									savedFunction,
 									stripNull(interpreter.reifiedContinuation),
-									savedSkip,
 									unoptimizedChunk,
 									TO_RESTART.offsetInDefaultChunk,
 									args);
@@ -677,19 +671,16 @@ public final class L1InstructionStepper
 							interpreter.debugModeString,
 							result.typeTag().name());
 					}
-					if (!interpreter.skipReturnCheck)
+					final @Nullable StackReifier returnCheckReifier =
+						interpreter.checkReturnType(
+							result, expectedReturnType, function);
+					if (returnCheckReifier != null)
 					{
-						final @Nullable StackReifier returnCheckReifier =
-							interpreter.checkReturnType(
-								result, expectedReturnType, function);
-						if (returnCheckReifier != null)
-						{
-							// Reification is happening within the handling of
-							// the failed return type check.
-							return returnCheckReifier;
-						}
-						// The return check passed.  Fall through.
+						// Reification is happening within the handling of
+						// the failed return type check.
+						return returnCheckReifier;
 					}
+					// The return check passed.
 					assert stackp <= code.numSlots();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
@@ -746,7 +737,6 @@ public final class L1InstructionStepper
 			// handler.  We can probably avoid or postpone reification as well.
 			return interpreter.reifyThenCall0(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				true,
 				reificationForFailedVariableGetStat);
 		}
 	}
@@ -788,7 +778,6 @@ public final class L1InstructionStepper
 			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
 			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
-			interpreter.skipReturnCheck = true;
 			final @Nullable StackReifier reifier =
 				interpreter.invokeFunction(implicitObserveFunction);
 			if (reifier != null)
@@ -802,7 +791,6 @@ public final class L1InstructionStepper
 							nil,
 							savedPc,   // Right after the set-variable.
 							savedStackp,
-							false,
 							unoptimizedChunk,
 							TO_RESUME.offsetInDefaultChunk);
 					for (int i = code.numSlots(); i > 0; i--)
@@ -898,7 +886,6 @@ public final class L1InstructionStepper
 							nil,
 							savedPc,
 							savedStackp,
-							false,
 							unoptimizedChunk,
 							TO_RETURN_INTO.offsetInDefaultChunk);
 					for (
@@ -932,23 +919,6 @@ public final class L1InstructionStepper
 			pc.value = savedPc;
 			stackp = savedStackp;
 		}
-		// Regular return.
-		//
-		// A call from L1 code doesn't have anywhere to reliably store the
-		// guaranteed type from an invocation (nor update it if method
-		// defintions are added or removed).  Therefore we must always check the
-		// return type.
-		//
-		// However... we know the function that was called (and returned
-		// normally, since reification didn't happen), so we can check for the
-		// common case that the expected type and the function's return type are
-		// the same, skipping the test in that special case.  Throwing more
-		// effort at it would only serve to duplicate optimizations that L2
-		// accomplishes.
-		final A_Type functionReturnType =
-			functionToInvoke.code().functionType().returnType();
-		interpreter.skipReturnCheck =
-			functionReturnType.equals(expectedReturnType);
 		return null;
 	}
 
@@ -971,7 +941,6 @@ public final class L1InstructionStepper
 	{
 		return interpreter.reifyThenCall3(
 			interpreter.runtime().invalidMessageSendFunction(),
-			true,
 			reificationForFailedLookupStat,
 			errorCode.numericCode(),
 			method,

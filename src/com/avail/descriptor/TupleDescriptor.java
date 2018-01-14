@@ -1077,7 +1077,7 @@ extends Descriptor
 	{
 		final int size = object.tupleSize();
 		final AvailObject result = generateIntTupleFrom(
-			size, i -> object.tupleIntAt(i));
+			size, object::tupleIntAt);
 		result.hashOrZero(object.hashOrZero());
 		return result;
 	}

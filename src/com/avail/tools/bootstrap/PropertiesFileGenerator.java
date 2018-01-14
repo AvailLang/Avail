@@ -32,7 +32,6 @@
 
 package com.avail.tools.bootstrap;
 
-import com.avail.AvailRuntime;
 import com.avail.utility.UTF8ResourceBundleControl;
 
 import java.io.File;
@@ -114,8 +113,6 @@ abstract class PropertiesFileGenerator
 	 */
 	public void generate () throws IOException
 	{
-		// Force correct initialization order... sigh.
-		AvailRuntime.nextHash();
 		final File fileName = new File(format(
 			"src/%s_%s.properties",
 			baseName.replace('.', '/'),

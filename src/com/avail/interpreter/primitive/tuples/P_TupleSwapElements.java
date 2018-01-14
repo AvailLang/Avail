@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -75,8 +76,7 @@ public final class P_TupleSwapElements extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final A_Tuple tuple = args.get(0);
@@ -120,6 +120,7 @@ public final class P_TupleSwapElements extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type originalTupleType = argumentTypes.get(0);
@@ -132,7 +133,7 @@ public final class P_TupleSwapElements extends Primitive
 		if (!lowerBound1.isInt() || !lowerBound2.isInt())
 		{
 			// At least one subscript is always out of range of the primitive.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		final int maxLowerBound =
 			max(lowerBound1.extractInt(), lowerBound2.extractInt());
@@ -140,7 +141,7 @@ public final class P_TupleSwapElements extends Primitive
 		if (maxTupleSize.isInt() && maxLowerBound > maxTupleSize.extractInt())
 		{
 			// One of the indices is always out of range of the tuple.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		final int minLowerBound =
 			min(lowerBound1.extractInt(), lowerBound2.extractInt());

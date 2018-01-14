@@ -71,8 +71,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
@@ -93,6 +92,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleType = argumentTypes.get(0);
@@ -102,7 +102,7 @@ extends Primitive
 			|| !tupleSizeLowerBound.isInt())
 		{
 			// Variable number of <key,value> pairs.  Give up.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
 		A_Map fieldTypeMap = emptyMap();
@@ -116,14 +116,16 @@ extends Primitive
 				|| !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(argumentTypes);
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes);
 			}
 			final A_Atom keyValue = keyType.instance();
 			assert keyValue.isAtom();
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(argumentTypes);
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes);
 			}
 			final A_Type valueMeta = pairType.typeAtIndex(2);
 			assert valueMeta.isInstanceMeta();

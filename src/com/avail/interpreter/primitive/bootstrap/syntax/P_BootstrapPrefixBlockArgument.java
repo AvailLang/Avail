@@ -85,8 +85,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Phrase optionalBlockArgumentsList = args.get(0);

@@ -54,7 +54,6 @@ import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1107,6 +1106,12 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * The type for the failure handler for reading from an unassigned variable.
+	 */
+	public static final A_Type unassignedVariableReadFunctionType =
+		functionType(emptyTuple(), bottom());
+
+	/**
 	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
 	 * returned value disagrees with the expected type.
 	 */
@@ -1192,23 +1197,13 @@ public final class AvailRuntime
 		implicitObserveFunction = function;
 	}
 
-	/**
-	 * The {@link A_Function} to invoke whenever a {@linkplain A_Method} send
-	 * fails for a definitional reason.
-	 */
-	private volatile A_Function invalidMessageSendFunction =
-		newCrashFunction(
-			"failed method lookup",
+	/** The type of the {@link #implicitObserveFunction}. */
+	public static final A_Type implicitObserveFunctionType =
+		functionType(
 			tuple(
-				enumerationWith(
-					set(
-						E_NO_METHOD,
-						E_NO_METHOD_DEFINITION,
-						E_AMBIGUOUS_METHOD_DEFINITION,
-						E_FORWARD_METHOD_DEFINITION,
-						E_ABSTRACT_METHOD_DEFINITION)),
-				METHOD.o(),
-				mostGeneralTupleType()));
+				mostGeneralFunctionType(),
+				mostGeneralTupleType()),
+			TOP.o());
 
 	/**
 	 * The required type of the invalid message send function.
@@ -1226,6 +1221,16 @@ public final class AvailRuntime
 				METHOD.o(),
 				mostGeneralTupleType()),
 			bottom());
+
+	/**
+	 * The {@link A_Function} to invoke whenever a {@linkplain A_Method} send
+	 * fails for a definitional reason.
+	 */
+	private volatile A_Function invalidMessageSendFunction =
+		newCrashFunction(
+			"failed method lookup",
+			invalidMessageSendFunctionType
+				.argsTupleType().tupleOfTypesFromTo(1, 3));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a

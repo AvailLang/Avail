@@ -62,7 +62,7 @@ import static com.avail.utility.Nulls.stripNull;
  * SynchronizationFlag#PERMIT_UNAVAILABLE permit} associated with the fiber is
  * available, then simply continue. If the permit is not available, then restore
  * the permit and schedule {@linkplain Interpreter
- * #resumeFromSuccessfulPrimitive(AvailRuntime, A_Fiber, A_BasicObject, boolean)
+ * #resumeFromSuccessfulPrimitive(AvailRuntime, A_Fiber, A_BasicObject)
  * resumption} of the fiber. A newly unparked fiber should always recheck the
  * basis for its having parked, to see if it should park again. Low-level
  * synchronization mechanisms may require the ability to spuriously unpark in
@@ -83,8 +83,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
@@ -104,8 +103,7 @@ extends Primitive
 					currentRuntime(),
 					fiber,
 					suspendingPrimitive,
-					nil,
-					skipReturnCheck);
+					nil);
 			}
 			else
 			{

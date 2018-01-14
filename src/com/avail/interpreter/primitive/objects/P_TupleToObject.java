@@ -32,15 +32,7 @@
 
 package com.avail.interpreter.primitive.objects;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ObjectDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -79,8 +71,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
@@ -101,6 +92,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleType = argumentTypes.get(0);
@@ -110,7 +102,7 @@ extends Primitive
 			|| !tupleSizeLowerBound.isInt())
 		{
 			// Variable number of <key,value> pairs.  Give up.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
 		A_Map fieldTypeMap = emptyMap();
@@ -124,13 +116,15 @@ extends Primitive
 				|| !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(argumentTypes);
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes);
 			}
 			final A_Atom keyValue = keyType.instance();
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(argumentTypes);
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes);
 			}
 			assert keyValue.isAtom();
 			final A_Type valueType = pairType.typeAtIndex(2);

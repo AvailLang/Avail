@@ -1573,7 +1573,7 @@ public abstract class IndexedFile
 		{
 			indexedFile = subclass.newInstance();
 		}
-		catch (InstantiationException|IllegalAccessException e)
+		catch (InstantiationException | IllegalAccessException e)
 		{
 			assert false : "This should never happen!";
 			throw new RuntimeException(e);
@@ -1681,7 +1681,7 @@ public abstract class IndexedFile
 			strongIndexedFile = subclass.newInstance();
 			indexedFile = strongIndexedFile;
 		}
-		catch (InstantiationException|IllegalAccessException e)
+		catch (final InstantiationException | IllegalAccessException e)
 		{
 			assert false : "This should never happen!";
 			throw new RuntimeException(e);

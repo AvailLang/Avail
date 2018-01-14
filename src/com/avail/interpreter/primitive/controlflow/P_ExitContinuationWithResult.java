@@ -71,8 +71,7 @@ public final class P_ExitContinuationWithResult extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Continuation con = args.get(0);
@@ -84,7 +83,6 @@ public final class P_ExitContinuationWithResult extends Primitive
 		interpreter.offset = Integer.MAX_VALUE;
 		interpreter.returnNow = true;
 		interpreter.latestResult(result);
-		interpreter.skipReturnCheck = false;
 		return CONTINUATION_CHANGED;
 	}
 

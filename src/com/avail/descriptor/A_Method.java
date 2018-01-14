@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
@@ -299,4 +300,18 @@ extends A_ChunkDependable
 	 * @return The {@link A_Lexer} or {@code nil}.
 	 */
 	A_Lexer lexer ();
+
+	/**
+	 * Answer this method's {@link LookupTree}, suitable for dispatching method
+	 * invocations (i.e., finding out which {@link A_Definition} to actually
+	 * invoke.
+	 *
+	 * <p>Note that when fibers are running, this testing tree may be in flux,
+	 * due to lazy expansion of parts of the tree.  In general this is not
+	 * usually a problem, as volatile reads are used during dispatching, and a
+	 * lock is held during actual expansion.</p>
+	 *
+	 * @return The method's type dispatch tree.
+	 */
+	LookupTree<A_Definition, A_Tuple, Void> testingTree ();
 }

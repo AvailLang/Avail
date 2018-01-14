@@ -72,8 +72,7 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		final A_Number a = args.get(0);
 		assert args.size() == 1;

@@ -49,6 +49,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntime.implicitObserveFunctionType;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
@@ -86,8 +87,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
@@ -116,10 +116,7 @@ extends Primitive
 	private static A_RawFunction createRawFunction ()
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		final int outerIndex = writer.createOuter(
-			functionType(
-				tuple(mostGeneralFunctionType(), mostGeneralTupleType()),
-				TOP.o()));
+		final int outerIndex = writer.createOuter(implicitObserveFunctionType);
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
 		writer.returnType(bottom());
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex);
@@ -158,11 +155,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				functionType(
-					tuple(
-						mostGeneralFunctionType(),
-						mostGeneralTupleType()),
-					TOP.o())),
+				implicitObserveFunctionType),
 			TOP.o());
 	}
 }

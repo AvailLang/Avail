@@ -41,8 +41,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -70,15 +70,11 @@ public final class P_ShortCircuitHelper extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 //		final A_Atom ignoredBool = args.get(0);
 		final A_Function function = args.get(1);
-
-		final A_RawFunction code = function.code();
-		assert code.numArgs() == 0;
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();
@@ -88,6 +84,7 @@ public final class P_ShortCircuitHelper extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type blockType = argumentTypes.get(1);
@@ -107,21 +104,24 @@ public final class P_ShortCircuitHelper extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the passed function in the 2nd (=args[1]) argument, instead.  The
 		// client will generate any needed type strengthening, so don't do it
 		// here.
-		return translator.generateGeneralFunctionInvocation(
-			arguments.get(1),  // the function in the 2nd (=args[1]) argument.
+		final L2ReadPointerOperand functionReg = arguments.get(1);
+		translator.generateGeneralFunctionInvocation(
+			functionReg,  // the function in the 2nd (=args[1]) argument.
 			emptyList(),   // takes no arguments.
-			TOP.o(),
-			true,
-			"short circuit");
+			functionReg.type().returnType(),
+			callSiteHelper);
+		return true;
 	}
 }

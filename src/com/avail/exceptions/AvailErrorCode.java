@@ -422,7 +422,11 @@ public enum AvailErrorCode
 	 */
 	E_WRONG_SIGNATURE_FOR_LEXER_FUNCTION (60),
 
-//	E_??? (61),
+	/**
+	 * A continuation was being constructed, but the wrong number of stack slots
+	 * was provided for the given function.
+	 */
+	E_INCORRECT_CONTINUATION_STACK_SIZE (61),
 
 	/**
 	 * The module is currently in a setPhase where it's compiling (or loading) the

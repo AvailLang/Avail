@@ -714,32 +714,12 @@ extends Descriptor
 			});
 	}
 
-	/** Control expensive sanity checks of nybblecode indexing. */
-	private static final boolean nybblecodeSanityCheck = true;
-
 	@Override @AvailMethod
 	L1Operation o_NextNybblecodeOperation (
 		final AvailObject object,
 		final MutableInt pc)
 	{
 		final int subindex = pc.value & 15;
-		if (nybblecodeSanityCheck)
-		{
-			final int nybbleCount;
-			final int longCount = object.variableIntegerSlotsCount();
-			if (longCount == 0)
-			{
-				// Special case: no nybbles, so no longs.
-				nybbleCount = 0;
-			}
-			else
-			{
-				final long firstLong = object.slot(NYBBLECODES_, 1);
-				final int unusedNybbles = 15 & (int) firstLong;
-				nybbleCount = (longCount << 4) - unusedNybbles - 1;
-			}
-			assert pc.value >= 1 && pc.value <= nybbleCount;
-		}
 		final int longIndex = (pc.value >> 4) + 1;
 		long currentLong = object.slot(NYBBLECODES_, longIndex);
 		final int shift = subindex << 2;
@@ -769,23 +749,6 @@ extends Descriptor
 		final MutableInt pc)
 	{
 		final int subindex = pc.value & 15;
-		if (nybblecodeSanityCheck)
-		{
-			final int nybbleCount;
-			final int longCount = object.variableIntegerSlotsCount();
-			if (longCount == 0)
-			{
-				// Special case: no nybbles, so no longs.
-				nybbleCount = 0;
-			}
-			else
-			{
-				final long firstLong = object.slot(NYBBLECODES_, 1);
-				final int unusedNybbles = (int) firstLong & 15;
-				nybbleCount = (longCount << 4) - unusedNybbles - 1;
-			}
-			assert pc.value >= 1 && pc.value <= nybbleCount;
-		}
 		int longIndex = (pc.value >> 4) + 1;
 		long currentLong = object.slot(NYBBLECODES_, longIndex);
 		int shift = subindex << 2;

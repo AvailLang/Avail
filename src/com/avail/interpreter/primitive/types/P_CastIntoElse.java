@@ -43,17 +43,14 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
@@ -67,7 +64,6 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -88,8 +84,7 @@ public final class P_CastIntoElse extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final AvailObject value = args.get(0);
@@ -112,6 +107,7 @@ public final class P_CastIntoElse extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		// Keep it simple.
@@ -181,11 +177,13 @@ public final class P_CastIntoElse extends Primitive
 	}
 
 	@Override
-	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		// Inline the invocation of this P_CastIntoElse primitive, such that it
 		// does a type test for the type being cast to, then either invokes the
@@ -199,8 +197,6 @@ public final class P_CastIntoElse extends Primitive
 			"cast type matched");
 		final L2BasicBlock elseBlock = translator.createBasicBlock(
 			"cast type did not match");
-		final L2BasicBlock mergeBlock = translator.createBasicBlock(
-			"merge after cast");
 
 		final @Nullable A_Type typeTest = exactArgumentTypeFor(castFunctionReg);
 		if (typeTest != null)
@@ -235,14 +231,23 @@ public final class P_CastIntoElse extends Primitive
 				// Run the castBlock or elseBlock without having to do the
 				// runtime type test (since we just did it).  Don't do a type
 				// check on the result, because the client will deal with it.
-				return translator.generateGeneralFunctionInvocation(
-					passedTest ? castFunctionReg : elseFunctionReg,
-					passedTest ? singletonList(valueReg) : emptyList(),
-					TOP.o(),
-					true,
-					passedTest
-						? "no-check cast body"
-						: "no-check cast failure");
+				if (passedTest)
+				{
+					translator.generateGeneralFunctionInvocation(
+						castFunctionReg,
+						singletonList(valueReg),
+						castFunctionReg.type().returnType(),
+						callSiteHelper);
+				}
+				else
+				{
+					translator.generateGeneralFunctionInvocation(
+						elseFunctionReg,
+						emptyList(),
+						elseFunctionReg.type().returnType(),
+						callSiteHelper);
+				}
+				return true;
 			}
 
 			// We know the exact type to compare the value against, but we
@@ -286,59 +291,20 @@ public final class P_CastIntoElse extends Primitive
 		// castBlock or elseBlock, after which we merge the control flow back.
 		// Start by generating the invocation of castFunction.
 		translator.startBlock(castBlock);
-		final L2ReadPointerOperand castResultReg =
-			translator.generateGeneralFunctionInvocation(
-				castFunctionReg,
-				singletonList(valueReg),
-				TOP.o(),
-				true,
-				"cast body");
-		translator.addInstruction(
-			L2_JUMP.instance,
-			translator.edgeTo(mergeBlock));
-		// Check if the jump above was actually reachable.
-		final boolean canReachMergeFromCastBody = mergeBlock.hasPredecessors();
+		translator.generateGeneralFunctionInvocation(
+			castFunctionReg,
+			singletonList(valueReg),
+			castFunctionReg.type().returnType(),
+			callSiteHelper);
 
+		// Now deal with invoking the elseBlock instead.
 		translator.startBlock(elseBlock);
-		final L2ReadPointerOperand elseResultReg =
-			translator.generateGeneralFunctionInvocation(
-				elseFunctionReg,
-				emptyList(),
-				TOP.o(),
-				true,
-				"cast else");
-		translator.addInstruction(
-			L2_JUMP.instance,
-			translator.edgeTo(mergeBlock));
+		translator.generateGeneralFunctionInvocation(
+			elseFunctionReg,
+			emptyList(),
+			elseFunctionReg.type().returnType(),
+			callSiteHelper);
 
-		translator.startBlock(mergeBlock);
-		final TypeRestriction mergeRestriction =
-			castResultReg.restriction().union(elseResultReg.restriction());
-		final L2WritePointerOperand mergeReg =
-			translator.newObjectRegisterWriter(
-				mergeRestriction.type,
-				mergeRestriction.constantOrNull);
-		final int ingressCount = mergeBlock.predecessorEdges().size();
-		if (ingressCount == 2)
-		{
-			// Both the cast path and the else path reach here (i.e., neither
-			// path does something like unconditionally call a bottom-valued
-			// function).  Merge the results with a phi function.
-			translator.addInstruction(
-				L2_PHI_PSEUDO_OPERATION.instance,
-				new L2ReadVectorOperand(asList(castResultReg, elseResultReg)),
-				mergeReg);
-			return mergeReg.read();
-		}
-		if (ingressCount == 1)
-		{
-			// No need for a phi function, or even a move.
-			return canReachMergeFromCastBody ? castResultReg : elseResultReg;
-		}
-		// Both branches were dead ends.  Answer a register that is never
-		// written, since we have to answer something.  If it gets used in
-		// subsequent code accidentally, it will be flagged as a read without a
-		// preceding write.
-		return translator.newObjectRegisterWriter(bottom(), null).read();
+		return true;
 	}
 }

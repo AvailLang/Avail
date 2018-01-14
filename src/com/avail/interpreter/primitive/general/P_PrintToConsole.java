@@ -83,8 +83,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_String string = args.get(0);
@@ -116,8 +115,7 @@ extends Primitive
 							runtime,
 							fiber,
 							P_PrintToConsole.this,
-							nil,
-							skipReturnCheck);
+							nil);
 					}
 
 					@Override
@@ -130,8 +128,7 @@ extends Primitive
 							fiber,
 							E_IO_ERROR.numericCode(),
 							primitiveFunction,
-							copiedArgs,
-							skipReturnCheck);
+							copiedArgs);
 					}
 				}));
 		return interpreter.primitiveSuspend(primitiveFunction);

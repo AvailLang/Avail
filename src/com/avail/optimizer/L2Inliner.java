@@ -190,11 +190,11 @@ public final class L2Inliner
 	 *        The {@link L2Operand} subtype.
 	 * @return The transformed {@link L2Operand}, also of type {@link O}.
 	 */
+	@SuppressWarnings("unchecked")
 	public <O extends L2Operand> O transformOperand (final O operand)
 	{
 		operandTransformer.currentOperand = operand;
 		operand.dispatchOperand(operandTransformer);
-		//noinspection unchecked
 		return (O) operandTransformer.currentOperand;
 		// Don't bother clearing the currentOperand field afterward.
 	}
@@ -278,12 +278,12 @@ public final class L2Inliner
 	 * @param register The {@link L2Register} to look up.
 	 * @return The looked up or created-and-stored {@link L2Register}.
 	 */
+	@SuppressWarnings("unchecked")
 	public <R extends L2Register> R map (final R register)
 	{
 		final L2Register copy = registerMap.computeIfAbsent(
 			register, r -> r.copyForInliner(this));
 		assert register.registerKind() == copy.registerKind();
-		//noinspection unchecked
 		return (R) copy;
 	}
 

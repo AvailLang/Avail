@@ -50,6 +50,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
@@ -5361,12 +5362,6 @@ implements
 	}
 
 	@Override
-	public boolean skipReturnFlag ()
-	{
-		return descriptor.o_SkipReturnFlag(this);
-	}
-
-	@Override
 	public A_Variable addWriteReactor (
 		final A_Atom key,
 		final VariableAccessReactor reactor)
@@ -6011,5 +6006,11 @@ implements
 	public int currentLineNumber ()
 	{
 		return descriptor.o_CurrentLineNumber(this);
+	}
+
+	@Override
+	public LookupTree<A_Definition, A_Tuple, Void> testingTree ()
+	{
+		return descriptor.o_TestingTree(this);
 	}
 }

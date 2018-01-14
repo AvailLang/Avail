@@ -31,12 +31,14 @@
  */
 package com.avail.interpreter.primitive.types;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -64,8 +66,7 @@ public final class P_IsSubtypeOf extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Type type1 = args.get(0);
@@ -85,16 +86,26 @@ public final class P_IsSubtypeOf extends Primitive
 	}
 
 	/**
-	 * The test x ⊆ y is always false if x ∩ y = ⊥ (i.e., if x' ∩ y' ⊆ ⊥'.  The
-	 * test is always true if the exact type y1 is known (not a subtype) and
-	 * x ⊆ y1'.
+	 * Some identities apply.  The terms x and y are the values being compared
+	 * (not necessarily known statically), and x' and y' are their static types
+	 * (making them metatypes).
+	 *
+	 * <ol>
+	 *     <li>The test is always true if the exact type y1 is known (not a
+	 *         subtype) and x' ⊆ y1'.</li>
+	 *     <li>The test is always false if the exact type x1 is known (not a
+	 *         subtype) and x1' ⊈ y'.</li>
+	 *     <li>The test is always true if x = ⊥.</li>
+	 * </ol>
 	 */
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final L2ReadPointerOperand xTypeReg = arguments.get(0);
 		final L2ReadPointerOperand yTypeReg = arguments.get(1);
@@ -103,24 +114,26 @@ public final class P_IsSubtypeOf extends Primitive
 		final A_Type yMeta = yTypeReg.type();
 		final A_Type xType = xMeta.instance();
 		final A_Type yType = yMeta.instance();
+
 		final @Nullable A_Type constantYType =
 			(A_Type) yTypeReg.constantOrNull();
 		if (constantYType != null)
 		{
-			assert constantYType.isType();
 			assert constantYType.isSubtypeOf(yType);
 			if (xType.isSubtypeOf(constantYType))
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				return translator.constantRegister(trueObject());
+				callSiteHelper.useAnswer(
+					translator.constantRegister(trueObject()));
+				return true;
 			}
 		}
+
 		final @Nullable A_Type constantXType =
 			(A_Type) xTypeReg.constantOrNull();
 		if (constantXType != null)
 		{
-			assert constantXType.isType();
 			assert constantXType.isSubtypeOf(xType);
 			if (!constantXType.isSubtypeOf(yType))
 			{
@@ -128,10 +141,27 @@ public final class P_IsSubtypeOf extends Primitive
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				return translator.constantRegister(falseObject());
+				callSiteHelper.useAnswer(
+					translator.constantRegister(falseObject()));
+				return true;
 			}
 		}
-		return super.tryToGenerateSpecialInvocation(
-			functionToCallReg, arguments, argumentTypes, translator);
+
+		if (xType.isBottom())
+		{
+			// ⊥ is a subtype of all other types.  We test this separately from
+			// looking for a constant x, since ⊥'s type is special and doesn't
+			// report that it only has one instance (i.e., ⊥).
+			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			return true;
+		}
+
+		return super.tryToGenerateSpecialPrimitiveInvocation(
+			functionToCallReg,
+			rawFunction,
+			arguments,
+			argumentTypes,
+			translator,
+			callSiteHelper);
 	}
 }

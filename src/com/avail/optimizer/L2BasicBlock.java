@@ -349,6 +349,15 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * The final instruction of the block altered control flow, and it has just
+	 * been removed.  Subsequent code generation may take place in this block.
+	 */
+	public void removedControlFlowInstruction ()
+	{
+		hasControlFlowAtEnd = false;
+	}
+
+	/**
 	 * Determine whether code added after the last instruction of this block
 	 * would be reachable.  Take into account whether the block itself seems to
 	 * be reachable.

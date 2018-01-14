@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -438,14 +438,14 @@ Primitive "all atoms for_" is
  * @param "aFunction" "function"
  *        The new continuation's current function.
  * @param "programCounter" "whole number"
- *        {@param "aFunction"}'s program counter. This is the index of the
+ *        @param "aFunction"'s program counter. This is the index of the
  *        next Level One instruction to execute when the new continuation is
  *        resumed.
  * @param "stack" "tuple"
- *        {@param "aFunction"}'s stack. This tuple contains the arguments, local
+ *        @param "aFunction"'s stack. This tuple contains the arguments, local
  *        variables, and temporaries.
  * @param "stackPointer" "natural number"
- *        {@param "aFunction"}'s stack pointer. This is the index of the
+ *        @param "aFunction"'s stack pointer. This is the index of the
  *        top of the stack.
  * @param "caller" "continuation variable"
  *        A variable holding the new continuation's calling continuation.
@@ -453,6 +453,7 @@ Primitive "all atoms for_" is
  *        one without a caller).
  * @returns "$[…]→⊥"
  *    The requested continuation.
+ * @raises "incorrect-continuation-stack-size exception"
  * @raises "cannot-create-continuation-for-infallible-primitive-function exception"
  */
 Primitive "`$_@pc=_stack=_[_]caller=_" is
@@ -464,6 +465,7 @@ Primitive "`$_@pc=_stack=_[_]caller=_" is
 	caller : continuation variable
 |
 	Primitive CreateContinuation (failureCode : {
+		incorrect-continuation-stack-size code,
 		cannot-create-continuation-for-infallible-primitive-function code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : continuation;

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
@@ -70,8 +71,7 @@ public final class P_TupleTypeAt extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Type tupleType = args.get(0);
@@ -86,6 +86,7 @@ public final class P_TupleTypeAt extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleMeta = argumentTypes.get(0);
@@ -103,7 +104,7 @@ public final class P_TupleTypeAt extends Primitive
 					: Integer.MAX_VALUE);
 			return instanceMeta(elementTypeBound);
 		}
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override

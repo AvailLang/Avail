@@ -185,6 +185,8 @@ public abstract class L2Register
 	 * Answer the {@link L2Instruction}s which assign this register in the
 	 * control flow graph, which is not necessarily in SSA form.  It must be
 	 * non-empty.
+	 *
+	 * @return This register's defining instructions.
 	 */
 	public Collection<L2Instruction> definitions ()
 	{

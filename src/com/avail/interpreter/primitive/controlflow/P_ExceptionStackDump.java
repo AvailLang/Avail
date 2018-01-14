@@ -87,8 +87,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_BasicObject exception = args.get(0);
@@ -123,8 +122,7 @@ extends Primitive
 					runtime,
 					fiber,
 					this,
-					stackDump,
-					skipReturnCheck);
+					stackDump);
 			});
 		return Result.FIBER_SUSPENDED;
 	}

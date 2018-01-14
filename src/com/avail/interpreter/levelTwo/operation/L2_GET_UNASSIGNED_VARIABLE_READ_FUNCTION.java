@@ -44,9 +44,7 @@ import com.avail.optimizer.StackReifier;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.AvailRuntime.unassignedVariableReadFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
@@ -89,7 +87,7 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination.register(),
-			functionType(emptyTuple(), bottom()),
+			unassignedVariableReadFunctionType,
 			instruction);
 	}
 }

@@ -66,7 +66,6 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.all;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
 	.REIFICATION_REQUESTED;
@@ -622,14 +621,14 @@ extends Descriptor
 		private static final ExecutionState[] all = values();
 
 		/**
-		 * Answer an array of all execution state enum values.
+		 * Answer the {@code ExecutionState} enum value having the given
+		 * ordinal.
 		 *
-		 * @return An array of all execution enum values.  Do not
-		 *         modify the array.
+		 * @return The indicated {@code ExecutionState}..
 		 */
-		static ExecutionState[] all ()
+		static ExecutionState lookup (final int ordinal)
 		{
-			return all;
+			return all[ordinal];
 		}
 
 		/**
@@ -705,7 +704,7 @@ extends Descriptor
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
-		return all()[(int) object.mutableSlot(EXECUTION_STATE)];
+		return ExecutionState.lookup((int) object.mutableSlot(EXECUTION_STATE));
 	}
 
 	@Override @AvailMethod
@@ -714,7 +713,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			final int index = (int) object.mutableSlot(EXECUTION_STATE);
-			final ExecutionState current = all()[index];
+			final ExecutionState current = ExecutionState.lookup(index);
 			//noinspection AssertWithSideEffects
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());

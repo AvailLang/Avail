@@ -59,9 +59,9 @@ import static com.avail.utility.Nulls.stripNull;
  * function.</p>
  *
  * <p>The value being returned is in {@link Interpreter#latestResult()}, and the
- * top-of-stack of the continuation contains the type to check it against.  If
- * {@link Interpreter#skipReturnCheck} is true, don't bother to do the check,
- * since it's guaranteed by the VM to be correct.</p>
+ * top-of-stack of the continuation contains the type to check it against.
+ * Whether to skip the return check is up to the generated L2 code after an
+ * entry point.  In this case (reentering L1), we always do the check.</p>
  */
 public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 {
@@ -102,21 +102,18 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		stepper.pc.value = continuation.pc();
 		stepper.stackp = continuation.stackp();
-		if (!interpreter.skipReturnCheck)
-		{
-			final A_Type expectedType = interpreter.pointerAt(stepper.stackp);
+		final A_Type expectedType = interpreter.pointerAt(stepper.stackp);
 
-			final @Nullable StackReifier returnCheckReifier =
-				interpreter.checkReturnType(
-					returnValue, expectedType, returneeFunction);
-			if (returnCheckReifier != null)
-			{
-				// Reification is happening within the handling of the *failed*
-				// return type check.
-				return returnCheckReifier;
-			}
-			// Otherwise the check passed.  Fall through.
+		final @Nullable StackReifier returnCheckReifier =
+			interpreter.checkReturnType(
+				returnValue, expectedType, returneeFunction);
+		if (returnCheckReifier != null)
+		{
+			// Reification is happening within the handling of the *failed*
+			// return type check.
+			return returnCheckReifier;
 		}
+		// Otherwise the check passed.  Fall through.
 		interpreter.pointerAtPut(stepper.stackp, returnValue);
 		return null;
 	}

@@ -43,6 +43,7 @@ import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
@@ -50,6 +51,7 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -84,11 +86,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * in terms of other Level One operations.  A conforming Avail implementation
  * must provide these primitives with equivalent semantics.
  *
- * <p>The enumeration defines an {@link #attempt(List, Interpreter, boolean)
- * attempt} operation that takes a {@linkplain List list} of arguments of type
- * {@link AvailObject}, as well as the {@link Interpreter} on whose behalf the
- * primitive attempt is being made.  The specific enumeration values override
- * the {@code attempt} method with behavior specific to that primitive.</p>
+ * <p>The enumeration defines an {@link #attempt(List, Interpreter)} operation
+ * that takes a {@linkplain List list} of arguments of type {@link AvailObject},
+ * as well as the {@link Interpreter} on whose behalf the primitive attempt is
+ * being made.  The specific enumeration values override the {@code attempt}
+ * method with behavior specific to that primitive.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -294,16 +296,12 @@ implements IntegerEnumSlotDescriptionEnum
 	 *            The {@linkplain List list} of arguments to the primitive.
 	 * @param interpreter
 	 *            The {@link Interpreter} that is executing.
-	 * @param skipReturnCheck
-	 *            Whether the type-check of the return value can be elided, due
-	 *            to VM type guarantees.
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
 	 */
 	public abstract Result attempt (
 		List<AvailObject> args,
-		Interpreter interpreter,
-		boolean skipReturnCheck);
+		Interpreter interpreter);
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
@@ -364,14 +362,19 @@ implements IntegerEnumSlotDescriptionEnum
 	 * in the Avail code, but if convenient answer something stronger than the
 	 * return type in the primitive's basic function type.
 	 *
+	 *
+	 * @param rawFunction
+	 *        The {@link A_RawFunction} being invoked.
 	 * @param argumentTypes
 	 *        A {@link List} of argument {@linkplain TypeDescriptor types}.
 	 * @return
 	 *         The return type guaranteed by the VM at some call site.
 	 */
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
+		assert rawFunction.primitive() == this;
 		return blockTypeRestriction().returnType();
 	}
 
@@ -956,7 +959,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A performance metric indicating how long was spent checking the return
 	 * result for all invocations of this primitive in level two code.  An
 	 * excessively large value indicates a profitable opportunity for {@link
-	 * #returnTypeGuaranteedByVM(List)} to return a stronger
+	 * #returnTypeGuaranteedByVM(A_RawFunction, List)} to return a stronger
 	 * type, perhaps allowing the level two optimizer to skip more checks.
 	 */
 	private final Statistic resultTypeCheckingNanos = new Statistic(
@@ -981,55 +984,63 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * The primitive couldn't be folded out, so see if alternative instructions
-	 * can be generated for its invocation.  If so, answer the {@link
-	 * L2ReadPointerOperand} in which the result will be placed, otherwise
-	 * answer {@code null} to indicate a general invocation mechanism should be
-	 * used.
+	 * can be generated for its invocation.  If so, answer {@code true}, ensure
+	 * control flow will go to the appropriate {@link CallSiteHelper} exit
+	 * point, and leave the translator NOT at a currentReachable() point.  If
+	 * the alternative instructions could not be generated for this primitive,
+	 * answer {@code false}, and generate nothing.
 	 *
 	 * @param functionToCallReg
 	 *        The {@link L2ReadPointerOperand} register that holds the function
 	 *        being invoked.  The function's primitive is known to be the
 	 *        receiver.
+	 * @param rawFunction
+	 *        The primitive raw function whose invocation is being generated.
 	 * @param arguments
 	 *        The argument {@link L2ReadPointerOperand}s supplied to the
 	 *        function.
+	 * @param argumentTypes
+	 *        The list of {@link A_Type}s of the arguments.
 	 * @param translator
 	 *        The {@link L1Translator} on which to emit code, if possible.
+	 * @param callSiteHelper
+	 *        Information about the call site being generated.
 	 * @return The {@link L2ReadPointerOperand} that will hold the result of the
 	 *         invocation-equivalent instructions that were output, or {@code
 	 *         null} if no such optimization was possible, implying a general
 	 *         invocation should be generated instead.
 	 */
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		// In the general case, avoid producing failure and reification code if
 		// the primitive is infallible.  However, if the primitive can suspend
 		// the fiber (which can happen even if it's infallible), be careful not
 		// to inline it.
-		if (!hasFlag(CanSuspend)
-			&& fallibilityForArgumentTypes(argumentTypes) == CallSiteCannotFail)
+		if (hasFlag(CanSuspend)
+			|| fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
-			// The primitive cannot fail at this site.  Output code to run the
-			// primitive as simply as possible, feeding a register with as
-			// strong a type as possible.
-			final L2WritePointerOperand writer =
-				translator.newObjectRegisterWriter(
-					returnTypeGuaranteedByVM(argumentTypes),
-					null);
-			translator.addInstruction(
-				L2_RUN_INFALLIBLE_PRIMITIVE.instance,
-				new L2PrimitiveOperand(this),
-				new L2ReadVectorOperand(arguments),
-				writer);
-			return writer.read();
+			return false;
 		}
-		else
-		{
-			return null;
-		}
+		// The primitive cannot fail at this site.  Output code to run the
+		// primitive as simply as possible, feeding a register with as strong a
+		// type as possible.
+		final L2WritePointerOperand writer =
+			translator.newObjectRegisterWriter(
+				returnTypeGuaranteedByVM(rawFunction, argumentTypes),
+				null);
+		translator.addInstruction(
+			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+			new L2ConstantOperand(rawFunction),
+			new L2PrimitiveOperand(this),
+			new L2ReadVectorOperand(arguments),
+			writer);
+		callSiteHelper.useAnswer(writer.read());
+		return true;
 	}
 }

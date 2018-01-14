@@ -1559,7 +1559,6 @@ public enum SerializerOperation
 					caller,
 					pcInteger.extractInt(),
 					stackpInteger.extractInt(),
-					false,
 					unoptimizedChunk,
 					pcInteger.equalsInt(0)
 						? TO_RESTART.offsetInDefaultChunk
@@ -3256,7 +3255,7 @@ public enum SerializerOperation
 			final int parseNodeKindOrdinal = subobjects[0].extractInt();
 			final AvailObject expressionType = subobjects[1];
 			final ParseNodeKind parseNodeKind =
-				ParseNodeKind.all()[parseNodeKindOrdinal];
+				ParseNodeKind.lookup(parseNodeKindOrdinal);
 			return parseNodeKind.create(expressionType);
 		}
 	},
@@ -3289,7 +3288,7 @@ public enum SerializerOperation
 			final AvailObject expressionType = subobjects[1];
 			final AvailObject subexpressionsTupleType = subobjects[2];
 			final ParseNodeKind parseNodeKind =
-				ParseNodeKind.all()[parseNodeKindOrdinal];
+				ParseNodeKind.lookup(parseNodeKindOrdinal);
 			return createListNodeType(
 				parseNodeKind, expressionType, subexpressionsTupleType);
 		}

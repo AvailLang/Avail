@@ -12,6 +12,10 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="Avail" />
     <envs />
-    <method />
+    <method>
+      <option name="Make" enabled="false" />
+      <option name="MakeProject" enabled="true" />
+      <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/build.xml" target="generate-primitives-list" />
+    </method>
   </configuration>
 </component>

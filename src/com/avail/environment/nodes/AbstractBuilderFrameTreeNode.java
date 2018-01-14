@@ -199,11 +199,11 @@ extends DefaultMutableTreeNode
 	 * Sort the direct children of this node.  The default sort order is
 	 * alphabetic by the nodes' {@link #text(boolean)} (passing false).
 	 */
+	@SuppressWarnings("unchecked")
 	public void sortChildren ()
 	{
 		if (children != null)
 		{
-			//noinspection unchecked
 			children.sort(sorter);
 		}
 	}

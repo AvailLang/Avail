@@ -66,8 +66,7 @@ public final class P_DescribeNoncanonicalMessage extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_String messageName = args.get(0);

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -69,8 +70,7 @@ public final class P_ConcatenateTuples extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Tuple tuples = args.get(0);
@@ -88,6 +88,7 @@ public final class P_ConcatenateTuples extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tuplesType = argumentTypes.get(0);
@@ -101,7 +102,8 @@ public final class P_ConcatenateTuples extends Primitive
 			if (lowerBound.greaterThan(fromInt(20)))
 			{
 				// Too expensive to compute here.
-				return super.returnTypeGuaranteedByVM(argumentTypes);
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes);
 			}
 			// A (reasonably small) collection of tuple types.
 			assert lowerBound.isInt();
@@ -145,6 +147,6 @@ public final class P_ConcatenateTuples extends Primitive
 			}
 		}
 		// Too tricky to bother narrowing.
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 }

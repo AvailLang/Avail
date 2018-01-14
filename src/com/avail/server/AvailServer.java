@@ -692,7 +692,7 @@ public final class AvailServer
 			list.add(node);
 		}
 
-		/** THe resources of the {@linkplain ModuleNode node}. */
+		/** The resources of the {@linkplain ModuleNode node}. */
 		@Nullable List<ModuleNode> resources;
 
 		/**

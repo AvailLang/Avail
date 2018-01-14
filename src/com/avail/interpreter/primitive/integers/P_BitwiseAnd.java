@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.integers;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
@@ -67,8 +68,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Number a = args.get(0);
@@ -78,6 +78,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		assert argumentTypes.size() == 2;
@@ -111,7 +112,7 @@ extends Primitive
 		else
 		{
 			// Give up, as the result may be negative or exceed a long.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		// At least one value is positive, so the result is positive.
 		// At least one is a long, so the result must be a long.

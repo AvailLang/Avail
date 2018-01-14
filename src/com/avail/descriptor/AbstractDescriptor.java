@@ -54,6 +54,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.MalformedMessageException;
@@ -6032,12 +6033,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract boolean o_SkipReturnFlag (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param anIntegerIntervalTuple
 	 * @return
 	 */
@@ -6788,4 +6783,11 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_CurrentLineNumber (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+		final AvailObject object);
 }

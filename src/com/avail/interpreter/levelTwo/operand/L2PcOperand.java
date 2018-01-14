@@ -141,9 +141,11 @@ public class L2PcOperand extends L2Operand
 	public void instructionWasRemoved (
 		final L2Instruction theInstruction)
 	{
-		stripNull(instruction).basicBlock.successorEdges().remove(this);
+		final L2BasicBlock sourceBlock = stripNull(instruction).basicBlock;
+		sourceBlock.successorEdges().remove(this);
 		targetBlock.removePredecessorEdge(this);
 		this.instruction = null;
+		sourceBlock.removedControlFlowInstruction();
 		super.instructionWasRemoved(theInstruction);
 	}
 

@@ -39,8 +39,8 @@ import java.util.IdentityHashMap;
 
 /**
  * A {@code RuntimeBitField} is constructed at class loading time and contains
- * any cached information needed to access a range of bits from an {@linkplain
- * IntegerSlotsEnum integer slot}.
+ * any cached information needed to access a range of up to 32 contiguous bits
+ * from an {@linkplain IntegerSlotsEnum integer slot}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -125,7 +125,7 @@ implements Comparable<BitField>
 	{
 		assert shift == (shift & 63);
 		assert bits > 0;
-		assert bits <= 32;  // Must use at most 32 bytes of the long.
+		assert bits <= 32;  // Must use at most 32 bits of the long.
 		assert shift + bits <= 64;
 
 		this.integerSlot = integerSlot;

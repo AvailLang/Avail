@@ -68,8 +68,7 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		final A_Module module = args.get(0);
 		final A_String name = args.get(1);

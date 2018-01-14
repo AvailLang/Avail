@@ -194,16 +194,6 @@ extends A_BasicObject
 	void adjustPcAndStackp (int pc, int stackp);
 
 	/**
-	 * Answer whether it is safe to skip checking the type of object returned
-	 * from this continuation.  Only the call site can decide whether to elide
-	 * the check, since it knows whether any semantic restrictions strengthened
-	 * the expected result type.
-	 *
-	 * @return Whether to check the return type when this continuation returns.
-	 */
-	boolean skipReturnFlag ();
-
-	/**
 	 * Create a copy of the receiver if it's not already mutable, then clobber
 	 * the {@link ObjectSlots#CALLER} slot with the
 	 * passed value.

@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.RepeatedElementTupleDescriptor;
@@ -79,8 +80,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 
@@ -116,6 +116,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		assert argumentTypes.size() == 2;

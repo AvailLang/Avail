@@ -479,16 +479,13 @@ public final class AvailLoader
 				};
 				fiber.textInterface(loader.textInterface);
 
-				//TODO MvG - MAke this an assertion?  (fix the {} after it}
 				assert (compilationContext.getNoMoreWorkUnits() != null);
-				{
-					// Trace it as a work unit.
-					final AtomicBoolean oneWay = new AtomicBoolean();
-					fiberSuccess = compilationContext.workUnitCompletion(
-						lexingState, oneWay, fiberSuccess);
-					fiberFailure = compilationContext.workUnitCompletion(
-						lexingState, oneWay, fiberFailure);
-				}
+				// Trace it as a work unit.
+				final AtomicBoolean oneWay = new AtomicBoolean();
+				fiberSuccess = compilationContext.workUnitCompletion(
+					lexingState, oneWay, fiberSuccess);
+				fiberFailure = compilationContext.workUnitCompletion(
+					lexingState, oneWay, fiberFailure);
 				fiber.resultContinuation(fiberSuccess);
 				fiber.failureContinuation(fiberFailure);
 				Interpreter.runOutermostFunction(

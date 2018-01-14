@@ -162,6 +162,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * </table>
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("SuspiciousNameCombination")
 public class TypeConsistencyTest
 {
 	/**
@@ -2018,7 +2019,7 @@ public class TypeConsistencyTest
 	 *
 	 * @param relation The covariant {@linkplain TypeRelation} to check.
 	 */
-	public void checkCovariance (
+	public static void checkCovariance (
 		final TypeRelation relation)
 	{
 		for (final Node x : Node.values)
@@ -2046,7 +2047,7 @@ public class TypeConsistencyTest
 	 *
 	 * @param relation The contravariant {@linkplain TypeRelation} to check.
 	 */
-	public void checkContravariance (
+	public static void checkContravariance (
 		final TypeRelation relation)
 	{
 		for (final Node x : Node.values)

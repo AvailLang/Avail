@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -72,8 +73,7 @@ public final class P_TupleAppend extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Tuple tuple = args.get(0);
@@ -85,6 +85,7 @@ public final class P_TupleAppend extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type aTupleType = argumentTypes.get(0);

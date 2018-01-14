@@ -98,8 +98,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final A_Atom atom = args.get(0);
@@ -199,8 +198,7 @@ extends Primitive
 							currentRuntime(),
 							fiber,
 							this,
-							nil,
-							skipReturnCheck);
+							nil);
 					}
 					catch (
 						final MalformedMessageException
@@ -211,8 +209,7 @@ extends Primitive
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
-							copiedArgs,
-							skipReturnCheck);
+							copiedArgs);
 					}
 				}));
 		return FIBER_SUSPENDED;

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -73,8 +74,7 @@ public final class P_ExtractSubtuple extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final A_Tuple tuple = args.get(0);
@@ -99,6 +99,7 @@ public final class P_ExtractSubtuple extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleType = argumentTypes.get(0);
@@ -134,7 +135,7 @@ public final class P_ExtractSubtuple extends Primitive
 			return tupleTypeForSizesTypesDefaultType(
 				newSizes, newLeading, tupleType.defaultType());
 		}
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override

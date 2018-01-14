@@ -37,6 +37,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
+import com.avail.dispatch.LookupTreeTraverser;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -61,6 +62,7 @@ import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -68,9 +70,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.IntStream;
 
-import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
+import static com.avail.AvailRuntime.*;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -86,12 +87,14 @@ import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -108,7 +111,6 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L1Translator} transliterates a sequence of {@link L1Operation
@@ -160,7 +162,7 @@ public final class L1Translator
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	private int stackp;
+	@InnerAccess int stackp;
 
 	/**
 	 * The exact function that we're translating, if known.  This is only
@@ -289,16 +291,40 @@ public final class L1Translator
 	 */
 	public void startBlock (final L2BasicBlock block)
 	{
-		if (block.isIrremovable() || block.hasPredecessors())
+		if (!block.isIrremovable())
 		{
-			currentBlock = block;
-			controlFlowGraph.startBlock(block);
-			block.startIn(this);
+			if (!block.hasPredecessors())
+			{
+				currentBlock = null;
+				return;
+			}
+			final List<L2PcOperand> predecessorEdges = block.predecessorEdges();
+			if (predecessorEdges.size() == 1)
+			{
+				final L2PcOperand predecessorEdge = predecessorEdges.get(0);
+				final L2BasicBlock predecessorBlock =
+					predecessorEdge.sourceBlock();
+				final L2Instruction jump = predecessorBlock.finalInstruction();
+				if (jump.operation == L2_JUMP.instance)
+				{
+					// The new block has only one predecessor, which
+					// unconditionally jumps to it.  Remove the jump and
+					// continue generation in the predecessor block.  Restore
+					// the manifest from the jump edge.
+					currentManifest.clear();
+					currentManifest.populateFromIntersection(
+						singletonList(predecessorEdge.manifest()), this);
+					predecessorBlock.instructions().remove(
+						predecessorBlock.instructions().size() - 1);
+					jump.justRemoved();
+					currentBlock = predecessorBlock;
+					return;
+				}
+			}
 		}
-		else
-		{
-			currentBlock = null;
-		}
+		currentBlock = block;
+		controlFlowGraph.startBlock(block);
+		block.startIn(this);
 	}
 
 	/**
@@ -308,7 +334,7 @@ public final class L1Translator
 	 *
 	 * @return Whether the current block is probably reachable.
 	 */
-	private boolean currentlyReachable ()
+	@InnerAccess boolean currentlyReachable ()
 	{
 		return currentBlock != null && currentBlock.currentlyReachable();
 	}
@@ -392,7 +418,7 @@ public final class L1Translator
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
-	private void forceSlotRegister (
+	@InnerAccess void forceSlotRegister (
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
@@ -414,7 +440,11 @@ public final class L1Translator
 		forceSlotRegister(slotIndex, constantRegister(nil));
 	}
 
-	/** Answer the next register number, unique within the chunk. */
+	/**
+	 * Answer the next register number, unique within the chunk.
+	 *
+	 * @return An integer unique within this translator.
+	 */
 	public int nextUnique ()
 	{
 		return controlFlowGraph.nextUnique();
@@ -425,6 +455,11 @@ public final class L1Translator
 	 * L2WritePointerOperand} that writes to it, using the given type and
 	 * optional constant value information.
 	 *
+	 * @param type
+	 *        The type of value that the register can hold.
+	 * @param constantOrNull
+	 *        The exact value in the register, or {@code null} if not known
+	 *        statically.
 	 * @return The new register write operand.
 	 */
 	public L2WritePointerOperand newObjectRegisterWriter (
@@ -560,20 +595,6 @@ public final class L1Translator
 			L2_POP_CURRENT_CONTINUATION.instance,
 			continuationTempReg);
 		return continuationTempReg.read();
-	}
-
-	/**
-	 * Write instructions to extract the current skip-return-check flag into a
-	 * new {@link L2IntegerRegister}, and answer an {@link L2ReadIntOperand} for
-	 * that register.
-	 */
-	private L2ReadIntOperand getSkipReturnCheck ()
-	{
-		final L2IntegerRegister tempIntReg = newIntegerRegister();
-		addInstruction(
-			L2_GET_SKIP_RETURN_CHECK.instance,
-			new L2WriteIntOperand(tempIntReg));
-		return new L2ReadIntOperand(tempIntReg);
 	}
 
 	/**
@@ -782,17 +803,12 @@ public final class L1Translator
 	 * Generate code to reify a continuation in a fresh register, then use
 	 * that register in a supplied code-generating action.  Then generate code
 	 * to get into an equivalent state after resuming the reified continuation,
-	 * jumping to the given resumeBlock.  Code generation then continues at the
-	 * resumeBlock, possibly after postamble instructions have been generated in
-	 * it.
+	 * jumping to a new basic block that restores the captured slot registers.
 	 *
-	 * <p>Use the passed registers to populate the continuation's current slots
-	 * and function, but use the state of this translator to determine the rest
-	 * of the continuation (e.g., pc, stackp).</p>
+	 * <p>Use the passed registers to populate the continuation's function and
+	 * caller, but use the state of this translator to determine the rest of the
+	 * continuation (e.g., pc, stackp, slot registers).</p>
 	 *
-	 * @param function
-	 *        The register holding the function that should be captured in the
-	 *        continuation.
 	 * @param caller
 	 *        The register holding the caller that should be captured in the
 	 *        continuation.  This may safely be {@link NilDescriptor#nil}.
@@ -800,16 +816,15 @@ public final class L1Translator
 	 *        What code generation action to perform when the continuation has
 	 *        been assembled.  The register holding the new continuation is
 	 *        passed to the action.
-	 * @param resumeBlock
-	 *        Where the continuation should resume executing when it's asked to
-	 *        continue.  Note that if the {@link L2Chunk} was invalidated before
-	 *        resumption, the default chunk will be resumed instead.
+	 * @param typeOfEntryPoint
+	 *        The kind of {@link ChunkEntryPoint} that this represents, so that
+	 *        in the event that this chunk is invalidated while it's held by a
+	 *        reified continuation, it can resume the default chunk instead at
+	 *        the correct entry point.
 	 */
 	public void reify (
-		final L2ReadPointerOperand function,
 		final L2ReadPointerOperand caller,
 		final Continuation1<L2ReadPointerOperand> actionForContinuation,
-		final L2BasicBlock resumeBlock,
 		final ChunkEntryPoint typeOfEntryPoint)
 	{
 		final L2WritePointerOperand newContinuationRegister =
@@ -842,10 +857,9 @@ public final class L1Translator
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			caller,
-			function,
+			getCurrentFunction(),
 			new L2ImmediateOperand(pc.value),
 			new L2ImmediateOperand(stackp),
-			getSkipReturnCheck(),
 			new L2ReadVectorOperand(readSlotsBefore),
 			newContinuationRegister,
 			new L2PcOperand(onReturnIntoReified, new L2ValueManifest()),
@@ -854,7 +868,6 @@ public final class L1Translator
 		startBlock(afterCreation);
 		// Right after creating the continuation.
 		actionForContinuation.value(newContinuationRegister.read());
-
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
 		currentManifest.clear();
@@ -864,25 +877,20 @@ public final class L1Translator
 		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
-			new L2WriteVectorOperand(writeSlotsAfter),
-			new L2WriteIntOperand(newIntegerRegister())); //TODO MvG - Fix this when we have int phis
+			new L2WriteVectorOperand(writeSlotsAfter));
+
 		for (int i = 1; i <= numSlots; i++)
 		{
 			currentManifest.addBinding(
 				semanticSlot(i),
 				writeSlotsAfter.get(i - 1).read());
 		}
-		addInstruction(
-			L2_JUMP.instance,
-			new L2PcOperand(resumeBlock, currentManifest));
-		// Merge the flow (reified and continued, versus not reified).
-		startBlock(resumeBlock);
 	}
 
 	/**
 	 * Add an instruction that's not supposed to be reachable.
 	 */
-	private void addUnreachableCode ()
+	@InnerAccess void addUnreachableCode ()
 	{
 		addInstruction(L2_JUMP.instance, unreachablePcOperand());
 		startBlock(createBasicBlock("an unreachable block"));
@@ -965,8 +973,8 @@ public final class L1Translator
 		 * @param typeToTest
 		 *        The type to test the argument against.
 		 * @param argumentBeforeComparison
-		 *        The register holding the argument prior to the type test.
-		 *        The test produces new registers with narrowed types to hold
+		 *        The register holding the argument prior to the type test.  The
+		 *        test produces new register-reads with narrowed types to hold
 		 *        the stronger-typed argument.
 		 * @param branchLabelCounter
 		 *        An int unique to this dispatch tree, monotonically
@@ -996,6 +1004,100 @@ public final class L1Translator
 	}
 
 	/**
+	 * A helper that aggregates parameters for polymorphic dispatch inlining.
+	 */
+	public class CallSiteHelper
+	{
+		public final A_Bundle bundle;
+
+		public final String quotedBundleName;
+
+		public final MutableInt branchLabelCounter = new MutableInt(1);
+
+		public final A_Type expectedType;
+
+		public final A_Type superUnionType;
+
+		public final boolean isSuper;
+
+		public final L2BasicBlock onFallBackToSlowLookup;
+
+		public final L2BasicBlock onReificationWithCheck;
+
+		public final L2BasicBlock onReificationNoCheck;
+
+		public final L2BasicBlock afterCallWithCheck;
+
+		public final L2BasicBlock afterCallNoCheck;
+
+		/**
+		 * @param answerReg
+		 */
+		public void useAnswer (final L2ReadPointerOperand answerReg)
+		{
+			forceSlotRegister(stackp, answerReg);
+			final A_Type answerType = answerReg.type();
+			if (answerType.isBottom())
+			{
+				// The VM says we can't actually get here.
+				addUnreachableCode();
+			}
+			else
+			{
+				// Jump to the appropriate afterCall* exit.
+				addInstruction(
+					L2_JUMP.instance,
+					edgeTo(
+						answerType.isSubtypeOf(expectedType)
+							? afterCallNoCheck
+							: afterCallWithCheck));
+			}
+		}
+
+		/**
+		 * Create the helper, constructing basic blocks that may or may not be
+		 * ultimately generated, depending on whether they're reachable.
+		 *
+		 * @param bundle
+		 *        The {@link A_Bundle} being invoked.
+		 * @param superUnionType
+		 *        The type whose union with the arguments tuple type is used for
+		 *        lookup.  This is ⊥ for ordinary calls, and other types for
+		 *        super calls.
+		 * @param expectedType
+		 *        The expected result type that has been strengthened by {@link
+		 *        A_SemanticRestriction}s at this call site.  The VM does not
+		 *        always guarantee this type will be returned, but it inserts
+		 *        runtime checks in the case that it can't prove it.
+		 */
+		CallSiteHelper (
+			final A_Bundle bundle,
+			final A_Type superUnionType,
+			final A_Type expectedType)
+		{
+			this.bundle = bundle;
+			this.expectedType = expectedType;
+			this.superUnionType = superUnionType;
+			this.isSuper = !superUnionType.isBottom();
+			this.quotedBundleName = bundle.message().atomName().toString();
+			this.onFallBackToSlowLookup = createBasicBlock(
+				"fall back to slow lookup during " + quotedBundleName);
+			this.onReificationWithCheck = createBasicBlock(
+				"reify with check during " + quotedBundleName);
+			this.onReificationNoCheck = createBasicBlock(
+				"reify no check during " + quotedBundleName);
+			this.afterCallNoCheck = createBasicBlock(
+				isSuper
+					? "after super no-check call of " + quotedBundleName
+					: "after call no-check of " + quotedBundleName);
+			this.afterCallWithCheck = createBasicBlock(
+				isSuper
+					? "after super call with check of " + quotedBundleName
+					: "after call with check of " + quotedBundleName);
+		}
+	}
+
+	/**
 	 * Generate code to perform a method invocation.  If a superUnionType other
 	 * than {@link BottomTypeDescriptor#bottom() bottom} is supplied, produce a
 	 * super-directed multimethod invocation.
@@ -1015,6 +1117,8 @@ public final class L1Translator
 		final A_Type expectedType,
 		final A_Type superUnionType)
 	{
+		final CallSiteHelper callSiteHelper = new CallSiteHelper(
+			bundle, superUnionType, expectedType);
 		final A_Method method = bundle.bundleMethod();
 		translator.contingentValues =
 			translator.contingentValues.setWithElementCanDestroy(method, true);
@@ -1042,325 +1146,471 @@ public final class L1Translator
 		// At this point we've captured and popped the argument registers,
 		// nilled their new SSA versions, and pushed the expectedType.  That's
 		// the reifiable state of the continuation during the call.
-		final List<A_Definition> allPossible = new ArrayList<>();
-		final String quotedBundleName = bundle.message().atomName().toString();
-		for (final A_Definition definition : method.definitionsTuple())
+
+
+		// Determine which applicable definitions have already been expanded in
+		// the lookup tree.
+		final LookupTree<A_Definition, A_Tuple, Void> tree =
+			method.testingTree();
+		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
+
+		final LookupTreeTraverser<A_Definition, A_Tuple, Void, Boolean>
+			definitionCollector =
+				new LookupTreeTraverser<A_Definition, A_Tuple, Void, Boolean>(
+					MethodDescriptor.runtimeDispatcher, null, false)
 		{
-			final A_Type signature = definition.bodySignature();
-			if (signature.couldEverBeInvokedWith(argumentTypes)
-				&& superUnionType.isSubtypeOf(signature.argsTupleType()))
+			@Override
+			public Boolean visitPreInternalNode (
+				final int argumentIndex, final A_Type argumentType)
 			{
-				allPossible.add(definition);
-				if (allPossible.size() > maxPolymorphismToInlineDispatch)
+				// Ignored.
+				return Boolean.TRUE;
+			}
+
+			@Override
+			public void visitLeafNode (final A_Tuple lookupResult)
+			{
+				if (lookupResult.tupleSize() != 1)
 				{
-					// It has too many applicable implementations to be worth
-					// inlining all of them.
-					generateSlowPolymorphicCall(
-						bundle,
-						arguments,
-						expectedType,
-						superUnionType,
-						quotedBundleName);
 					return;
 				}
+				final A_Definition definition = lookupResult.tupleAt(1);
+				// Only inline successful lookups.
+				if (!definition.isMethodDefinition())
+				{
+					return;
+				}
+				final A_Type signature = definition.bodySignature();
+				if (signature.couldEverBeInvokedWith(argumentTypes)
+					&& superUnionType.isSubtypeOf(signature.argsTupleType()))
+				{
+					applicableExpandedLeaves.add(definition);
+				}
 			}
-		}
+		};
+		definitionCollector.traverseEntireTree(tree);
 
-		// NOTE: Don't use the method's testing tree.  It encodes information
-		// about the known types of arguments that may be too weak for our
-		// purposes.  It's still correct, but it may produce extra tests that
-		// this site's argumentTypes would eliminate.
-		final L2BasicBlock afterCall = createBasicBlock(
-			superUnionType.isBottom()
-				? "after call of " + quotedBundleName
-				: "after super call of " + quotedBundleName);
-		final LookupTree<A_Definition, A_Tuple, Void> tree =
-			MethodDescriptor.runtimeDispatcher.createRoot(
-				allPossible, argumentTypes, null);
-		final MutableInt branchLabelCounter = new MutableInt(1);
-		// If a reification exception happens while an L2_INVOKE is in progress,
-		// it will run the instructions at the off-ramp up to an
-		// L2_RETURN_FROM_REIFICATION_HANDLER – which will return the reified
-		// (but callerless) continuation.
-		//TODO MvG - Take into account any arguments constrained to be constants
-		//even though they're types.  At the moment, some calls still have to
-		//check for ⊥'s type (not ⊥), just to report ambiguity, even though the
-		//argument's type restriction says it can't actually be ⊥'s type.
-		tree.traverseEntireTree(
-			MethodDescriptor.runtimeDispatcher,
-			null,
-			// preInternalNode
-			(argumentIndexToTest, typeToTest) ->
+		if (applicableExpandedLeaves.size() <= maxPolymorphismToInlineDispatch)
+		{
+			// TODO MvG - Take into account any arguments constrained to be
+			// constants even though they're types.  At the moment, some calls
+			// still have to check for ⊥'s type (not ⊥), just to report
+			// ambiguity, even though the argument's type restriction says it
+			// can't actually be ⊥'s type.
+			final LookupTreeTraverser<
+					A_Definition, A_Tuple, Void, InternalNodeMemento>
+				traverser = new LookupTreeTraverser<
+						A_Definition, A_Tuple, Void, InternalNodeMemento>(
+					MethodDescriptor.runtimeDispatcher, null, false)
 			{
-				final InternalNodeMemento memento =
-					new InternalNodeMemento(
-						argumentIndexToTest,
-						typeToTest,
-						arguments.get(argumentIndexToTest - 1),
-						branchLabelCounter.value++);
-				// If no paths lead here, don't generate code.  This can happen
-				// when we short-circuit type-tests into unconditional jumps,
-				// due to the complexity of super calls.  We short-circuit code
-				// generation within this entire subtree by performing the same
-				// check in each callback.
-				if (!currentlyReachable())
+				@Override
+				public InternalNodeMemento visitPreInternalNode (
+					final int argumentIndex,
+					final A_Type argumentType)
 				{
-					startBlock(memento.passCheckBasicBlock);
-					return memento;
+					return preInternalVisit(
+						callSiteHelper, arguments, argumentIndex, argumentType);
 				}
-				final L2ReadPointerOperand arg =
-					arguments.get(argumentIndexToTest - 1);
-				final A_Type existingType = arg.type();
-				// Strengthen the test based on what's already known about the
-				// argument.  Eventually we can decide whether to strengthen
-				// based on the expected cost of the type check.
-				final A_Type intersection =
-					existingType.typeIntersection(typeToTest);
-				assert !intersection.isBottom()
-					: "Impossible condition should have been excluded";
-				// Tricky here.  We have the type we want to test for, and we
-				// have the argument for which we want to test the type, but we
-				// also have an element of the superUnionType to consider.  And
-				// that element might be a combination of restrictions and
-				// bottoms.  Deal with the easy, common cases first.
-				final A_Type superUnionElementType =
-					superUnionType.typeAtIndex(argumentIndexToTest);
-				final boolean superUnionElementTypeIsBottom =
-					superUnionElementType.isBottom();
-				final @Nullable A_BasicObject constantOrNull =
-					arg.constantOrNull();
-				if (constantOrNull != null && superUnionElementTypeIsBottom)
+
+				@Override
+				public void visitIntraInternalNode (
+					final InternalNodeMemento memento)
 				{
-					// The argument is a constant, and it isn't being
-					// super-cast, so test it now.
-					// Unconditionally jump to either the true or the false
-					// path.  Don't bother restricting the resulting argument
-					// type, since it's a known constant either way.
+					// Every leaf and unexpanded internal node ends with an edge
+					// to afterCall* and/or onReification* and/or the
+					// unreachableBlock.
+					assert !currentlyReachable();
+					startBlock(memento.failCheckBasicBlock);
+					final L2ReadPointerOperand argBeforeTest =
+						memento.argumentBeforeComparison;
+					final L2ReadPointerOperand argUponFailure =
+						new L2ReadPointerOperand(
+							argBeforeTest.register(),
+							argBeforeTest.restriction().minus(
+								restriction(memento.typeToTest, null)));
+					arguments.set(
+						memento.argumentIndexToTest - 1, argUponFailure);
+				}
+
+				@Override
+				public void visitPostInternalNode (
+					final InternalNodeMemento memento)
+				{
+					// Restore the argument type restriction to what it was
+					// prior to this node's type test.
+					arguments.set(
+						memento.argumentIndexToTest - 1,
+						memento.argumentBeforeComparison);
+					// The leaves already end with jumps.
+					assert !currentlyReachable();
+				}
+
+				@Override
+				public void visitUnexpanded ()
+				{
+					// This part of the lookup tree wasn't expanded yet, so fall
+					// back to the slow dispatch.
 					addInstruction(
 						L2_JUMP.instance,
-						edgeTo(
-							constantOrNull.isInstanceOf(intersection)
-								? memento.passCheckBasicBlock
-								: memento.failCheckBasicBlock));
+						edgeTo(callSiteHelper.onFallBackToSlowLookup));
 				}
-				else if (existingType.isSubtypeOf(superUnionElementType))
+
+				@Override
+				public void visitLeafNode (final A_Tuple lookupResult)
 				{
-					// It's a pure supercast of this argument, not a mix of some
-					// parts being supercast and others not.  Do the test once,
-					// right now, only looking at the super-union type.
-					final boolean passed =
-						superUnionElementType.isSubtypeOf(intersection);
-					addInstruction(
-						L2_JUMP.instance,
-						edgeTo(
-							passed
-								? memento.passCheckBasicBlock
-								: memento.failCheckBasicBlock));
+					leafVisit(
+						expectedType, arguments, callSiteHelper, lookupResult);
+					assert !currentlyReachable();
 				}
-				else if (superUnionElementTypeIsBottom
-					&& intersection.isEnumeration()
-					&& !intersection.isInstanceMeta()
-					&& intersection.instanceCount().extractInt() <=
-						maxExpandedEqualityChecks)
+			};
+			traverser.traverseEntireTree(tree);
+		}
+		else
+		{
+			// Always fall back.
+			addInstruction(
+				L2_JUMP.instance,
+				edgeTo(callSiteHelper.onFallBackToSlowLookup));
+		}
+		assert !currentlyReachable();
+
+		// TODO MvG - I'm not sure this calculation is needed, since the phi
+		// for the result types should already produce a type union.
+		A_Type tempUnion = bottom();
+		for (final A_Definition definition :
+			method.definitionsAtOrBelow(argumentTypes))
+		{
+			if (definition.isMethodDefinition())
+			{
+				final A_Function function = definition.bodyBlock();
+				final A_RawFunction rawFunction = function.code();
+				final @Nullable Primitive primitive = rawFunction.primitive();
+				final A_Type returnType;
+				if (primitive != null)
 				{
-					// It doesn't contain a supercast, and the type is a small
-					// non-meta enumeration.  Use equality checks rather than
-					// the more general type checks.
-					//
-					// TODO MvG - Eventually we can do this in such a way that a
-					// phi function gets built at the success point.  Later, if
-					// a user of the phi-merged argument indicates it would
-					// benefit from knowing statically which of the values it
-					// was, it can trigger code splitting.
-					final Iterator<AvailObject> iterator =
-						intersection.instances().iterator();
-					while (iterator.hasNext())
+					final A_Type signatureTupleType =
+						rawFunction.functionType().argsTupleType();
+					final List<A_Type> intersectedArgumentTypes =
+						new ArrayList<>();
+					for (int i = 0; i < argumentTypes.size(); i++)
 					{
-						final A_BasicObject instance = iterator.next();
-						final boolean last = !iterator.hasNext();
-						final L2BasicBlock nextCheckOrFail =
-							last
-								? memento.failCheckBasicBlock
-								: createBasicBlock(
-									"test next case of enumeration");
-						final L2PcOperand passEdge = edgeTo(
-							memento.passCheckBasicBlock);
-						final L2PcOperand failEdge = edgeTo(nextCheckOrFail);
-						generateJumpIfEqualsConstant(
-							arg, instance, passEdge, failEdge);
-						if (!last)
-						{
-							startBlock(nextCheckOrFail);
-						}
+						intersectedArgumentTypes.add(
+							argumentTypes.get(i).typeIntersection(
+								signatureTupleType.typeAtIndex(i + 1)));
 					}
-				}
-				else if (superUnionElementTypeIsBottom)
-				{
-					// Use the argument's type unaltered.  In fact, just check
-					// if the argument is an instance of the type.
-					addInstruction(
-						L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-						arg,
-						new L2ConstantOperand(intersection),
-						edgeTo(memento.passCheckBasicBlock),
-						edgeTo(memento.failCheckBasicBlock));
+					returnType = primitive.returnTypeGuaranteedByVM(
+						rawFunction, intersectedArgumentTypes);
 				}
 				else
 				{
-					// This argument dispatch type is a mixture of supercasts
-					// and non-supercasts.  Do it the slow way with a type
-					// union.  Technically, the superUnionElementType's
-					// recursive tuple structure mimics the call site, so it
-					// must have a fixed, finite structure corresponding with
-					// occurrences of supercasts syntactically.  Thus, in theory
-					// we could analyze the superUnionElementType and generate a
-					// more complex collection of branches – but this is already
-					// a pretty rare case.
-					final A_Type argMeta = instanceMeta(arg.type());
-					final L2WritePointerOperand argTypeWrite =
-						newObjectRegisterWriter(argMeta, null);
-					addInstruction(
-						L2_GET_TYPE.instance, arg, argTypeWrite);
-					final L2ReadPointerOperand superUnionReg =
-						constantRegister(superUnionElementType);
-					final L2WritePointerOperand unionReg =
-						newObjectRegisterWriter(
-							argMeta.typeUnion(superUnionReg.type()), null);
-					addInstruction(
-						L2_TYPE_UNION.instance,
-						argTypeWrite.read(),
-						superUnionReg,
-						unionReg);
-					addInstruction(
-						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
-						unionReg.read(),
-						new L2ConstantOperand(intersection),
-						edgeTo(memento.passCheckBasicBlock),
-						edgeTo(memento.failCheckBasicBlock));
+					returnType = rawFunction.functionType().returnType();
 				}
+				tempUnion = tempUnion.typeUnion(returnType);
+			}
+		}
+		final A_Type unionOfPossibleResults = tempUnion;
 
-				// Prepare to generate the pass block.  In particular, replace
-				// the current argument with a pass-strengthened reader.  It'll
-				// be replaced with a fail-strengthened reader during the
-				// intraInternalNode, then replaced with whatever it was upon
-				// entry to this subtree during the postInternalNode.
-				final TypeRestriction tested = restriction(intersection, null);
-				final L2ReadPointerOperand passedTestArg =
-					new L2ReadPointerOperand(
-						arg.register(),
-						arg.restriction().intersection(tested));
-				arguments.set(argumentIndexToTest - 1, passedTestArg);
-				startBlock(memento.passCheckBasicBlock);
-				return memento;
-			},
-			// intraInternalNode
-			memento ->
+		// Now generate the reachable exit clauses for:
+		//    1. default lookup,
+		//    2. reification leading to return check,
+		//    3. reification with no check,
+		//    4. after call with return check,
+		//    5. after call with no check.
+		// Clause {2.3} entry expects the value in interpreter.latestResult.
+		// Clause {4,5} entry expects the value in top-of-stack.
+		// There are edges between
+		//    1 -> {<2.4>, <3,5>} depending on type guarantees,
+		//    2 -> {4}
+		//    3 -> {5}
+		//    4 -> {5}.
+		// Clauses with no actual predecessors are not generated.
+
+		// #1: Default lookup.
+		startBlock(callSiteHelper.onFallBackToSlowLookup);
+		if (currentlyReachable())
+		{
+			generateSlowPolymorphicCall(
+				callSiteHelper, arguments, unionOfPossibleResults);
+		}
+
+		final Continuation2NotNull<L2BasicBlock, L2BasicBlock>
+			generateReificationClause = (from, to) ->
 			{
+				startBlock(from);
 				if (currentlyReachable())
 				{
-					addInstruction(
-						L2_JUMP.instance,
-						edgeTo(afterCall));
+					reify(
+						constantRegister(nil),
+						newContinuationReg ->
+							addInstruction(
+								L2_RETURN_FROM_REIFICATION_HANDLER.instance,
+								new L2ReadVectorOperand(
+									singletonList(newContinuationReg))),
+						TO_RETURN_INTO);
+					// Capture the value being returned into the on-ramp.
+					forceSlotRegister(
+						stackp, getLatestReturnValue(unionOfPossibleResults));
+					addInstruction(L2_JUMP.instance, edgeTo(to));
 				}
-				final L2ReadPointerOperand argBeforeTest =
-					memento.argumentBeforeComparison;
-				final TypeRestriction tested =
-					restriction(memento.typeToTest, null);
-				final TypeRestriction failed =
-					argBeforeTest.restriction().minus(tested);
-				final L2ReadPointerOperand argUponFailure =
-					new L2ReadPointerOperand(argBeforeTest.register(),failed);
-				arguments.set(memento.argumentIndexToTest - 1, argUponFailure);
-				startBlock(memento.failCheckBasicBlock);
-			},
-			// postInternalNode
-			memento ->
+			};
+
+		// #2: Reification with return check.
+		generateReificationClause.value(
+			callSiteHelper.onReificationWithCheck,
+			callSiteHelper.afterCallWithCheck);
+
+		// #3: Reification without return check.
+		generateReificationClause.value(
+			callSiteHelper.onReificationNoCheck,
+			callSiteHelper.afterCallNoCheck);
+
+		// #4: After call with return check.
+		startBlock(callSiteHelper.afterCallWithCheck);
+		if (currentlyReachable())
+		{
+			generateReturnTypeCheck(expectedType);
+			addInstruction(
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
+		}
+
+		// #5: After call without return check.
+		startBlock(callSiteHelper.afterCallNoCheck);
+
+		// If it's possible to return a valid value from the call, this will be
+		// reachable.
+	}
+
+	/**
+	 * A leaf lookup tree was found at this position in the inlined dispatch.
+	 * If it's a singular method definition, embed a call to it, otherwise jump
+	 * to the fallback lookup code to reproduce and handle lookup errors.
+	 *
+	 * @param expectedType
+	 * @param arguments
+	 * @param callSiteHelper
+	 * @param solutions
+	 */
+	@InnerAccess void leafVisit (
+		final A_Type expectedType,
+		final List<L2ReadPointerOperand> arguments,
+		final CallSiteHelper callSiteHelper,
+		final A_Tuple solutions)
+	{
+		if (!currentlyReachable())
+		{
+			return;
+		}
+		if (solutions.tupleSize() == 1)
+		{
+			final A_Definition solution = solutions.tupleAt(1);
+			if (solution.isMethodDefinition())
 			{
-				// Restore the argument prior to encountering this internal
-				// node.
-				arguments.set(
-					memento.argumentIndexToTest - 1,
-					memento.argumentBeforeComparison);
-				// The leaves already jump to afterCall (or unreachableBlock).
-			},
-			// forEachLeafNode
-			solutions ->
+				generateGeneralFunctionInvocation(
+					constantRegister(solution.bodyBlock()),
+					arguments,
+					expectedType,
+					callSiteHelper);
+				assert !currentlyReachable();
+				return;
+			}
+		}
+		// Failed dispatches basically never happen, so do the fallback lookup,
+		// which will do its own problem reporting.
+		addInstruction(
+			L2_JUMP.instance,
+			edgeTo(callSiteHelper.onFallBackToSlowLookup));
+	}
+
+	/**
+	 * An expanded internal node has been reached.  Emit a type test to
+	 * determine which way to jump.  Answer a new {@link InternalNodeMemento}
+	 * to pass along to other visitor operations to coordinate branch targets.
+	 *
+	 * @param callSiteHelper
+	 * @param arguments
+	 * @param argumentIndexToTest
+	 * @param typeToTest
+	 * @return
+	 */
+	@InnerAccess InternalNodeMemento preInternalVisit (
+		final CallSiteHelper callSiteHelper,
+		final List<L2ReadPointerOperand> arguments,
+		final int argumentIndexToTest,
+		final A_Type typeToTest)
+	{
+		final L2ReadPointerOperand arg = arguments.get(argumentIndexToTest - 1);
+		final InternalNodeMemento memento = preInternalVisitForJustTheJumps(
+			callSiteHelper, arguments, argumentIndexToTest, typeToTest);
+
+		// Prepare to generate the pass block, if reachable.
+		startBlock(memento.passCheckBasicBlock);
+		if (!currentlyReachable())
+		{
+			return memento;
+		}
+		// Replace the current argument with a pass-strengthened reader.  It'll
+		// be replaced with a fail-strengthened reader during the
+		// intraInternalNode, then replaced with whatever it was upon entry to
+		// this subtree during the postInternalNode.
+		final L2ReadPointerOperand passedTestArg =
+			new L2ReadPointerOperand(
+				arg.register(),
+				arg.restriction().intersection(restriction(typeToTest, null)));
+		arguments.set(argumentIndexToTest - 1, passedTestArg);
+		return memento;
+	}
+
+	/**
+	 * An expanded internal node has been reached.  Emit a type test to
+	 * determine which way to jump.  Answer a new {@link InternalNodeMemento}
+	 * to pass along to other visitor operations to coordinate branch targets.
+	 * Don't strengthen the tested argument type yet.
+	 *
+	 * @param callSiteHelper
+	 * @param arguments
+	 * @param argumentIndexToTest
+	 * @param typeToTest
+	 * @return
+	 */
+	private InternalNodeMemento preInternalVisitForJustTheJumps (
+		final CallSiteHelper callSiteHelper,
+		final List<L2ReadPointerOperand> arguments,
+		final int argumentIndexToTest,
+		final A_Type typeToTest)
+	{
+		final L2ReadPointerOperand arg = arguments.get(argumentIndexToTest - 1);
+		final InternalNodeMemento memento =
+			new InternalNodeMemento(
+				argumentIndexToTest,
+				typeToTest,
+				arg,
+				callSiteHelper.branchLabelCounter.value++);
+		if (!currentlyReachable())
+		{
+			// If no paths lead here, don't generate code.  This can happen when
+			// we short-circuit type-tests into unconditional jumps, due to the
+			// complexity of super calls.  We short-circuit code generation
+			// within this entire subtree by performing the same check in each
+			// callback.
+			return memento;
+		}
+
+		final A_Type argType = arg.type();
+		final A_Type intersection = argType.typeIntersection(typeToTest);
+		if (intersection.isBottom())
+		{
+			// It will always fail the test.
+			addInstruction(
+				L2_JUMP.instance, edgeTo(memento.failCheckBasicBlock));
+			return memento;
+		}
+
+		// Tricky here.  We have the type we want to test for, and we have the
+		// argument for which we want to test the type, but we also have an
+		// element of the superUnionType to consider.  And that element might be
+		// a combination of restrictions and bottoms.  Deal with the easy,
+		// common cases first.
+		final A_Type superUnionElementType =
+			callSiteHelper.superUnionType.typeAtIndex(argumentIndexToTest);
+
+		if (superUnionElementType.isBottom())
+		{
+			// It's not a super call, or at least this test isn't related to any
+			// parts that are supercast upward.
+			if (argType.isSubtypeOf(typeToTest))
 			{
-				if (!currentlyReachable())
+				// It will always pass the test.
+				addInstruction(
+					L2_JUMP.instance, edgeTo(memento.passCheckBasicBlock));
+				return memento;
+			}
+
+			// A runtime test is needed.  Try to special-case small enumeration.
+			if (intersection.isEnumeration()
+				&& !intersection.isInstanceMeta()
+				&& intersection.instanceCount().extractInt()
+					<= maxExpandedEqualityChecks)
+			{
+				// The type is a small non-meta enumeration.  Use equality
+				// checks rather than the more general type checks.
+				final Iterator<AvailObject> iterator =
+					intersection.instances().iterator();
+				while (iterator.hasNext())
 				{
-					return;
-				}
-				if (solutions.tupleSize() == 1)
-				{
-					final A_Definition solution = solutions.tupleAt(1);
-					if (solution.isInstanceOf(METHOD_DEFINITION.o()))
+					final A_BasicObject instance = iterator.next();
+					final boolean last = !iterator.hasNext();
+					final L2BasicBlock nextCheckOrFail =
+						last
+							? memento.failCheckBasicBlock
+							: createBasicBlock(
+								"test next case of enumeration");
+					generateJumpIfEqualsConstant(
+						arg,
+						instance,
+						edgeTo(memento.passCheckBasicBlock),
+						edgeTo(nextCheckOrFail));
+					if (!last)
 					{
-						final L2ReadPointerOperand resultReg =
-							generateGeneralFunctionInvocation(
-								constantRegister(solution.bodyBlock()),
-								arguments,
-								expectedType,
-								solution.bodySignature().returnType()
-									.isSubtypeOf(expectedType),
-								quotedBundleName);
-						// Propagate the type into the write slot, so that code
-						// downstream can determine if it's worth splitting the
-						// control flow graph to keep the stronger type in some
-						// of the branches.
-						moveRegister(
-							resultReg,
-							writeSlot(
-								stackp,
-								resultReg.type(),
-								resultReg.constantOrNull()));
-						addInstruction(
-							L2_JUMP.instance,
-							edgeTo(afterCall));
-						return;
+						startBlock(nextCheckOrFail);
 					}
 				}
-				// Collect the arguments into a tuple and invoke the handler
-				// for failed method lookups.
-				final A_Set solutionsSet = solutions.asSet();
-				final L2WritePointerOperand errorCodeWrite =
-					newObjectRegisterWriter(naturalNumbers(), null);
-				addInstruction(
-					L2_DIAGNOSE_LOOKUP_FAILURE.instance,
-					new L2ConstantOperand(solutionsSet),
-					errorCodeWrite);
-				final L2WritePointerOperand invalidSendReg =
-					newObjectRegisterWriter(mostGeneralFunctionType(), null);
-				addInstruction(
-					L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
-					invalidSendReg);
-				// Make the method itself accessible to the code.
-				final L2ReadPointerOperand methodReg = constantRegister(method);
-				// Collect the arguments into a tuple.
-				final L2WritePointerOperand argumentsTupleWrite =
-					newObjectRegisterWriter(mostGeneralTupleType(), null);
-				addInstruction(
-					L2_CREATE_TUPLE.instance,
-					new L2ReadVectorOperand(arguments),
-					argumentsTupleWrite);
-				// Ignore the result register, since the function can't return.
-				generateGeneralFunctionInvocation(
-					invalidSendReg.read(),
-					asList(
-						errorCodeWrite.read(),
-						methodReg,
-						argumentsTupleWrite.read()),
-					bottom(),
-					true,
-					"failed lookup of " + quotedBundleName);
-				addUnreachableCode();
-			});
+				return memento;
+			}
+			// A runtime test is needed, and it's not a small enumeration.
+			addInstruction(
+				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+				arg,
+				new L2ConstantOperand(typeToTest),
+				edgeTo(memento.passCheckBasicBlock),
+				edgeTo(memento.failCheckBasicBlock));
+			return memento;
+		}
 
-		// This is the merge point from each of the polymorphic invocations.
-		// They each have their own dedicated off-ramps and on-ramps, since they
-		// may have differing requirements about whether they need their return
-		// values checked, and whether reification can even happen (e.g., for
-		// contextually infallible, inlineable primitives, it can't).
-		startBlock(afterCall);
+		// The argument is subject to a super-cast.
+		if (argType.isSubtypeOf(superUnionElementType))
+		{
+			// The argument's actual type will always be a subtype of the
+			// superUnion type, so the dispatch will always be decided by only
+			// the superUnion type, which does not vary at runtime.  Decide
+			// the branch direction right now.
+			addInstruction(
+				L2_JUMP.instance,
+				edgeTo(
+					superUnionElementType.isSubtypeOf(typeToTest)
+						? memento.passCheckBasicBlock
+						: memento.failCheckBasicBlock));
+			return memento;
+		}
+
+		// This is the most complex case, where the argument dispatch type is a
+		// mixture of supercasts and non-supercasts.  Do it the slow way with a
+		// type union.  Technically, the superUnionElementType's recursive tuple
+		// structure mimics the call site, so it must have a fixed, finite
+		// structure corresponding with occurrences of supercasts syntactically.
+		// Thus, in theory we could analyze the superUnionElementType and
+		// generate a more complex collection of branches – but this is already
+		// a pretty rare case.
+		final A_Type argMeta = instanceMeta(argType);
+		final L2WritePointerOperand argTypeWrite =
+			newObjectRegisterWriter(argMeta, null);
+		addInstruction(L2_GET_TYPE.instance, arg, argTypeWrite);
+		final L2ReadPointerOperand superUnionReg =
+			constantRegister(superUnionElementType);
+		final L2WritePointerOperand unionReg =
+			newObjectRegisterWriter(
+				argMeta.typeUnion(superUnionReg.type()), null);
+		addInstruction(
+			L2_TYPE_UNION.instance,
+			argTypeWrite.read(),
+			superUnionReg,
+			unionReg);
+		addInstruction(
+			L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+			unionReg.read(),
+			new L2ConstantOperand(intersection),
+			edgeTo(memento.passCheckBasicBlock),
+			edgeTo(memento.failCheckBasicBlock));
+		return memento;
 	}
 
 	/**
@@ -1498,14 +1748,16 @@ public final class L1Translator
 
 	/**
 	 * Generate code to invoke a function in a register with arguments in
-	 * registers.  In the usual case that reification is avoided, the result of
-	 * the call will be
+	 * registers.  Also branch to the appropriate reification and return clauses
+	 * depending on whether the returned value is guaranteed to satisfy the
+	 * expectedType or not.
 	 *
-	 * In the event of reification, capture the specified array
-	 * of slot registers into a continuation.  On return into the reified
-	 * continuation, explode the slots into registers, then capture the returned
-	 * value in a new register answered by this method.  On normal return, just
-	 * capture the returned value in the answered register.
+	 * <p>The code generation position is never {@link #currentlyReachable()}
+	 * after this (Java) generate method runs.</p>
+	 *
+	 * <p>The final output from the entire polymorphic call will always be fully
+	 * strengthened to the intersection of the VM-guaranteed type and the
+	 * expectedType</p>.
 	 *
 	 * @param functionToCallReg
 	 *        The {@link L2ReadPointerOperand} containing the function to
@@ -1513,83 +1765,108 @@ public final class L1Translator
 	 * @param arguments
 	 *        The {@link List} of {@link L2ReadPointerOperand}s that supply
 	 *        arguments to the function.
-	 * @param expectedType
-	 *        The type of value this call must produce.  This can be stronger
-	 *        than the function's declared return type, but that requires a
-	 *        run-time check upon return.
-	 * @param skipReturnCheck
-	 *        Whether to elide the code sequence that checks whether the
-	 *        returned type agrees with the expected return type, which may be
-	 *        stronger than the function's declared return type due to semantic
-	 *        restrictions.
-	 * @param invocationName
-	 *        A {@link String} describing the purpose of this call.
-	 * @return The {@link L2ReadPointerOperand} holding the result of the call.
+	 * @param givenGuaranteedResultType
+	 *        The type guaranteed by the VM to be returned by the call.
+	 * @param callSiteHelper
+	 *        Information about the current call site.
 	 */
-	public L2ReadPointerOperand generateGeneralFunctionInvocation (
+	public void generateGeneralFunctionInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
-		final A_Type expectedType,
-		final boolean skipReturnCheck,
-		final String invocationName)
+		final A_Type givenGuaranteedResultType,
+		final CallSiteHelper callSiteHelper)
 	{
-		if (functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType()))
+		assert functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType());
+
+		// Sanity check the number of arguments against the function.  The
+		// function type's acceptable arguments tuple type may be bottom,
+		// indicating the size is not known.  It may also be a singular
+		// integer range (e.g., [3..3]), indicating exactly how many
+		// arguments must be supplied.  If it's a variable size, then by
+		// the argument contravariance rules, it would require each (not
+		// just any) of those sizes on every call, which is a contradiction,
+		// although it's allowed as a denormalized uninstantiable type.  For
+		// now just treat a spread of sizes like bottom (i.e., the count is
+		// not known).
+		final int argumentCount = arguments.size();
+		final A_Type sizeRange =
+			functionToCallReg.type().argsTupleType().sizeRange();
+		assert sizeRange.isBottom()
+			|| !sizeRange.lowerBound().equals(sizeRange.upperBound())
+			|| sizeRange.rangeIncludesInt(argumentCount);
+
+		A_Type guaranteedResultType = givenGuaranteedResultType;
+		guaranteedResultType = guaranteedResultType.typeIntersection(
+			functionToCallReg.type().returnType());
+
+		final @Nullable A_RawFunction rawFunction =
+			determineRawFunction(functionToCallReg);
+		if (rawFunction != null)
 		{
-			// Sanity check the number of arguments against the function.  The
-			// function type's acceptable arguments tuple type may be bottom,
-			// indicating the size is not known.  It may also be a singular
-			// integer range (e.g., [3..3]), indicating exactly how many
-			// arguments must be supplied.  If it's a variable size, then by
-			// the argument contravariance rules, it would require each (not
-			// just any) of those sizes on every call, which is a contradiction,
-			// although it's allowed as a denormalized uninstantiable type.  For
-			// now just treat a spread of sizes like bottom (i.e., the count is
-			// not known).
-			final A_Type sizeRange =
-				functionToCallReg.type().argsTupleType().sizeRange();
-			assert sizeRange.isBottom()
-				|| !sizeRange.lowerBound().equals(sizeRange.upperBound())
-				|| sizeRange.rangeIncludesInt(arguments.size());
-		}
-		final @Nullable Primitive primitiveOrNull =
-			determinePrimitive(functionToCallReg);
-		final @Nullable L2ReadPointerOperand specialOutputReg =
-			tryToGenerateSpecialInvocation(
-				functionToCallReg, primitiveOrNull, arguments);
-		if (specialOutputReg != null)
-		{
-			// The call was to a specific primitive function that generated
-			// optimized code that left the primitive result in resultReg.
-			if (skipReturnCheck
-				|| specialOutputReg.type().isSubtypeOf(expectedType))
+			final @Nullable Primitive primitive = rawFunction.primitive();
+			if (primitive != null)
 			{
-				if (specialOutputReg.type().isBottom())
+				final boolean generated = tryToGenerateSpecialInvocation(
+					functionToCallReg,
+					rawFunction,
+					primitive,
+					arguments,
+					callSiteHelper);
+				if (generated)
 				{
-					addUnreachableCode();
+					if (currentlyReachable())
+					{
+						// It didn't do the jump to a suitable exit, so do that
+						// now.
+						final A_Type signatureTupleType =
+							rawFunction.functionType().argsTupleType();
+						final List<A_Type> intersectedArgumentTypes =
+							new ArrayList<>(argumentCount);
+						for (int i = 0; i < argumentCount; i++)
+						{
+							intersectedArgumentTypes.add(
+								arguments.get(i).type().typeIntersection(
+									signatureTupleType.typeAtIndex(i + 1)));
+						}
+						final A_Type primitiveGuarantee =
+							primitive.returnTypeGuaranteedByVM(
+								rawFunction, intersectedArgumentTypes);
+						guaranteedResultType =
+							guaranteedResultType.typeIntersection(
+								primitiveGuarantee);
+
+						forceSlotRegister(
+							stackp,
+							new L2ReadPointerOperand(
+								readSlot(stackp).register(),
+								restriction(guaranteedResultType, null)));
+						callSiteHelper.useAnswer(readSlot(stackp));
+					}
+					return;
 				}
-				return specialOutputReg;
 			}
-			return generateReturnTypeCheck(specialOutputReg, expectedType);
 		}
 
 		// The function isn't known to be a particular primitive function, or
-		// the primitive wasn't able to special code generation for it, so just
+		// the primitive wasn't able to generate special code for it, so just
 		// invoke it like a non-primitive.
-		final L2BasicBlock onReturn =
-			createBasicBlock("returned from call of " + invocationName);
-		final L2BasicBlock onReification =
-			createBasicBlock("reification during call of " + invocationName);
-		final @Nullable A_BasicObject constantFunction =
-			functionToCallReg.constantOrNull();
+
+		final boolean skipCheck =
+			guaranteedResultType.isSubtypeOf(callSiteHelper.expectedType);
+		final @Nullable A_Function constantFunction =
+			(A_Function) functionToCallReg.constantOrNull();
+		final L2BasicBlock successBlock =
+			createBasicBlock("successful invocation");
 		if (constantFunction != null)
 		{
 			addInstruction(
 				L2_INVOKE_CONSTANT_FUNCTION.instance,
 				new L2ConstantOperand(constantFunction),
 				new L2ReadVectorOperand(arguments),
-				new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-				new L2PcOperand(onReturn, currentManifest),
-				new L2PcOperand(onReification, currentManifest));
+				edgeTo(successBlock),
+				edgeTo(skipCheck
+					? callSiteHelper.onReificationNoCheck
+					: callSiteHelper.onReificationWithCheck));
 		}
 		else
 		{
@@ -1597,90 +1874,51 @@ public final class L1Translator
 				L2_INVOKE.instance,
 				functionToCallReg,
 				new L2ReadVectorOperand(arguments),
-				new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-				new L2PcOperand(onReturn, currentManifest),
-				new L2PcOperand(onReification, currentManifest));
+				edgeTo(successBlock),
+				edgeTo(skipCheck
+					? callSiteHelper.onReificationNoCheck
+					: callSiteHelper.onReificationWithCheck));
 		}
-
-		// Reification has been requested while the call is in progress.
-		startBlock(onReification);
-		reify(
-			getCurrentFunction(),
-			constantRegister(nil),
-			newContinuationReg ->
-				addInstruction(
-					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
-					new L2ReadVectorOperand(singletonList(newContinuationReg))),
-			onReturn,
-			TO_RETURN_INTO);
-		// This is reached either (1) after a normal return from the invoke, or
-		// (2) after reification, a return into the reified continuation, and
-		// the subsequent explosion of the continuation into slot registers.
-
-		final A_Type functionType = functionToCallReg.type();
-		final A_Type functionReturnType =
-			functionType.isSubtypeOf(mostGeneralFunctionType())
-				? functionType.returnType()
-				: TOP.o();
-		final L2ReadPointerOperand resultReg =
-			getLatestReturnValue(functionReturnType);
-		if (skipReturnCheck || resultReg.type().isSubtypeOf(expectedType))
-		{
-			if (resultReg.type().isBottom())
-			{
-				addUnreachableCode();
-			}
-			return resultReg;
-		}
-		if (primitiveOrNull != null)
-		{
-			final List<A_Type> argTypes = new ArrayList<>(arguments.size());
-			for (final L2ReadPointerOperand arg : arguments)
-			{
-				argTypes.add(arg.type());
-			}
-			final A_Type guaranteedType =
-				primitiveOrNull.returnTypeGuaranteedByVM(argTypes);
-			if (guaranteedType.isSubtypeOf(expectedType))
-			{
-				// Elide the return check, since the primitive guaranteed it.
-				// Do a move to strengthen the type.
-				final L2WritePointerOperand strongerResultWrite =
-					newObjectRegisterWriter(guaranteedType, null);
-				moveRegister(resultReg, strongerResultWrite);
-				return strongerResultWrite.read();
-			}
-		}
-		return generateReturnTypeCheck(resultReg, expectedType);
+		startBlock(successBlock);
+		addInstruction(
+			L2_GET_LATEST_RETURN_VALUE.instance,
+			writeSlot(stackp, guaranteedResultType, null));
+		addInstruction(
+			L2_JUMP.instance,
+			edgeTo(skipCheck
+				? callSiteHelper.afterCallNoCheck
+				: callSiteHelper.afterCallWithCheck));
+		assert !currentlyReachable();
 	}
 
 	/**
-	 * Generate code to perform a type check of the valueReg's content against
-	 * the expectedType (an {@link A_Type}).  If the check fails, invoke the
+	 * Generate code to perform a type check of the top-of-stack register
+	 * against the given expectedType (an {@link A_Type} that has been
+	 * strengthened by semantic restrictions).  If the check fails, invoke the
 	 * bottom-valued function accessed via {@link
-	 * #getInvalidResultFunctionRegister()}, never to return (but synthesizing
-	 * a proper continuation in the event of reification while it's running).
-	 * If the check passes, the value will be written to the {@link
-	 * L2ReadPointerOperand} answered by this method.
+	 * #getInvalidResultFunctionRegister()}, never to return – but synthesizing
+	 * a proper continuation in the event of reification while it's running.  If
+	 * the check passes, the value will be strengthened in the top-of-stack
+	 * register.
 	 *
-	 * @param valueReg
-	 *        The {@link L2ReadPointerOperand} containing the value to check.
+	 * <p>It's incorrect to call this if the register's type is already strong
+	 * enough to satisfy the expectedType.</p>
+	 *
 	 * @param expectedType
 	 *        The {@link A_Type} to check the value against.
-	 * @return The {@link L2ReadPointerOperand} containing the checked value,
-	 *         having a static type at least as strong as expectedType.
 	 */
-	private L2ReadPointerOperand generateReturnTypeCheck (
-		final L2ReadPointerOperand valueReg,
-		final A_Type expectedType)
+	private void generateReturnTypeCheck (final A_Type expectedType)
 	{
+		final L2ReadPointerOperand valueReg = readSlot(stackp);
 		if (valueReg.type().isBottom())
 		{
 			// Bottom has no instances, so we can't get here.  It would be wrong
-			// to do this based on the expectedTYpe being bottom, since that's
+			// to do this based on the expectedType being bottom, since that's
 			// only an erroneous semantic restriction, not a VM problem.
+			// NOTE that this test terminates a mutual recursion between this
+			// method and generateGeneralFunctionInvocation().
 			addUnreachableCode();
-			return valueReg;
+			return;
 		}
 
 		// Check the return value against the expectedType.
@@ -1699,6 +1937,8 @@ public final class L1Translator
 		}
 		else
 		{
+			assert !valueReg.type().isSubtypeOf(expectedType)
+				: "Attempting to create unnecessary type check";
 			addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				valueReg,
@@ -1710,7 +1950,7 @@ public final class L1Translator
 				new L2PcOperand(
 					failedCheck,
 					currentManifest,
-					valueReg.restrictedTo(TOP.o(), null)));
+					valueReg.restrictedWithoutType(expectedType)));
 		}
 
 		// The type check failed, so report it.
@@ -1734,32 +1974,43 @@ public final class L1Translator
 		// it should always succeed for this freshly created variable.
 		startBlock(wroteVariable);
 		// Recurse to generate the call to the failure handler.  Since it's
-		// bottom-valued, and can therefore skip any the result check, the
-		// recursive call won't exceed two levels deep.
-		generateGeneralFunctionInvocation(
+		// bottom-valued, and can therefore skip the result check, the recursive
+		// call won't exceed two levels deep.
+		final L2BasicBlock onReificationInHandler = new L2BasicBlock(
+			"reification in failed return check handler");
+		addInstruction(
+			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
-			asList(
-				getReturningFunctionRegister(),
-				constantRegister(expectedType),
-				variableToHoldValueWrite.read()),
-			bottom(),
-			true,
-			"failed return check");
+			new L2ReadVectorOperand(
+				asList(
+					getReturningFunctionRegister(),
+					constantRegister(expectedType),
+					variableToHoldValueWrite.read())),
+			unreachablePcOperand(),
+			edgeTo(onReificationInHandler));
+
+		// Reification has been requested while the call is in progress.
+		startBlock(onReificationInHandler);
+		reify(
+			constantRegister(nil),
+			newContinuationReg ->
+				addInstruction(
+					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
+					new L2ReadVectorOperand(singletonList(newContinuationReg))),
+			TO_RETURN_INTO);
 		addUnreachableCode();
 
-		if (passedCheck.currentlyReachable())
+		// Generate the much more likely passed-check flow.
+		startBlock(passedCheck);
+		if (currentlyReachable())
 		{
-			startBlock(passedCheck);
-			final L2WritePointerOperand strongerResultWrite =
-				newObjectRegisterWriter(
-					expectedType.typeIntersection(valueReg.type()),
-					null);
-			moveRegister(valueReg, strongerResultWrite);
-			return strongerResultWrite.read();
+			forceSlotRegister(
+				stackp,
+				new L2ReadPointerOperand(
+					valueReg.register(),
+					valueReg.restriction().intersection(
+						restriction(expectedType, null))));
 		}
-		// It's not reachable, but we still need to return a register.  Create
-		// one uninitialized and return it.
-		return newObjectRegisterWriter(bottom(), null).read();
 	}
 
 	/**
@@ -1768,128 +2019,149 @@ public final class L1Translator
 	 * to contain a constant function (a common case) which is an inlineable
 	 * primitive, and if so, delegate this opportunity to the primitive.
 	 *
-	 * <p>We must either generate no code and answer {@code null}, or generate
-	 * code that has the same effect as having run the function in the register
-	 * without fear of reification or abnormal control flow.  L2SemanticConstant
-	 * folding, for example, can output a simple {@link L2_MOVE_CONSTANT} into a
-	 * suitable register answered by this method.</p>
+	 * <p>We must either answer {@code false} and generate no code, or answer
+	 * {@code true} and generate code that has the same effect as having run the
+	 * function in the register without fear of reification or abnormal control
+	 * flow.  A folded primitive, for example, can generate a simple {@link
+	 * L2_MOVE_CONSTANT} into the top-of-stack register and answer true.</p>
 	 *
 	 * @param functionToCallReg
 	 *        The register containing the function to invoke.
-	 * @param primitiveOrNull
-	 *        The {@link Primitive} that the function in the register is
-	 *        guaranteed to be, or {@code null}.
+	 * @param rawFunction
+	 *        The raw function being invoked.
+	 * @param primitive
+	 *        The primitive being invoked.
 	 * @param arguments
 	 *        The arguments to supply to the function.
+	 * @param callSiteHelper
+	 *        Information about the method call site having its dispatch tree
+	 *        inlined.  It also contains merge points for this call, so if a
+	 *        specific code generation happens it should jump to one of these.
 	 * @return The register that holds the result of the invocation.
 	 */
-	private @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	private boolean tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
-		final @Nullable Primitive primitiveOrNull,
-		final List<L2ReadPointerOperand> arguments)
+		final A_RawFunction rawFunction,
+		final Primitive primitive,
+		final List<L2ReadPointerOperand> arguments,
+		final CallSiteHelper callSiteHelper)
 	{
-		if (primitiveOrNull != null)
+		final int argumentCount = arguments.size();
+		if (primitive.hasFlag(CanFold))
 		{
-			// It's a primitive function.
-			final Interpreter interpreter = translator.interpreter;
-			if (primitiveOrNull.hasFlag(CanFold))
+			// It can be folded, if supplied with constants.
+			final List<AvailObject> constants = new ArrayList<>(argumentCount);
+			for (final L2ReadPointerOperand regRead : arguments)
 			{
-				// It can be folded, if supplied with constants.
-				final int count = arguments.size();
-				final List<AvailObject> constants = new ArrayList<>(count);
-				for (final L2ReadPointerOperand regRead : arguments)
+				if (regRead.constantOrNull() == null)
 				{
-					if (regRead.constantOrNull() == null)
-					{
-						break;
-					}
-					constants.add((AvailObject) regRead.constantOrNull());
+					break;
 				}
-				if (constants.size() == count)
-				{
-					// Fold the primitive.  A foldable primitive must not
-					// require access to the enclosing function or its code.
-					final @Nullable A_Function savedFunction =
-						interpreter.function;
-					interpreter.function = null;
-					final String savedDebugModeString =
-						interpreter.debugModeString;
-					if (Interpreter.debugL2)
-					{
-						Interpreter.log(
-							Interpreter.loggerDebugL2,
-							Level.FINER,
-							"{0}FOLD {1}:",
-							interpreter.debugModeString,
-							primitiveOrNull.name());
-					}
-					final Result success;
-					try
-					{
-						success = primitiveOrNull.attempt(
-							constants, interpreter, true);
-					}
-					finally
-					{
-						interpreter.debugModeString = savedDebugModeString;
-						interpreter.function = savedFunction;
-					}
-
-					if (success == SUCCESS)
-					{
-						return constantRegister(
-							interpreter.latestResult().makeImmutable());
-					}
-					// The primitive failed with the supplied arguments,
-					// which it's allowed to do even if it CanFold.
-					assert success == FAILURE;
-					assert !primitiveOrNull.hasFlag(CannotFail);
-				}
+				constants.add((AvailObject) regRead.constantOrNull());
 			}
+			if (constants.size() == argumentCount)
+			{
+				// Fold the primitive.  A foldable primitive must not
+				// require access to the enclosing function or its code.
+				final Interpreter interpreter = translator.interpreter;
+				final @Nullable A_Function savedFunction = interpreter.function;
+				interpreter.function = null;
+				final String savedDebugModeString = interpreter.debugModeString;
+				if (Interpreter.debugL2)
+				{
+					Interpreter.log(
+						Interpreter.loggerDebugL2,
+						Level.FINER,
+						"{0}FOLD {1}:",
+						interpreter.debugModeString,
+						primitive.name());
+				}
+				final Result success;
+				try
+				{
+					success = primitive.attempt(constants, interpreter);
+				}
+				finally
+				{
+					interpreter.debugModeString = savedDebugModeString;
+					interpreter.function = savedFunction;
+				}
 
-			// The primitive can't be folded, so let it generate its own
-			// code equivalent to invocation.
-			final List<A_Type> argTypes = arguments.stream()
-				.map(L2ReadPointerOperand::type)
-				.collect(toList());
-			return primitiveOrNull.tryToGenerateSpecialInvocation(
-				functionToCallReg, arguments, argTypes, this);
+				if (success == SUCCESS)
+				{
+					callSiteHelper.useAnswer(
+						constantRegister(
+							interpreter.latestResult().makeImmutable()));
+					return true;
+				}
+				// The primitive failed with the supplied arguments,
+				// which it's allowed to do even if it CanFold.
+				assert success == FAILURE;
+				assert !primitive.hasFlag(CannotFail);
+			}
 		}
-		return null;
+
+		// The primitive can't be folded, so let it generate its own code
+		// equivalent to invocation.
+		final A_Type signatureTupleType =
+			rawFunction.functionType().argsTupleType();
+		final List<A_Type> narrowedArgTypes = new ArrayList<>(argumentCount);
+		final List<L2ReadPointerOperand> narrowedArguments =
+			new ArrayList<>(argumentCount);
+		for (int i = 0; i < argumentCount; i++)
+		{
+			final L2ReadPointerOperand argument = arguments.get(i);
+			final A_Type narrowedType = argument.type().typeIntersection(
+				signatureTupleType.typeAtIndex(i + 1));
+			narrowedArgTypes.add(narrowedType);
+			narrowedArguments.add(
+				new L2ReadPointerOperand(
+					argument.register(),
+					argument.restriction().intersection(
+						restriction(narrowedType, null))));
+		}
+		final boolean generated =
+			primitive.tryToGenerateSpecialPrimitiveInvocation(
+				functionToCallReg,
+				rawFunction,
+				narrowedArguments,
+				narrowedArgTypes,
+				this,
+				callSiteHelper);
+		if (generated && currentlyReachable())
+		{
+			// The top-of-stack was replaced, but it wasn't convenient to do
+			// a jump to the appropriate exit handlers.  Do that now.
+			callSiteHelper.useAnswer(readSlot(stackp));
+		}
+		return generated;
 	}
 
 	/**
 	 * Given a register that holds the function to invoke, answer either the
-	 * {@link Primitive} it will be known to run, or {@code null}.
+	 * {@link A_RawFunction} it will be known to run, or {@code null}.
 	 *
 	 * @param functionToCallReg
 	 *        The {@link L2ReadPointerOperand} containing the function to
 	 *        invoke.
-	 * @return Either {@code null} or the function's {@link Primitive}.
+	 * @return Either {@code null} or the function's {@link A_RawFunction}.
 	 */
-	private static @Nullable Primitive determinePrimitive (
+	private static @Nullable A_RawFunction determineRawFunction (
 		final L2ReadPointerOperand functionToCallReg)
 	{
 		final @Nullable A_Function functionIfKnown =
 			(A_Function) functionToCallReg.constantOrNull();
-		final @Nullable Primitive primitive;
 		if (functionIfKnown != null)
 		{
 			// The exact function is known.
-			primitive = functionIfKnown.code().primitive();
+			return functionIfKnown.code();
 		}
-		else
-		{
-			// See if we can at least find out the code that the function was
-			// created from.
-			final L2Instruction functionDefinition =
-				functionToCallReg.register().definitionSkippingMoves();
-			final @Nullable A_RawFunction constantCode =
-				functionDefinition.operation.getConstantCodeFrom(
-					functionDefinition);
-			primitive = constantCode == null ? null : constantCode.primitive();
-		}
-		return primitive;
+		// See if we can at least find out the raw function that the function
+		// was created from.
+		final L2Instruction functionDefinition =
+			functionToCallReg.register().definitionSkippingMoves();
+		return functionDefinition.operation.getConstantCodeFrom(
+			functionDefinition);
 	}
 
 	/**
@@ -1897,61 +2169,54 @@ public final class L1Translator
 	 * method call.  The slots have already been adjusted to be consistent with
 	 * having popped the arguments and pushed the expected type.
 	 *
-	 * @param bundle
-	 *        The {@linkplain MessageBundleDescriptor message bundle} containing
-	 *        the definition to invoke.
+	 * @param callSiteHelper
+	 *        Information about the method call site.
 	 * @param arguments
 	 *        The list of argument registers to use for the call.
-	 * @param expectedType
-	 *        The expected return {@link A_Type}.
-	 * @param superUnionType
-	 *        A tuple type whose union with the type of the arguments tuple at
-	 *        runtime is used for lookup.  The type ⊥ ({@link
-	 *        BottomTypeDescriptor#bottom() bottom}) is used to indicate this is
-	 *        not a super call.
-	 * @param invocationName
-	 *        A {@link String} describing the purpose of this call.
+	 * @param guaranteedReturnType
+	 *        The type that the VM guarantees to produce for this call site.
 	 */
 	private void generateSlowPolymorphicCall (
-		final A_Bundle bundle,
+		final CallSiteHelper callSiteHelper,
 		final List<L2ReadPointerOperand> arguments,
-		final A_Type expectedType,
-		final A_Type superUnionType,
-		final String invocationName)
+		final A_Type guaranteedReturnType)
 	{
+		final A_Bundle bundle = callSiteHelper.bundle;
 		final A_Method method = bundle.bundleMethod();
 		final int nArgs = method.numArgs();
-		final L2BasicBlock lookupSucceeded =
-			createBasicBlock("lookup succeeded for " + invocationName);
-		final L2BasicBlock lookupFailed =
-			createBasicBlock("lookup failed for " + invocationName);
-		final L2WritePointerOperand functionReg = newObjectRegisterWriter(
-			TOP.o(), null);
-		final L2WritePointerOperand errorCodeReg = newObjectRegisterWriter(
-			TOP.o(), null);
+		final L2BasicBlock lookupSucceeded = createBasicBlock(
+			"lookup succeeded for " + callSiteHelper.quotedBundleName);
+		final L2BasicBlock lookupFailed = createBasicBlock(
+			"lookup failed for " + callSiteHelper.quotedBundleName);
+		final L2BasicBlock onReificationDuringFailure = createBasicBlock(
+			"reify in method lookup failure handler for "
+				+ callSiteHelper.quotedBundleName);
+		final L2WritePointerOperand errorCodeReg =
+			newObjectRegisterWriter(TOP.o(), null);
 
 		final List<A_Type> argumentTypes = new ArrayList<>();
 		for (int i = 1; i <= nArgs; i++)
 		{
 			argumentTypes.add(
 				arguments.get(i - 1).type().typeUnion(
-					superUnionType.typeAtIndex(i)));
+					callSiteHelper.superUnionType.typeAtIndex(i)));
 		}
 
 		final List<A_Function> possibleFunctions = new ArrayList<>();
-		for (A_Definition definition :
-			bundle.bundleMethod().filterByTypes(argumentTypes))
+		for (final A_Definition definition :
+			bundle.bundleMethod().definitionsAtOrBelow(argumentTypes))
 		{
 			if (definition.isMethodDefinition())
 			{
-				A_Function bodyBlock = definition.bodyBlock();
-				possibleFunctions.add(bodyBlock);
+				possibleFunctions.add(definition.bodyBlock());
 			}
 		}
-
 		final A_Type functionTypeUnion = enumerationWith(
 			setFromCollection(possibleFunctions));
-		if (superUnionType.isBottom())
+		final L2WritePointerOperand functionReg =
+			newObjectRegisterWriter(functionTypeUnion, null);
+
+		if (!callSiteHelper.isSuper)
 		{
 			// Not a super-call.
 			addInstruction(
@@ -1989,7 +2254,7 @@ public final class L1Translator
 				final L2ReadPointerOperand argReg = arguments.get(i - 1);
 				final A_Type argStaticType = argReg.type();
 				final A_Type superUnionElementType =
-					superUnionType.typeAtIndex(i);
+					callSiteHelper.superUnionType.typeAtIndex(i);
 				final L2ReadPointerOperand argTypeReg;
 				if (argStaticType.isSubtypeOf(superUnionElementType))
 				{
@@ -2059,8 +2324,8 @@ public final class L1Translator
 
 		// Emit the lookup failure case.
 		startBlock(lookupFailed);
-		final L2WritePointerOperand invalidSendReg = newObjectRegisterWriter(
-			invalidMessageSendFunctionType, null);
+		final L2WritePointerOperand invalidSendReg =
+			newObjectRegisterWriter(invalidMessageSendFunctionType, null);
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 			invalidSendReg);
@@ -2081,33 +2346,37 @@ public final class L1Translator
 			L2_CREATE_TUPLE.instance,
 			new L2ReadVectorOperand(arguments),
 			argumentsTupleWrite);
-		// Ignore result of call, which cannot actually return.
-		generateGeneralFunctionInvocation(
+		addInstruction(
+			L2_INVOKE.instance,
 			invalidSendReg.read(),
-			asList(
-				errorCodeReg.read(),
-				constantRegister(method),
-				argumentsTupleWrite.read()),
-			bottom(),
-			true,
-			"report failed megamorphic lookup of " + invocationName);
+			new L2ReadVectorOperand(
+				asList(
+					errorCodeReg.read(),
+					constantRegister(method),
+					argumentsTupleWrite.read())),
+			unreachablePcOperand(),
+			edgeTo(onReificationDuringFailure));
+
+		// Reification has been requested while the failure call is in progress.
+		startBlock(onReificationDuringFailure);
+		reify(
+			constantRegister(nil),
+			newContinuationReg ->
+				addInstruction(
+					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
+					new L2ReadVectorOperand(singletonList(newContinuationReg))),
+			TO_RETURN_INTO);
 		addUnreachableCode();
 
+		// Now invoke the method definition's body.  We've already examined all
+		// possible method definition bodies to see if they all conform with the
+		// expectedType, and captured that in alwaysSkipResultCheck.
 		startBlock(lookupSucceeded);
-		// Now invoke the method definition's body.  Without looking at all of
-		// the definitions we can't determine if the return type check can be
-		// skipped.
-		final L2ReadPointerOperand returnReg =
-			generateGeneralFunctionInvocation(
-				functionReg.read(),
-				arguments,
-				expectedType,
-				false,
-				"invocation for megamorphic " + invocationName);
-		// Write the (already checked if necessary) result onto the stack.
-		moveRegister(
-			returnReg,
-			writeSlot(stackp, expectedType, null));
+		generateGeneralFunctionInvocation(
+			functionReg.read(),
+			arguments,
+			guaranteedReturnType,
+			callSiteHelper);
 	}
 
 	/**
@@ -2151,20 +2420,23 @@ public final class L1Translator
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
 		reify(
-			getCurrentFunction(),
 			callerReg,
 			continuationReg ->
 				addInstruction(
 					L2_PROCESS_INTERRUPT.instance,
 					continuationReg),
-			merge,
 			TO_RESUME);
+		addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(merge, currentManifest));
+		// Merge the flow (reified and continued, versus not reified).
+		startBlock(merge);
 		// And now... either we're back or we never left.
 	}
 
 	/**
-	 * Emit the specified variable-reading instruction, and an off-ramp to
-	 * deal with the case that the variable is unassigned.
+	 * Emit the specified variable-reading instruction, and an off-ramp to deal
+	 * with the case that the variable is unassigned.
 	 *
 	 * @param getOperation
 	 *        The {@linkplain L2Operation#isVariableGet() variable reading}
@@ -2184,7 +2456,10 @@ public final class L1Translator
 			createBasicBlock("successfully read variable");
 		final L2BasicBlock failure =
 			createBasicBlock("failed to read variable");
-		// Emit the get-variable instruction variant.
+		final L2BasicBlock onReificationDuringFailure =
+			createBasicBlock("reify in read variable failure handler");
+
+		// Emit the specified get-variable instruction variant.
 		addInstruction(
 			getOperation,
 			variable,
@@ -2195,18 +2470,26 @@ public final class L1Translator
 		// Emit the failure path.
 		startBlock(failure);
 		final L2WritePointerOperand unassignedReadFunction =
-			newObjectRegisterWriter(
-				functionType(emptyTuple(), bottom()),
-				null);
+			newObjectRegisterWriter(unassignedVariableReadFunctionType, null);
 		addInstruction(
 			L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
 			unassignedReadFunction);
-		generateGeneralFunctionInvocation(
+		addInstruction(
+			L2_INVOKE.instance,
 			unassignedReadFunction.read(),
-			emptyList(),
-			bottom(),
-			true,
-			"invoke failed variable get handler");
+			new L2ReadVectorOperand(emptyList()),
+			unreachablePcOperand(),
+			edgeTo(onReificationDuringFailure));
+
+		// Reification has been requested while the failure call is in progress.
+		startBlock(onReificationDuringFailure);
+		reify(
+			constantRegister(nil),
+			newContinuationReg ->
+				addInstruction(
+					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
+					new L2ReadVectorOperand(singletonList(newContinuationReg))),
+			TO_RETURN_INTO);
 		addUnreachableCode();
 
 		// End with the success path.
@@ -2214,11 +2497,10 @@ public final class L1Translator
 	}
 
 	/**
-	 * Emit the specified variable-writing instruction, and an off-ramp to
-	 * deal with the case that the variable has {@linkplain
-	 * VariableAccessReactor write reactors} but {@linkplain
-	 * Interpreter#traceVariableWrites() variable write tracing} is
-	 * disabled.
+	 * Emit the specified variable-writing instruction, and an off-ramp to deal
+	 * with the case that the variable has {@linkplain VariableAccessReactor
+	 * write reactors} but {@linkplain Interpreter#traceVariableWrites()
+	 * variable write tracing} is disabled.
 	 *
 	 * @param setOperation
 	 *        The {@linkplain L2Operation#isVariableSet() variable reading}
@@ -2234,27 +2516,24 @@ public final class L1Translator
 		final L2ReadPointerOperand newValue)
 	{
 		assert setOperation.isVariableSet();
-		final L2BasicBlock successBlock =
+		final L2BasicBlock success =
 			createBasicBlock("set local success");
-		final L2BasicBlock failureBlock =
+		final L2BasicBlock failure =
 			createBasicBlock("set local failure");
+		final L2BasicBlock onReificationDuringFailure =
+			createBasicBlock("reify during set local failure");
 		// Emit the set-variable instruction.
 		addInstruction(
 			setOperation,
 			variable,
 			newValue,
-			edgeTo(successBlock),
-			edgeTo(failureBlock));
+			edgeTo(success),
+			edgeTo(failure));
 
-		// Emit the failure off-ramp.
-		startBlock(failureBlock);
-		final L2WritePointerOperand observeFunction = newObjectRegisterWriter(
-			functionType(
-				tuple(
-					mostGeneralFunctionType(),
-					mostGeneralTupleType()),
-				TOP.o()),
-			null);
+		// Emit the failure path.
+		startBlock(failure);
+		final L2WritePointerOperand observeFunction =
+			newObjectRegisterWriter(implicitObserveFunctionType, null);
 		addInstruction(
 			L2_GET_IMPLICIT_OBSERVE_FUNCTION.instance,
 			observeFunction);
@@ -2266,21 +2545,33 @@ public final class L1Translator
 			L2_CREATE_TUPLE.instance,
 			new L2ReadVectorOperand(asList(variable, newValue)),
 			variableAndValueTupleReg);
-		generateGeneralFunctionInvocation(
+		// Note: the handler block's value is discarded; also, since it's not a
+		// method definition, it can't have a semantic restriction.
+		addInstruction(
+			L2_INVOKE.instance,
 			observeFunction.read(),
-			asList(
-				constantRegister(Interpreter.assignmentFunction()),
-				variableAndValueTupleReg.read()),
-			TOP.o(),
-			true,
-			"set variable failure");
+			new L2ReadVectorOperand(
+				asList(
+					constantRegister(Interpreter.assignmentFunction()),
+					variableAndValueTupleReg.read())),
+			edgeTo(success),
+			edgeTo(onReificationDuringFailure));
+
+		startBlock(onReificationDuringFailure);
+		reify(
+			constantRegister(nil),
+			newContinuationReg ->
+				addInstruction(
+					L2_RETURN_FROM_REIFICATION_HANDLER.instance,
+					new L2ReadVectorOperand(singletonList(newContinuationReg))),
+			TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
-			edgeTo(successBlock));
+			edgeTo(success));
 
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
-		startBlock(successBlock);
+		startBlock(success);
 	}
 
 	/**
@@ -2418,8 +2709,7 @@ public final class L1Translator
 		final L2ReadPointerOperand readResult = readSlot(stackp);
 		addInstruction(
 			L2_RETURN.instance,
-			readResult,
-			getSkipReturnCheck());
+			readResult);
 		currentManifest.addBinding(topFrame.result(), readResult);
 		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
@@ -2447,6 +2737,7 @@ public final class L1Translator
 	 *        The entry point for returning into a reified continuation.
 	 * @param reenterFromInterruptBlock
 	 *        The entry point for resuming from an interrupt.
+	 * @return The {@link L2ControlFlowGraph} for the default chunk.
 	 */
 	public static L2ControlFlowGraph generateDefaultChunkControlFlowGraph (
 		final L2BasicBlock initialBlock,
@@ -2525,9 +2816,8 @@ public final class L1Translator
 	{
 		final A_Bundle bundle =
 			code().literalAt(code.nextNybblecodeOperand(pc));
-
-		final A_Type expectedType = code().literalAt(
-			code.nextNybblecodeOperand(pc));
+		final A_Type expectedType =
+			code().literalAt(code.nextNybblecodeOperand(pc));
 		generateCall(bundle, expectedType, bottom());
 	}
 
@@ -2792,22 +3082,19 @@ public final class L1Translator
 		final L2WritePointerOperand destinationRegister =
 			writeSlot(stackp, continuationType, null);
 		final L2ReadPointerOperand functionRead = getCurrentFunction();
-		final L2ReadIntOperand skipReturnCheckRead = getSkipReturnCheck();
 		addInstruction(
 			L2_REIFY_CALLERS.instance,
 			new L2ImmediateOperand(1),
 			new L2ImmediateOperand(
 				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()));
 		final L2ReadPointerOperand continuationRead = getCurrentContinuation();
-		final L2BasicBlock afterCreation =
-			createBasicBlock("after push label");
+		final L2BasicBlock afterCreation = createBasicBlock("after push label");
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			continuationRead,
 			functionRead,
 			new L2ImmediateOperand(0),
 			new L2ImmediateOperand(numSlots + 1),
-			skipReturnCheckRead,
 			new L2ReadVectorOperand(vectorWithOnlyArgsPreserved),
 			destinationRegister,
 			new L2PcOperand(initialBlock, new L2ValueManifest()),
@@ -2901,13 +3188,13 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		final AvailObject method = code().literalAt(
-			code.nextNybblecodeOperand(pc));
-		final AvailObject expectedType = code().literalAt(
-			code.nextNybblecodeOperand(pc));
-		final AvailObject superUnionType = code().literalAt(
-			code.nextNybblecodeOperand(pc));
-		generateCall(method, expectedType, superUnionType);
+		final A_Bundle bundle =
+			code().literalAt(code.nextNybblecodeOperand(pc));
+		final AvailObject expectedType =
+			code().literalAt(code.nextNybblecodeOperand(pc));
+		final AvailObject superUnionType =
+			code().literalAt(code.nextNybblecodeOperand(pc));
+		generateCall(bundle, expectedType, superUnionType);
 	}
 
 	@Override

@@ -49,6 +49,7 @@ import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -92,8 +93,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Function function = args.get(0);
@@ -154,6 +154,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type functionType = argumentTypes.get(0);
@@ -189,13 +190,14 @@ extends Primitive
 					{
 						// The invocation of this primitive will always succeed.
 						// Ask the primitive what type it guarantees to return.
-						return primitive.returnTypeGuaranteedByVM(argTypes);
+						return primitive.returnTypeGuaranteedByVM(
+							code, argTypes);
 					}
 				}
 			}
 			return functionReturnType;
 		}
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	/**
@@ -205,20 +207,21 @@ extends Primitive
 	 * each tuple slot, then indicate that this invocation should be transformed
 	 * by answering the register holding the function after replacing the list
 	 * of (two) argument registers by the list of registers that supplied
-	 * entries for the tuple.  If some tuple slots were populated from
-	 * constants, emit suitable constant moves into fresh registers.
+	 * entries for the tuple.
 	 *
 	 * <p>If, however, the exact constant function cannot be determined, and it
 	 * cannot be proven that the function's type is adequate to accept the
 	 * arguments (each of whose type must be known here for safety), then don't
-	 * change the list of arguments, and simple return null.</p>
+	 * change the list of arguments, and simply return false.</p>
 	 */
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final L2ReadPointerOperand functionReg = arguments.get(0);
 		final L2ReadPointerOperand tupleReg = arguments.get(1);
@@ -232,7 +235,7 @@ extends Primitive
 				tupleTypeSizes.upperBound()))
 		{
 			// The exact tuple size is not known.  Give up.
-			return null;
+			return false;
 		}
 		final int argsSize = tupleTypeSizes.upperBound().extractInt();
 
@@ -244,7 +247,7 @@ extends Primitive
 		{
 			// The argument count of the function is not known to be exactly the
 			// right size for the arguments tuple.  Give up.
-			return null;
+			return false;
 		}
 
 		// Check if the (same-sized) tuple element types agree with the types
@@ -258,7 +261,7 @@ extends Primitive
 			{
 				// A tuple element is not strong enough to guarantee successful
 				// invocation of the function.
-				return null;
+				return false;
 			}
 			final L2WritePointerOperand newReg =
 				translator.newObjectRegisterWriter(argType, null);
@@ -309,11 +312,11 @@ extends Primitive
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
-		return translator.generateGeneralFunctionInvocation(
+		translator.generateGeneralFunctionInvocation(
 			functionReg,    // the function to directly invoke.
 			argsTupleReaders,   // the arguments, no longer in a tuple.
-			TOP.o(),
-			true,
-			"general invocation");
+			functionType.returnType(),
+			callSiteHelper);
+		return true;
 	}
 }

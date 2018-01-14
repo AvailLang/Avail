@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.objects;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
@@ -75,8 +76,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_BasicObject object = args.get(0);
@@ -109,6 +109,7 @@ extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type objectType = argumentTypes.get(0);
@@ -133,8 +134,7 @@ extends Primitive
 			}
 			return union;
 		}
-		return super.returnTypeGuaranteedByVM(
-			argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override

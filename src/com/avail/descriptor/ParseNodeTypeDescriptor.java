@@ -554,6 +554,18 @@ extends TypeDescriptor
 		}
 
 		/**
+		 * Answer the {@link ParseNodeKind} enumeration value having the given
+		 * ordinal {@code int}.  The supplied ordinal must be valid.
+		 *
+		 * @param ordinal The ordinal to look up.
+		 * @return The indicated {@link ParseNodeKind}.
+		 */
+		public static ParseNodeKind lookup (final int ordinal)
+		{
+			return all[ordinal];
+		}
+
+		/**
 		 * An array where the value at [(t1 * #values) + t2] indicates the
 		 * nearest common ancestor of the kinds with ordinals t1 and t2.  Note
 		 * that this matrix is symmetric about its diagonal (i.e., it equals its

@@ -75,8 +75,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Fiber otherFiber = args.get(0);
@@ -95,8 +94,7 @@ extends Primitive
 							currentRuntime(),
 							thisFiber,
 							this,
-							theContinuation,
-							skipReturnCheck);
+							theContinuation);
 					}
 					else
 					{
@@ -105,8 +103,7 @@ extends Primitive
 							thisFiber,
 							E_FIBER_IS_TERMINATED.numericCode(),
 							primitiveFunction,
-							copiedArgs,
-							skipReturnCheck);
+							copiedArgs);
 					}
 				}));
 		return interpreter.primitiveSuspend(primitiveFunction);

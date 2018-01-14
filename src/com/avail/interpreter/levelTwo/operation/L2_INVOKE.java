@@ -61,9 +61,12 @@ import static org.objectweb.asm.Opcodes.*;
  * reifying the stack).  It may also trigger reification of this frame by
  * Java-returning a {@link StackReifier} instead of null.
  *
- * <p>An immediate, if true ({@code 1}), indicates that the VM can elide the
- * check of the return type (because it has already been proven for this
- * circumstance).</p>
+ * <p>The return value can be picked up from {@link Interpreter#latestResult} in
+ * a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.  Note that the
+ * value that was returned has not been dynamically type-checked yet, so if its
+ * validity can't be proven statically by the VM, the calling function should
+ * check the type against its expectation (prior to the value getting captured
+ * in any continuation).</p>
  */
 public class L2_INVOKE extends L2Operation
 {
@@ -74,7 +77,6 @@ public class L2_INVOKE extends L2Operation
 		new L2_INVOKE().init(
 			READ_POINTER.is("called function"),
 			READ_VECTOR.is("arguments"),
-			IMMEDIATE.is("skip return check"),
 			PC.is("on return"),
 			PC.is("on reification"));
 
@@ -86,9 +88,8 @@ public class L2_INVOKE extends L2Operation
 			instruction.readObjectRegisterAt(0).finalIndex();
 		final List<L2ReadPointerOperand> argumentRegs =
 			instruction.readVectorRegisterAt(1);
-		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
-		final int onNormalReturn = instruction.pcOffsetAt(3);
-		final int onReification = instruction.pcOffsetAt(4);
+		final int onNormalReturn = instruction.pcOffsetAt(2);
+		final int onReification = instruction.pcOffsetAt(3);
 
 		// Pre-decode the argument registers as much as possible.
 		final int[] argumentRegNumbers = new int[argumentRegs.size()];
@@ -116,7 +117,6 @@ public class L2_INVOKE extends L2Operation
 			interpreter.function = calledFunction;
 			interpreter.chunk = calledFunction.code().startingChunk();
 			interpreter.offset = 0;
-			interpreter.skipReturnCheck = skipReturnCheck;
 			// Safety
 			interpreter.pointers = Interpreter.emptyPointersArray;
 			interpreter.integers = Interpreter.emptyIntArray;
@@ -165,7 +165,7 @@ public class L2_INVOKE extends L2Operation
 							Interpreter.log(
 								Interpreter.loggerDebugL2,
 								Level.FINER,
-								"{0}Pushed reified continuation(s) "
+								"{0}Push reified continuation(s) "
 									+ "for L2_INVOKE: {1}",
 								interpreter.debugModeString,
 								savedFunction.code().methodName());
@@ -185,7 +185,9 @@ public class L2_INVOKE extends L2Operation
 				interpreter.returnNow = false;
 				assert !interpreter.exitNow;
 			}
-			// The invocation returned normally.
+			// The invocation returned normally.  The returned value is in
+			// interpreter.latestResult, and will be extracted (if needed) via
+			// L2_GET_LATEST_RETURN_VALUE.
 			interpreter.offset = onNormalReturn;
 			return null;
 		};
@@ -235,9 +237,8 @@ public class L2_INVOKE extends L2Operation
 //			instruction.readObjectRegisterAt(0).finalIndex();
 //		final List<L2ReadPointerOperand> argumentRegs =
 //			instruction.readVectorRegisterAt(1);
-//		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
-		final int onNormalReturn = instruction.pcOffsetAt(3);
-//		final int onReification = instruction.pcOffsetAt(4);
+		final int onNormalReturn = instruction.pcOffsetAt(2);
+//		final int onReification = instruction.pcOffsetAt(3);
 
 		if (JVMTranslator.debugRecordL2InstructionTimings)
 		{

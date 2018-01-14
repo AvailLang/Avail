@@ -1,6 +1,6 @@
 /*
  * Error Codes.avail
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,7 @@ Names
 	/*  77 */ "illegal-trace-mode code",
 	/*  98 */ "inconsistent-argument-reordering code",
 	/*  12 */ "incorrect-argument-type code",
+	/*  61 */ "incorrect-continuation-stack-size code",
 	/*  11 */ "incorrect-number-of-arguments code",
 	/*  47 */ "incorrect-type-for-boolean-group code",
 	/*  42 */ "incorrect-type-for-complex-group code",
@@ -459,6 +460,11 @@ Primitive "macro-prefix-functions-must-return-top code" is
 Primitive "wrong-signature-for-lexer-function code" is
 [
 	60
+];
+
+Primitive "incorrect-continuation-stack-size code" is
+[
+	61
 ];
 
 Primitive "cannot-define-during-compilation code" is

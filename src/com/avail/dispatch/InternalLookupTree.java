@@ -54,8 +54,10 @@ import static java.lang.String.format;
  * otherwise the {@link #ifCheckFails} child will be visited.
  */
 public class InternalLookupTree<
-		Element extends A_BasicObject, Result extends A_BasicObject, Memento>
-	extends LookupTree<Element, Result, Memento>
+		Element extends A_BasicObject,
+		Result extends A_BasicObject,
+		AdaptorMemento>
+	extends LookupTree<Element, Result, AdaptorMemento>
 {
 	/** The definitions that are applicable at this tree node. */
 	private final List<? extends Element> positiveElements;
@@ -67,24 +69,22 @@ public class InternalLookupTree<
 	private final List<? extends Element> undecidedElements;
 
 	/**
-	 * The types that the arguments must satisfy to have reached this
-	 * position in the decision tree.
+	 * The types that the arguments must satisfy to have reached this position
+	 * in the decision tree.
 	 */
 	private final List<A_Type> knownArgumentTypes;
 
 	/** The type to test against an argument type at this node. */
-	private volatile @Nullable
-	A_Type argumentTypeToTest;
+	private volatile @Nullable A_Type argumentTypeToTest;
 
 	/** The 1-based index of the argument to be tested at this node. */
-	@InnerAccess
-	int argumentPositionToTest = -1;
+	@InnerAccess int argumentPositionToTest = -1;
 
 	/** The tree to visit if the supplied arguments conform. */
-	private @Nullable LookupTree<Element, Result, Memento> ifCheckHolds;
+	private @Nullable LookupTree<Element, Result, AdaptorMemento> ifCheckHolds;
 
 	/** The tree to visit if the supplied arguments do not conform. */
-	private @Nullable LookupTree<Element, Result, Memento> ifCheckFails;
+	private @Nullable LookupTree<Element, Result, AdaptorMemento> ifCheckFails;
 
 	/**
 	 * Construct a new {@link InternalLookupTree}.  It is constructed lazily
@@ -130,7 +130,7 @@ public class InternalLookupTree<
 	 *
 	 * @return The "yes" subtree previously set by chooseCriterion().
 	 */
-	final LookupTree<Element, Result, Memento> ifCheckHolds ()
+	final LookupTree<Element, Result, AdaptorMemento> ifCheckHolds ()
 	{
 		return stripNull(ifCheckHolds);
 	}
@@ -141,9 +141,20 @@ public class InternalLookupTree<
 	 *
 	 * @return The "no" subtree previously set by chooseCriterion().
 	 */
-	final LookupTree<Element, Result, Memento> ifCheckFails ()
+	final LookupTree<Element, Result, AdaptorMemento> ifCheckFails ()
 	{
 		return stripNull(ifCheckFails);
+	}
+
+	/**
+	 * Answer whether this internal node has already been expanded.
+	 *
+	 * @return {@code true} if this node has been expanded, otherwise {@code
+	 *         false}.
+	 */
+	final boolean isExpanded ()
+	{
+		return argumentTypeToTest != null;
 	}
 
 	/**
@@ -153,8 +164,8 @@ public class InternalLookupTree<
 	 * #ifCheckFails}.
 	 */
 	final void expandIfNecessary (
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		if (argumentTypeToTest == null)
 		{
@@ -205,8 +216,8 @@ public class InternalLookupTree<
 	 *        The {@link LookupTreeAdaptor} to use for expanding the tree.
 	 */
 	private void chooseCriterion (
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		// Choose a signature to test that guarantees it eliminates the most
 		// undecided definitions, regardless of whether the test passes or
@@ -353,10 +364,10 @@ public class InternalLookupTree<
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValues (
 		final List<? extends A_BasicObject> argValues,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		expandIfNecessary(adaptor, memento);
 		final int index = argumentPositionToTest;
@@ -370,10 +381,10 @@ public class InternalLookupTree<
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValues (
 		final A_Tuple argValues,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		expandIfNecessary(adaptor, memento);
 		final int index = argumentPositionToTest;
@@ -387,10 +398,10 @@ public class InternalLookupTree<
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByTypes (
 		final List<? extends A_Type> argTypes,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		expandIfNecessary(adaptor, memento);
 		final int index = argumentPositionToTest;
@@ -404,10 +415,10 @@ public class InternalLookupTree<
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByTypes (
 		final A_Tuple argTypes,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		expandIfNecessary(adaptor, memento);
 		final int index = argumentPositionToTest;
@@ -421,10 +432,10 @@ public class InternalLookupTree<
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValue (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValue (
 		final A_BasicObject probeValue,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		expandIfNecessary(adaptor, memento);
 		final int index = argumentPositionToTest;

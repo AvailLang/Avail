@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
@@ -39,8 +40,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.*;
@@ -66,8 +67,7 @@ public final class P_Equality extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_BasicObject a = args.get(0);
@@ -77,6 +77,7 @@ public final class P_Equality extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		assert argumentTypes.size() == 2;
@@ -102,7 +103,7 @@ public final class P_Equality extends Primitive
 				return trueType();
 			}
 		}
-		return super.returnTypeGuaranteedByVM(argumentTypes);
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override
@@ -116,19 +117,23 @@ public final class P_Equality extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final L2ReadPointerOperand firstReg = arguments.get(0);
 		final L2ReadPointerOperand secondReg = arguments.get(1);
 
 		if (firstReg.register() == secondReg.register())
 		{
-			// A value is being compared to itself.
-			return translator.constantRegister(trueObject());
+			// A value is being compared to itself, even though we might not
+			// know anything specific about what it is.
+			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			return true;
 		}
 
 		final A_Type type1 = firstReg.type();
@@ -136,7 +141,9 @@ public final class P_Equality extends Primitive
 		if (type1.typeIntersection(type2).isBottom())
 		{
 			// The actual values cannot be equal at runtime.
-			return translator.constantRegister(falseObject());
+			callSiteHelper.useAnswer(
+				translator.constantRegister(falseObject()));
+			return true;
 		}
 		// Because of metacovariance, a meta may actually have many instances.
 		// For instance, tuple's type contains not only tuple, but every subtype
@@ -145,7 +152,8 @@ public final class P_Equality extends Primitive
 			&& type1.instanceCount().equalsInt(1)
 			&& !type1.isInstanceMeta())
 		{
-			return translator.constantRegister(trueObject());
+			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			return true;
 		}
 
 		// It's contingent.  Eventually we could turn this into an
@@ -154,7 +162,12 @@ public final class P_Equality extends Primitive
 		// code splitting back to here, if subsequent uses of the phi register
 		// noticed its origins and cared to do something substantially different
 		// in the true and false cases (say dispatching to an if/then/else).
-		return super.tryToGenerateSpecialInvocation(
-			functionToCallReg, arguments, argumentTypes, translator);
+		return super.tryToGenerateSpecialPrimitiveInvocation(
+			functionToCallReg,
+			rawFunction,
+			arguments,
+			argumentTypes,
+			translator,
+			callSiteHelper);
 	}
 }

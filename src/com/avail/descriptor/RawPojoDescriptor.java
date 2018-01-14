@@ -118,10 +118,10 @@ extends Descriptor
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	final @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
-		//noinspection unchecked
 		return (T) javaObject;
 	}
 

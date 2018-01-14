@@ -109,27 +109,14 @@ extends Descriptor
 		LEVEL_TWO_OFFSET;
 
 		/**
-		 * A flag that indicates that this continuation does not need to check
-		 * its return type when it returns.  This is not a property of the
-		 * {@linkplain FunctionDescriptor function} or {@linkplain
-		 * CompiledCodeDescriptor raw function}, but instead depends on the
-		 * relationship between the type guaranteed by the function and the type
-		 * expected at the call site.
-		 */
-		public static final BitField SKIP_RETURN_CHECK = bitField(
-			PROGRAM_COUNTER_AND_STACK_POINTER,
-			31,
-			1);
-
-		/**
 		 * The index into the current continuation's {@linkplain
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
 		public static final BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
-			16,
-			15);
+			32,
+			32);
 
 		/**
 		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
@@ -139,7 +126,7 @@ extends Descriptor
 		public static final BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
-			16);
+			32);
 	}
 
 	/**
@@ -437,12 +424,6 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_SkipReturnFlag (final AvailObject object)
-	{
-		return object.slot(SKIP_RETURN_CHECK) != 0;
-	}
-
 	/**
 	 * Read from the stack at the given subscript, which is one-relative and
 	 * based on just the stack area.
@@ -481,9 +462,6 @@ extends Descriptor
 	 *        The function being invoked.
 	 * @param caller
 	 *        The calling continuation.
-	 * @param skipReturnCheck
-	 *        Whether it's safe to skip type checking the return result from
-	 *        this continuation.
 	 * @param startingChunk
 	 *        The level two chunk to invoke.
 	 * @param startingOffset
@@ -495,7 +473,6 @@ extends Descriptor
 	public static A_Continuation createLabelContinuation (
 		final A_Function function,
 		final A_Continuation caller,
-		final boolean skipReturnCheck,
 		final L2Chunk startingChunk,
 		final int startingOffset,
 		final List<AvailObject> args)
@@ -508,7 +485,6 @@ extends Descriptor
 		cont.setSlot(FUNCTION, function);
 		cont.setSlot(PROGRAM_COUNTER, 0); // Indicates this is a label.
 		cont.setSlot(STACK_POINTER, frameSize + 1);
-		cont.setSlot(SKIP_RETURN_CHECK, skipReturnCheck ? 1 : 0);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		//  Set up arguments...
 		final int numArgs = args.size();
@@ -524,8 +500,7 @@ extends Descriptor
 		while (slotIndex <= frameSize)
 		{
 			// All the remaining slots.  DO NOT capture or build locals.
-			cont.argOrLocalOrStackAtPut(slotIndex, nil);
-			slotIndex++;
+			cont.argOrLocalOrStackAtPut(slotIndex++, nil);
 		}
 		return cont;
 	}
@@ -542,9 +517,6 @@ extends Descriptor
 	 *            The level one program counter.
 	 * @param stackp
 	 *            The level one operand stack depth.
-	 * @param skipReturnCheck
-	 *            Whether it's safe to skip type checking the return result from
-	 *            this continuation.
 	 * @param levelTwoChunk
 	 *            The {@linkplain L2Chunk level two chunk} to execute.
 	 * @param levelTwoOffset
@@ -556,7 +528,6 @@ extends Descriptor
 		final A_Continuation caller,
 		final int pc,
 		final int stackp,
-		final boolean skipReturnCheck,
 		final L2Chunk levelTwoChunk,
 		final int levelTwoOffset)
 	{
@@ -567,7 +538,6 @@ extends Descriptor
 		continuation.setSlot(FUNCTION, function);
 		continuation.setSlot(PROGRAM_COUNTER, pc);
 		continuation.setSlot(STACK_POINTER, stackp);
-		continuation.setSlot(SKIP_RETURN_CHECK, skipReturnCheck ? 1 : 0);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
 		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
 		return continuation;
@@ -715,9 +685,8 @@ extends Descriptor
 					}
 					final A_Module module = code.module();
 					strings[frameIndex] = String.format(
-						"#%d%s: %s [%s] (%s:%d)",
+						"#%d: %s [%s] (%s:%d)",
 						lines - frameIndex,
-						frame.skipReturnFlag() ? "(*)" : "",
 						code.methodName().asNativeString(),
 						signatureBuilder.toString(),
 						module.equalsNil()

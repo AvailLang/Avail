@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.variables;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
@@ -42,8 +43,8 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -77,8 +78,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Variable var = args.get(0);
@@ -105,11 +105,13 @@ extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final L2ReadPointerOperand varReg = arguments.get(0);
 		final L2ReadPointerOperand valueReg = arguments.get(1);
@@ -126,7 +128,8 @@ extends Primitive
 			varReg,
 			valueReg);
 		// We're now at the success position in the generated code.
-		return translator.constantRegister(nil);
+		callSiteHelper.useAnswer(translator.constantRegister(nil));
+		return true;
 	}
 
 	@Override

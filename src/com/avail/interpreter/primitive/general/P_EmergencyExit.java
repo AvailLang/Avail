@@ -35,6 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
@@ -45,8 +46,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -78,8 +79,7 @@ public final class P_EmergencyExit extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_BasicObject errorMessageProducer = args.get(0);
@@ -137,14 +137,15 @@ public final class P_EmergencyExit extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		// Never inline.  Ensure the caller reifies the stack before calling it.
-		return null;
+		return false;
 	}
-
 }

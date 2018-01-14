@@ -116,6 +116,15 @@ public final class TypeRestriction
 		new TypeRestriction(bottom(), null);
 
 	/**
+	 * The {@link TypeRestriction} for a register that can only hold the value
+	 * bottom (i.e., the restriction type is bottom's type).  This is a sticky
+	 * point in the type system, in that multiple otherwise unrelated type
+	 * hierarchies share the (uninstantiable) type bottom as a descendant.
+	 */
+	private static final TypeRestriction bottomTypeRestriction =
+		new TypeRestriction(instanceTypeOrMetaOn(bottom()), bottom());
+
+	/**
 	 * Create or reuse an immutable {@code TypeRestriction}.
 	 *
 	 * @param type
@@ -123,6 +132,7 @@ public final class TypeRestriction
 	 * @param constantOrNull
 	 *        Either {@code null} or the exact value that some value somewhere
 	 *        must equal.
+	 * @return The new or existing canonical TypeRestriction.
 	 */
 	public static TypeRestriction restriction (
 		final A_Type type,
@@ -141,10 +151,19 @@ public final class TypeRestriction
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
-		if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
+		if (type.instanceCount().equalsInt(1))
 		{
-			// Extract the sole possible value.
-			return new TypeRestriction(type, type.instance());
+			final A_BasicObject instance = type.instance();
+			if (instance.equals(bottom()))
+			{
+				// Special case: bottom's type has one instance, bottom.
+				return bottomTypeRestriction;
+			}
+			if (!type.isInstanceMeta())
+			{
+				// Its instance is a non-type, so it's exact.
+				return new TypeRestriction(type, instance);
+			}
 		}
 		if (type.equals(TOP.o()))
 		{

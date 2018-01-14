@@ -335,7 +335,7 @@ extends JFrame
 	}
 
 	/** Truncate the start of the document any time it exceeds this. */
-	private final int maxDocumentSize = 10_000_000;
+	private static final int maxDocumentSize = 10_000_000;
 
 	/**
 	 * A singular write to an output stream.  This write is considered atomic

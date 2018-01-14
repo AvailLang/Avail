@@ -54,7 +54,7 @@ extends AvailException
 	private static final long serialVersionUID = -8106007037531230402L;
 
 	/**
-	 * Construct a new {@link MethodDefinitionException}.
+	 * Construct a new {@code MethodDefinitionException}.
 	 *
 	 * @param code
 	 *        An {@linkplain AvailErrorCode error code}.
@@ -65,7 +65,7 @@ extends AvailException
 	}
 
 	/**
-	 * Answer a {@link MethodDefinitionException} that indicates the
+	 * Answer a {@code MethodDefinitionException} that indicates the
 	 * nonexistence of a {@linkplain MethodDescriptor method}.
 	 *
 	 * @return The requested exception.
@@ -76,10 +76,15 @@ extends AvailException
 	}
 
 	/**
-	 * Answer a {@link MethodDefinitionException} that indicates the
-	 * nonexistence of a {@linkplain MethodDescriptor method}.
+	 * Answer the sole {@link A_Definition} from the given tuple of definitions,
+	 * raising a {@code MethodDefinitionException} if the tuple doesn't have
+	 * exactly one element.
 	 *
+	 * @param methodDefinitions
+	 *        A tuple of {@link A_Definition}s.
 	 * @return The requested exception.
+	 * @throws MethodDefinitionException
+	 *         If the tuple did not contain exactly one definition.
 	 */
 	public static A_Definition extractUniqueMethod (
 		final A_Tuple methodDefinitions)

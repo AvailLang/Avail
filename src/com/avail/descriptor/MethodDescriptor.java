@@ -194,9 +194,9 @@ extends Descriptor
 		 *
 		 * <p>When the {@link L2Translator} inlines a {@link Primitive} method
 		 * definition, it asks the primitive what type it guarantees ({@link
-		 * Primitive#returnTypeGuaranteedByVM(List)}) to return for the specific
-		 * provided argument types.  If that return type is sufficiently strong,
-		 * the above runtime check may be waived.</p>
+		 * Primitive#returnTypeGuaranteedByVM(A_RawFunction, List)}) to return
+		 * for the specific provided argument types.  If that return type is
+		 * sufficiently strong, the above runtime check may be waived.</p>
 		 */
 		SEMANTIC_RESTRICTIONS_SET,
 
@@ -822,6 +822,13 @@ extends Descriptor
 		{
 			object.setSlot(LEXER_OR_NIL, lexer);
 		}
+	}
+
+	@Override
+	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+		final AvailObject object)
+	{
+		return object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 	}
 
 	@Override

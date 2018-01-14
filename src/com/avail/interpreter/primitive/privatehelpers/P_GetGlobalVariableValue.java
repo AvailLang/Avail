@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -67,8 +68,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		final A_RawFunction code = stripNull(interpreter.function).code();
 		final A_Variable literalVariable = code.literalAt(1);
@@ -85,11 +85,10 @@ public final class P_GetGlobalVariableValue extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		// The L2Translator has a special case for invocations of this
-		// primitive, so improving this bound would be entirely futile.
-		return ANY.o();
+		return rawFunction.literalAt(1).kind().readType();
 	}
 
 	@Override
@@ -101,11 +100,13 @@ public final class P_GetGlobalVariableValue extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public @Nullable boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final @Nullable A_Function function =
 			(A_Function) functionToCallReg.constantOrNull();
@@ -113,7 +114,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 		{
 			// We have to know the specific function to know what variable to
 			// read from, since it's the first literal.
-			return null;
+			return false;
 		}
 		final A_Variable variable = function.code().literalAt(1);
 		// Avoid generating a constant move if the value wasn't stably computed.
@@ -125,7 +126,9 @@ public final class P_GetGlobalVariableValue extends Primitive
 			&& variable.valueWasStablyComputed())
 		{
 			// The variable is permanently set to this value.
-			return translator.constantRegister(variable.getValue());
+			callSiteHelper.useAnswer(
+				translator.constantRegister(variable.getValue()));
+			return true;
 		}
 		final L2WritePointerOperand valueRegisterWriter =
 			translator.newObjectRegisterWriter(
@@ -135,6 +138,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 			L2_GET_VARIABLE.instance,
 			translator.constantRegister(variable),
 			valueRegisterWriter);
-		return valueRegisterWriter.read();
+		callSiteHelper.useAnswer(valueRegisterWriter.read());
+		return true;
 	}
 }

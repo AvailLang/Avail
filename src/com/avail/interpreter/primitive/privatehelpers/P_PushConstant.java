@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.privatehelpers;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -41,11 +40,14 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -54,11 +56,12 @@ import static com.avail.utility.Nulls.stripNull;
  * Extract the first literal from the {@linkplain CompiledCodeDescriptor
  * compiled code} that the interpreter has squirreled away for this purpose.
  *
- * <p>This mechanism relies on {@link #tryToGenerateSpecialInvocation(
- * L2ReadPointerOperand, List, List, L1Translator)} always producing specialized
- * L2 code – i.e., a constant move.  Note that {@link Flag#CanInline} normally
- * skips making the actual called function available, so we must be careful to
- * expose it for the customized code generator.</p>
+ * <p>This mechanism relies on {@link #tryToGenerateSpecialPrimitiveInvocation(
+ * L2ReadPointerOperand, A_RawFunction, List, List, L1Translator,
+ * CallSiteHelper)} always producing specialized L2 code – i.e., a constant
+ * move.  Note that {@link Flag#CanInline} normally skips making the actual
+ * called function available, so we must be careful to expose it for the
+ * customized code generator.</p>
  */
 public final class P_PushConstant extends Primitive
 {
@@ -72,8 +75,7 @@ public final class P_PushConstant extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		final A_RawFunction code = stripNull(interpreter.function).code();
 		assert code.primitive() == this;
@@ -88,29 +90,25 @@ public final class P_PushConstant extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
+		final List<? extends A_Type> argumentTypes)
+	{
+		final AvailObject value = rawFunction.literalAt(1);
+		return value.equalsNil() ? TOP.o() : instanceTypeOrMetaOn(value);
+	}
+
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
-		// A function that simply returns a constant can't have any outer
-		// variables, so functionToCallReg basically always has a constant
-		// function.
-		final @Nullable A_BasicObject constantFunction =
-			functionToCallReg.constantOrNull();
-		if (constantFunction != null)
-		{
-			// The exact function is known.
-			final A_Function strongFunction = (A_Function) constantFunction;
-			final A_BasicObject constant = strongFunction.code().literalAt(1);
-			return translator.constantRegister(constant);
-		}
-		// The exact function isn't known here, somehow.  And yet we're here, so
-		// somehow it's known that the function register must hold a
-		// constant-valued function.  Its invocation can't possibly be inlined,
-		// so the Interpreter#function will be set up correctly in the call.
-		return super.tryToGenerateSpecialInvocation(
-			functionToCallReg, arguments, argumentTypes, translator);
+		final A_BasicObject constant = rawFunction.literalAt(1);
+		callSiteHelper.useAnswer(translator.constantRegister(constant));
+		return true;
 	}
 }

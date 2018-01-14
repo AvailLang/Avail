@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.continuations;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
@@ -63,6 +64,8 @@ import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode
 	.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_CONTINUATION_STACK_SIZE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 	.TO_RETURN_INTO;
@@ -86,8 +89,7 @@ public final class P_CreateContinuation extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 5;
 		final A_Function function = args.get(0);
@@ -96,18 +98,23 @@ public final class P_CreateContinuation extends Primitive
 		final A_Number stackp = args.get(3);
 		final A_Variable callerHolder = args.get(4);
 
-		final @Nullable Primitive primitive = function.code().primitive();
+		final A_RawFunction rawFunction = function.code();
+		final @Nullable Primitive primitive = rawFunction.primitive();
 		if (primitive != null && primitive.hasFlag(CannotFail))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION);
+		}
+		if (stack.tupleSize() != rawFunction.numSlots())
+		{
+			return interpreter.primitiveFailure(
+				E_INCORRECT_CONTINUATION_STACK_SIZE);
 		}
 		final A_Continuation cont = createContinuationExceptFrame(
 			function,
 			callerHolder.value(),
 			pc.extractInt(),
 			stackp.extractInt(),
-			false,
 			unoptimizedChunk,
 			TO_RETURN_INTO.offsetInDefaultChunk);
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
@@ -135,6 +142,7 @@ public final class P_CreateContinuation extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(set(
-			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION));
+			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION,
+			E_INCORRECT_CONTINUATION_STACK_SIZE));
 	}
 }

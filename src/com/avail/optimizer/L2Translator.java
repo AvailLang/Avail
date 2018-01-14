@@ -203,6 +203,7 @@ public final class L2Translator
 			afterOptionalInitialPrimitiveBlock == null
 				? stripNull(initialBlock).offset()
 				: afterOptionalInitialPrimitiveBlock.offset();
+		assert afterPrimitiveOffset >= 0;
 
 		chunk = L2Chunk.allocate(
 			code,
@@ -322,7 +323,6 @@ public final class L2Translator
 		final @Nullable A_Function savedFunction = interpreter.function;
 		final List<AvailObject> savedArguments =
 			new ArrayList<>(interpreter.argsBuffer);
-		final boolean savedSkip = interpreter.skipReturnCheck;
 		final @Nullable AvailObject savedFailureValue =
 			interpreter.latestResultOrNull();
 
@@ -334,7 +334,6 @@ public final class L2Translator
 		interpreter.function = savedFunction;
 		interpreter.argsBuffer.clear();
 		interpreter.argsBuffer.addAll(savedArguments);
-		interpreter.skipReturnCheck = savedSkip;
 		interpreter.latestResult(savedFailureValue);
 		translationSizeStat.record(
 			chunk.instructions.length,

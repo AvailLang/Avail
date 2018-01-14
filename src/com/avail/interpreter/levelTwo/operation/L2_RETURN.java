@@ -44,12 +44,10 @@ import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.Nulls;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
 import static com.avail.utility.Nulls.stripNull;
@@ -68,8 +66,7 @@ public class L2_RETURN extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_RETURN().init(
-			READ_POINTER.is("return value"),
-			READ_INT.is("skip return check"));
+			READ_POINTER.is("return value"));
 
 	@Override
 	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
@@ -78,15 +75,11 @@ public class L2_RETURN extends L2Operation
 		// Return to the calling continuation with the given value.
 		final int valueRegIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
-		final int skipCheckIndex =
-			instruction.readIntRegisterAt(1).finalIndex();
 
 		return interpreter ->
 		{
 			final AvailObject value = interpreter.pointerAt(valueRegIndex);
 			interpreter.latestResult(value);
-			interpreter.skipReturnCheck =
-				interpreter.integerAt(skipCheckIndex) != 0;
 			interpreter.returnNow = true;
 			interpreter.returningFunction = stripNull(interpreter.function);
 			return null;
@@ -124,8 +117,6 @@ public class L2_RETURN extends L2Operation
 	{
 		final int valueRegIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
-		final int skipCheckIndex =
-			instruction.readIntRegisterAt(1).finalIndex();
 
 		// interpreter.latestResult(interpreter.pointerAt(valueRegIndex))
 		method.visitVarInsn(ALOAD, translator.interpreterLocal());
@@ -143,35 +134,7 @@ public class L2_RETURN extends L2Operation
 			"latestResult",
 			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
 			false);
-		// interpreter.skipReturnCheck =
-		//    interpreter.integerAt(skipCheckIndex) != 0
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		method.visitInsn(DUP);
-		emitIntConstant(method, skipCheckIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"integerAt",
-			getMethodDescriptor(INT_TYPE, INT_TYPE),
-			false);
-		final Label skipReturnCheckTrueLabel = new Label();
-		method.visitJumpInsn(IFNE, skipReturnCheckTrueLabel);
-		emitIntConstant(method, 0);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"skipReturnCheck",
-			BOOLEAN_TYPE.getDescriptor());
-		final Label setReturnNowLabel = new Label();
-		method.visitJumpInsn(GOTO, setReturnNowLabel);
-		method.visitLabel(skipReturnCheckTrueLabel);
-		emitIntConstant(method, 1);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"skipReturnCheck",
-			BOOLEAN_TYPE.getDescriptor());
-		method.visitLabel(setReturnNowLabel);
+
 		// interpreter.returnNow = true
 		method.visitVarInsn(ALOAD, translator.interpreterLocal());
 		emitIntConstant(method, 1);
@@ -180,6 +143,7 @@ public class L2_RETURN extends L2Operation
 			getInternalName(Interpreter.class),
 			"returnNow",
 			BOOLEAN_TYPE.getDescriptor());
+
 		// interpreter.returningFunction = stripNull(interpreter.function)
 		method.visitVarInsn(ALOAD, translator.interpreterLocal());
 		method.visitInsn(DUP);

@@ -322,10 +322,7 @@ extends Descriptor
 		final @Nullable A_Phrase parentNode)
 	{
 		object.childrenDo(
-			child ->
-			{
-				treeDoWithParent(child, aBlock, object);
-			});
+			child -> treeDoWithParent(child, aBlock, object));
 		aBlock.value(object, parentNode);
 	}
 

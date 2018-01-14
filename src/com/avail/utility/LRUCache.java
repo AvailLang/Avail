@@ -280,7 +280,7 @@ public class LRUCache<K, V>
 	 * {@linkplain #softMap primary map} after the garbage collector has
 	 * reclaimed the cached values.
 	 */
-	@InnerAccess final Map<SoftReference<V>, K> keysBySoftReference =
+	@InnerAccess final Map<SoftReference<? extends V>, K> keysBySoftReference =
 		new HashMap<>();
 
 	/**

@@ -709,7 +709,7 @@ public final class JVMTranslator
 	 * {@code true} if the bytes of generated {@link JVMChunk} subclasses should
 	 * be dumped to files for external debugging, {@code false} otherwise.
 	 */
-	public static boolean debugDumpClassBytesToFiles = true;
+	public static boolean debugDumpClassBytesToFiles = false;
 
 	/**
 	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be

@@ -45,8 +45,8 @@ import static java.lang.String.format;
  * A {@code LookupTree} representing a solution.
  */
 public final class LeafLookupTree<
-	Element extends A_BasicObject, Result extends A_BasicObject, Memento>
-extends LookupTree<Element, Result, Memento>
+	Element extends A_BasicObject, Result extends A_BasicObject, AdaptorMemento>
+extends LookupTree<Element, Result, AdaptorMemento>
 {
 	/** The result of the lookup. */
 	private final Result finalResult;
@@ -71,50 +71,50 @@ extends LookupTree<Element, Result, Memento>
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByTypes (
 		final List<? extends A_Type> argTypes,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		error("Attempting to lookup past leaf of decision tree");
 		return this;
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByTypes (
 		final A_Tuple argTypes,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		error("Attempting to lookup past leaf of decision tree");
 		return this;
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValues (
 		final List<? extends A_BasicObject> argValues,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		error("Attempting to lookup past leaf of decision tree");
 		return this;
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValues (
 		final A_Tuple argValues,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		error("Attempting to lookup past leaf of decision tree");
 		return this;
 	}
 
 	@Override
-	protected LookupTree<Element, Result, Memento> lookupStepByValue (
+	protected LookupTree<Element, Result, AdaptorMemento> lookupStepByValue (
 		final A_BasicObject probeValue,
-		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		final Memento memento)
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento)
 	{
 		error("Attempting to lookup past leaf of decision tree");
 		return this;

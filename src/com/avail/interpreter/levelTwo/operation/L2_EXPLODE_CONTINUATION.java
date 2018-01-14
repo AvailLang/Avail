@@ -37,7 +37,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -46,7 +45,8 @@ import com.avail.optimizer.StackReifier;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 
 /**
  * Given a continuation, extract its caller, function, and all of its slots
@@ -62,8 +62,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 	public static final L2Operation instance =
 		new L2_EXPLODE_CONTINUATION().init(
 			READ_POINTER.is("continuation to explode"),
-			WRITE_VECTOR.is("exploded continuation slots"),
-			WRITE_INT.is("skip return check"));
+			WRITE_VECTOR.is("exploded continuation slots"));
 
 	@Override
 	public @Nullable StackReifier step (
@@ -78,8 +77,6 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final List<L2WritePointerOperand> explodedSlots =
 			instruction.writeVectorRegisterAt(1);
-		final L2WriteIntOperand skipReturnCheckReg =
-			instruction.writeIntRegisterAt(2);
 
 		final int slotsCount = explodedSlots.size();
 		final A_Continuation continuation =
@@ -90,9 +87,6 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			final AvailObject slotValue = continuation.argOrLocalOrStackAt(i);
 			explodedSlots.get(i - 1).set(slotValue, interpreter);
 		}
-		skipReturnCheckReg.set(
-			continuation.skipReturnFlag() ? 1 : 0,
-			interpreter);
 		return null;
 	}
 
@@ -106,8 +100,6 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final List<L2WritePointerOperand> explodedSlots =
 			instruction.writeVectorRegisterAt(1);
-//		final L2WriteIntOperand skipReturnCheckReg =
-//			instruction.writeIntRegisterAt(2);
 
 		// Update the type and value information to agree with the types and
 		// values known to be in the slots of the continuation being exploded

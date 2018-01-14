@@ -53,10 +53,8 @@ import java.util.logging.Level;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -101,8 +99,7 @@ extends L2Operation
 					interpreter.debugModeString,
 					primitive.name());
 			}
-			final Result result = interpreter.attemptPrimitive(
-				primitive, interpreter.skipReturnCheck);
+			final Result result = interpreter.attemptPrimitive(primitive);
 			switch (result)
 			{
 				case SUCCESS:
@@ -203,7 +200,6 @@ extends L2Operation
 				interpreter.debugModeString,
 				primitive.name());
 		}
-		interpreter.skipReturnCheck = false;
 		final L2Chunk savedChunk = stripNull(interpreter.chunk);
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
@@ -230,8 +226,7 @@ extends L2Operation
 						interpreter.debugModeString,
 						primitive.name());
 				}
-				final Result result = interpreter.attemptPrimitive(
-					primitive, interpreter.skipReturnCheck);
+				final Result result = interpreter.attemptPrimitive(primitive);
 				switch (result)
 				{
 					case SUCCESS:

@@ -58,6 +58,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Deprecated
 public class L2_DIAGNOSE_LOOKUP_FAILURE
 extends L2Operation
 {

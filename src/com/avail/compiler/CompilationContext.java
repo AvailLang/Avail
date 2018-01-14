@@ -62,6 +62,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -777,13 +778,14 @@ public class CompilationContext
 		final int startingLineNumber = code.startingLineNumber();
 		if (loader().statementCanBeSummarized())
 		{
-			final List<LoadingEffect> effects = loader().recordedEffects();
-			if (!effects.isEmpty())
+			// Output summarized functions instead of what ran.  Associate the
+			// original phrase with it, which allows the subphrases to be marked
+			// up in an editor and stepped in a debugger, even though the
+			// top-level phrase itself will be invalid.
+			final Iterator<LoadingEffect> iterator =
+				loader().recordedEffects().iterator();
+			while (iterator.hasNext())
 			{
-				// Output summarized functions instead of what ran.  Associate
-				// the original phrase with it, which allows the subphrases to
-				// be marked up in an editor and stepped in a debugger, even
-				// though the top-level phrase itself will be invalid.
 				final L1InstructionWriter writer =
 					new L1InstructionWriter(
 						module,
@@ -791,16 +793,18 @@ public class CompilationContext
 						code.originatingPhrase());
 				writer.argumentTypes();
 				writer.returnType(Types.TOP.o());
-				boolean first = true;
-				for (final LoadingEffect effect : effects)
+				int batchCount = 0;
+				for (; batchCount < 100 && iterator.hasNext(); batchCount++)
 				{
-					if (!first)
+					if (batchCount > 0)
 					{
-						writer.write(startingLineNumber, L1Operation.L1_doPop);
+						writer.write(
+							startingLineNumber, L1Operation.L1_doPop);
 					}
-					effect.writeEffectTo(writer);
-					first = false;
+					iterator.next().writeEffectTo(writer);
 				}
+				assert batchCount > 0;
+				// Flush the batch.
 				final A_Function summaryFunction =
 					createFunction(writer.compiledCode(), emptyTuple());
 				if (AvailLoader.debugUnsummarizedStatements)
@@ -808,7 +812,8 @@ public class CompilationContext
 					System.out.println(
 						module.moduleName().asNativeString()
 							+ ":" + startingLineNumber
-							+ " Summary -- " + function);
+							+ " Summary -- " + function
+							+ "(batch = " + batchCount + ")");
 				}
 				serializer.serialize(summaryFunction);
 			}

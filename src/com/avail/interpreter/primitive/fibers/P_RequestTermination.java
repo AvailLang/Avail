@@ -77,8 +77,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
@@ -109,8 +108,7 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						fiberSuspendingPrimitive,
-						nil,
-						true);
+						nil);
 					break;
 				}
 				case PARKED:
@@ -128,8 +126,7 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						suspendingPrimitive,
-						nil,
-						true);
+						nil);
 					break;
 				}
 				case UNSTARTED:

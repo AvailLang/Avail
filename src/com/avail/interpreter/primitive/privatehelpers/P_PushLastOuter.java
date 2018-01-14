@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.privatehelpers;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -40,6 +41,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -64,8 +66,7 @@ public final class P_PushLastOuter extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		final A_Function function = stripNull(interpreter.function);
 		assert function.code().primitive() == this;
@@ -74,10 +75,10 @@ public final class P_PushLastOuter extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		// This will be specially inlined, so strengthening it doesn't matter.
-		return ANY.o();
+		return rawFunction.outerTypeAt(1);
 	}
 
 	@Override
@@ -89,11 +90,13 @@ public final class P_PushLastOuter extends Primitive
 	}
 
 	@Override
-	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final @Nullable A_BasicObject constantFunction =
 			functionToCallReg.constantOrNull();
@@ -102,8 +105,10 @@ public final class P_PushLastOuter extends Primitive
 		// it has an outer).
 		if (constantFunction != null)
 		{
-			return translator.constantRegister(
-				((A_Function) constantFunction).outerVarAt(1));
+			callSiteHelper.useAnswer(
+				translator.constantRegister(
+					((A_Function) constantFunction).outerVarAt(1)));
+			return true;
 		}
 
 		// See if we can find the instruction that created the function, using
@@ -112,12 +117,14 @@ public final class P_PushLastOuter extends Primitive
 		final L2Instruction functionCreationInstruction =
 			functionToCallReg.register().definitionSkippingMoves();
 		final A_Type returnType = functionToCallReg.type().returnType();
-		return functionCreationInstruction.operation
-			.extractFunctionOuterRegister(
+		final L2ReadPointerOperand outerReg =
+			functionCreationInstruction.operation.extractFunctionOuterRegister(
 				functionCreationInstruction,
 				functionToCallReg,
 				1,
 				returnType,
 				translator);
+		callSiteHelper.useAnswer(outerReg);
+		return true;
 	}
 }

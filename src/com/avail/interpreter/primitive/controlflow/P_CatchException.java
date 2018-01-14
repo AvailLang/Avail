@@ -74,8 +74,7 @@ public final class P_CatchException extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 //		final A_BasicObject bodyBlock = args.get(0);

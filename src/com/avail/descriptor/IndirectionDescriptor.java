@@ -52,6 +52,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -4415,12 +4416,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_SkipReturnFlag (final AvailObject object)
-	{
-		return o_Traversed(object).skipReturnFlag();
-	}
-
-	@Override
 	boolean o_IsIntegerIntervalTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isIntegerIntervalTuple();
@@ -5177,5 +5172,12 @@ extends AbstractDescriptor
 	int o_CurrentLineNumber (final AvailObject object)
 	{
 		return o_Traversed(object).currentLineNumber();
+	}
+
+	@Override
+	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+		final AvailObject object)
+	{
+		return o_Traversed(object).testingTree();
 	}
 }

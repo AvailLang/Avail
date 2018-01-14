@@ -32,6 +32,8 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -44,11 +46,11 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.POP;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -67,7 +69,6 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			READ_POINTER.is("function"),
 			IMMEDIATE.is("level one pc"),
 			IMMEDIATE.is("stack pointer"),
-			READ_INT.is("skip return check"),
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
 			PC.is("on-ramp"),
@@ -83,14 +84,12 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			instruction.readObjectRegisterAt(1).finalIndex();
 		final int levelOnePC = instruction.immediateAt(2);
 		final int levelOneStackp = instruction.immediateAt(3);
-		final int skipReturnRegIndex =
-			instruction.readIntRegisterAt(4).finalIndex();
 		final List<L2ReadPointerOperand> slots =
-			instruction.readVectorRegisterAt(5);
+			instruction.readVectorRegisterAt(4);
 		final int destRegIndex =
-			instruction.writeObjectRegisterAt(6).finalIndex();
-		final int onRampOffset = instruction.pcOffsetAt(7);
-		final int fallThroughOffset = instruction.pcOffsetAt(8);
+			instruction.writeObjectRegisterAt(5).finalIndex();
+		final int onRampOffset = instruction.pcOffsetAt(6);
+		final int fallThroughOffset = instruction.pcOffsetAt(7);
 
 		final int[] slotRegIndices = new int[slots.size()];
 		for (int i = 0; i < slotRegIndices.length; i++)
@@ -100,13 +99,15 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 
 		return interpreter ->
 		{
+			final A_Function function =
+				interpreter.pointerAt(functionRegIndex);
+			assert slotRegIndices.length == function.code().numSlots();
 			final A_Continuation continuation =
 				createContinuationExceptFrame(
-					interpreter.pointerAt(functionRegIndex),
+					function,
 					interpreter.pointerAt(callerRegIndex),
 					levelOnePC,
 					levelOneStackp,
-					interpreter.integerAt(skipReturnRegIndex) != 0,
 					stripNull(interpreter.chunk),
 					onRampOffset);
 			for (int i = 0; i < slotRegIndices.length; i++)
@@ -149,14 +150,12 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 //			instruction.readObjectRegisterAt(1).finalIndex();
 //		final int levelOnePC = instruction.immediateAt(2);
 //		final int levelOneStackp = instruction.immediateAt(3);
-//		final int skipReturnRegIndex =
-//			instruction.readIntRegisterAt(4).finalIndex();
 //		final List<L2ReadPointerOperand> slots =
-//			instruction.readVectorRegisterAt(5);
+//			instruction.readVectorRegisterAt(4);
 //		final int destRegIndex =
-//			instruction.writeObjectRegisterAt(6).finalIndex();
-//		final int onRampOffset = instruction.pcOffsetAt(7);
-		final int fallThroughOffset = instruction.pcOffsetAt(8);
+//			instruction.writeObjectRegisterAt(5).finalIndex();
+//		final int onRampOffset = instruction.pcOffsetAt(6);
+		final int fallThroughOffset = instruction.pcOffsetAt(7);
 
 		super.translateToJVM(translator, method, instruction);
 		method.visitJumpInsn(

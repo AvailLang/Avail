@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.general;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -45,12 +46,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.falseObject;
@@ -86,8 +86,7 @@ public final class P_Assert extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Atom predicate = args.get(0);
@@ -135,6 +134,7 @@ public final class P_Assert extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type booleanType = argumentTypes.get(0);
@@ -152,23 +152,26 @@ public final class P_Assert extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		assert arguments.size() == 2;
 		final A_Type conditionType = argumentTypes.get(0);
 		if (!falseObject().isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
-			return translator.constantRegister(nil);
+			callSiteHelper.useAnswer(translator.constantRegister(nil));
+			return true;
 		}
 		if (!trueObject().isInstanceOf(conditionType))
 		{
 			// The condition can't be true, so don't optimize the call.
-			return null;
+			return false;
 		}
 		// Failed assertions are rare, so avoid the cost of even the primitive
 		// invocation if possible.  Actually, this is more about setting up a
@@ -177,14 +180,14 @@ public final class P_Assert extends Primitive
 		// path.
 		final L2BasicBlock failPath = translator.createBasicBlock(
 			"assertion failed");
-		final L2BasicBlock afterPath = translator.createBasicBlock(
+		final L2BasicBlock passPath = translator.createBasicBlock(
 			"after assertion");
 
 		translator.addInstruction(
 			L2_JUMP_IF_EQUALS_CONSTANT.instance,
 			arguments.get(0),
 			new L2ConstantOperand(trueObject()),
-			translator.edgeTo(afterPath),
+			translator.edgeTo(passPath),
 			translator.edgeTo(failPath));
 
 		translator.startBlock(failPath);
@@ -195,15 +198,12 @@ public final class P_Assert extends Primitive
 			asList(
 				translator.constantRegister(falseObject()),
 				arguments.get(1)),
-			TOP.o(),
-			true,
-			"assertion failure");
-		translator.addInstruction(
-			L2_JUMP.instance,
-			translator.edgeTo(afterPath));
+			functionToCallReg.type().returnType(),
+			callSiteHelper);
 
-		// And converge back here.  This assertion primitive always answers nil.
-		translator.startBlock(afterPath);
-		return translator.constantRegister(nil);
+		// Happy case.  Just push nil and jump to a suitable exit point.
+		translator.startBlock(passPath);
+		callSiteHelper.useAnswer(translator.constantRegister(nil));
+		return true;
 	}
 }

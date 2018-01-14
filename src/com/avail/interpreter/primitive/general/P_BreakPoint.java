@@ -61,8 +61,7 @@ public final class P_BreakPoint extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		// Throw and catch a RuntimeException.  A sensibly configured debugger
 		// will pause during the throw. There are also ample locations here to

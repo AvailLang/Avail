@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.types;
 
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -66,8 +67,7 @@ public final class P_CreateEnumeration extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Set instanceSet = args.get(0);
@@ -85,6 +85,7 @@ public final class P_CreateEnumeration extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type setType = argumentTypes.get(0);

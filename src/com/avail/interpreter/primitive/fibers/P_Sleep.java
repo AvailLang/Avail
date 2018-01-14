@@ -82,8 +82,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject sleepMillis = args.get(0);
@@ -122,8 +121,7 @@ extends Primitive
 								runtime,
 								fiber,
 								P_Sleep.this,
-								nil,
-								true);
+								nil);
 						}
 					});
 				}
@@ -143,8 +141,7 @@ extends Primitive
 								runtime,
 								fiber,
 								this,
-								nil,
-								true);
+								nil);
 							return;
 						}
 						fiber.wakeupTask(task);
@@ -171,8 +168,7 @@ extends Primitive
 								runtime,
 								fiber,
 								this,
-								nil,
-								true);
+								nil);
 							return;
 						}
 						fiber.executionState(ASLEEP);

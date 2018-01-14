@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -76,8 +77,7 @@ public final class P_TupleReplaceAt extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final A_Tuple tuple = args.get(0);
@@ -116,6 +116,7 @@ public final class P_TupleReplaceAt extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type originalTupleType = argumentTypes.get(0);
@@ -129,8 +130,7 @@ public final class P_TupleReplaceAt extends Primitive
 				&& upperBound.greaterThan(maximumComplexity)))
 		{
 			// Too expensive.  Fall back on the primitive's basic type.
-			return super.returnTypeGuaranteedByVM(
-				argumentTypes);
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 		}
 		final A_Tuple originalTypeTuple = originalTupleType.typeTuple();
 		final int originalTypeTupleSize = originalTypeTuple.tupleSize();

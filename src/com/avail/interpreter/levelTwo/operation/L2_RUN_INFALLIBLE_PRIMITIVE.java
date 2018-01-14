@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -48,7 +49,6 @@ import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +80,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
+			CONSTANT.is("raw function"),  // Used for inlining/reoptimization.
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("primitive result"));
@@ -88,11 +89,12 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
 		final L2Instruction instruction)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final Primitive primitive = instruction.primitiveAt(1);
 		final List<L2ReadPointerOperand> argumentRegs =
-			instruction.readVectorRegisterAt(1);
+			instruction.readVectorRegisterAt(2);
 		final int resultRegNumber =
-			instruction.writeObjectRegisterAt(2).finalIndex();
+			instruction.writeObjectRegisterAt(3).finalIndex();
 
 		// Pre-decode the argument registers as much as possible.
 		final int[] argumentRegNumbers = new int[argumentRegs.size()];
@@ -124,8 +126,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			final A_Function savedFunction = stripNull(interpreter.function);
 			// Eligible primitives MUST NOT access this.
 			interpreter.function = null;
-			final Result res = interpreter.attemptPrimitive(
-				primitive, false);
+			final Result res = interpreter.attemptPrimitive(primitive);
 			if (res == SUCCESS)
 			{
 				interpreter.function = savedFunction;
@@ -146,11 +147,12 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
+		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final Primitive primitive = instruction.primitiveAt(1);
 		final List<L2ReadPointerOperand> argsVector =
-			instruction.readVectorRegisterAt(1);
+			instruction.readVectorRegisterAt(2);
 		final L2WritePointerOperand resultReg =
-			instruction.writeObjectRegisterAt(2);
+			instruction.writeObjectRegisterAt(3);
 
 		final List<A_Type> argTypes = new ArrayList<>(argsVector.size());
 		for (final L2ReadPointerOperand arg : argsVector)
@@ -160,7 +162,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
-			primitive.returnTypeGuaranteedByVM(argTypes);
+			primitive.returnTypeGuaranteedByVM(rawFunction, argTypes);
 		registerSet.removeTypeAt(resultReg.register());
 		registerSet.removeConstantAt(resultReg.register());
 		if (!guaranteedType.isBottom())
@@ -176,7 +178,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		// It depends on the primitive.
 		assert instruction.operation == this;
 		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
+			(L2PrimitiveOperand) instruction.operands[1];
 		final Primitive primitive = primitiveOperand.primitive;
 		return primitive.hasFlag(Flag.HasSideEffect)
 			|| primitive.hasFlag(Flag.CatchException)
@@ -190,7 +192,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
-		return instruction.writeObjectRegisterAt(2);
+		return instruction.writeObjectRegisterAt(3);
 	}
 
 	/**
@@ -205,7 +207,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
-		return instruction.primitiveAt(0);
+		return instruction.primitiveAt(1);
 	}
 
 	/**
@@ -222,7 +224,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
-		return instruction.readVectorRegisterAt(1);
+		return instruction.readVectorRegisterAt(2);
 	}
 
 	@Override
@@ -231,11 +233,12 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final Primitive primitive = instruction.primitiveAt(1);
 //		final List<L2ReadPointerOperand> argumentRegs =
-//			instruction.readVectorRegisterAt(1);
+//			instruction.readVectorRegisterAt(2);
 //		final int resultRegNumber =
-//			instruction.writeObjectRegisterAt(2).finalIndex();
+//			instruction.writeObjectRegisterAt(3).finalIndex();
 
 		super.translateToJVM(translator, method, instruction);
 		if (primitive.hasFlag(Flag.SwitchesContinuation))

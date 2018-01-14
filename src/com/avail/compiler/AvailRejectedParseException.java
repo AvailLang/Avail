@@ -120,9 +120,7 @@ extends PrimitiveThrownException
 		final Object... rejectionArguments)
 	{
 		this.rejectionGenerator = () ->
-		{
-			return stringFrom(format(rejectionPattern, rejectionArguments));
-		};
+			stringFrom(format(rejectionPattern, rejectionArguments));
 		this.rejectionString = null;
 	}
 

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.maps;
 
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
@@ -64,8 +65,7 @@ public final class P_MapKeysAsSet extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final A_Map map = args.get(0);
@@ -74,6 +74,7 @@ public final class P_MapKeysAsSet extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		assert argumentTypes.size() == 1;

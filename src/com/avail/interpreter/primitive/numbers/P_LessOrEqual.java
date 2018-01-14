@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.numbers;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AvailObject;
@@ -40,8 +41,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -71,8 +72,7 @@ public final class P_LessOrEqual extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_Number a = args.get(0);
@@ -93,6 +93,7 @@ public final class P_LessOrEqual extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
 		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
@@ -108,11 +109,13 @@ public final class P_LessOrEqual extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1Translator translator)
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
 		final L2ReadPointerOperand firstReg = arguments.get(0);
 		final L2ReadPointerOperand secondReg = arguments.get(1);
@@ -127,9 +130,16 @@ public final class P_LessOrEqual extends Primitive
 		assert canBeTrue || canBeFalse;
 		if (!canBeTrue || !canBeFalse)
 		{
-			return translator.constantRegister(objectFromBoolean(canBeTrue));
+			callSiteHelper.useAnswer(
+				translator.constantRegister(objectFromBoolean(canBeTrue)));
+			return true;
 		}
-		return super.tryToGenerateSpecialInvocation(
-			functionToCallReg, arguments, argumentTypes, translator);
+		return super.tryToGenerateSpecialPrimitiveInvocation(
+			functionToCallReg,
+			rawFunction,
+			arguments,
+			argumentTypes,
+			translator,
+			callSiteHelper);
 	}
 }

@@ -85,8 +85,7 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final A_String string = args.get(0);
@@ -120,8 +119,7 @@ extends Primitive
 							currentRuntime(),
 							fiber,
 							this,
-							nil,
-							skipReturnCheck);
+							nil);
 					}
 					catch (
 						final MalformedMessageException
@@ -133,8 +131,7 @@ extends Primitive
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
-							copiedArgs,
-							skipReturnCheck);
+							copiedArgs);
 					}
 				}));
 		return FIBER_SUSPENDED;
@@ -151,10 +148,13 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_AMBIGUOUS_NAME, E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED)
+			set(
+					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
+					E_AMBIGUOUS_NAME,
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+					E_METHOD_IS_SEALED)
 				.setUnionCanDestroy(possibleErrors, true));
 	}
 }
