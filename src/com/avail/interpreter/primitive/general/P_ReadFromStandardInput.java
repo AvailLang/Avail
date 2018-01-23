@@ -37,7 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
@@ -65,6 +65,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ReadFromStandardInput().init(
 			0, CanSuspend, Unknown);

@@ -44,7 +44,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
@@ -92,6 +92,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_FileSync().init(
 			4, CanInline, HasSideEffect);

@@ -34,11 +34,13 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.utility.Strings.increaseIndentation;
@@ -55,7 +57,7 @@ public final class L2ControlFlowGraph
 	 * The basic blocks of the graph.  They're either in the order they were
 	 * generated, or in a suitable order for final L2 instruction emission.
 	 */
-	private final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
+	public final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
 
 	/**
 	 * An {@link AtomicInteger} used to quickly generate unique integers which
@@ -99,7 +101,7 @@ public final class L2ControlFlowGraph
 	 */
 	public List<L2Register> allRegisters ()
 	{
-		final List<L2Register> allRegisters = new ArrayList<>();
+		final Set<L2Register> allRegisters = new HashSet<>();
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
 			for (final L2Instruction instruction : block.instructions())
@@ -107,9 +109,7 @@ public final class L2ControlFlowGraph
 				allRegisters.addAll(instruction.destinationRegisters());
 			}
 		}
-		// This should only be used when the control flow graph is in SSA form,
-		// so there should be no duplicates
-		return new ArrayList<>(new HashSet<>(allRegisters));
+		return new ArrayList<>(allRegisters);
 	}
 
 	@Override
@@ -120,6 +120,18 @@ public final class L2ControlFlowGraph
 		{
 			builder.append(block.name());
 			builder.append(":\n");
+			for (final L2PcOperand edge : block.predecessorEdges())
+			{
+				builder
+					.append("\t\tFrom: ")
+					.append(edge.sourceBlock().name())
+					.append("\n\t\t\t[")
+					.append("always live-in: ")
+					.append(edge.alwaysLiveInRegisters)
+					.append(", sometimes live-in: ")
+					.append(edge.sometimesLiveInRegisters)
+					.append("]\n");
+			}
 			for (final L2Instruction instruction : block.instructions())
 			{
 				builder.append("\t");

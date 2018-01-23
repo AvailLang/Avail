@@ -1,6 +1,6 @@
-/**
+/*
  * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,19 +39,17 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Mutable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
-import static com.avail.optimizer.L2Translator.OptimizationLevel
-	.optimizationLevel;
+import static com.avail.optimizer.L2Translator.OptimizationLevel.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
@@ -59,6 +57,9 @@ import static org.objectweb.asm.Type.getInternalName;
  * re-optimize the code and jump to its {@link
  * L2Chunk#offsetAfterInitialTryPrimitive()}, which expects the arguments to
  * still be set up in the {@link Interpreter}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 extends L2Operation
@@ -68,35 +69,8 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init(
-			IMMEDIATE.is("New optimization level"));
-
-	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int targetOptimizationLevel = instruction.immediateAt(0);
-		return interpreter ->
-		{
-			final A_Function function = stripNull(interpreter.function);
-			final A_RawFunction code = function.code();
-			code.decrementCountdownToReoptimize(optimize ->
-			{
-				if (optimize)
-				{
-					code.countdownToReoptimize(
-						L2Chunk.countdownForNewlyOptimizedCode());
-					L2Translator.translateToLevelTwo(
-						code,
-						optimizationLevel(targetOptimizationLevel),
-						interpreter);
-				}
-				final L2Chunk chunk = stripNull(code.startingChunk());
-				interpreter.chunk = chunk;
-				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
-			});
-			return null;
-		};
-	}
+			IMMEDIATE.is("new optimization level"),
+			IMMEDIATE.is("is entry point"));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -105,40 +79,64 @@ extends L2Operation
 	}
 
 	@Override
+	public boolean isEntryPoint (final L2Instruction instruction)
+	{
+		return instruction.immediateAt(1) != 0;
+	}
+
+	@ReferencedInGeneratedCode
+	public static boolean decrement (
+		final Interpreter interpreter,
+		int targetOptimizationLevel)
+	{
+		final A_Function function = stripNull(interpreter.function);
+		final A_RawFunction code = function.code();
+		final Mutable<Boolean> chunkChanged = new Mutable<>(false);
+		code.decrementCountdownToReoptimize(optimize ->
+		{
+			if (optimize)
+			{
+				code.countdownToReoptimize(
+					L2Chunk.countdownForNewlyOptimizedCode());
+				L2Translator.translateToLevelTwo(
+					code,
+					optimizationLevel(targetOptimizationLevel),
+					interpreter);
+			}
+			final L2Chunk chunk = stripNull(code.startingChunk());
+			interpreter.chunk = chunk;
+			interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
+			chunkChanged.value = true;
+		});
+		return chunkChanged.value;
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsPrologue(method, instruction);
-		}
-		final int savedChunkLocal = translator.nextLocal(false);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
-		method.visitVarInsn(ASTORE, savedChunkLocal);
-		translator.generateRunAction(method, instruction);
-		method.visitInsn(POP);
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsEpilogue(method, instruction);
-		}
-		method.visitVarInsn(ALOAD, savedChunkLocal);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
-		final Label continueLabel = new Label();
-		method.visitJumpInsn(IF_ACMPEQ, continueLabel);
+		final int targetOptimizationLevel = instruction.immediateAt(0);
+//		final int isEntryPoint = instruction.immediateAt(1);
+
+		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
+		// ::    interpreter, targetOptimizationLevel)) return null;
+		translator.loadInterpreter(method);
+		translator.literal(method, targetOptimizationLevel);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class),
+			"decrement",
+			getMethodDescriptor(
+				BOOLEAN_TYPE,
+				getType(Interpreter.class),
+				INT_TYPE),
+			false);
+		final Label didNotOptimize = new Label();
+		method.visitJumpInsn(IFEQ, didNotOptimize);
 		method.visitInsn(ACONST_NULL);
 		method.visitInsn(ARETURN);
-		method.visitLabel(continueLabel);
+		method.visitLabel(didNotOptimize);
 	}
 }

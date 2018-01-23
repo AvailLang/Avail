@@ -1,6 +1,6 @@
-/**
+/*
  * L2ReadIntOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,8 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ReadIntOperand extends L2Operand
+public class L2ReadIntOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@link L2IntegerRegister}.
@@ -77,8 +78,7 @@ public class L2ReadIntOperand extends L2Operand
 	 *
 	 * @param register The integer register.
 	 */
-	public L2ReadIntOperand (
-		final L2IntegerRegister register)
+	public L2ReadIntOperand (final L2IntegerRegister register)
 	{
 		this.register = register;
 	}
@@ -103,17 +103,6 @@ public class L2ReadIntOperand extends L2Operand
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
-	}
-
-	/**
-	 * Read the value of this register from the provided {@link Interpreter}.
-	 *
-	 * @param interpreter An Interpreter.
-	 * @return The {@code int} value of this integer register.
-	 */
-	public int in (final Interpreter interpreter)
-	{
-		return interpreter.integerAt(finalIndex());
 	}
 
 	@Override

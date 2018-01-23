@@ -47,6 +47,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -523,6 +524,7 @@ extends Descriptor
 	 *            The level two chunk offset at which to resume.
 	 * @return A new mutable continuation.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Continuation createContinuationExceptFrame (
 		final A_Function function,
 		final A_Continuation caller,

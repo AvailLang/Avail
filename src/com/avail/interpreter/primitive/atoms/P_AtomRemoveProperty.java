@@ -40,7 +40,7 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -67,6 +67,7 @@ public final class P_AtomRemoveProperty extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_AtomRemoveProperty().init(
 			2, CanInline, HasSideEffect);

@@ -1,4 +1,4 @@
-/**
+/*
  * L2OperandDispatcher.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -49,21 +49,24 @@ public interface L2OperandDispatcher
 	/**
 	 * Process an operand which is merely a comment.
 	 *
-	 * @param operand an {@link L2CommentOperand}.
+	 * @param operand
+	 *        An {@link L2CommentOperand}.
 	 */
 	void doOperand (L2CommentOperand operand);
 
 	/**
 	 * Process an operand which is a constant.
 	 *
-	 * @param operand an {@link L2ConstantOperand}.
+	 * @param operand
+	 *        An {@link L2ConstantOperand}.
 	 */
 	void doOperand (L2ConstantOperand operand);
 
 	/**
 	 * Process an operand which is an immediate value.
 	 *
-	 * @param operand an {@link L2ImmediateOperand}.
+	 * @param operand
+	 *        An {@link L2ImmediateOperand}.
 	 */
 	void doOperand (L2ImmediateOperand operand);
 
@@ -71,28 +74,32 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a constant level two offset into a
 	 * {@linkplain L2Chunk level two chunk}'s wordcode instructions.
 	 *
-	 * @param operand an {@link L2PcOperand}.
+	 * @param operand
+	 *        An {@link L2PcOperand}.
 	 */
 	void doOperand (L2PcOperand operand);
 
 	/**
 	 * Process an operand which is a {@link Primitive} number.
 	 *
-	 * @param operand an {@link L2PrimitiveOperand}.
+	 * @param operand
+	 *        An {@link L2PrimitiveOperand}.
 	 */
 	void doOperand (L2PrimitiveOperand operand);
 
 	/**
 	 * Process an operand which is a read of an {@code int} register.
 	 *
-	 * @param operand an {@link L2ReadIntOperand}.
+	 * @param operand
+	 *        An {@link L2ReadIntOperand}.
 	 */
 	void doOperand (L2ReadIntOperand operand);
 
 	/**
 	 * Process an operand which is a read of an {@link AvailObject} register.
 	 *
-	 * @param operand an {@link L2ReadPointerOperand}.
+	 * @param operand
+	 *        An {@link L2ReadPointerOperand}.
 	 */
 	void doOperand (L2ReadPointerOperand operand);
 
@@ -100,7 +107,8 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a read of a vector of {@link AvailObject}
 	 * registers.
 	 *
-	 * @param operand an {@link L2ReadVectorOperand}.
+	 * @param operand
+	 *        An {@link L2ReadVectorOperand}.
 	 */
 	void doOperand (L2ReadVectorOperand operand);
 
@@ -108,21 +116,24 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a literal {@link A_Bundle} which the
 	 * resulting {@link L2Chunk} should be dependent upon for invalidation.
 	 *
-	 * @param operand an {@link L2SelectorOperand}.
+	 * @param operand
+	 *        An {@link L2SelectorOperand}.
 	 */
 	void doOperand (L2SelectorOperand operand);
 
 	/**
 	 * Process an operand which is a write of an {@code int} register.
 	 *
-	 * @param operand an {@link L2WriteIntOperand}.
+	 * @param operand
+	 *        An {@link L2WriteIntOperand}.
 	 */
 	void doOperand (L2WriteIntOperand operand);
 
 	/**
 	 * Process an operand which is a write of an {@link AvailObject} register.
 	 *
-	 * @param operand an {@link L2WritePointerOperand}.
+	 * @param operand
+	 *        An {@link L2WritePointerOperand}.
 	 */
 	void doOperand (L2WritePointerOperand operand);
 
@@ -130,7 +141,8 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a write of a vector of {@link AvailObject}
 	 * registers.
 	 *
-	 * @param operand an {@link L2WriteVectorOperand}.
+	 * @param operand
+	 *        An {@link L2WriteVectorOperand}.
 	 */
 	void doOperand (L2WriteVectorOperand operand);
 

@@ -30,7 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 -->
-<project name="Avail" default="avail">
+<project name="Avail" default="avail" >
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.src" value="${path.avail}/src"/>
 	<property name="path.avail.test" value="${path.avail}/test"/>
@@ -39,6 +39,9 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="path.avail.distro" value="${path.avail}/distro"/>
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
 	<property name="path.avail.jar" value="${path.avail.distro}/lib"/>
+	<property
+		name="path.asm"
+		value="${path.avail.libraries}/asm-6.0.jar:${path.avail.libraries}/asm-util-6.0.jar:${path.avail.libraries}/asm-tree-6.0.jar:${path.avail.libraries}/asm-analysis-6.0.jar"/>
 
 	<property name="jar.avail" value="Avail.jar"/>
 	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
@@ -79,17 +82,17 @@ POSSIBILITY OF SUCH DAMAGE.
 		</and>
 	</condition>
 
-	<path id="javac-classpath">
-		<file directory="${path.avail.src}"/>
-		<file directory="${path.avail.bin}"/>
-		<fileset dir="${path.avail.libraries}">
-			<include name="**/*.jar"/>
-		</fileset>
-	</path>
+    <path id="javac-classpath" cache="true">
+        <pathelement location="${path.avail.bin}"/>
+        <fileset dir="${path.avail.libraries}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
 
-	<!--
-		Build the Avail sources.
-	-->
+
+    <!--
+        Build the Avail sources.
+    -->
 	<target
 			name="build-sources"
 			description="Build the Avail sources.">
@@ -207,7 +210,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.ErrorCodeNamesGenerator"/>
 	</target>
 
@@ -219,7 +222,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate SpecialObjectNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.SpecialObjectNamesGenerator"/>
 	</target>
 
@@ -231,7 +234,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.PrimitiveNamesGenerator"/>
 	</target>
 
@@ -258,7 +261,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate the bootstrap Avail library.">
 		<java
-				classpath="${path.avail.bin}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.BootstrapGenerator"/>
 		<copy todir="${path.distro.bootstrap}">
 			<fileset

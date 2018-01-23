@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 /**
  * {@code AbstractAvailObject} specifies the essential layout and storage
  * requirements of an Avail object, but does not specify a particular
@@ -86,6 +88,7 @@ abstract class AbstractAvailObject
 	 *
 	 * @return A descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	public final AbstractDescriptor descriptor ()
 	{
 		return descriptor;

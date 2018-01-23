@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -69,6 +69,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ComputeDigest().init(2, CannotFail, CanFold, CanInline);
 

@@ -1,6 +1,6 @@
-/**
+/*
  * L2_TYPE_UNION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,27 +33,31 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Given two input types in registers, compute their union and write it to the
  * output register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_TYPE_UNION extends L2Operation
+public class L2_TYPE_UNION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -65,28 +69,9 @@ public class L2_TYPE_UNION extends L2Operation
 			WRITE_POINTER.is("union type"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand firstInputTypeReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand secondInputTypeReg =
-			instruction.readObjectRegisterAt(1);
-		final L2WritePointerOperand outputTypeReg =
-			instruction.writeObjectRegisterAt(2);
-
-		final A_Type firstInputType = firstInputTypeReg.in(interpreter);
-		final A_Type secondInputType = secondInputTypeReg.in(interpreter);
-		final A_Type unionType = firstInputType.typeUnion(secondInputType);
-		outputTypeReg.set(unionType, interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand firstInputTypeReg =
@@ -103,5 +88,32 @@ public class L2_TYPE_UNION extends L2Operation
 		final A_Type unionMeta = firstMeta.typeUnion(secondMeta);
 		registerSet.typeAtPut(
 			outputTypeReg.register(), unionMeta, instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister firstInputTypeReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister secondInputTypeReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister outputTypeReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		// :: unionType = firstInputType.typeUnion(secondInputType);
+		translator.load(method, firstInputTypeReg);
+		translator.load(method, secondInputTypeReg);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Type.class),
+			"typeUnion",
+			getMethodDescriptor(
+				getType(A_Type.class),
+				getType(A_Type.class)),
+			true);
+		translator.store(method, outputTypeReg);
 	}
 }

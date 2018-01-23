@@ -1,5 +1,5 @@
 /*
- * ToggleRecordL2InstructionTimingsInJVM.java
+ * ToggleDebugDumpJVM.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -40,38 +40,33 @@ import java.awt.event.ActionEvent;
 
 /**
  * A {@code ToggleRecordL2InstructionTimingsInJVM} toggles the flag that
- * indicates whether to write debug information about JVM translation and
- * execution to the transcript and/or log.
+ * indicates whether enable debugging support for JVM translation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-public class ToggleRecordL2InstructionTimingsInJVM
+public class ToggleDebugJVM
 extends AbstractWorkbenchAction
 {
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		//noinspection AssignmentToStaticFieldFromInstanceMethod
-		JVMTranslator.debugRecordL2InstructionTimings ^= true;
+		JVMTranslator.debugJVM ^= true;
 	}
 
 	/**
-	 * Construct a new {@code ToggleRecordL2InstructionTimingsInJVM}.
+	 * Construct a new {@code ToggleDebugJVM}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
 	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
-	public ToggleRecordL2InstructionTimingsInJVM (
-		final AvailWorkbench workbench)
+	public ToggleDebugJVM (final AvailWorkbench workbench)
 	{
-		super(workbench, "Record L2 timings in JVM");
+		super(workbench, "Debug JVM translation");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Toggle code generation for recording timings of "
-				+ "L2Instructions translated to JVM.");
-		putValue(
-			SELECTED_KEY, JVMTranslator.debugRecordL2InstructionTimings);
+			"Toggle debugging support for generated JVM classes.");
+		putValue(SELECTED_KEY, JVMTranslator.debugJVM);
 	}
 }

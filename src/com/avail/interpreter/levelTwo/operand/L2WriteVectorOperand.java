@@ -1,6 +1,6 @@
-/**
+/*
  * L2WriteVectorOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,8 @@ import static java.util.stream.Collectors.toList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2WriteVectorOperand extends L2Operand
+public class L2WriteVectorOperand
+extends L2Operand
 {
 	/**
 	 * The {@link List} of {@link L2WritePointerOperand}s.
@@ -63,6 +64,7 @@ public class L2WriteVectorOperand extends L2Operand
 	 */
 	public List<L2WritePointerOperand> elements ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
 	}
 
@@ -72,8 +74,7 @@ public class L2WriteVectorOperand extends L2Operand
 	 *
 	 * @param elements The list of {@link L2WritePointerOperand}s.
 	 */
-	public L2WriteVectorOperand (
-		final List<L2WritePointerOperand> elements)
+	public L2WriteVectorOperand (final List<L2WritePointerOperand> elements)
 	{
 		this.elements = Collections.unmodifiableList(elements);
 	}
@@ -138,8 +139,6 @@ public class L2WriteVectorOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-
-
 		final StringBuilder builder = new StringBuilder();
 		builder.append("WriteVector(");
 		boolean first = true;

@@ -39,7 +39,7 @@ import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -64,6 +64,7 @@ public final class P_RecordNewTypeName extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RecordNewTypeName().init(
 			2, CanInline, CannotFail, HasSideEffect);

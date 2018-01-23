@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -41,25 +42,20 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -86,6 +82,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_InvokeWithTuple().init(
 			2, Invokes, CanInline);
@@ -226,96 +223,36 @@ extends Primitive
 		final L2ReadPointerOperand functionReg = arguments.get(0);
 		final L2ReadPointerOperand tupleReg = arguments.get(1);
 
-		// First see if there's enough type information available about the
-		// tuple of arguments.
-		final A_Type tupleType = tupleReg.type();
-		final A_Type tupleTypeSizes = tupleType.sizeRange();
-		if (!tupleTypeSizes.upperBound().isInt()
-			|| !tupleTypeSizes.lowerBound().equals(
-				tupleTypeSizes.upperBound()))
-		{
-			// The exact tuple size is not known.  Give up.
-			return false;
-		}
-		final int argsSize = tupleTypeSizes.upperBound().extractInt();
-
-		// Now examine the function type.
+		// Examine the function type.
 		final A_Type functionType = functionReg.type();
 		final A_Type functionArgsType = functionType.argsTupleType();
 		final A_Type functionTypeSizes = functionArgsType.sizeRange();
-		if (!functionTypeSizes.equals(singleInt(argsSize)))
+		final A_Number upperBound = functionTypeSizes.upperBound();
+		if (!upperBound.isInt()
+			|| !functionTypeSizes.lowerBound().equals(upperBound))
 		{
-			// The argument count of the function is not known to be exactly the
-			// right size for the arguments tuple.  Give up.
+			// The exact function signature is not known.  Give up.
 			return false;
 		}
+		final int argsSize = upperBound.extractInt();
 
-		// Check if the (same-sized) tuple element types agree with the types
-		// the function will expect.
-		final List<L2WritePointerOperand> argsTupleWriters =
-			new ArrayList<>(argsSize);
-		for (int i = 1; i <= argsSize; i++)
+		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegisters =
+			L2_EXPLODE_TUPLE.explodeTupleIfPossible(
+				tupleReg,
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)),
+				translator);
+		if (explodedArgumentRegisters == null)
 		{
-			final A_Type argType = tupleType.typeAtIndex(i);
-			if (!argType.isSubtypeOf(functionArgsType.typeAtIndex(i)))
-			{
-				// A tuple element is not strong enough to guarantee successful
-				// invocation of the function.
-				return false;
-			}
-			final L2WritePointerOperand newReg =
-				translator.newObjectRegisterWriter(argType, null);
-			argsTupleWriters.add(newReg);
-		}
-		// At this point we know the invocation will succeed.  The function it
-		// invokes may be a primitive which could fail, but that's someone
-		// else's problem.
-
-		// Emit code to get the tuple slots into separate registers for the
-		// invocation, *extracting* them from the tuple if necessary.
-		final L2Instruction tupleDefinitionInstruction =
-			tupleReg.register().definitionSkippingMoves();
-		final List<L2ReadPointerOperand> argsTupleReaders;
-		if (tupleDefinitionInstruction.operation == L2_CREATE_TUPLE.instance)
-		{
-			argsTupleReaders = L2_CREATE_TUPLE.tupleSourceRegistersOf(
-				tupleDefinitionInstruction);
-		}
-		else if (tupleDefinitionInstruction.operation
-			== L2_MOVE_CONSTANT.instance)
-		{
-			final A_Tuple constantTuple =
-				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
-			argsTupleReaders = new ArrayList<>(argsSize);
-			for (final AvailObject element : constantTuple)
-			{
-				argsTupleReaders.add(translator.constantRegister(element));
-			}
-		}
-		else
-		{
-			for (int i = 1; i <= argsSize; i++)
-			{
-				translator.addInstruction(
-					L2_TUPLE_AT_CONSTANT.instance,
-					tupleReg,
-					new L2ImmediateOperand(i),
-					argsTupleWriters.get(i));
-			}
-			argsTupleReaders = new ArrayList<>();
-			for (final L2WritePointerOperand elementWriter : argsTupleWriters)
-			{
-				argsTupleReaders.add(elementWriter.read());
-			}
+			return false;
 		}
 
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
 		translator.generateGeneralFunctionInvocation(
-			functionReg,    // the function to directly invoke.
-			argsTupleReaders,   // the arguments, no longer in a tuple.
-			functionType.returnType(),
+			functionReg,
+			explodedArgumentRegisters,
+			TOP.o(),
 			callSiteHelper);
 		return true;
 	}

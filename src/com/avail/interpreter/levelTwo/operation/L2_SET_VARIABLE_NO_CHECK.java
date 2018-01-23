@@ -1,6 +1,6 @@
-/**
+/*
  * L2_SET_VARIABLE_NO_CHECK.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,37 +31,38 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Assign a value to a {@linkplain VariableDescriptor variable} <em>without</em>
  * checking that it's of the correct type.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2_SET_VARIABLE_NO_CHECK
 extends L2Operation
@@ -75,33 +76,6 @@ extends L2Operation
 			READ_POINTER.is("value to write"),
 			PC.is("write succeeded"),
 			PC.is("write failed"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand valueReg = instruction.readObjectRegisterAt(1);
-		final int succeeded = instruction.pcOffsetAt(2);
-		final int failed = instruction.pcOffsetAt(3);
-
-		final AvailObject value = valueReg.in(interpreter);
-		final A_Variable variable = variableReg.in(interpreter);
-		try
-		{
-			variable.setValueNoCheck(value);
-			// Jump to the success offset.
-			interpreter.offset(succeeded);
-		}
-		catch (final VariableSetException e)
-		{
-			// Jump to the failure offset.
-			interpreter.offset(failed);
-		}
-		return null;
-	}
 
 	@Override
 	protected void propagateTypes (
@@ -144,26 +118,42 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-//		final L2ReadPointerOperand variableReg =
-//			instruction.readObjectRegisterAt(0);
-//		final L2ReadPointerOperand valueReg =
-//			instruction.readObjectRegisterAt(1);
-		final int succeeded = instruction.pcOffsetAt(2);
-		final int failed = instruction.pcOffsetAt(3);
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(1).register();
+		final int successIndex = instruction.pcOffsetAt(2);
+		final L2PcOperand failure = instruction.pcAt(3);
 
-		super.translateToJVM(translator, method, instruction);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"offset",
-			INT_TYPE.getDescriptor());
-		emitIntConstant(method, succeeded);
-		method.visitJumpInsn(
-			IF_ICMPNE,
-			stripNull(translator.instructionLabels)[failed]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[succeeded]);
+		// :: try {
+		final Label tryStart = new Label();
+		final Label catchStart = new Label();
+		method.visitTryCatchBlock(
+			tryStart,
+			catchStart,
+			catchStart,
+			getInternalName(VariableSetException.class));
+		method.visitLabel(tryStart);
+		// ::    variable.setValueNoCheck(value);
+		translator.load(method, variableReg);
+		translator.load(method, valueReg);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Variable.class),
+			"setValueNoCheck",
+			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
+			true);
+		// ::    goto success;
+		// Note that we cannot potentially eliminate this branch with a
+		// fall through, because the next instruction expects a
+		// VariableSetException to be pushed onto the stack. So always do the
+		// jump.
+		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		// :: } catch (VariableSetException e) {
+		method.visitLabel(catchStart);
+		method.visitInsn(POP);
+		// ::    goto failure;
+		translator.branch(method, instruction, failure);
+		// :: }
 	}
 }

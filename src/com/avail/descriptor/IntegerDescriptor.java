@@ -1422,16 +1422,17 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		final int objectSize = intCount(object);
-		final int anIntegerSize = intCount(anInteger.traversed());
+		final AvailObject anIntegerTraversed = anInteger.traversed();
+		final int anIntegerSize = intCount(anIntegerTraversed);
 		@Nullable AvailObject output = canDestroy
-			? largerMutableOf(object, (AvailObject) anInteger, objectSize,
+			? largerMutableOf(object, anIntegerTraversed, objectSize,
 			anIntegerSize)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)
-				& anInteger.rawSignedIntegerAt(1);
+				& anIntegerTraversed.rawSignedIntegerAt(1);
 			if (output == null)
 			{
 				output = createUninitializedInteger(1);
@@ -1449,7 +1450,7 @@ extends ExtendedIntegerDescriptor
 		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
-			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) >> 31;
 		for (int i = 1; i <= outputSize; i++)
 		{
 			final int objectWord = i > objectSize
@@ -1457,7 +1458,7 @@ extends ExtendedIntegerDescriptor
 				: object.rawSignedIntegerAt(i);
 			final int anIntegerWord = i > anIntegerSize
 				? extendedAnInteger
-				: anInteger.rawSignedIntegerAt(i);
+				: anIntegerTraversed.rawSignedIntegerAt(i);
 			final int result = objectWord & anIntegerWord;
 			output.rawSignedIntegerAtPut(i, result);
 		}
@@ -1472,16 +1473,17 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		final int objectSize = intCount(object);
-		final int anIntegerSize = intCount(anInteger.traversed());
+		final AvailObject anIntegerTraversed = anInteger.traversed();
+		final int anIntegerSize = intCount(anIntegerTraversed);
 		@Nullable AvailObject output = canDestroy
-			? largerMutableOf(object, (AvailObject) anInteger, objectSize,
+			? largerMutableOf(object, anIntegerTraversed, objectSize,
 			anIntegerSize)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)
-				| anInteger.rawSignedIntegerAt(1);
+				| anIntegerTraversed.rawSignedIntegerAt(1);
 			if (output == null)
 			{
 				output = createUninitializedInteger(1);
@@ -1499,7 +1501,7 @@ extends ExtendedIntegerDescriptor
 		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
-			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) >> 31;
 		for (int i = 1; i <= outputSize; i++)
 		{
 			final int objectWord = i > objectSize
@@ -1507,7 +1509,7 @@ extends ExtendedIntegerDescriptor
 				: object.rawSignedIntegerAt(i);
 			final int anIntegerWord = i > anIntegerSize
 				? extendedAnInteger
-				: anInteger.rawSignedIntegerAt(i);
+				: anIntegerTraversed.rawSignedIntegerAt(i);
 			final int result = objectWord | anIntegerWord;
 			output.rawSignedIntegerAtPut(i, result);
 		}
@@ -1522,16 +1524,17 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		final int objectSize = intCount(object);
-		final int anIntegerSize = intCount(anInteger.traversed());
+		final AvailObject anIntegerTraversed = anInteger.traversed();
+		final int anIntegerSize = intCount(anIntegerTraversed);
 		@Nullable AvailObject output = canDestroy
-			? largerMutableOf(object, (AvailObject) anInteger, objectSize,
-			anIntegerSize)
+			? largerMutableOf(
+				object, anIntegerTraversed, objectSize, anIntegerSize)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)
-				^ anInteger.rawSignedIntegerAt(1);
+				^ anIntegerTraversed.rawSignedIntegerAt(1);
 			if (output == null)
 			{
 				output = createUninitializedInteger(1);
@@ -1549,7 +1552,7 @@ extends ExtendedIntegerDescriptor
 		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
-			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) >> 31;
 		for (int i = 1; i <= outputSize; i++)
 		{
 			final int objectWord = i > objectSize
@@ -1557,7 +1560,7 @@ extends ExtendedIntegerDescriptor
 				: object.rawSignedIntegerAt(i);
 			final int anIntegerWord = i > anIntegerSize
 				? extendedAnInteger
-				: anInteger.rawSignedIntegerAt(i);
+				: anIntegerTraversed.rawSignedIntegerAt(i);
 			final int result = objectWord ^ anIntegerWord;
 			output.rawSignedIntegerAtPut(i, result);
 		}

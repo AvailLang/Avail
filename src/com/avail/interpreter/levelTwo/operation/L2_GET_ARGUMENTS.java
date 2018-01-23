@@ -1,6 +1,6 @@
-/**
+/*
  * L2_GET_ARGUMENTS.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +32,28 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}, which
  * is how functions are supplied their arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_ARGUMENTS extends L2Operation
+public class L2_GET_ARGUMENTS
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -60,35 +63,43 @@ public class L2_GET_ARGUMENTS extends L2Operation
 			WRITE_VECTOR.is("arguments"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
+	public boolean hasSideEffect ()
+	{
+		// Keep this instruction pinned in place for safety during inlining.
+		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
 		final List<L2WritePointerOperand> argumentRegs =
 			instruction.writeVectorRegisterAt(0);
 
-		// Pre-decode the argument registers as much as possible.
-		final int numArgs = argumentRegs.size();
-		final int[] argumentRegNumbers = argumentRegs.stream()
-			.mapToInt(L2WritePointerOperand::finalIndex)
-			.toArray();
-
-		return interpreter ->
+		// :: argsBuffer = interpreter.argsBuffer;
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"argsBuffer",
+			getDescriptor(List.class));
+		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
 		{
-			final List<AvailObject> arguments = interpreter.argsBuffer;
-			assert arguments.size() == numArgs;
-			for (int i = 0; i < numArgs; i++)
+			// :: «argument[i]» = argsBuffer.get(«i»);
+			if (i < limit - 1)
 			{
-				interpreter.pointerAtPut(
-					argumentRegNumbers[i], arguments.get(i));
+				method.visitInsn(DUP);
 			}
-			return null;
-		};
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Keep this instruction pinned in place for safety during inlining.
-		return true;
+			translator.intConstant(method, i);
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(List.class),
+				"get",
+				getMethodDescriptor(getType(Object.class), INT_TYPE),
+				true);
+			translator.store(method, argumentRegs.get(i).register());
+		}
 	}
 }

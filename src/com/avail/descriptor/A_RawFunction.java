@@ -37,6 +37,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation0;
@@ -96,6 +97,7 @@ extends A_BasicObject
 	 *
 	 * @return The function type associated with this function implementation.
 	 */
+	@ReferencedInGeneratedCode
 	A_Type functionType ();
 
 	/**
@@ -189,6 +191,7 @@ extends A_BasicObject
 	 *
 	 * @return The arity of this raw function.
 	 */
+	@ReferencedInGeneratedCode
 	int numArgs ();
 
 	/**
@@ -274,6 +277,7 @@ extends A_BasicObject
 	 *
 	 * @return The Primitive, or null if this raw function is not primitive.
 	 */
+	@ReferencedInGeneratedCode
 	@Nullable Primitive primitive ();
 
 	/**

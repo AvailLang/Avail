@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONFriendly;
@@ -255,6 +256,7 @@ extends JSONFriendly
 	 */
 	@Override
 	@Deprecated
+	@ReferencedInGeneratedCode
 	boolean equals (@Nullable Object another);
 
 	/**
@@ -643,6 +645,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	boolean isInstanceOf (A_Type aType);
 
 	/**
@@ -734,6 +737,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject makeImmutable ();
 
 	/**
@@ -744,6 +748,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	void makeSubobjectsImmutable ();
 
 	/**
@@ -759,6 +764,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject traversed ();
 
 	/**

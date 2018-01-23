@@ -32,12 +32,13 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
-import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -51,6 +52,7 @@ import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 
@@ -66,6 +68,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
@@ -405,6 +408,7 @@ implements ExecutableChunk
 	 *
 	 * @return The count of integer registers.
 	 */
+	@SuppressWarnings("unused")
 	public int numIntegers ()
 	{
 		return numIntegers;
@@ -415,6 +419,7 @@ implements ExecutableChunk
 	 *
 	 * @return The count of object registers.
 	 */
+	@SuppressWarnings("unused")
 	public int numObjects ()
 	{
 		return numObjects;
@@ -433,6 +438,7 @@ implements ExecutableChunk
 	 *
 	 * @return Whether this chunk is still valid.
 	 */
+	@ReferencedInGeneratedCode
 	public boolean isValid ()
 	{
 		return valid;
@@ -527,10 +533,15 @@ implements ExecutableChunk
 		TO_RESUME(6),
 
 		/**
+		 * An unreachable entry point.
+		 */
+		UNREACHABLE(8),
+
+		/**
 		 * The entry point to which to jump when restarting an unoptimized
 		 * {@link A_Continuation} via {@link P_RestartContinuation} or {@link
 		 * P_RestartContinuationWithArguments}.  We skip the {@link
-		 * L2_TRY_PRIMITIVE}, but still do the {@link
+		 * L2_TRY_OPTIONAL_PRIMITIVE}, but still do the {@link
 		 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} so that looped functions
 		 * tend to get optimized.
 		 *
@@ -749,14 +760,29 @@ implements ExecutableChunk
 	/**
 	 * An {@link ExecutableChunk} that implements the logic of this {@link
 	 * L2Chunk} more directly, and should be executed instead by {@link
-	 * #runChunk(Interpreter)}.
+	 * #runChunk(Interpreter, int)}.
 	 */
 	private final ExecutableChunk executableChunk;
 
 	@Override
-	public @Nullable StackReifier runChunk (final Interpreter interpreter)
+	public @Nullable StackReifier runChunk (
+		final Interpreter interpreter,
+		final int offset)
 	{
-		return executableChunk.runChunk(interpreter);
+		if (Interpreter.debugL2)
+		{
+			final String className = executableChunk.getClass().getSimpleName();
+			final String[] parts = className.split("_");
+			final String uuidStart = parts.length >= 2 ? parts[1] : className;
+			Interpreter.log(
+				Interpreter.loggerDebugL2,
+				Level.INFO,
+				"Running chunk {0} ({1}) at offset {2}.",
+				name(),
+				uuidStart,
+				offset);
+		}
+		return executableChunk.runChunk(interpreter, offset);
 	}
 
 	/**
@@ -785,7 +811,7 @@ implements ExecutableChunk
 	 */
 	public void invalidate (final Statistic invalidationStatistic)
 	{
-		final long before = System.nanoTime();
+		final long before =  AvailRuntime.captureNanos();
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
 		final A_Set contingents = contingentValues.makeImmutable();
@@ -804,10 +830,39 @@ implements ExecutableChunk
 				unoptimizedChunk, countdownForInvalidatedCode());
 		}
 		Generation.removeInvalidatedChunk(this);
-		final long after = System.nanoTime();
+		final long after =  AvailRuntime.captureNanos();
 		// Use interpreter #0, since the invalidationLock prevents concurrent
 		// updates.
 		invalidationStatistic.record(after - before, 0);
+	}
+
+	/**
+	 * Dump the chunk to disk for debugging. This is expected to be called
+	 * directly from the debugger, and should result in the production of
+	 * three files: {@code JVMChunk_«uuid».l1}, {@code JVMChunk_«uuid».l2}, and
+	 * {@code JVMChunk_«uuid».class}. This momentarily sets the
+	 * {@link JVMTranslator#debugJVM} flag to {@code true}, but restores it to
+	 * its original value on return.
+	 *
+	 * @return The base name, i.e., {@code JVMChunk_«uuid»}, to allow location
+	 *         of the generated files.
+	 */
+	@SuppressWarnings({"unused", "AssignmentToStaticFieldFromInstanceMethod"})
+	public String dumpChunk ()
+	{
+		final JVMTranslator translator =
+			new JVMTranslator(code, name(), controlFlowGraph, instructions);
+		final boolean savedDebugFlag = JVMTranslator.debugJVM;
+		JVMTranslator.debugJVM = true;
+		try
+		{
+			translator.translate();
+		}
+		finally
+		{
+			JVMTranslator.debugJVM = savedDebugFlag;
+		}
+		return translator.className;
 	}
 
 	/**
@@ -816,6 +871,7 @@ implements ExecutableChunk
 	 * CompiledCodeDescriptor compiled code} has been executed some number of
 	 * times (specified in {@link #countdownForNewCode()}).
 	 */
+	@ReferencedInGeneratedCode
 	public static final L2Chunk unoptimizedChunk = createDefaultChunk();
 
 	/**
@@ -837,6 +893,8 @@ implements ExecutableChunk
 			new L2BasicBlock("Default return from call");
 		final L2BasicBlock reenterFromInterruptBlock =
 			new L2BasicBlock("Default reentry from interrupt");
+		final L2BasicBlock unreachableBlock =
+			new L2BasicBlock("Unreachable");
 
 		final L2ControlFlowGraph controlFlowGraph =
 			L1Translator.generateDefaultChunkControlFlowGraph(
@@ -844,14 +902,11 @@ implements ExecutableChunk
 				reenterFromRestartBlock,
 				loopBlock,
 				reenterFromCallBlock,
-				reenterFromInterruptBlock);
+				reenterFromInterruptBlock,
+				unreachableBlock);
 
 		final List<L2Instruction> instructions = new ArrayList<>();
 		controlFlowGraph.generateOn(instructions);
-		for (final L2Instruction instruction : instructions)
-		{
-			instruction.setAction();
-		}
 
 		final L2Chunk defaultChunk = L2Chunk.allocate(
 			null,
@@ -871,6 +926,8 @@ implements ExecutableChunk
 			== TO_RETURN_INTO.offsetInDefaultChunk;
 		assert reenterFromInterruptBlock.offset()
 			== TO_RESUME.offsetInDefaultChunk;
+		assert unreachableBlock.offset()
+			== UNREACHABLE.offsetInDefaultChunk;
 
 		return defaultChunk;
 	}

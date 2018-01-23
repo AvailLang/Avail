@@ -1,6 +1,6 @@
-/**
+/*
  * L2_MOVE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
@@ -59,8 +60,12 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
  * The object being moved is not made immutable by this operation, as that
  * is the responsibility of the {@link L2_MAKE_IMMUTABLE} operation.
  * </p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE extends L2Operation
+public class L2_MOVE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -71,26 +76,9 @@ public class L2_MOVE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int sourceRegNumber =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final int destinationRegNumber =
-			instruction.writeObjectRegisterAt(1).finalIndex();
-		return interpreter ->
-		{
-			interpreter.pointerAtPut(
-				destinationRegNumber,
-				interpreter.pointerAt(sourceRegNumber));
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand sourceReg =
@@ -183,10 +171,26 @@ public class L2_MOVE extends L2Operation
 	 *        The move instruction to examine.
 	 * @return The move's source {@link L2ReadPointerOperand}.
 	 */
-	public static L2ReadPointerOperand sourceOf (
+	private static L2ReadPointerOperand sourceOf (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
 		return instruction.readObjectRegisterAt(0);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister sourceReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		// :: destination = source;
+		translator.load(method, sourceReg);
+		translator.store(method, destinationReg);
 	}
 }

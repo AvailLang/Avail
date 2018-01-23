@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
@@ -59,6 +59,7 @@ public final class P_PushLastOuter extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_PushLastOuter().init(
 			-1, SpecialForm, Private, CanInline, CannotFail);

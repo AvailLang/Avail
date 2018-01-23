@@ -1,6 +1,6 @@
-/**
+/*
  * L2_MOVE_OUTER_VARIABLE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,31 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
  * variable is an actual {@linkplain VariableDescriptor variable} then the
  * variable itself is what gets moved into the destination register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_OUTER_VARIABLE extends L2Operation
+public class L2_MOVE_OUTER_VARIABLE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -63,30 +70,9 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int outerIndex = instruction.immediateAt(0);
-		final int functionRegNumber =
-			instruction.readObjectRegisterAt(1).finalIndex();
-		final int destinationRegNumber =
-			instruction.writeObjectRegisterAt(2).finalIndex();
-
-		return interpreter ->
-		{
-			final A_Function function =
-				interpreter.pointerAt(functionRegNumber);
-			final AvailObject value = function.outerVarAt(outerIndex);
-			// assert value.isInstanceOf(outerType);
-			interpreter.pointerAtPut(destinationRegNumber, value);
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final int outerIndex = instruction.immediateAt(0);
@@ -104,5 +90,29 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			registerSet.constantAtPut(
 				destinationReg.register(), value, instruction);
 		}
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int outerIndex = instruction.immediateAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		// :: destination = function.outerVarAt(outerIndex);
+		translator.load(method, functionReg);
+		translator.literal(method, outerIndex);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Function.class),
+			"outerVarAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			true);
+		translator.store(method, destinationReg);
 	}
 }

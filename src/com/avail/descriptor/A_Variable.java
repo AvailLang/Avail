@@ -37,6 +37,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
  * {@code A_Variable} is an interface that specifies the behavior specific to
@@ -76,6 +77,7 @@ extends A_ChunkDependable
 	 *         If the current value could not be read, e.g., because the
 	 *         variable is unassigned.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject getValue () throws VariableGetException;
 
 	/**
@@ -95,6 +97,7 @@ extends A_ChunkDependable
 	 * @throws VariableSetException
 	 *         If the new value is incorrectly typed.
 	 */
+	@ReferencedInGeneratedCode
 	void setValue (A_BasicObject newValue) throws VariableSetException;
 
 	/**
@@ -103,6 +106,7 @@ extends A_ChunkDependable
 	 *
 	 * @param newValue The variable's new value.
 	 */
+	@ReferencedInGeneratedCode
 	void setValueNoCheck (A_BasicObject newValue);
 
 	/**
@@ -188,6 +192,7 @@ extends A_ChunkDependable
 	 * The variable is not required to have a value prior to this operation.
 	 * </p>
 	 */
+	@ReferencedInGeneratedCode
 	void clearValue ();
 
 	/**

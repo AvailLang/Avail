@@ -1,6 +1,6 @@
-/**
+/*
  * L2ImmediateOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,8 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ImmediateOperand extends L2Operand
+public class L2ImmediateOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@code int} value.
@@ -57,8 +58,7 @@ public class L2ImmediateOperand extends L2Operand
 	 *
 	 * @param value The constant {@code int} itself.
 	 */
-	public L2ImmediateOperand (
-		final int value)
+	public L2ImmediateOperand (final int value)
 	{
 		this.value = value;
 	}

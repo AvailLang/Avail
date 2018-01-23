@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CREATE_FUNCTION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,37 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Synthesize a new {@link FunctionDescriptor function} from the provided
  * constant compiled code and the vector of captured ("outer") variables.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_FUNCTION extends L2Operation
+public class L2_CREATE_FUNCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -69,39 +76,9 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			WRITE_POINTER.is("new function"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outerRegs =
-			instruction.readVectorRegisterAt(1);
-		final int newFunctionRegIndex =
-			instruction.writeObjectRegisterAt(2).finalIndex();
-
-		final int numOuters = outerRegs.size();
-		assert numOuters == code.numOuters();
-		final int[] outerRegNumbers = new int[numOuters];
-		for (int i = 0; i < numOuters; i++)
-		{
-			outerRegNumbers[i] = outerRegs.get(i).finalIndex();
-		}
-		return interpreter ->
-		{
-			final A_Function function = createExceptOuters(code, numOuters);
-			for (int i = 0; i < numOuters; i++)
-			{
-				function.outerVarAtPut(
-					i + 1, interpreter.pointerAt(outerRegNumbers[i]));
-			}
-			interpreter.pointerAtPut(newFunctionRegIndex, function);
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
@@ -174,5 +151,52 @@ public class L2_CREATE_FUNCTION extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.constantAt(0);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final A_RawFunction code = instruction.constantAt(0);
+		final List<L2ReadPointerOperand> outerRegs =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister newFunctionReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		final int numOuters = outerRegs.size();
+		assert numOuters == code.numOuters();
+
+		// :: function = createExceptOuters(code, numOuters);
+		translator.literal(method, code);
+		translator.intConstant(method, numOuters);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(FunctionDescriptor.class),
+			"createExceptOuters",
+			getMethodDescriptor(
+				getType(A_Function.class),
+				getType(A_RawFunction.class),
+				INT_TYPE),
+			false);
+		for (int i = 0; i < numOuters; i++)
+		{
+			// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
+			method.visitInsn(DUP);
+			translator.intConstant(method, i + 1);
+			translator.load(method, outerRegs.get(i).register());
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(A_Function.class),
+				"outerVarAtPut",
+				getMethodDescriptor(
+					VOID_TYPE,
+					INT_TYPE,
+					getType(AvailObject.class)),
+				true);
+		}
+		// :: newFunction = function;
+		translator.store(method, newFunctionReg);
 	}
 }

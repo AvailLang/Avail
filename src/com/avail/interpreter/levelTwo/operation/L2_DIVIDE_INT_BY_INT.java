@@ -1,6 +1,6 @@
-/**
+/*
  * L2_DIVIDE_INT_BY_INT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.LONG_TYPE;
 
 /**
  * If the divisor is zero, then jump to the zero divisor label.  Otherwise
@@ -50,8 +50,10 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * an out-of-range label.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_DIVIDE_INT_BY_INT extends L2Operation
+public class L2_DIVIDE_INT_BY_INT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -67,60 +69,113 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 			PC.is("success"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadIntOperand dividendReg = instruction.readIntRegisterAt(0);
-		final L2ReadIntOperand divisorReg = instruction.readIntRegisterAt(1);
-		final L2WriteIntOperand quotientReg = instruction.writeIntRegisterAt(2);
-		final L2WriteIntOperand remainderReg =
-			instruction.writeIntRegisterAt(3);
-		final int outOfRangeIndex = instruction.pcOffsetAt(4);
-		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
-		final int successIndex = instruction.pcOffsetAt(6);
-
-		final long divisor = divisorReg.in(interpreter);
-		if (divisor == 0)
-		{
-			interpreter.offset(zeroDivisorIndex);
-			return null;
-		}
-		final long dividend = dividendReg.in(interpreter);
-		final long quotient;
-		if (divisor < 0)
-		{
-			// a/b for b<0:  use -(a/-b)
-			quotient = -(dividend / -divisor);
-		}
-		else if (dividend < 0)
-		{
-			// a/b for a<0, b>0:  use -1-(-1-a)/b
-			quotient = -1L - ((-1L - dividend) / divisor);
-		}
-		else
-		{
-			quotient = dividend / divisor;
-		}
-		// Remainder is always non-negative.
-		final long remainder = dividend - (quotient * divisor);
-		if (quotient == (int) quotient && remainder == (int) remainder)
-		{
-			quotientReg.set((int) quotient, interpreter);
-			remainderReg.set((int) remainder, interpreter);
-			interpreter.offset(successIndex);
-		}
-		else
-		{
-			interpreter.offset(outOfRangeIndex);
-		}
-		return null;
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps for division by zero or out-of-range.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2IntegerRegister dividendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntegerRegister divisorReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntegerRegister intQuotientReg =
+			instruction.writeIntRegisterAt(2).register();
+		final L2IntegerRegister intRemainderReg =
+			instruction.writeIntRegisterAt(3).register();
+		final int outOfRangeIndex = instruction.pcOffsetAt(4);
+		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
+		final int successIndex = instruction.pcOffsetAt(6);
+
+		// :: if (divisor == 0) goto zeroDivisorIndex;
+		translator.load(method, divisorReg);
+		method.visitJumpInsn(IFEQ, translator.labelFor(zeroDivisorIndex));
+
+		// a/b for b<0:  use -(a/-b)
+		// :: if (divisor < 0) quotient = -(dividend / -divisor);
+		translator.load(method, divisorReg);
+		final Label checkDividend = new Label();
+		method.visitJumpInsn(IFGE, checkDividend);
+		translator.load(method, dividendReg);
+		method.visitInsn(I2L);
+		translator.load(method, divisorReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LNEG);
+		method.visitInsn(LDIV);
+		method.visitInsn(LNEG);
+		final int quotient = translator.nextLocal(LONG_TYPE);
+		method.visitVarInsn(LSTORE, quotient);
+		final Label quotientComputed = new Label();
+		method.visitJumpInsn(GOTO, quotientComputed);
+
+		// a/b for a<0, b>0:  use -1-(-1-a)/b
+		// :: else if (dividend < 0)
+		// ::    quotient = -1L - ((-1L - dividend) / divisor);
+		translator.load(method, dividendReg);
+		final Label bothNonNegative = new Label();
+		method.visitJumpInsn(IFGE, bothNonNegative);
+		translator.longConstant(method, -1);
+		method.visitInsn(DUP);
+		translator.load(method, dividendReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LSUB);
+		translator.load(method, divisorReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LDIV);
+		method.visitInsn(LSUB);
+		method.visitVarInsn(LSTORE, quotient);
+		method.visitJumpInsn(GOTO, quotientComputed);
+
+		// :: else quotient = dividend / divisor;
+		translator.load(method, dividendReg);
+		method.visitInsn(I2L);
+		translator.load(method, divisorReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LDIV);
+		method.visitVarInsn(LSTORE, quotient);
+
+		// Remainder is always non-negative.
+		// :: remainder = dividend - (quotient * divisor);
+		method.visitLabel(quotientComputed);
+		translator.load(method, dividendReg);
+		method.visitInsn(I2L);
+		method.visitVarInsn(LLOAD, quotient);
+		translator.load(method, divisorReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LMUL);
+		method.visitInsn(LSUB);
+		final int remainder = translator.nextLocal(LONG_TYPE);
+		method.visitVarInsn(LSTORE, remainder);
+		
+		// :: if (quotient != (int) quotient) goto outOfRange;
+		method.visitVarInsn(LLOAD, quotient);
+		method.visitInsn(DUP);
+		method.visitInsn(L2I);
+		method.visitInsn(I2L);
+		method.visitInsn(LCMP);
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeIndex));
+		// ::  if (remainder != (int) remainder) goto outOfRange;
+		method.visitVarInsn(LLOAD, remainder);
+		method.visitInsn(DUP);
+		method.visitInsn(L2I);
+		method.visitInsn(I2L);
+		method.visitInsn(LCMP);
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeIndex));
+		// ::    intQuotient = (int) quotient;
+		method.visitVarInsn(LLOAD, quotient);
+		method.visitInsn(L2I);
+		translator.store(method, intQuotientReg);
+		// ::    intRemainder = (int) remainder;
+		method.visitVarInsn(LLOAD, remainder);
+		method.visitInsn(L2I);
+		translator.store(method, intRemainderReg);
+		// ::    goto success;
+		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
 	}
 }

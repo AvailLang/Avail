@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CLEAR_VARIABLE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,30 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Clear a variable; i.e., make it have no assigned value.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CLEAR_VARIABLE extends L2Operation
+public class L2_CLEAR_VARIABLE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -59,20 +65,9 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 			READ_POINTER.is("variable"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-		variableReg.in(interpreter).clearValue();
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand variableReg =
@@ -88,5 +83,25 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+
+		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
+		// :: variable.clearValue();
+		translator.load(method, variableReg);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Variable.class),
+			"clearValue",
+			getMethodDescriptor(VOID_TYPE, getType(A_Variable.class)),
+			true);
 	}
 }

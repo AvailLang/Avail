@@ -42,7 +42,7 @@ import java.util.Map;
  * {@code ModuleEditorStyle} enumerates the allowed styles for a {@link
  * ModuleEditor}.
  *
- * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public enum ModuleEditorStyle
 {

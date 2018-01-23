@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CREATE_CONTINUATION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,90 +36,46 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.StackReifier;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
  * constant level one program counter, constant stack pointer, continuation
  * slot values, and level two program counter.  Write the new continuation
  * into the specified register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_CONTINUATION extends L2Operation
+public class L2_CREATE_CONTINUATION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
 		new L2_CREATE_CONTINUATION().init(
-			READ_POINTER.is("caller"),
 			READ_POINTER.is("function"),
+			READ_POINTER.is("caller"),
 			IMMEDIATE.is("level one pc"),
 			IMMEDIATE.is("stack pointer"),
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
 			PC.is("on-ramp"),
 			PC.is("fall through after creation"));
-
-	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int callerRegIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final int functionRegIndex =
-			instruction.readObjectRegisterAt(1).finalIndex();
-		final int levelOnePC = instruction.immediateAt(2);
-		final int levelOneStackp = instruction.immediateAt(3);
-		final List<L2ReadPointerOperand> slots =
-			instruction.readVectorRegisterAt(4);
-		final int destRegIndex =
-			instruction.writeObjectRegisterAt(5).finalIndex();
-		final int onRampOffset = instruction.pcOffsetAt(6);
-		final int fallThroughOffset = instruction.pcOffsetAt(7);
-
-		final int[] slotRegIndices = new int[slots.size()];
-		for (int i = 0; i < slotRegIndices.length; i++)
-		{
-			slotRegIndices[i] = slots.get(i).finalIndex();
-		}
-
-		return interpreter ->
-		{
-			final A_Function function =
-				interpreter.pointerAt(functionRegIndex);
-			assert slotRegIndices.length == function.code().numSlots();
-			final A_Continuation continuation =
-				createContinuationExceptFrame(
-					function,
-					interpreter.pointerAt(callerRegIndex),
-					levelOnePC,
-					levelOneStackp,
-					stripNull(interpreter.chunk),
-					onRampOffset);
-			for (int i = 0; i < slotRegIndices.length; i++)
-			{
-				continuation.argOrLocalOrStackAtPut(
-					i + 1, interpreter.pointerAt(slotRegIndices[i]));
-			}
-			interpreter.pointerAtPut(destRegIndex, continuation);
-			interpreter.offset(fallThroughOffset);
-			return null;
-		};
-	}
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
@@ -144,22 +100,68 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-//		final int callerRegIndex =
-//			instruction.readObjectRegisterAt(0).finalIndex();
-//		final int functionRegIndex =
-//			instruction.readObjectRegisterAt(1).finalIndex();
-//		final int levelOnePC = instruction.immediateAt(2);
-//		final int levelOneStackp = instruction.immediateAt(3);
-//		final List<L2ReadPointerOperand> slots =
-//			instruction.readVectorRegisterAt(4);
-//		final int destRegIndex =
-//			instruction.writeObjectRegisterAt(5).finalIndex();
-//		final int onRampOffset = instruction.pcOffsetAt(6);
-		final int fallThroughOffset = instruction.pcOffsetAt(7);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister callerReg =
+			instruction.readObjectRegisterAt(1).register();
+		final int levelOnePC = instruction.immediateAt(2);
+		final int levelOneStackp = instruction.immediateAt(3);
+		final List<L2ReadPointerOperand> slots =
+			instruction.readVectorRegisterAt(4);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(5).register();
+		final int onRampOffset = instruction.pcOffsetAt(6);
+		final L2PcOperand fallThrough = instruction.pcAt(7);
 
-		super.translateToJVM(translator, method, instruction);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[fallThroughOffset]);
+		// :: continuation = createContinuationExceptFrame(
+		// ::    function,
+		// ::    caller,
+		// ::    levelOnePC,
+		// ::    levelOneStackp,
+		// ::    interpreter.chunk,
+		// ::    onRampOffset);
+		translator.load(method, functionReg);
+		translator.load(method, callerReg);
+		translator.literal(method, levelOnePC);
+		translator.literal(method, levelOneStackp);
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
+		translator.intConstant(method, onRampOffset);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(ContinuationDescriptor.class),
+			"createContinuationExceptFrame",
+			getMethodDescriptor(
+				getType(A_Continuation.class),
+				getType(A_Function.class),
+				getType(A_Continuation.class),
+				INT_TYPE,
+				INT_TYPE,
+				getType(L2Chunk.class),
+				INT_TYPE),
+			false);
+		for (int i = 0, limit = slots.size(); i < limit; i++)
+		{
+			// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);
+			method.visitInsn(DUP);
+			translator.intConstant(method, i + 1);
+			translator.load(method, slots.get(i).register());
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(A_Continuation.class),
+				"argOrLocalOrStackAtPut",
+				getMethodDescriptor(
+					VOID_TYPE,
+					INT_TYPE,
+					getType(AvailObject.class)),
+				true);
+		}
+		translator.store(method, destReg);
+		// :: goto fallThrough;
+		translator.branch(method, instruction, fallThrough);
 	}
 }

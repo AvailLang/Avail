@@ -1,6 +1,6 @@
-/**
+/*
  * L2WriteIntOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -52,7 +51,8 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2WriteIntOperand extends L2Operand
+public class L2WriteIntOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@link L2IntegerRegister}.
@@ -77,8 +77,7 @@ public class L2WriteIntOperand extends L2Operand
 	 *
 	 * @param register The integer register.
 	 */
-	public L2WriteIntOperand (
-		final L2IntegerRegister register)
+	public L2WriteIntOperand (final L2IntegerRegister register)
 	{
 		this.register = register;
 	}
@@ -154,19 +153,5 @@ public class L2WriteIntOperand extends L2Operand
 	public String toString ()
 	{
 		return format("WriteInt(%s)", register);
-	}
-
-	/**
-	 * Replace the value of this integer register within the provided {@link
-	 * Interpreter}.
-	 *
-	 * @param newValue The int to write to the {@link L2IntegerRegister}.
-	 * @param interpreter The interpreter.
-	 */
-	public final void set (
-		final int newValue,
-		final Interpreter interpreter)
-	{
-		interpreter.integerAtPut(finalIndex(), newValue);
 	}
 }

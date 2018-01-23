@@ -33,7 +33,6 @@
 package com.avail.server;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleName;
@@ -1575,24 +1574,20 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		assert command.command() == Command.ALL_FIBERS;
-		final Map<Long, FiberReference> allFibers = runtime.allFibers();
+		final Set<A_Fiber> allFibers = runtime.allFibers();
 		final Message message = newSuccessMessage(
 			command,
 			writer ->
 			{
 				writer.startArray();
-				for (final FiberReference ref : allFibers.values())
+				for (final A_Fiber fiber : allFibers)
 				{
-					final A_Fiber fiber = ref.get();
-					if (fiber != null)
-					{
-						writer.startObject();
-						writer.write("id");
-						writer.write(fiber.uniqueId());
-						writer.write("name");
-						writer.write(fiber.fiberName());
-						writer.endObject();
-					}
+					writer.startObject();
+					writer.write("id");
+					writer.write(fiber.uniqueId());
+					writer.write("name");
+					writer.write(fiber.fiberName());
+					writer.endObject();
 				}
 				writer.endArray();
 			});

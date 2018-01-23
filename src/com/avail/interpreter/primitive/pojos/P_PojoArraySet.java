@@ -40,7 +40,7 @@ import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.List;
@@ -70,6 +70,7 @@ public final class P_PojoArraySet extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_PojoArraySet().init(
 			3, CanFold, CanInline);

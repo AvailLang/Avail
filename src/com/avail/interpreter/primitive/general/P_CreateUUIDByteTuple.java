@@ -37,7 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteBufferTupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +64,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateUUIDByteTuple().init(
 			0, CannotFail, CanInline, HasSideEffect);

@@ -68,9 +68,9 @@ import static com.avail.utility.Strings.increaseIndentation;
  *
  * <p>It used to be the case that the instructions were flattened into a stream
  * of integers, operation followed by operands.  That is no longer the case, as
- * of 2013-05-01 [MvG].  Instead, the L2Instructions themselves are kept around.
- * To execute an L2Instruction, its L2Operation is extracted and asked to
- * {@linkplain L2Operation#step(L2Instruction, Interpreter) step}.</p>
+ * of 2013-05-01 [MvG].  Instead, the L2Instructions themselves are kept around
+ * for reoptimization and {@linkplain #translateToJVM(JVMTranslator,
+ * MethodVisitor) JVM code generation}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -93,6 +93,9 @@ public final class L2Instruction
 	 */
 	private int offset = -1;
 
+	/**
+	 * The {@link L2BasicBlock} to which the instruction belongs.
+	 */
 	public final L2BasicBlock basicBlock;
 
 	@InnerAccess final List<L2Register> sourceRegisters = new ArrayList<>();
@@ -178,15 +181,6 @@ public final class L2Instruction
 			assert false : "Instruction has not had its action initialized yet";
 			return null;
 		};
-
-	/**
-	 * Now that this instruction has been generated in an {@link L2Chunk}, set
-	 * up its action.
-	 */
-	public void setAction ()
-	{
-		action = operation.actionFor(this);
-	}
 
 	/**
 	 * Execute this {@linkplain #action} of this {@linkplain L2Instruction
@@ -332,6 +326,7 @@ public final class L2Instruction
 	 */
 	public void justAdded ()
 	{
+		operation.instructionWasAdded(this);
 		for (final L2Operand operand : operands)
 		{
 			operand.instructionWasAdded(this);

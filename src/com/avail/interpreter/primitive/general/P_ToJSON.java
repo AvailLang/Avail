@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.json.JSONWriter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.json.JSONWriter;
 
 import java.util.List;
 
@@ -62,6 +62,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ToJSON().init(
 			1, CanInline, CannotFail);

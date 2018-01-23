@@ -40,7 +40,7 @@ import com.avail.descriptor.SequenceNodeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -77,6 +77,7 @@ public final class P_CreateAssignmentStatement extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateAssignmentStatement().init(
 			2, CanFold, CanInline);

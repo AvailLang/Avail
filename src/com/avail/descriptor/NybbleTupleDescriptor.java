@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IndexedIntGenerator;
 
 import java.nio.ByteBuffer;
@@ -463,6 +464,12 @@ extends NumericTupleDescriptor
 			object.descriptor = descriptorFor(SHARED, object.tupleSize());
 		}
 		return object;
+	}
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
+	{
+		return SerializerOperation.NYBBLE_TUPLE;
 	}
 
 	@Override

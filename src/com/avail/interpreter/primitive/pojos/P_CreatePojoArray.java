@@ -38,7 +38,7 @@ import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.lang.reflect.Array;
 import java.util.List;
 
@@ -64,6 +64,7 @@ public final class P_CreatePojoArray extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreatePojoArray().init(
 			2, CannotFail, CanFold, CanInline);

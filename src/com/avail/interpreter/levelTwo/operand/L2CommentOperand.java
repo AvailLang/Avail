@@ -1,6 +1,6 @@
-/**
+/*
  * L2CommentOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,8 @@ import com.avail.interpreter.levelTwo.L2OperandType;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2CommentOperand extends L2Operand
+public class L2CommentOperand
+extends L2Operand
 {
 	/**
 	 * The actual comment {@link String}.
@@ -54,8 +55,7 @@ public class L2CommentOperand extends L2Operand
 	 *
 	 * @param comment The comment string.
 	 */
-	public L2CommentOperand (
-		final String comment)
+	public L2CommentOperand (final String comment)
 	{
 		this.comment = comment;
 	}

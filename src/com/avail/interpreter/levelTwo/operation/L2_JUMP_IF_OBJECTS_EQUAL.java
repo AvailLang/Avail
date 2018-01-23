@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_OBJECTS_EQUAL.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,14 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -52,8 +50,6 @@ import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -61,8 +57,10 @@ import static org.objectweb.asm.Type.*;
  * Branch based on whether the two values are equal to each other.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
+public class L2_JUMP_IF_OBJECTS_EQUAL
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -73,25 +71,6 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 			READ_POINTER.is("second value"),
 			PC.is("is equal"),
 			PC.is("is not equal"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand firstReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand secondReg =
-			instruction.readObjectRegisterAt(1);
-		final int ifEqualIndex = instruction.pcOffsetAt(2);
-		final int notEqualIndex = instruction.pcOffsetAt(3);
-
-		interpreter.offset(
-			firstReg.in(interpreter).equals(secondReg.in(interpreter))
-				? ifEqualIndex
-				: notEqualIndex);
-		return null;
-	}
 
 	@Override
 	public boolean regenerate (
@@ -184,40 +163,23 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int firstRegisterIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final int secondRegisterIndex =
-			instruction.readObjectRegisterAt(1).finalIndex();
-		final int ifEqualIndex = instruction.pcOffsetAt(2);
-		final int notEqualIndex = instruction.pcOffsetAt(3);
+		final L2ObjectRegister firstReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister secondReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2PcOperand ifEqual = instruction.pcAt(2);
+		final L2PcOperand notEqual = instruction.pcAt(3);
 
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, firstRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, secondRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
+		// :: if (first.equals(second)) goto ifEqual;
+		// :: else goto notEqual;
+		translator.load(method, firstReg);
+		translator.load(method, secondReg);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"equals",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
 			true);
-		method.visitJumpInsn(
-			IFNE,
-			stripNull(translator.instructionLabels)[ifEqualIndex]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[notEqualIndex]);
+		translator.branch(method, instruction, IFNE, ifEqual, notEqual);
 	}
 }

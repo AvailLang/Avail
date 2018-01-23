@@ -1,6 +1,6 @@
-/**
+/*
  * L2Register.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,9 @@ public abstract class L2Register
 	public enum RegisterKind
 	{
 		OBJECT, INTEGER, FLOAT;
+
+		/** Don't modify this array. */
+		public static final RegisterKind[] all = values();
 	}
 
 	/**

@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -77,6 +77,7 @@ public final class P_CastIntoElse extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CastIntoElse().init(
 			3, Invokes, CanInline, CannotFail);

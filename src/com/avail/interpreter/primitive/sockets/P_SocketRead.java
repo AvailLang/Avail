@@ -37,7 +37,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -93,6 +93,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_SocketRead().init(
 			5, CanInline, HasSideEffect);

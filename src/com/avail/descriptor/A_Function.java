@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.Interpreter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
  * {@code A_Function} is an interface that specifies the operations specific to
@@ -54,6 +55,7 @@ extends A_BasicObject
 	 *
 	 * @return This function's raw function.
 	 */
+	@ReferencedInGeneratedCode
 	A_RawFunction code ();
 
 	/**
@@ -84,6 +86,7 @@ extends A_BasicObject
 	 * @param index Which outer variable or constant is of interest.
 	 * @return The specified outer variable or constant of this function.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject outerVarAt (int index);
 
 	/**
@@ -93,5 +96,6 @@ extends A_BasicObject
 	 * @param index Which variable or constant to initialize.
 	 * @param value The value to write into this function.
 	 */
+	@ReferencedInGeneratedCode
 	void outerVarAtPut (int index, AvailObject value);
 }

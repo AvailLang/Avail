@@ -43,7 +43,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +75,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ForwardMethodDeclaration().init(
 			2, CanSuspend, Unknown);

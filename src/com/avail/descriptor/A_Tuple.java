@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -438,6 +440,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @param canDestroy Whether the input tuples can be destroyed or reused.
 	 * @return The concatenation of the two tuples.
 	 */
+	@ReferencedInGeneratedCode
 	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
 
 	/**
@@ -589,6 +592,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @param index Which element should be extracted.
 	 * @return The element of the tuple.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject tupleAt (int index);
 
 	/**

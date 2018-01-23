@@ -40,7 +40,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
@@ -66,6 +66,7 @@ public final class P_TupleAppend extends Primitive
 	 * Construct a new {@link P_TupleAppend}.
 	 *
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_TupleAppend().init(
 			2, CannotFail, CanFold, CanInline);

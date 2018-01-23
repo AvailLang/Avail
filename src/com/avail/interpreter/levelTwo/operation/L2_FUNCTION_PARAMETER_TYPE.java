@@ -1,6 +1,6 @@
-/**
+/*
  * L2_FUNCTION_PARAMETER_TYPE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,31 +35,37 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Given an input register containing a function (not a function type), extract
  * its Nth parameter type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
+public class L2_FUNCTION_PARAMETER_TYPE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -71,28 +77,9 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			WRITE_POINTER.is("parameter type"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(0);
-		final int paramIndex = instruction.immediateAt(1);
-		final L2WritePointerOperand outputParamTypeReg =
-			instruction.writeObjectRegisterAt(2);
-
-		final A_Function function = functionReg.in(interpreter);
-		final A_Type paramType =
-			function.code().functionType().argsTupleType().typeAtIndex(
-				paramIndex);
-		outputParamTypeReg.set(paramType, interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand functionReg =
@@ -188,5 +175,48 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, translator);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(0).register();
+		final int paramIndex = instruction.immediateAt(1);
+		final L2ObjectRegister outputParamTypeReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		// :: paramType = function.code().functionType().argsTupleType()
+		// ::    .typeAtIndex(param)
+		translator.load(method, functionReg);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Function.class),
+			"code",
+			getMethodDescriptor(getType(A_RawFunction.class)),
+			true);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_RawFunction.class),
+			"functionType",
+			getMethodDescriptor(getType(A_Type.class)),
+			true);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Type.class),
+			"argsTupleType",
+			getMethodDescriptor(getType(A_Type.class)),
+			true);
+		translator.literal(method, paramIndex);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Type.class),
+			"typeAtIndex",
+			getMethodDescriptor(getType(A_Type.class), INT_TYPE),
+			true);
+		translator.store(method, outputParamTypeReg);
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_ExitContinuationWithResult.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -51,8 +52,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode
 	.E_CONTINUATION_EXPECTED_STRONGER_TYPE;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
 /**
@@ -64,9 +64,13 @@ public final class P_ExitContinuationWithResult extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ExitContinuationWithResult().init(
-			2, CanInline, SwitchesContinuation);
+			2,
+			CanInline,
+			CanSwitchContinuations,
+			AlwaysSwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -76,6 +80,16 @@ public final class P_ExitContinuationWithResult extends Primitive
 		assert args.size() == 2;
 		final A_Continuation con = args.get(0);
 		final AvailObject result = args.get(1);
+
+		// The primitive fails if the value being returned disagrees with the
+		// label continuation's function's return type.  Any stronger check, as
+		// specified in a semantic restriction, will be tested in the caller.
+		if (!result.isInstanceOf(
+			con.function().code().functionType().returnType()))
+		{
+			return interpreter.primitiveFailure(
+				E_CONTINUATION_EXPECTED_STRONGER_TYPE);
+		}
 
 		interpreter.reifiedContinuation = con.caller();
 		interpreter.function = null;

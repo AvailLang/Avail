@@ -1,6 +1,6 @@
-/**
+/*
  * L2_GET_IMPLICIT_OBSERVE_FUNCTION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -40,12 +41,13 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.AvailRuntime.implicitObserveFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit
@@ -65,19 +67,6 @@ extends L2Operation
 			WRITE_POINTER.is("implicit observe function"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2WritePointerOperand destination =
-			instruction.writeObjectRegisterAt(0);
-		destination.set(
-			interpreter.runtime().implicitObserveFunction(),
-			interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
@@ -89,5 +78,31 @@ extends L2Operation
 			destination.register(),
 			implicitObserveFunctionType,
 			instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0).register();
+
+		// :: register = interpreter.runtime().implicitObserveFunction();
+		translator.loadInterpreter(method);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"runtime",
+			getMethodDescriptor(getType(AvailRuntime.class)),
+			false);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(AvailRuntime.class),
+			"implicitObserveFunction",
+			getMethodDescriptor(getType(A_Function.class)),
+			false);
+		translator.store(method, destination);
 	}
 }

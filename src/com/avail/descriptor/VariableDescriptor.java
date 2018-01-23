@@ -41,6 +41,7 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -710,6 +711,7 @@ extends Descriptor
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
 	 * @return A new variable of the given type.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject newVariableWithOuterType (
 		final A_Type variableType)
 	{

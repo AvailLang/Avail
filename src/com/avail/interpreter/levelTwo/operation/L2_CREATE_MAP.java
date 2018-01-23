@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CREATE_MAP.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,33 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a map from the specified key object registers and the corresponding
  * value object registers (writing the map into a specified object register).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_MAP extends L2Operation
+public class L2_CREATE_MAP
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -65,28 +70,46 @@ public class L2_CREATE_MAP extends L2Operation
 			WRITE_POINTER.is("new map"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
 	{
 		final List<L2ReadPointerOperand> keysVector =
 			instruction.readVectorRegisterAt(0);
 		final List<L2ReadPointerOperand> valuesVector =
 			instruction.readVectorRegisterAt(1);
-		final L2WritePointerOperand destinationMapReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2ObjectRegister destinationMapReg =
+			instruction.writeObjectRegisterAt(2).register();
 
-		final int size = keysVector.size();
-		assert size == valuesVector.size();
-		A_Map map = emptyMap();
-		for (int i = 0; i < size; i++)
+		// :: map = MapDescriptor.emptyMap();
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(MapDescriptor.class),
+			"emptyMap",
+			getMethodDescriptor(getType(A_Map.class)),
+			false);
+		final int limit = keysVector.size();
+		assert limit == valuesVector.size();
+		for (int i = 0; i < limit; i++)
 		{
-			map = map.mapAtPuttingCanDestroy(
-				keysVector.get(i).in(interpreter),
-				valuesVector.get(i).in(interpreter),
+			// :: map = map.mapAtPuttingCanDestroy(
+			// ::    «keysVector[i]», «valuesVector[i]», true);
+			translator.load(method, keysVector.get(i).register());
+			translator.load(method, valuesVector.get(i).register());
+			translator.intConstant(method, 1);
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(A_Map.class),
+				"mapAtPuttingCanDestroy",
+				getMethodDescriptor(
+					getType(A_Map.class),
+					getType(A_BasicObject.class),
+					getType(A_BasicObject.class),
+					BOOLEAN_TYPE),
 				true);
 		}
-		destinationMapReg.set(map, interpreter);
-		return null;
+		// :: destinationMap = map;
+		translator.store(method, destinationMapReg);
 	}
 }

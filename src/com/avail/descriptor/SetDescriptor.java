@@ -1,6 +1,6 @@
-/**
+/*
  * SetDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
@@ -713,6 +714,7 @@ extends Descriptor
 	}
 
 	/** The empty set. */
+	@ReferencedInGeneratedCode
 	private static final A_Set emptySet;
 
 	static

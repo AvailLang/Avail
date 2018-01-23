@@ -1,4 +1,4 @@
-/**
+/*
  * P_TypeNames.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -37,13 +37,13 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta;
 import static com.avail.descriptor.ObjectTypeDescriptor.namesForType;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -61,6 +61,7 @@ public final class P_TypeNames extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_TypeNames().init(
 			1, CanInline, CannotFail);
@@ -82,7 +83,7 @@ public final class P_TypeNames extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(mostGeneralObjectType())),
+				mostGeneralObjectMeta()),
 			setTypeForSizesContentType(wholeNumbers(), stringType()));
 	}
 }

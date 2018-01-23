@@ -85,7 +85,6 @@ Semantic restriction "_[_]" is
 	]
 ] : any's type;
 
-
 Method "_→object type" is stable at [field type map]→object meta;
 
 /**

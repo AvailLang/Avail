@@ -43,7 +43,7 @@ import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -70,6 +70,7 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_BootstrapConstantDeclarationMacro().init(
 			2, CannotFail, CanInline, Bootstrap);

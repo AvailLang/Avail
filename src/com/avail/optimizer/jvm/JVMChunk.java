@@ -33,6 +33,7 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.ExecutableChunk;
@@ -68,28 +69,32 @@ import java.nio.file.Paths;
 public abstract class JVMChunk
 implements ExecutableChunk
 {
+	/** An empty {@code int} array. */
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public static final int[] noInts = new int[0];
+
+	/** An empty {@link AvailObject} array. */
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public static final AvailObject[] noObjects = new AvailObject[0];
+
 	/**
 	 * Throw a {@link RuntimeException} on account of a bad offset into the
 	 * calling generated {@code JVMChunk} subclass's {@link
-	 * #runChunk(Interpreter) runChunk}.
+	 * #runChunk(Interpreter, int) runChunk}.
 	 *
 	 * @param offset
 	 *        The illegal offset into the caller.
-	 * @param max
-	 *        The maximum legal offset into the caller.
 	 * @return Pretends to return a {@link RuntimeException}, but actually
 	 *         throws it instead. This is for the convenience of the caller.
 	 */
 	@SuppressWarnings("unused")
-	protected static RuntimeException badOffset (
-		final int offset,
-		final int max)
+	@ReferencedInGeneratedCode
+	protected static RuntimeException badOffset (final int offset)
 	{
-		assert offset < 0 || offset > max;
 		throw new RuntimeException(String.format(
-			"String bad offset %d (valid: 0-%d)",
-			offset,
-			max));
+			"bad offset %d", offset));
 	}
 
 	/**

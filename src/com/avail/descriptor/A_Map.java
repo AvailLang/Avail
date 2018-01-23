@@ -1,6 +1,6 @@
-/**
+/*
  * A_Map.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
  * {@code A_Map} is an interface that specifies the map-specific operations
@@ -78,6 +79,7 @@ extends A_BasicObject
 	 * @param canDestroy Whether the map can be modified in place if mutable.
 	 * @return The new map containing the specified key/value pair.
 	 */
+	@ReferencedInGeneratedCode
 	A_Map mapAtPuttingCanDestroy (
 		A_BasicObject keyObject,
 		A_BasicObject newValueObject,

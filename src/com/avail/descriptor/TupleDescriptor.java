@@ -1,6 +1,6 @@
-/**
+/*
  * TupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IndexedGenerator;
 import com.avail.utility.IteratorNotNull;
@@ -1307,6 +1308,7 @@ extends Descriptor
 	 *
 	 * @return The tuple of size zero.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject emptyTuple ()
 	{
 		return Empty.emptyTuple;
@@ -1320,6 +1322,7 @@ extends Descriptor
 	 *        The array of Avail values from which to construct a tuple.
 	 * @return The new mutable tuple.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Tuple tuple (
 		final A_BasicObject... elements)
 	{
@@ -1452,26 +1455,22 @@ extends Descriptor
 		{
 			return emptyTuple();
 		}
-		final AvailObject tuple;
 		final int minValue = min(list);
 		if (minValue >= 0)
 		{
 			final int maxValue = max(list);
 			if (maxValue <= 15)
 			{
-				tuple = generateNybbleTupleFrom(
+				return generateNybbleTupleFrom(
 					list.size(), i -> list.get(i - 1).byteValue());
-				return tuple;
 			}
 			if (maxValue <= 255)
 			{
-				tuple = generateByteTupleFrom(
+				return generateByteTupleFrom(
 					list.size(), index -> list.get(index - 1).shortValue());
-				return tuple;
 			}
 		}
-		tuple = generateIntTupleFrom(list.size(), i -> list.get(i - 1));
-		return tuple;
+		return generateIntTupleFrom(list.size(), i -> list.get(i - 1));
 	}
 
 	/**

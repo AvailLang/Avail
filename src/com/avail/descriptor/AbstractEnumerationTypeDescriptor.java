@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -780,6 +781,7 @@ extends AbstractTypeDescriptor
 	 * @return An {@link AvailObject} representing the type whose instance is
 	 *         the object specified in the argument.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Type instanceTypeOrMetaOn (final A_BasicObject instance)
 	{
 		if (instance.isType())

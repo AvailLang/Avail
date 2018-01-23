@@ -39,7 +39,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1Translator;
@@ -71,6 +71,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_SetValue().init(
 			2, CanInline, HasSideEffect);

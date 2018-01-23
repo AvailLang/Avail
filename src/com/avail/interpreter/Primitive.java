@@ -1,4 +1,4 @@
-/**
+/*
  * Primitive.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -53,6 +53,7 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
@@ -106,6 +107,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * The primitive succeeded, and the result, if any, has been stored for
 		 * subsequent use.
 		 */
+		@ReferencedInGeneratedCode
 		SUCCESS,
 
 		/**
@@ -189,9 +191,17 @@ implements IntegerEnumSlotDescriptionEnum
 		/**
 		 * The primitive can replace the current continuation, and care should
 		 * be taken to ensure the current continuation is fully reified prior to
-		 * attempting this primitive.
+		 * attempting this primitive. Note that the primitive is not obligated
+		 * to switch continuations.
 		 */
-		SwitchesContinuation,
+		CanSwitchContinuations,
+
+		/**
+		 * The primitive is guaranteed to replace the current continuation, and
+		 * care should be taken to ensure that the current continuation is fully
+		 * reified prior to attempting this primitive.
+		 */
+		AlwaysSwitchesContinuation,
 
 		/**
 		 * The raw function has a particular form that qualifies it as a special
@@ -613,13 +623,13 @@ implements IntegerEnumSlotDescriptionEnum
 	/**
 	 * Answer the {@link Statistic} for abandoning the stack due to a primitive
 	 * attempt answering {@link Result#CONTINUATION_CHANGED}.  The primitive
-	 * must have {@link Flag#SwitchesContinuation} set.
+	 * must have {@link Flag#CanSwitchContinuations} set.
 	 *
 	 * @return The {@link Statistic}.
 	 */
 	public Statistic reificationAbandonmentStat()
 	{
-//		assert hasFlag(SwitchesContinuation);
+//		assert hasFlag(CanSwitchContinuations);
 		return stripNull(reificationAbandonmentStat);
 	}
 
@@ -762,7 +772,7 @@ implements IntegerEnumSlotDescriptionEnum
 				+ getClass().getSimpleName()
 				+ " (running)",
 			StatisticReport.PRIMITIVES);
-		if (hasFlag(SwitchesContinuation))
+		if (hasFlag(CanSwitchContinuations))
 		{
 			reificationAbandonmentStat = new Statistic(
 				"Abandoned for CONTINUATION_CHANGED from " + name(),

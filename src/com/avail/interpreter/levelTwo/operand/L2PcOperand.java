@@ -1,6 +1,6 @@
-/**
+/*
  * L2PcOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,9 @@ import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -55,7 +58,8 @@ import static java.util.Arrays.asList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2PcOperand extends L2Operand
+public class L2PcOperand
+extends L2Operand
 {
 	/** The {@link L2BasicBlock} that this operand leads to. */
 	private L2BasicBlock targetBlock;
@@ -78,6 +82,26 @@ public class L2PcOperand extends L2Operand
 	 * TODO MvG - This is not yet used.
 	 */
 	public final PhiRestriction[] phiRestrictions;
+
+	/**
+	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
+	 * are consumed along all future paths after the start of this block.  This
+	 * is only populated during optimization, while the control flow graph is
+	 * still in SSA form.
+	 *
+	 * <p>This is a superset of {@link #sometimesLiveInRegisters}.</p>
+	 */
+	public final Set<L2Register> alwaysLiveInRegisters = new HashSet<>();
+
+	/**
+	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
+	 * are consumed along at least one future after the start of this block.
+	 * This is only populated during optimization, while the control flow graph
+	 * is still in SSA form.
+	 *
+	 * <p>This is a subset of {@link #alwaysLiveInRegisters}.</p>
+	 */
+	public final Set<L2Register> sometimesLiveInRegisters = new HashSet<>();
 
 	/**
 	 * Construct a new {@code L2PcOperand} with the specified {@link

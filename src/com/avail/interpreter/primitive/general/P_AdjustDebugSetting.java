@@ -35,7 +35,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -55,6 +55,7 @@ public final class P_AdjustDebugSetting extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_AdjustDebugSetting().init(
 			1, Unknown, CannotFail);

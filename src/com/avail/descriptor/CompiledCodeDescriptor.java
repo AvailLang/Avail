@@ -164,6 +164,7 @@ extends Descriptor
 		 * low nybble of the first long, and subtract one more to account for
 		 * the space taken by that first nybble.</p>
 		 */
+		@HideFieldInDebugger
 		NYBBLECODES_;
 
 		/**

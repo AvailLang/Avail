@@ -37,7 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -63,6 +63,7 @@ public final class P_RemoveTypeName extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RemoveTypeName().init(
 			2, CanInline, CannotFail, HasSideEffect);

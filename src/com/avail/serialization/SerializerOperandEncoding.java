@@ -44,17 +44,19 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IndexedIntGenerator;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TwoByteStringDescriptor
 	.generateTwoByteString;
 
@@ -491,12 +493,14 @@ enum SerializerOperandEncoding
 		@Override
 		final AvailObject read (final Deserializer deserializer)
 		{
+			// Reconstruct into whatever tuple representation is most compact.
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			final AvailObject newTuple = generateIntTupleFrom(
-				tupleSize,
-				ignored -> readCompressedPositiveInt(deserializer));
-			newTuple.makeImmutable();
-			return newTuple;
+			final List<Integer> list = new ArrayList<>(tupleSize);
+			for (int i = 0; i < tupleSize; i++)
+			{
+				list.add(readCompressedPositiveInt(deserializer));
+			}
+			return tupleFromIntegerList(list).makeImmutable();
 		}
 	},
 
@@ -564,19 +568,16 @@ enum SerializerOperandEncoding
 				tupleSize,
 				new IndexedIntGenerator()
 				{
-					boolean odd = true;
 					int twoNybbles;
 
 					@Override
-					public int value (final int ignored)
+					public int value (final int index)
 					{
-						if (odd)
+						if ((index & 1) != 0)
 						{
 							twoNybbles = deserializer.readByte();
-							odd = false;
 							return (twoNybbles >> 4) & 0xF;
 						}
-						odd = true;
 						return twoNybbles & 0xF;
 					}
 				});
@@ -712,7 +713,6 @@ enum SerializerOperandEncoding
 			serializer.writeByte(255);
 			serializer.writeInt(index);
 		}
-
 	}
 
 	/**

@@ -1,6 +1,6 @@
-/**
+/*
  * L2ConstantOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,8 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ConstantOperand extends L2Operand
+public class L2ConstantOperand
+extends L2Operand
 {
 	/**
 	 * The actual constant value.
@@ -57,10 +58,10 @@ public class L2ConstantOperand extends L2Operand
 	 * Construct a new {@code L2ConstantOperand} with the specified {@link
 	 * AvailObject constant}.
 	 *
-	 * @param object The constant value.
+	 * @param object
+	 *        The constant value.
 	 */
-	public L2ConstantOperand (
-		final A_BasicObject object)
+	public L2ConstantOperand (final A_BasicObject object)
 	{
 		this.object = object.makeShared();
 	}

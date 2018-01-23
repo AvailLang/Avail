@@ -1,4 +1,4 @@
-/**
+/*
  * P_EmergencyExit.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -64,17 +65,24 @@ import static java.lang.String.format;
  * FiberDescriptor fiber}. The specified argument will be converted
  * internally into a {@code string} and used to report an error message.
  *
- * <p>It's marked with {@link Flag#SwitchesContinuation} to force the stack to
+ * <p>It's marked with {@link Flag#CanSwitchContinuations} to force the stack to
  * be reified, for debugging convenience.</p>
  */
-public final class P_EmergencyExit extends Primitive
+public final class P_EmergencyExit
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_EmergencyExit().init(
-			1, Unknown, SwitchesContinuation, CanSuspend, CannotFail);
+			1,
+			Unknown,
+			CanSwitchContinuations,
+			AlwaysSwitchesContinuation,
+			CanSuspend,
+			CannotFail);
 
 	@Override
 	public Result attempt (

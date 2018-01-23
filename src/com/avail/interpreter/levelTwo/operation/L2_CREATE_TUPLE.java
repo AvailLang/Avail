@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CREATE_TUPLE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,40 +31,45 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
  * objects} in the specified registers.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_TUPLE extends L2Operation
+public class L2_CREATE_TUPLE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -75,25 +80,9 @@ public class L2_CREATE_TUPLE extends L2Operation
 			WRITE_POINTER.is("tuple"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final List<L2ReadPointerOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
-
-		final A_Tuple tuple = generateObjectTupleFrom(
-			elements.size(), i -> elements.get(i - 1).in(interpreter));
-		destinationReg.set(tuple, interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final List<L2ReadPointerOperand> elements =
@@ -157,5 +146,29 @@ public class L2_CREATE_TUPLE extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(0);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final List<L2ReadPointerOperand> elements =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		// :: destination = TupleDescriptor.tuple(elements);
+		translator.objectArray(method, elements, A_BasicObject.class);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(TupleDescriptor.class),
+			"tuple",
+			getMethodDescriptor(
+				getType(A_Tuple.class),
+				getType(A_BasicObject[].class)),
+			false);
+		translator.store(method, destinationReg);
 	}
 }

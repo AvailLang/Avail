@@ -42,7 +42,7 @@ import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.Generator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -109,6 +109,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateRestrictedSendExpression().init(
 			3, CanSuspend, Unknown);

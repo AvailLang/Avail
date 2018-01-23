@@ -42,7 +42,7 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -88,6 +88,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreatePojoConstructorFunction().init(
 			3, CanFold, CanInline);

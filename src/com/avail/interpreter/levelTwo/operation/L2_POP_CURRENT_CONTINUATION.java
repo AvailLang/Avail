@@ -1,6 +1,6 @@
-/**
+/*
  * L2_POP_CURRENT_CONTINUATION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,13 @@ import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Ask the {@link Interpreter} for the current continuation, writing it into the
@@ -50,8 +50,10 @@ import static com.avail.utility.Nulls.stripNull;
  * continuation field.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_POP_CURRENT_CONTINUATION extends L2Operation
+public class L2_POP_CURRENT_CONTINUATION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -61,22 +63,46 @@ public class L2_POP_CURRENT_CONTINUATION extends L2Operation
 			WRITE_POINTER.is("current continuation"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2WritePointerOperand targetReg =
-			instruction.writeObjectRegisterAt(0);
-		final A_Continuation con = stripNull(interpreter.reifiedContinuation);
-		interpreter.reifiedContinuation = con.caller();
-		targetReg.set(con, interpreter);
-		return null;
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// It updates the current continuation of the interpreter.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister targetReg =
+			instruction.writeObjectRegisterAt(0).register();
+
+		// :: continuation = interpreter.reifiedContinuation;
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"reifiedContinuation",
+			getDescriptor(A_Continuation.class));
+		method.visitInsn(DUP);
+		// :: interpreter.reifiedContinuation = continuation.caller();
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Continuation.class),
+			"caller",
+			getMethodDescriptor(getType(A_Continuation.class)),
+			true);
+		translator.loadInterpreter(method);
+		// Stack order is: reifiedContinuation caller interpreter ->
+		// Need: reifiedContinuation interpreter caller ->
+		method.visitInsn(SWAP);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"reifiedContinuation",
+			getDescriptor(A_Continuation.class));
+		// :: target = continuation;
+		translator.store(method, targetReg);
 	}
 }

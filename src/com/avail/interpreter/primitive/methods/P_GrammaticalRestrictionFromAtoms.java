@@ -43,7 +43,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
@@ -79,6 +79,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_GrammaticalRestrictionFromAtoms().init(
 			2, Unknown);

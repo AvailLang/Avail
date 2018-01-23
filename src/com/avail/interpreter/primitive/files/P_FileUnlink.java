@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.Mutable;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.Mutable;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -81,6 +81,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_FileUnlink().init(
 			4, CanInline, HasSideEffect);

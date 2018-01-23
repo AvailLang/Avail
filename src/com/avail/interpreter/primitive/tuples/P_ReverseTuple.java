@@ -39,7 +39,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -65,6 +65,7 @@ public final class P_ReverseTuple extends Primitive
 	 * Construct a new {@link P_ReverseTuple}.
 	 *
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ReverseTuple().init(
 			1, CannotFail, CanFold, CanInline);

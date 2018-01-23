@@ -40,7 +40,7 @@ import com.avail.descriptor.SequenceNodeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +76,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateSequenceOfStatements().init(
 			1, CanFold, CanInline);

@@ -34,6 +34,8 @@ package com.avail.exceptions;
 
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AbstractDefinitionDescriptor;
+import com.avail.descriptor.ForwardDefinitionDescriptor;
 import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 
@@ -76,6 +78,30 @@ extends AvailException
 	}
 
 	/**
+	 * Answer a {@link MethodDefinitionException} that indicates the resolved
+	 * {@linkplain MethodDefinitionDescriptor definition} is a {@linkplain
+	 * ForwardDefinitionDescriptor forward}.
+	 *
+	 * @return The requested exception.
+	 */
+	public static MethodDefinitionException forwardMethod ()
+	{
+		return new MethodDefinitionException(E_FORWARD_METHOD_DEFINITION);
+	}
+
+	/**
+	 * Answer a {@link MethodDefinitionException} that indicates the resolved
+	 * {@linkplain MethodDefinitionDescriptor definition} is {@linkplain
+	 * AbstractDefinitionDescriptor abstract}.
+	 *
+	 * @return The requested exception.
+	 */
+	public static MethodDefinitionException abstractMethod ()
+	{
+		return new MethodDefinitionException(E_ABSTRACT_METHOD_DEFINITION);
+	}
+
+	/**
 	 * Answer the sole {@link A_Definition} from the given tuple of definitions,
 	 * raising a {@code MethodDefinitionException} if the tuple doesn't have
 	 * exactly one element.
@@ -87,8 +113,8 @@ extends AvailException
 	 *         If the tuple did not contain exactly one definition.
 	 */
 	public static A_Definition extractUniqueMethod (
-		final A_Tuple methodDefinitions)
-	throws MethodDefinitionException
+			final A_Tuple methodDefinitions)
+		throws MethodDefinitionException
 	{
 		switch (methodDefinitions.tupleSize())
 		{

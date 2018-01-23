@@ -1,6 +1,6 @@
-/**
+/*
  * L2_LOOKUP_BY_TYPES.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,21 +36,27 @@ import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -62,98 +68,32 @@ import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Look up the method to invoke. Use the provided vector of argument types to
  * perform a polymorphic lookup. Write the resulting function into the
  * specified destination register. If the lookup fails, then branch to the
  * specified {@linkplain Interpreter#offset(int) offset}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_LOOKUP_BY_TYPES extends L2Operation
+public class L2_LOOKUP_BY_TYPES
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_LOOKUP_BY_VALUES().init(
+		new L2_LOOKUP_BY_TYPES().init(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("argument types"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
 			PC.is("lookup succeeded"),
 			PC.is("lookup failed"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadPointerOperand> argTypeRegs =
-			instruction.readVectorRegisterAt(1);
-		final L2WritePointerOperand functionReg =
-			instruction.writeObjectRegisterAt(2);
-		final L2WritePointerOperand errorCodeReg =
-			instruction.writeObjectRegisterAt(3);
-		final int lookupSucceeded = instruction.pcOffsetAt(4);
-		final int lookupFailed = instruction.pcOffsetAt(5);
-
-		if (Interpreter.debugL2)
-		{
-			Interpreter.log(
-				Interpreter.loggerDebugL2,
-				Level.FINER,
-				"{0}Lookup-by-types {1}",
-				interpreter.debugModeString,
-				bundle.message().atomName());
-		}
-		interpreter.argsBuffer.clear();
-		for (final L2ReadPointerOperand argTypeReg : argTypeRegs)
-		{
-			interpreter.argsBuffer.add(argTypeReg.in(interpreter));
-		}
-		final A_Method method = bundle.bundleMethod();
-		final long before = AvailRuntime.captureNanos();
-		final A_Definition definitionToCall;
-		try
-		{
-			definitionToCall = method.lookupByTypesFromTuple(
-				tupleFromList(interpreter.argsBuffer));
-		}
-		catch (final MethodDefinitionException e)
-		{
-			errorCodeReg.set(e.numericCode(), interpreter);
-			interpreter.offset(lookupFailed);
-			return null;
-		}
-		finally
-		{
-			final long after = AvailRuntime.captureNanos();
-			interpreter.recordDynamicLookup(bundle, after - before);
-		}
-		if (definitionToCall.isAbstractDefinition())
-		{
-			errorCodeReg.set(
-				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
-			interpreter.offset(lookupFailed);
-			return null;
-		}
-		if (definitionToCall.isForwardDefinition())
-		{
-			errorCodeReg.set(
-				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
-			interpreter.offset(lookupFailed);
-			return null;
-		}
-		functionReg.set(definitionToCall.bodyBlock(), interpreter);
-		interpreter.offset(lookupSucceeded);
-		return null;
-	}
 
 	/** The type of failure codes that a failed lookup can produce. */
 	private final A_Type failureCodesType = enumerationWith(
@@ -228,36 +168,121 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		}
 	}
 
+	/**
+	 * Perform the lookup.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 * @param bundle
+	 *        The {@link A_Bundle}.
+	 * @param types
+	 *        The {@linkplain A_Type types} for the lookup.
+	 * @return The unique {@linkplain A_Function function}.
+	 * @throws MethodDefinitionException
+	 *         If the lookup did not resolve to a unique executable function.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Function lookup (
+			final Interpreter interpreter,
+			final A_Bundle bundle,
+			final AvailObject[] types)
+		throws MethodDefinitionException
+	{
+		if (Interpreter.debugL2)
+		{
+			Interpreter.log(
+				Interpreter.loggerDebugL2,
+				Level.FINER,
+				"{0}Lookup-by-types {1}",
+				interpreter.debugModeString,
+				bundle.message().atomName());
+		}
+
+		final List<AvailObject> typesList = new ArrayList<>(types.length);
+		Collections.addAll(typesList, types);
+
+		final A_Method method = bundle.bundleMethod();
+		final long before = AvailRuntime.captureNanos();
+		final A_Definition definitionToCall;
+		try
+		{
+			definitionToCall = method.lookupByTypesFromTuple(
+				tupleFromList(typesList));
+		}
+		finally
+		{
+			final long after = AvailRuntime.captureNanos();
+			interpreter.recordDynamicLookup(bundle, after - before);
+		}
+		if (definitionToCall.isAbstractDefinition())
+		{
+			throw MethodDefinitionException.abstractMethod();
+		}
+		if (definitionToCall.isForwardDefinition())
+		{
+			throw MethodDefinitionException.forwardMethod();
+		}
+		return definitionToCall.bodyBlock();
+	}
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-//		final A_Bundle bundle = instruction.bundleAt(0);
-//		final List<L2ReadPointerOperand> argTypeRegs =
-//			instruction.readVectorRegisterAt(1);
-//		final L2WritePointerOperand functionReg =
-//			instruction.writeObjectRegisterAt(2);
-//		final L2WritePointerOperand errorCodeReg =
-//			instruction.writeObjectRegisterAt(3);
+		final A_Bundle bundle = instruction.bundleAt(0);
+		final List<L2ReadPointerOperand> argTypeRegs =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister functionReg =
+			instruction.writeObjectRegisterAt(2).register();
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(3).register();
 		final int lookupSucceeded = instruction.pcOffsetAt(4);
-		final int lookupFailed = instruction.pcOffsetAt(5);
+		final L2PcOperand lookupFailed = instruction.pcAt(5);
 
-
-		super.translateToJVM(translator, method, instruction);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"offset",
-			INT_TYPE.getDescriptor());
-		emitIntConstant(method, lookupSucceeded);
-		method.visitJumpInsn(
-			IF_ICMPNE,
-			stripNull(translator.instructionLabels)[lookupFailed]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[lookupSucceeded]);
+		// :: try {
+		final Label tryStart = new Label();
+		final Label catchStart = new Label();
+		method.visitTryCatchBlock(
+			tryStart,
+			catchStart,
+			catchStart,
+			getInternalName(MethodDefinitionException.class));
+		method.visitLabel(tryStart);
+		// ::    function = lookup(interpreter, bundle, types);
+		translator.loadInterpreter(method);
+		translator.literal(method, bundle);
+		translator.objectArray(method, argTypeRegs, AvailObject.class);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(L2_LOOKUP_BY_TYPES.class),
+			"lookup",
+			getMethodDescriptor(
+				getType(A_Function.class),
+				getType(Interpreter.class),
+				getType(A_Bundle.class),
+				getType(AvailObject[].class)),
+			false);
+		translator.store(method, functionReg);
+		// ::    goto lookupSucceeded;
+		// Note that we cannot potentially eliminate this branch with a
+		// fall through, because the next instruction expects a
+		// MethodDefinitionException to be pushed onto the stack. So always do
+		// the jump.
+		method.visitJumpInsn(GOTO, translator.labelFor(lookupSucceeded));
+		// :: } catch (MethodDefinitionException e) {
+		method.visitLabel(catchStart);
+		// ::    errorCode = e.numericCode();
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(AvailException.class),
+			"numericCode",
+			getMethodDescriptor(getType(A_Number.class)),
+			false);
+		translator.store(method, errorCodeReg);
+		// ::    goto lookupFailed;
+		translator.branch(method, instruction, lookupFailed);
+		// :: }
 	}
 }

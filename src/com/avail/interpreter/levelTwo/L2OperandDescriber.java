@@ -1,4 +1,4 @@
-/**
+/*
  * L2OperandDescriber.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -48,17 +48,18 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2OperandDescriber implements L2OperandTypeDispatcher
+final class L2OperandDescriber
+implements L2OperandTypeDispatcher
 {
 	/**
 	 * The operand being described.
 	 */
-	private @Nullable L2Operand _operand;
+	private @Nullable L2Operand operand;
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
 	 */
-	private @Nullable StringBuilder _description;
+	private @Nullable StringBuilder description;
 
 	/**
 	 * Extract the current operand being described.
@@ -68,7 +69,7 @@ final class L2OperandDescriber implements L2OperandTypeDispatcher
 	private <T extends L2Operand> T operand (final Class<T> clazz)
 	{
 		//noinspection unchecked
-		return clazz.cast(stripNull(_operand));
+		return clazz.cast(stripNull(operand));
 	}
 
 	/**
@@ -83,7 +84,7 @@ final class L2OperandDescriber implements L2OperandTypeDispatcher
 		final String format,
 		final Object... arguments)
 	{
-		final StringBuilder builder = stripNull(_description);
+		final StringBuilder builder = stripNull(description);
 		builder.append(format(format, arguments));
 	}
 
@@ -96,7 +97,7 @@ final class L2OperandDescriber implements L2OperandTypeDispatcher
 	private <SpecificOperand extends L2Operand> void printVector (
 		final List<SpecificOperand> vector)
 	{
-		final StringBuilder builder = stripNull(_description);
+		final StringBuilder builder = stripNull(description);
 		print("Vec=(");
 		boolean first = true;
 		for (final SpecificOperand reg : vector)
@@ -117,20 +118,20 @@ final class L2OperandDescriber implements L2OperandTypeDispatcher
 	 * current {@link L2Chunk}.
 	 *
 	 * @param namedOperandType
-	 *            The {@link L2OperandType} used to interpret the operand.
-	 * @param operand
-	 *            The numeric operand itself, an {@code int}.
+	 *        The {@link L2OperandType} used to interpret the operand.
+	 * @param op
+	 *        The numeric operand itself, an {@code int}.
 	 * @param stream
-	 *            The {@link StringBuilder} that will have a suitable operand
-	 *            description appended.
+	 *        The {@link StringBuilder} that will have a suitable operand
+	 *        description appended.
 	 */
 	public void describeInOperandChunkOn (
 			final L2NamedOperandType namedOperandType,
-			final L2Operand operand,
+			final L2Operand op,
 			final StringBuilder stream)
 	{
-		_operand = operand;
-		_description = stream;
+		this.operand = op;
+		description = stream;
 		stream.append(
 			format(
 				"%n\t%s = ",

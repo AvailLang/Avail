@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -68,6 +69,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
@@ -146,6 +148,7 @@ public abstract class AbstractDescriptor
 	 * @return {@code true} if the described object is mutable, {@code false}
 	 *         otherwise.
 	 */
+	@ReferencedInGeneratedCode
 	public final boolean isMutable ()
 	{
 		return mutability == MUTABLE;
@@ -6783,6 +6786,13 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_CurrentLineNumber (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract A_Type o_FiberResultType (final AvailObject object);
 
 	/**
 	 * @param object

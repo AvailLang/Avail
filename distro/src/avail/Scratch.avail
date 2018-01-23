@@ -35,38 +35,10 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Extends "Avail"
 Names
-Entries "Crazy"
 Body
 
-Method "Crazy" is
+
+Repeat
 [
-	Guard
-	[
-		Breakpoint;
-	]
-	intercept
-	[
-		e : exception
-	|
-		Print: “e”;
-		Breakpoint;
-	]
-	ensure
-	[
-	];
-];
-
-Crazy;
-
-
-Method "Cheese_" is
-[
-	x : string
-|
-	Print: "Hello, " ++ x;
-];
-
-[
-	Breakpoint;
-	Cheese "turkey";
-]();
+	t ::= quicksort <10, 20, 30, 40, 35, 25, 15>;
+] 10 times;

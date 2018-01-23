@@ -1,6 +1,6 @@
-/**
+/*
  * L2_TUPLE_AT_CONSTANT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,35 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract an element at a fixed subscript from a {@link TupleDescriptor tuple}
  * that is known to be long enough, writing the element into a register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_TUPLE_AT_CONSTANT extends L2Operation
+public class L2_TUPLE_AT_CONSTANT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -61,28 +71,9 @@ public class L2_TUPLE_AT_CONSTANT extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int tupleRegIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final int subscript = instruction.immediateAt(1);
-		final int destinationRegIndex =
-			instruction.writeObjectRegisterAt(2).finalIndex();
-
-		return interpreter ->
-		{
-			interpreter.pointerAtPut(
-				destinationRegIndex,
-				interpreter.pointerAt(tupleRegIndex).tupleAt(subscript));
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand tupleReg =
@@ -98,5 +89,29 @@ public class L2_TUPLE_AT_CONSTANT extends L2Operation
 			destinationReg.register(),
 			tupleType.typeAtIndex(subscript),
 			instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister tupleReg =
+			instruction.readObjectRegisterAt(0).register();
+		final int subscript = instruction.immediateAt(1);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		// :: destination = tuple.tupleAt(subscript);
+		translator.load(method, tupleReg);
+		translator.literal(method, subscript);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Tuple.class),
+			"tupleAt",
+			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			true);
+		translator.store(method, destinationReg);
 	}
 }

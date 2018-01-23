@@ -1,6 +1,6 @@
-/**
+/*
  * L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -40,19 +41,20 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
@@ -77,22 +79,9 @@ extends L2Operation
 			WRITE_POINTER.is("invalid message result function"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2WritePointerOperand destination =
-			instruction.writeObjectRegisterAt(0);
-		destination.set(
-			interpreter.runtime().resultDisagreedWithExpectedTypeFunction(),
-			interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2WritePointerOperand destination =
@@ -106,5 +95,32 @@ extends L2Operation
 					variableTypeFor(ANY.o())),
 				bottom()),
 			instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0).register();
+
+		// :: destination = interpreter.runtime()
+		// ::    .resultDisagreedWithExpectedTypeFunction();
+		translator.loadInterpreter(method);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"runtime",
+			getMethodDescriptor(getType(AvailRuntime.class)),
+			false);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(AvailRuntime.class),
+			"resultDisagreedWithExpectedTypeFunction",
+			getMethodDescriptor(getType(A_Function.class)),
+			false);
+		translator.store(method, destination);
 	}
 }

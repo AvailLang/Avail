@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
@@ -527,6 +528,7 @@ extends Descriptor
 	 * @param map A map from keys to their corresponding values.
 	 * @return The new object.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject objectFromMap (final A_Map map)
 	{
 		final ObjectLayoutVariant variant =

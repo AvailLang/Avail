@@ -1,6 +1,6 @@
 /*
  * JVMTranslator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,30 @@
 
 package com.avail.optimizer.jvm;
 
+import com.avail.AvailRuntime;
+import com.avail.AvailThread;
+import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import com.avail.utility.Strings;
+import org.objectweb.asm.*;
+import org.objectweb.asm.util.CheckMethodAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,11 +65,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
+import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
+import static com.avail.performance.StatisticReport.JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -78,6 +95,10 @@ import static org.objectweb.asm.Type.*;
  */
 public final class JVMTranslator
 {
+	/** Statistics about the naive L1 to L2 translation. */
+	private static final Statistic translateJVMStat = new Statistic(
+		"Total JVM translation time", JVM_TRANSLATION_TIME);
+
 	/**
 	 * The source {@link A_RawFunction L1 code}.
 	 */
@@ -100,7 +121,7 @@ public final class JVMTranslator
 	 * subclass. The {@code ClassWriter} is configured to automatically compute
 	 * stack map frames and method limits (e.g., stack depths).
 	 */
-	private final ClassWriter classWriter;
+	@InnerAccess final ClassWriter classWriter;
 
 	/**
 	 * The name of the generated class, formed from a {@link UUID} to ensure
@@ -146,49 +167,555 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Answer the name of the JVM {@code private static final} field associated
-	 * with the specified {@linkplain L2Instruction instruction}.
-	 *
-	 * @param instruction
-	 *        The instruction.
-	 * @return The name of the appropriate field.
+	 * The {@link L2Operation#isEntryPoint(L2Instruction) entry points} into the
+	 * {@link L2Chunk}, mapped to their {@link Label}s.
 	 */
-	public static String instructionFieldName (final L2Instruction instruction)
+	private final Map<Integer, Label> entryPoints = new LinkedHashMap<>();
+
+	/**
+	 * A {@code LiteralAccessor} aggregates means of accessing a literal {@link
+	 * Object} in various contexts.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	static final class LiteralAccessor
 	{
-		//noinspection StringConcatenationMissingWhitespace
-		return instruction.operation.name() + "_" + instruction.offset();
+		/**
+		 * A sentinel value of {@link #classLoaderIndex} that represents no slot
+		 * is needed in the {@link JVMChunkClassLoader}'s {@linkplain
+		 * JVMChunkClassLoader#parameters parameters} array.
+		 */
+		static final int invalidIndex = -1;
+
+		/**
+		 * The index into the {@link JVMChunkClassLoader}'s {@linkplain
+		 * JVMChunkClassLoader#parameters parameters} array at which the
+		 * corresponding literal is located, or {@link #invalidIndex} if no slot
+		 * is required.
+		 */
+		final int classLoaderIndex;
+
+		/**
+		 * The name of the {@code private static final} field of the generated
+		 * {@link JVMChunk} subclass in which the corresponding AvailObject is
+		 * located, or {@code null} if no field is required.
+		 */
+		final @Nullable String fieldName;
+
+		/**
+		 * The {@link Consumer} that generates an access of the literal when
+		 * {@linkplain Consumer#accept(Object) evaluated}.
+		 */
+		final Consumer<MethodVisitor> getter;
+
+		/**
+		 * The {@link Consumer} that generates storage of the literal when
+		 * {@linkplain Consumer#accept(Object) evaluated}, or {@code null} if
+		 * no such facility is required. The generated code assumes that the
+		 * value to install is on top of the stack.
+		 */
+		final @Nullable Consumer<MethodVisitor> setter;
+
+		/**
+		 * Construct a new {@code LiteralAccessor}.
+		 *
+		 * @param classLoaderIndex
+		 *        The index into the {@link JVMChunkClassLoader}'s {@linkplain
+		 *        JVMChunkClassLoader#parameters parameters} array at which the
+		 *        corresponding {@linkplain AvailObject literal} is located,
+		 *        or {@link #invalidIndex} if no slot is required.
+		 * @param fieldName
+		 *        The name of the {@code private static final} field of the
+		 *        generated {@link JVMChunk} subclass in which the corresponding
+		 *        {@linkplain AvailObject literal} is located, or {@code null}
+		 *        if no field is required.
+		 * @param getter
+		 *        The {@link Consumer} that generates an access of the literal
+		 *        when {@linkplain Consumer#accept(Object) evaluated}.
+		 * @param setter
+		 *        The {@link Consumer} that generates storage of the literal
+		 *        when {@linkplain Consumer#accept(Object) evaluated}, or
+		 *        {@code null} if no such facility is required. The generated
+		 *        code assumes that the value to install is on top of the stack.
+		 */
+		LiteralAccessor (
+			final int classLoaderIndex,
+			final @Nullable String fieldName,
+			final Consumer<MethodVisitor> getter,
+			final @Nullable Consumer<MethodVisitor> setter)
+		{
+			this.classLoaderIndex = classLoaderIndex;
+			this.fieldName = fieldName;
+			this.getter = getter;
+			this.setter = setter;
+		}
 	}
 
 	/**
-	 * Generate all of the {@code static} fields of the target {@link JVMChunk}.
+	 * The {@linkplain Object literals} used by the {@link L2Chunk} that must be
+	 * embedded into the translated {@link JVMChunk}, mapped to their
+	 * {@linkplain LiteralAccessor accessors}.
 	 */
-	private void generateStaticFields ()
+	@InnerAccess final Map<Object, LiteralAccessor> literals = new HashMap<>();
+
+	/**
+	 * Emit code to push the specified literal on top of the stack.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param object
+	 *        The literal.
+	 */
+	public void literal (final MethodVisitor method, final Object object)
 	{
+		stripNull(literals.get(object)).getter.accept(method);
+	}
+
+	/**
+	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
+	 * {@linkplain Label labels}.
+	 */
+	@InnerAccess final Map<Integer, Label> labels = new HashMap<>();
+
+	/**
+	 * Answer the {@link Label} for the specified {@link L2Instruction}
+	 * {@linkplain L2Instruction#offset offset}.
+	 *
+	 * @param offset
+	 *        The offset.
+	 * @return The requested {@code Label}.
+	 */
+	public Label labelFor (final int offset)
+	{
+		return stripNull(labels.get(offset));
+	}
+
+	/**
+	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
+	 * JVM local indices.
+	 */
+	@InnerAccess final Map<L2Register, Integer> locals = new HashMap<>();
+
+	/**
+	 * Answer the next JVM local. The initial value is chosen to skip over the
+	 * Category-1 receiver and Category-1 {@link Interpreter} formal parameters.
+	 */
+	private int nextLocal = 4;
+
+	/**
+	 * Answer the next JVM local for use within generated code produced by
+	 * {@linkplain #generateRunChunk()}.
+	 *
+	 * @param type
+	 *        The {@linkplain Type type} of the local.
+	 * @return A JVM local.
+	 */
+	public int nextLocal (final Type type)
+	{
+		assert type != VOID_TYPE;
+		final int local = nextLocal;
+		nextLocal += type.getSize();
+		return local;
+	}
+
+	/**
+	 * Generate a load of the local associated with the specified {@link
+	 * L2IntegerRegister}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2IntegerRegister}.
+	 */
+	public void load (
+		final MethodVisitor method,
+		final L2IntegerRegister register)
+	{
+		method.visitVarInsn(ILOAD, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a load of the local associated with the specified {@link
+	 * L2ObjectRegister}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2ObjectRegister}.
+	 */
+	public void load (
+		final MethodVisitor method,
+		final L2ObjectRegister register)
+	{
+		method.visitVarInsn(ALOAD, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a store into the local associated with the specified {@link
+	 * L2IntegerRegister}. The value to be stored should already be on top of
+	 * the stack and correctly typed.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2IntegerRegister}.
+	 */
+	public void store (
+		final MethodVisitor method,
+		final L2IntegerRegister register)
+	{
+		method.visitVarInsn(ISTORE, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a store into the local associated with the specified {@link
+	 * L2ObjectRegister}. The value to be stored should already be on top of the
+	 * stack and correctly typed.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2ObjectRegister}.
+	 */
+	public void store (
+		final MethodVisitor method,
+		final L2ObjectRegister register)
+	{
+		final int local = stripNull(locals.get(register));
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+		method.visitVarInsn(ASTORE, local);
+	}
+
+	/**
+	 * A {@code JVMTranslationPreparer} acts upon its enclosing {@link
+	 * JVMTranslator} and an {@link L2Operand} to map {@link L2Register}s to JVM
+	 * {@linkplain #nextLocal(Type) locals}, map {@linkplain AvailObject
+	 * literals} to {@code private static final} fields, and map {@linkplain
+	 * L2PcOperand program counters} to {@link Label}s.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	private class JVMTranslationPreparer
+	implements L2OperandDispatcher
+	{
+		/**
+		 * The next unallocated index into the {@link JVMChunkClassLoader}'s
+		 * {@linkplain JVMChunkClassLoader#parameters parameters} array at which
+		 * a {@linkplain AvailObject literal} will be stored.
+ 		 */
+		private int nextClassLoaderIndex = 0;
+
+		@Override
+		public void doOperand (final L2CommentOperand operand)
+		{
+			// Ignore comments; there's nowhere to put them in the translated
+			// code, and not much to do with them even if we could.
+		}
+
+		@Override
+		public void doOperand (final L2ConstantOperand operand)
+		{
+			literals.computeIfAbsent(
+				operand.object,
+				object ->
+				{
+					// Choose an index and name for the literal.
+					final int index = nextClassLoaderIndex++;
+					final String name = "literal_" + index;
+					// Generate a field that will hold the literal at runtime.
+					final FieldVisitor field = classWriter.visitField(
+						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
+						name,
+						getDescriptor(AvailObject.class),
+						null,
+						null);
+					field.visitAnnotation(getDescriptor(Nonnull.class), true);
+					field.visitEnd();
+					// Generate an accessor for the literal.
+					return new LiteralAccessor(
+						index,
+						name,
+						method -> method.visitFieldInsn(
+							GETSTATIC,
+							classInternalName,
+							name,
+							getDescriptor(AvailObject.class)),
+						method ->
+						{
+							method.visitTypeInsn(
+								CHECKCAST,
+								getInternalName(AvailObject.class));
+							method.visitFieldInsn(
+								PUTSTATIC,
+								classInternalName,
+								name,
+								getDescriptor(AvailObject.class));
+						});
+				});
+		}
+
+		@Override
+		public void doOperand (final L2ImmediateOperand operand)
+		{
+			literals.computeIfAbsent(
+				operand.value,
+				object -> new LiteralAccessor(
+					invalidIndex,
+					null,
+					method -> intConstant(method, (int) object),
+					null));
+		}
+
+		@Override
+		public void doOperand (final L2PcOperand operand)
+		{
+			labels.computeIfAbsent(
+				operand.targetBlock().offset(),
+				pc -> new Label());
+		}
+
+		@Override
+		public void doOperand (final L2PrimitiveOperand operand)
+		{
+			// Ignore primitives. The encapsulated primitive can be extracted
+			// during translation as needed.
+		}
+
+		@Override
+		public void doOperand (final L2ReadIntOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(INT_TYPE));
+		}
+
+		@Override
+		public void doOperand (final L2ReadPointerOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(getType(AvailObject.class)));
+		}
+
+		@Override
+		public void doOperand (final L2ReadVectorOperand operand)
+		{
+			for (final L2ReadPointerOperand pointerOperand : operand.elements())
+			{
+				locals.computeIfAbsent(
+					pointerOperand.register(),
+					register -> nextLocal(getType(AvailObject.class)));
+			}
+		}
+
+		@Override
+		public void doOperand (final L2SelectorOperand operand)
+		{
+			literals.computeIfAbsent(
+				operand.bundle,
+				object ->
+				{
+					// Choose an index and name for the literal.
+					final int index = nextClassLoaderIndex++;
+					final String name = "literal_" + index;
+					// Generate a field that will hold the literal at runtime.
+					final FieldVisitor field = classWriter.visitField(
+						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
+						name,
+						getDescriptor(A_Bundle.class),
+						null,
+						null);
+					field.visitAnnotation(getDescriptor(Nonnull.class), true);
+					field.visitEnd();
+					// Generate an accessor for the literal.
+					return new LiteralAccessor(
+						index,
+						name,
+						method -> method.visitFieldInsn(
+							GETSTATIC,
+							classInternalName,
+							name,
+							getDescriptor(A_Bundle.class)),
+						method ->
+						{
+							method.visitTypeInsn(
+								CHECKCAST,
+								getInternalName(A_Bundle.class));
+							method.visitFieldInsn(
+								PUTSTATIC,
+								classInternalName,
+								name,
+								getDescriptor(A_Bundle.class));
+						});
+				});
+		}
+
+		@Override
+		public void doOperand (final L2WriteIntOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(INT_TYPE));
+		}
+
+		@Override
+		public void doOperand (final L2WritePointerOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(getType(AvailObject.class)));
+		}
+
+		@Override
+		public void doOperand (final L2WriteVectorOperand operand)
+		{
+			for (final L2WritePointerOperand pointerOperand
+					: operand.elements())
+			{
+				locals.computeIfAbsent(
+					pointerOperand.register(),
+					register -> nextLocal(getType(AvailObject.class)));
+			}
+		}
+	}
+
+	/**
+	 * Prepare for JVM translation by {@linkplain JVMTranslationPreparer
+	 * visiting} each of the {@link L2Instruction}s to be translated.
+	 */
+	private void prepare ()
+	{
+		final JVMTranslationPreparer preparer = new JVMTranslationPreparer();
 		for (final L2Instruction instruction : instructions)
 		{
-			final FieldVisitor field = classWriter.visitField(
-				ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
-				instructionFieldName(instruction),
-				getDescriptor(instruction.getClass()),
-				null,
-				null);
-			field.visitAnnotation(getDescriptor(Nonnull.class), true);
-			field.visitEnd();
+			if (instruction.operation.isEntryPoint(instruction))
+			{
+				final Label label = new Label();
+				entryPoints.put(instruction.offset(), label);
+				labels.put(instruction.offset(), label);
+			}
+			for (final L2Operand operand : instruction.operands)
+			{
+				operand.dispatchOperand(preparer);
+			}
+		}
+	}
+
+	/**
+	 * Dump a trace of the specified {@linkplain Throwable exception} to an
+	 * appropriately named file.
+	 *
+	 * @param e
+	 *        The exception.
+	 * @return The absolute path of the resultant file, or {@code null} if the
+	 *         file could not be written.
+	 */
+	@SuppressWarnings("UnusedReturnValue")
+	private @Nullable String dumpTraceToFile (final Throwable e)
+	{
+		try
+		{
+			final int lastSlash =
+				classInternalName.lastIndexOf('/');
+			final String pkg =
+				classInternalName.substring(0, lastSlash);
+			final Path tempDir = Paths.get("debug", "jvm");
+			final Path dir = tempDir.resolve(Paths.get(pkg));
+			Files.createDirectories(dir);
+			final String base = classInternalName.substring(lastSlash + 1);
+			final Path traceFile = dir.resolve(base + ".trace");
+			// Make the trace file potentially *much* smaller by truncating the
+			// empty space reserved for per-instruction stack and locals to 5
+			// spaces each.
+			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
+			final String trace = Strings.traceFor(e).replaceAll(
+				" {6,}", "     ");
+			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(trace);
+			final byte[] bytes = new byte[buffer.limit()];
+			buffer.get(bytes);
+			Files.write(traceFile, bytes);
+			return traceFile.toAbsolutePath().toString();
+		}
+		catch (final IOException x)
+		{
+			Interpreter.log(
+				Interpreter.loggerDebugJVM,
+				Level.WARNING,
+				"unable to write trace for failed generated class {0}",
+				classInternalName);
+			return null;
+		}
+	}
+
+	/**
+	 * Finish visiting the {@link MethodVisitor} by calling {@link
+	 * MethodVisitor#visitMaxs(int, int) visitMaxs} and then {@link
+	 * MethodVisitor#visitEnd() visitEnd}. If {@link #debugJVM} is {@code true},
+	 * then an attempt will be made to write out a trace file.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 */
+	private void finishMethod (final MethodVisitor method)
+	{
+		if (debugJVM)
+		{
+			try
+			{
+				method.visitMaxs(Short.MAX_VALUE << 1, nextLocal);
+				method.visitEnd();
+			}
+			catch (final Exception e)
+			{
+				Interpreter.log(
+					Interpreter.loggerDebugJVM,
+					Level.SEVERE,
+					"translation failed for {0}",
+					className);
+				dumpTraceToFile(e);
+			}
+		}
+		else
+		{
+			method.visitMaxs(0, 0);
+			method.visitEnd();
 		}
 	}
 
 	/**
 	 * Generate the {@code static} initializer of the target {@link JVMChunk}.
+	 * The static initializer is responsible for moving any of the {@linkplain
+	 * JVMChunkClassLoader#parameters parameters} of the {@link JVMChunk}
+	 * subclass's {@link JVMChunkClassLoader} into appropriate {@code
+	 * private static final} fields.
 	 */
 	private void generateStaticInitializer ()
 	{
-		final MethodVisitor method = classWriter.visitMethod(
+		MethodVisitor method = classWriter.visitMethod(
 			ACC_STATIC | ACC_PUBLIC,
 			"<clinit>",
 			getMethodDescriptor(VOID_TYPE),
 			null,
 			null);
+		if (debugJVM)
+		{
+			final CheckMethodAdapter checker = new CheckMethodAdapter(
+				ACC_STATIC | ACC_PUBLIC,
+				"<clinit>",
+				getMethodDescriptor(VOID_TYPE),
+				method,
+				new HashMap<>());
+			checker.version = V1_8;
+			method = checker;
+		}
 		method.visitCode();
+		// :: «generated JVMChunk».class.getClassLoader()
 		//noinspection StringConcatenationMissingWhitespace
 		method.visitLdcInsn(getType("L" + classInternalName + ";"));
 		method.visitMethodInsn(
@@ -200,31 +727,36 @@ public final class JVMTranslator
 		method.visitTypeInsn(
 			CHECKCAST,
 			getInternalName(JVMChunkClassLoader.class));
-		method.visitInsn(DUP);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(JVMChunkClassLoader.class),
-			"parameters",
-			getDescriptor(Object[].class));
-		for (int i = 0, limit = instructions.length; i < limit; i++)
+		final List<LiteralAccessor> accessors =
+			literals.values().stream()
+				.filter(accessor -> accessor.setter != null)
+				.collect(Collectors.toList());
+		if (!accessors.isEmpty())
 		{
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP);
-			}
-			emitIntConstant(method, i);
-			method.visitInsn(AALOAD);
-			final L2Instruction instruction = instructions[i];
-			final Class<?> instructionClass = instruction.getClass();
-			method.visitTypeInsn(
-				CHECKCAST,
-				getInternalName(instructionClass));
+			// :: «generated JVMChunk».class.getClassLoader().parameters
+			//noinspection StringConcatenationMissingWhitespace
+			method.visitInsn(DUP);
 			method.visitFieldInsn(
-				PUTSTATIC,
-				classInternalName,
-				instructionFieldName(instruction),
-				getDescriptor(instructionClass));
+				GETFIELD,
+				getInternalName(JVMChunkClassLoader.class),
+				"parameters",
+				getDescriptor(Object[].class));
+			final int limit = accessors.size();
+			int i = 0;
+			for (final LiteralAccessor accessor : accessors)
+			{
+				// :: literal_«i» = («typeof(literal_«i»)») parameters[«i»];
+				if (i < limit - 1)
+				{
+					method.visitInsn(DUP);
+				}
+				intConstant(method, accessor.classLoaderIndex);
+				method.visitInsn(AALOAD);
+				stripNull(accessor.setter).accept(method);
+				i++;
+			}
 		}
+		// :: «generated JVMChunk».class.getClassLoader().parameters = null;
 		method.visitInsn(ACONST_NULL);
 		method.visitFieldInsn(
 			PUTFIELD,
@@ -232,8 +764,495 @@ public final class JVMTranslator
 			"parameters",
 			getDescriptor(Object[].class));
 		method.visitInsn(RETURN);
-		method.visitMaxs(0, 0);
-		method.visitEnd();
+		finishMethod(method);
+	}
+
+	/**
+	 * Answer the JVM local for the receiver of a generated implementation of
+	 * {@link JVMChunk#runChunk(Interpreter, int)}.
+	 *
+	 * @return The receiver local.
+	 */
+	private static int receiverLocal ()
+	{
+		return 0;
+	}
+
+	/**
+	 * Generate access of the receiver (i.e., {@code this}).
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public void loadReceiver (final MethodVisitor method)
+	{
+		method.visitVarInsn(ALOAD, receiverLocal());
+	}
+
+	/**
+	 * Answer the JVM local for the {@link Interpreter} formal parameter of a
+	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
+	 *
+	 * @return The {@code Interpreter} formal parameter local.
+	 */
+	public static int interpreterLocal ()
+	{
+		return 1;
+	}
+
+	/**
+	 * Generate access to the JVM local for the {@link Interpreter} formal
+	 * parameter of a generated implementation of {@link
+	 * JVMChunk#runChunk(Interpreter, int)}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public void loadInterpreter (final MethodVisitor method)
+	{
+		method.visitVarInsn(ALOAD, interpreterLocal());
+	}
+
+	/**
+	 * Answer the JVM local for the {@code offset} formal parameter of a
+	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
+	 *
+	 * @return The {@code offset} formal parameter local.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public int offsetLocal ()
+	{
+		return 2;
+	}
+
+	/**
+	 * Answer the JVM local for the {@link StackReifier} local variable of a
+	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
+	 *
+	 * @return The {@code StackReifier} local.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public int reifierLocal ()
+	{
+		return 3;
+	}
+
+	/**
+	 * Emit the effect of loading a constant {@code int} to the specified
+	 * {@link MethodVisitor}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param value
+	 *        The {@code int}.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public void intConstant (final MethodVisitor method, final int value)
+	{
+		switch (value)
+		{
+			case -1:
+				method.visitInsn(ICONST_M1);
+				break;
+			case 0:
+				method.visitInsn(ICONST_0);
+				break;
+			case 1:
+				method.visitInsn(ICONST_1);
+				break;
+			case 2:
+				method.visitInsn(ICONST_2);
+				break;
+			case 3:
+				method.visitInsn(ICONST_3);
+				break;
+			case 4:
+				method.visitInsn(ICONST_4);
+				break;
+			case 5:
+				method.visitInsn(ICONST_5);
+				break;
+			default:
+			{
+				if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE)
+				{
+					method.visitIntInsn(BIPUSH, value);
+				}
+				else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE)
+				{
+					method.visitIntInsn(SIPUSH, value);
+				}
+				else
+				{
+					method.visitLdcInsn(value);
+				}
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Emit the effect of loading a constant {@code long} to the specified
+	 * {@link MethodVisitor}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param value
+	 *        The {@code long}.
+	 */
+	public void longConstant (final MethodVisitor method, final long value)
+	{
+		if (value == 0L)
+		{
+			method.visitInsn(LCONST_0);
+		}
+		else if (value == 1L)
+		{
+			method.visitInsn(LCONST_1);
+		}
+		else if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE)
+		{
+			intConstant(method, (int) value);
+			// Emit a conversion, so that we end up with a long on the stack.
+			method.visitInsn(I2L);
+		}
+		else
+		{
+			// This should emit an ldc2_w instruction, whose result type
+			// is long; no conversion instruction is required.
+			method.visitLdcInsn(value);
+		}
+	}
+
+	/**
+	 * Emit the effect of loading a constant {@code float} to the specified
+	 * {@link MethodVisitor}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param value
+	 *        The {@code float}.
+	 */
+	@SuppressWarnings({"unused", "FloatingPointEquality"})
+	public void floatConstant (final MethodVisitor method, final float value)
+	{
+		if (value == 0.0f)
+		{
+			method.visitInsn(FCONST_0);
+		}
+		else if (value == 1.0f)
+		{
+			method.visitInsn(FCONST_1);
+		}
+		else if (value == 2.0f)
+		{
+			method.visitInsn(FCONST_2);
+		}
+		// This is the largest absolute int value that will fit into the
+		// mantissa of a normalized float, and therefore the largest value that
+		// can be pushed and converted to float without loss of precision.
+		else if (
+			value >= -33_554_431 && value <= 33_554_431
+				&& value == Math.floor(value))
+		{
+			intConstant(method, (int) value);
+			method.visitInsn(I2F);
+		}
+		else
+		{
+			// This should emit an ldc instruction, whose result type is float;
+			// no conversion instruction is required.
+			method.visitLdcInsn(value);
+		}
+	}
+
+	/**
+	 * Emit the effect of loading a constant {@code float} to the specified
+	 * {@link MethodVisitor}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param value
+	 *        The {@code double}.
+	 */
+	@SuppressWarnings({"unused", "FloatingPointEquality"})
+	public void doubleConstant (final MethodVisitor method, final double value)
+	{
+		if (value == 0.0d)
+		{
+			method.visitInsn(DCONST_0);
+		}
+		else if (value == 1.0d)
+		{
+			method.visitInsn(DCONST_1);
+		}
+		// This is the largest absolute int value that will fit into the
+		// mantissa of a normalized double, and therefore the largest absolute
+		// value that can be pushed and converted to double without loss of
+		// precision.
+		else if (
+			value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE
+				&& value == Math.floor(value))
+		{
+			intConstant(method, (int) value);
+			method.visitInsn(I2D);
+		}
+		// This is the largest absolute long value that will fit into the
+		// mantissa of a normalized double, and therefore the largest absolute
+		// value that can be pushed and converted to double without loss of
+		// precision.
+		else if (
+			value >= -18_014_398_509_481_983L
+				&& value <= 18_014_398_509_481_983L
+				&& value == Math.floor(value))
+		{
+			longConstant(method, (long) value);
+			method.visitInsn(L2D);
+		}
+		else
+		{
+			// This should emit an ldc2_w instruction, whose result type is
+			// double; no conversion instruction is required.
+			method.visitLdcInsn(value);
+		}
+	}
+
+	/**
+	 * Emit code to store each of the {@link L2IntegerRegister}s into a new
+	 * {@code int} array. Leave the new array on top of the stack.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param operands
+	 *        The {@link L2ReadIntOperand}s that hold the registers.
+	 */
+	@SuppressWarnings("unused")
+	public void integerArray (
+		final MethodVisitor method,
+		final List<L2ReadIntOperand> operands)
+	{
+		if (operands.isEmpty())
+		{
+			method.visitFieldInsn(
+				GETSTATIC,
+				getInternalName(JVMChunk.class),
+				"noInts",
+				getDescriptor(int[].class));
+		}
+		else
+		{
+			// :: array = new int[«limit»];
+			final int limit = operands.size();
+			intConstant(method, limit);
+			method.visitIntInsn(NEWARRAY, T_INT);
+			for (int i = 0; i < limit; i++)
+			{
+				// :: array[«i»] = «operands[i]»;
+				method.visitInsn(DUP);
+				intConstant(method, i);
+				load(method, operands.get(i).register());
+				method.visitInsn(AASTORE);
+			}
+		}
+	}
+
+	/**
+	 * Emit code to store each of the {@link L2ObjectRegister}s into a new
+	 * array. Leave the new array on top of the stack.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param operands
+	 *        The {@link L2ReadPointerOperand}s that hold the registers.
+	 * @param arrayClass
+	 *        The element type of the new array.
+	 */
+	public void objectArray (
+		final MethodVisitor method,
+		final List<L2ReadPointerOperand> operands,
+		final Class<? extends A_BasicObject> arrayClass)
+	{
+		if (operands.isEmpty())
+		{
+			method.visitFieldInsn(
+				GETSTATIC,
+				getInternalName(JVMChunk.class),
+				"noObjects",
+				getDescriptor(AvailObject[].class));
+		}
+		else
+		{
+			// :: array = new «arrayClass»[«limit»];
+			final int limit = operands.size();
+			intConstant(method, limit);
+			method.visitTypeInsn(ANEWARRAY, getInternalName(arrayClass));
+			for (int i = 0; i < limit; i++)
+			{
+				// :: array[«i»] = «operands[i]»;
+				method.visitInsn(DUP);
+				intConstant(method, i);
+				load(method, operands.get(i).register());
+				method.visitInsn(AASTORE);
+			}
+		}
+	}
+
+	/**
+	 * Answer the JVM branch {@linkplain Opcodes opcode} with the reversed
+	 * sense.
+	 *
+	 * @param opcode
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
+	 *        the two branch targets.
+	 * @return The branch opcode with the reversed sense.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public int reverseOpcode (final int opcode)
+	{
+		final int reversedOpcode;
+		switch (opcode)
+		{
+			case IFEQ:
+				reversedOpcode = IFNE;
+				break;
+			case IFNE:
+				reversedOpcode = IFEQ;
+				break;
+			case IFLT:
+				reversedOpcode = IFGE;
+				break;
+			case IFLE:
+				reversedOpcode = IFGT;
+				break;
+			case IFGE:
+				reversedOpcode = IFLT;
+				break;
+			case IFGT:
+				reversedOpcode = IFLE;
+				break;
+			case IF_ICMPEQ:
+				reversedOpcode = IF_ICMPNE;
+				break;
+			case IF_ICMPNE:
+				reversedOpcode = IF_ICMPEQ;
+				break;
+			case IF_ICMPLT:
+				reversedOpcode = IF_ICMPGE;
+				break;
+			case IF_ICMPLE:
+				reversedOpcode = IF_ICMPGT;
+				break;
+			case IF_ICMPGE:
+				reversedOpcode = IF_ICMPLT;
+				break;
+			case IF_ICMPGT:
+				reversedOpcode = IF_ICMPLE;
+				break;
+			case IF_ACMPEQ:
+				reversedOpcode = IF_ACMPNE;
+				break;
+			case IF_ACMPNE:
+				reversedOpcode = IF_ACMPEQ;
+				break;
+			case IFNULL:
+				reversedOpcode = IFNONNULL;
+				break;
+			case IFNONNULL:
+				reversedOpcode = IFNULL;
+				break;
+			default:
+				assert false : String.format("bad opcode (%d)", opcode);
+				throw new RuntimeException(
+					String.format("bad opcode (%d)", opcode));
+		}
+		return reversedOpcode;
+	}
+
+	/**
+	 * Emit code to unconditionally branch to the specified {@linkplain
+	 * L2PcOperand program counter}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param instruction
+	 *        The {@link L2Instruction} that includes the operand.
+	 * @param operand
+	 *        The {@code L2PcOperand} that specifies the branch target.
+	 */
+	public void branch (
+		final MethodVisitor method,
+		final L2Instruction instruction,
+		final L2PcOperand operand)
+	{
+		final int pc = operand.targetBlock().offset();
+		// If the jump target is the very next instruction, then don't emit a
+		// jump at all; just fall through.
+		if (instruction.offset() != pc - 1)
+		{
+			method.visitJumpInsn(GOTO, labelFor(pc));
+		}
+	}
+
+	/**
+	 * Emit code to conditionally branch to one of the specified {@linkplain
+	 * L2PcOperand program counters}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param instruction
+	 *        The {@link L2Instruction} that includes the operands.
+	 * @param opcode
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
+	 *        the two branch targets.
+	 * @param success
+	 *        The {@code L2PcOperand} that specifies the branch target in the
+	 *        event that the opcode succeeds, i.e., actually branches.
+	 * @param failure
+	 *        The {@code L2PcOperand} that specifies the branch target in the
+	 *        event that the opcode fails, i.e., does not actually branch and
+	 *        falls through to a branch.
+	 */
+	public void branch (
+		final MethodVisitor method,
+		final L2Instruction instruction,
+		final int opcode,
+		final L2PcOperand success,
+		final L2PcOperand failure)
+	{
+		final int offset = instruction.offset();
+		final int successPc = success.targetBlock().offset();
+		final int failurePc = failure.targetBlock().offset();
+		if (offset == failurePc - 1)
+		{
+			// The failure branch targets the next instruction, so just fall
+			// through to it.
+			method.visitJumpInsn(opcode, labelFor(successPc));
+		}
+		else if (offset == successPc - 1)
+		{
+			// The success branch targets the next instruction, so reverse the
+			// sense of the opcode and fall through.
+			method.visitJumpInsn(reverseOpcode(opcode), labelFor(failurePc));
+		}
+		else
+		{
+			// Neither branch target is next, so emit the most general version
+			// of the logic.
+			method.visitJumpInsn(opcode, labelFor(successPc));
+			method.visitJumpInsn(GOTO, labelFor(failurePc));
+		}
 	}
 
 	/**
@@ -249,7 +1268,7 @@ public final class JVMTranslator
 			null,
 			null);
 		method.visitCode();
-		method.visitVarInsn(ALOAD, receiverLocal());
+		loadReceiver(method);
 		method.visitMethodInsn(
 			INVOKESPECIAL,
 			getInternalName(JVMChunk.class),
@@ -278,233 +1297,6 @@ public final class JVMTranslator
 		method.visitInsn(ARETURN);
 		method.visitMaxs(0, 0);
 		method.visitEnd();
-	}
-
-	/**
-	 * Should {@linkplain #generateRunChunk()} generate code to record
-	 * {@linkplain L2Instruction} timings?
-	 */
-	public static boolean debugRecordL2InstructionTimings = false;
-
-	/**
-	 * Answer the next JVM local. The initial value is chosen to skip over the
-	 * Category-1 receiver and Category-1 {@link Interpreter} formal parameter.
-	 */
-	private int nextLocal = 2;
-
-	/**
-	 * Answer the next JVM local for use within generated code produced by
-	 * {@linkplain #generateRunChunk()}.
-	 *
-	 * @param wide
-	 *        {@code true} if the local should accommodate a Category-2 value,
-	 *        {@code false} if the local should accommodate only a Category-1
-	 *        value.
-	 * @return A JVM local.
-	 */
-	public int nextLocal (final boolean wide)
-	{
-		final int local = nextLocal;
-		nextLocal += wide ? 2 : 1;
-		return local;
-	}
-
-	/**
-	 * Answer the JVM local for the receiver of a generated implementation of
-	 * {@link JVMChunk#runChunk(Interpreter)}.
-	 *
-	 * @return The receiver local.
-	 */
-	@SuppressWarnings("MethodMayBeStatic")
-	private int receiverLocal ()
-	{
-		return 0;
-	}
-
-	/**
-	 * Answer the JVM local for the {@link Interpreter} formal parameter of a
-	 * generated implementation of {@link JVMChunk#runChunk(Interpreter)}.
-	 *
-	 * @return The {@link Interpreter} formal parameter local.
-	 */
-	@SuppressWarnings("MethodMayBeStatic")
-	public int interpreterLocal ()
-	{
-		return 1;
-	}
-
-	private int nanosToExcludeBeforeStepLocal = -1;
-	private int timeBeforeLocal = -1;
-	private int deltaTimeLocal = -1;
-	private int excludeLocal = -1;
-
-	/**
-	 * The JVM local for the {@link StackReifier} local of a generated
-	 * implementation of {@link JVMChunk#runChunk(Interpreter)}.
-	 */
-	private int reifier = -1;
-
-	/**
-	 * Answer the JVM local for the {@link StackReifier} local of a generated
-	 * implementation of {@link JVMChunk#runChunk(Interpreter)}.
-	 *
-	 * @return The {@link Interpreter} formal parameter local.
-	 */
-	public int reifierLocal ()
-	{
-		final int r = reifier;
-		assert r != -1;
-		return r;
-	}
-
-	/**
-	 * The {@link Label}s that correspond to the {@link L2Instruction}s.
-	 */
-	public @Nullable Label[] instructionLabels;
-
-	/**
-	 * Generate JVM instructions as a prologue to collecting timing information
-	 * for the execution of an {@link L2Instruction instruction}.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param instruction
-	 *        The {@link L2Instruction} to time.
-	 */
-	public void generateRecordTimingsPrologue (
-		final MethodVisitor method,
-		@SuppressWarnings("unused") final L2Instruction instruction)
-	{
-		// long nanosToExcludeBeforeStep = interpreter.nanosToExclude;
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"nanosToExclude",
-			LONG_TYPE.getDescriptor());
-		method.visitVarInsn(LSTORE, nanosToExcludeBeforeStepLocal);
-		// long timeBefore = System.nanoTime();
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(System.class),
-			"nanoTime",
-			getMethodDescriptor(LONG_TYPE),
-			false);
-		method.visitVarInsn(LSTORE, timeBeforeLocal);
-	}
-
-	/**
-	 * Generate JVM instructions as an epilogue to collecting timing information
-	 * for the execution of an {@link L2Instruction instruction}.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param instruction
-	 *        The {@link L2Instruction} to time.
-	 */
-	public void generateRecordTimingsEpilogue (
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		// long deltaTime = System.nanoTime() - timeBefore;
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(System.class),
-			"nanoTime",
-			getMethodDescriptor(LONG_TYPE),
-			false);
-		method.visitVarInsn(LLOAD, timeBeforeLocal);
-		method.visitInsn(LSUB);
-		method.visitVarInsn(LSTORE, deltaTimeLocal);
-		// long exclude =
-		//    interpreter.nanosToExclude - nanosToExcludeBeforeStep;
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"nanosToExclude",
-			LONG_TYPE.getDescriptor());
-		method.visitVarInsn(LLOAD, nanosToExcludeBeforeStepLocal);
-		method.visitInsn(LSUB);
-		method.visitVarInsn(LSTORE, excludeLocal);
-		// instruction.operation.statisticInNanoseconds.record(
-		//    deltaTime - exclude, interpreter.interpreterIndex);
-		method.visitFieldInsn(
-			GETSTATIC,
-			classInternalName,
-			instructionFieldName(instruction),
-			getDescriptor(instruction.getClass()));
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(L2Instruction.class),
-			"operation",
-			getDescriptor(L2Operation.class));
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(L2Operation.class),
-			"statisticInNanoseconds",
-			getDescriptor(Statistic.class));
-		method.visitVarInsn(LLOAD, deltaTimeLocal);
-		method.visitVarInsn(LLOAD, excludeLocal);
-		method.visitInsn(LSUB);
-		method.visitInsn(L2D);
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"interpreterIndex",
-			INT_TYPE.getDescriptor());
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Statistic.class),
-			"record",
-			getMethodDescriptor(VOID_TYPE, DOUBLE_TYPE, INT_TYPE),
-			false);
-		// interpreter.nanosToExclude =
-		//    nanosToExcludeBeforeStep + deltaTime;
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitVarInsn(LLOAD, nanosToExcludeBeforeStepLocal);
-		method.visitVarInsn(LLOAD, deltaTimeLocal);
-		method.visitInsn(LADD);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"nanosToExclude",
-			LONG_TYPE.getDescriptor());
-	}
-
-	/**
-	 * Generate a JVM instruction sequence that effects the invocation of
-	 * an {@link L2Instruction}'s {@linkplain L2Instruction#action action}. The
-	 * generated code sequences leaves a {@link StackReifier} or {@code null} on
-	 * top of the stack.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param instruction
-	 *        The {@link L2Instruction}.
-	 */
-	public void generateRunAction (
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		method.visitFieldInsn(
-			GETSTATIC,
-			classInternalName,
-			instructionFieldName(instruction),
-			getDescriptor(instruction.getClass()));
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(L2Instruction.class),
-			"runAction",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(Interpreter.class)),
-			false);
 	}
 
 	/**
@@ -594,25 +1386,46 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate the {@link JVMChunk#runChunk(Interpreter)} method of the target
-	 * {@link JVMChunk}.
+	 * {@code true} to enable JVM debugging, {@code false} otherwise.
+	 */
+	public static boolean debugJVM = false;
+
+	/**
+	 * Generate the {@link JVMChunk#runChunk(Interpreter, int)} method of the
+	 * target {@link JVMChunk}.
 	 */
 	private void generateRunChunk ()
 	{
-		final MethodVisitor method = classWriter.visitMethod(
+		MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
 			"runChunk",
 			getMethodDescriptor(
 				getType(StackReifier.class),
-				getType(Interpreter.class)),
+				getType(Interpreter.class),
+				INT_TYPE),
 			null,
 			null);
+		if (debugJVM)
+		{
+			final CheckMethodAdapter checker = new CheckMethodAdapter(
+				ACC_PUBLIC,
+				"runChunk",
+				getMethodDescriptor(
+					getType(StackReifier.class),
+					getType(Interpreter.class),
+					INT_TYPE),
+				method,
+				new HashMap<>());
+			checker.version = V1_8;
+			method = checker;
+		}
 		method.visitParameter("interpreter", ACC_FINAL);
 		method.visitParameterAnnotation(
 			0,
 			getDescriptor(Nonnull.class),
 			true);
-		if (debugDumpClassBytesToFiles)
+		method.visitParameter("offset", ACC_FINAL);
+		if (debugJVM)
 		{
 			// Note that we have to break the sources up if they are too large
 			// for the constant pool.
@@ -642,74 +1455,111 @@ public final class JVMTranslator
 		method.visitAnnotation(
 			getDescriptor(Nullable.class),
 			true);
-		// Create all of the labels that we're going to need for the JVM
-		// tableswitch instruction.
-		instructionLabels = new Label[instructions.length];
+		// Emit the lookupswitch instruction to select among the entry points.
+		final int[] offsets = new int[entryPoints.size()];
+		final Label[] entries = new Label[entryPoints.size()];
+		{
+			int i = 0;
+			for (final Entry<Integer, Label> entry : entryPoints.entrySet())
+			{
+				offsets[i] = entry.getKey();
+				entries[i] = entry.getValue();
+				i++;
+			}
+		}
 		final Label badOffsetLabel = new Label();
-		for (int i = 0, limit = instructionLabels.length; i < limit; i++)
-		{
-			instructionLabels[i] = new Label();
-		}
 		method.visitCode();
-		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"offset",
-			INT_TYPE.getDescriptor());
-		method.visitTableSwitchInsn(
-			0,
-			instructionLabels.length - 1,
-			badOffsetLabel,
-			instructionLabels);
-		if (debugRecordL2InstructionTimings)
+		final Label startLabel = new Label();
+		method.visitLabel(startLabel);
+		// :: switch (offset) {…}
+		method.visitVarInsn(ILOAD, offsetLocal());
+		method.visitLookupSwitchInsn(badOffsetLabel, offsets, entries);
+		// Translate the instructions.
+		final Thread thread = Thread.currentThread();
+		final @Nullable Interpreter interpreter = thread instanceof AvailThread
+			? ((AvailThread) thread).interpreter
+			: null;
+		for (final L2Instruction instruction : instructions)
 		{
-			nanosToExcludeBeforeStepLocal = nextLocal(true);
-			timeBeforeLocal = nextLocal(true);
-			deltaTimeLocal = nextLocal(true);
-			excludeLocal = nextLocal(true);
-		}
-		// Set up the local for the StackReifier before we translate the
-		// instructions.
-		reifier = nextLocal(false);
-		for (int i = 0, limit = instructions.length; i < limit; i++)
-		{
-			final L2Instruction instruction = instructions[i];
-			method.visitLabel(instructionLabels[i]);
+			final Label label = labels.get(instruction.offset());
+			if (label != null)
+			{
+				method.visitLabel(label);
+			}
+			final long beforeTranslation = AvailRuntime.captureNanos();
 			instruction.translateToJVM(this, method);
+			final long afterTranslation = AvailRuntime.captureNanos();
+			if (interpreter != null)
+			{
+				instruction.operation.jvmTranslationTime.record(
+					afterTranslation - beforeTranslation,
+					interpreter.interpreterIndex);
+			}
 		}
 		// An L2Chunk always ends with an explicit transfer of control, so we
 		// shouldn't generate a return here.
 		method.visitLabel(badOffsetLabel);
-		// JVMChunk.badOffset(interpreter.offset-1, «instructions.length»);
+		// Visit each of the local variables in order to bind them to artificial
+		// register names. At present, we just claim that every variable is live
+		// from the beginning of the method until the badOffsetLabel, but we can
+		// always tighten this up later if we care.
+		for (final Entry<L2Register, Integer> entry : locals.entrySet())
+		{
+			final L2Register register = entry.getKey();
+			final int local = entry.getValue();
+			final boolean isIntRegister = register instanceof L2IntegerRegister;
+			//noinspection StringConcatenationMissingWhitespace
+			method.visitLocalVariable(
+				(isIntRegister ? "i" : "r") + local,
+				isIntRegister
+					? INT_TYPE.getDescriptor()
+					: getDescriptor(AvailObject.class),
+				null,
+				entries[0],
+				badOffsetLabel,
+				local);
+		}
+		// :: JVMChunk.badOffset(interpreter.offset);
 		method.visitVarInsn(ALOAD, interpreterLocal());
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"offset",
 			INT_TYPE.getDescriptor());
-		emitIntConstant(method,1);
-		method.visitInsn(ISUB);
-		emitIntConstant(method,instructions.length - 1);
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(JVMChunk.class),
 			"badOffset",
 			getMethodDescriptor(
 				getType(RuntimeException.class),
-				INT_TYPE,
 				INT_TYPE),
 			false);
 		method.visitInsn(ATHROW);
-		method.visitMaxs(0, 0);
-		method.visitEnd();
+		final Label endLabel = new Label();
+		method.visitLabel(endLabel);
+		method.visitLocalVariable(
+			"interpreter",
+			getDescriptor(Interpreter.class),
+			null,
+			startLabel,
+			endLabel,
+			interpreterLocal());
+		method.visitLocalVariable(
+			"offset",
+			INT_TYPE.getDescriptor(),
+			null,
+			startLabel,
+			endLabel,
+			offsetLocal());
+		method.visitLocalVariable(
+			"reifier",
+			getDescriptor(StackReifier.class),
+			null,
+			startLabel,
+			endLabel,
+			reifierLocal());
+		finishMethod(method);
 	}
-
-	/**
-	 * {@code true} if the bytes of generated {@link JVMChunk} subclasses should
-	 * be dumped to files for external debugging, {@code false} otherwise.
-	 */
-	public static boolean debugDumpClassBytesToFiles = false;
 
 	/**
 	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be
@@ -764,6 +1614,7 @@ public final class JVMTranslator
 	 */
 	public void translate ()
 	{
+		final long beforeJVM = AvailRuntime.captureNanos();
 		classWriter.visit(
 			V1_8,
 			ACC_PUBLIC | ACC_FINAL,
@@ -771,22 +1622,42 @@ public final class JVMTranslator
 			null,
 			JVMChunk.class.getName().replace('.', '/'),
 			null);
-		generateStaticFields();
+		prepare();
 		generateStaticInitializer();
 		generateConstructorV();
 		generateName();
 		generateRunChunk();
 		classWriter.visitEnd();
+		final long afterJVM = AvailRuntime.captureNanos();
+		final Thread thread = Thread.currentThread();
+		final @Nullable Interpreter interpreter = thread instanceof AvailThread
+			? ((AvailThread) thread).interpreter
+			: null;
+		if (interpreter != null)
+		{
+			translateJVMStat.record(
+				afterJVM - beforeJVM,
+				interpreter.interpreterIndex);
+		}
 		final byte[] classBytes = classWriter.toByteArray();
-		if (debugDumpClassBytesToFiles)
+		if (debugJVM)
 		{
 			dumpClassBytesToFile(classBytes);
+		}
+		final Object[] parameters = new Object[literals.size()];
+		for (final Entry<Object, LiteralAccessor> entry : literals.entrySet())
+		{
+			final int index = entry.getValue().classLoaderIndex;
+			if (index != invalidIndex)
+			{
+				parameters[index] = entry.getKey();
+			}
 		}
 		final JVMChunkClassLoader loader = new JVMChunkClassLoader();
 		jvmChunk = loader.newJVMChunkFrom(
 			chunkName,
 			className,
 			classBytes,
-			instructions);
+			parameters);
 	}
 }

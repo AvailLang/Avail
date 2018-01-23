@@ -32,11 +32,13 @@
 
 package com.avail.optimizer;
 
+import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -117,7 +119,7 @@ public final class StackReifier
 		this.actuallyReify = actuallyReify;
 		this.expectedDepth = expectedDepth;
 		this.postReificationAction = postReificationAction;
-		this.startNanos = System.nanoTime();
+		this.startNanos = AvailRuntime.captureNanos();
 		this.reificationStatistic = reificationStatistic;
 	}
 
@@ -169,6 +171,7 @@ public final class StackReifier
 	 *
 	 * @param mutableContinuation The mutable continuation to push.
 	 */
+	@ReferencedInGeneratedCode
 	public void pushContinuation (
 		final A_Continuation mutableContinuation)
 	{
@@ -199,7 +202,8 @@ public final class StackReifier
 	 */
 	public void recordCompletedReification (final int interpreterIndex)
 	{
-		final long endNanos = System.nanoTime();
-		reificationStatistic.record(endNanos - startNanos, interpreterIndex);
+		final long endNanos = AvailRuntime.captureNanos();
+		reificationStatistic.record(
+			endNanos - startNanos, interpreterIndex);
 	}
 }

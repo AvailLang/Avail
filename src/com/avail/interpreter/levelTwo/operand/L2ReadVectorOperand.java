@@ -1,6 +1,6 @@
-/**
+/*
  * L2ReadVectorOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,8 @@ import static java.util.Collections.unmodifiableList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ReadVectorOperand extends L2Operand
+public class L2ReadVectorOperand
+extends L2Operand
 {
 	/**
 	 * The {@link List} of {@link L2ReadPointerOperand}s.
@@ -63,8 +64,7 @@ public class L2ReadVectorOperand extends L2Operand
 	 *
 	 * @param elements The list of {@link L2ReadPointerOperand}s.
 	 */
-	public L2ReadVectorOperand (
-		final List<L2ReadPointerOperand> elements)
+	public L2ReadVectorOperand (final List<L2ReadPointerOperand> elements)
 	{
 		this.elements = unmodifiableList(elements);
 	}
@@ -93,6 +93,7 @@ public class L2ReadVectorOperand extends L2Operand
 	 */
 	public List<L2ReadPointerOperand> elements ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
 	}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * P_RestartContinuation.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -38,14 +38,11 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS;
-import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS
-	.StatisticCategory;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -64,14 +61,20 @@ import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
  * requires a value to be stored on its stack in order to resume it,
  * something this primitive does not do.
  */
-public final class P_RestartContinuation extends Primitive
+public final class P_RestartContinuation
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RestartContinuation().init(
-			1, CanInline, CannotFail, SwitchesContinuation);
+			1,
+			CannotFail,
+			CanInline,
+			CanSwitchContinuations,
+			AlwaysSwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -102,8 +105,8 @@ public final class P_RestartContinuation extends Primitive
 		// to be the label continuation's *caller*.
 		interpreter.reifiedContinuation = originalCon.caller();
 		interpreter.function = originalCon.function();
-		interpreter.chunk = originalCon.levelTwoChunk();
-		interpreter.offset = originalCon.levelTwoOffset();
+		interpreter.chunk = code.startingChunk();
+		interpreter.offset = 0;
 		interpreter.returnNow = false;
 		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
@@ -130,19 +133,11 @@ public final class P_RestartContinuation extends Primitive
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
-		// next L2 instruction).  The zero (0) immediate operand means discard
-		// frame information on the way out, rather than capturing it.
-		translator.addInstruction(
-			L2_REIFY_CALLERS.instance,
-			new L2ImmediateOperand(0),
-			new L2ImmediateOperand(
-				StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.ordinal()));
+		// next L2 instruction).
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION.instance,
 			arguments.get(0));
-		// Return a register to indicate code was generated, but nothing can
-		// actually read or write it.  Also start a new block to ensure this
-		// generation position is recognized as unreachable.
+		assert !translator.currentlyReachable();
 		translator.startBlock(
 			translator.createBasicBlock(
 				"unreachable after L2_RESTART_CONTINUATION"));

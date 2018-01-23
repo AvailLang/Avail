@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -40,14 +41,12 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
-import org.objectweb.asm.Label;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Use the {@link Interpreter#levelOneStepper} to execute the Level One
@@ -69,6 +68,7 @@ import static org.objectweb.asm.Type.getInternalName;
  * previous value.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2_INTERPRET_LEVEL_ONE
 extends L2Operation
@@ -82,19 +82,6 @@ extends L2Operation
 			PC.is("interrupt reentry point"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-//		final int callReentryOffset = instruction.pcAt(0);
-//		final int interruptReentryOffset = instruction.pcAt(1);
-		return interpreter ->
-		{
-			interpreter.offset = Integer.MAX_VALUE;  // safety
-			return interpreter.levelOneStepper.run();
-		};
-	}
-
-	@Override
 	public boolean reachesNextInstruction ()
 	{
 		return false;
@@ -102,8 +89,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// No real optimization should ever be done near this wordcode.
@@ -119,37 +106,33 @@ extends L2Operation
 	}
 
 	@Override
+	public boolean isEntryPoint (final L2Instruction instruction)
+	{
+		return true;
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsPrologue(method, instruction);
-		}
-		translator.generateRunAction(method, instruction);
-		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsEpilogue(method, instruction);
-		}
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		final Label checkReturnNowLabel = new Label();
-		method.visitJumpInsn(IFNULL, checkReturnNowLabel);
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		method.visitInsn(ARETURN);
-		method.visitLabel(checkReturnNowLabel);
-		final Label continueLabel = new Label();
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+//		final int callReentryOffset = instruction.pcAt(0);
+//		final int interruptReentryOffset = instruction.pcAt(1);
+
+		// :: return interpreter.levelOneStepper.run();
+		translator.loadInterpreter(method);
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
-			"returnNow",
-			BOOLEAN_TYPE.getDescriptor());
-		method.visitJumpInsn(IFEQ, continueLabel);
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
+			"levelOneStepper",
+			getDescriptor(L1InstructionStepper.class));
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(L1InstructionStepper.class),
+			"run",
+			getMethodDescriptor(getType(StackReifier.class)),
+			false);
 		method.visitInsn(ARETURN);
-		method.visitLabel(continueLabel);
 	}
 }

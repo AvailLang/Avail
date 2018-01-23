@@ -41,7 +41,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -76,6 +76,7 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_InvokeStaticPojoMethod().init(
 			4, Private);

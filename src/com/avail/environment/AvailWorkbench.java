@@ -1,4 +1,4 @@
-/**
+/*
  * AvailWorkbench.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -34,14 +34,7 @@ package com.avail.environment;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.builder.ResolvedModuleName;
-import com.avail.builder.UnresolvedDependencyException;
+import com.avail.builder.*;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
@@ -58,27 +51,15 @@ import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.stacks.StacksGenerator;
+import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.sun.javafx.application.PlatformImpl;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.TabSet;
-import javax.swing.text.TabStop;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.text.*;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -88,13 +69,7 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -128,7 +103,7 @@ import static javax.swing.SwingUtilities.invokeLater;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "ThisEscapedInObjectConstruction"})
 public final class AvailWorkbench
 extends JFrame
 {
@@ -139,10 +114,12 @@ extends JFrame
 
 	public static String resource (final String localResourceName)
 	{
+		//noinspection StringConcatenationMissingWhitespace
 		return resourcePrefix + localResourceName;
 	}
 
 	/** Determine at startup whether we're on a Mac. */
+	@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 	public static final boolean runningOnMac =
 		System.getProperty("os.name").toLowerCase().matches("mac os x.*");
 
@@ -199,7 +176,7 @@ extends JFrame
 		protected final @Nullable ResolvedModuleName targetModuleName;
 
 		/**
-		 * Construct a new {@link AbstractWorkbenchTask}.
+		 * Construct a new {@code AbstractWorkbenchTask}.
 		 *
 		 * @param workbench
 		 *        The owning {@link AvailWorkbench}.
@@ -216,7 +193,7 @@ extends JFrame
 		}
 
 		/**
-		 * Cancel the current {@linkplain AbstractWorkbenchTask task}.
+		 * Cancel the current task.
 		 */
 		public final void cancel ()
 		{
@@ -249,8 +226,8 @@ extends JFrame
 		protected void reportDone ()
 		{
 			final long durationMillis = stopTimeMillis - startTimeMillis;
-			final String status;
-			final Throwable t = terminator;
+			final @Nullable String status;
+			final @Nullable Throwable t = terminator;
 			if (t != null)
 			{
 				status = "Aborted ("
@@ -302,7 +279,7 @@ extends JFrame
 		}
 
 		/**
-		 * Execute this {@link AbstractWorkbenchTask}.
+		 * Execute this {@code AbstractWorkbenchTask}.
 		 *
 		 * @throws Exception
 		 *         If anything goes wrong.
@@ -335,7 +312,7 @@ extends JFrame
 	}
 
 	/** Truncate the start of the document any time it exceeds this. */
-	private static final int maxDocumentSize = 10_000_000;
+	private final int maxDocumentSize = 10_000_000;
 
 	/**
 	 * A singular write to an output stream.  This write is considered atomic
@@ -476,15 +453,16 @@ extends JFrame
 	/**
 	 * Must be called in the dispatch thread.  Actually update the transcript.
 	 */
-	private void privateUpdateTranscriptInUIThread ()
+	void privateUpdateTranscriptInUIThread ()
 	{
 		assert EventQueue.isDispatchThread();
-		final List<BuildOutputStreamEntry> aggregatedEntries =
-			new ArrayList<>();
-		int lengthToInsert = 0;
-		final boolean wentToZero;
 		// Hold the dequeueLock just long enough to extract all entries, only
 		// decreasing totalQueuedTextSize just before unlocking.
+		@SuppressWarnings("TooBroadScope") int lengthToInsert = 0;
+		@SuppressWarnings("TooBroadScope") final boolean wentToZero;
+		//noinspection TooBroadScope
+		final List<BuildOutputStreamEntry> aggregatedEntries =
+			new ArrayList<>();
 		dequeueLock.lock();
 		try
 		{
@@ -566,7 +544,7 @@ extends JFrame
 		{
 			// Ignore the failed append, which should be impossible.
 		}
-		lastTranscriptUpdateCompleted = System.currentTimeMillis();
+		lastTranscriptUpdateCompleted = currentTimeMillis();
 		transcript.repaint();
 		if (!wentToZero)
 		{
@@ -602,7 +580,7 @@ extends JFrame
 		final Color foregroundColor;
 
 		/**
-		 * Construct a new {@link StreamStyle}.
+		 * Construct a new {@code StreamStyle}.
 		 *
 		 * @param styleName The name of this style.
 		 * @param foregroundColor The color of foreground text in this style.
@@ -706,12 +684,12 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link BuildOutputStream}.
+		 * Construct a new {@code BuildOutputStream}.
 		 *
 		 * @param streamStyle
 		 *        What {@link StreamStyle} should this stream render with?
 		 */
-		public BuildOutputStream (final StreamStyle streamStyle)
+		BuildOutputStream (final StreamStyle streamStyle)
 		{
 			super(1);
 			this.streamStyle = streamStyle;
@@ -738,15 +716,15 @@ extends JFrame
 		}
 
 		@Override
-		public void println (final String x)
+		public void println (final String s)
 		{
-			print(x + "\n");
+			print(s + "\n");
 		}
 
 		@Override
-		public void println (final Object x)
+		public void println (final Object o)
 		{
-			print(x + "\n");
+			print(o + "\n");
 		}
 	}
 
@@ -764,10 +742,10 @@ extends JFrame
 		final StyledDocument doc;
 
 		/**
-		 * Clear the {@linkplain BuildInputStream input stream}. All pending
-		 * data is discarded and the stream position is reset to zero
-		 * ({@code 0}).
+		 * Clear the input stream. All pending data is discarded and the stream
+		 * position is reset to zero ({@code 0}).
 		 */
+		@SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
 		public synchronized void clear ()
 		{
 			count = 0;
@@ -775,9 +753,10 @@ extends JFrame
 		}
 
 		/**
-		 * Update the content of the {@linkplain BuildInputStream stream} with
-		 * data from the {@linkplain #inputField input field}.
+		 * Update the content of the stream with data from the {@linkplain
+		 * #inputField input field}.
 		 */
+		@SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
 		public synchronized void update ()
 		{
 			final String text = inputField.getText() + "\n";
@@ -794,6 +773,7 @@ extends JFrame
 			count += bytes.length;
 			writeText(text, IN_ECHO);
 			inputField.setText("");
+			//noinspection SynchronizeOnThis
 			notifyAll();
 		}
 
@@ -832,6 +812,7 @@ extends JFrame
 			throw new UnsupportedOperationException();
 		}
 
+		@SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
 		@Override
 		public synchronized int read ()
 		{
@@ -840,6 +821,7 @@ extends JFrame
 			{
 				while (pos == count)
 				{
+					//noinspection SynchronizeOnThis
 					wait();
 				}
 			}
@@ -850,6 +832,7 @@ extends JFrame
 			return buf[pos++] & 0xFF;
 		}
 
+		@SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
 		@Override
 		public synchronized int read (
 			final @Nullable byte[] readBuffer,
@@ -866,6 +849,7 @@ extends JFrame
 			{
 				while (pos == count)
 				{
+					//noinspection SynchronizeOnThis
 					wait();
 				}
 			}
@@ -880,7 +864,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link BuildInputStream}.
+		 * Construct a new {@code BuildInputStream}.
 		 */
 		public BuildInputStream ()
 		{
@@ -1197,16 +1181,10 @@ extends JFrame
 	@InnerAccess final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
 		new ToggleDebugInterpreterPrimitives(this);
 
-	/** The {@linkplain ToggleRecordL2InstructionTimingsInJVM toggle JVM debug action}. */
+	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
 	@InnerAccess
-	final ToggleRecordL2InstructionTimingsInJVM
-		toggleRecordL2InstructionTimingsInJVM =
-			new ToggleRecordL2InstructionTimingsInJVM(this);
-
-	/** The {@linkplain ToggleDebugDumpJVM toggle JVM dump debug action}. */
-	@InnerAccess
-	final ToggleDebugDumpJVM toggleDebugDumpJVM =
-		new ToggleDebugDumpJVM(this);
+	final ToggleDebugJVM toggleDebugJVM =
+		new ToggleDebugJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
@@ -1340,7 +1318,7 @@ extends JFrame
 	public void refresh ()
 	{
 		resolver.clearCache();
-		final ResolvedModuleName selection = selectedModule();
+		final @Nullable ResolvedModuleName selection = selectedModule();
 		final TreeNode modules = newModuleTree();
 		moduleTree.setModel(new DefaultTreeModel(modules));
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
@@ -1349,7 +1327,8 @@ extends JFrame
 		}
 		if (selection != null)
 		{
-			final TreePath path = modulePath(selection.qualifiedName());
+			final @Nullable TreePath path =
+				modulePath(selection.qualifiedName());
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
@@ -1688,7 +1667,7 @@ extends JFrame
 	 */
 	public @Nullable ModuleRootNode selectedModuleRootNode ()
 	{
-		final TreePath path = moduleTree.getSelectionPath();
+		final @Nullable TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
 		{
 			return null;
@@ -1711,7 +1690,7 @@ extends JFrame
 	 */
 	public @Nullable ModuleRoot selectedModuleRoot ()
 	{
-		final ModuleRootNode node = selectedModuleRootNode();
+		final @Nullable ModuleRootNode node = selectedModuleRootNode();
 		if (node == null)
 		{
 			return null;
@@ -1727,7 +1706,7 @@ extends JFrame
 	 */
 	@InnerAccess @Nullable ModuleOrPackageNode selectedModuleNode ()
 	{
-		final TreePath path = moduleTree.getSelectionPath();
+		final @Nullable TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
 		{
 			return null;
@@ -1749,12 +1728,8 @@ extends JFrame
 	 */
 	@InnerAccess boolean selectedModuleIsLoaded ()
 	{
-		final ModuleOrPackageNode node = selectedModuleNode();
-		if (node == null)
-		{
-			return false;
-		}
-		return node.isLoaded();
+		final @Nullable ModuleOrPackageNode node = selectedModuleNode();
+		return node != null && node.isLoaded();
 	}
 
 	/**
@@ -1766,7 +1741,7 @@ extends JFrame
 	 */
 	public @Nullable ResolvedModuleName selectedModule ()
 	{
-		final ModuleOrPackageNode node = selectedModuleNode();
+		final @Nullable ModuleOrPackageNode node = selectedModuleNode();
 		if (node == null)
 		{
 			return null;
@@ -2036,9 +2011,6 @@ extends JFrame
 	/** The leaf key under which to store the module template string. */
 	public static final String moduleLeafKeyString = "module";
 
-	/** The leaf key under which to store the text template string. */
-	public static final String textLeafKeyString = "text template";
-
 	/** The key under which to store the {@link ModuleRoots}. */
 	public static final String moduleRootsKeyString = "module roots";
 
@@ -2195,7 +2167,7 @@ extends JFrame
 					root.repository().fileName().getPath());
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					root.sourceDirectory().getPath());
+					stripNull(root.sourceDirectory()).getPath());
 			}
 
 			final Preferences renamesNode =
@@ -2280,7 +2252,7 @@ extends JFrame
 		 */
 		int leftSectionWidth ()
 		{
-			final Integer w = leftSectionWidth;
+			final @Nullable Integer w = leftSectionWidth;
 			return w != null ? w : 200;
 		}
 
@@ -2300,7 +2272,7 @@ extends JFrame
 		 */
 		double moduleVerticalProportion ()
 		{
-			final Double h = moduleVerticalProportion;
+			final @Nullable Double h = moduleVerticalProportion;
 			return h != null ? max(0.0, min(1.0, h)) : 0.5;
 		}
 
@@ -2320,8 +2292,8 @@ extends JFrame
 		 */
 		public String stringToStore ()
 		{
-			final String [] strings = new String [10];
-			final Rectangle p = placement;
+			final String[] strings = new String[10];
+			final @Nullable Rectangle p = placement;
 			if (p != null)
 			{
 				strings[0] = Integer.toString(p.x);
@@ -2330,18 +2302,18 @@ extends JFrame
 				strings[3] = Integer.toString(p.height);
 			}
 
-			final Integer w = leftSectionWidth;
+			final @Nullable Integer w = leftSectionWidth;
 			if (w != null)
 			{
 				strings[4] = Integer.toString(w);
 			}
-			final Double h = moduleVerticalProportion;
+			final @Nullable Double h = moduleVerticalProportion;
 			if (h != null)
 			{
 				strings[5] = Double.toString(h);
 			}
 
-			final Rectangle mvp = moduleViewerPlacement;
+			final @Nullable Rectangle mvp = moduleViewerPlacement;
 			if (mvp != null)
 			{
 				strings[6] = Integer.toString(mvp.x);
@@ -2358,6 +2330,7 @@ extends JFrame
 				{
 					builder.append(',');
 				}
+				//noinspection ConstantConditions
 				if (string != null)
 				{
 					builder.append(string);
@@ -2368,7 +2341,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link LayoutConfiguration} with
+		 * Construct a new {@code LayoutConfiguration} with
 		 * no preferences specified.
 		 */
 		public LayoutConfiguration ()
@@ -2377,7 +2350,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link LayoutConfiguration} with
+		 * Construct a new {@code LayoutConfiguration} with
 		 * preferences specified by some private encoding in the provided {@link
 		 * String}.
 		 *
@@ -2542,7 +2515,7 @@ extends JFrame
 			}
 
 			/**
-			 * Construct a {@link Replaceable}.
+			 * Construct a {@code Replaceable}.
 			 *
 			 * @param pattern
 			 *        The replacement pattern.
@@ -2588,7 +2561,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link ModuleTemplates} with no templates specified.
+		 * Construct a new {@code ModuleTemplates} with no templates specified.
 		 */
 		public ModuleTemplates ()
 		{
@@ -2596,7 +2569,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link ModuleTemplates} with preferences specified by
+		 * Construct a new {@code ModuleTemplates} with preferences specified by
 		 * some private encoding in the provided {@link String}.
 		 *
 		 * @param input
@@ -2609,6 +2582,7 @@ extends JFrame
 			{
 				final String pairSpliter = "" + '\0';
 				final String recordSpliter  = "" + 0x1e;
+				@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 				final String[] substrings = input.split(recordSpliter);
 				for (final String template : substrings)
 				{
@@ -2640,17 +2614,17 @@ extends JFrame
 	}
 
 	/** Statistic for waiting for updateQueue's monitor. */
-	final static Statistic waitForDequeueLock = new Statistic(
+	static final Statistic waitForDequeueLock = new Statistic(
 		"Wait for lock to trim old entries",
 		WORKBENCH_TRANSCRIPT);
 
 	/** Statistic for trimming excess leading entries. */
-	final static Statistic discardExcessLeadingStat = new Statistic(
+	static final Statistic discardExcessLeadingStat = new Statistic(
 		"Trim old entries (not counting lock)",
 		WORKBENCH_TRANSCRIPT);
 
 	/** Statistic for invoking writeText, including waiting for the monitor. */
-	final static Statistic writeTextStat = new Statistic(
+	static final Statistic writeTextStat = new Statistic(
 		"Call writeText",
 		WORKBENCH_TRANSCRIPT);
 
@@ -2665,7 +2639,7 @@ extends JFrame
 		final StreamStyle streamStyle)
 	{
 		final long before = System.nanoTime();
-		int size = text.length();
+		final int size = text.length();
 		assert size > 0;
 		updateQueue.add(new BuildOutputStreamEntry(streamStyle, text));
 		final long previous = totalQueuedTextSize.getAndAdd(size);
@@ -2705,6 +2679,7 @@ extends JFrame
 	private static final DefaultTreeCellRenderer treeRenderer =
 		new DefaultTreeCellRenderer()
 		{
+			@SuppressWarnings("ParameterHidesMemberVariable")
 			@Override
 			public Component getTreeCellRendererComponent(
 				final @Nullable JTree tree,
@@ -2736,7 +2711,7 @@ extends JFrame
 		};
 
 	/**
-	 * Construct a new {@link AvailWorkbench}.
+	 * Construct a new {@code AvailWorkbench}.
 	 *
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
@@ -2823,9 +2798,7 @@ extends JFrame
 						new JCheckBoxMenuItem(toggleDebugL2),
 						new JCheckBoxMenuItem(toggleDebugPrimitives),
 						null,
-						new JCheckBoxMenuItem(
-							toggleRecordL2InstructionTimingsInJVM),
-						new JCheckBoxMenuItem(toggleDebugDumpJVM),
+						new JCheckBoxMenuItem(toggleDebugJVM),
 						null,
 					parserIntegrityCheckAction, null,
 					graphAction));
@@ -3260,15 +3233,8 @@ extends JFrame
 				"com.apple.awt.graphics.UseQuartz",
 				"true");
 
-			final Class<?> appClass = OSXUtility.applicationClass;
 			final Object application = OSXUtility.macOSXApplication;
-//			final Image image =
-//				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
-//			appClass.getMethod("setDockIconImage", Image.class).invoke(
-//				application,
-//				image);
 			OSXUtility.setDockIconBadgeMethod.invoke(application, "DEV");
-//			application.setDockIconBadge("DEV");
 		}
 		catch (final Exception e)
 		{
@@ -3327,27 +3293,36 @@ extends JFrame
 			roots = new ModuleRoots(rootsString);
 		}
 
-		final String renames = System.getProperty("availRenames", null);
-		final Reader reader;
-		if (renames == null)
+		final ModuleNameResolver resolver;
+		@Nullable Reader reader = null;
+		try
 		{
-			// Load the renames from preferences further down.
-			reader = new StringReader("");
+			final String renames = System.getProperty("availRenames", null);
+			if (renames == null)
+			{
+				// Load the renames from preferences further down.
+				reader = new StringReader("");
+			}
+			else
+			{
+				// Load the renames from the file specified on the command line...
+				final File renamesFile = new File(renames);
+				//noinspection IOResourceOpenedButNotSafelyClosed
+				reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(renamesFile), StandardCharsets.UTF_8));
+			}
+			final RenamesFileParser renameParser = new RenamesFileParser(
+				reader, roots);
+			resolver = renameParser.parse();
+			if (renames == null)
+			{
+				// Now load the rename rules from preferences.
+				loadRenameRulesInto(resolver);
+			}
 		}
-		else
+		finally
 		{
-			// Load the renames from the file specified on the command line...
-			final File renamesFile = new File(renames);
-			reader = new BufferedReader(new InputStreamReader(
-				new FileInputStream(renamesFile), StandardCharsets.UTF_8));
-		}
-		final RenamesFileParser renameParser = new RenamesFileParser(
-			reader, roots);
-		final ModuleNameResolver resolver = renameParser.parse();
-		if (renames == null)
-		{
-			// Now load the rename rules from preferences.
-			loadRenameRulesInto(resolver);
+			IO.closeIfNotNull(reader);
 		}
 
 		// The first application argument, if any, says which module to select.
@@ -3376,7 +3351,6 @@ extends JFrame
 					frame.setEnablements();
 				}
 			}
-
 		});
 	}
 }

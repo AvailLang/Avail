@@ -32,6 +32,7 @@
 
 package com.avail.optimizer;
 
+import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -196,7 +197,6 @@ public final class L2Translator
 			{
 				operand.dispatchOperand(registerCounter);
 			}
-			instruction.setAction();
 		}
 
 		final int afterPrimitiveOffset =
@@ -263,10 +263,10 @@ public final class L2Translator
 		// first instruction so that L1Ext_doPushLabel can always find it. Since
 		// we only translate one method at a time, the first instruction always
 		// represents the start of this compiledCode.
-		final long beforeL1Naive = System.nanoTime();
+		final long beforeL1Naive = AvailRuntime.captureNanos();
 		final L1Translator translator = new L1Translator(this);
 		translator.translateL1Instructions();
-		final long afterL1Naive = System.nanoTime();
+		final long afterL1Naive = AvailRuntime.captureNanos();
 		translateL1Stat.record(
 			afterL1Naive - beforeL1Naive,
 			interpreter.interpreterIndex);
@@ -276,10 +276,10 @@ public final class L2Translator
 			translator.afterOptionalInitialPrimitiveBlock;
 		translator.controlFlowGraph.optimize(interpreter);
 
-		final long beforeChunkGeneration = System.nanoTime();
+		final long beforeChunkGeneration = AvailRuntime.captureNanos();
 		createChunk(translator.controlFlowGraph);
 		assert code.startingChunk() == chunk;
-		final long afterChunkGeneration = System.nanoTime();
+		final long afterChunkGeneration = AvailRuntime.captureNanos();
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,
 			interpreter.interpreterIndex);

@@ -1,6 +1,6 @@
-/**
+/*
  * TupleTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.evaluation.Transformer1NotNull;
@@ -707,6 +708,7 @@ extends TypeDescriptor
 	 * @return A fixed-size tuple type.
 	 *
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Type tupleTypeForTypes (final A_Type... types)
 	{
 		return tupleTypeForSizesTypesDefaultType(

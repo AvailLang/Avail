@@ -1,6 +1,6 @@
-/**
+/*
  * L2_RUN_INFALLIBLE_PRIMITIVE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -43,22 +43,20 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -72,8 +70,12 @@ import static org.objectweb.asm.Opcodes.ARETURN;
  * continuation that reifies the current function execution.  This is a Good
  * Thing, performance-wise.
  * </p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
+public class L2_RUN_INFALLIBLE_PRIMITIVE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -86,65 +88,9 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-//		final A_RawFunction rawFunction = instruction.constantAt(0);
-		final Primitive primitive = instruction.primitiveAt(1);
-		final List<L2ReadPointerOperand> argumentRegs =
-			instruction.readVectorRegisterAt(2);
-		final int resultRegNumber =
-			instruction.writeObjectRegisterAt(3).finalIndex();
-
-		// Pre-decode the argument registers as much as possible.
-		final int[] argumentRegNumbers = new int[argumentRegs.size()];
-		for (int i = 0; i < argumentRegNumbers.length; i++)
-		{
-			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
-		}
-
-		return interpreter ->
-		{
-			interpreter.argsBuffer.clear();
-			for (final int argumentRegNumber : argumentRegNumbers)
-			{
-				interpreter.argsBuffer.add(
-					interpreter.pointerAt(argumentRegNumber));
-			}
-			// Only primitive P_PushConstant is infallible and yet needs the
-			// function, and it's always folded.  In the case that
-			// P_PushConstant is known to produce the wrong type at some site
-			// (potentially dead code due to inlining of an unreachable branch),
-			// it is converted to an explicit failure instruction.  Thus we can
-			// pass null.  Note also that primitives which have to suspend the
-			// fiber (to perform a level one unsafe operation and then switch
-			// back to level one safe mode) must *never* be inlined, otherwise
-			// they couldn't reach a safe inter-nybblecode position.  Also, the
-			// skipReturnCheck flag doesn't come into play for infallible
-			// primitives, since we would check it after it runs -- but this is
-			// the no-check version anyhow, so we don't check it at all.
-			final A_Function savedFunction = stripNull(interpreter.function);
-			// Eligible primitives MUST NOT access this.
-			interpreter.function = null;
-			final Result res = interpreter.attemptPrimitive(primitive);
-			if (res == SUCCESS)
-			{
-				interpreter.function = savedFunction;
-				interpreter.pointerAtPut(
-					resultRegNumber, interpreter.latestResult());
-			}
-			else
-			{
-				assert res == CONTINUATION_CHANGED;
-			}
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final A_RawFunction rawFunction = instruction.constantAt(0);
@@ -183,7 +129,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		return primitive.hasFlag(Flag.HasSideEffect)
 			|| primitive.hasFlag(Flag.CatchException)
 			|| primitive.hasFlag(Flag.Invokes)
-			|| primitive.hasFlag(Flag.SwitchesContinuation)
+			|| primitive.hasFlag(Flag.CanSwitchContinuations)
 			|| primitive.hasFlag(Flag.Unknown);
 	}
 
@@ -233,21 +179,129 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-//		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
-//		final List<L2ReadPointerOperand> argumentRegs =
-//			instruction.readVectorRegisterAt(2);
-//		final int resultRegNumber =
-//			instruction.writeObjectRegisterAt(3).finalIndex();
+		final List<L2ReadPointerOperand> argumentRegs =
+			instruction.readVectorRegisterAt(2);
+		final L2ObjectRegister resultReg =
+			instruction.writeObjectRegisterAt(3).register();
 
-		super.translateToJVM(translator, method, instruction);
-		if (primitive.hasFlag(Flag.SwitchesContinuation))
+		// :: argsBuffer = interpreter.argsBuffer;
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"argsBuffer",
+			getDescriptor(List.class));
+		// :: argsBuffer.clear();
+		if (!argumentRegs.isEmpty())
 		{
-			// If the primitive can switch continuation, then we should return
-			// to our caller to force any updates to the chunk and offset to
-			// take effect.
+			method.visitInsn(DUP);
+		}
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(List.class),
+			"clear",
+			getMethodDescriptor(VOID_TYPE),
+			true);
+		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
+		{
+			// :: argsBuffer.add(«argument[i]»);
+			if (i < limit - 1)
+			{
+				method.visitInsn(DUP);
+			}
+			translator.load(method, argumentRegs.get(i).register());
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(List.class),
+				"add",
+				getMethodDescriptor(BOOLEAN_TYPE, getType(Object.class)),
+				true);
+			method.visitInsn(POP);
+		}
+		// :: res = interpreter.attemptPrimitive(primitive, false);
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(primitive.getClass()),
+			"instance",
+			getDescriptor(Primitive.class));
+		// Only primitive P_PushConstant is infallible and yet needs the
+		// function, and it's always folded.  In the case that
+		// P_PushConstant is known to produce the wrong type at some site
+		// (potentially dead code due to inlining of an unreachable branch),
+		// it is converted to an explicit failure instruction.  Thus we could
+		// null the function here and restore it after the call, for additional
+		// safety.  Note also that primitives which have to suspend the fiber
+		// (to perform a level one unsafe operation and then switch back to
+		// level one safe mode) must *never* be inlined, otherwise they couldn't
+		// reach a safe inter-nybblecode position.
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"attemptPrimitive",
+			getMethodDescriptor(
+				getType(Result.class),
+				getType(Primitive.class)),
+			false);
+		// If the infallible primitive definitely switches continuations, then
+		// return null to force the context switch.
+		if (primitive.hasFlag(Flag.AlwaysSwitchesContinuation))
+		{
+			// :: return null;
+			method.visitInsn(POP);
 			method.visitInsn(ACONST_NULL);
 			method.visitInsn(ARETURN);
+		}
+		// If the infallible primitive cannot switch continuations, then by
+		// definition it can only succeed.
+		else if (!primitive.hasFlag(Flag.CanSwitchContinuations))
+		{
+			// :: result = interpreter.latestResult();
+			method.visitInsn(POP);
+			translator.loadInterpreter(method);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(Interpreter.class),
+				"latestResult",
+				getMethodDescriptor(getType(AvailObject.class)),
+				false);
+			translator.store(method, resultReg);
+		}
+		// Otherwise, determine whether the infallible primitive switched
+		// continuations and react accordingly.
+		else
+		{
+			// :: if (res == Result.SUCCESS) {
+			final Label switchedContinuations = new Label();
+			method.visitFieldInsn(
+				GETSTATIC,
+				getInternalName(Result.class),
+				"SUCCESS",
+				getDescriptor(Result.class));
+			method.visitJumpInsn(IF_ACMPNE, switchedContinuations);
+			// ::    result = interpreter.latestResult();
+			translator.loadInterpreter(method);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(Interpreter.class),
+				"latestResult",
+				getMethodDescriptor(getType(AvailObject.class)),
+				false);
+			translator.store(method, resultReg);
+			// ::    goto success;
+			final Label success = new Label();
+			method.visitJumpInsn(GOTO, success);
+			// :: } else {
+			method.visitLabel(switchedContinuations);
+			// We switched continuations, so we need to return control to the
+			// caller in order to honor the switch.
+			// ::    return null;
+			method.visitInsn(ACONST_NULL);
+			method.visitInsn(ARETURN);
+			// :: }
+			method.visitLabel(success);
 		}
 	}
 }

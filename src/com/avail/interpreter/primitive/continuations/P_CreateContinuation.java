@@ -42,7 +42,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -82,6 +82,7 @@ public final class P_CreateContinuation extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateContinuation().init(
 			5, CanFold, CanInline);

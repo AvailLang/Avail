@@ -1,6 +1,6 @@
-/**
+/*
  * L2_MOVE_INT_CONSTANT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,15 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
@@ -46,8 +47,12 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * Move a constant {@code int} into an integer register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_INT_CONSTANT extends L2Operation
+public class L2_MOVE_INT_CONSTANT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -58,23 +63,9 @@ public class L2_MOVE_INT_CONSTANT extends L2Operation
 			WRITE_INT.is("destination"));
 
 	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int constant = instruction.immediateAt(0);
-		final int destinationIntRegNumber =
-			instruction.writeIntRegisterAt(1).finalIndex();
-		return interpreter ->
-		{
-			interpreter.integerAtPut(destinationIntRegNumber, constant);
-			return null;
-		};
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final int constant = instruction.immediateAt(0);
@@ -85,5 +76,20 @@ public class L2_MOVE_INT_CONSTANT extends L2Operation
 			destinationIntReg.register(),
 			fromInt(constant),
 			instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final int constant = instruction.immediateAt(0);
+		final L2IntegerRegister destinationIntReg =
+			instruction.writeIntRegisterAt(1).register();
+
+		// :: destinationInt = constant;
+		translator.literal(method, constant);
+		translator.store(method, destinationIntReg);
 	}
 }

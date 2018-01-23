@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
@@ -230,6 +231,7 @@ extends Descriptor
 		 *
 		 * @return Whether the relation between the two values is {@link #LESS}.
 		 */
+		@ReferencedInGeneratedCode
 		public boolean isLess ()
 		{
 			return this == LESS;
@@ -242,6 +244,7 @@ extends Descriptor
 		 * @return Whether the relation between the two values is {@link #LESS}
 		 *         or {@link #EQUAL}.
 		 */
+		@ReferencedInGeneratedCode
 		public boolean isLessOrEqual ()
 		{
 			return this == LESS || this == EQUAL;
@@ -252,6 +255,7 @@ extends Descriptor
 		 *
 		 * @return Whether the relation between the two values is {@link #MORE}.
 		 */
+		@ReferencedInGeneratedCode
 		public boolean isMore ()
 		{
 			return this == MORE;
@@ -264,6 +268,7 @@ extends Descriptor
 		 * @return Whether the relation between the two values is {@link #MORE}
 		 *         or {@link #EQUAL}.
 		 */
+		@ReferencedInGeneratedCode
 		public boolean isMoreOrEqual ()
 		{
 			return this == MORE || this == EQUAL;

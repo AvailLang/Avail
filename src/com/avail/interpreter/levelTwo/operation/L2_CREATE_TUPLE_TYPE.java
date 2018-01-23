@@ -1,6 +1,6 @@
-/**
+/*
  * L2_CREATE_TUPLE_TYPE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,17 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,12 +52,18 @@ import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a fixed sized {@link TupleTypeDescriptor tuple type} from the
  * {@linkplain A_Type types} in the specified registers.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_TUPLE_TYPE extends L2Operation
+public class L2_CREATE_TUPLE_TYPE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -67,30 +74,9 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 			WRITE_POINTER.is("tuple type"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final List<L2ReadPointerOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
-
-		final int size = elements.size();
-		final A_Type[] types = new A_Type[size];
-		for (int i = 0; i < size; i++)
-		{
-			types[i] = elements.get(i).in(interpreter);
-		}
-		final A_Type tupleType = tupleTypeForTypes(types);
-		destinationReg.set(tupleType, interpreter);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final List<L2ReadPointerOperand> elements =
@@ -137,5 +123,27 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 			registerSet.typeAtPut(
 				destinationReg.register(), tupleMeta, instruction);
 		}
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final List<L2ReadPointerOperand> elements =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
+		translator.objectArray(method, elements, A_Type.class);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(TupleTypeDescriptor.class),
+			"tupleTypeForTypes",
+			getMethodDescriptor(getType(A_Type.class), getType(A_Type[].class)),
+			false);
+		translator.store(method, destinationReg);
 	}
 }

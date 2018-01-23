@@ -39,6 +39,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -367,6 +368,7 @@ extends Descriptor
 	 * @param outersCount The number of outer variables that will be enclosed.
 	 * @return A function without its outer variables initialized.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Function createExceptOuters (
 		final A_RawFunction code,
 		final int outersCount)

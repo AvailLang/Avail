@@ -1,6 +1,6 @@
-/**
+/*
  * L2Operand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ import java.util.Map;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class L2Operand extends PublicCloneable<L2Operand>
+public abstract class L2Operand
+extends PublicCloneable<L2Operand>
 {
 	/**
 	 * Answer this operand's {@link L2OperandType}.

@@ -261,6 +261,7 @@ public final class Strings
 			@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 			final PrintStream trace = new PrintStream(
 				traceBytes, true, StandardCharsets.UTF_8.name());
+			e.printStackTrace(trace);
 			return new String(traceBytes.toByteArray(), StandardCharsets.UTF_8);
 		}
 		catch (final UnsupportedEncodingException x)

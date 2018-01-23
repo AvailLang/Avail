@@ -44,7 +44,7 @@ import com.avail.descriptor.FiberDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.MutableOrNull;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.MutableOrNull;
 
 import java.util.List;
 
@@ -78,6 +78,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateFiberHeritableAtom().init(
 			1, CanInline);

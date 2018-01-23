@@ -38,7 +38,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -74,6 +74,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ServerSocketSetOption().init(
 			2, CanInline, HasSideEffect);

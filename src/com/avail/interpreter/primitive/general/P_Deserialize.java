@@ -40,7 +40,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.serialization.Deserializer;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.serialization.Deserializer;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -74,6 +74,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_Deserialize().init(2, CanInline);
 

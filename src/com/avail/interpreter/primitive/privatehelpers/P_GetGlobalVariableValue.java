@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
 import com.avail.optimizer.L1Translator;
@@ -61,6 +61,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_GetGlobalVariableValue().init(
 			1, SpecialForm, CanInline, Private, CannotFail);

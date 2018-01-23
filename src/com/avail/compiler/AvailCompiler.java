@@ -2751,6 +2751,7 @@ public final class AvailCompiler
 		final Continuation1NotNull<AvailObject> intersectAndDecrement =
 			restrictionType ->
 			{
+				assert restrictionType.isType();
 				synchronized (outstanding)
 				{
 					if (failureMessages.isEmpty())

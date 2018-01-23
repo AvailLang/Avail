@@ -55,9 +55,7 @@ public interface ExecutableChunk
 
 	/**
 	 * Run the {@code ExecutableChunk} to completion. Note that a {@linkplain
-	 * StackReifier reification} request may cut this short. Also note that the
-	 * supplied {@linkplain Interpreter interpreter} indicates the {@linkplain
-	 * Interpreter#offset offset} at which to start executing. For an initial
+	 * StackReifier reification} request may cut this short. For an initial
 	 * invocation, the {@linkplain Interpreter#argsBuffer} will have been set up
 	 * for the call. For a return into this continuation, the offset will refer
 	 * to code that will rebuild the register set from the top reified
@@ -71,8 +69,10 @@ public interface ExecutableChunk
 	 * @param interpreter
 	 *        An interpreter that is appropriately setup to execute the
 	 *        receiver.
+	 * @param offset
+	 *        The offset at which to begin execution.
 	 * @return {@code null} if returning normally, otherwise a {@link
 	 *         StackReifier} to effect reification.
 	 */
-	@Nullable StackReifier runChunk (Interpreter interpreter);
+	@Nullable StackReifier runChunk (Interpreter interpreter, int offset);
 }

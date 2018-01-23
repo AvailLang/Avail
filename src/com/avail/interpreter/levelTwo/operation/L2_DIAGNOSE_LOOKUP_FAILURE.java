@@ -1,4 +1,4 @@
-/**
+/*
  * L2_DIAGNOSE_LOOKUP_FAILURE.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,24 +32,29 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.AvailObject;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.utility.IteratorNotNull;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * A method lookup failed. Write the appropriate error code into the supplied
@@ -71,42 +76,9 @@ extends L2Operation
 			WRITE_POINTER.is("error code"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final A_Set definitions = instruction.constantAt(0);
-		final L2WritePointerOperand errorCodeReg =
-			instruction.writeObjectRegisterAt(1);
-		if (definitions.setSize() == 0)
-		{
-			errorCodeReg.set(E_NO_METHOD_DEFINITION.numericCode(), interpreter);
-			return null;
-		}
-		if (definitions.setSize() > 1)
-		{
-			errorCodeReg.set(
-				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(), interpreter);
-			return null;
-		}
-		final A_Definition definition = definitions.iterator().next();
-		if (definition.isAbstractDefinition())
-		{
-			errorCodeReg.set(
-				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
-		}
-		else if (definition.isForwardDefinition())
-		{
-			errorCodeReg.set(
-				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
-		}
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 //		final A_Set definitions = instruction.constantAt(0);
@@ -122,5 +94,153 @@ extends L2Operation
 					E_FORWARD_METHOD_DEFINITION,
 					E_ABSTRACT_METHOD_DEFINITION)),
 			instruction);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final A_Set definitions = instruction.constantAt(0);
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		final Label diagnosed = new Label();
+		// :: if (definitions.setSize() == 0) {
+		// ::    error = E_NO_METHOD_DEFINITION;
+		// ::    goto diagnosed;
+		// :: }
+		final Label setSizeNotZero = new Label();
+		translator.literal(method, definitions);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Set.class),
+			"setSize",
+			getMethodDescriptor(INT_TYPE),
+			true);
+		method.visitJumpInsn(IFNE, setSizeNotZero);
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(AvailErrorCode.class),
+			"E_NO_METHOD_DEFINITION",
+			getDescriptor(AvailErrorCode.class));
+		method.visitJumpInsn(GOTO, diagnosed);
+		method.visitLabel(setSizeNotZero);
+
+		// :: if (definitions.setSize() > 1) {
+		// ::    error = E_AMBIGUOUS_METHOD_DEFINITION;
+		// ::    goto diagnosed;
+		// :: }
+		final Label setSizeIsOne = new Label();
+		translator.literal(method, definitions);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Set.class),
+			"setSize",
+			getMethodDescriptor(INT_TYPE),
+			true);
+		translator.intConstant(method,1);
+		method.visitJumpInsn(IF_ICMPLE, setSizeIsOne);
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(AvailErrorCode.class),
+			"E_AMBIGUOUS_METHOD_DEFINITION",
+			getDescriptor(AvailErrorCode.class));
+		method.visitJumpInsn(GOTO, diagnosed);
+		method.visitLabel(setSizeIsOne);
+
+		// :: definition = definitions.iterator().next();
+		translator.literal(method, definitions);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(AvailObject.class),
+			"iterator",
+			getMethodDescriptor(getType(IteratorNotNull.class)),
+			false);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(IteratorNotNull.class),
+			"next",
+			getMethodDescriptor(getType(Object.class)),
+			true);
+		method.visitTypeInsn(CHECKCAST, getInternalName(A_Definition.class));
+		final Label startDefinition = new Label();
+		final int definition = translator.nextLocal(
+			getType(A_Definition.class));
+		method.visitLabel(startDefinition);
+		method.visitVarInsn(ASTORE, definition);
+
+		// :: if (definition.isAbstractDefinition()) {
+		// ::    error = E_ABSTRACT_METHOD_DEFINITION;
+		// ::    goto diagnosed;
+		// :: }
+		final Label notAbstract = new Label();
+		method.visitVarInsn(ALOAD, definition);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Definition.class),
+			"isAbstractDefinition",
+			getMethodDescriptor(BOOLEAN_TYPE),
+			true);
+		method.visitJumpInsn(IFEQ, notAbstract);
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(AvailErrorCode.class),
+			"E_ABSTRACT_METHOD_DEFINITION",
+			getDescriptor(AvailErrorCode.class));
+		method.visitJumpInsn(GOTO, diagnosed);
+		method.visitLabel(notAbstract);
+
+		// :: if (definition.isForwardDefinition()) {
+		// ::    error = E_FORWARD_METHOD_DEFINITION;
+		// ::    goto diagnosed;
+		// :: }
+		final Label notForward = new Label();
+		method.visitVarInsn(ALOAD, definition);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Definition.class),
+			"isForwardDefinition",
+			getMethodDescriptor(BOOLEAN_TYPE),
+			true);
+		method.visitJumpInsn(IFEQ, notForward);
+		method.visitFieldInsn(
+			GETSTATIC,
+			getInternalName(AvailErrorCode.class),
+			"E_FORWARD_METHOD_DEFINITION",
+			getDescriptor(AvailErrorCode.class));
+		method.visitJumpInsn(GOTO, diagnosed);
+		method.visitLabel(notForward);
+
+		// :: throw new RuntimeException("unknown lookup failure");
+		method.visitTypeInsn(NEW, getInternalName(RuntimeException.class));
+		method.visitInsn(DUP);
+		method.visitLdcInsn("unknown lookup failure");
+		method.visitMethodInsn(
+			INVOKESPECIAL,
+			getInternalName(RuntimeException.class),
+			"<init>",
+			getMethodDescriptor(VOID_TYPE, getType(String.class)),
+			false);
+		method.visitInsn(ATHROW);
+
+		// :: errorCode = error.numericCode();
+		method.visitLabel(diagnosed);
+		method.visitLocalVariable(
+			"definition",
+			getDescriptor(A_Definition.class),
+			null,
+			startDefinition,
+			diagnosed,
+			definition);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(AvailErrorCode.class),
+			"numericCode",
+			getMethodDescriptor(getType(A_Number.class)),
+			false);
+		// N *
+		translator.store(method, errorCodeReg);
 	}
 }

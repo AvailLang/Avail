@@ -1,4 +1,4 @@
-/**
+/*
  * P_RestartContinuationWithArguments.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -41,7 +42,16 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
+import com.avail.interpreter.levelTwo.operation
+	.L2_RESTART_CONTINUATION_WITH_ARGUMENTS;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -57,29 +67,34 @@ import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
 /**
  * <strong>Primitive:</strong> Restart the given {@linkplain
- * ContinuationDescriptor continuation}, but passing in the given
- * {@linkplain TupleDescriptor tuple} of arguments. Make sure it's a
- * label-like continuation rather than a call-like, because a call-like
- * continuation has the expected return type already pushed on the stack,
- * and requires the return value, after checking against that type, to
- * overwrite the type in the stack (without affecting the stack depth). Fail
- * if the continuation's {@linkplain FunctionDescriptor function} is not
- * capable of accepting the given arguments.
+ * ContinuationDescriptor continuation}, but passing in the given {@linkplain
+ * TupleDescriptor tuple} of arguments. Make sure it's a label-like continuation
+ * rather than a call-like, because a call-like continuation has the expected
+ * return type already pushed on the stack, and requires the return value, after
+ * checking against that type, to overwrite the type in the stack (without
+ * affecting the stack depth). Fail if the continuation's {@linkplain
+ * FunctionDescriptor function} is not capable of accepting the given arguments.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_RestartContinuationWithArguments extends Primitive
+public final class P_RestartContinuationWithArguments
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RestartContinuationWithArguments().init(
-			2, CanInline, SwitchesContinuation);
+			2,
+			CanInline,
+			CanSwitchContinuations,
+			AlwaysSwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -117,8 +132,8 @@ public final class P_RestartContinuationWithArguments extends Primitive
 		// to be the label continuation's *caller*.
 		interpreter.reifiedContinuation = originalCon.caller();
 		interpreter.function = originalCon.function();
-		interpreter.chunk = originalCon.levelTwoChunk();
-		interpreter.offset = originalCon.levelTwoOffset();
+		interpreter.chunk = code.startingChunk();
+		interpreter.offset = 0;
 		interpreter.returnNow = false;
 		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
@@ -141,5 +156,58 @@ public final class P_RestartContinuationWithArguments extends Primitive
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_INCORRECT_ARGUMENT_TYPE));
+	}
+
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
+	{
+		final L2ReadPointerOperand continuationReg = arguments.get(0);
+		final L2ReadPointerOperand argumentsTupleReg = arguments.get(1);
+
+		// A restart works with every continuation that is created by a label.
+		// First, pop out of the Java stack frames back into the outer L2 run
+		// loop (which saves/restores the current frame and continues at the
+		// next L2 instruction).  Extract the tuple of arguments back into a
+		// vector of individual registers, aborting code generation of this
+		// special invocation if it's not possible.
+
+		// Examine the continuation's function's type.
+		final A_Type continuationType = continuationReg.type();
+		final A_Type functionType = continuationType.functionType();
+		final A_Type functionArgsType = functionType.argsTupleType();
+		final A_Type functionTypeSizes = functionArgsType.sizeRange();
+		final A_Number upperBound = functionTypeSizes.upperBound();
+		if (!upperBound.isInt()
+			|| !functionTypeSizes.lowerBound().equals(upperBound))
+		{
+			// The exact function signature is not known.  Give up.
+			return false;
+		}
+		final int argsSize = upperBound.extractInt();
+		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegs =
+			L2_EXPLODE_TUPLE.explodeTupleIfPossible(
+				argumentsTupleReg,
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)),
+				translator);
+		if (explodedArgumentRegs == null)
+		{
+			return false;
+		}
+
+		translator.addInstruction(
+			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
+			continuationReg,
+			new L2ReadVectorOperand(explodedArgumentRegs));
+		assert !translator.currentlyReachable();
+		translator.startBlock(
+			translator.createBasicBlock(
+				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"));
+		return true;
 	}
 }

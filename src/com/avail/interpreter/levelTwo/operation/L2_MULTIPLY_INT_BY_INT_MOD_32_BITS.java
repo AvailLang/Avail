@@ -1,6 +1,6 @@
-/**
+/*
  * L2_MULTIPLY_INT_BY_INT_MOD_32_BITS.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,15 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static org.objectweb.asm.Opcodes.IMUL;
 
 
 /**
@@ -50,8 +48,10 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
  * truncating it to the low 32 bits and storing it back in the second register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
+public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -63,28 +63,22 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 			WRITE_INT.is("product"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
 	{
-		final L2ReadIntOperand multiplierReg =
-			instruction.readIntRegisterAt(0);
-		final L2ReadIntOperand multiplicandReg =
-			instruction.readIntRegisterAt(1);
-		final L2WriteIntOperand productReg =
-			instruction.writeIntRegisterAt(2);
+		final L2IntegerRegister multiplicandReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntegerRegister multiplierReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntegerRegister productReg =
+			instruction.writeIntRegisterAt(2).register();
 
-		final int multiplier = multiplierReg.in(interpreter);
-		final int multiplicand = multiplicandReg.in(interpreter);
-		final long longResult = (long) multiplier * (long) multiplicand;
-		productReg.set((int) longResult, interpreter);
-		return null;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps if the result doesn't fit in an int.
-		return true;
+		// :: product = multiplicand * multiplier;
+		translator.load(method, multiplicandReg);
+		translator.load(method, multiplierReg);
+		method.visitInsn(IMUL);
+		translator.store(method, productReg);
 	}
 }

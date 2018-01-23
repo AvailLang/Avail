@@ -47,7 +47,7 @@ import java.nio.file.Path;
  * that serves as the basis for the annotated {@linkplain
  * JVMChunk#runChunk(Interpreter) method}, making it available in generated
  * class files. This annotation is only attached if {@link
- * JVMTranslator#debugDumpClassBytesToFiles} is enabled.
+ * JVMTranslator#debugJVM} is enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

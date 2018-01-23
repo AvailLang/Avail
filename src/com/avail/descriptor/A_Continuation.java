@@ -36,6 +36,7 @@ import com.avail.descriptor.ContinuationDescriptor.IntegerSlots;
 import com.avail.descriptor.ContinuationDescriptor.ObjectSlots;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
  * {@code A_Continuation} is an interface that specifies the operations specific
@@ -57,6 +58,7 @@ extends A_BasicObject
 	 * @param index The one-based index into this frame data.
 	 * @return The continuation's slot at the specified index.
 	 */
+	@ReferencedInGeneratedCode
 	AvailObject argOrLocalOrStackAt (int index);
 
 	/**
@@ -68,6 +70,7 @@ extends A_BasicObject
 	 * @param index The one-based index into this frame data.
 	 * @param value The value to write at that index.
 	 */
+	@ReferencedInGeneratedCode
 	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
 	/**
@@ -78,6 +81,7 @@ extends A_BasicObject
 	 *
 	 * @return The calling continuation or nil.
 	 */
+	@ReferencedInGeneratedCode
 	A_Continuation caller ();
 
 	/**
@@ -89,6 +93,7 @@ extends A_BasicObject
 	 *
 	 * @return The function.
 	 */
+	@ReferencedInGeneratedCode
 	A_Function function ();
 
 	/**
@@ -157,6 +162,7 @@ extends A_BasicObject
 	 *
 	 * @return The L2Chunk to resume if the chunk is still valid.
 	 */
+	@ReferencedInGeneratedCode
 	L2Chunk levelTwoChunk ();
 
 	/**
@@ -168,6 +174,7 @@ extends A_BasicObject
 	 * @return The index of the {@link L2Instruction} at which to resume
 	 *         level two execution if the {@code L2Chunk} is still valid.
 	 */
+	@ReferencedInGeneratedCode
 	int levelTwoOffset ();
 
 	/**

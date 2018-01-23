@@ -36,7 +36,7 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.lang.reflect.Method;
@@ -84,6 +84,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreatePojoInstanceMethodFunction().init(
 			4, CanInline, CanFold);

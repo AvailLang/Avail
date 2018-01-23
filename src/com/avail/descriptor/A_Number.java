@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.interpreter.primitive.numbers.P_LessOrEqual;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.math.BigInteger;
 
@@ -355,6 +356,7 @@ extends A_BasicObject
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
+	@ReferencedInGeneratedCode
 	A_Number divideCanDestroy (
 		A_Number aNumber,
 		boolean canDestroy);
@@ -481,9 +483,8 @@ extends A_BasicObject
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
-	A_Number minusCanDestroy (
-		A_Number aNumber,
-		boolean canDestroy);
+	@ReferencedInGeneratedCode
+	A_Number minusCanDestroy (A_Number aNumber, boolean canDestroy);
 
 	/**
 	 * Multiply the receiver by the given {@linkplain DoubleDescriptor
@@ -658,6 +659,7 @@ extends A_BasicObject
 	 * @param another The value to numerically compare the receiver to.
 	 * @return The numeric {@link Order} between the receiver and the argument.
 	 */
+	@ReferencedInGeneratedCode
 	Order numericCompare (A_Number another);
 
 	/**
@@ -852,9 +854,8 @@ extends A_BasicObject
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
-	A_Number timesCanDestroy (
-		A_Number aNumber,
-		boolean canDestroy);
+	@ReferencedInGeneratedCode
+	A_Number timesCanDestroy (A_Number aNumber, boolean canDestroy);
 
 	/**
 	 * Normalize the integer to have the minimum number of base 2^32 digits.

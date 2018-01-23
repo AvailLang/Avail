@@ -37,7 +37,7 @@ import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.List;
@@ -68,6 +68,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_SocketClose().init(
 			1, CanInline, HasSideEffect);

@@ -38,7 +38,7 @@ import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.VariableUseNodeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -65,6 +65,7 @@ public final class P_CreateReferenceExpression extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreateReferenceExpression().init(
 			1, CanFold, CanInline);

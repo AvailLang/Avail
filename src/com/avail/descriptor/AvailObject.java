@@ -64,6 +64,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
@@ -2516,6 +2517,7 @@ implements
 	 * @return An {@linkplain Iterator iterator}.
 	 */
 	@Override
+	@ReferencedInGeneratedCode
 	public IteratorNotNull<AvailObject> iterator ()
 	{
 		return descriptor.o_Iterator(this);
@@ -6006,6 +6008,12 @@ implements
 	public int currentLineNumber ()
 	{
 		return descriptor.o_CurrentLineNumber(this);
+	}
+
+	@Override
+	public A_Type fiberResultType ()
+	{
+		return descriptor.o_FiberResultType(this);
 	}
 
 	@Override

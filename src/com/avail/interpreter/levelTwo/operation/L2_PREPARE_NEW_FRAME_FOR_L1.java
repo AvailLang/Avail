@@ -1,4 +1,4 @@
-/**
+/*
  * L2_PREPARE_NEW_FRAME_FOR_L1.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -40,27 +40,30 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * This operation is only used when entering a function that uses the
@@ -74,103 +77,18 @@ import static org.objectweb.asm.Opcodes.*;
  *
  * <p>Also check for interrupts after all that, reifying and suspending the
  * fiber if needed.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
+public class L2_PREPARE_NEW_FRAME_FOR_L1
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
 		new L2_PREPARE_NEW_FRAME_FOR_L1().init();
-
-	static final int[] emptyIntArray = new int[0];
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		assert !interpreter.exitNow;
-		final A_Function function = stripNull(interpreter.function);
-		final A_RawFunction code = function.code();
-		final int numArgs = code.numArgs();
-		final int numLocals = code.numLocals();
-		final int numSlots = code.numSlots();
-		// The L2 instructions that implement L1 don't reserve room for any
-		// fixed registers, but they assume [0] is unused (to simplify
-		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
-		interpreter.pointers = new AvailObject[numSlots + 1];
-		interpreter.integers = emptyIntArray;
-		int dest = 1;
-		// Populate the arguments from argsBuffer.
-		for (final AvailObject arg : interpreter.argsBuffer)
-		{
-			interpreter.pointerAtPut(dest++, arg);
-		}
-		// Create actual local variables.
-		for (int i = 1; i <= numLocals; i++)
-		{
-			interpreter.pointerAtPut(
-				dest++, newVariableWithOuterType(code.localTypeAt(i)));
-		}
-		// Write nil into the remaining stack slots.  These values should not
-		// encounter any kind of ordinary use, but they must still be
-		// transferred into a continuation during reification.  Therefore, don't
-		// use Java nulls here.
-		while (dest <= numSlots)
-		{
-			interpreter.pointerAtPut(dest++, nil);
-		}
-		interpreter.levelOneStepper.pc.value = 1;
-		interpreter.levelOneStepper.stackp = numSlots + 1;
-		final @Nullable Primitive primitive = code.primitive();
-		if (primitive != null)
-		{
-			// A failed primitive.  The failure value was captured in the
-			// latestResult().
-			assert !primitive.hasFlag(Flag.CannotFail);
-			final A_BasicObject primitiveFailureValue =
-				interpreter.latestResult();
-			final A_Variable primitiveFailureVariable =
-				interpreter.pointerAt(numArgs + 1);
-			primitiveFailureVariable.setValue(primitiveFailureValue);
-		}
-
-		if (interpreter.isInterruptRequested())
-		{
-			// Build an interrupted continuation, reify the rest of the stack,
-			// and push the continuation onto the reified stack.  Then process
-			// the interrupt, which may or may not suspend the fiber.
-			final A_Continuation continuation =
-				createContinuationExceptFrame(
-					function,
-					nil,
-					1,  // start of function
-					numSlots + 1,   // empty stack
-					unoptimizedChunk,
-					TO_RESUME.offsetInDefaultChunk);
-			for (
-				int i = function.code().numSlots();
-				i >= 1;
-				i--)
-			{
-				continuation.argOrLocalOrStackAtPut(
-					i, interpreter.pointerAt(i));
-			}
-			return interpreter.reifyThen(
-				reificationForInterruptInL1Stat,
-				() ->
-				{
-					// Push the continuation from above onto the reified stack.
-					interpreter.reifiedContinuation =
-						continuation.replacingCaller(
-							stripNull(interpreter.reifiedContinuation));
-					interpreter.processInterrupt(
-						interpreter.reifiedContinuation);
-				});
-		}
-		return null;
-	}
 
 	/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
 	private static final Statistic reificationForInterruptInL1Stat =
@@ -196,27 +114,123 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		return true;
 	}
 
+	/**
+	 * Prepare a new frame for L1 interpretation.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 * @return A {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public static @Nullable StackReifier prepare (final Interpreter interpreter)
+	{
+		assert !interpreter.exitNow;
+		final A_Function function = stripNull(interpreter.function);
+		final A_RawFunction code = function.code();
+		final int numArgs = code.numArgs();
+		final int numLocals = code.numLocals();
+		final int numSlots = code.numSlots();
+		// The L2 instructions that implement L1 don't reserve room for any
+		// fixed registers, but they assume [0] is unused (to simplify
+		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
+		final L1InstructionStepper stepper = interpreter.levelOneStepper;
+		stepper.pointers = new AvailObject[numSlots + 1];
+		int dest = 1;
+		// Populate the arguments from argsBuffer.
+		for (final AvailObject arg : interpreter.argsBuffer)
+		{
+			stepper.pointerAtPut(dest++, arg);
+		}
+		// Create actual local variables.
+		for (int i = 1; i <= numLocals; i++)
+		{
+			stepper.pointerAtPut(
+				dest++, newVariableWithOuterType(code.localTypeAt(i)));
+		}
+		// Write nil into the remaining stack slots.  These values should not
+		// encounter any kind of ordinary use, but they must still be
+		// transferred into a continuation during reification.  Therefore, don't
+		// use Java nulls here.
+		while (dest <= numSlots)
+		{
+			stepper.pointerAtPut(dest++, nil);
+		}
+		stepper.pc.value = 1;
+		stepper.stackp = numSlots + 1;
+		final @Nullable Primitive primitive = code.primitive();
+		if (primitive != null)
+		{
+			// A failed primitive.  The failure value was captured in the
+			// latestResult().
+			assert !primitive.hasFlag(Flag.CannotFail);
+			final A_BasicObject primitiveFailureValue =
+				interpreter.latestResult();
+			final A_Variable primitiveFailureVariable =
+				stepper.pointerAt(numArgs + 1);
+			primitiveFailureVariable.setValue(primitiveFailureValue);
+		}
+
+		if (interpreter.isInterruptRequested())
+		{
+			// Build an interrupted continuation, reify the rest of the stack,
+			// and push the continuation onto the reified stack.  Then process
+			// the interrupt, which may or may not suspend the fiber.
+			final A_Continuation continuation =
+				createContinuationExceptFrame(
+					function,
+					nil,
+					1,  // start of function
+					numSlots + 1,   // empty stack
+					unoptimizedChunk,
+					TO_RESUME.offsetInDefaultChunk);
+			for (
+				int i = function.code().numSlots();
+				i >= 1;
+				i--)
+			{
+				continuation.argOrLocalOrStackAtPut(
+					i, stepper.pointerAt(i));
+			}
+			return interpreter.reifyThen(
+				reificationForInterruptInL1Stat,
+				() ->
+				{
+					// Push the continuation from above onto the reified stack.
+					interpreter.returnNow = false;
+					interpreter.reifiedContinuation =
+						continuation.replacingCaller(
+							stripNull(interpreter.reifiedContinuation));
+					interpreter.processInterrupt(
+						interpreter.reifiedContinuation);
+				});
+		}
+		return null;
+	}
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsPrologue(method, instruction);
-		}
-		translator.generateRunAction(method, instruction);
+		// :: reifier = L2_PREPARE_NEW_FRAME_FOR_L1.prepare(interpreter);
+		translator.loadInterpreter(method);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(L2_PREPARE_NEW_FRAME_FOR_L1.class),
+			"prepare",
+			getMethodDescriptor(
+				getType(StackReifier.class),
+				getType(Interpreter.class)),
+			false);
+		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsEpilogue(method, instruction);
-		}
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		final Label continueLabel = new Label();
-		method.visitJumpInsn(IFNULL, continueLabel);
+		// :: if (reifier == null) goto noReification;
+		final Label noReification = new Label();
+		method.visitJumpInsn(IFNULL, noReification);
+		// :: else return reifier;
 		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		method.visitInsn(ARETURN);
-		method.visitLabel(continueLabel);
+		method.visitLabel(noReification);
 	}
 }

@@ -43,7 +43,7 @@ import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 
 import javax.annotation.Nullable;
@@ -79,6 +79,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_PrintToErrorConsole().init(
 			1, CanSuspend, Unknown);

@@ -1,4 +1,4 @@
-/**
+/*
  * L1InstructionStepper.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
@@ -43,6 +42,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.IndexedGenerator;
@@ -56,16 +56,12 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createLabelContinuation;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
@@ -79,7 +75,7 @@ import static com.avail.utility.Nulls.stripNull;
 /**
  * This class is used to simulate the effect of level one nybblecodes during
  * execution of the {@link L2_INTERPRET_LEVEL_ONE} instruction, on behalf
- * of a {@link Interpreter}.
+ * of an {@link Interpreter}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -126,15 +122,23 @@ public final class L1InstructionStepper
 		this.interpreter = interpreter;
 	}
 
+	/** An empty array used for clearing the pointers quickly. */
+	public static final AvailObject[] emptyPointersArray = new AvailObject[0];
+
+	/**
+	 * The registers that hold {@linkplain AvailObject Avail objects}.
+	 */
+	public AvailObject[] pointers = emptyPointersArray;
+
 	/**
 	 * Read from the specified object register.
 	 *
 	 * @param index Which object register to read.
 	 * @return The value from that register.
 	 */
-	@InnerAccess AvailObject pointerAt (final int index)
+	public AvailObject pointerAt (final int index)
 	{
-		return interpreter.pointerAt(index);
+		return pointers[index];
 	}
 
 	/**
@@ -143,11 +147,19 @@ public final class L1InstructionStepper
 	 * @param index Which object register to write.
 	 * @param value The value to write to that register.
 	 */
-	@InnerAccess void pointerAtPut (
+	public void pointerAtPut (
 		final int index,
 		final A_BasicObject value)
 	{
-		interpreter.pointerAtPut(index, value);
+		pointers[index] = (AvailObject) value;
+	}
+
+	/**
+	 * Wipe out the existing register set for safety.
+	 */
+	public void wipeRegisters ()
+	{
+		pointers = emptyPointersArray;
 	}
 
 	/**
@@ -159,7 +171,7 @@ public final class L1InstructionStepper
 	 */
 	private void push (final A_BasicObject value)
 	{
-		interpreter.pointerAtPut(--stackp, value);
+		pointerAtPut(--stackp, value);
 	}
 
 	/**
@@ -172,7 +184,7 @@ public final class L1InstructionStepper
 	private AvailObject pop ()
 	{
 		final AvailObject popped = pointerAt(stackp);
-		interpreter.pointerAtPut(stackp++, nil);
+		pointerAtPut(stackp++, nil);
 		return popped;
 	}
 
@@ -192,11 +204,11 @@ public final class L1InstructionStepper
 	 * @return {@code null} if the current function returns normally, otherwise
 	 *         a {@link StackReifier} with which to reify the stack.
 	 */
+	@ReferencedInGeneratedCode
 	public @Nullable StackReifier run ()
 	{
 		final A_Function function = stripNull(interpreter.function);
 		final A_RawFunction code = function.code();
-		final AvailObject[] initialPointers = interpreter.pointers;
 		if (debugL1)
 		{
 			Interpreter.log(
@@ -209,7 +221,6 @@ public final class L1InstructionStepper
 		final int nybbleCount = code.numNybbles();
 		while (pc.value <= nybbleCount)
 		{
-			assert interpreter.pointers == initialPointers;
 			final L1Operation operation = code.nextNybblecodeOperation(pc);
 			if (debugL1)
 			{
@@ -249,8 +260,8 @@ public final class L1InstructionStepper
 					interpreter.argsBuffer.clear();
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
 					{
-						interpreter.argsBuffer.add(interpreter.pointerAt(i));
-						interpreter.pointerAtPut(i, nil);
+						interpreter.argsBuffer.add(pointerAt(i));
+						pointerAtPut(i, nil);
 					}
 					stackp += numArgs;
 					// Push the expected type, which should be replaced on the
@@ -259,7 +270,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = System.nanoTime();
+					final long beforeLookup = AvailRuntime.captureNanos();
 					try
 					{
 						matching = method.lookupByValuesFromList(
@@ -272,7 +283,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = System.nanoTime();
+						final long afterLookup = AvailRuntime.captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -502,8 +513,7 @@ public final class L1InstructionStepper
 
 					final A_Function savedFunction =
 						stripNull(interpreter.function);
-					final AvailObject[] savedPointers = interpreter.pointers;
-					final int[] savedInts = interpreter.integers;
+					final AvailObject[] savedPointers = pointers;
 					final int savedPc = pc.value;
 					final int savedStackp = stackp;
 
@@ -518,8 +528,7 @@ public final class L1InstructionStepper
 							interpreter.chunk = unoptimizedChunk;
 							interpreter.offset =
 								AFTER_REIFICATION.offsetInDefaultChunk;
-							interpreter.pointers = savedPointers;
-							interpreter.integers = savedInts;
+							pointers = savedPointers;
 							pc.value = savedPc;
 							stackp = savedStackp;
 
@@ -635,7 +644,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = System.nanoTime();
+					final long beforeLookup = AvailRuntime.captureNanos();
 					try
 					{
 						matching = method.lookupByTypesFromTuple(typesTuple);
@@ -647,7 +656,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = System.nanoTime();
+						final long afterLookup = AvailRuntime.captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -692,14 +701,12 @@ public final class L1InstructionStepper
 					break;
 				}
 			}
-			// Make sure an instruction didn't switch contexts by accident.
-			assert initialPointers == interpreter.pointers;
 		}
 		// It ran off the end of the nybblecodes, which is how a function
 		// returns in Level One.  Capture the result and return to the Java
 		// caller.
 		interpreter.latestResult(pop());
-		assert stackp == interpreter.pointers.length;
+		assert stackp == pointers.length;
 		interpreter.returnNow = true;
 		interpreter.returningFunction = function;
 		if (debugL1)
@@ -767,8 +774,7 @@ public final class L1InstructionStepper
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 
 			final A_Function savedFunction = stripNull(interpreter.function);
-			final int[] savedInts = interpreter.integers;
-			final AvailObject[] savedPointers = interpreter.pointers;
+			final AvailObject[] savedPointers = pointers;
 			final int savedOffset = interpreter.offset;
 			final int savedPc = pc.value;
 			final int savedStackp = stackp;
@@ -809,8 +815,7 @@ public final class L1InstructionStepper
 					}
 					reifier.pushContinuation(continuation);
 				}
-				interpreter.integers = savedInts;
-				interpreter.pointers = savedPointers;
+				pointers = savedPointers;
 				interpreter.chunk = unoptimizedChunk;
 				interpreter.offset = savedOffset;
 				interpreter.function = savedFunction;
@@ -853,8 +858,7 @@ public final class L1InstructionStepper
 		final A_Function savedFunction = stripNull(interpreter.function);
 		assert interpreter.chunk == unoptimizedChunk;
 		final int savedOffset = interpreter.offset;
-		final AvailObject[] savedPointers = interpreter.pointers;
-		final int[] savedInts = interpreter.integers;
+		final AvailObject[] savedPointers = pointers;
 		final int savedPc = pc.value;
 		final int savedStackp = stackp;
 
@@ -878,8 +882,7 @@ public final class L1InstructionStepper
 				{
 					// At some point during the call, reification was
 					// requested.  Add this frame and rethrow.
-					interpreter.pointers = savedPointers;
-					interpreter.integers = savedInts;
+					pointers = savedPointers;
 					final A_Continuation continuation =
 						createContinuationExceptFrame(
 							savedFunction,
@@ -911,8 +914,7 @@ public final class L1InstructionStepper
 		}
 		finally
 		{
-			interpreter.pointers = savedPointers;
-			interpreter.integers = savedInts;
+			pointers = savedPointers;
 			interpreter.chunk = unoptimizedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;

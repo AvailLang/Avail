@@ -5175,6 +5175,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_FiberResultType (final AvailObject object)
+	{
+		return o_Traversed(object).fiberResultType();
+	}
+
+	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
 		final AvailObject object)
 	{

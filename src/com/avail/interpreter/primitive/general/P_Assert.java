@@ -44,7 +44,7 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.optimizer.L1Translator;
@@ -79,6 +79,7 @@ public final class P_Assert extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_Assert().init(
 			2, Unknown, CanSuspend, CannotFail);

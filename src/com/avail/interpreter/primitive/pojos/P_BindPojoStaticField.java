@@ -41,7 +41,7 @@ import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
@@ -82,6 +82,7 @@ public final class P_BindPojoStaticField extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_BindPojoStaticField().init(
 			2, CanFold, CanInline);

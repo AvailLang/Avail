@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,15 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -53,12 +51,7 @@ import java.util.List;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -66,8 +59,10 @@ import static org.objectweb.asm.Type.*;
  * the constant type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
+public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -78,24 +73,6 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 			CONSTANT.is("constant type"),
 			PC.is("is subtype"),
 			PC.is("not subtype"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand typeReg =
-			instruction.readObjectRegisterAt(0);
-		final A_Type constantType = instruction.constantAt(1);
-		final int isSubtypeIndex = instruction.pcOffsetAt(2);
-		final int notSubtypeIndex = instruction.pcOffsetAt(3);
-
-		interpreter.offset(
-			typeReg.in(interpreter).isSubtypeOf(constantType)
-				? isSubtypeIndex
-				: notSubtypeIndex);
-		return null;
-	}
 
 	@Override
 	public boolean regenerate (
@@ -200,43 +177,22 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int typeRegisterIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-//		final A_Type constantType = instruction.constantAt(1);
-		final int isSubtypeIndex = instruction.pcOffsetAt(2);
-		final int notSubtypeIndex = instruction.pcOffsetAt(3);
+		final L2ObjectRegister typeRegister =
+			instruction.readObjectRegisterAt(0).register();
+		final A_Type constantType = instruction.constantAt(1);
+		final L2PcOperand isSubtype = instruction.pcAt(2);
+		final L2PcOperand notSubtype = instruction.pcAt(3);
 
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, typeRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
-		method.visitFieldInsn(
-			GETSTATIC,
-			translator.classInternalName,
-			instructionFieldName(instruction),
-			getDescriptor(instruction.getClass()));
-		emitIntConstant(method,1);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(L2Instruction.class),
-			"constantAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
+		// :: if (type.isSubtypeOf(constant)) goto isSubtype;
+		// :: else goto notSubtype;
+		translator.load(method, typeRegister);
+		translator.literal(method, constantType);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Type.class),
 			"isSubtypeOf",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
 			true);
-		method.visitJumpInsn(
-			IFNE,
-			stripNull(translator.instructionLabels)[isSubtypeIndex]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[notSubtypeIndex]);
+		translator.branch(method, instruction, IFNE, isSubtype, notSubtype);
 	}
 }

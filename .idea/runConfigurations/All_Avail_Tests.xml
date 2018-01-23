@@ -19,6 +19,8 @@
     <envs />
     <dir value="$PROJECT_DIR$/test/com/avail/test" />
     <patterns />
-    <method />
+    <method>
+      <option name="Make" enabled="false" />
+    </method>
   </configuration>
 </component>

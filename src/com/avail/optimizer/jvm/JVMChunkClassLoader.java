@@ -1,6 +1,6 @@
 /*
  * JVMChunkClassLoader.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ extends ClassLoader
 	 * The parameters made available for the generated {@link JVMChunk} upon
 	 * static initialization.
 	 */
+	@ReferencedInGeneratedCode
 	public @Nullable Object[] parameters;
 
 	/**
@@ -97,18 +98,7 @@ extends ClassLoader
 			// actually load. The static initializer should have discarded the
 			// parameters after assignment to static final fields of the
 			// generated JVMChunk.
-//			assert parameters == null
-//				: String.format(
-//				"%s did not null out its JVMChunkClassLoader's "
-//					+ "parameters array",
-//				className);
 			final Object o = constructor.newInstance();
-//			Interpreter.log(
-//				Interpreter.loggerDebugJVM,
-//				Level.FINER,
-//				"Loaded JVMChunk ({0}) from L2Chunk ({1})",
-//				className,
-//				chunk.toString());
 			return (JVMChunk) o;
 		}
 		catch (final NoSuchMethodException
@@ -129,7 +119,7 @@ extends ClassLoader
 	}
 
 	/**
-	 * Construct a new {@link JVMChunkClassLoader} that delegates to the same
+	 * Construct a new {@code JVMChunkClassLoader} that delegates to the same
 	 * {@link ClassLoader} that loaded {@link JVMChunk}.
 	 */
 	public JVMChunkClassLoader ()

@@ -36,7 +36,7 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +95,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_BootstrapBlockMacro().init(
 			7, CanInline, Bootstrap);

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor;
@@ -40,7 +41,7 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -50,20 +51,20 @@ import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Raise an exception. Scan the stack of
  * {@linkplain ContinuationDescriptor continuations} until one is found for
- * a {@linkplain FunctionDescriptor function} whose {@linkplain
- * CompiledCodeDescriptor code} is {@linkplain P_CatchException primitive
- * 200}. Get that continuation's second argument (a handler block of one
- * argument), and check if that handler block will accept {@code
- * exceptionValue}. If not, keep looking. If it will accept it, unwind the
- * stack so that the primitive 200 continuation is the top entry, and invoke
- * the handler block with {@code exceptionValue}. If there is no suitable
- * handler block, then fail this primitive (with the unhandled exception).
+ * a {@linkplain FunctionDescriptor function} whose {@link A_RawFunction code}
+ * is {@link P_CatchException}. Get that continuation's second argument (a
+ * handler block of one argument), and check if that handler block will accept
+ * {@code exceptionValue}. If not, keep looking. If it will accept it, unwind
+ * the stack so that the {@link P_CatchException} continuation is the top entry,
+ * and invoke the handler block with {@code exceptionValue}. If there is no
+ * suitable handler block, then fail this primitive (with the unhandled
+ * exception).
  */
 public final class P_RaiseException
 extends Primitive
@@ -71,9 +72,10 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RaiseException().init(
-			1, CanSuspend, SwitchesContinuation);
+			1, CanSuspend, CanSwitchContinuations);
 
 	@Override
 	public Result attempt (

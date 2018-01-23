@@ -1,4 +1,4 @@
-/**
+/*
  * L2Operation.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -64,10 +64,6 @@ import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.stream.Collectors.toList;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.*;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -82,6 +78,20 @@ import static org.objectweb.asm.Type.*;
 @SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2Operation
 {
+	/**
+	 * Is the enclosing {@link L2Instruction} an entry point into its {@link
+	 * L2Chunk}?
+	 *
+	 * @param instruction
+	 *        The enclosing {@code L2Instruction}.
+	 * @return {@code true} if this {@code L2Operation} is an entry point,
+	 *         {@code false} otherwise.
+	 */
+	public boolean isEntryPoint (final L2Instruction instruction)
+	{
+		return false;
+	}
+
 	/**
 	 * The {@linkplain L2NamedOperandType named operand types} that this
 	 * {@linkplain L2Operation operation} expects.
@@ -132,7 +142,7 @@ public abstract class L2Operation
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
 	 */
-	public final Statistic statisticInNanoseconds;
+	public final Statistic jvmTranslationTime;
 
 	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight
@@ -142,8 +152,8 @@ public abstract class L2Operation
 	{
 		final String className = this.getClass().getSimpleName();
 		name = className;
-		statisticInNanoseconds = new Statistic(
-			className, StatisticReport.L2_OPERATIONS);
+		jvmTranslationTime = new Statistic(
+			className, StatisticReport.JVM_TRANSLATION_TIME);
 	}
 
 	/** An empty array of ints. */
@@ -179,29 +189,6 @@ public abstract class L2Operation
 		altersControlFlow = labelOperandIndices.length > 0
 			|| !reachesNextInstruction();
 		return this;
-	}
-
-	/**
-	 * Execute this {@code L2Operation} within an {@link Interpreter}.  The
-	 * {@linkplain L2Operand operands} are provided in the {@link L2Instruction}
-	 * that is also passed.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} of which this is the {@code
-	 *        L2Operation}.
-	 * @param interpreter
-	 *        The {@link Interpreter} on behalf of which to perform this
-	 *        operation.
-	 * @return {@code null} if the step completes normally, or a {@link
-	 *         StackReifier} if the instruction triggers stack reification.
-	 */
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		// Subclasses should implement either this or actionFor().
-		// Eventually step() will be entirely deprecated.
-		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -360,6 +347,24 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * This is the operation for the given instruction, which was just added to
+	 * its basic block.  Note that the operands have not yet been given the
+	 * opportunity
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} that was just added.
+	 */
+	public void instructionWasAdded (
+		final L2Instruction instruction)
+	{
+		if (isEntryPoint(instruction))
+		{
+			assert instruction.basicBlock.instructions().get(0) == instruction
+				: "Entry point instruction must be at start of a block";
+		}
+	}
+
+	/**
 	 * Write the given instruction's equivalent effect through the given {@link
 	 * L2Inliner}.  The given {@link L2Instruction}'s {@linkplain
 	 * L2Instruction#operation operation} must be the current receiver.
@@ -478,31 +483,12 @@ public abstract class L2Operation
 	 *         instruction will write its result, or null if the instruction
 	 *         isn't an attempt to run a primitive.
 	 */
+	@SuppressWarnings("unused")
 	public @Nullable L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == this;
 		return null;
-	}
-
-	/**
-	 * Create an action (@link {@link Continuation1NotNull<Interpreter>}) for
-	 * the instruction (whose operation is the receiver).
-	 *
-	 * @param instruction
-	 *        The instruction for which to create an action.
-	 * @return A {@link Continuation1NotNull} to run to effect this {@code
-	 *         L2Operation} on an {@link Interpreter}.
-	 */
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		// For now, most operations can just fall back on their step method.
-		// Eventually we'll deprecate step, making actionFor() abstract.  And
-		// further down the road, we'll generate JVM (or perhaps native) code
-		// from each instruction instead, getting rid of both step() and
-		// actionFor().
-		return interpreter -> step(instruction, interpreter);
 	}
 
 	/**
@@ -549,20 +535,8 @@ public abstract class L2Operation
 	 * @param instruction
 	 *        The {@link L2Instruction} to translate.
 	 */
-	public void translateToJVM (
+	public abstract void translateToJVM (
 		JVMTranslator translator,
 		MethodVisitor method,
-		L2Instruction instruction)
-	{
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsPrologue(method, instruction);
-		}
-		translator.generateRunAction(method, instruction);
-		method.visitInsn(POP);
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsEpilogue(method, instruction);
-		}
-	}
+		L2Instruction instruction);
 }

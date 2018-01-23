@@ -1,4 +1,4 @@
-/**
+/*
  * L2_CREATE_SET.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,27 +32,32 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Set;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a set from the values in the specified vector of object registers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_SET extends L2Operation
+public class L2_CREATE_SET
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -63,21 +68,39 @@ public class L2_CREATE_SET extends L2Operation
 			WRITE_POINTER.is("new set"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> registers =
+		final List<L2ReadPointerOperand> operands =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationSetReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2ObjectRegister destinationSetReg =
+			instruction.writeObjectRegisterAt(1).register();
 
-		A_Set set = emptySet();
-		for (final L2ReadPointerOperand reg : registers)
+		// :: set = SetDescriptor.emptySet();
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(SetDescriptor.class),
+			"emptySet",
+			getMethodDescriptor(getType(A_Set.class)),
+			false);
+		for (final L2ReadPointerOperand operand : operands)
 		{
-			set = set.setWithElementCanDestroy(reg.in(interpreter), true);
+			// :: set = set.setWithElementCanDestroy(«register», true);
+			translator.load(method, operand.register());
+			translator.intConstant(method, 1);
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				getInternalName(A_Set.class),
+				"setWithElementCanDestroy",
+				getMethodDescriptor(
+					getType(A_Set.class),
+					getType(A_BasicObject.class),
+					BOOLEAN_TYPE),
+				true);
 		}
-		destinationSetReg.set(set, interpreter);
-		return null;
+		// :: destinationSet = set;
+		translator.store(method, destinationSetReg);
 	}
 }

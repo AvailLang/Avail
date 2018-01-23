@@ -40,6 +40,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -821,10 +822,9 @@ extends TypeDescriptor
 		synchronized (propertyKey)
 		{
 			int leastNames = Integer.MAX_VALUE;
-			A_Atom keyAtomWithLeastNames = null;
-			A_Map keyAtomNamesMap = null;
-			for (final Entry entry
-				: anObjectType.fieldTypeMap().mapIterable())
+			@Nullable A_Atom keyAtomWithLeastNames = null;
+			@Nullable A_Map keyAtomNamesMap = null;
+			for (final Entry entry : anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
 				if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial())
@@ -917,21 +917,19 @@ extends TypeDescriptor
 	 *         more specific named type is known, and (2) A set of object types
 	 *         corresponding to those names.
 	 */
-	public static A_Tuple namesAndBaseTypesForObjectType (
+	static A_Tuple namesAndBaseTypesForObjectType (
 		final A_Type anObjectType)
 	{
 		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
 		A_Map applicableTypesAndNames = emptyMap();
 		synchronized (propertyKey)
 		{
-			for (final Entry entry
-				: anObjectType.fieldTypeMap().mapIterable())
+			for (final Entry entry : anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Map map = entry.key().getAtomProperty(propertyKey);
 				if (!map.equalsNil())
 				{
-					for (final Entry innerEntry :
-						map.mapIterable())
+					for (final Entry innerEntry : map.mapIterable())
 					{
 						final A_Type namedType = innerEntry.key();
 						if (anObjectType.isSubtypeOf(namedType))
@@ -953,8 +951,7 @@ extends TypeDescriptor
 			applicableTypesAndNames.makeImmutable();
 		}
 		A_Map filtered = applicableTypesAndNames;
-		for (final Entry childEntry
-			: applicableTypesAndNames.mapIterable())
+		for (final Entry childEntry : applicableTypesAndNames.mapIterable())
 		{
 			final A_Type childType = childEntry.key();
 			for (final Entry parentEntry
@@ -999,8 +996,8 @@ extends TypeDescriptor
 	 * Answer the set of named base types for the specified {@linkplain
 	 * ObjectTypeDescriptor user-defined object type}.
 	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
+	 * @param anObjectType
+	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
 	 * @return A {@linkplain SetDescriptor set} containing the named ancestors
 	 *         of the specified {@linkplain ObjectTypeDescriptor user-defined
 	 *         object type}, excluding named types for which a strictly more
@@ -1153,20 +1150,5 @@ extends TypeDescriptor
 	public static A_Type exceptionType ()
 	{
 		return exceptionType;
-	}
-
-	/**
-	 * The type of the most general exception type.
-	 */
-	private static final A_Type exceptionMeta = instanceMeta(exceptionType);
-
-	/**
-	 * Answer the most general exception type's type.
-	 *
-	 * @return The most general exception meta.
-	 */
-	public static A_Type exceptionMeta ()
-	{
-		return exceptionMeta;
 	}
 }

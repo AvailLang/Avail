@@ -1,4 +1,4 @@
-/**
+/*
  * L2_MULTIPLY_INT_BY_INT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,16 +32,17 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.INT_TYPE;
 
 /**
  * Multiply the value in one int register by the value in another int register,
@@ -49,54 +50,77 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * Otherwise jump to the specified target.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MULTIPLY_INT_BY_INT extends L2Operation
+public class L2_MULTIPLY_INT_BY_INT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
 		new L2_MULTIPLY_INT_BY_INT().init(
-			READ_INT.is("multiplier"),
 			READ_INT.is("multiplicand"),
+			READ_INT.is("multiplier"),
 			WRITE_INT.is("product"),
 			PC.is("in range"),
 			PC.is("out of range"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadIntOperand multiplierReg =
-			instruction.readIntRegisterAt(0);
-		final L2ReadIntOperand multiplicandReg =
-			instruction.readIntRegisterAt(1);
-		final L2WriteIntOperand productReg =
-			instruction.writeIntRegisterAt(2);
-		final int inRangeOffset = instruction.pcOffsetAt(3);
-		final int outOfRangeOffset = instruction.pcOffsetAt(4);
-
-		final int multiplier = multiplierReg.in(interpreter);
-		final int multiplicand = multiplicandReg.in(interpreter);
-		final long longResult = (long) multiplier * (long) multiplicand;
-		final int intResult = (int) longResult;
-		if (longResult == intResult)
-		{
-			productReg.set(intResult, interpreter);
-			interpreter.offset(inRangeOffset);
-		}
-		else
-		{
-			interpreter.offset(outOfRangeOffset);
-		}
-		return null;
-	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps if the result doesn't fit in an int.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2IntegerRegister multiplicandReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntegerRegister multiplierReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntegerRegister productReg =
+			instruction.writeIntRegisterAt(2).register();
+		final L2PcOperand inRange = instruction.pcAt(3);
+		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+
+		// :: longProduct = (long) multiplicand * (long) multiplier;
+		translator.load(method, multiplicandReg);
+		method.visitInsn(I2L);
+		translator.load(method, multiplierReg);
+		method.visitInsn(I2L);
+		method.visitInsn(LMUL);
+		method.visitInsn(DUP);
+		// :: intProduct = (int) longProduct;
+		method.visitInsn(L2I);
+		method.visitInsn(DUP);
+		final int intProductLocal = translator.nextLocal(INT_TYPE);
+		final Label intProductStart = new Label();
+		method.visitLabel(intProductStart);
+		method.visitVarInsn(ISTORE, intProductLocal);
+		// :: if (longProduct != intProduct) goto outOfRange;
+		method.visitInsn(I2L);
+		method.visitInsn(LCMP);
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeOffset));
+		// :: else {
+		// ::    product = intProduct;
+		// ::    goto inRange;
+		// :: }
+		method.visitVarInsn(ILOAD, intProductLocal);
+		final Label intProductEnd = new Label();
+		method.visitLabel(intProductEnd);
+		method.visitLocalVariable(
+			"intProduct",
+			INT_TYPE.getDescriptor(),
+			null,
+			intProductStart,
+			intProductEnd,
+			intProductLocal);
+		translator.store(method, productReg);
+		translator.branch(method, instruction, inRange);
 	}
 }

@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -45,6 +47,7 @@ import java.util.NoSuchElementException;
 public interface IteratorNotNull<E> extends Iterator<E>
 {
 	@Override
+	@ReferencedInGeneratedCode
 	E next ()
 	throws NoSuchElementException;
 }

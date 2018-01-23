@@ -1,6 +1,6 @@
-/**
+/*
  * A_Type.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -118,6 +119,7 @@ extends A_BasicObject
 	 *
 	 * @return The tuple type for a function type's arguments.
 	 */
+	@ReferencedInGeneratedCode
 	A_Type argsTupleType ();
 
 	/**
@@ -180,6 +182,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	boolean isSubtypeOf (A_Type aType);
 
 	/**
@@ -340,6 +343,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	A_Type typeAtIndex (int index);
 
 	/**
@@ -490,6 +494,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@ReferencedInGeneratedCode
 	A_Type typeUnion (A_Type another);
 
 	/**

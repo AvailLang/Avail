@@ -36,11 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MapException;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -49,10 +49,8 @@ import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LinearMapBinDescriptor.emptyLinearMapBin;
 import static com.avail.descriptor.MapDescriptor.ObjectSlots.ROOT_BIN;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -914,6 +912,7 @@ extends Descriptor
 	}
 
 	/** The empty map. */
+	@ReferencedInGeneratedCode
 	private static final A_Map emptyMap;
 
 	static

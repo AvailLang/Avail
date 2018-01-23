@@ -34,6 +34,7 @@ package com.avail.exceptions;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
  * {@code AvailException} is the root of the hierarchy of {@linkplain Exception
@@ -67,6 +68,7 @@ extends Exception
 	 *
 	 * @return The {@linkplain AvailObject numeric error code}.
 	 */
+	@ReferencedInGeneratedCode
 	public A_Number numericCode ()
 	{
 		return errorCode.numericCode();

@@ -1,4 +1,4 @@
-/**
+/*
  * L2_PHI_PSEUDO_OPERATION.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -44,9 +43,10 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -71,7 +71,8 @@ import static java.util.stream.Collectors.toList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_PHI_PSEUDO_OPERATION extends L2Operation
+public class L2_PHI_PSEUDO_OPERATION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -82,18 +83,9 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		throw new UnsupportedOperationException(
-			"This instruction should be factored out before execution");
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final List<L2ReadPointerOperand> inputRegs =
@@ -239,5 +231,15 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 		final L2Instruction instruction)
 	{
 		return instruction.readVectorRegisterAt(0);
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		throw new UnsupportedOperationException(
+			"This instruction should be factored out before JVM translation");
 	}
 }

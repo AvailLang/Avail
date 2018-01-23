@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,25 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.GOTO;
 
 /**
  * Unconditionally jump to the level two offset in my only operand.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP extends L2Operation
+public class L2_JUMP
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -63,19 +60,9 @@ public class L2_JUMP extends L2Operation
 			PC.is("target"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final int offset = instruction.pcOffsetAt(0);
-		interpreter.offset(offset);
-		return null;
-	}
-
-	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// No effect on registers; it just jumps unconditionally.
@@ -95,7 +82,7 @@ public class L2_JUMP extends L2Operation
 	}
 
 	/**
-	 * Extract the target of the give jump instruction.
+	 * Extract the target of the given jump instruction.
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
@@ -114,9 +101,9 @@ public class L2_JUMP extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int offset = instruction.pcOffsetAt(0);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[offset]);
+		final L2PcOperand target = instruction.pcAt(0);
+
+		// :: goto offset;
+		translator.branch(method, instruction, target);
 	}
 }

@@ -101,6 +101,10 @@
     <inspection_tool class="FinalMethodInFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="FinalStaticMethod" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="FloatingPointEquality" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ForCanBeForeach" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="REPORT_INDEXED_LOOP" value="true" />
+      <option name="ignoreUntypedCollections" value="false" />
+    </inspection_tool>
     <inspection_tool class="ForLoopReplaceableByWhile" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreLoopsWithoutConditions" value="false" />
     </inspection_tool>
@@ -111,7 +115,7 @@
       <option name="insideTryAllowed" value="false" />
     </inspection_tool>
     <inspection_tool class="IfCanBeSwitch" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="minimumBranches" value="4" />
+      <option name="minimumBranches" value="3" />
       <option name="suggestIntSwitches" value="true" />
       <option name="suggestEnumSwitches" value="true" />
     </inspection_tool>
@@ -154,7 +158,7 @@
       </option>
       <option name="METHOD_OPTIONS">
         <value>
-          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="public" />
+          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="none" />
           <option name="REQUIRED_TAGS" value="@return@param@throws or @exception" />
         </value>
       </option>
@@ -236,17 +240,6 @@
     <inspection_tool class="NotifyCalledOnCondition" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NotifyNotInSynchronizedContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NotifyWithoutCorrespondingWait" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="NullableProblems" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="REPORT_NULLABLE_METHOD_OVERRIDES_NOTNULL" value="true" />
-      <option name="REPORT_NOT_ANNOTATED_METHOD_OVERRIDES_NOTNULL" value="true" />
-      <option name="REPORT_NOTNULL_PARAMETER_OVERRIDES_NULLABLE" value="true" />
-      <option name="REPORT_NOT_ANNOTATED_PARAMETER_OVERRIDES_NOTNULL" value="true" />
-      <option name="REPORT_NOT_ANNOTATED_GETTER" value="true" />
-      <option name="IGNORE_EXTERNAL_SUPER_NOTNULL" value="true" />
-      <option name="REPORT_NOT_ANNOTATED_SETTER_PARAMETER" value="true" />
-      <option name="REPORT_ANNOTATION_NOT_PROPAGATED_TO_OVERRIDERS" value="true" />
-      <option name="REPORT_NULLS_PASSED_TO_NON_ANNOTATED_METHOD" value="true" />
-    </inspection_tool>
     <inspection_tool class="ObjectNotify" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ObjectToString" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ObsoleteCollection" enabled="true" level="WARNING" enabled_by_default="true">
@@ -258,7 +251,6 @@
     </inspection_tool>
     <inspection_tool class="OverridableMethodCallDuringObjectConstruction" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="OverriddenMethodCallDuringObjectConstruction" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="PackageInfoWithoutPackage" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="ParameterHidingMemberVariable" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreInvisibleFields" value="false" />
       <option name="m_ignoreStaticMethodParametersHidingInstanceFields" value="true" />
@@ -335,8 +327,8 @@
     <inspection_tool class="TestCaseInProductCode" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TestCaseWithConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TestMethodWithoutAssertion" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="assertionMethods" value="org.junit.Assert,assert.*|fail.*,junit.framework.Assert,assert.*|fail.*,org.mockito.Mockito,verify.*,org.mockito.InOrder,verify,org.junit.rules.ExpectedException,expect.*,org.hamcrest.MatcherAssert,assertThat,org.junit.jupiter.api.Assertions,.*,com.avail.test.TypeConsistencyTest,assert.*" />
-      <option name="assertKeywordIsAssertion" value="true" />
+      <option name="assertionMethods" value="org.junit.Assert,assert.*|fail.*,junit.framework.Assert,assert.*|fail.*,org.mockito.Mockito,verify.*,org.mockito.InOrder,verify,org.junit.rules.ExpectedException,expect.*,org.hamcrest.MatcherAssert,assertThat,org.junit.jupiter.api.Assertions,.*" />
+      <option name="assertKeywordIsAssertion" value="false" />
     </inspection_tool>
     <inspection_tool class="TextLabelInSwitchStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThisEscapedInConstructor" enabled="true" level="WARNING" enabled_by_default="true" />

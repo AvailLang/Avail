@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
@@ -153,6 +154,11 @@ extends A_BasicObject
 	 * @param result
 	 */
 	void fiberResult (A_BasicObject result);
+
+	/**
+	 * @return
+	 */
+	A_Type fiberResultType ();
 
 	/**
 	 * @param flag

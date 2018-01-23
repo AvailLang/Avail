@@ -1,6 +1,6 @@
-/**
+/*
  * L2_REENTER_L1_CHUNK_FROM_CALL.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,22 +33,24 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.logging.Level;
 
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Type.*;
 
 /**
- * <p>This is the first instruction of the L1 interpreter's on-ramp for resuming
+ * This is the first instruction of the L1 interpreter's on-ramp for resuming
  * after a callee returns.  The reified {@link A_Continuation} that was captured
  * (and is now being resumed) pointed to this {@link L2Instruction}.  That
  * continuation is current in the {@link Interpreter#reifiedContinuation}.  Pop
@@ -56,14 +58,18 @@ import static com.avail.utility.Nulls.stripNull;
  * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
  * continuation's slots into those registers.  The {@link Interpreter#function}
  * should also have already been set up to agree with the continuation's
- * function.</p>
+ * function.
  *
  * <p>The value being returned is in {@link Interpreter#latestResult()}, and the
  * top-of-stack of the continuation contains the type to check it against.
  * Whether to skip the return check is up to the generated L2 code after an
  * entry point.  In this case (reentering L1), we always do the check.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
+public class L2_REENTER_L1_CHUNK_FROM_CALL
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -72,9 +78,26 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		new L2_REENTER_L1_CHUNK_FROM_CALL().init();
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public boolean hasSideEffect ()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isEntryPoint (final L2Instruction instruction)
+	{
+		return true;
+	}
+
+	/**
+	 * Reenter L1 from a call.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 */
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public static void reenter (final Interpreter interpreter)
 	{
 		if (debugL1)
 		{
@@ -93,34 +116,31 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		assert returneeFunction == continuation.function();
 		final int numSlots = continuation.numSlots();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
-		interpreter.pointers = new AvailObject[numSlots + 1];
+		final L1InstructionStepper stepper = interpreter.levelOneStepper;
+		stepper.pointers = new AvailObject[numSlots + 1];
 		int destination = 1;
 		for (int i = 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(destination++, continuation.stackAt(i));
+			stepper.pointerAtPut(destination++, continuation.stackAt(i));
 		}
-		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		stepper.pc.value = continuation.pc();
 		stepper.stackp = continuation.stackp();
-		final A_Type expectedType = interpreter.pointerAt(stepper.stackp);
-
-		final @Nullable StackReifier returnCheckReifier =
-			interpreter.checkReturnType(
-				returnValue, expectedType, returneeFunction);
-		if (returnCheckReifier != null)
-		{
-			// Reification is happening within the handling of the *failed*
-			// return type check.
-			return returnCheckReifier;
-		}
-		// Otherwise the check passed.  Fall through.
-		interpreter.pointerAtPut(stepper.stackp, returnValue);
-		return null;
+		stepper.pointerAtPut(stepper.stackp, returnValue);
 	}
 
 	@Override
-	public boolean hasSideEffect ()
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
 	{
-		return true;
+		// :: L2_REENTER_L1_CHUNK_FROM_CALL.reenter(interpreter);
+		translator.loadInterpreter(method);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(L2_REENTER_L1_CHUNK_FROM_CALL.class),
+			"reenter",
+			getMethodDescriptor(VOID_TYPE, getType(Interpreter.class)),
+			false);
 	}
 }

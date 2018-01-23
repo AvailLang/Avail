@@ -41,7 +41,7 @@ import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.nio.file.FileSystem;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -73,6 +73,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_FilePathConcatenation().init(
 			1, CanInline, CanFold);

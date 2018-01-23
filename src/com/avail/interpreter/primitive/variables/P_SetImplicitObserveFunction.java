@@ -43,7 +43,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
 import java.util.List;
@@ -80,6 +80,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_SetImplicitObserveFunction().init(
 			1, CannotFail, HasSideEffect);

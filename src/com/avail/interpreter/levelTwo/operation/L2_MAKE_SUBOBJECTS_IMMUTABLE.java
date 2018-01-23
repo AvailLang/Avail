@@ -1,6 +1,6 @@
-/**
+/*
  * L2_MAKE_SUBOBJECTS_IMMUTABLE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +31,32 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Mark as immutable all objects referred to from the specified object.
  * Copying a continuation as part of the {@link
  * L1Operation#L1Ext_doPushLabel} can make good use of this peculiar
  * instruction.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
+public class L2_MAKE_SUBOBJECTS_IMMUTABLE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -58,17 +64,6 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 	public static final L2Operation instance =
 		new L2_MAKE_SUBOBJECTS_IMMUTABLE().init(
 			READ_POINTER.is("object"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand objectReg =
-			instruction.readObjectRegisterAt(0);
-		objectReg.in(interpreter).makeSubobjectsImmutable();
-		return null;
-	}
 
 	@Override
 	public boolean hasSideEffect ()
@@ -79,10 +74,29 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// It just has a side-effect.
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister objectReg =
+			instruction.readObjectRegisterAt(0).register();
+
+		// :: object.makeSubobjectsImmutable();
+		translator.load(method, objectReg);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_BasicObject.class),
+			"makeSubobjectsImmutable",
+			getMethodDescriptor(VOID_TYPE),
+			true);
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * L2WritePointerOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -52,7 +51,8 @@ import java.util.Map;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2WritePointerOperand extends L2Operand
+public class L2WritePointerOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@link L2ObjectRegister}.
@@ -91,12 +91,6 @@ public class L2WritePointerOperand extends L2Operand
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		this.register = new L2ObjectRegister(debugValue, type, constantOrNull);
-	}
-
-	/** Private constructor used only for register transformation. */
-	private L2WritePointerOperand (final L2ObjectRegister register)
-	{
-		this.register = register;
 	}
 
 	/**
@@ -169,25 +163,12 @@ public class L2WritePointerOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
+		@SuppressWarnings("StringBufferReplaceableByString")
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Write(");
 		builder.append(register);
 		builder.append(register.restriction().suffixString());
 		builder.append(")");
 		return builder.toString();
-	}
-
-	/**
-	 * Replace the value of this register within the provided {@link
-	 * Interpreter}.
-	 *
-	 * @param newValue The AvailObject to write to the register.
-	 * @param interpreter The Interpreter.
-	 */
-	public final void set (
-		final A_BasicObject newValue,
-		final Interpreter interpreter)
-	{
-		interpreter.pointerAtPut(finalIndex(), newValue);
 	}
 }

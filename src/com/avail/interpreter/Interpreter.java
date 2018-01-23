@@ -51,10 +51,12 @@ import com.avail.interpreter.primitive.fibers.P_AttemptJoinFiber;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -107,6 +109,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -333,7 +336,10 @@ public final class Interpreter
 	{
 		if (logger.isLoggable(level))
 		{
-			final @Nullable A_Fiber runningFiber = currentFiberOrNull();
+			final @Nullable Interpreter interpreter = currentOrNull();
+			final @Nullable A_Fiber runningFiber = interpreter != null
+				? interpreter.fiberOrNull()
+				: null;
 			if (debugIntoFiberDebugLog)
 			{
 				// Write into a StringBuilder in each fiber's debugLog().
@@ -343,12 +349,13 @@ public final class Interpreter
 					final StringBuilder log = runningFiber.debugLog();
 					synchronized (log)
 					{
-						log.append(MessageFormat.format(message, arguments));
-						log.append('\n');
+						Strings.tab(log, interpreter.unreifiedCallDepth);
 						if (log.length() > maxFiberLogLength)
 						{
 							log.delete(0, maxFiberLogLength >> 4);
 						}
+						log.append(MessageFormat.format(message, arguments));
+						log.append('\n');
 					}
 				}
 				// Ignore the bit of logging not tied to a specific fiber.
@@ -460,19 +467,6 @@ public final class Interpreter
 		 */
 		FRAMES,
 
-		/**
-		 * The pointer register values.  These are wrapped an extra layer deep
-		 * in a 1-tuple to ensure Eclipse won't spend years repeatedly producing
-		 * the print representations of things you would never want to see and
-		 * didn't ask for.
-		 */
-		POINTERS,
-
-		/**
-		 * The integer register values.
-		 */
-		INTEGERS,
-
 		/** The current {@link AvailLoader}, if any. */
 		LOADER
 	}
@@ -522,12 +516,6 @@ public final class Interpreter
 			outerArray[FRAMES.ordinal()] = tupleFromList(frames);
 		}
 
-		// Now collect the pointer register values.
-		outerArray[POINTERS.ordinal()] = pointers;
-
-		// May as well show the integer registers too...
-		outerArray[INTEGERS.ordinal()] = integers;
-
 		outerArray[LOADER.ordinal()] = availLoaderOrNull();
 
 		// Now put all the top level constructs together...
@@ -555,6 +543,7 @@ public final class Interpreter
 	 *
 	 * @return This interpreter's runtime.
 	 */
+	@ReferencedInGeneratedCode
 	public AvailRuntime runtime ()
 	{
 		return runtime;
@@ -643,10 +632,11 @@ public final class Interpreter
 
 	/**
 	 * Bind the specified {@linkplain ExecutionState#RUNNING running}
-	 * {@linkplain FiberDescriptor fiber} to the {@code Interpreter}.
+	 * {@linkplain FiberDescriptor fiber} to the {@code Interpreter}, or unbind
+	 * the current fiber.
 	 *
 	 * @param newFiber
-	 *        The fiber to run.
+	 *        The fiber to run, or {@code null} to unbind the current fiber.
 	 * @param tempDebug
 	 *        A string describing the context of this operation.
 	 */
@@ -800,6 +790,7 @@ public final class Interpreter
 	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
 	 * failed} primitive.
 	 */
+	@ReferencedInGeneratedCode
 	private @Nullable AvailObject latestResult;
 
 	/**
@@ -813,8 +804,10 @@ public final class Interpreter
 	 *
 	 * @param newResult The latest result to record.
 	 */
+	@ReferencedInGeneratedCode
 	public void latestResult (final @Nullable A_BasicObject newResult)
 	{
+		assert newResult != null || !returnNow;
 		latestResult = (AvailObject) newResult;
 		if (debugL2)
 		{
@@ -837,6 +830,7 @@ public final class Interpreter
 	 *
 	 * @return The latest result.
 	 */
+	@ReferencedInGeneratedCode
 	public AvailObject latestResult ()
 	{
 		return stripNull(latestResult);
@@ -861,13 +855,8 @@ public final class Interpreter
 	 * used for statistics collection and reporting errors when returning a
 	 * value that disagrees with semantic restrictions.
 	 */
+	@ReferencedInGeneratedCode
 	public @Nullable A_Function returningFunction;
-
-	/**
-	 * A field that holds the current {@link StackReifier} when running
-	 * reification clauses.
-	 */
-	public @Nullable StackReifier activeReifier = null;
 
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
@@ -1018,6 +1007,7 @@ public final class Interpreter
 	 * detects this, it should resume the top reified continuation's chunk,
 	 * giving it an opportunity to accept the return value and de-reify.
 	 */
+	@ReferencedInGeneratedCode
 	public boolean returnNow = false;
 
 	/**
@@ -1098,7 +1088,7 @@ public final class Interpreter
 		}
 		exitNow = true;
 		latestResult(null);
-		wipeRegisters();
+		levelOneStepper.wipeRegisters();
 		return FIBER_SUSPENDED;
 	}
 
@@ -1179,7 +1169,7 @@ public final class Interpreter
 					+ "Set exitNow and clear latestResult (exitFiber)");
 		}
 		latestResult(null);
-		wipeRegisters();
+		levelOneStepper.wipeRegisters();
 		postExitContinuation(() ->
 		{
 			final A_Set joining = aFiber.joiningFibers().makeShared();
@@ -1245,6 +1235,7 @@ public final class Interpreter
 	 *        The {@link Primitive} to invoke.
 	 * @return The resulting status of the primitive attempt.
 	 */
+	@ReferencedInGeneratedCode
 	public Result attemptPrimitive (
 		final Primitive primitive)
 	{
@@ -1257,11 +1248,12 @@ public final class Interpreter
 				debugModeString,
 				primitive.name());
 		}
+		returnNow = false;
 		latestResult(null);
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success =
-			primitive.attempt(argsBuffer, this);
+			primitive.attempt(unmodifiableArgsBuffer, this);
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1287,7 +1279,7 @@ public final class Interpreter
 					Level.FINER,
 					"{0}... completed primitive {1} => {2}{3}",
 					debugModeString,
-					primitive.getClass().getSimpleName(),
+					primitive.name(),
 					success.name(),
 					failPart);
 				if (success != SUCCESS)
@@ -1305,6 +1297,7 @@ public final class Interpreter
 	}
 
 	/** The (bottom) portion of the call stack that has been reified. */
+	@ReferencedInGeneratedCode
 	public @Nullable A_Continuation reifiedContinuation = null;
 
 	/**
@@ -1319,103 +1312,19 @@ public final class Interpreter
 	private static final int maxUnreifiedCallDepth = 50;
 
 	/** The {@link A_Function} being executed. */
+	@ReferencedInGeneratedCode
 	public @Nullable A_Function function;
 
 	/** The {@link L2Chunk} being executed. */
+	@ReferencedInGeneratedCode
 	public @Nullable L2Chunk chunk;
 
 	/**
 	 * The current zero-based L2 offset within the current L2Chunk's
 	 * instructions.
 	 */
+	@ReferencedInGeneratedCode
 	public int offset;
-
-	/** An empty array used for clearing the pointers quickly. */
-	public static final AvailObject[] emptyPointersArray = new AvailObject[0];
-
-	/**
-	 * The registers that hold {@linkplain AvailObject Avail objects}.
-	 */
-	public AvailObject[] pointers = emptyPointersArray;
-
-	/**
-	 * Read from an object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NilDescriptor#nil null
-	 * object}.
-	 *
-	 * @param index
-	 *        The object register index.
-	 * @return The object in the specified register.
-	 */
-	public AvailObject pointerAt (final int index)
-	{
-		return pointers[index];
-	}
-
-	/**
-	 * Write to an object register. Register zero is reserved for read-only use,
-	 * and always contains the {@linkplain NilDescriptor#nil null
-	 * object}.
-	 *
-	 * @param index
-	 *        The object register index.
-	 * @param anAvailObject
-	 *        The object to write to the specified register.
-	 */
-	public void pointerAtPut (
-		final int index,
-		final A_BasicObject anAvailObject)
-	{
-		// assert index > 0;
-		// assert anAvailObject != null;
-		pointers[index] = (AvailObject) anAvailObject;
-	}
-
-	/** An empty array used for clearing the integers quickly. */
-	public static final int[] emptyIntArray = new int[0];
-
-	/**
-	 * The 32-bit signed integer registers.
-	 */
-	public int[] integers = emptyIntArray;
-
-	/**
-	 * Read from an integer register. The index is one-based. Entry [0] is
-	 * unused.
-	 *
-	 * @param index
-	 *        The one-based integer-register index.
-	 * @return The {@code int} in the specified register.
-	 */
-	public int integerAt (final int index)
-	{
-		// assert index > 0;
-		return integers[index];
-	}
-
-	/**
-	 * Write to an integer register. The index is one-based. Entry [0] is
-	 * unused.
-	 *
-	 * @param index
-	 *        The one-based integer-register index.
-	 * @param value
-	 *        The {@code int} value to write to the register.
-	 */
-	public void integerAtPut (final int index, final int value)
-	{
-		// assert index > 0;
-		integers[index] = value;
-	}
-
-	/**
-	 * Wipe out the existing register set for safety.
-	 */
-	public void wipeRegisters ()
-	{
-		pointers = emptyPointersArray;
-		integers = emptyIntArray;
-	}
 
 	/**
 	 * Jump to a new position in the L2 instruction stream.
@@ -1432,13 +1341,21 @@ public final class Interpreter
 	 * A reusable temporary buffer used to hold arguments during method
 	 * invocations.
 	 */
+	@ReferencedInGeneratedCode
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
+
+	/**
+	 * A reusable unmodifiable view of the {@link #argsBuffer}.
+	 */
+	public final List<AvailObject> unmodifiableArgsBuffer =
+		unmodifiableList(argsBuffer);
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
 	 * nybblecodes.
 	 */
 	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	@ReferencedInGeneratedCode
 	public final L1InstructionStepper levelOneStepper =
 		new L1InstructionStepper(this);
 
@@ -1460,6 +1377,7 @@ public final class Interpreter
 	 *
 	 * @return {@code true} if an interrupt is pending, {@code false} otherwise.
 	 */
+	@ReferencedInGeneratedCode
 	public boolean isInterruptRequested ()
 	{
 		return runtime.levelOneSafetyRequested()
@@ -1483,6 +1401,7 @@ public final class Interpreter
 	public void processInterrupt (final A_Continuation continuation)
 	{
 		assert !exitNow;
+		assert !returnNow;
 		final A_Fiber aFiber = fiber();
 		final MutableOrNull<A_Set> waiters = new MutableOrNull<>();
 		aFiber.lock(() ->
@@ -1505,6 +1424,8 @@ public final class Interpreter
 				fiber(null, "processInterrupt");
 			}
 		});
+		assert !exitNow;
+		returnNow = false;
 		exitNow = true;
 		offset = Integer.MAX_VALUE;
 		if (debugL2)
@@ -1517,7 +1438,7 @@ public final class Interpreter
 		}
 		startTick = -1L;
 		latestResult(null);
-		wipeRegisters();
+		levelOneStepper.wipeRegisters();
 		postExitContinuation(() ->
 		{
 			if (waiters.value != null)
@@ -1595,7 +1516,7 @@ public final class Interpreter
 							function = handler;
 							chunk = handler.code().startingChunk();
 							offset = 0;  // Invocation
-							wipeRegisters();
+							levelOneStepper.wipeRegisters();
 							returnNow = false;
 							latestResult(null);
 							return CONTINUATION_CHANGED;
@@ -1748,6 +1669,7 @@ public final class Interpreter
 		assert unreifiedCallDepth() == 0;
 		assert fiber != null;
 		assert !exitNow;
+		assert !returnNow;
 		nanosToExclude = 0L;
 		startTick = runtime.clock.get();
 		if (debugL2)
@@ -1857,7 +1779,7 @@ public final class Interpreter
 		@Nullable StackReifier reifier = null;
 		while (!returnNow && !exitNow && reifier == null)
 		{
-			reifier = stripNull(chunk).runChunk(this);
+			reifier = stripNull(chunk).runChunk(this, offset);
 		}
 		adjustUnreifiedCallDepthBy(-1);
 		return reifier;
@@ -2133,7 +2055,7 @@ public final class Interpreter
 				interpreter.latestResult(null);
 				interpreter.chunk = con.levelTwoChunk();
 				interpreter.offset = con.levelTwoOffset();
-				interpreter.wipeRegisters();
+				interpreter.levelOneStepper.wipeRegisters();
 				aFiber.continuation(nil);
 			});
 	}

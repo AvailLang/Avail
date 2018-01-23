@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 /**
  * {@code A_Definition} is an interface that specifies the operations specific
  * to {@linkplain DefinitionDescriptor definitions} (of a {@linkplain
@@ -100,6 +102,7 @@ extends A_BasicObject
 	 *
 	 * @return Whether it's abstract.
 	 */
+	@ReferencedInGeneratedCode
 	boolean isAbstractDefinition ();
 
 	/**
@@ -108,6 +111,7 @@ extends A_BasicObject
 	 *
 	 * @return {@code true} if the receiver is a forward declaration site.
 	 */
+	@ReferencedInGeneratedCode
 	boolean isForwardDefinition ();
 
 	/**

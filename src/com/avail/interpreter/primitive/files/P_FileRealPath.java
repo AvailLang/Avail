@@ -39,7 +39,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.InvalidPathException;
@@ -72,6 +72,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_FileRealPath().init(
 			2, CanInline, HasSideEffect);

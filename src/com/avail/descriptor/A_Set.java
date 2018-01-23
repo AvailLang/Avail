@@ -1,6 +1,6 @@
-/**
+/*
  * A_Set.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
  */
 
 package com.avail.descriptor;
+
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
@@ -149,6 +151,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return The set's size.
 	 */
+	@ReferencedInGeneratedCode
 	int setSize ();
 
 	/**
@@ -176,6 +179,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @param canDestroy Whether the original set can be modified if mutable.
 	 * @return The new set containing the specified object.
 	 */
+	@ReferencedInGeneratedCode
 	A_Set setWithElementCanDestroy (
 		A_BasicObject newElementObject,
 		boolean canDestroy);

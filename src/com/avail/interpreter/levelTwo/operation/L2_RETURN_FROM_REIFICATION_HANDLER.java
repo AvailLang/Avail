@@ -1,6 +1,6 @@
-/**
+/*
  * L2_RETURN_FROM_REIFICATION_HANDLER.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,32 +31,24 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.Nulls;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -65,8 +57,12 @@ import static org.objectweb.asm.Type.*;
  * invocation instruction.  The operand supplies a sequence of continuations
  * (each with nil callers), in the order in which the corresponding non-inlined
  * versions of the functions would have been invoked.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_RETURN_FROM_REIFICATION_HANDLER extends L2Operation
+public class L2_RETURN_FROM_REIFICATION_HANDLER
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -74,33 +70,6 @@ public class L2_RETURN_FROM_REIFICATION_HANDLER extends L2Operation
 	public static final L2Operation instance =
 		new L2_RETURN_FROM_REIFICATION_HANDLER().init(
 			READ_VECTOR.is("returned continuations"));
-
-	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		// Chain the mutable continuations, and return the top one.
-		final List<L2ReadPointerOperand> destinationRegs =
-			instruction.readVectorRegisterAt(0);
-
-		final int[] destinationIndices = new int[destinationRegs.size()];
-		for (int i = 0; i < destinationIndices.length; i++)
-		{
-			destinationIndices[i] = destinationRegs.get(i).finalIndex();
-		}
-
-		return interpreter ->
-		{
-			final StackReifier reifier = stripNull(interpreter.activeReifier);
-			for (final int index : destinationIndices)
-			{
-				reifier.pushContinuation(interpreter.pointerAt(index));
-			}
-			interpreter.returnNow = true;
-			interpreter.returningFunction = null;
-			return null;
-		};
-	}
 
 	@Override
 	protected void propagateTypes (
@@ -131,17 +100,42 @@ public class L2_RETURN_FROM_REIFICATION_HANDLER extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		if (JVMTranslator.debugRecordL2InstructionTimings)
+		final List<L2ReadPointerOperand> registers =
+			instruction.readVectorRegisterAt(0);
+
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		for (int i = 0, limit = registers.size(); i < limit; i++)
 		{
-			translator.generateRecordTimingsPrologue(method, instruction);
+			// :: reifier.pushContinuation(«register»);
+			if (i < limit - 1)
+			{
+				method.visitInsn(DUP);
+			}
+			translator.load(method, registers.get(i).register());
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(StackReifier.class),
+				"pushContinuation",
+				getMethodDescriptor(VOID_TYPE, getType(A_Continuation.class)),
+				false);
 		}
-		translator.generateRunAction(method, instruction);
-		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		if (JVMTranslator.debugRecordL2InstructionTimings)
-		{
-			translator.generateRecordTimingsEpilogue(method, instruction);
-		}
+		// :: interpreter.returnNow = true;
+		translator.loadInterpreter(method);
+		method.visitInsn(DUP);
+		method.visitInsn(ICONST_1);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"returnNow",
+			BOOLEAN_TYPE.getDescriptor());
+		// :: interpreter.returningFunction = null;
 		method.visitInsn(ACONST_NULL);
+		method.visitFieldInsn(
+			PUTFIELD,
+			getInternalName(Interpreter.class),
+			"returningFunction",
+			getDescriptor(A_Function.class));
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		method.visitInsn(ARETURN);
 	}
 }

@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +70,7 @@ public final class P_TupleReplaceAt extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_TupleReplaceAt().init(
 			3, CanFold, CanInline);

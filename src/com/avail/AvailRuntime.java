@@ -1,4 +1,4 @@
-/**
+/*
  * AvailRuntime.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,7 +32,6 @@
 
 package com.avail;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
@@ -49,6 +48,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
@@ -57,10 +57,6 @@ import com.avail.utility.evaluation.Continuation0;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
-import java.lang.ref.PhantomReference;
-import java.lang.ref.ReferenceQueue;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -180,6 +176,7 @@ public final class AvailRuntime
 	 * @return The build version, or {@code "dev"} if Avail is not running from
 	 *         a distribution JAR.
 	 */
+	@SuppressWarnings("unused")
 	public static String buildVersion ()
 	{
 		return buildVersion;
@@ -262,6 +259,7 @@ public final class AvailRuntime
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
 	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	private final ThreadFactory executorThreadFactory =
 		runnable -> new AvailThread(
 			runnable,
@@ -406,7 +404,7 @@ public final class AvailRuntime
 	 * that manages {@linkplain AsynchronousSocketChannel asynchronous socket
 	 * channels} on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
-	public final AsynchronousChannelGroup socketGroup;
+	private final AsynchronousChannelGroup socketGroup;
 
 	{
 		try
@@ -429,7 +427,8 @@ public final class AvailRuntime
 	 *
 	 * @param task A task.
 	 */
-	public void executeSocketTask (final Runnable task)
+	@SuppressWarnings("unused")
+	void executeSocketTask (final Runnable task)
 	{
 		socketExecutor.execute(task);
 	}
@@ -533,6 +532,7 @@ public final class AvailRuntime
 	 */
 	public static PosixFilePermission[] posixPermissions ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return posixPermissions;
 	}
 
@@ -774,7 +774,7 @@ public final class AvailRuntime
 	 * however, schedule fiber-related tasks.
 	 */
 	public final Timer timer = new Timer(
-		String.format("timer for Avail runtime"),
+		"timer for Avail runtime",
 		true);
 
 	/**
@@ -926,8 +926,8 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
-	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
-	 * {@linkplain ModuleDescriptor module} names.
+	 * runtime should use to resolve unqualified {@linkplain ModuleDescriptor
+	 * module} names.
 	 *
 	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 */
@@ -977,8 +977,7 @@ public final class AvailRuntime
 	private AvailObject textInterfacePojo = identityPojo(textInterface);
 
 	/**
-	 * Answer the {@linkplain AvailRuntime runtime}'s default {@linkplain
-	 * TextInterface text interface}.
+	 * Answer the runtime's default {@linkplain TextInterface text interface}.
 	 *
 	 * @return The default text interface.
 	 */
@@ -1018,8 +1017,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Set the {@linkplain AvailRuntime runtime}'s default {@linkplain
-	 * TextInterface text interface}.
+	 * Set the runtime's default {@linkplain TextInterface text interface}.
 	 *
 	 * @param textInterface
 	 *        The new default text interface.
@@ -1087,6 +1085,7 @@ public final class AvailRuntime
 	 * @return The requested function.
 	 */
 	@ThreadSafe
+	@ReferencedInGeneratedCode
 	public A_Function unassignedVariableReadFunction ()
 	{
 		return unassignedVariableReadFunction;
@@ -1135,6 +1134,7 @@ public final class AvailRuntime
 	 * @return The requested function.
 	 */
 	@ThreadSafe
+	@ReferencedInGeneratedCode
 	public A_Function resultDisagreedWithExpectedTypeFunction ()
 	{
 		return resultDisagreedWithExpectedTypeFunction;
@@ -1176,6 +1176,7 @@ public final class AvailRuntime
 	 * @return The requested function.
 	 */
 	@ThreadSafe
+	@ReferencedInGeneratedCode
 	public A_Function implicitObserveFunction ()
 	{
 		return implicitObserveFunction;
@@ -1241,6 +1242,7 @@ public final class AvailRuntime
 	 *         because of an ambiguous, invalid, or incomplete lookup.
 	 */
 	@ThreadSafe
+	@ReferencedInGeneratedCode
 	public A_Function invalidMessageSendFunction ()
 	{
 		return invalidMessageSendFunction;
@@ -1262,49 +1264,13 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * A {@code FiberReference} retains the {@linkplain A_Fiber#uniqueId()
-	 * unique id} of a {@linkplain A_Fiber fiber}, even after the fiber has been
-	 * reclaimed by the garbage collector.
-	 */
-	public static final class FiberReference
-	extends PhantomReference<A_Fiber>
-	{
-		/**
-		 * The {@linkplain A_Fiber fiber}'s {@linkplain A_Fiber#uniqueId()
-		 * unique id}.
-		 */
-		final long id;
-
-		/**
-		 * Construct a new {@code FiberReference}.
-		 *
-		 * @param fiber
-		 *        A {@linkplain A_Fiber fiber}.
-		 * @param queue
-		 *        The {@linkplain ReferenceQueue reference queue}.
-		 */
-		FiberReference (
-			final A_Fiber fiber,
-			final ReferenceQueue<A_Fiber> queue)
-		{
-			super(fiber, queue);
-			this.id = fiber.uniqueId();
-		}
-	}
-
-	/**
 	 * All {@linkplain A_Fiber fibers} that have not yet {@link
-	 * ExecutionState#RETIRED retired} and been reclaimed by garbage collection,
-	 * indexed by {@linkplain A_Fiber#uniqueId() unique id}.
+	 * ExecutionState#RETIRED retired} <em>or</em> been reclaimed by garbage
+	 * collection.
 	 */
-	@InnerAccess final Map<Long, FiberReference> allFibers = new HashMap<>();
-
-	/**
-	 * The {@linkplain ReferenceQueue reference queue} for defunct {@linkplain
-	 * A_Fiber fibers}.
-	 */
-	@InnerAccess final ReferenceQueue<A_Fiber> fiberQueue =
-		new ReferenceQueue<>();
+	private final Set<A_Fiber> allFibers =
+		Collections.synchronizedSet(
+			Collections.newSetFromMap(new WeakHashMap<>()));
 
 	/**
 	 * Add the specified {@linkplain A_Fiber fiber} to this {@linkplain
@@ -1315,76 +1281,42 @@ public final class AvailRuntime
 	 */
 	public void registerFiber (final A_Fiber fiber)
 	{
-		synchronized (allFibers)
-		{
-			allFibers.put(
-				fiber.uniqueId(),
-				new FiberReference(fiber, fiberQueue));
-		}
+		allFibers.add(fiber);
 	}
 
 	/**
 	 * Remove the specified {@linkplain A_Fiber fiber} from this {@linkplain
-	 * AvailRuntime runtime}.  This should be done when a fiber retires,
-	 * although the {@link FiberReference} mechanism will eventually clean up
-	 * any fiber not explicitly unregistered.
+	 * AvailRuntime runtime}.  This should be done explicitly when a fiber
+	 * retires, although the fact that {@link #allFibers} wraps a {@link
+	 * WeakHashMap} ensures that fibers that are no longer referenced will still
+	 * be cleaned up at some point.
 	 *
 	 * @param fiber
 	 *        A fiber to unregister.
 	 */
 	void unregisterFiber (final A_Fiber fiber)
 	{
-		synchronized (allFibers)
-		{
-			final FiberReference reference = allFibers.remove(fiber.uniqueId());
-			reference.clear();
-		}
+		allFibers.remove(fiber);
 	}
 
 	/**
-	 * Answer the {@link Map} of all {@link A_Fiber fibers}, keyed by {@link
-	 * A_Fiber#uniqueId()}, that have not yet {@linkplain ExecutionState#RETIRED
-	 * retired}.  Retired fibers will be garbage collected when there are no
-	 * remaining references.
+	 * Answer a {@link Set} of all {@link A_Fiber}s that have not yet
+	 * {@linkplain ExecutionState#RETIRED retired}.  Retired fibers will be
+	 * garbage collected when there are no remaining references.
+	 *
+	 * <p>Note that the result is a set which strongly holds all extant fibers,
+	 * so holding this set indefinitely would keep the contained fibers from
+	 * being garbage collected.</p>
 	 *
 	 * @return All fibers belonging to this {@code AvailRuntime}.
 	 */
-	public HashMap<Long, FiberReference> allFibers ()
+	public Set<A_Fiber> allFibers ()
 	{
-		synchronized (allFibers)
-		{
-			return new HashMap<>(allFibers);
-		}
+		return Collections.unmodifiableSet(new HashSet<>(allFibers));
 	}
 
 	/**
-	 * The reaper {@linkplain Thread thread} that cleans up {@link #allFibers}.
-	 */
-	private final Thread fiberReaper = new Thread(
-		() ->
-		{
-			while (true)
-			{
-				try
-				{
-					final FiberReference ref =
-						(FiberReference) fiberQueue.remove();
-					synchronized (allFibers)
-					{
-						allFibers.remove(ref.id);
-					}
-				}
-				catch (final InterruptedException e)
-				{
-					// Stop the thread if interrupted.
-					return;
-				}
-			}
-		},
-		"Fiber Reaper");
-
-	/**
-	 * Construct a new {@link AvailRuntime}.
+	 * Construct a new {@code AvailRuntime}.
 	 *
 	 * @param moduleNameResolver
 	 *        The {@linkplain ModuleNameResolver module name resolver} that this
@@ -1395,7 +1327,6 @@ public final class AvailRuntime
 	{
 		this.moduleNameResolver = moduleNameResolver;
 		this.classLoader = AvailRuntime.class.getClassLoader();
-		fiberReaper.start();
 	}
 
 	/**
@@ -1431,6 +1362,7 @@ public final class AvailRuntime
 	@ThreadSafe
 	public static List<AvailObject> specialObjects ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return specialObjectsList;
 	}
 
@@ -1459,14 +1391,15 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
-	 * {@linkplain AvailRuntime runtime} as an {@linkplain
-	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
+	 * runtime as an {@linkplain Collections#unmodifiableList(List) immutable}
+	 * {@linkplain List list}.
 	 *
 	 * @return The special atoms list.
 	 */
 	@ThreadSafe
 	public static List<A_Atom> specialAtoms()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return specialAtomsList;
 	}
 
@@ -1723,10 +1656,7 @@ public final class AvailRuntime
 			if (object != null)
 			{
 				specialObjects[i] = object.makeShared();
-				if (object.isAtom())
-				{
-					assert object.isAtomSpecial();
-				}
+				assert !object.isAtom() || object.isAtomSpecial();
 			}
 		}
 	}
@@ -1740,7 +1670,7 @@ public final class AvailRuntime
 
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
-	 * {@linkplain AvailRuntime runtime}.
+	 * runtime.
 	 *
 	 * @param module A {@linkplain ModuleDescriptor module}.
 	 */
@@ -1783,14 +1713,13 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Does the {@linkplain AvailRuntime runtime} define a {@linkplain
-	 * ModuleDescriptor module} with the specified {@linkplain
-	 * TupleDescriptor name}?
+	 * Does the runtime define a {@linkplain ModuleDescriptor module} with the
+	 * specified {@linkplain TupleDescriptor name}?
 	 *
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
-	 * @return {@code true} if the {@linkplain AvailRuntime runtime} defines a
-	 *          {@linkplain ModuleDescriptor module} with the specified
-	 *          {@linkplain TupleDescriptor name}, {@code false} otherwise.
+	 * @return {@code true} if the runtime defines a {@linkplain
+	 *         ModuleDescriptor module} with the specified {@linkplain
+	 *         TupleDescriptor name}, {@code false} otherwise.
 	 */
 	@ThreadSafe
 	public boolean includesModuleNamed (final A_String moduleName)
@@ -2030,7 +1959,7 @@ public final class AvailRuntime
 	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
 	 * Level Two chunk.  These two activities are mutually exclusive.</p>
 	 */
-	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
+	private final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
 	/**
 	 * The {@linkplain Queue queue} of Level One-safe {@linkplain Runnable
@@ -2043,38 +1972,34 @@ public final class AvailRuntime
 	 * running} a Level Two chunk. These two activities are mutually exclusive.
 	 * </p>
 	 */
-	@InnerAccess
-	final Queue<AvailTask> levelOneSafeTasks =
-		new ArrayDeque<>();
+	private final Queue<AvailTask> levelOneSafeTasks = new ArrayDeque<>();
 
 	/**
 	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain
 	 * Runnable tasks}. A Level One-unsafe task requires that no
 	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
 	 */
-	@InnerAccess
-	final Queue<AvailTask> levelOneUnsafeTasks =
-		new ArrayDeque<>();
+	private final Queue<AvailTask> levelOneUnsafeTasks = new ArrayDeque<>();
 
 	/**
 	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that
 	 * have been {@linkplain #executor scheduled for execution} but have not
 	 * yet reached completion.
 	 */
-	@InnerAccess int incompleteLevelOneSafeTasks = 0;
+	private int incompleteLevelOneSafeTasks = 0;
 
 	/**
 	 * The number of {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks}
 	 * that have been {@linkplain #executor scheduled for execution} but have
 	 * not yet reached completion.
 	 */
-	@InnerAccess int incompleteLevelOneUnsafeTasks = 0;
+	private int incompleteLevelOneUnsafeTasks = 0;
 
 	/**
 	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
 	 * safety} been requested?
 	 */
-	@InnerAccess volatile boolean levelOneSafetyRequested = false;
+	private volatile boolean levelOneSafetyRequested = false;
 
 	/**
 	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
@@ -2211,6 +2136,7 @@ public final class AvailRuntime
 							levelOneSafetyRequested = false;
 							incompleteLevelOneUnsafeTasks =
 								levelOneUnsafeTasks.size();
+							//noinspection AnonymousClassVariableHidesContainingMethodVariable
 							for (final AvailTask task : levelOneUnsafeTasks)
 							{
 								execute(task);
@@ -2290,29 +2216,6 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The bean for tracking per-thread CPU statistics.
-	 */
-	public static ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
-
-	/**
-	 * Whether per-thread CPU statistics are accessible on this VM.
-	 */
-	public static boolean recordL2PerThread =
-		// Unfortunately, this information is far too expensive to access inside
-		// tight loops, where it would do the most good.
-		false;
-		// threadBean.isThreadCpuTimeSupported();
-
-	static
-	{
-		//noinspection ConstantConditions
-		if (recordL2PerThread)
-		{
-			threadBean.setThreadCpuTimeEnabled(true);
-		}
-	}
-
-	/**
 	 * Capture the current time with nanosecond precision (but not necessarily
 	 * accuracy).  If per-thread accounting is available, use it.
 	 *
@@ -2322,8 +2225,6 @@ public final class AvailRuntime
 	 */
 	public static long captureNanos ()
 	{
-		return recordL2PerThread
-			? threadBean.getCurrentThreadCpuTime()
-			: System.nanoTime();
+		return System.nanoTime();
 	}
 }

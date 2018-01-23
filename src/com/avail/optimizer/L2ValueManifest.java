@@ -1,4 +1,4 @@
-/**
+/*
  * L2ValueManifest.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -65,6 +66,8 @@ import static java.util.Collections.unmodifiableSet;
  *
  * <p>Note that in any manifest, any particular {@link L2SemanticValue} must
  * have <em>at most one</em> register mapped to it.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class L2ValueManifest
 {
@@ -314,6 +317,11 @@ public final class L2ValueManifest
 					: restriction.union(reader.restriction());
 			}
 			assert restriction != null;
+			final @Nullable A_BasicObject constant = restriction.constantOrNull;
+			final @Nullable L2SemanticValue constantSemanticValue =
+				constant != null
+					? L2SemanticValue.constant(constant)
+					: null;
 			if (distinctRegisters.size() == 1)
 			{
 				// All of the incoming edges had the same register bound to the
@@ -324,17 +332,40 @@ public final class L2ValueManifest
 						(L2ObjectRegister) distinctRegisters.iterator().next(),
 						restriction));
 			}
+			else if (constantSemanticValue != null
+				&& semanticValueToRegister.containsKey(constantSemanticValue))
+			{
+				// We've already made this value available in an existing
+				// register.  Add another binding for the semantic value we're
+				// adding.  Make sure to skip it if it was added as a constant
+				// binding (as part of the phi case below) and we're trying to
+				// add that same binding again.
+				if (!semanticValue.equals(constantSemanticValue))
+				{
+					addBinding(
+						semanticValue,
+						semanticValueToRegister.get(constantSemanticValue));
+				}
+			}
 			else
 			{
 				// Create a phi function.
 				final L2WritePointerOperand newWrite =
 					translator.newObjectRegisterWriter(
-						restriction.type, restriction.constantOrNull);
+						restriction.type, constant);
 				translator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
 					new L2ReadVectorOperand(sources),
 					newWrite);
 				addBinding(semanticValue, newWrite.read());
+				if (constantSemanticValue != null
+					&& !semanticValueToRegister.containsKey(
+						constantSemanticValue))
+				{
+					// It's also a constant, so make it available as such if it
+					// isn't already.
+					addBinding(constantSemanticValue, newWrite.read());
+				}
 			}
 		}
 	}

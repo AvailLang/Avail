@@ -1196,9 +1196,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return fiberType(object.slot(RESULT_TYPE));
+	}
+
+	@Override @AvailMethod
+	A_Type o_FiberResultType (final AvailObject object)
+	{
+		return object.slot(RESULT_TYPE);
 	}
 
 	@Override

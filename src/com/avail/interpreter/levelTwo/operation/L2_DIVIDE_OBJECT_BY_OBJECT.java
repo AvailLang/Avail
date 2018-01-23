@@ -1,6 +1,6 @@
-/**
+/*
  * L2_DIVIDE_OBJECT_BY_OBJECT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Number;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Divide the dividend value by the divisor value.  If the calculation causes an
@@ -51,8 +52,10 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * quotient and remainder registers and continue with the next instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
+public class L2_DIVIDE_OBJECT_BY_OBJECT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -67,43 +70,90 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 			PC.is("success"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand dividendReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand divisorReg =
-			instruction.readObjectRegisterAt(1);
-		final L2WritePointerOperand quotientReg =
-			instruction.writeObjectRegisterAt(2);
-		final L2WritePointerOperand remainderReg =
-			instruction.writeObjectRegisterAt(3);
-		final int undefinedIndex = instruction.pcOffsetAt(4);
-		final int successIndex = instruction.pcOffsetAt(5);
-
-		final A_Number dividend = dividendReg.in(interpreter);
-		final A_Number divisor = divisorReg.in(interpreter);
-		try
-		{
-			final A_Number quotient = dividend.divideCanDestroy(divisor, false);
-			final A_Number remainder = dividend.minusCanDestroy(
-				quotient.timesCanDestroy(divisor, false), false);
-			quotientReg.set(quotient, interpreter);
-			remainderReg.set(remainder, interpreter);
-			interpreter.offset(successIndex);
-		}
-		catch (final ArithmeticException e)
-		{
-			interpreter.offset(undefinedIndex);
-		}
-		return null;
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps for division by zero.
 		return true;
+	}
+
+	@Override
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
+	{
+		final L2ObjectRegister dividendReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister divisorReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister quotientReg =
+			instruction.writeObjectRegisterAt(2).register();
+		final L2ObjectRegister remainderReg =
+			instruction.writeObjectRegisterAt(3).register();
+		final L2PcOperand undefined = instruction.pcAt(4);
+		final int successIndex = instruction.pcOffsetAt(5);
+
+		// :: try {
+		final Label tryStart = new Label();
+		final Label catchStart = new Label();
+		method.visitTryCatchBlock(
+			tryStart,
+			catchStart,
+			catchStart,
+			getInternalName(ArithmeticException.class));
+		method.visitLabel(tryStart);
+		// ::    quotient = dividend.divideCanDestroy(divisor, false);
+		translator.load(method, dividendReg);
+		method.visitInsn(DUP);
+		translator.load(method, divisorReg);
+		method.visitInsn(ICONST_0);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Number.class),
+			"divideCanDestroy",
+			getMethodDescriptor(
+				getType(A_Number.class),
+				getType(A_Number.class),
+				BOOLEAN_TYPE),
+			true);
+		method.visitInsn(DUP);
+		translator.store(method, quotientReg);
+		// ::    remainder = dividend.minusCanDestroy(
+		// ::       quotient.timesCanDestroy(divisor, false),
+		// ::       false);
+		translator.load(method, divisorReg);
+		method.visitInsn(ICONST_0);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Number.class),
+			"timesCanDestroy",
+			getMethodDescriptor(
+				getType(A_Number.class),
+				getType(A_Number.class),
+				BOOLEAN_TYPE),
+			true);
+		method.visitInsn(ICONST_0);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Number.class),
+			"minusCanDestroy",
+			getMethodDescriptor(
+				getType(A_Number.class),
+				getType(A_Number.class),
+				BOOLEAN_TYPE),
+			true);
+		translator.store(method, remainderReg);
+		// ::    goto success;
+		// Note that we cannot potentially eliminate this branch with a
+		// fall through, because the next instruction expects a
+		// ArithmeticException to be pushed onto the stack. So always do the
+		// jump.
+		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		// :: } catch (ArithmeticException e) {
+		method.visitLabel(catchStart);
+		method.visitInsn(POP);
+		// ::    goto undefined;
+		translator.branch(method, instruction, undefined);
+		// :: }
 	}
 }

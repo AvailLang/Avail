@@ -1,4 +1,4 @@
-/**
+/*
  * StatisticReport.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -74,14 +74,14 @@ public enum StatisticReport
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 
-	/** Level-Two Operations report. */
-	L2_OPERATIONS("L2 Operations", NANOSECONDS),
-
 	/** A breakdown of the time spent in L2 optimization phases. */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
 
 	/** Dimensionless values related to L2Chunk creation. */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
+
+	/** A breakdown of time spent in JVM translation. */
+	JVM_TRANSLATION_TIME("JVM Translation time", NANOSECONDS),
 
 	/** Reifications of the Java stack.  See {@link StackReifier}.  */
 	REIFICATIONS("Java stack reifications", NANOSECONDS),

@@ -1,6 +1,6 @@
-/**
+/*
  * L2ObjectRegister.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,15 +117,15 @@ extends L2Register
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("R");
+		builder.append("r");
 		if (finalIndex() != -1)
 		{
-			builder.append("[");
 			builder.append(finalIndex());
-			builder.append("]");
 		}
-		builder.append("@");
-		builder.append(uniqueValue);
+		else
+		{
+			builder.append(uniqueValue);
+		}
 		if (restriction.constantOrNull != null)
 		{
 			builder.append("[CONST=");

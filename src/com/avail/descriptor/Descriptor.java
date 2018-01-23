@@ -5011,6 +5011,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_FiberResultType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+
+	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
 		final AvailObject object)
 	{

@@ -1,4 +1,4 @@
-/**
+/*
  * L2OperandTypeDispatcher.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.

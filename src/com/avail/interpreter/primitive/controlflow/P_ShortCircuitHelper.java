@@ -39,7 +39,7 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 
@@ -63,6 +63,7 @@ public final class P_ShortCircuitHelper extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ShortCircuitHelper().init(
 			2, Invokes, CanInline, CannotFail);

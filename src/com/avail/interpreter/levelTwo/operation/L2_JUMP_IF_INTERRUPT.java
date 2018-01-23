@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_INTERRUPT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +31,32 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getType;
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
  * requested since last serviced.  Otherwise an interrupt has been requested
  * and we should proceed to the next instruction.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_INTERRUPT extends L2Operation
+public class L2_JUMP_IF_INTERRUPT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -68,21 +65,6 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 		new L2_JUMP_IF_INTERRUPT().init(
 			PC.is("if interrupt"),
 			PC.is("if not interrupt"));
-
-	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
-		final int offsetIfNotInterrupt = instruction.pcOffsetAt(1);
-		return interpreter ->
-		{
-			interpreter.offset(interpreter.isInterruptRequested()
-				? offsetIfInterrupt
-				: offsetIfNotInterrupt);
-			return null;
-		};
-	}
 
 	@Override
 	protected void propagateTypes (
@@ -111,21 +93,23 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
-		final int offsetIfNotInterrupt = instruction.pcOffsetAt(1);
+		final L2PcOperand ifInterrupt = instruction.pcAt(0);
+		final L2PcOperand ifNotInterrupt = instruction.pcAt(1);
 
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
+		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
+		// :: else goto ifNotInterrupt;
+		translator.loadInterpreter(method);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),
 			"isInterruptRequested",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		method.visitJumpInsn(
+		translator.branch(
+			method,
+			instruction,
 			IFNE,
-			stripNull(translator.instructionLabels)[offsetIfInterrupt]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[offsetIfNotInterrupt]);
+			ifInterrupt,
+			ifNotInterrupt);
 	}
 }

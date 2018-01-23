@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_KIND_OF_OBJECT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,38 +34,33 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the value is an instance of the type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
+public class L2_JUMP_IF_KIND_OF_OBJECT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -76,25 +71,6 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 			READ_POINTER.is("type"),
 			PC.is("is kind"),
 			PC.is("if not kind"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final L2ReadPointerOperand valueReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand typeReg =
-			instruction.readObjectRegisterAt(1);
-		final int isKindOffset = instruction.pcOffsetAt(2);
-		final int isNotKindOffset = instruction.pcOffsetAt(3);
-
-		interpreter.offset(
-			valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter))
-				? isKindOffset
-				: isNotKindOffset);
-		return null;
-	}
 
 	@Override
 	public boolean regenerate (
@@ -177,40 +153,23 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int valueRegisterIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final int typeRegisterIndex =
-			instruction.readObjectRegisterAt(1).finalIndex();
-		final int isKindOffset = instruction.pcOffsetAt(2);
-		final int isNotKindOffset = instruction.pcOffsetAt(3);
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister typeReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2PcOperand isKind = instruction.pcAt(2);
+		final L2PcOperand notKind = instruction.pcAt(3);
 
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, valueRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, typeRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
+		// :: if (value.isInstanceOf(type)) goto isKind;
+		// :: else goto isNotKind;
+		translator.load(method, valueReg);
+		translator.load(method, typeReg);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"isInstanceOf",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
 			true);
-		method.visitJumpInsn(
-			IFNE,
-			stripNull(translator.instructionLabels)[isKindOffset]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[isNotKindOffset]);
+		translator.branch(method, instruction, IFNE, isKind, notKind);
 	}
 }

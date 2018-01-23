@@ -1,6 +1,6 @@
-/**
+/*
  * L2ReadPointerOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -47,10 +45,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 
 /**
@@ -60,7 +56,8 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ReadPointerOperand extends L2Operand
+public class L2ReadPointerOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@link L2ObjectRegister}.
@@ -233,6 +230,7 @@ public class L2ReadPointerOperand extends L2Operand
 	 * @param restrictedConstant
 	 *        The exact value that the register will hold along this branch.
 	 */
+	@SuppressWarnings("unused")
 	public PhiRestriction restrictedToValue (
 		final A_BasicObject restrictedConstant)
 	{
@@ -254,6 +252,7 @@ public class L2ReadPointerOperand extends L2Operand
 	 *        The value that the register <em>cannot</em> hold along this
 	 *        branch.
 	 */
+	@SuppressWarnings("unused")
 	public PhiRestriction restrictedWithoutValue (
 		final A_BasicObject excludedConstant)
 	{
@@ -328,16 +327,5 @@ public class L2ReadPointerOperand extends L2Operand
 		// Be conservative and ignore the type subtraction.  We could eventually
 		// record this information.
 		return new PhiRestriction(register, type, null);
-	}
-
-	/**
-	 * Read the value of this register from the provided {@link Interpreter}.
-	 *
-	 * @param interpreter An Interpreter.
-	 * @return An {@code AvailObject}, the value of this register.
-	 */
-	public final AvailObject in (final Interpreter interpreter)
-	{
-		return interpreter.pointerAt(finalIndex());
 	}
 }

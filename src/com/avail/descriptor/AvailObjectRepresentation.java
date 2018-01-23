@@ -1203,19 +1203,16 @@ implements A_BasicObject
 	 * this method when we really mean the version that takes an {@code
 	 * AvailObject} as an argument.  Eclipse conveniently shows such invocations
 	 * with a <span style="text-decoration: line-through;">strike-out</span>.
-	 * That's a convenient warning for the programmer, but we also fail if this
-	 * method actually gets invoked AND the argument is not an {@code
-	 * A_BasicObject}.  That means we don't allow AvailObjects to be added to
-	 * Java {@linkplain Set sets} and such, at least when they're intermixed
-	 * with things that are not AvailObjects.
+	 * That's a convenient warning for the programmer, even though it actually
+	 * works correctly.
 	 * </p>
 	 */
 	@Override
 	@Deprecated
 	public boolean equals (final @Nullable Object another)
 	{
-		assert another instanceof AvailObject;
-		return descriptor.o_Equals((AvailObject) this, (AvailObject) another);
+		return another instanceof AvailObject
+			&& descriptor.o_Equals((AvailObject) this, (AvailObject) another);
 	}
 
 	@Override

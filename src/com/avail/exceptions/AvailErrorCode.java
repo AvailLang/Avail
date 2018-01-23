@@ -41,6 +41,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
 
@@ -585,18 +586,21 @@ public enum AvailErrorCode
 	 * No {@linkplain MethodDefinitionDescriptor method definition} satisfies
 	 * the supplied criteria.
 	 */
+	@ReferencedInGeneratedCode
 	E_NO_METHOD_DEFINITION (84),
 
 	/**
 	 * More than one {@linkplain MethodDefinitionDescriptor method definition}
 	 * satisfies the supplied criteria.
 	 */
+	@ReferencedInGeneratedCode
 	E_AMBIGUOUS_METHOD_DEFINITION (85),
 
 	/**
 	 * The resolved {@linkplain DefinitionDescriptor definition} is a
 	 * {@linkplain ForwardDefinitionDescriptor forward definition}.
 	 */
+	@ReferencedInGeneratedCode
 	E_FORWARD_METHOD_DEFINITION (86)
 	{
 		@Override
@@ -610,6 +614,7 @@ public enum AvailErrorCode
 	 * The resolved {@linkplain DefinitionDescriptor definition} is a
 	 * {@linkplain AbstractDefinitionDescriptor abstract definition}.
 	 */
+	@ReferencedInGeneratedCode
 	E_ABSTRACT_METHOD_DEFINITION (87)
 	{
 		@Override
@@ -857,6 +862,7 @@ public enum AvailErrorCode
 	 *
 	 * @return The {@linkplain AvailObject numeric error code}.
 	 */
+	@ReferencedInGeneratedCode
 	public A_Number numericCode ()
 	{
 		return fromInt(code);

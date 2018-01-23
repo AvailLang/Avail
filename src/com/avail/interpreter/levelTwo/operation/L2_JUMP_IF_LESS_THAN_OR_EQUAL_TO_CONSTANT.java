@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,53 +34,36 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.StackReifier;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the object is numerically less than or equal to the
  * constant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
+public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT().init(
-			PC.is("target"),
 			READ_POINTER.is("value"),
-			CONSTANT.is("constant"));
-
-	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final int target = instruction.pcOffsetAt(0);
-		final L2ReadPointerOperand objectReg =
-			instruction.readObjectRegisterAt(1);
-		final A_Number constant = instruction.constantAt(2);
-
-		final Order comparison =
-			objectReg.in(interpreter).numericCompare(constant);
-		if (comparison.isLessOrEqual())
-		{
-			interpreter.offset(target);
-		}
-		return null;
-	}
+			CONSTANT.is("constant"),
+			PC.is("if less or equal"),
+			PC.is("if more"));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -95,6 +78,29 @@ public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		throw new UnsupportedOperationException();
+		final L2ObjectRegister register =
+			instruction.readObjectRegisterAt(0).register();
+		final A_Number constant = instruction.constantAt(1);
+		final L2PcOperand ifTrue = instruction.pcAt(2);
+		final L2PcOperand ifFalse = instruction.pcAt(3);
+
+		// :: comparison = first.numericCompare(second);
+		translator.load(method, register);
+		translator.literal(method, constant);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(A_Number.class),
+			"numericCompare",
+			getMethodDescriptor(getType(Order.class), getType(A_Number.class)),
+			true);
+		// :: if (comparison.isLessOrEqual()) goto ifTrue;
+		// :: else goto ifFalse;
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Order.class),
+			"isLessOrEqual",
+			getMethodDescriptor(BOOLEAN_TYPE),
+			false);
+		translator.branch(method, instruction, IFNE, ifTrue, ifFalse);
 	}
 }

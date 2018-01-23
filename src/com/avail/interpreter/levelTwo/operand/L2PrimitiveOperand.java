@@ -1,6 +1,6 @@
-/**
+/*
  * L2PrimitiveOperand.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,8 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2PrimitiveOperand extends L2Operand
+public class L2PrimitiveOperand
+extends L2Operand
 {
 	/**
 	 * The actual {@link Primitive}.
@@ -57,8 +58,7 @@ public class L2PrimitiveOperand extends L2Operand
 	 *
 	 * @param primitive The primitive to invoke.
 	 */
-	public L2PrimitiveOperand (
-		final Primitive primitive)
+	public L2PrimitiveOperand (final Primitive primitive)
 	{
 		this.primitive = primitive;
 	}

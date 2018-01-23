@@ -1,6 +1,6 @@
-/**
+/*
  * L2_JUMP_IF_EQUALS_CONSTANT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,21 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.optimizer.jvm.JVMCodeGenerationUtility.emitIntConstant;
-import static com.avail.optimizer.jvm.JVMTranslator.instructionFieldName;
-import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -61,8 +56,10 @@ import static org.objectweb.asm.Type.*;
  * Jump to the target if the object equals the constant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
+public class L2_JUMP_IF_EQUALS_CONSTANT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -73,26 +70,6 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 			CONSTANT.is("constant"),
 			PC.is("if equal"),
 			PC.is("if unequal"));
-
-	@Override
-	public Transformer1NotNullArg<Interpreter, StackReifier> actionFor (
-		final L2Instruction instruction)
-	{
-		final int valueRegisterIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-		final A_BasicObject constant = instruction.constantAt(1);
-		final int ifEqual = instruction.pcOffsetAt(2);
-		final int ifUnequal = instruction.pcOffsetAt(3);
-
-		return interpreter ->
-		{
-			interpreter.offset(
-				interpreter.pointerAt(valueRegisterIndex).equals(constant)
-					? ifEqual
-					: ifUnequal);
-			return null;
-		};
-	}
 
 	@Override
 	public boolean regenerate (
@@ -169,43 +146,22 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int valueRegisterIndex =
-			instruction.readObjectRegisterAt(0).finalIndex();
-//		final A_BasicObject constant = instruction.constantAt(1);
-		final int ifEqual = instruction.pcOffsetAt(2);
-		final int ifUnequal = instruction.pcOffsetAt(3);
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(0).register();
+		final A_BasicObject constant = instruction.constantAt(1);
+		final L2PcOperand ifEqual = instruction.pcAt(2);
+		final L2PcOperand ifUnequal = instruction.pcAt(3);
 
-		method.visitVarInsn(ALOAD, translator.interpreterLocal());
-		emitIntConstant(method, valueRegisterIndex);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"pointerAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
-		method.visitFieldInsn(
-			GETSTATIC,
-			translator.classInternalName,
-			instructionFieldName(instruction),
-			getDescriptor(instruction.getClass()));
-		emitIntConstant(method,1);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(L2Instruction.class),
-			"constantAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
+		// :: if (value.equals(constant)) goto ifEqual;
+		// :: else goto ifUnequal;
+		translator.load(method, valueReg);
+		translator.literal(method, constant);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"equals",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
 			true);
-		method.visitJumpInsn(
-			IFNE,
-			stripNull(translator.instructionLabels)[ifEqual]);
-		method.visitJumpInsn(
-			GOTO,
-			stripNull(translator.instructionLabels)[ifUnequal]);
+		translator.branch(method, instruction, IFNE, ifEqual, ifUnequal);
 	}
 }

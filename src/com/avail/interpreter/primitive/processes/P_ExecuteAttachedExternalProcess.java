@@ -44,7 +44,7 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.io.ProcessInputChannel;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.io.ProcessInputChannel;
 import com.avail.io.ProcessOutputChannel;
 import com.avail.io.TextInterface;
 
@@ -93,6 +93,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
+	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_ExecuteAttachedExternalProcess().init(
 			6, CanInline, HasSideEffect);

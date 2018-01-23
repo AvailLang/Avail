@@ -1,6 +1,6 @@
-/**
+/*
  * L2_GET_CURRENT_FUNCTION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,29 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.StackReifier;
-
-import javax.annotation.Nullable;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static com.avail.utility.Nulls.stripNull;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Ask the {@link Interpreter} for the current function, writing it into the
  * provided register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_CURRENT_FUNCTION extends L2Operation
+public class L2_GET_CURRENT_FUNCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -59,13 +64,21 @@ public class L2_GET_CURRENT_FUNCTION extends L2Operation
 			WRITE_POINTER.is("current function"));
 
 	@Override
-	public @Nullable StackReifier step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction)
 	{
-		final L2WritePointerOperand targetReg =
-			instruction.writeObjectRegisterAt(0);
-		targetReg.set(stripNull(interpreter.function), interpreter);
-		return null;
+		final L2ObjectRegister register =
+			instruction.writeObjectRegisterAt(0).register();
+
+		// :: register = interpreter.function;
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"function",
+			getDescriptor(A_Function.class));
+		translator.store(method, register);
 	}
 }
