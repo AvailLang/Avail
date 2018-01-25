@@ -214,7 +214,6 @@ extends Primitive
 			mostGeneralFiberType());
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

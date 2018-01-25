@@ -85,5 +85,4 @@ extends UnresolvedDependencyException
 		super(referringModuleName, unresolvedModuleName);
 		this.unresolvedRootName = unresolvedRootName;
 	}
-
 }

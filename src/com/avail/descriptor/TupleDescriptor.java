@@ -1512,7 +1512,6 @@ extends Descriptor
 			* powersOfMultiplier[3][(anInteger >> 24) & 0xFF];
 	}
 
-
 	/**
 	 * The constant by which each element's hash should be XORed prior to
 	 * combining them.  This reduces the chance of systematic collisions due to

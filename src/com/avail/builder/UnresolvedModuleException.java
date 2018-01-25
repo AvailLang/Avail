@@ -84,5 +84,4 @@ extends UnresolvedDependencyException
 		super(referringModuleName, unresolvedModuleName);
 		this.acceptablePaths = acceptablePaths;
 	}
-
 }

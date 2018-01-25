@@ -185,6 +185,4 @@ public abstract class AbstractStacksToken
 			.append(")")
 			.toString();
 	}
-
-
 }

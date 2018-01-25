@@ -108,7 +108,6 @@ extends AbstractEnumerationTypeDescriptor
 		return object.slot(INSTANCE);
 	}
 
-
 	/**
 	 * Answer the kind that is nearest to the given object, an {@linkplain
 	 * InstanceTypeDescriptor instance type}.

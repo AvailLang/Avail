@@ -280,7 +280,6 @@ public class StacksCommentsModule
 			{
 				comment.addToImplementationGroup(group);
 			}
-
 		}
 		else if (usesMethodLeafNameToModuleName.containsKey(nameToCheck))
 		{
@@ -888,7 +887,6 @@ public class StacksCommentsModule
 															.get(usesModName));
 											}
 										}
-
 									}
 								}
 							}
@@ -1005,7 +1003,6 @@ public class StacksCommentsModule
 					}
 				}
 			}
-
 		}
 	}
 
@@ -1101,7 +1098,6 @@ public class StacksCommentsModule
 		}
 		return namesToFileNames;
 	}
-
 
 	/**
 	 * Acquire all distinct implementations being directly exported or extended

@@ -163,7 +163,6 @@ class InstructionGenerator
 		instructions.add(operation.encoding(operand));
 	}
 
-
 	/**
 	 * Emit a {@link ParsingOperation} that takes no operand, but only if the
 	 * condition is true.
@@ -341,7 +340,6 @@ class InstructionGenerator
 		delayedExpressionList.add(expression);
 		delayedArgumentInstructions.add(operation.encoding(operand));
 	}
-
 
 	/**
 	 * Flush any delayed instructions to the main instruction list.

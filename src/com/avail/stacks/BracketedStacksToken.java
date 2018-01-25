@@ -937,7 +937,6 @@ public class BracketedStacksToken extends RegionStacksToken
 					return "";
 				}
 
-
 				if (linkingFileMap.internalLinks()
 					.containsKey(link.lexeme()))
 				{

@@ -126,7 +126,6 @@ final class StateSummary<
 		return entryAction;
 	}
 
-
 	/**
 	 * The action key whose {@linkplain Continuation1 action} should be invoked
 	 * when exiting a particular state.
@@ -171,7 +170,6 @@ final class StateSummary<
 	{
 		return exitAction;
 	}
-
 
 	/** The transition table. */
 	private final EnumMap<

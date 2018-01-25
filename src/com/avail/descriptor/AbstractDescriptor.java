@@ -569,7 +569,6 @@ public abstract class AbstractDescriptor
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
-
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.

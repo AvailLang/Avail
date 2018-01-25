@@ -131,7 +131,6 @@ extends Primitive
 				unsignedShorts()));
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

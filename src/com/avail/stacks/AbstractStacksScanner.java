@@ -909,9 +909,7 @@ public abstract class AbstractStacksScanner
 							break;
 						}
 					}
-
 				}
-
 			}
 		},
 

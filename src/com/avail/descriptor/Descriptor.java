@@ -2095,7 +2095,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override
 	int o_TupleSize (final AvailObject object)
 	{
@@ -5015,8 +5014,6 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
-
 
 	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (

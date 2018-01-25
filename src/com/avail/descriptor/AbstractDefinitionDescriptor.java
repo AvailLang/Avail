@@ -80,7 +80,6 @@ extends DefinitionDescriptor
 		}
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_BodySignature (final AvailObject object)
 	{

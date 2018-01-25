@@ -111,7 +111,6 @@ extends Primitive
 		return functionType(tuple(ATOM.o()), TOP.o());
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

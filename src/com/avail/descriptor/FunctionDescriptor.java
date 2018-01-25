@@ -552,7 +552,6 @@ extends Descriptor
 		return immutable;
 	}
 
-
 	/** The shared {@link FunctionDescriptor}. */
 	private static final FunctionDescriptor shared =
 		new FunctionDescriptor(Mutability.SHARED);

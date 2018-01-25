@@ -1,19 +1,19 @@
 /*
- * L2_EXTRACT_CONTINUATION_SLOT.java
+ * L2_EXTRACT_CONTINUATION_FUNCTION.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -39,27 +40,26 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
- * Extract a single slot from a continuation.
+ * Extract the {@link A_Function} from an {@link A_Continuation}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_EXTRACT_CONTINUATION_SLOT
+public class L2_EXTRACT_CONTINUATION_FUNCTION
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_EXTRACT_CONTINUATION_SLOT().init(
+		new L2_EXTRACT_CONTINUATION_FUNCTION().init(
 			READ_POINTER.is("continuation"),
-			IMMEDIATE.is("slot index"),
-			WRITE_POINTER.is("extracted slot"));
+			WRITE_POINTER.is("extracted function"));
 
 	@Override
 	public void translateToJVM (
@@ -67,22 +67,20 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		// Extract a single slot from the given continuation.
+		// Extract the function from the given continuation.
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int slotIndex = instruction.immediateAt(1);
-		final L2ObjectRegister explodedSlotReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2ObjectRegister functionReg =
+			instruction.writeObjectRegisterAt(1).register();
 
-		// :: «slot[i]» = continuation.argOrLocalOrStackAt(«slotIndex»);
+		// :: function = continuation.function();
 		translator.load(method, continuationReg);
-		translator.intConstant(method, slotIndex);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Continuation.class),
-			"argOrLocalOrStackAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
+			"function",
+			getMethodDescriptor(getType(AvailObject.class)),
 			true);
-		translator.store(method, explodedSlotReg);
+		translator.store(method, functionReg);
 	}
 }

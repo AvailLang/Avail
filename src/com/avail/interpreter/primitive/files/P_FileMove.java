@@ -145,7 +145,6 @@ extends Primitive
 				TOP.o());
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

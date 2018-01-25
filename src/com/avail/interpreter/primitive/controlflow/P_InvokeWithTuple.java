@@ -43,7 +43,6 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -237,10 +236,9 @@ extends Primitive
 		final int argsSize = upperBound.extractInt();
 
 		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegisters =
-			L2_EXPLODE_TUPLE.explodeTupleIfPossible(
+			translator.explodeTupleIfPossible(
 				tupleReg,
-				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)),
-				translator);
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)));
 		if (explodedArgumentRegisters == null)
 		{
 			return false;

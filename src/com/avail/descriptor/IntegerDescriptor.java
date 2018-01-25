@@ -2111,7 +2111,6 @@ extends ExtendedIntegerDescriptor
 		return out;
 	}
 
-
 	/**
 	 * Convert the specified Java {@code int} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.

@@ -61,7 +61,7 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	/**
 	 * The hash value of the receiver, computed during construction.
 	 */
-	public int hashOrZero;
+	public final int hashOrZero;
 
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
@@ -77,6 +77,14 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	{
 		this.primitive = primitive;
 		this.argumentSemanticValues = new ArrayList<>(argumentSemanticValues);
+		// Compute the hash.
+		int h = primitive.primitiveNumber * multiplier;
+		for (final L2SemanticValue argument : argumentSemanticValues)
+		{
+			h ^= argument.hashCode();
+			h *= multiplier;
+		}
+		hashOrZero = h;
 	}
 
 	@Override
@@ -99,17 +107,6 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	@Override
 	public int hashCode ()
 	{
-		if (hashOrZero == 0)
-		{
-			int h = primitive.primitiveNumber;
-			h *= multiplier;
-			for (final L2SemanticValue argument : argumentSemanticValues)
-			{
-				h ^= argument.hashCode();
-				h *= multiplier;
-			}
-			hashOrZero = h;
-		}
 		return hashOrZero;
 	}
 

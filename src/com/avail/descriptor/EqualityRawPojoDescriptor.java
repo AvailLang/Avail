@@ -189,5 +189,4 @@ extends RawPojoDescriptor
 	{
 		super(mutability, javaObject);
 	}
-
 }

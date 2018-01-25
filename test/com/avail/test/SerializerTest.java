@@ -324,7 +324,6 @@ public final class SerializerTest
 		checkObject(stringFrom("I really like music 𝄞𝄞"));
 	}
 
-
 	/**
 	 * Test serialization of some tuples of integers.
 	 *

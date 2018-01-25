@@ -119,7 +119,6 @@ public final class RegisterSet
 				}
 			}
 		}
-
 	}
 
 	/**

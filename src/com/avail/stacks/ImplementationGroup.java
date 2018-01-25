@@ -112,7 +112,6 @@ public class ImplementationGroup
 		return hasStickyComment;
 	}
 
-
 	/**
 	 * set the boolean, {@linkplain #hasStickyComment}, presumably to true
 	 * as the default is false.
@@ -461,7 +460,6 @@ public class ImplementationGroup
 							.mergeGrammaticalRestrictionImplementations(
 								restrictions.get(i));
 					}
-
 				}
 				restrictions.get(0)
 					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
@@ -515,7 +513,6 @@ public class ImplementationGroup
 							.mergeGrammaticalRestrictionImplementations(
 								restrictions.get(i));
 					}
-
 				}
 				restrictions.get(0)
 					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
