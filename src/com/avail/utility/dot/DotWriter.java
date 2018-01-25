@@ -76,6 +76,7 @@ import static java.util.Collections.unmodifiableSet;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see <a href="https://www.graphviz.org/doc/info/lang.html">The DOT Language</a>
  * @see <a href="https://www.graphviz.org/doc/info/attrs.html">Node, Edge, and Graph Attributes</a>
+ * @see <a href="https://www.graphviz.org/doc/info/shapes.html">Node Shapes</a>
  * @see <a href="http://viz-js.com/">Graphviz for a web browser</a>
  */
 public final class DotWriter

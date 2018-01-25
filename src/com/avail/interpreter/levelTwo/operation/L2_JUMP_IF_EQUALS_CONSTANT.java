@@ -48,8 +48,11 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -68,8 +71,8 @@ extends L2Operation
 		new L2_JUMP_IF_EQUALS_CONSTANT().init(
 			READ_POINTER.is("value"),
 			CONSTANT.is("constant"),
-			PC.is("if equal"),
-			PC.is("if unequal"));
+			PC.is("if equal", SUCCESS),
+			PC.is("if unequal", FAILURE));
 
 	@Override
 	public boolean regenerate (

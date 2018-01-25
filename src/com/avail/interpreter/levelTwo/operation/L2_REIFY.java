@@ -49,6 +49,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Nulls.stripNull;
@@ -86,7 +87,7 @@ extends L2Operation
 			IMMEDIATE.is("capture frames"),
 			IMMEDIATE.is("process interrupt"),
 			IMMEDIATE.is("statistic category"),
-			PC.is("on reification"));
+			PC.is("on reification", OFF_RAMP));
 
 	/**
 	 * An enumeration of reasons for reification, for the purpose of

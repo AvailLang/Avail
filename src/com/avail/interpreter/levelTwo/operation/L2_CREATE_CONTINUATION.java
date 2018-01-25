@@ -47,6 +47,8 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -74,8 +76,8 @@ extends L2Operation
 			IMMEDIATE.is("stack pointer"),
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
-			PC.is("on-ramp"),
-			PC.is("fall through after creation"));
+			PC.is("on-ramp", ON_RAMP),
+			PC.is("fall through after creation", OFF_RAMP));
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link

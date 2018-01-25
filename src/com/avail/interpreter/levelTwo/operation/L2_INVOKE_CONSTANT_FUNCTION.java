@@ -46,6 +46,8 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -76,8 +78,8 @@ extends L2Operation
 		new L2_INVOKE_CONSTANT_FUNCTION().init(
 			CONSTANT.is("constant function"),
 			READ_VECTOR.is("arguments"),
-			PC.is("on return"),
-			PC.is("on reification"));
+			PC.is("on return", SUCCESS),
+			PC.is("on reification", OFF_RAMP));
 
 	@Override
 	protected void propagateTypes (

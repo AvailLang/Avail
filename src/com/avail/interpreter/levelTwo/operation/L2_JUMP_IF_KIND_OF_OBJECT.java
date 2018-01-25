@@ -48,9 +48,12 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -69,8 +72,8 @@ extends L2Operation
 		new L2_JUMP_IF_KIND_OF_OBJECT().init(
 			READ_POINTER.is("value"),
 			READ_POINTER.is("type"),
-			PC.is("is kind"),
-			PC.is("if not kind"));
+			PC.is("is kind", SUCCESS),
+			PC.is("if not kind", FAILURE));
 
 	@Override
 	public boolean regenerate (

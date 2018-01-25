@@ -42,6 +42,8 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -66,8 +68,8 @@ extends L2Operation
 			READ_POINTER.is("divisor"),
 			WRITE_POINTER.is("quotient"),
 			WRITE_POINTER.is("remainder"),
-			PC.is("if undefined"),
-			PC.is("success"));
+			PC.is("if undefined", OFF_RAMP),
+			PC.is("success", SUCCESS));
 
 	@Override
 	public boolean hasSideEffect ()

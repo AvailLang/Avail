@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.DefinitionDescriptor;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -48,6 +49,7 @@ import java.util.List;
  * associated register is being read or written or both.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public enum L2OperandType
 {
@@ -214,8 +216,7 @@ public enum L2OperandType
 	 * the receiver is.
 	 *
 	 * @param dispatcher
-	 *            The {@link L2OperandTypeDispatcher} to visit with the
-	 *            receiver.
+	 *        The {@link L2OperandTypeDispatcher} to visit with the receiver.
 	 */
 	abstract void dispatch (L2OperandTypeDispatcher dispatcher);
 
@@ -234,11 +235,11 @@ public enum L2OperandType
 	 * the only constructor calls are in the enum member definitions.
 	 *
 	 * @param isSource
-	 *            Whether I represent a (potential) read from a register.
+	 *        Whether I represent a (potential) read from a register.
 	 * @param isDestination
-	 *            Whether I represent a write to a register.  If I am also to be
-	 *            considered a read, then it is treated as a <em>potential</em>
-	 *            write.
+	 *        Whether I represent a write to a register.  If I am also to be
+	 *        considered a read, then it is treated as a <em>potential</em>
+	 *        write.
 	 */
 	L2OperandType (final boolean isSource, final boolean isDestination)
 	{
@@ -250,11 +251,29 @@ public enum L2OperandType
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
 	 * String} naming its role within some {@link L2Operation}.
 	 *
-	 * @param roleName The name of this operand.
+	 * @param roleName
+	 *        The name of this operand.
 	 * @return A named operand type.
 	 */
 	public L2NamedOperandType is (final String roleName)
 	{
-		return new L2NamedOperandType(this, roleName);
+		return new L2NamedOperandType(this, roleName, null);
+	}
+
+	/**
+	 * Create a {@link L2NamedOperandType} from the receiver, a {@link
+	 * String} naming its role within some {@link L2Operation}, and a designator
+	 * of its {@linkplain Purpose purpose}.
+	 *
+	 * @param roleName
+	 *        The name of this operand.
+	 * @param purpose
+	 *        The {@link Purpose} that best describes the {@link
+	 *        L2NamedOperandType}.
+	 * @return A named operand type.
+	 */
+	public L2NamedOperandType is (final String roleName, final Purpose purpose)
+	{
+		return new L2NamedOperandType(this, roleName, purpose);
 	}
 }

@@ -51,11 +51,11 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -74,8 +74,8 @@ extends L2Operation
 		new L2_SET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"),
-			PC.is("write succeeded"),
-			PC.is("write failed"));
+			PC.is("write succeeded", SUCCESS),
+			PC.is("write failed", OFF_RAMP));
 
 	@Override
 	protected void propagateTypes (

@@ -44,10 +44,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -67,8 +67,8 @@ extends L2Operation
 		new L2_GET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("read succeeded"),
-			PC.is("read failed"));
+			PC.is("read succeeded", SUCCESS),
+			PC.is("read failed", OFF_RAMP));
 
 	@Override
 	public boolean hasSideEffect ()

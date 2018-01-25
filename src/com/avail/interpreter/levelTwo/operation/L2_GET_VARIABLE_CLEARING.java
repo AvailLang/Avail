@@ -54,6 +54,8 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -76,8 +78,8 @@ extends L2Operation
 		new L2_GET_VARIABLE_CLEARING().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("read succeeded"),
-			PC.is("read failed"));
+			PC.is("read succeeded", SUCCESS),
+			PC.is("read failed", OFF_RAMP));
 
 	@Override
 	protected void propagateTypes (

@@ -39,6 +39,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.LONG_TYPE;
@@ -64,9 +65,9 @@ extends L2Operation
 			READ_INT.is("divisor"),
 			WRITE_INT.is("quotient"),
 			WRITE_INT.is("remainder"),
-			PC.is("out of range"),
-			PC.is("zero divisor"),
-			PC.is("success"));
+			PC.is("out of range", FAILURE),
+			PC.is("zero divisor", OFF_RAMP),
+			PC.is("success", SUCCESS));
 
 	@Override
 	public boolean hasSideEffect ()

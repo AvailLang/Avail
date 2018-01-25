@@ -1,6 +1,6 @@
-/**
+/*
  * L2_INTERPRET_LEVEL_ONE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -78,8 +79,8 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_INTERPRET_LEVEL_ONE().init(
-			PC.is("call reentry point"),
-			PC.is("interrupt reentry point"));
+			PC.is("call reentry point", ON_RAMP),
+			PC.is("interrupt reentry point", ON_RAMP));
 
 	@Override
 	public boolean reachesNextInstruction ()

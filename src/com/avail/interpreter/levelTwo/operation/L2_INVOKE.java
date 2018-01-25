@@ -46,15 +46,14 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
@@ -86,8 +85,8 @@ extends L2Operation
 		new L2_INVOKE().init(
 			READ_POINTER.is("called function"),
 			READ_VECTOR.is("arguments"),
-			PC.is("on return"),
-			PC.is("on reification"));
+			PC.is("on return", SUCCESS),
+			PC.is("on reification", OFF_RAMP));
 
 	@Override
 	protected void propagateTypes (

@@ -32,13 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
@@ -60,13 +54,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -92,8 +87,8 @@ extends L2Operation
 			READ_VECTOR.is("argument types"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
-			PC.is("lookup succeeded"),
-			PC.is("lookup failed"));
+			PC.is("lookup succeeded", SUCCESS),
+			PC.is("lookup failed", FAILURE));
 
 	/** The type of failure codes that a failed lookup can produce. */
 	private final A_Type failureCodesType = enumerationWith(

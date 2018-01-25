@@ -50,8 +50,11 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -71,8 +74,8 @@ extends L2Operation
 		new L2_JUMP_IF_SUBTYPE_OF_CONSTANT().init(
 			READ_POINTER.is("type to check"),
 			CONSTANT.is("constant type"),
-			PC.is("is subtype"),
-			PC.is("not subtype"));
+			PC.is("is subtype", SUCCESS),
+			PC.is("not subtype", FAILURE));
 
 	@Override
 	public boolean regenerate (

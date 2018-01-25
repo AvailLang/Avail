@@ -41,6 +41,8 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static org.objectweb.asm.Opcodes.*;
@@ -63,8 +65,8 @@ extends L2Operation
 		new L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT().init(
 			READ_POINTER.is("first value"),
 			READ_POINTER.is("second value"),
-			PC.is("if greater or equal"),
-			PC.is("if less"));
+			PC.is("if greater or equal", SUCCESS),
+			PC.is("if less", FAILURE));
 
 	@Override
 	public boolean hasSideEffect ()

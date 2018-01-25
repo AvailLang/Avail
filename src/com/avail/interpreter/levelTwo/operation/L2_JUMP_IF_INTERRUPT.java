@@ -42,6 +42,8 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -63,8 +65,8 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_INTERRUPT().init(
-			PC.is("if interrupt"),
-			PC.is("if not interrupt"));
+			PC.is("if interrupt", OFF_RAMP),
+			PC.is("if not interrupt", SUCCESS));
 
 	@Override
 	protected void propagateTypes (

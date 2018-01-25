@@ -34,6 +34,7 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -42,6 +43,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.dot.DotWriter;
 import com.avail.utility.dot.DotWriter.GraphWriter;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
@@ -53,7 +55,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Strings.increaseIndentation;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
-import static com.avail.utility.dot.DotWriter.leftJustified;
 import static com.avail.utility.dot.DotWriter.node;
 
 /**
@@ -328,6 +329,7 @@ public class L2ControlFlowGraphVisualizer
 			int i;
 			for (i = 0; i < operands.length; i++)
 			{
+				// Find the L2PcOperand corresponding to this edge.
 				final L2Operand operand = operands[i];
 				if (operand.operandType() == PC
 					&& ((L2PcOperand) operand).targetBlock() == targetBlock)
@@ -335,26 +337,36 @@ public class L2ControlFlowGraphVisualizer
 					break;
 				}
 			}
-			builder.append(types[i].name());
-			builder.append('\n');
+			assert i < operands.length : "didn't find the control edge";
+			final L2NamedOperandType type = types[i];
+			builder.append(
+				"<table border=\"0\" cellspacing=\"0\">"
+					+ "<tr><td balign=\"left\"><b>");
+			builder.append(type.name());
+			builder.append("</b><br/>");
 			if (!edge.alwaysLiveInRegisters.isEmpty())
 			{
-				builder.append("always live-in:\n\t");
+				builder.append(
+					"<i>always live-in:</i><br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 				edge.alwaysLiveInRegisters.stream()
 					.sorted(Comparator.comparingInt(L2Register::finalIndex))
-					.forEach(r -> builder.append(r).append(", "));
+					.forEach(
+						r -> builder.append(escape(r.toString())).append(", "));
 				builder.setLength(builder.length() - 2);
-				builder.append('\n');
+				builder.append("</b><br/>");
 			}
 			if (!edge.sometimesLiveInRegisters.isEmpty())
 			{
-				builder.append("sometimes live-in:\n\t");
+				builder.append(
+					"<i>sometimes live-in:</i><br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 				edge.sometimesLiveInRegisters.stream()
 					.sorted(Comparator.comparingInt(L2Register::finalIndex))
-					.forEach(r -> builder.append(r).append(", "));
+					.forEach(
+						r -> builder.append(escape(r.toString())).append(", "));
 				builder.setLength(builder.length() - 2);
-				builder.append('\n');
+				builder.append("</b><br/>");
 			}
+			builder.append("</td></tr></table>");
 			try
 			{
 				writer.edge(
@@ -366,12 +378,28 @@ public class L2ControlFlowGraphVisualizer
 						basicBlockName(targetBlock),
 						Integer.toString(
 							targetBlock.offset())),
-					builder.length() > 0
-						? attr ->
-							attr.attribute(
-								"label",
-								leftJustified(builder.toString()))
-						: null);
+					attr ->
+					{
+						final @Nullable Purpose purpose = type.purpose();
+						assert purpose != null;
+						switch (purpose)
+						{
+							case SUCCESS:
+								// Nothing. The default styling will be fine.
+								break;
+							case FAILURE:
+								attr.attribute("color", "#e54545");
+								break;
+							case OFF_RAMP:
+								attr.attribute("style", "dashed");
+								break;
+							case ON_RAMP:
+								attr.attribute("style", "dashed");
+								attr.attribute("color", "#6aaf6a");
+								break;
+						}
+						attr.attribute("label", builder.toString());
+					});
 			}
 			catch (final IOException e)
 			{

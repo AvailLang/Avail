@@ -40,6 +40,8 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -63,8 +65,8 @@ extends L2Operation
 			READ_INT.is("minuend"),
 			READ_INT.is("subtrahend"),
 			WRITE_INT.is("difference"),
-			PC.is("in range"),
-			PC.is("out of range"));
+			PC.is("in range", SUCCESS),
+			PC.is("out of range", FAILURE));
 
 	@Override
 	public boolean hasSideEffect ()
