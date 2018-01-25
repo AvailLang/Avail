@@ -91,7 +91,6 @@ public final class P_MapWithoutKey extends Primitive
 			mostGeneralMapType());
 	}
 
-
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
 		final A_RawFunction rawFunction,

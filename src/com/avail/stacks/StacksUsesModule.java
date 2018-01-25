@@ -232,7 +232,6 @@ public class StacksUsesModule extends StacksImportModule
 		{
 			extendsMethodLeafNameToModuleName().remove(key);
 		}
-
 	}
 
 	/**
@@ -257,7 +256,6 @@ public class StacksUsesModule extends StacksImportModule
 			module.usesMethodLeafNameToModuleName());
 			this.renames = renamesMap;
 	}
-
 
 	@Override
 	public String toString()

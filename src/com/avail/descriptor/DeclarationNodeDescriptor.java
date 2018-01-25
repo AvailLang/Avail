@@ -801,7 +801,6 @@ extends ParseNodeDescriptor
 		}
 	}
 
-
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,

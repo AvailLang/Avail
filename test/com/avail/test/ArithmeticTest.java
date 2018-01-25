@@ -322,7 +322,6 @@ public final class ArithmeticTest
 					checkBitShift(negativeBase, -shiftAmount);
 				}
 			}
-
 		}
 	}
 

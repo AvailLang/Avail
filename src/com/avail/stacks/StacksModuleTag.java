@@ -61,5 +61,4 @@ public class StacksModuleTag extends AbstractStacksTag
 		// TODO Auto-generated method stub
 
 	}
-
 }

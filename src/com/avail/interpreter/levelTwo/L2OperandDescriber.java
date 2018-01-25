@@ -139,7 +139,6 @@ implements L2OperandTypeDispatcher
 		namedOperandType.operandType().dispatch(this);
 	}
 
-
 	@Override
 	public void doConstant()
 	{

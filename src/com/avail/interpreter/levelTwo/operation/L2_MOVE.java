@@ -111,7 +111,6 @@ extends L2Operation
 			sourceReg.register(), destinationReg.register(), instruction);
 	}
 
-
 	@Override
 	public L2ReadPointerOperand extractFunctionOuterRegister (
 		final L2Instruction instruction,

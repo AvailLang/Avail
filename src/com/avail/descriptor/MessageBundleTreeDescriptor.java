@@ -837,7 +837,6 @@ extends Descriptor
 			timeAfter - timeBefore, thread.interpreter.interpreterIndex);
 	}
 
-
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{

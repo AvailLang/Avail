@@ -464,5 +464,4 @@ extends PojoTypeDescriptor
 		}
 		return newSelfPojoType(mainRawType, ancestorTypes);
 	}
-
 }

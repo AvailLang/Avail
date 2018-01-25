@@ -816,9 +816,7 @@ public class StacksScanner extends AbstractStacksScanner
 							break;
 						}
 					}
-
 				}
-
 			}
 		},
 

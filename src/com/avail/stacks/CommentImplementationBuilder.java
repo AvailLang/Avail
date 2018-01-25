@@ -111,7 +111,6 @@ public final class CommentImplementationBuilder
 		authors.add(new StacksAuthorTag (tagContentTokens));
 	}
 
-
 	/**
 	 * The category keyword provides a category to which the method
 	 * implementation belongs.
@@ -636,7 +635,6 @@ public final class CommentImplementationBuilder
 				new StacksDescription(rest)));
 		}
 	}
-
 
 	/**
 	 * The restricts keyword indicates the input types used by the method

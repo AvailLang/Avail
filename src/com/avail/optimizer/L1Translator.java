@@ -159,7 +159,7 @@ public final class L1Translator
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	private int stackp;
+	@InnerAccess int stackp;
 
 	/**
 	 * The exact function that we're translating, if known.  This is only
@@ -407,7 +407,7 @@ public final class L1Translator
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
-	private void forceSlotRegister (
+	@InnerAccess void forceSlotRegister (
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
@@ -899,7 +899,7 @@ public final class L1Translator
 	/**
 	 * Add an instruction that's not supposed to be reachable.
 	 */
-	private void addUnreachableCode ()
+	@InnerAccess void addUnreachableCode ()
 	{
 		addInstruction(L2_JUMP.instance, unreachablePcOperand());
 		startBlock(createBasicBlock("an unreachable block"));
@@ -1441,7 +1441,7 @@ public final class L1Translator
 	 *        the lookup is considered successful, otherwise it's a failed
 	 *        lookup.
 	 */
-	private void leafVisit (
+	@InnerAccess void leafVisit (
 		final A_Type expectedType,
 		final List<L2ReadPointerOperand> arguments,
 		final CallSiteHelper callSiteHelper,
@@ -1491,7 +1491,7 @@ public final class L1Translator
 	 *         callbacks for this particular type test node.  It captures branch
 	 *         labels, for example.
 	 */
-	private InternalNodeMemento preInternalVisit (
+	@InnerAccess InternalNodeMemento preInternalVisit (
 		final CallSiteHelper callSiteHelper,
 		final List<L2ReadPointerOperand> arguments,
 		final int argumentIndexToTest,
@@ -2223,6 +2223,97 @@ public final class L1Translator
 			functionToCallReg.register().definitionSkippingMoves();
 		return functionDefinition.operation.getConstantCodeFrom(
 			functionDefinition);
+	}
+
+	/**
+	 * Given a register that will hold a tuple, check that the tuple has the
+	 * number of elements and statically satisfies the corresponding provided
+	 * type constraints.  If so, generate code and answer a list of register
+	 * reads corresponding to the elements of the tuple; otherwise, generate no
+	 * code and answer null.
+	 *
+	 * <p>Depending on the source of the tuple, this may cause the creation of
+	 * the tuple to be entirely elided.</p>
+	 *
+	 * @param tupleReg
+	 *        The {@link L2ObjectRegister} containing the tuple.
+	 * @param requiredTypes
+	 *        The required {@linkplain A_Type types} against which to check the
+	 *        tuple's own type.
+	 * @return A {@link List} of {@link L2ReadPointerOperand}s corresponding to
+	 *         the tuple's elements, or {@code null} if the tuple could not be
+	 *         proven to have the required shape and type.
+	 */
+	public @Nullable List<L2ReadPointerOperand> explodeTupleIfPossible (
+		final L2ReadPointerOperand tupleReg,
+		final List<A_Type> requiredTypes)
+	{
+		// First see if there's enough type information available about the
+		// tuple.
+		final A_Type tupleType = tupleReg.type();
+		final A_Type tupleTypeSizes = tupleType.sizeRange();
+		if (!tupleTypeSizes.upperBound().isInt()
+			|| !tupleTypeSizes.lowerBound().equals(tupleTypeSizes.upperBound()))
+		{
+			// The exact tuple size is not known.  Give up.
+			return null;
+		}
+		final int tupleSize = tupleTypeSizes.upperBound().extractInt();
+		if (tupleSize != requiredTypes.size())
+		{
+			// The tuple is the wrong size.
+			return null;
+		}
+
+		// Check the tuple elements for type safety.
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			if (!tupleType.typeAtIndex(i).isInstanceOf(
+				requiredTypes.get(i - 1)))
+			{
+				// This tuple element's type isn't strong enough.
+				return null;
+			}
+		}
+
+		// Check the tuple element types against the required types.
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			if (!tupleType.typeAtIndex(i).isInstanceOf(
+				requiredTypes.get(i - 1)))
+			{
+				// This tuple element's type isn't strong enough.  Give up.
+				return null;
+			}
+		}
+
+		// At this point we know the tuple has the right type.  If we know where
+		// the tuple was created, use the registers that provided values to the
+		// creation.
+		final L2Instruction tupleDefinitionInstruction =
+			tupleReg.register().definitionSkippingMoves();
+		if (tupleDefinitionInstruction.operation == L2_CREATE_TUPLE.instance)
+		{
+			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
+				tupleDefinitionInstruction);
+		}
+
+		// We have to extract the elements.
+		final List<L2ReadPointerOperand> elementReaders =
+			new ArrayList<>(tupleSize);
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			final A_Type elementType = tupleType.typeAtIndex(i);
+			final L2WritePointerOperand elementWriter =
+				newObjectRegisterWriter(elementType, null);
+			addInstruction(
+				L2_TUPLE_AT_CONSTANT.instance,
+				tupleReg,
+				new L2ImmediateOperand(i),
+				elementWriter);
+			elementReaders.add(elementWriter.read());
+		}
+		return elementReaders;
 	}
 
 	/**

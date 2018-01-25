@@ -435,7 +435,6 @@ public class IndexedRepositoryManager
 			}
 		}
 
-
 		/**
 		 * Construct a new {@code ModuleArchive}.
 		 *
@@ -472,7 +471,6 @@ public class IndexedRepositoryManager
 			}
 		}
 
-
 		/**
 		 * Record a {@link ModuleVersion version} of a {@linkplain
 		 * ModuleDescriptor module}.  This includes information about the
@@ -503,7 +501,6 @@ public class IndexedRepositoryManager
 				lock.unlock();
 			}
 		}
-
 
 		/**
 		 * Record a new {@linkplain ModuleCompilation compilation} of a
@@ -1592,7 +1589,6 @@ public class IndexedRepositoryManager
 		}
 		return false;
 	}
-
 
 	@Override
 	public String toString ()

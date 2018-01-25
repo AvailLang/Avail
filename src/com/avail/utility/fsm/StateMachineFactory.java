@@ -517,7 +517,6 @@ public final class StateMachineFactory<
 		}
 	}
 
-
 	/**
 	 * Create an instance of the {@linkplain StateMachine finite state machine}
 	 * described by the {@linkplain StateMachineFactory receiver}.

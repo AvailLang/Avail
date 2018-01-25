@@ -1219,7 +1219,6 @@ public class TypeConsistencyTest
 			}
 		}
 
-
 		/**
 		 * The list of all {@link Node}s except BOTTOM.
 		 */
@@ -1323,7 +1322,6 @@ public class TypeConsistencyTest
 			values.add(this);
 		}
 
-
 		/* The nodes' slots have to be initialized here because they pass
 		 * the Node.class to the EnumSet factory, which attempts to
 		 * determine the number of enumeration values, which isn't known yet
@@ -1364,7 +1362,6 @@ public class TypeConsistencyTest
 			}
 			while (changed);
 		}
-
 
 		/**
 		 * Enumeration instances are required to implement this to construct the
@@ -1486,7 +1483,6 @@ public class TypeConsistencyTest
 				node.subtypeCache = new Boolean[0];
 			}
 		}
-
 	}
 
 	/**
@@ -1505,8 +1501,6 @@ public class TypeConsistencyTest
 
 		// dumpGraphTo(System.out);
 	}
-
-
 
 	/**
 	 * Output a machine-readable representation of the graph as a sequence of
@@ -1583,12 +1577,9 @@ public class TypeConsistencyTest
 				{
 					out.println("(" + i1 + " " + i2 + ")");
 				}
-
 			}
 		}
 	}
-
-
 
 	/**
 	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
@@ -1598,7 +1589,6 @@ public class TypeConsistencyTest
 	{
 		Node.eraseTypes();
 	}
-
 
 	/**
 	 * Compare the first two arguments for {@linkplain Object#equals(Object)
@@ -2214,7 +2204,6 @@ public class TypeConsistencyTest
 			}
 		}
 	}
-
 
 	/**
 	 * Check that the type intersection of two types' types is the same as the

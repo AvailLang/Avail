@@ -263,39 +263,6 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Propagate {@linkplain TypeDescriptor type} and constant value information
-	 * from source {@link L2Register}s to destination registers within the
-	 * provided {@link RegisterSet}s.  There is one RegisterSet for each target
-	 * L2Instruction, including the instruction that follows this one.  They
-	 * occur in the same order as the {@link #targetEdges()}, with the
-	 * successor instruction's RegisterSet prepended if it {@link
-	 * L2Operation#reachesNextInstruction()}.
-	 *
-	 * @param registerSets
-	 *            A list of RegisterSets in the above-specified order.
-	 * @param translator
-	 *            The L2Translator on behalf of which to propagate types.
-	 */
-	public void propagateTypes (
-		final List<RegisterSet> registerSets,
-		final L2Translator translator)
-	{
-		final int count = (operation.reachesNextInstruction() ? 1 : 0)
-			+ targetEdges().size();
-		assert registerSets.size() == count;
-		if (count == 1)
-		{
-			operation.propagateTypes(
-				this, registerSets.get(0), translator);
-		}
-		else
-		{
-			operation.propagateTypes(
-				this, registerSets, translator);
-		}
-	}
-
-	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
 	 * register is not present as a key of that map, leave it alone.  Do not
 	 * assume SSA form.
@@ -319,7 +286,6 @@ public final class L2Instruction
 		assert sourceRegisters.size() == sourcesBefore.size();
 		assert destinationRegisters.size() == destinationsBefore.size();
 	}
-
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock}.

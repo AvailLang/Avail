@@ -158,7 +158,6 @@ extends TokenDescriptor
 			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
 				== NEXT_LEXING_STATE_POJO.ordinal();
 		}
-
 	}
 
 	@Override

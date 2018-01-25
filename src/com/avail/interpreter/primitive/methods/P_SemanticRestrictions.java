@@ -107,7 +107,6 @@ extends Primitive
 			zeroOrMoreOf(functionTypeReturning(topMeta())));
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

@@ -95,6 +95,4 @@ public final class L2ToJavaGenerator
 	{
 		// nothing
 	}
-
-
 }

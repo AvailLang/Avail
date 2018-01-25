@@ -102,7 +102,6 @@ extends Primitive
 			booleanType());
 	}
 
-
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{

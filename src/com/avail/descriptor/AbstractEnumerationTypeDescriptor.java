@@ -254,7 +254,6 @@ extends AbstractTypeDescriptor
 		return computeIntersectionWith(object, aTupleType);
 	}
 
-
 	@Override @AvailMethod
 	final A_Type o_TypeUnion (
 		final AvailObject object,
@@ -278,7 +277,6 @@ extends AbstractTypeDescriptor
 	{
 		return computeUnionWith(object, aCompiledCodeType);
 	}
-
 
 	@Override @AvailMethod
 	final A_Type o_TypeUnionOfLiteralTokenType (

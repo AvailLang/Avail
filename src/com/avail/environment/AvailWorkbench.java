@@ -1881,7 +1881,6 @@ extends JFrame
 			percent));
 	}
 
-
 	/** A monitor to protect updates to the per module progress. */
 	private final Object perModuleProgressMonitor = new Object();
 
@@ -2105,7 +2104,6 @@ extends JFrame
 		}
 		return roots;
 	}
-
 
 	/**
 	 * Parse the {@link ModuleRoots} from the module roots preferences node.

@@ -62,5 +62,4 @@ public class StacksStickyTag extends AbstractStacksTag
 		// TODO Auto-generated method stub
 
 	}
-
 }

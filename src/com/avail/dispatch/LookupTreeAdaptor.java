@@ -168,7 +168,6 @@ public abstract class LookupTreeAdaptor<
 		return createTree(prequalified, undecided, knownArgumentTypes, memento);
 	}
 
-
 	/**
 	 * Create a {@link LookupTree} suitable for deciding which {@link Result}
 	 * applies when supplied with actual argument {@link A_Type types}.

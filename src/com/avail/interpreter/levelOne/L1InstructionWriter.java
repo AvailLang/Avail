@@ -400,7 +400,6 @@ public class L1InstructionWriter
 		return nybbles;
 	}
 
-
 	/**
 	 * Produce the {@linkplain CompiledCodeDescriptor compiled code object}
 	 * which we have just incrementally specified.

@@ -582,7 +582,6 @@ extends Descriptor
 		return FALSE.atom;
 	}
 
-
 	// An enumeration of special atoms that the VM is aware of which name
 	// methods for invoking specific primitives.  Multiple primitives may be
 	// provided to make the method multimorphic.

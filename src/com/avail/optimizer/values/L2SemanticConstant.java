@@ -63,7 +63,6 @@ final class L2SemanticConstant extends L2SemanticValue
 		return value.hashCode();
 	}
 
-
 	@Override
 	public L2SemanticConstant transform (
 		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>

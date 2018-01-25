@@ -67,7 +67,6 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		super(string, lineNumber, position, startOfTokenLinePostion, moduleName);
 	}
 
-
 	/**
 	 *
 	 * The collection of keywords that a comment can have.

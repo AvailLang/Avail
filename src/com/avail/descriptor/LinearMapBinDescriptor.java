@@ -749,7 +749,6 @@ extends MapBinDescriptor
 		return descriptorFor(SHARED, level);
 	}
 
-
 	/**
 	 * The canonical array of empty map bins, one for each level.
 	 */
