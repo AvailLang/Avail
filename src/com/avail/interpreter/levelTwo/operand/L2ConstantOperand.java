@@ -81,6 +81,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return format("Const(%s)", object);
+		return "$(" + object + ")";
 	}
 }

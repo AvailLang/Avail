@@ -77,7 +77,8 @@ extends L2Operation
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
 			PC.is("on-ramp", ON_RAMP),
-			PC.is("fall through after creation", OFF_RAMP));
+			PC.is("fall through after creation", OFF_RAMP),
+			COMMENT.is("usage comment"));
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link

@@ -1,6 +1,6 @@
-/**
+/*
  * L2Instruction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -327,19 +328,7 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(offset);
-		builder.append(". ");
-		builder.append(operation.name());
-		final L2NamedOperandType[] types = operation.operandTypes();
-		assert operands.length == types.length;
-		for (int i = 0; i < operands.length; i++)
-		{
-			builder.append(i == 0 ? ":\n\t" : ",\n\t");
-			assert operands[i].operandType() == types[i].operandType();
-			builder.append(types[i].name());
-			builder.append(" = ");
-			builder.append(increaseIndentation(operands[i].toString(), 1));
-		}
+		operation.toString(this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
 	}
 

@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.InstanceTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -45,6 +46,8 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -121,6 +124,20 @@ extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.readObjectRegisterAt(0);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.operands[1]);
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
 	}
 
 	@Override

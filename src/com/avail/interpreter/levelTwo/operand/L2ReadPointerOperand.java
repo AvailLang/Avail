@@ -196,10 +196,9 @@ extends L2Operand
 	{
 		//noinspection StringConcatenationMissingWhitespace
 		return
-			"Read("
+			"@"
 				+ register
-				+ register.restriction().suffixString()
-				+ ")";
+				+ register.restriction().suffixString();
 	}
 
 	/**

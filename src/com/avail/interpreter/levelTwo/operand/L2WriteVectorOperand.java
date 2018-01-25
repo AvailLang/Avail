@@ -140,7 +140,7 @@ extends L2Operand
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("WriteVector(");
+		builder.append("→<");
 		boolean first = true;
 		for (final L2WritePointerOperand write : elements)
 		{
@@ -153,7 +153,7 @@ extends L2Operand
 			builder.append(register.restriction().suffixString());
 			first = false;
 		}
-		builder.append(")");
+		builder.append(">");
 		return builder.toString();
 	}
 }

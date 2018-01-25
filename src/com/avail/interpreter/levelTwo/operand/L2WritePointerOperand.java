@@ -163,12 +163,8 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		@SuppressWarnings("StringBufferReplaceableByString")
-		final StringBuilder builder = new StringBuilder();
-		builder.append("Write(");
-		builder.append(register);
-		builder.append(register.restriction().suffixString());
-		builder.append(")");
-		return builder.toString();
+		return "→"
+			+ register
+			+ register.restriction().suffixString();
 	}
 }
