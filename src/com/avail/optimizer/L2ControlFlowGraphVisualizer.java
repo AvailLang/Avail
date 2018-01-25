@@ -50,6 +50,7 @@ import java.time.ZoneId;
 import java.util.Comparator;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.utility.Strings.increaseIndentation;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
 import static com.avail.utility.dot.DotWriter.leftJustified;
@@ -231,7 +232,8 @@ public class L2ControlFlowGraphVisualizer
 				builder.append("\n\t");
 				builder.append(types[i].name());
 				builder.append(" = ");
-				builder.append(operands[i].toString());
+				builder.append(increaseIndentation(
+					operands[i].toString(), 1));
 			}
 		}
 		return escape(builder.toString());

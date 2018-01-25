@@ -1163,13 +1163,17 @@ extends Descriptor
 			builder,
 			recursionMap,
 			indent);
-		Strings.newlineTab(builder, indent);
-		builder.append("Nybblecodes:\n");
-		L1Disassembler.disassemble(
-			object,
-			builder,
-			recursionMap,
-			indent + 1);
+		final int longCount = object.variableIntegerSlotsCount();
+		if (longCount > 0)
+		{
+			Strings.newlineTab(builder, indent);
+			builder.append("Nybblecodes:\n");
+			L1Disassembler.disassemble(
+				object,
+				builder,
+				recursionMap,
+				indent + 1);
+		}
 	}
 
 	/**
