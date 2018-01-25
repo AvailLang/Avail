@@ -50,6 +50,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Strings.increaseIndentation;
@@ -355,11 +357,14 @@ public class L2ControlFlowGraphVisualizer
 				builder.setLength(builder.length() - 2);
 				builder.append("</b><br/>");
 			}
-			if (!edge.sometimesLiveInRegisters.isEmpty())
+			final Set<L2Register> notAlwaysLiveInRegisters =
+				new HashSet<>(edge.sometimesLiveInRegisters);
+			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
+			if (!notAlwaysLiveInRegisters.isEmpty())
 			{
 				builder.append(
 					"<i>sometimes live-in:</i><br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-				edge.sometimesLiveInRegisters.stream()
+				notAlwaysLiveInRegisters.stream()
 					.sorted(Comparator.comparingInt(L2Register::finalIndex))
 					.forEach(
 						r -> builder.append(escape(r.toString())).append(", "));
