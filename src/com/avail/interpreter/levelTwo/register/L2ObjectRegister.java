@@ -117,7 +117,7 @@ extends L2Register
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("r");
+		builder.append(restriction.constantOrNull == null ? "r": "c");
 		if (finalIndex() != -1)
 		{
 			builder.append(finalIndex());
@@ -128,7 +128,7 @@ extends L2Register
 		}
 		if (restriction.constantOrNull != null)
 		{
-			builder.append("[CONST=");
+			builder.append("[");
 			String constString = restriction.constantOrNull.toString();
 			if (constString.length() > 50)
 			{

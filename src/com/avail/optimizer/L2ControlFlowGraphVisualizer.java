@@ -277,11 +277,19 @@ public class L2ControlFlowGraphVisualizer
 			bgcolor = "#c1f0f6";
 			fontcolor = "#000000";
 		}
+		// The selection of Helvetica as the font is important. Some
+		// renderers, like Viz.js, only seem to fully support a small number
+		// of standard, widely available fonts:
+		//
+		// https://github.com/mdaines/viz.js/issues/82
+		//
+		// In particular, Courier, Arial, Helvetica, and Times are supported.
 		builder.append(String.format(
 			"<tr>"
 				+ "<td align=\"left\" balign=\"left\" border=\"1\" "
-				+ "bgcolor=\"%s\" valign=\"top\">"
-					+ "<font color=\"%s\">%s</font>"
+				+ "bgcolor=\"%s\">"
+					+ "<font face=\"Helvetica\" color=\"%s\"><b><i>"
+						+ "%s</i></b></font>"
 				+ "</td>"
 			+ "</tr>",
 			bgcolor,
@@ -341,15 +349,25 @@ public class L2ControlFlowGraphVisualizer
 			}
 			assert i < operands.length : "didn't find the control edge";
 			final L2NamedOperandType type = types[i];
+			// The selection of Helvetica as the font is important. Some
+			// renderers, like Viz.js, only seem to fully support a small number
+			// of standard, widely available fonts:
+			//
+			// https://github.com/mdaines/viz.js/issues/82
+			//
+			// In particular, Courier, Arial, Helvetica, and Times are
+			// supported.
 			builder.append(
 				"<table border=\"0\" cellspacing=\"0\">"
-					+ "<tr><td balign=\"left\"><b>");
+					+ "<tr><td balign=\"left\">"
+						+ "<font face=\"Helvetica\"><b>");
 			builder.append(type.name());
-			builder.append("</b><br/>");
+			builder.append("</b></font><br/>");
 			if (!edge.alwaysLiveInRegisters.isEmpty())
 			{
 				builder.append(
-					"<i>always live-in:</i><br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+					"<font face=\"Helvetica\"><i>always live-in:</i></font>"
+					+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 				edge.alwaysLiveInRegisters.stream()
 					.sorted(Comparator.comparingInt(L2Register::finalIndex))
 					.forEach(
@@ -363,7 +381,8 @@ public class L2ControlFlowGraphVisualizer
 			if (!notAlwaysLiveInRegisters.isEmpty())
 			{
 				builder.append(
-					"<i>sometimes live-in:</i><br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+					"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
+					+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 				notAlwaysLiveInRegisters.stream()
 					.sorted(Comparator.comparingInt(L2Register::finalIndex))
 					.forEach(
@@ -425,6 +444,14 @@ public class L2ControlFlowGraphVisualizer
 		try
 		{
 			banner(writer);
+			// The selection of Courier as the font is important. Some
+			// renderers, like Viz.js, only seem to fully support a small number
+			// of standard, widely available fonts:
+			//
+			// https://github.com/mdaines/viz.js/issues/82
+			//
+			// In particular, Courier, Arial, Helvetica, and Times are
+			// supported.
 			writer.graph(graph ->
 			{
 				graph.attribute("rankdir", "LR");
@@ -434,14 +461,14 @@ public class L2ControlFlowGraphVisualizer
 				graph.defaultAttributeBlock(NODE, attr ->
 				{
 					attr.attribute("fixedsize", "false");
-					attr.attribute("fontname", "monospace");
+					attr.attribute("fontname", "Courier");
 					attr.attribute("fontsize", "8");
 					attr.attribute("fontcolor", "#000000");
 					attr.attribute("shape", "none");
 				});
 				graph.defaultAttributeBlock(EDGE, attr ->
 				{
-					attr.attribute("fontname", "monospace");
+					attr.attribute("fontname", "Courier");
 					attr.attribute("fontsize", "6");
 					attr.attribute("fontcolor", "#000000");
 					attr.attribute("style", "solid");
