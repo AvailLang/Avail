@@ -34,7 +34,6 @@ package com.avail.optimizer.jvm;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailThread;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_RawFunction;
@@ -51,6 +50,7 @@ import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
@@ -60,6 +60,7 @@ import org.objectweb.asm.util.CheckMethodAdapter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -121,7 +122,7 @@ public final class JVMTranslator
 	 * subclass. The {@code ClassWriter} is configured to automatically compute
 	 * stack map frames and method limits (e.g., stack depths).
 	 */
-	@InnerAccess final ClassWriter classWriter;
+	private final ClassWriter classWriter;
 
 	/**
 	 * The name of the generated class, formed from a {@link UUID} to ensure
@@ -132,7 +133,7 @@ public final class JVMTranslator
 	/**
 	 * The internal name of the generated class.
 	 */
-	public final String classInternalName;
+	private final String classInternalName;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -256,7 +257,7 @@ public final class JVMTranslator
 	 * embedded into the translated {@link JVMChunk}, mapped to their
 	 * {@linkplain LiteralAccessor accessors}.
 	 */
-	@InnerAccess final Map<Object, LiteralAccessor> literals = new HashMap<>();
+	private final Map<Object, LiteralAccessor> literals = new HashMap<>();
 
 	/**
 	 * Emit code to push the specified literal on top of the stack.
@@ -276,7 +277,7 @@ public final class JVMTranslator
 	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
 	 * {@linkplain Label labels}.
 	 */
-	@InnerAccess final Map<Integer, Label> labels = new HashMap<>();
+	private final Map<Integer, Label> labels = new HashMap<>();
 
 	/**
 	 * Answer the {@link Label} for the specified {@link L2Instruction}
@@ -295,7 +296,7 @@ public final class JVMTranslator
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	@InnerAccess final Map<L2Register, Integer> locals = new HashMap<>();
+	private final Map<L2Register, Integer> locals = new HashMap<>();
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -785,7 +786,7 @@ public final class JVMTranslator
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public void loadReceiver (final MethodVisitor method)
 	{
 		method.visitVarInsn(ALOAD, receiverLocal());
@@ -797,6 +798,7 @@ public final class JVMTranslator
 	 *
 	 * @return The {@code Interpreter} formal parameter local.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public static int interpreterLocal ()
 	{
 		return 1;
@@ -823,7 +825,7 @@ public final class JVMTranslator
 	 *
 	 * @return The {@code offset} formal parameter local.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int offsetLocal ()
 	{
 		return 2;
@@ -1116,7 +1118,7 @@ public final class JVMTranslator
 	 *        the two branch targets.
 	 * @return The branch opcode with the reversed sense.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int reverseOpcode (final int opcode)
 	{
 		final int reversedOpcode;
@@ -1347,8 +1349,9 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Dump the {@link L2ControlFlowGraph} for the {@link L2Chunk} to an
-	 * appropriately named file.
+	 * Dump the {@linkplain L2ControlFlowGraphVisualizer visualized} {@link
+	 * L2ControlFlowGraph} for the {@link L2Chunk} to an appropriately named
+	 * file.
 	 *
 	 * @return The absolute path of the resultant file, for inclusion in a
 	 *         {@link JVMChunkL2Source} annotation of the generated {@link
@@ -1358,7 +1361,6 @@ public final class JVMTranslator
 	{
 		try
 		{
-			final String transcript = chunkName + ":\n\n" + controlFlowGraph;
 			final int lastSlash =
 				classInternalName.lastIndexOf('/');
 			final String pkg =
@@ -1367,14 +1369,24 @@ public final class JVMTranslator
 			final Path dir = tempDir.resolve(Paths.get(pkg));
 			Files.createDirectories(dir);
 			final String base = classInternalName.substring(lastSlash + 1);
-			final Path l2File = dir.resolve(base + ".l2");
-			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(transcript);
+			final Path l2File = dir.resolve(base + ".dot");
+			final StringBuilder builder = new StringBuilder();
+			final L2ControlFlowGraphVisualizer visualizer =
+				new L2ControlFlowGraphVisualizer(
+					base,
+					chunkName,
+					80,
+					controlFlowGraph,
+					builder);
+			visualizer.visualize();
+			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
+				builder.toString());
 			final byte[] bytes = new byte[buffer.limit()];
 			buffer.get(bytes);
 			Files.write(l2File, bytes);
 			return l2File.toAbsolutePath().toString();
 		}
-		catch (final IOException e)
+		catch (final IOException|UncheckedIOException e)
 		{
 			Interpreter.log(
 				Interpreter.loggerDebugJVM,

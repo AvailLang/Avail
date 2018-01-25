@@ -73,7 +73,7 @@ import static java.lang.Long.bitCount;
  * additional bins – without disrupting the original map.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class HashedMapBinDescriptor
 extends MapBinDescriptor

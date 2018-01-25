@@ -75,7 +75,7 @@ import static java.lang.Long.bitCount;
  * disrupting the original set.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class HashedSetBinDescriptor
 extends SetBinDescriptor

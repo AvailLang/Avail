@@ -55,7 +55,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
  * <strong>Primitive CreateExpressionAsStatementPhrase</strong>: Construct an
  * expression-as-statement phrase for the given expression.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_CreateExpressionAsStatementPhrase
 extends Primitive

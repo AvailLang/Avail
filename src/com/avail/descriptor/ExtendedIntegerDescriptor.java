@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
  * negative infinity.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor

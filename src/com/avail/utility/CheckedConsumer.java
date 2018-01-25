@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * UncheckedAppendable.java
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.utility.configuration;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.utility;
+
+import java.io.IOException;
+
+/**
+ * A {@code CheckedConsumer} functions as a consumer, but throws an {@link
+ * IOException}. It can therefore combine lambdas and I/O.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <T>
+ *        The type of the argument.
+ */
+@FunctionalInterface
+public interface CheckedConsumer<T>
+{
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg
+	 *        An argument to the operation.
+	 * @throws IOException
+	 *         If an I/O error occurs.
+	 */
+	void accept (T arg) throws IOException;
+}

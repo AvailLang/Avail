@@ -109,7 +109,7 @@ implements ExecutableChunk
 	 * The optimized, non-SSA {@link L2ControlFlowGraph} from which the chunk
 	 * was created.  Useful for debugging.
 	 */
-	public final L2ControlFlowGraph controlFlowGraph;
+	private final L2ControlFlowGraph controlFlowGraph;
 
 	/** The code that was translated to L2.  Null for the default (L1) chunk. */
 	final @Nullable A_RawFunction code;

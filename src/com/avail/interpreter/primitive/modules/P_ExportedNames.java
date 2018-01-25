@@ -58,7 +58,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
  * A_Module#exportedNames() exported names} of the {@linkplain
  * ModuleDescriptor#currentModule() current module}.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_ExportedNames
 extends Primitive

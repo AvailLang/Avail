@@ -83,7 +83,7 @@ import static com.avail.utility.Nulls.stripNull;
  * complete macro.  It is constrained to answer a {@linkplain
  * ParseNodeDescriptor parse node}.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_SimpleMacroDefinitionForAtom
 extends Primitive

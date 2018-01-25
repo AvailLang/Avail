@@ -1,6 +1,6 @@
 /*
  * package-info.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,5 +31,5 @@
  */
 
 @NonnullByDefault
-package com.avail.utility.configuration;
+package com.avail.utility.dot;
 import com.avail.annotations.NonnullByDefault;

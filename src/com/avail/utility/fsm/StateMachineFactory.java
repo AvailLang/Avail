@@ -53,7 +53,7 @@ import static com.avail.utility.Nulls.stripNull;
  * constructed FSM provably reflects the client specification.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param <StateType>
  *        The type of states (an {@link Enum}).
  * @param <EventType>

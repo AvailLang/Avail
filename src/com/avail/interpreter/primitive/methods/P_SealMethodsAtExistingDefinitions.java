@@ -71,7 +71,7 @@ import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
  * A_Method} at each existing {@linkplain A_Definition definition}. Ignore
  * macros and forward definitions.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_SealMethodsAtExistingDefinitions
 extends Primitive

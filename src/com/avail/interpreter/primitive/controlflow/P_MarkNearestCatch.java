@@ -55,7 +55,7 @@ import static com.avail.interpreter.Primitive.Flag.Unknown;
  * invocation of {@link P_CatchException} as ineligible to handle exceptions
  * any longer.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_MarkNearestCatch
 extends Primitive

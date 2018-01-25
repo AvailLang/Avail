@@ -33,7 +33,7 @@ import static com.avail.interpreter.Primitive.Flag.Unknown;
  * ensure clause.  If the current state is 1, it can be marked as either 2 or 3.
  * If the state is 2, it can be marked as 3.  No other transitions are allowed.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class P_MarkGuardVariable

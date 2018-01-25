@@ -54,7 +54,7 @@ import static com.avail.descriptor.VariableTypeDescriptor.ObjectSlots
  * equivalent, therefore the inner type is invariant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see ReadWriteVariableTypeDescriptor
  */
 public final class VariableTypeDescriptor
