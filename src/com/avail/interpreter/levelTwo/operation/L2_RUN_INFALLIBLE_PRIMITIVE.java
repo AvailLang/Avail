@@ -39,6 +39,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -53,6 +54,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
@@ -174,12 +176,29 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(3).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[1]);
+		builder.append('(');
+		builder.append(instruction.operands[2]);
+		builder.append(')');
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final A_RawFunction rawFunction = instruction.constantAt(0);
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
 		final List<L2ReadPointerOperand> argumentRegs =
 			instruction.readVectorRegisterAt(2);

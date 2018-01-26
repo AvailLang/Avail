@@ -95,7 +95,7 @@ extends Descriptor
 		A_Phrase phrase = code.originatingPhrase();
 		if (phrase.equalsNil())
 		{
-			phrase = L1Decompiler.parse(object);
+			phrase = L1Decompiler.parse((A_Function) object);
 		}
 		phrase.printOnAvoidingIndent(
 			aStream, recursionMap, indent + 1);

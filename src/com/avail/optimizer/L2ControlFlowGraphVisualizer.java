@@ -411,10 +411,12 @@ public class L2ControlFlowGraphVisualizer
 						basicBlockName(sourceBlock),
 						Integer.toString(
 							sourceBlock.finalInstruction().offset())),
-					node(
-						basicBlockName(targetBlock),
-						Integer.toString(
-							targetBlock.offset())),
+					sourceBlock.offset() <= targetBlock.offset()
+						? node(basicBlockName(targetBlock))
+						: node(
+							basicBlockName(targetBlock),
+							Integer.toString(
+								targetBlock.offset())),
 					attr ->
 					{
 						final @Nullable Purpose purpose = type.purpose();
@@ -467,7 +469,7 @@ public class L2ControlFlowGraphVisualizer
 			// supported.
 			writer.graph(graph ->
 			{
-				graph.attribute("rankdir", "LR");
+				graph.attribute("rankdir", "TB");
 				graph.attribute("newrank", "true");
 				graph.attribute("overlap", "false");
 				graph.attribute("splines", "true");

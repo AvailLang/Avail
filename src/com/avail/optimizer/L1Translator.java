@@ -857,7 +857,9 @@ public final class L1Translator
 		currentManifest.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk));
+			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"If invalid, reenter «default» at " + typeOfEntryPoint.name() + "."));
 		final L2ReadPointerOperand popped = popCurrentContinuation();
 		for (int i = 1; i <= numSlots; i++)
 		{
@@ -2757,7 +2759,9 @@ public final class L1Translator
 		// offset 1 (after the L2_TRY_OPTIONAL_PRIMITIVE) would also work.
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(0));
+			new L2ImmediateOperand(0),
+			new L2CommentOperand(
+				"If invalid, reenter «default» at the beginning."));
 
 		// Do any reoptimization before capturing arguments.
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)

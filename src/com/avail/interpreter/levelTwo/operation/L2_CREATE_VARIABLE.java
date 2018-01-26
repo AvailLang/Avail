@@ -96,9 +96,9 @@ extends L2Operation
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[1]);
+		builder.append(instruction.writeObjectRegisterAt(1).register());
 		builder.append(" ← new ");
-		builder.append(instruction.operands[0]);
+		builder.append(instruction.constantAt(0));
 	}
 
 	@Override

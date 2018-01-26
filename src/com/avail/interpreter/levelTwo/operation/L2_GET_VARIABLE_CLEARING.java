@@ -137,9 +137,9 @@ extends L2Operation
 		final L2NamedOperandType[] types = operandTypes();
 		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(operands[1]);
+		builder.append(instruction.writeObjectRegisterAt(1).register());
 		builder.append(" ← ↓");
-		builder.append(operands[0]);
+		builder.append(instruction.readObjectRegisterAt(0).register());
 		for (int i = 2, limit = operands.length; i < limit; i++)
 		{
 			final L2NamedOperandType type = types[i];

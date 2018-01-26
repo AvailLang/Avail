@@ -90,7 +90,7 @@ extends L2Operation
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[1]);
+		builder.append(instruction.writeObjectRegisterAt(1).register());
 		builder.append(" ← ");
 		builder.append(instruction.operands[0]);
 	}

@@ -42,6 +42,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -63,7 +64,8 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_ENTER_L2_CHUNK().init(
-			IMMEDIATE.is("entry point offset in default chunk"));
+			IMMEDIATE.is("entry point offset in default chunk"),
+			COMMENT.is("chunk entry point name"));
 
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
@@ -85,9 +87,6 @@ extends L2Operation
 	{
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
-		builder.append(" [or «default»@pc");
-		builder.append(instruction.operands[0]);
-		builder.append(']');
 	}
 
 	@Override

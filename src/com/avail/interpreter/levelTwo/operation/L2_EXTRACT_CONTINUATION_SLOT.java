@@ -73,11 +73,11 @@ extends L2Operation
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[2]);
+		builder.append(instruction.writeObjectRegisterAt(2).register());
 		builder.append(" ← ");
-		builder.append(instruction.operands[0]);
+		builder.append(instruction.readObjectRegisterAt(0));
 		builder.append('[');
-		builder.append(instruction.operands[1]);
+		builder.append(instruction.immediateAt(1));
 		builder.append(']');
 	}
 
