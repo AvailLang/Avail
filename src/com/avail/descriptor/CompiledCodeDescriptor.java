@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -194,6 +196,9 @@ extends Descriptor
 		 * The number of outer variables that must captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_OUTERS = bitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
@@ -202,6 +207,9 @@ extends Descriptor
 		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
 		 * for continuations running this code.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField FRAME_SLOTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 48, 16);
 
@@ -209,6 +217,9 @@ extends Descriptor
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
 		 * code expects.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_ARGS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 32, 16);
 
@@ -216,6 +227,9 @@ extends Descriptor
 		 * The number of local variables declared in this code.  This does not
 		 * include arguments or local constants.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_LOCALS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 16, 16);
 
@@ -223,6 +237,9 @@ extends Descriptor
 		 * The number of local constants declared in this code.  These occur in
 		 * the frame after the arguments and local variables.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_CONSTANTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 0, 16);
 	}
@@ -254,7 +271,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code}, in which to record information
 		 * such as the file and line number of source code.
 		 */
-//		@HideFieldInDebugger
+		@HideFieldJustForPrinting
 		PROPERTY_ATOM,
 
 		/**

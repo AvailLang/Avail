@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -142,16 +143,19 @@ public final class Frame
 
 	/**
 	 * Answer the {@link L2SemanticValue} representing one of this frame's
-	 * slots.
+	 * slots, as of just after the particular nybblecode that wrote it.
 	 *
 	 * @param slotIndex
 	 *        The subscript of the slot to retrieve from the virtual
 	 *        continuation running for this frame.
+	 * @param afterPc
+	 *        The level-one {@link A_Continuation#pc()} just after the
+	 *        nybblecode instruction that produced the value in this slot.
 	 * @return The {@link L2SemanticValue} representing the specified slot.
 	 */
-	public L2SemanticValue slot (final int slotIndex)
+	public L2SemanticValue slot (final int slotIndex, final int afterPc)
 	{
-		return new L2SemanticSlot(this, slotIndex);
+		return new L2SemanticSlot(this, slotIndex, afterPc);
 	}
 
 	/**

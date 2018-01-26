@@ -60,7 +60,6 @@ import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.MutableInt;
-import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -264,7 +263,7 @@ public final class L1Translator
 		this.semanticSlots = new L2SemanticValue[numSlots];
 		for (int i = 1; i <= numSlots; i++)
 		{
-			semanticSlots[i - 1] = topFrame.slot(i);
+			semanticSlots[i - 1] = topFrame.slot(i, 1);
 		}
 	}
 
@@ -378,16 +377,20 @@ public final class L1Translator
 	 * the arguments, the local variables, the local constants, and finally the
 	 * stack entries.  Slots are numbered starting at 1.
 	 *
-	 * @param slotNumber
+	 * @param slotIndex
 	 *        The index into the continuation's slots.
 	 * @return A register write representing that continuation slot.
 	 */
 	private L2WritePointerOperand writeSlot (
-		final int slotNumber,
+		final int slotIndex,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		final L2SemanticValue semanticValue = semanticSlot(slotNumber);
+		// Create a new L2SemanticSlot at the current pc, representing this
+		// newly written value.
+		final L2SemanticValue semanticValue =
+			topFrame.slot(slotIndex, pc.value);
+		semanticSlots[slotIndex - 1] = semanticValue;
 		currentManifest.removeBinding(semanticValue);
 		final L2WritePointerOperand writer =
 			newObjectRegisterWriter(type, constantOrNull);
@@ -411,7 +414,11 @@ public final class L1Translator
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
-		final L2SemanticValue semanticValue = semanticSlot(slotIndex);
+		// Create a new L2SemanticSlot at the current pc, representing this
+		// newly written value.
+		final L2SemanticValue semanticValue =
+			topFrame.slot(slotIndex, pc.value);
+		semanticSlots[slotIndex - 1] = semanticValue;
 		currentManifest.removeBinding(semanticValue);
 		currentManifest.addBinding(semanticValue, register);
 	}
@@ -1381,29 +1388,29 @@ public final class L1Translator
 				callSiteHelper, arguments, unionOfPossibleResults);
 		}
 
-		final Continuation2NotNull<L2BasicBlock, L2BasicBlock>
-			generateReificationClause = (from, to) ->
-			{
-				startBlock(from);
-				if (currentlyReachable())
-				{
-					reify(TO_RETURN_INTO);
-					// Capture the value being returned into the on-ramp.
-					forceSlotRegister(
-						stackp, getLatestReturnValue(unionOfPossibleResults));
-					addInstruction(L2_JUMP.instance, edgeTo(to));
-				}
-			};
-
 		// #2: Reification with return check.
-		generateReificationClause.value(
-			callSiteHelper.onReificationWithCheck,
-			callSiteHelper.afterCallWithCheck);
+		startBlock(callSiteHelper.onReificationWithCheck);
+		if (currentlyReachable())
+		{
+			reify(TO_RETURN_INTO);
+			// Capture the value being returned into the on-ramp.
+			forceSlotRegister(
+				stackp, getLatestReturnValue(unionOfPossibleResults));
+			addInstruction(
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
+		}
 
 		// #3: Reification without return check.
-		generateReificationClause.value(
-			callSiteHelper.onReificationNoCheck,
-			callSiteHelper.afterCallNoCheck);
+		startBlock(callSiteHelper.onReificationNoCheck);
+		if (currentlyReachable())
+		{
+			reify(TO_RETURN_INTO);
+			// Capture the value being returned into the on-ramp.
+			forceSlotRegister(
+				stackp, getLatestReturnValue(unionOfPossibleResults));
+			addInstruction(
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
+		}
 
 		// #4: After call with return check.
 		startBlock(callSiteHelper.afterCallWithCheck);

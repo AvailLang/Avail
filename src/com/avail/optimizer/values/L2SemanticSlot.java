@@ -48,6 +48,14 @@ final class L2SemanticSlot extends L2SemanticValue
 	public final int slotIndex;
 
 	/**
+	 * The level one {@link A_Continuation#pc()} at the position just after the
+	 * nybblecode instruction that produced this value.  This serves to
+	 * distinguish semantic slots at the same index but at different times,
+	 * allowing a correct SSA graph and the reordering that it supports.
+	 */
+	public final int pcAfter;
+
+	/**
 	 * Create a new {@code L2SemanticSlot} semantic value.
 	 *
 	 * @param frame
@@ -56,10 +64,14 @@ final class L2SemanticSlot extends L2SemanticValue
 	 * @param slotIndex
 	 *        The one-based index of the slot in that frame.
 	 */
-	L2SemanticSlot (final Frame frame, final int slotIndex)
+	L2SemanticSlot (
+		final Frame frame,
+		final int slotIndex,
+		final int pcAfter)
 	{
 		this.frame = frame;
 		this.slotIndex = slotIndex;
+		this.pcAfter = pcAfter;
 	}
 
 	@Override
@@ -71,13 +83,16 @@ final class L2SemanticSlot extends L2SemanticValue
 		}
 		final L2SemanticSlot slot = (L2SemanticSlot) obj;
 		return frame.equals(slot.frame)
-			&& slotIndex == slot.slotIndex;
+			&& slotIndex == slot.slotIndex
+			&& pcAfter == slot.pcAfter;
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return (frame.hashCode() ^ slotIndex) * multiplier;
+		int h = slotIndex * multiplier ^ pcAfter;
+		h = h * multiplier ^ frame.hashCode();
+		return h;
 	}
 
 	@Override
@@ -89,12 +104,12 @@ final class L2SemanticSlot extends L2SemanticValue
 		final Frame newFrame = frameTransformer.value(frame);
 		return newFrame.equals(frame)
 			? this
-			: new L2SemanticSlot(newFrame, slotIndex);
+			: new L2SemanticSlot(newFrame, slotIndex, pcAfter);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "Slot #" + slotIndex + " of " + frame;
+		return "Slot #" + slotIndex + " of " + frame + " as of pc=" + pcAfter;
 	}
 }

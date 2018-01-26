@@ -96,13 +96,13 @@ public final class L2Inliner
 			{
 				final PhiRestriction phiRestriction = phiRestrictions[i];
 				phiRestrictions[i] = new PhiRestriction(
-					map(phiRestriction.register),
+					mapRegister(phiRestriction.register),
 					phiRestriction.typeRestriction.type,
 					phiRestriction.typeRestriction.constantOrNull);
 			}
 			currentOperand = new L2PcOperand(
-				map(operand.targetBlock()),
-				map(operand.manifest()),
+				mapBlock(operand.targetBlock()),
+				mapManifest(operand.manifest()),
 				phiRestrictions);
 		}
 
@@ -112,14 +112,15 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2ReadIntOperand operand)
 		{
-			currentOperand = new L2ReadIntOperand(map(operand.register()));
+			currentOperand =
+				new L2ReadIntOperand(mapRegister(operand.register()));
 		}
 
 		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			currentOperand = new L2ReadPointerOperand(
-				map(operand.register()), operand.restriction());
+				mapRegister(operand.register()), operand.restriction());
 		}
 
 		@Override
@@ -142,7 +143,8 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2WriteIntOperand operand)
 		{
-			currentOperand = new L2WriteIntOperand(map(operand.register()));
+			currentOperand =
+				new L2WriteIntOperand(mapRegister(operand.register()));
 		}
 
 		@Override
@@ -266,7 +268,7 @@ public final class L2Inliner
 	 * @param block The basic block to look up.
 	 * @return The looked up or created-and-stored basic block.
 	 */
-	public L2BasicBlock map (final L2BasicBlock block)
+	public L2BasicBlock mapBlock (final L2BasicBlock block)
 	{
 		return blockMap.computeIfAbsent(block, b -> new L2BasicBlock(b.name()));
 	}
@@ -279,7 +281,7 @@ public final class L2Inliner
 	 * @return The looked up or created-and-stored {@link L2Register}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <R extends L2Register> R map (final R register)
+	public <R extends L2Register> R mapRegister (final R register)
 	{
 		final L2Register copy = registerMap.computeIfAbsent(
 			register, r -> r.copyForInliner(this));
@@ -295,13 +297,14 @@ public final class L2Inliner
 	 *
 	 * @return The new {@link L2ValueManifest}.
 	 */
-	public L2ValueManifest map (final L2ValueManifest oldManifest)
+	public L2ValueManifest mapManifest (final L2ValueManifest oldManifest)
 	{
 		final L2ValueManifest newManifest = new L2ValueManifest();
 		for (final Entry<L2SemanticValue, L2ReadPointerOperand> entry :
 			oldManifest.bindings().entrySet())
 		{
-			newManifest.addBinding(map(entry.getKey()), entry.getValue());
+			newManifest.addBinding(
+				mapSemanticValue(entry.getKey()), entry.getValue());
 		}
 		return newManifest;
 	}
@@ -315,11 +318,12 @@ public final class L2Inliner
 	 *        The original {@link L2SemanticValue} from the callee's code.
 	 * @return The replacement {@link L2SemanticValue}.
 	 */
-	public L2SemanticValue map (final L2SemanticValue oldSemanticValue)
+	public L2SemanticValue mapSemanticValue (
+		final L2SemanticValue oldSemanticValue)
 	{
 		return semanticValueMap.computeIfAbsent(
 			oldSemanticValue,
-			old -> old.transform(this::map, this::map));
+			old -> old.transform(this::mapSemanticValue, this::mapFrame));
 	}
 
 	/**
@@ -330,9 +334,9 @@ public final class L2Inliner
 	 *        The original {@link Frame} from the callee's code.
 	 * @return The replacement {@link Frame}.
 	 */
-	public Frame map (final Frame frame)
+	public Frame mapFrame (final Frame frame)
 	{
-		return frameMap.computeIfAbsent(frame, this::map);
+		return frameMap.computeIfAbsent(frame, this::mapFrame);
 	}
 
 	/**
