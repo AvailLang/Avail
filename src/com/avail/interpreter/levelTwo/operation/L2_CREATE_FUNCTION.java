@@ -55,6 +55,7 @@ import java.util.Set;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -174,7 +175,7 @@ extends L2Operation
 		builder.append(' ');
 		builder.append(instruction.writeObjectRegisterAt(2).register());
 		builder.append(" ← ");
-		builder.append(decompiled);
+		builder.append(increaseIndentation(decompiled, 1));
 	}
 
 	@Override
