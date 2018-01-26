@@ -706,6 +706,7 @@ public abstract class AbstractDescriptor
 			{
 				Strings.newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
+				final List<BitField> bitFields = bitFieldsFor(slot);
 				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -714,23 +715,22 @@ public abstract class AbstractDescriptor
 					builder.append(slotName, 0, slotName.length() - 1);
 					builder.append('[');
 					builder.append(subscript);
-					builder.append("]");
+					builder.append(']');
 				}
 				else
 				{
 					value = object.slot(slot);
-					builder.append(slotName);
-				}
-				final List<BitField> bitFields = bitFieldsFor(slot);
-				if (bitFields.isEmpty())
-				{
-					builder.append(" = ");
-					builder.append(value);
-				}
-				else
-				{
-					describeIntegerSlot(
-						object, value, slot, bitFields, builder);
+					if (bitFields.isEmpty())
+					{
+						builder.append(slotName);
+						builder.append(" = ");
+						builder.append(value);
+					}
+					else
+					{
+						describeIntegerSlot(
+							object, value, slot, bitFields, builder);
+					}
 				}
 			}
 		}
@@ -889,7 +889,7 @@ public abstract class AbstractDescriptor
 			}
 			else
 			{
-				builder.append(" (");
+				builder.append("(");
 				boolean first = true;
 				for (final BitField bitField : bitFields)
 				{
