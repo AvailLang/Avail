@@ -35,8 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 
-import static java.lang.String.format;
-
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link
  * L2OperandType#IMMEDIATE}, which holds an {@code int} value representing
@@ -78,6 +76,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return format("Imm(%d)", value);
+		return "#" + value;
 	}
 }

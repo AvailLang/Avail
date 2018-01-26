@@ -56,7 +56,7 @@ public class L2NamedOperandType
 	 *
 	 * @return The L2OperandType.
 	 */
-	L2OperandType operandType ()
+	public L2OperandType operandType ()
 	{
 		return operandType;
 	}

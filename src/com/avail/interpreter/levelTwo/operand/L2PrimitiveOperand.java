@@ -36,8 +36,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 
-import static java.lang.String.format;
-
 /**
  * An {@code L2PrimitiveOperand} is an operand of type {@link
  * L2OperandType#PRIMITIVE}.  The specific {@link Primitive} is captured.
@@ -78,6 +76,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return format("Prim(%s)", primitive.getClass().getSimpleName());
+		return "*" + primitive.name();
 	}
 }

@@ -197,7 +197,7 @@ extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("Pc(%d: %s)",
+		return format("pc %d: %s",
 			targetBlock.offset(),
 			targetBlock.name());
 	}

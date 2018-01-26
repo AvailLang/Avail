@@ -38,7 +38,10 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -46,10 +49,12 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -77,7 +82,8 @@ extends L2Operation
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
 			PC.is("on-ramp", ON_RAMP),
-			PC.is("fall through after creation", OFF_RAMP));
+			PC.is("fall through after creation", OFF_RAMP),
+			COMMENT.is("usage comment"));
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
@@ -94,6 +100,43 @@ extends L2Operation
 	{
 		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(5);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final L2NamedOperandType[] types = operandTypes();
+		final L2Operand[] operands = instruction.operands;
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(5).register());
+		builder.append(" ← $[");
+		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append("]:pc=");
+		builder.append(instruction.immediateAt(2));
+		builder.append(" stack=");
+		builder.append(operands[4]);
+		builder.append('[');
+		builder.append(instruction.immediateAt(3));
+		builder.append("] caller=");
+		builder.append(instruction.readObjectRegisterAt(1));
+		for (int i = 6, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
 	}
 
 	@Override

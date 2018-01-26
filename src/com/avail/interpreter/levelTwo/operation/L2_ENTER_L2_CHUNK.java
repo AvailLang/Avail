@@ -34,11 +34,15 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -60,7 +64,8 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_ENTER_L2_CHUNK().init(
-			IMMEDIATE.is("entry point offset in default chunk"));
+			IMMEDIATE.is("entry point offset in default chunk"),
+			COMMENT.is("chunk entry point name"));
 
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
@@ -72,6 +77,16 @@ extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
 	}
 
 	@Override

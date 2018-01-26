@@ -42,8 +42,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
-
 /**
  * An {@code L2WriteIntOperand} is an operand of type {@link
  * L2OperandType#WRITE_INT}.  It holds the actual {@link L2IntegerRegister}
@@ -152,6 +150,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return format("WriteInt(%s)", register);
+		return "→" + register;
 	}
 }

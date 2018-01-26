@@ -35,7 +35,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
-import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
@@ -50,11 +50,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.Strings.increaseIndentation;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
 import static com.avail.utility.dot.DotWriter.node;
@@ -221,25 +222,37 @@ public class L2ControlFlowGraphVisualizer
 	private String instruction (final L2Instruction instruction)
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(instruction.offset());
-		builder.append(". ");
-		final L2Operation operation = instruction.operation;
-		builder.append(operation.name());
-		final L2NamedOperandType[] types = operation.operandTypes();
-		final L2Operand[] operands = instruction.operands;
-		for (int i = 0; i < operands.length; i++)
+		// Hoist a comment operand, if one is present.
+		for (final L2Operand operand : instruction.operands)
 		{
-			final L2Operand operand = operands[i];
-			if (!(operand instanceof L2PcOperand))
+			if (operand.operandType() == COMMENT)
 			{
-				builder.append("\n\t");
-				builder.append(types[i].name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(
-					operands[i].toString(), 1));
+				// The selection of Helvetica as the font is important. Some
+				// renderers, like Viz.js, only seem to fully support a small
+				// number of standard, widely available fonts:
+				//
+				// https://github.com/mdaines/viz.js/issues/82
+				//
+				// In particular, Courier, Arial, Helvetica, and Times are
+				// supported.
+				builder.append("<font face=\"Helvetica\" color=\"gray\"><i>");
+				builder.append(operand.toString());
+				builder.append("</i></font><br/>");
+				// There should never be a second comment. If there is — tough.
+				break;
 			}
 		}
-		return escape(builder.toString());
+		// Make a note of the current length of the builder. We will need to
+		// escape everything after this point.
+		final int escapeIndex = builder.length();
+		final Set<L2OperandType> desiredTypes =
+			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
+		instruction.operation.toString(instruction, desiredTypes, builder);
+		// Escape everything since the saved position.
+		return builder.replace(
+			escapeIndex,
+			builder.length(),
+			escape(builder.substring(escapeIndex))).toString();
 	}
 
 	/**
@@ -398,10 +411,12 @@ public class L2ControlFlowGraphVisualizer
 						basicBlockName(sourceBlock),
 						Integer.toString(
 							sourceBlock.finalInstruction().offset())),
-					node(
-						basicBlockName(targetBlock),
-						Integer.toString(
-							targetBlock.offset())),
+					sourceBlock.offset() <= targetBlock.offset()
+						? node(basicBlockName(targetBlock))
+						: node(
+							basicBlockName(targetBlock),
+							Integer.toString(
+								targetBlock.offset())),
 					attr ->
 					{
 						final @Nullable Purpose purpose = type.purpose();
@@ -454,7 +469,7 @@ public class L2ControlFlowGraphVisualizer
 			// supported.
 			writer.graph(graph ->
 			{
-				graph.attribute("rankdir", "LR");
+				graph.attribute("rankdir", "TB");
 				graph.attribute("newrank", "true");
 				graph.attribute("overlap", "false");
 				graph.attribute("splines", "true");

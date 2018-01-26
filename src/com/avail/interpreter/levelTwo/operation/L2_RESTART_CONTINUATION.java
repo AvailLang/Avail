@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
@@ -48,6 +49,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY
@@ -102,6 +104,18 @@ extends L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return false;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.operands[0]);
 	}
 
 	/**

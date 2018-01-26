@@ -38,6 +38,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.StackReifier;
@@ -48,6 +49,8 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
@@ -128,6 +131,39 @@ extends L2Operation
 		// instruction from being re-ordered to a place where the interpreter's
 		// top reified continuation is no longer the right one.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final boolean actuallyReify = instruction.immediateAt(0) == 1;
+		final boolean processInterrupt = instruction.immediateAt(1) == 1;
+		final StatisticCategory category =
+			StatisticCategory.values()[instruction.immediateAt(2)];
+		builder.append(' ');
+		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
+		if (actuallyReify || processInterrupt)
+		{
+			builder.append(" [");
+			if (actuallyReify)
+			{
+				builder.append("actually reify");
+				if (processInterrupt)
+				{
+					builder.append(", ");
+				}
+			}
+			if (processInterrupt)
+			{
+				builder.append("process interrupt");
+			}
+			builder.append(']');
+		}
 	}
 
 	@SuppressWarnings("unused")

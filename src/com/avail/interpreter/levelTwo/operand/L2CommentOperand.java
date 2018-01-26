@@ -75,6 +75,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return "Comment(" + comment + ")";
+		return "// " + comment;
 	}
 }

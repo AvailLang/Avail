@@ -1,6 +1,6 @@
-/**
+/*
  * TypeRestriction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,8 @@ import com.avail.descriptor.NilDescriptor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -294,11 +292,12 @@ public final class TypeRestriction
 			AvailObject.class.cast(constantOrNull);
 		if (constant != null)
 		{
-			return "=" + constant.typeTag();
+			return "=" + constant.typeTag().name().replace("_TAG", "");
 		}
 		if (!type.equals(TOP.o()))
 		{
-			return ":" + AvailObject.class.cast(type).typeTag();
+			return ":" + AvailObject.class.cast(type).typeTag().name()
+				.replace("_TAG", "");
 		}
 		return "";
 	}

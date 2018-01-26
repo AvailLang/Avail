@@ -145,7 +145,7 @@ extends L2Operand
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("ReadVector(");
+		builder.append("@<");
 		boolean first = true;
 		for (final L2ReadPointerOperand read : elements)
 		{
@@ -157,7 +157,7 @@ extends L2Operand
 			builder.append(read.restriction().suffixString());
 			first = false;
 		}
-		builder.append(")");
+		builder.append(">");
 		return builder.toString();
 	}
 }

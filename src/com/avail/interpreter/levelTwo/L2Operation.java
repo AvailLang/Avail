@@ -49,20 +49,19 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -521,6 +520,96 @@ public abstract class L2Operation
 	{
 		assert instruction.operation == this;
 		return name();
+	}
+
+	@Override
+	public final String toString ()
+	{
+		// Skip the L2_ prefix, as it is redundant in context.
+		return name().substring(3);
+	}
+
+	/**
+	 * Produce a sensible preamble for the textual rendition of the specified
+	 * {@link L2Instruction} that includes the {@linkplain
+	 * L2Instruction#offset() offset} and {@linkplain #toString() name} of the
+	 * {@code L2Operation}.
+	 *
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param builder
+	 *        The {@code StringBuilder} to which the preamble should be written.
+	 */
+	protected final void renderPreamble (
+		final L2Instruction instruction,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		builder.append(instruction.offset());
+		builder.append(". ");
+		builder.append(this);
+	}
+
+	/**
+	 * Produce a sensible textual rendition of the specified {@link L2Operand}
+	 * iff its {@link L2OperandType} is desired.
+	 *
+	 * @param operand
+	 *        The {@code L2Operand}.
+	 * @param desiredTypes
+	 *        The desired {@link L2OperandType}s.
+	 * @param builder
+	 *        The {@link StringBuilder} to which the rendition should be
+	 *        written.
+	 */
+	protected final void renderOperand (
+		final L2Operand operand,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		if (desiredTypes.contains(operand.operandType()))
+		{
+			builder.append(operand);
+		}
+	}
+
+	/**
+	 * Produce a sensible textual rendition of the specified {@link
+	 * L2Instruction}.
+	 *
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param desiredTypes
+	 *        The {@link L2OperandType}s of {@link L2Operand}s to be included in
+	 *        generic renditions. Customized renditions may not honor these
+	 *        types.
+	 * @param builder
+	 *        The {@link StringBuilder} to which the rendition should be
+	 *        written.
+	 * @return The requested text.
+	 */
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final L2NamedOperandType[] types = operandTypes();
+		final L2Operand[] operands = instruction.operands;
+		for (int i = 0, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
 	}
 
 	/**

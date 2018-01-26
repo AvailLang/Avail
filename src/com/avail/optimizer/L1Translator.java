@@ -69,19 +69,14 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
@@ -89,8 +84,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -100,8 +94,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -856,7 +849,8 @@ public final class L1Translator
 			new L2ReadVectorOperand(readSlotsBefore),
 			newContinuationRegister,
 			new L2PcOperand(onReturnIntoReified, new L2ValueManifest()),
-			new L2PcOperand(afterCreation, currentManifest));
+			new L2PcOperand(afterCreation, currentManifest),
+			new L2CommentOperand("Create a reification continuation."));
 
 		// Right after creating the continuation.
 		startBlock(afterCreation);
@@ -870,7 +864,9 @@ public final class L1Translator
 		currentManifest.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk));
+			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"If invalid, reenter «default» at " + typeOfEntryPoint.name() + "."));
 		final L2ReadPointerOperand popped = popCurrentContinuation();
 		for (int i = 1; i <= numSlots; i++)
 		{
@@ -1009,8 +1005,9 @@ public final class L1Translator
 				branchLabelCounter
 					+ " (arg#"
 					+ argumentIndexToTest
-					+ " is a "
+					+ " is "
 					+ typeToTest.traversed().descriptor().typeTag.name()
+						.replace("_TAG", "")
 					+ ")";
 			this.passCheckBasicBlock = createBasicBlock(
 				"pass lookup test #" + shortTypeName);
@@ -2769,7 +2766,9 @@ public final class L1Translator
 		// offset 1 (after the L2_TRY_OPTIONAL_PRIMITIVE) would also work.
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(0));
+			new L2ImmediateOperand(0),
+			new L2CommentOperand(
+				"If invalid, reenter «default» at the beginning."));
 
 		// Do any reoptimization before capturing arguments.
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
@@ -3269,7 +3268,8 @@ public final class L1Translator
 			new L2ReadVectorOperand(slotsForLabel),
 			destinationRegister,
 			new L2PcOperand(initialBlock, new L2ValueManifest()),
-			edgeTo(afterCreation));
+			edgeTo(afterCreation),
+			new L2CommentOperand("Create a label continuation."));
 
 		// Continue, with the label having been pushed.
 		startBlock(afterCreation);
