@@ -1,5 +1,5 @@
 /*
- * L2ReadIntOperand.java
+ * L2ReadFloatOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,30 +35,30 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 
 import javax.annotation.Nullable;
 
 /**
- * An {@code L2ReadIntOperand} is an operand of type {@link
- * L2OperandType#READ_INT}. It holds the actual {@link L2IntRegister} that
+ * An {@code L2ReadFloatOperand} is an operand of type {@link
+ * L2OperandType#READ_FLOAT}. It holds the actual {@link L2FloatRegister} that
  * is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2ReadIntOperand
-extends L2ReadOperand<L2IntRegister, A_Number>
+public class L2ReadFloatOperand
+extends L2ReadOperand<L2FloatRegister, A_Number>
 {
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.READ_INT;
+		return L2OperandType.READ_FLOAT;
 	}
 
 	/**
-	 * Construct a new {@code L2ReadIntOperand} for the specified {@link
-	 * L2IntRegister} and optional restriction.
+	 * Construct a new {@code L2ReadFloatOperand} for the specified {@link
+	 * L2FloatRegister} and optional restriction.
 	 *
 	 * @param register
 	 *        The register.
@@ -66,8 +66,8 @@ extends L2ReadOperand<L2IntRegister, A_Number>
 	 *        The further {@link TypeRestriction} to apply to this particular
 	 *        read.
 	 */
-	public L2ReadIntOperand (
-		final L2IntRegister register,
+	public L2ReadFloatOperand (
+		final L2FloatRegister register,
 		final @Nullable TypeRestriction<A_Number> restriction)
 	{
 		super(register, restriction);

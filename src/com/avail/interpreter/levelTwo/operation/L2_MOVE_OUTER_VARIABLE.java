@@ -68,7 +68,7 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_MOVE_OUTER_VARIABLE().init(
-			IMMEDIATE.is("outer index"),
+			INT_IMMEDIATE.is("outer index"),
 			READ_POINTER.is("function"),
 			WRITE_POINTER.is("destination"));
 
@@ -78,7 +78,7 @@ extends L2Operation
 		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final int outerIndex = instruction.immediateAt(0);
+		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(1);
 		final L2WritePointerOperand destinationReg =
@@ -108,7 +108,7 @@ extends L2Operation
 		builder.append(" ← ");
 		builder.append(instruction.readObjectRegisterAt(1));
 		builder.append('[');
-		builder.append(instruction.immediateAt(0));
+		builder.append(instruction.intImmediateAt(0));
 		builder.append(']');
 	}
 
@@ -118,7 +118,7 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int outerIndex = instruction.immediateAt(0);
+		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1).register();
 		final L2ObjectRegister destinationReg =

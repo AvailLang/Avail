@@ -42,6 +42,10 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.performance.Statistic;
 
 import javax.annotation.Nullable;
@@ -355,7 +359,8 @@ public final class L2Translator
 			"Number of methods depended upon",
 			L2_TRANSLATION_VALUES);
 
-	public static class RegisterCounter implements L2OperandDispatcher
+	public static class RegisterCounter
+	implements L2OperandDispatcher
 	{
 		int objectMax = -1;
 		int intMax = -1;
@@ -368,7 +373,10 @@ public final class L2Translator
 		public void doOperand (final L2ConstantOperand operand) { }
 
 		@Override
-		public void doOperand (final L2ImmediateOperand operand) { }
+		public void doOperand (final L2IntImmediateOperand operand) { }
+
+		@Override
+		public void doOperand (final L2FloatImmediateOperand operand) { }
 
 		@Override
 		public void doOperand (final L2PcOperand operand) { }
@@ -383,15 +391,21 @@ public final class L2Translator
 		}
 
 		@Override
+		public void doOperand (final L2ReadFloatOperand operand)
+		{
+			floatMax = max(floatMax, operand.finalIndex());
+		}
+
+		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			objectMax = max(objectMax, operand.finalIndex());
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public void doOperand (final L2ReadVectorOperand<?> operand)
 		{
-			for (final L2ReadPointerOperand register : operand.elements())
+			for (final L2ReadOperand register : operand.elements())
 			{
 				objectMax = max(objectMax, register.finalIndex());
 			}
@@ -407,17 +421,33 @@ public final class L2Translator
 		}
 
 		@Override
+		public void doOperand (final L2WriteFloatOperand operand)
+		{
+			floatMax = max(floatMax, operand.finalIndex());
+		}
+
+		@Override
 		public void doOperand (final L2WritePointerOperand operand)
 		{
 			objectMax = max(objectMax, operand.finalIndex());
 		}
 
 		@Override
-		public void doOperand (final L2WriteVectorOperand operand)
+		public void doOperand (final L2WritePhiOperand<?, ?> operand)
 		{
-			for (final L2WritePointerOperand register : operand.elements())
+			final L2Register<?> register = operand.register();
+			if (register instanceof L2ObjectRegister)
 			{
-				objectMax = max(objectMax, register.finalIndex());
+				objectMax = max(objectMax, operand.finalIndex());
+			}
+			else if (register instanceof L2IntRegister)
+			{
+				intMax = max(intMax, operand.finalIndex());
+			}
+			else
+			{
+				assert register instanceof L2FloatRegister;
+				floatMax = max(floatMax, operand.finalIndex());
 			}
 		}
 	}

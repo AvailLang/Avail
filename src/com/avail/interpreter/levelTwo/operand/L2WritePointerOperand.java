@@ -33,16 +33,9 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * An {@code L2WritePointerOperand} is an operand of type {@link
@@ -52,61 +45,23 @@ import java.util.Map;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2WritePointerOperand
-extends L2Operand
+extends L2WriteOperand<L2ObjectRegister, A_BasicObject>
 {
-	/**
-	 * The actual {@link L2ObjectRegister}.
-	 */
-	private L2ObjectRegister register;
-
-	/**
-	 * Answer the {@link L2ObjectRegister}'s {@link L2ObjectRegister#finalIndex
-	 * finalIndex}.
-	 *
-	 * @return The index of the register, computed during register coloring.
-	 */
-	public final int finalIndex ()
-	{
-		return register.finalIndex();
-	}
-
-	/**
-	 * Construct a new {@code L2WritePointerOperand}, creating an {@link
-	 * L2ObjectRegister} at the same time.  Record the provided type information
-	 * and optional constant information in the new register.
-	 *
-	 * <p>Note that even if null is provided for constantOrNull, as a
-	 * convenience this method checks for a type that's singular and non-meta,
-	 * filling in the only possible constant in that case.</p>
-	 *
-	 * @param type
-	 *        The type of the value that will be written to this register.
-	 * @param constantOrNull
-	 *        The actual value that will be written to this register if known,
-	 *        otherwise {@code null}.
-	 */
-	public L2WritePointerOperand (
-		final int debugValue,
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
-	{
-		this.register = new L2ObjectRegister(debugValue, type, constantOrNull);
-	}
-
-	/**
-	 * Answer the register that is to be written.
-	 *
-	 * @return An {@link L2ObjectRegister}.
-	 */
-	public final L2ObjectRegister register ()
-	{
-		return register;
-	}
-
 	@Override
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.WRITE_POINTER;
+	}
+
+	/**
+	 * Construct a new {@code L2WritePointerOperand}.
+	 *
+	 * @param register
+	 *        The {@link L2ObjectRegister}.
+	 */
+	public L2WritePointerOperand (final L2ObjectRegister register)
+	{
+		super(register);
 	}
 
 	@Override
@@ -124,47 +79,5 @@ extends L2Operand
 	public final L2ReadPointerOperand read ()
 	{
 		return new L2ReadPointerOperand(register, register.restriction());
-	}
-
-	@Override
-	public void instructionWasAdded (final L2Instruction instruction)
-	{
-		register.addDefinition(instruction);
-	}
-
-	@Override
-	public void instructionWasRemoved(final L2Instruction instruction)
-	{
-		register.removeDefinition(instruction);
-	}
-
-	@Override
-	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
-	{
-		final @Nullable L2Register replacement = registerRemap.get(register);
-		if (replacement == null || replacement == register)
-		{
-			return;
-		}
-		register.removeDefinition(instruction);
-		replacement.addDefinition(instruction);
-		register = L2ObjectRegister.class.cast(replacement);
-	}
-
-	@Override
-	public void addDestinationRegistersTo (
-		final List<L2Register> destinationRegisters)
-	{
-		destinationRegisters.add(register);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "→"
-			+ register
-			+ register.restriction().suffixString();
 	}
 }

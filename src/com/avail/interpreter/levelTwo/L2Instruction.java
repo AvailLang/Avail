@@ -36,7 +36,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -46,7 +45,6 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.utility.evaluation.Transformer1NotNullArg;
@@ -59,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -336,7 +333,8 @@ public final class L2Instruction
 	 * Extract the constant {@link AvailObject} from the {@link
 	 * L2ConstantOperand} having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the constant.
+	 * @param operandIndex
+	 *        Which operand holds the constant.
 	 * @return The constant value.
 	 */
 	public AvailObject constantAt (final int operandIndex)
@@ -351,7 +349,8 @@ public final class L2Instruction
 	 * resulting {@link L2Chunk} should be dependent upon changes to its {@link
 	 * A_Method}.
 	 *
-	 * @param operandIndex Which operand holds the message bundle.
+	 * @param operandIndex
+	 *        Which operand holds the message bundle.
 	 * @return The message bundle.
 	 */
 	public A_Bundle bundleAt (final int operandIndex)
@@ -360,15 +359,29 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the immediate {@code int} from the {@link L2ImmediateOperand}
+	 * Extract the immediate {@code int} from the {@link L2IntImmediateOperand}
 	 * having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the immediate value.
+	 * @param operandIndex
+	 *        Which operand holds the immediate value.
 	 * @return The immediate value.
 	 */
-	public int immediateAt (final int operandIndex)
+	public int intImmediateAt (final int operandIndex)
 	{
-		return ((L2ImmediateOperand) operands[operandIndex]).value;
+		return ((L2IntImmediateOperand) operands[operandIndex]).value;
+	}
+
+	/**
+	 * Extract the immediate {@code double} from the {@link
+	 * L2FloatImmediateOperand} having the specified position in my array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds the immediate value.
+	 * @return The immediate value.
+	 */
+	public double floatImmediateAt (final int operandIndex)
+	{
+		return ((L2FloatImmediateOperand) operands[operandIndex]).value;
 	}
 
 	/**
@@ -390,7 +403,8 @@ public final class L2Instruction
 	 * Extract the program counter {@code int} from the {@link L2PcOperand}
 	 * having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the program counter value.
+	 * @param operandIndex
+	 *        Which operand holds the program counter value.
 	 * @return An int representing a target offset into a chunk's instructions.
 	 */
 	public int pcOffsetAt (final int operandIndex)
@@ -402,7 +416,8 @@ public final class L2Instruction
 	 * Extract the {@link Primitive} from the {@link L2PrimitiveOperand} having
 	 * the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a primitive.
+	 * @param operandIndex
+	 *        Which operand holds a primitive.
 	 * @return The specified {@link Primitive}.
 	 */
 	public Primitive primitiveAt (final int operandIndex)
@@ -414,7 +429,8 @@ public final class L2Instruction
 	 * Extract the {@link L2ReadIntOperand} having the specified position in my
 	 * array of operands.
 	 *
-	 * @param operandIndex Which operand holds a read of an integer register.
+	 * @param operandIndex
+	 *        Which operand holds a read of an integer register.
 	 * @return The specified {@link L2ReadIntOperand} to read.
 	 */
 	public L2ReadIntOperand readIntRegisterAt (final int operandIndex)
@@ -426,7 +442,8 @@ public final class L2Instruction
 	 * Extract the {@link L2WriteIntOperand} having the specified position in my
 	 * array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of an integer register.
+	 * @param operandIndex
+	 *        Which operand holds a write of an integer register.
 	 * @return The specified {@link L2WriteIntOperand} to write.
 	 */
 	public L2WriteIntOperand writeIntRegisterAt (final int operandIndex)
@@ -435,10 +452,37 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Extract the {@link L2ReadFloatOperand} having the specified position in
+	 * my array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a read of a double register.
+	 * @return The specified {@link L2ReadFloatOperand} to read.
+	 */
+	public L2ReadFloatOperand readFloatRegisterAt (final int operandIndex)
+	{
+		return (L2ReadFloatOperand) operands[operandIndex];
+	}
+
+	/**
+	 * Extract the {@link L2WriteFloatOperand} having the specified position in my
+	 * array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a write of a double register.
+	 * @return The specified {@link L2WriteFloatOperand} to write.
+	 */
+	public L2WriteFloatOperand writeFloatRegisterAt (final int operandIndex)
+	{
+		return (L2WriteFloatOperand) operands[operandIndex];
+	}
+
+	/**
 	 * Extract the {@link L2ReadPointerOperand} having the specified position in
 	 * my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a read of an object register.
+	 * @param operandIndex
+	 *        Which operand holds a read of an object register.
 	 * @return The specified {@link L2ObjectRegister} to read.
 	 */
 	public L2ReadPointerOperand readObjectRegisterAt (final int operandIndex)
@@ -450,8 +494,9 @@ public final class L2Instruction
 	 * Extract the {@link L2WritePointerOperand} having the specified position
 	 * in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of an object register.
-	 * @return The specified {@link L2ObjectRegister} to write.
+	 * @param operandIndex
+	 *        Which operand holds a write of an object register.
+	 * @return The specified {@code L2WritePointerOperand}.
 	 */
 	public L2WritePointerOperand writeObjectRegisterAt (final int operandIndex)
 	{
@@ -459,31 +504,36 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the {@link List} of {@link L2ReadPointerOperand}s from the {@link
+	 * Extract the {@link List} of {@link L2ReadOperand}s from the {@link
 	 * L2ReadVectorOperand} having the specified position in my array of
 	 * operands.
 	 *
-	 * @param operandIndex Which operand holds a read of a register vector.
+	 * @param <U>
+	 *        The type of the {@link L2ReadOperand}.
+	 * @param operandIndex
+	 *        Which operand holds a read of a register vector.
 	 * @return The list of {@link L2ReadPointerOperand}s.
 	 */
-	public List<L2ReadPointerOperand> readVectorRegisterAt (
+	public <U extends L2ReadOperand<?, ?>> List<U> readVectorRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2ReadVectorOperand) operands[operandIndex]).elements();
+		//noinspection unchecked
+		return ((L2ReadVectorOperand<U>) operands[operandIndex]).elements();
 	}
 
 	/**
-	 * Extract the {@link List} of {@link L2WritePointerOperand}s from the
-	 * {@link L2WriteVectorOperand} having the specified position in my array of
-	 * operands.
+	 * Extract the {@link L2WritePhiOperand} having the specified position
+	 * in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of a register vector.
-	 * @return The list of {@link L2WritePointerOperand}s.
+	 * @param operandIndex
+	 *        Which operand holds a phi write.
+	 * @return The specified {@code L2WritePhiOperand}.
 	 */
-	public List<L2WritePointerOperand> writeVectorRegisterAt (
+	public <U extends L2WritePhiOperand<?, ?>> U writePhiRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2WriteVectorOperand) operands[operandIndex]).elements();
+		//noinspection unchecked
+		return (U) operands[operandIndex];
 	}
 
 	/**

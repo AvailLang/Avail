@@ -40,7 +40,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -278,7 +278,7 @@ public final class P_CastIntoElse extends Primitive
 			translator.addInstruction(
 				L2_FUNCTION_PARAMETER_TYPE.instance,
 				castFunctionReg,
-				new L2ImmediateOperand(1),
+				new L2IntImmediateOperand(1),
 				parameterTypeWrite);
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_OBJECT.instance,

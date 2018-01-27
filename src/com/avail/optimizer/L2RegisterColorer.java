@@ -1,6 +1,6 @@
-/**
+/*
  * L2RegisterColorer.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,7 +157,7 @@ public final class L2RegisterColorer
 	 */
 	void computeInterferenceGraph ()
 	{
-		for (final L2Register reg : allRegisters)
+		for (final L2Register<?> reg : allRegisters)
 		{
 			// Trace the register from each of its uses along all paths back to
 			// its definition(s).  This is the lifetime of the register.  While
@@ -293,7 +293,7 @@ public final class L2RegisterColorer
 	 */
 	void coalesceNoninterferingMoves ()
 	{
-		for (final L2Register reg : allRegisters)
+		for (final L2Register<?> reg : allRegisters)
 		{
 			for (final L2Instruction instruction : reg.definitions())
 			{

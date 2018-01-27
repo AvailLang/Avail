@@ -69,7 +69,7 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_TUPLE_AT_CONSTANT().init(
 			READ_POINTER.is("tuple"),
-			IMMEDIATE.is("immediate subscript"),
+			INT_IMMEDIATE.is("immediate subscript"),
 			WRITE_POINTER.is("destination"));
 
 	@Override
@@ -80,7 +80,7 @@ extends L2Operation
 	{
 		final L2ReadPointerOperand tupleReg =
 			instruction.readObjectRegisterAt(0);
-		final int subscript = instruction.immediateAt(1);
+		final int subscript = instruction.intImmediateAt(1);
 		final L2WritePointerOperand destinationReg =
 			instruction.writeObjectRegisterAt(2);
 
@@ -106,7 +106,7 @@ extends L2Operation
 		builder.append(" ← ");
 		builder.append(instruction.readObjectRegisterAt(0));
 		builder.append('[');
-		builder.append(instruction.immediateAt(1));
+		builder.append(instruction.intImmediateAt(1));
 		builder.append(']');
 	}
 
@@ -118,7 +118,7 @@ extends L2Operation
 	{
 		final L2ObjectRegister tupleReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int subscript = instruction.immediateAt(1);
+		final int subscript = instruction.intImmediateAt(1);
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(2).register();
 

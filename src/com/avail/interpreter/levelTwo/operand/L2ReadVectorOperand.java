@@ -45,26 +45,29 @@ import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
- * L2OperandType#READ_VECTOR}.  It holds a {@link List} of {@link
- * L2ReadPointerOperand}s.
+ * L2OperandType#READ_VECTOR}. It holds a {@link List} of {@link
+ * L2ReadOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <T>
+ *        A subclass of {@link L2ReadOperand}.
  */
-public class L2ReadVectorOperand
+public class L2ReadVectorOperand<T extends L2ReadOperand<?, ?>>
 extends L2Operand
 {
 	/**
 	 * The {@link List} of {@link L2ReadPointerOperand}s.
 	 */
-	private final List<L2ReadPointerOperand> elements;
+	private final List<T> elements;
 
 	/**
 	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
-	 * List} of {@link L2ReadPointerOperand}s.
+	 * List} of {@link L2ReadOperand}s.
 	 *
-	 * @param elements The list of {@link L2ReadPointerOperand}s.
+	 * @param elements
+	 *        The list of {@link L2ReadOperand}s.
 	 */
-	public L2ReadVectorOperand (final List<L2ReadPointerOperand> elements)
+	public L2ReadVectorOperand (final List<T> elements)
 	{
 		this.elements = unmodifiableList(elements);
 	}
@@ -73,13 +76,14 @@ extends L2Operand
 	@Override
 	public L2Operand clone ()
 	{
-		final List<L2ReadPointerOperand> clonedElements =
+		final List<T> clonedElements =
 			new ArrayList<>(elements.size());
-		for (final L2ReadPointerOperand element : elements)
+		for (final T element : elements)
 		{
-			clonedElements.add((L2ReadPointerOperand) element.clone());
+			//noinspection unchecked
+			clonedElements.add((T) element.clone());
 		}
-		return new L2ReadVectorOperand(clonedElements);
+		return new L2ReadVectorOperand<>(clonedElements);
 	}
 
 	@Override
@@ -89,9 +93,11 @@ extends L2Operand
 	}
 
 	/**
-	 * Answer my {@link List} of {@link L2ReadPointerOperand}s.
+	 * Answer my {@link List} of {@link L2ReadOperand}s.
+	 *
+	 * @return The requested operands.
 	 */
-	public List<L2ReadPointerOperand> elements ()
+	public List<T> elements ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
@@ -106,7 +112,7 @@ extends L2Operand
 	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand element : elements)
+		for (final T element : elements)
 		{
 			element.instructionWasAdded(instruction);
 		}
@@ -115,7 +121,7 @@ extends L2Operand
 	@Override
 	public void instructionWasRemoved (final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand element : elements)
+		for (final T element : elements)
 		{
 			element.instructionWasRemoved(instruction);
 		}
@@ -126,7 +132,7 @@ extends L2Operand
 		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand read : elements)
+		for (final T read : elements)
 		{
 			read.replaceRegisters(registerRemap, instruction);
 		}
@@ -135,7 +141,7 @@ extends L2Operand
 	@Override
 	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
 	{
-		for (final L2ReadPointerOperand read : elements)
+		for (final T read : elements)
 		{
 			read.addSourceRegistersTo(sourceRegisters);
 		}
@@ -147,7 +153,7 @@ extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append("@<");
 		boolean first = true;
-		for (final L2ReadPointerOperand read : elements)
+		for (final T read : elements)
 		{
 			if (!first)
 			{

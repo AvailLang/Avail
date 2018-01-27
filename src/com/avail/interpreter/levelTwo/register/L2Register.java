@@ -32,9 +32,14 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
@@ -50,8 +55,10 @@ import java.util.Set;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <T>
+ *        The type for {@link TypeRestriction}s.
  */
-public abstract class L2Register
+public abstract class L2Register<T extends A_BasicObject>
 {
 	public enum RegisterKind
 	{
@@ -62,7 +69,7 @@ public abstract class L2Register
 	}
 
 	/**
-	 * Answer the kind of register this is.  Different register kinds are
+	 * Answer the kind of register this is. Different register kinds are
 	 * allocated from different virtual banks, and do not interfere in terms of
 	 * register liveness computation.
 	 *
@@ -71,9 +78,9 @@ public abstract class L2Register
 	public abstract RegisterKind registerKind ();
 
 	/**
-	 * A coloring number to be used by the {@linkplain Interpreter
-	 * interpreter} at runtime to identify the storage location of a
-	 * {@linkplain L2Register register}.
+	 * A coloring number to be used by the {@linkplain Interpreter interpreter}
+	 * at runtime to identify the storage location of a {@linkplain L2Register
+	 * register}.
 	 */
 	private int finalIndex = -1;
 
@@ -109,23 +116,68 @@ public abstract class L2Register
 	 */
 	public final int uniqueValue;
 
+	/**
+	 * Answer the value used to distinguish distinct registers.
+	 *
+	 * @return The unique value of this register.
+	 */
 	public int uniqueValue ()
 	{
 		return uniqueValue;
 	}
 
 	/**
-	 * Construct a new {@code L2Register}.
-	 *
-	 * @param debugValue A {@code long} used to identify this register visually.
+	 * The {@link TypeRestriction} that constrains this register's content.
 	 */
-	L2Register (final int debugValue)
+	protected final TypeRestriction<T> restriction;
+
+	/**
+	 * Answer this register's basic {@link TypeRestriction}.
+	 *
+	 * @return A {@link TypeRestriction}.
+	 */
+	public final TypeRestriction<T> restriction ()
 	{
-		this.uniqueValue = debugValue;
+		return restriction;
 	}
 
 	/**
-	 * The instructions that assigns to this register.  While the {@link
+	 * Construct a new {@code L2ObjectRegister}.
+	 *
+	 * @param debugValue
+	 *        A value used to distinguish the new instance visually during
+	 *        debugging of L2 translations.
+	 * @param restriction
+	 * 	      The {@link TypeRestriction}.
+	 */
+	public L2Register (
+		final int debugValue,
+		final TypeRestriction<T> restriction)
+	{
+		this.uniqueValue = debugValue;
+		this.restriction = restriction;
+	}
+
+	/**
+	 * Create an appropriate {@link L2ReadOperand} for this register, using the
+	 * provided {@link TypeRestriction}.
+	 *
+	 * @param typeRestriction
+	 *        The {@code TypeRestriction}.
+	 * @return The requested {@code L2ReadOperand}.
+	 */
+	public abstract L2ReadOperand<? extends L2Register<T>, T> read (
+		TypeRestriction<T> typeRestriction);
+
+	/**
+	 * Create an appropriate {@link L2WriteOperand} for this register.
+	 *
+	 * @return The requested {@code L2WriteOperand}.
+	 */
+	public abstract L2WriteOperand<? extends L2Register<T>, T> write ();
+
+	/**
+	 * The instructions that assigns to this register. While the {@link
 	 * L2ControlFlowGraph} is in SSA form, there should be exactly one.
 	 */
 	private final Set<L2Instruction> definitions = new HashSet<>();
@@ -157,8 +209,10 @@ public abstract class L2Register
 
 	/**
 	 * Answer the {@link L2Instruction} which assigns this register in the SSA
-	 * control flow graph.  It must have been assigned already, and there must
-	 * be exactly one (this is a property of SSA).
+	 * control flow graph. It must have been assigned already, and there must be
+	 * exactly one (this is a property of SSA).
+	 *
+	 * @return The requested {@code L2Instruction}.
 	 */
 	public L2Instruction definition ()
 	{
@@ -168,8 +222,10 @@ public abstract class L2Register
 
 	/**
 	 * Answer the {@link L2Instruction} which generates the value that will
-	 * populate this register.  Skip over move instructions.  The containing
-	 * graph must be in SSA form.
+	 * populate this register. Skip over move instructions. The containing graph
+	 * must be in SSA form.
+	 *
+	 * @return The requested {@code L2Instruction}.
 	 */
 	public L2Instruction definitionSkippingMoves ()
 	{
@@ -186,7 +242,7 @@ public abstract class L2Register
 
 	/**
 	 * Answer the {@link L2Instruction}s which assign this register in the
-	 * control flow graph, which is not necessarily in SSA form.  It must be
+	 * control flow graph, which is not necessarily in SSA form. It must be
 	 * non-empty.
 	 *
 	 * @return This register's defining instructions.
@@ -197,7 +253,7 @@ public abstract class L2Register
 	}
 
 	/**
-	 * The instructions that read from this register.  This is a {@link Set}, so
+	 * The instructions that read from this register. This is a {@link Set}, so
 	 * that an instruction that uses the same register twice only counts once.
 	 */
 	private final Set<L2Instruction> uses = new HashSet<>();
@@ -225,7 +281,7 @@ public abstract class L2Register
 	}
 
 	/**
-	 * Answer the set of instructions that read from this register.  Do not
+	 * Answer the set of instructions that read from this register. Do not
 	 * modify the returned collection.
 	 *
 	 * @return A {@link Set} of {@link L2Instruction}s.
@@ -236,21 +292,80 @@ public abstract class L2Register
 	}
 
 	/**
+	 * Answer a new register like this one.
+	 *
+	 * @param translator
+	 *        The {@link L1Translator} for which copying is requested.
+	 * @param typeRestriction
+	 *        The {@link TypeRestriction}.
+	 * @return The new {@code L2Register}.
+	 */
+	public abstract L2Register<T> copyForTranslator (
+		L1Translator translator,
+		TypeRestriction<T> typeRestriction);
+
+	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
 	 * set to the finalIndex.
 	 *
 	 * @return The new {@code L2Register}.
 	 */
-	public abstract L2Register copyAfterColoring ();
+	public abstract L2Register<T> copyAfterColoring ();
 
 	/**
-	 * Answer a copy of the receiver.  Subclasses can be covariantly stronger in
+	 * Answer a copy of the receiver. Subclasses can be covariantly stronger in
 	 * the return type.
 	 *
 	 * @param inliner
 	 *        The {@link L2Inliner} for which copying is requested.
 	 * @return A copy of the receiver.
 	 */
-	public abstract L2Register copyForInliner (
-		final L2Inliner inliner);
+	public abstract L2Register<T> copyForInliner (L2Inliner inliner);
+
+	/**
+	 * Answer an {@link L2Operation} that implements a phi move for the
+	 * receiver.
+	 *
+	 * @return The requested instruction.
+	 */
+	public abstract L2Operation phiMoveOperation ();
+
+	/**
+	 * Answer the prefix for non-constant registers. This is used only for
+	 * register printing.
+	 *
+	 * @return The prefix.
+	 */
+	public abstract String namePrefix ();
+
+	@Override
+	public final String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append(restriction.constantOrNull == null ? namePrefix(): "c");
+		if (finalIndex() != -1)
+		{
+			builder.append(finalIndex());
+		}
+		else
+		{
+			builder.append(uniqueValue);
+		}
+		if (restriction.constantOrNull != null)
+		{
+			builder.append('[');
+			String constString = restriction.constantOrNull.toString();
+			if (constString.length() > 50)
+			{
+				constString = constString.substring(0, 50) + "…";
+			}
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			constString = constString
+				.replace("\n", "\\n")
+				.replace("\t", "\\t");
+			builder.append(constString);
+			builder.append(']');
+		}
+		return builder.toString();
+	}
 }

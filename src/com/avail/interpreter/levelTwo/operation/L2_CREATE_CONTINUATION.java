@@ -77,8 +77,8 @@ extends L2Operation
 		new L2_CREATE_CONTINUATION().init(
 			READ_POINTER.is("function"),
 			READ_POINTER.is("caller"),
-			IMMEDIATE.is("level one pc"),
-			IMMEDIATE.is("stack pointer"),
+			INT_IMMEDIATE.is("level one pc"),
+			INT_IMMEDIATE.is("stack pointer"),
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
 			PC.is("on-ramp", ON_RAMP),
@@ -117,11 +117,11 @@ extends L2Operation
 		builder.append(" ← $[");
 		builder.append(instruction.readObjectRegisterAt(0));
 		builder.append("]:pc=");
-		builder.append(instruction.immediateAt(2));
+		builder.append(instruction.intImmediateAt(2));
 		builder.append(" stack=");
 		builder.append(operands[4]);
 		builder.append('[');
-		builder.append(instruction.immediateAt(3));
+		builder.append(instruction.intImmediateAt(3));
 		builder.append("] caller=");
 		builder.append(instruction.readObjectRegisterAt(1));
 		for (int i = 6, limit = operands.length; i < limit; i++)
@@ -149,8 +149,8 @@ extends L2Operation
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister callerReg =
 			instruction.readObjectRegisterAt(1).register();
-		final int levelOnePC = instruction.immediateAt(2);
-		final int levelOneStackp = instruction.immediateAt(3);
+		final int levelOnePC = instruction.intImmediateAt(2);
+		final int levelOneStackp = instruction.intImmediateAt(3);
 		final List<L2ReadPointerOperand> slots =
 			instruction.readVectorRegisterAt(4);
 		final L2ObjectRegister destReg =

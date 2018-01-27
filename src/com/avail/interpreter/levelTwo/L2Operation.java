@@ -36,7 +36,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -448,7 +448,7 @@ public abstract class L2Operation
 			translator.newObjectRegisterWriter(outerType, null);
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
+			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer);
 		return writer.read();

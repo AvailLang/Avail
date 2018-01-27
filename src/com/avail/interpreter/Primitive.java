@@ -1048,7 +1048,7 @@ implements IntegerEnumSlotDescriptionEnum
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			new L2ConstantOperand(rawFunction),
 			new L2PrimitiveOperand(this),
-			new L2ReadVectorOperand(arguments),
+			new L2ReadVectorOperand<>(arguments),
 			writer);
 		callSiteHelper.useAnswer(writer.read());
 		return true;

@@ -1,5 +1,5 @@
 /*
- * L2_ADD_INT_TO_INT_MOD_32_BITS.java
+ * L2_MOVE_FLOAT_CONSTANT.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,33 +33,66 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.IADD;
+import java.util.Set;
+
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 
 /**
- * Add the value in one int register to another int register, truncating the
- * result to fit in the second register.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_ADD_INT_TO_INT_MOD_32_BITS
+public class L2_MOVE_FLOAT_CONSTANT
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
-			READ_INT.is("addend"),
-			READ_INT.is("augend"),
-			WRITE_INT.is("sum"));
+		new L2_MOVE().init(
+			READ_FLOAT.is("source"),
+			WRITE_FLOAT.is("destination"));
+
+	@Override
+	protected void propagateTypes (
+		@NotNull final L2Instruction instruction,
+		@NotNull final RegisterSet registerSet,
+		final L2Translator translator)
+	{
+		final double constant = instruction.floatImmediateAt(0);
+		final L2WriteFloatOperand destinationIntReg =
+			instruction.writeFloatRegisterAt(1);
+
+		registerSet.constantAtPut(
+			destinationIntReg.register(),
+			fromDouble(constant),
+			instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeFloatRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
+	}
+
 
 	@Override
 	public void translateToJVM (
@@ -67,17 +100,12 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister addendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister augendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister sumReg =
-			instruction.writeIntRegisterAt(2).register();
+		final double constant = instruction.floatImmediateAt(0);
+		final L2FloatRegister destinationFloatReg =
+			instruction.writeFloatRegisterAt(1).register();
 
-		// :: sum = addend + augend;
-		translator.load(method, addendReg);
-		translator.load(method, augendReg);
-		method.visitInsn(IADD);
-		translator.store(method, sumReg);
+		// :: destinationInt = constant;
+		translator.literal(method, constant);
+		translator.store(method, destinationFloatReg);
 	}
 }

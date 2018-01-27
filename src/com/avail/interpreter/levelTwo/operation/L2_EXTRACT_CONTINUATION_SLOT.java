@@ -61,7 +61,7 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_EXTRACT_CONTINUATION_SLOT().init(
 			READ_POINTER.is("continuation"),
-			IMMEDIATE.is("slot index"),
+			INT_IMMEDIATE.is("slot index"),
 			WRITE_POINTER.is("extracted slot"));
 
 	@Override
@@ -77,7 +77,7 @@ extends L2Operation
 		builder.append(" ← ");
 		builder.append(instruction.readObjectRegisterAt(0));
 		builder.append('[');
-		builder.append(instruction.immediateAt(1));
+		builder.append(instruction.intImmediateAt(1));
 		builder.append(']');
 	}
 
@@ -90,7 +90,7 @@ extends L2Operation
 		// Extract a single slot from the given continuation.
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int slotIndex = instruction.immediateAt(1);
+		final int slotIndex = instruction.intImmediateAt(1);
 		final L2ObjectRegister explodedSlotReg =
 			instruction.writeObjectRegisterAt(2).register();
 

@@ -1,6 +1,6 @@
-/**
+/*
  * L2Optimizer.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,11 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.performance.Statistic;
@@ -76,13 +74,14 @@ import static java.util.Collections.emptySet;
 public final class L2Optimizer
 {
 	/** The {@link L2ControlFlowGraph} to optimize. */
-	public final L2ControlFlowGraph controlFlowGraph;
+	private final L2ControlFlowGraph controlFlowGraph;
 
 	/** The mutable list of blocks taken from the {@link #controlFlowGraph}. */
 	public final List<L2BasicBlock> blocks;
 
 	/** Whether to sanity-check the graph between optimization steps. */
-	public static boolean shouldSanityCheck = false;
+	@SuppressWarnings("FieldCanBeLocal")
+	private static boolean shouldSanityCheck = false;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
@@ -180,7 +179,7 @@ public final class L2Optimizer
 			if (!neededInstructions.contains(instruction))
 			{
 				neededInstructions.add(instruction);
-				for (final L2Register sourceRegister
+				for (final L2Register<?> sourceRegister
 					: instruction.sourceRegisters())
 				{
 					// Assume all definitions are needed, regardless of control
@@ -558,7 +557,7 @@ public final class L2Optimizer
 					// them, if any.
 					break;
 				}
-				final L2WritePointerOperand targetWriter =
+				final L2WritePhiOperand<?, ?> targetWriter =
 					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
 						instruction);
 				final List<L2PcOperand> predecessors = block.predecessorEdges();
@@ -576,19 +575,13 @@ public final class L2Optimizer
 						predecessor.instructions();
 					assert predecessor.finalInstruction().operation
 						instanceof L2_JUMP;
-					final L2ObjectRegister sourceReg =
-						L2ObjectRegister.class.cast(phiSources.get(i));
-
-					// TODO MvG - Eventually we'll need phis for int and
-					// float registers.  We'll move responsibility for
-					// constructing the move into the specific L2Operation
-					// subclasses.
+					final L2Register sourceReg = phiSources.get(i);
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
-							L2_MOVE.instance,
-							new L2ReadPointerOperand(sourceReg, null),
-							targetWriter);
+							sourceReg.phiMoveOperation(),
+							sourceReg.read(sourceReg.restriction()),
+							targetWriter.register().write());
 					instructions.add(instructions.size() - 1, move);
 					move.justAdded();
 				}
@@ -872,6 +865,7 @@ public final class L2Optimizer
 
 		void clearAll ()
 		{
+			//noinspection ForLoopReplaceableByForEach
 			for (int i = 0; i < liveRegistersByKind.length; i++)
 			{
 				liveRegistersByKind[i].clear();
@@ -969,23 +963,12 @@ public final class L2Optimizer
 						assert added;
 						if (L2ReadVectorOperand.class.isInstance(operand))
 						{
-							final L2ReadVectorOperand vector =
+							final L2ReadVectorOperand<?> vector =
 								L2ReadVectorOperand.class.cast(operand);
 							vector.elements().forEach(
 								read ->
 								{
 									final boolean ok = allOperands.add(read);
-									assert ok;
-								});
-						}
-						else if (L2WriteVectorOperand.class.isInstance(operand))
-						{
-							final L2WriteVectorOperand vector =
-								L2WriteVectorOperand.class.cast(operand);
-							vector.elements().forEach(
-								write ->
-								{
-									final boolean ok = allOperands.add(write);
 									assert ok;
 								});
 						}
@@ -1129,7 +1112,7 @@ public final class L2Optimizer
 	 * Ensure each instruction that's an {@linkplain L2Operation#isEntryPoint(
 	 * L2Instruction) entry point} occurs at the start of a block.
 	 */
-	void checkEntryPoints ()
+	private void checkEntryPoints ()
 	{
 		blocks.forEach(
 			b -> b.instructions().forEach(

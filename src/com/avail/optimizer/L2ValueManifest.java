@@ -32,24 +32,19 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.unmodifiableSet;
@@ -68,17 +63,18 @@ import static java.util.Collections.unmodifiableSet;
  * have <em>at most one</em> register mapped to it.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2ValueManifest
 {
 	/**
 	 * The current mapping from {@link L2SemanticValue} to {@link
-	 * L2ReadPointerOperand}.  A separate manifest is created to represent
-	 * different places in the {@link L2ControlFlowGraph}.  This is mirrored in
-	 * the {@link #registerToSemanticValues}, although that uses the {@link
-	 * L2Register} directly instead of an {@link L2ReadPointerOperand}.
+	 * L2ReadOperand}. A separate manifest is created to represent different
+	 * places in the {@link L2ControlFlowGraph}. This is mirrored in the {@link
+	 * #registerToSemanticValues}, although that uses the {@link L2Register}
+	 * directly instead of an {@link L2ReadOperand}.
 	 */
-	private final Map<L2SemanticValue, L2ReadPointerOperand>
+	private final Map<L2SemanticValue, L2ReadOperand<?, ?>>
 		semanticValueToRegister;
 
 	/**
@@ -86,7 +82,7 @@ public final class L2ValueManifest
 	 * L2SemanticValue}s that it holds.  A separate manifest is created to
 	 * represent different places in the {@link L2ControlFlowGraph}.  This is
 	 * mirrored in the {@link #semanticValueToRegister}, although that uses an
-	 * {@link L2ReadPointerOperand} instead of an {@link L2Register} so that
+	 * {@link L2ReadOperand} instead of an {@link L2Register} so that
 	 * strengthening tests for regions of code can be represented.
 	 */
 	private final Map<L2Register, Set<L2SemanticValue>>
@@ -105,7 +101,7 @@ public final class L2ValueManifest
 	 * Copy an existing manifest.
 	 *
 	 * @param originalManifest
-	 * 	The original manifest.
+	 * 	      The original manifest.
 	 */
 	public L2ValueManifest (final L2ValueManifest originalManifest)
 	{
@@ -124,13 +120,15 @@ public final class L2ValueManifest
 	 * Look up the given semantic value, answering the register that holds that
 	 * value, if any, otherwise {@code null}.
 	 *
-	 * @param semanticValue The semantic value to look up.
-	 * @return The {@link L2ReadPointerOperand} holding that value.
+	 * @param semanticValue
+	 *        The semantic value to look up.
+	 * @return The {@link L2ReadOperand} holding that value.
 	 */
-	public @Nullable L2ReadPointerOperand semanticValueToRegister (
-		final L2SemanticValue semanticValue)
+	public @Nullable <U extends L2ReadOperand<?, ?>>
+	U semanticValueToRegister (final L2SemanticValue semanticValue)
 	{
-		return semanticValueToRegister.get(semanticValue);
+		//noinspection unchecked
+		return (U) semanticValueToRegister.get(semanticValue);
 	}
 
 	/**
@@ -158,11 +156,11 @@ public final class L2ValueManifest
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to associate with the register.
 	 * @param registerRead
-	 *        The {@link L2Register} to associate with the semantic value.
+	 *        The {@link L2ReadOperand} to associate with the semantic value.
 	 */
 	public void addBinding (
 		final L2SemanticValue semanticValue,
-		final L2ReadPointerOperand registerRead)
+		final L2ReadOperand<?, ?> registerRead)
 	{
 		assert !semanticValueToRegister.containsKey(semanticValue);
 		semanticValueToRegister.put(semanticValue, registerRead);
@@ -182,11 +180,11 @@ public final class L2ValueManifest
 	public void removeBinding (
 		final L2SemanticValue semanticValue)
 	{
-		final L2ReadPointerOperand oldRegisterRead =
+		final L2ReadOperand<?, ?> oldRegisterRead =
 			semanticValueToRegister.remove(semanticValue);
 		if (oldRegisterRead != null)
 		{
-			final L2ObjectRegister oldRegister = oldRegisterRead.register();
+			final L2Register oldRegister = oldRegisterRead.register();
 			final @Nullable Set<L2SemanticValue> semanticValues =
 				registerToSemanticValues.get(oldRegister);
 			if (semanticValues != null)
@@ -239,7 +237,7 @@ public final class L2ValueManifest
 	 *
 	 * @return The indicated {@link Map}.
 	 */
-	public Map<L2SemanticValue, L2ReadPointerOperand> bindings ()
+	public Map<L2SemanticValue, L2ReadOperand<?, ?>> bindings ()
 	{
 		return new HashMap<>(semanticValueToRegister);
 	}
@@ -301,17 +299,18 @@ public final class L2ValueManifest
 		}
 		for (final L2SemanticValue semanticValue : semanticValues)
 		{
-			final List<L2ReadPointerOperand> sources =
+			final List<L2ReadOperand<?, ?>> sources =
 				new ArrayList<>(manifests.size());
 			final Set<L2Register> distinctRegisters = new HashSet<>();
 			@Nullable TypeRestriction restriction = null;
 			for (final L2ValueManifest manifest : manifests)
 			{
-				final L2ReadPointerOperand reader =
+				final L2ReadOperand<?, ?> reader =
 					stripNull(manifest.semanticValueToRegister(semanticValue));
 				final L2Register register = reader.register();
 				sources.add(reader);
 				distinctRegisters.add(register);
+				//noinspection unchecked
 				restriction = restriction == null
 					? reader.restriction()
 					: restriction.union(reader.restriction());
@@ -326,11 +325,10 @@ public final class L2ValueManifest
 			{
 				// All of the incoming edges had the same register bound to the
 				// semantic value.
+				//noinspection unchecked
 				addBinding(
 					semanticValue,
-					new L2ReadPointerOperand(
-						(L2ObjectRegister) distinctRegisters.iterator().next(),
-						restriction));
+					distinctRegisters.iterator().next().read(restriction));
 			}
 			else if (constantSemanticValue != null
 				&& semanticValueToRegister.containsKey(constantSemanticValue))
@@ -350,12 +348,15 @@ public final class L2ValueManifest
 			else
 			{
 				// Create a phi function.
-				final L2WritePointerOperand newWrite =
-					translator.newObjectRegisterWriter(
-						restriction.type, constant);
+				//noinspection unchecked
+				final L2WritePhiOperand newWrite =
+					translator.newPhiRegisterWriter(
+						sources.get(0).register().copyForTranslator(
+							translator,
+							restriction));
 				translator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
-					new L2ReadVectorOperand(sources),
+					new L2ReadVectorOperand<>(sources),
 					newWrite);
 				addBinding(semanticValue, newWrite.read());
 				if (constantSemanticValue != null

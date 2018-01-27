@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticConstant.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,11 @@ import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
  * A semantic value which is a particular actual constant value.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticConstant extends L2SemanticValue
+final class L2SemanticConstant
+extends L2SemanticValue
 {
 	public final A_BasicObject value;
 

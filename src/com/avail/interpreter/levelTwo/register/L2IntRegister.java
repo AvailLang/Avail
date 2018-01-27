@@ -1,5 +1,5 @@
 /*
- * L2FloatRegister.java
+ * L2IntegerRegister.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,33 +33,32 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
 
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-
 /**
- * {@code L2FloatRegister} models the conceptual usage of a register that can
- * store a machine floating-point number.
+ * {@code L2IntRegister} models the conceptual usage of a register that can
+ * store a machine integer.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2FloatRegister
+public final class L2IntRegister
 extends L2Register<A_Number>
 {
 	@Override
 	public RegisterKind registerKind ()
 	{
-		return RegisterKind.FLOAT;
+		return RegisterKind.INTEGER;
 	}
 
 	/**
-	 * Construct a new {@code L2FloatRegister}.
+	 * Construct a new {@code L2IntRegister}.
 	 *
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
@@ -67,7 +66,7 @@ extends L2Register<A_Number>
 	 * @param restriction
 	 * 	      The {@link TypeRestriction}.
 	 */
-	public L2FloatRegister (
+	public L2IntRegister (
 		final int debugValue,
 		final TypeRestriction<A_Number> restriction)
 	{
@@ -75,40 +74,42 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public L2ReadFloatOperand read (
+	public L2ReadIntOperand read (
 		final TypeRestriction<A_Number> typeRestriction)
 	{
-		return new L2ReadFloatOperand(this, typeRestriction);
+		return new L2ReadIntOperand(this, typeRestriction);
 	}
 
 	@Override
-	public L2WriteFloatOperand write ()
+	public L2WriteIntOperand write ()
 	{
-		return new L2WriteFloatOperand(this);
+		return new L2WriteIntOperand(this);
 	}
 
 	@Override
-	public L2Register<A_Number> copyForTranslator (
+	public L2IntRegister copyForTranslator (
 		final L1Translator translator,
 		final TypeRestriction<A_Number> typeRestriction)
 	{
-		return new L2FloatRegister(translator.nextUnique(), typeRestriction);
+		return new L2IntRegister(translator.nextUnique(), typeRestriction);
 	}
 
 	@Override
-	public L2FloatRegister copyAfterColoring ()
+	public L2IntRegister copyAfterColoring ()
 	{
-		final L2FloatRegister result = new L2FloatRegister(
+		final L2IntRegister result = new L2IntRegister(
 			finalIndex(),
-			TypeRestriction.restriction(DOUBLE.o(), null));
+			TypeRestriction.restriction(
+				IntegerRangeTypeDescriptor.int32(),
+			null));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
 
 	@Override
-	public L2FloatRegister copyForInliner (final L2Inliner inliner)
+	public L2IntRegister copyForInliner (final L2Inliner inliner)
 	{
-		return new L2FloatRegister(
+		return new L2IntRegister(
 			inliner.targetTranslator.nextUnique(),
 			restriction);
 	}
@@ -116,12 +117,12 @@ extends L2Register<A_Number>
 	@Override
 	public L2Operation phiMoveOperation ()
 	{
-		return L2_MOVE_FLOAT.instance;
+		return L2_MOVE_INT.instance;
 	}
 
 	@Override
 	String namePrefix ()
 	{
-		return "f";
+		return "i";
 	}
 }

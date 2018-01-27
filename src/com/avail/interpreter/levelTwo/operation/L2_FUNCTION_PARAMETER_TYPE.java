@@ -75,7 +75,7 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_FUNCTION_PARAMETER_TYPE().init(
 			READ_POINTER.is("function"),
-			IMMEDIATE.is("parameter index"),
+			INT_IMMEDIATE.is("parameter index"),
 			WRITE_POINTER.is("parameter type"));
 
 	@Override
@@ -86,7 +86,7 @@ extends L2Operation
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
@@ -134,7 +134,7 @@ extends L2Operation
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
@@ -192,7 +192,7 @@ extends L2Operation
 		builder.append(" ← ");
 		builder.append(instruction.readObjectRegisterAt(0));
 		builder.append('[');
-		builder.append(instruction.immediateAt(1));
+		builder.append(instruction.intImmediateAt(1));
 		builder.append(']');
 	}
 
@@ -204,7 +204,7 @@ extends L2Operation
 	{
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2ObjectRegister outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2).register();
 

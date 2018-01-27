@@ -1,5 +1,5 @@
 /*
- * L2_MOVE_INT_CONSTANT.java
+ * L2_MOVE_INT.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.L2Translator;
@@ -44,25 +45,26 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
- * Move a constant {@code int} into an integer register.
+ * Move an {@code int} from the source to the destination. The {@link
+ * L2Translator} creates more moves than are strictly necessary, but various
+ * mechanisms cooperate to remove redundant inter-register moves.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_INT_CONSTANT
+public class L2_MOVE_INT
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_MOVE_INT_CONSTANT().init(
-			INT_IMMEDIATE.is("value"),
+		new L2_MOVE_INT().init(
+			READ_INT.is("source"),
 			WRITE_INT.is("destination"));
 
 	@Override
@@ -71,14 +73,66 @@ extends L2Operation
 		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final int constant = instruction.intImmediateAt(0);
-		final L2WriteIntOperand destinationIntReg =
+		final L2ReadIntOperand sourceReg =
+			instruction.readIntRegisterAt(0);
+		final L2WriteIntOperand destinationReg =
 			instruction.writeIntRegisterAt(1);
 
-		registerSet.constantAtPut(
-			destinationIntReg.register(),
-			fromInt(constant),
-			instruction);
+		assert sourceReg.register() != destinationReg.register();
+		registerSet.removeConstantAt(destinationReg.register());
+		if (registerSet.hasTypeAt(sourceReg.register()))
+		{
+			registerSet.typeAtPut(
+				destinationReg.register(),
+				registerSet.typeAt(sourceReg.register()),
+				instruction);
+		}
+		else
+		{
+			registerSet.removeTypeAt(destinationReg.register());
+		}
+
+		if (registerSet.hasConstantAt(sourceReg.register()))
+		{
+			registerSet.constantAtPut(
+				destinationReg.register(),
+				registerSet.constantAt(sourceReg.register()),
+				instruction);
+		}
+		registerSet.propagateMove(
+			sourceReg.register(), destinationReg.register(), instruction);
+	}
+
+	@Override
+	public boolean shouldEmit (final L2Instruction instruction)
+	{
+		final L2ReadIntOperand sourceReg =
+			instruction.readIntRegisterAt(0);
+		final L2WriteIntOperand destinationReg =
+			instruction.writeIntRegisterAt(1);
+
+		return sourceReg.finalIndex() != destinationReg.finalIndex();
+	}
+
+	@Override
+	public boolean isMove ()
+	{
+		return true;
+	}
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the source
+	 * {@link L2ReadIntOperand} that is moved by the instruction.
+	 *
+	 * @param instruction
+	 *        The move instruction to examine.
+	 * @return The move's source {@link L2ReadIntOperand}.
+	 */
+	private static L2ReadIntOperand sourceOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.readIntRegisterAt(0);
 	}
 
 	@Override
@@ -92,7 +146,7 @@ extends L2Operation
 		builder.append(' ');
 		builder.append(instruction.writeIntRegisterAt(1).register());
 		builder.append(" ← ");
-		builder.append(instruction.operands[0]);
+		builder.append(instruction.readIntRegisterAt(0).register());
 	}
 
 	@Override
@@ -101,12 +155,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int constant = instruction.intImmediateAt(0);
-		final L2IntRegister destinationIntReg =
+		final L2IntRegister sourceReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister destinationReg =
 			instruction.writeIntRegisterAt(1).register();
 
-		// :: destinationInt = constant;
-		translator.literal(method, constant);
-		translator.store(method, destinationIntReg);
+		// :: destination = source;
+		translator.load(method, sourceReg);
+		translator.store(method, destinationReg);
 	}
 }

@@ -201,7 +201,7 @@ extends Primitive
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
 			continuationReg,
-			new L2ReadVectorOperand(explodedArgumentRegs));
+			new L2ReadVectorOperand<>(explodedArgumentRegs));
 		assert !translator.currentlyReachable();
 		translator.startBlock(
 			translator.createBasicBlock(

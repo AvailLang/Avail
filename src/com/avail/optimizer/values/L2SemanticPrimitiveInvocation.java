@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticPrimitiveInvocation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,11 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * Primitive}.  The primitive doesn't have to be stable or side-effect free, but
  * in that case the actual {@link L2Instruction} must be supplied, to ensure it
  * isn't executed too many or too few times.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticPrimitiveInvocation extends L2SemanticValue
+final class L2SemanticPrimitiveInvocation
+extends L2SemanticValue
 {
 	/**
 	 * The {@link Primitive} whose invocation is being represented.

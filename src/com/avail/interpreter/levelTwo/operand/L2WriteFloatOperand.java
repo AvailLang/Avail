@@ -1,5 +1,5 @@
 /*
- * L2IntegerRegister.java
+ * L2WriteFloatOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,62 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.optimizer.L2Inliner;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 
 /**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
+ * An {@code L2WriteFloatOperand} is an operand of type {@link
+ * L2OperandType#WRITE_FLOAT}.  It holds the actual {@link L2FloatRegister}
+ * that is to be accessed.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2IntegerRegister
-extends L2Register
+public class L2WriteFloatOperand
+extends L2WriteOperand<L2FloatRegister, A_Number>
 {
 	@Override
-	public RegisterKind registerKind ()
+	public L2OperandType operandType ()
 	{
-		return RegisterKind.INTEGER;
+		return L2OperandType.WRITE_FLOAT;
 	}
 
 	/**
-	 * Construct a new {@code L2IntegerRegister}.
+	 * Construct a new {@code L2WriteFloatOperand}, creating an {@link
+	 * L2FloatRegister} at the same time. Record the provided type information
+	 * and optional constant information in the new register.
 	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * @param register
+	 *        The {@link L2FloatRegister}.
 	 */
-	public L2IntegerRegister (final int debugValue)
+	public L2WriteFloatOperand (final L2FloatRegister register)
 	{
-		super(debugValue);
+		super(register);
 	}
 
 	@Override
-	public L2IntegerRegister copyAfterColoring ()
+	public final L2ReadFloatOperand read ()
 	{
-		final L2IntegerRegister result = new L2IntegerRegister(finalIndex());
-		result.setFinalIndex(finalIndex());
-		return result;
+		return new L2ReadFloatOperand(register, register.restriction());
 	}
 
 	@Override
-	public L2IntegerRegister copyForInliner (final L2Inliner inliner)
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return inliner.targetTranslator.newIntegerRegister();
-	}
-
-	@Override
-	public String toString ()
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("i");
-		if (finalIndex() != -1)
-		{
-			builder.append(finalIndex());
-		}
-		else
-		{
-			builder.append(uniqueValue);
-		}
-		return builder.toString();
+		dispatcher.doOperand(this);
 	}
 }

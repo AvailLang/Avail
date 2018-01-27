@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -62,7 +62,7 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_ADD_INT_TO_INT_CONSTANT().init(
 			READ_INT.is("augend"),
-			IMMEDIATE.is("addend"),
+			INT_IMMEDIATE.is("addend"),
 			WRITE_INT.is("sum"),
 			PC.is("in range", SUCCESS),
 			PC.is("out of range", FAILURE));
@@ -73,10 +73,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister augendReg =
+		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final int addend = instruction.immediateAt(1);
-		final L2IntegerRegister sumReg =
+		final int addend = instruction.intImmediateAt(1);
+		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);

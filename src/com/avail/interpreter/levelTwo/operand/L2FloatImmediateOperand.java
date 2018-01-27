@@ -1,5 +1,5 @@
 /*
- * L2ReadIntOperand.java
+ * L2FloatImmediateOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,50 +32,51 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
-
-import javax.annotation.Nullable;
 
 /**
- * An {@code L2ReadIntOperand} is an operand of type {@link
- * L2OperandType#READ_INT}. It holds the actual {@link L2IntRegister} that
- * is to be accessed.
+ * An {@code L2FloatImmediateOperand} is an operand of type {@link
+ * L2OperandType#FLOAT_IMMEDIATE}, which holds a {@code double} value
+ * representing itself.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2ReadIntOperand
-extends L2ReadOperand<L2IntRegister, A_Number>
+public class L2FloatImmediateOperand
+extends L2Operand
 {
+	/**
+	 * The actual {@code double} value.
+	 */
+	public final double value;
+
+	/**
+	 * Construct a new {@code L2FloatImmediateOperand} with the specified {@code
+	 * double} value.
+	 *
+	 * @param value
+	 *        The constant {@code double} itself.
+	 */
+	public L2FloatImmediateOperand (final double value)
+	{
+		this.value = value;
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.READ_INT;
-	}
-
-	/**
-	 * Construct a new {@code L2ReadIntOperand} for the specified {@link
-	 * L2IntRegister} and optional restriction.
-	 *
-	 * @param register
-	 *        The register.
-	 * @param restriction
-	 *        The further {@link TypeRestriction} to apply to this particular
-	 *        read.
-	 */
-	public L2ReadIntOperand (
-		final L2IntRegister register,
-		final @Nullable TypeRestriction<A_Number> restriction)
-	{
-		super(register, restriction);
+		return L2OperandType.FLOAT_IMMEDIATE;
 	}
 
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "#" + value;
 	}
 }

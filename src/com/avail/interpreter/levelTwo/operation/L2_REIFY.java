@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.ASTORE;
@@ -87,9 +87,9 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_REIFY().init(
-			IMMEDIATE.is("capture frames"),
-			IMMEDIATE.is("process interrupt"),
-			IMMEDIATE.is("statistic category"),
+			INT_IMMEDIATE.is("capture frames"),
+			INT_IMMEDIATE.is("process interrupt"),
+			INT_IMMEDIATE.is("statistic category"),
 			PC.is("on reification", OFF_RAMP));
 
 	/**
@@ -141,10 +141,10 @@ extends L2Operation
 	{
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
-		final boolean actuallyReify = instruction.immediateAt(0) == 1;
-		final boolean processInterrupt = instruction.immediateAt(1) == 1;
+		final boolean actuallyReify = instruction.intImmediateAt(0) == 1;
+		final boolean processInterrupt = instruction.intImmediateAt(1) == 1;
 		final StatisticCategory category =
-			StatisticCategory.values()[instruction.immediateAt(2)];
+			StatisticCategory.values()[instruction.intImmediateAt(2)];
 		builder.append(' ');
 		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
 		if (actuallyReify || processInterrupt)
@@ -222,9 +222,9 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int actuallyReify = instruction.immediateAt(0);
-		final int processInterrupt = instruction.immediateAt(1);
-		final int categoryIndex = instruction.immediateAt(2);
+		final int actuallyReify = instruction.intImmediateAt(0);
+		final int processInterrupt = instruction.intImmediateAt(1);
+		final int categoryIndex = instruction.intImmediateAt(2);
 		final L2PcOperand reify = instruction.pcAt(3);
 
 		// :: reifier = L2_REIFY.reify(

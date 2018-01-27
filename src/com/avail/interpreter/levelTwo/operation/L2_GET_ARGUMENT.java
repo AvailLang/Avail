@@ -36,33 +36,36 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import static org.objectweb.asm.Opcodes.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
- * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}, which
- * is how functions are supplied their arguments.
+ * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}'s n-th
+ * element.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_ARGUMENTS
+public class L2_GET_ARGUMENT
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_GET_ARGUMENTS().init(
-			WRITE_VECTOR.is("arguments"));
+		new L2_GET_ARGUMENT().init(
+			INT_IMMEDIATE.is("subscript into argsBuffer"),
+			WRITE_POINTER.is("argument"));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -80,7 +83,9 @@ extends L2Operation
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← arg#");
+		builder.append(instruction.intImmediateAt(0));
 	}
 
 	@Override
@@ -89,31 +94,24 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2WritePointerOperand> argumentRegs =
-			instruction.writeVectorRegisterAt(0);
+		final L2ObjectRegister argumentReg =
+			instruction.writeObjectRegisterAt(1).register();
+		final int subscript = instruction.intImmediateAt(0);
 
-		// :: argsBuffer = interpreter.argsBuffer;
+		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
 		translator.loadInterpreter(method);
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"argsBuffer",
 			getDescriptor(List.class));
-		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
-		{
-			// :: «argument[i]» = argsBuffer.get(«i»);
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP);
-			}
-			translator.intConstant(method, i);
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(List.class),
-				"get",
-				getMethodDescriptor(getType(Object.class), INT_TYPE),
-				true);
-			translator.store(method, argumentRegs.get(i).register());
-		}
+		translator.literal(method, subscript - 1);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(List.class),
+			"get",
+			getMethodDescriptor(getType(Object.class), INT_TYPE),
+			true);
+		translator.store(method, argumentReg);
 	}
 }

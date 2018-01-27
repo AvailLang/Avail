@@ -51,7 +51,7 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
@@ -455,29 +455,62 @@ public final class L1Translator
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		return new L2WritePointerOperand(nextUnique(), type, constantOrNull);
+		return new L2WritePointerOperand(new L2ObjectRegister(
+			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
 	}
 
 	/**
-	 * Allocate a fresh {@linkplain L2IntegerRegister integer register} that
-	 * nobody else has used yet.
+	 * Allocate a new {@link L2IntRegister}.  Answer an {@link
+	 * L2WriteIntOperand} that writes to it, using the given type and optional
+	 * constant value information.
 	 *
-	 * @return The new register.
+	 * @param type
+	 *        The type of value that the register can hold.
+	 * @param constantOrNull
+	 *        The exact value in the register, or {@code null} if not known
+	 *        statically.
+	 * @return The new register write operand.
 	 */
-	public L2IntegerRegister newIntegerRegister ()
+	public L2WriteIntOperand newIntRegisterWriter (
+		final A_Type type,
+		final @Nullable A_Number constantOrNull)
 	{
-		return new L2IntegerRegister(nextUnique());
+		return new L2WriteIntOperand(new L2IntRegister(
+			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
 	}
 
 	/**
-	 * Allocate a fresh {@linkplain L2FloatRegister integer register} that
-	 * nobody else has used yet.
+	 * Allocate a new {@link L2FloatRegister}.  Answer an {@link
+	 * L2WriteFloatOperand} that writes to it, using the given type and optional
+	 * constant value information.
 	 *
-	 * @return The new register.
+	 * @param type
+	 *        The type of value that the register can hold.
+	 * @param constantOrNull
+	 *        The exact value in the register, or {@code null} if not known
+	 *        statically.
+	 * @return The new register write operand.
 	 */
-	public L2FloatRegister newFloatRegister ()
+	public L2WriteFloatOperand newFloatRegisterWriter (
+		final A_Type type,
+		final @Nullable A_Number constantOrNull)
 	{
-		return new L2FloatRegister(nextUnique());
+		return new L2WriteFloatOperand(new L2FloatRegister(
+			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+	}
+
+	/**
+	 * Answer a {@link L2WritePhiOperand} that writes to the specified
+	 * {@link L2Register}.
+	 *
+	 * @param register
+	 *        The register.
+	 * @return The new register write operand.
+	 */
+	public L2WritePhiOperand<?, ?> newPhiRegisterWriter (
+		final L2Register<?> register)
+	{
+		return new L2WritePhiOperand<>(register);
 	}
 
 	/**
@@ -546,7 +579,7 @@ public final class L1Translator
 				newObjectRegisterWriter(outerType, null);
 			addInstruction(
 				L2_MOVE_OUTER_VARIABLE.instance,
-				new L2ImmediateOperand(outerIndex),
+				new L2IntImmediateOperand(outerIndex),
 				functionRead,
 				outerWrite);
 			outerRead = outerWrite.read();
@@ -675,12 +708,13 @@ public final class L1Translator
 	}
 
 	/**
-	 * Write a constant value into a new register.  Answer an {@link
-	 * L2ReadPointerOperand} for that register.  If another register has already
+	 * Write a constant value into a new register. Answer an {@link
+	 * L2ReadPointerOperand} for that register. If another register has already
 	 * been assigned the same value within the same {@link L2BasicBlock}, just
 	 * use that instead of emitting another constant-move.
 	 *
-	 * @param value The constant value to write to a register.
+	 * @param value
+	 *        The constant value to write to a register.
 	 * @return The {@link L2ReadPointerOperand} for the new register.
 	 */
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
@@ -708,21 +742,70 @@ public final class L1Translator
 
 	/**
 	 * Write a constant value into a new int register.  Answer an {@link
-	 * L2ReadIntOperand} for that register.
+	 * L2ReadIntOperand} for that register. If another register has already
+	 * been assigned the same value within the same {@link L2BasicBlock}, just
+	 * use that instead of emitting another constant-move.
 	 *
-	 * @param value The immediate int to write to a new int register.
+	 * @param value
+	 *        The immediate int to write to a new int register.
 	 * @return The {@link L2ReadIntOperand} for the new register.
 	 */
 	@SuppressWarnings("unused")
 	private L2ReadIntOperand constantIntRegister (final int value)
 	{
+		final A_Number boxed = IntegerDescriptor.fromInt(value);
+		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
+		final @Nullable L2ReadIntOperand existingConstant =
+			currentManifest.semanticValueToRegister(constant);
+		if (existingConstant != null)
+		{
+			return existingConstant;
+		}
 		final L2WriteIntOperand registerWrite =
-			new L2WriteIntOperand(newIntegerRegister());
+			newIntRegisterWriter(
+				InstanceTypeDescriptor.instanceType(boxed),
+				boxed);
 		addInstruction(
 			L2_MOVE_INT_CONSTANT.instance,
-			new L2ImmediateOperand(value),
+			new L2IntImmediateOperand(value),
 			registerWrite);
-		return registerWrite.read();
+		final L2ReadIntOperand read = registerWrite.read();
+		currentManifest.addBinding(constant, read);
+		return read;
+	}
+
+	/**
+	 * Write a constant value into a new double register.  Answer an {@link
+	 * L2ReadFloatOperand} for that register. If another register has already
+	 * been assigned the same value within the same {@link L2BasicBlock}, just
+	 * use that instead of emitting another constant-move.
+	 *
+	 * @param value
+	 *        The immediate double to write to a new double register.
+	 * @return The {@link L2ReadFloatOperand} for the new register.
+	 */
+	@SuppressWarnings("unused")
+	private L2ReadFloatOperand constantFloatRegister (final double value)
+	{
+		final A_Number boxed = DoubleDescriptor.fromDouble(value);
+		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
+		final @Nullable L2ReadFloatOperand existingConstant =
+			currentManifest.semanticValueToRegister(constant);
+		if (existingConstant != null)
+		{
+			return existingConstant;
+		}
+		final L2WriteFloatOperand registerWrite =
+			newFloatRegisterWriter(
+				InstanceTypeDescriptor.instanceType(boxed),
+				boxed);
+		addInstruction(
+			L2_MOVE_FLOAT_CONSTANT.instance,
+			new L2FloatImmediateOperand(value),
+			registerWrite);
+		final L2ReadFloatOperand read = registerWrite.read();
+		currentManifest.addBinding(constant, read);
+		return read;
 	}
 
 	/**
@@ -844,9 +927,9 @@ public final class L1Translator
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
 			constantRegister(nil),
-			new L2ImmediateOperand(pc.value),
-			new L2ImmediateOperand(stackp),
-			new L2ReadVectorOperand(readSlotsBefore),
+			new L2IntImmediateOperand(pc.value),
+			new L2IntImmediateOperand(stackp),
+			new L2ReadVectorOperand<>(readSlotsBefore),
 			newContinuationRegister,
 			new L2PcOperand(onReturnIntoReified, new L2ValueManifest()),
 			new L2PcOperand(afterCreation, currentManifest),
@@ -856,7 +939,7 @@ public final class L1Translator
 		startBlock(afterCreation);
 		addInstruction(
 			L2_RETURN_FROM_REIFICATION_HANDLER.instance,
-			new L2ReadVectorOperand(
+			new L2ReadVectorOperand<>(
 				singletonList(newContinuationRegister.read())));
 
 		// Here it's returning into the reified continuation.
@@ -864,7 +947,7 @@ public final class L1Translator
 		currentManifest.clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at " + typeOfEntryPoint.name() + "."));
 		final L2ReadPointerOperand popped = popCurrentContinuation();
@@ -890,7 +973,7 @@ public final class L1Translator
 				addInstruction(
 					L2_EXTRACT_CONTINUATION_SLOT.instance,
 					popped,
-					new L2ImmediateOperand(i),
+					new L2IntImmediateOperand(i),
 					writeSlot);
 				currentManifest.addBinding(
 					semanticSlot(i),
@@ -1933,7 +2016,7 @@ public final class L1Translator
 			addInstruction(
 				L2_INVOKE_CONSTANT_FUNCTION.instance,
 				new L2ConstantOperand(constantFunction),
-				new L2ReadVectorOperand(arguments),
+				new L2ReadVectorOperand<>(arguments),
 				edgeTo(successBlock),
 				edgeTo(skipCheck
 					? callSiteHelper.onReificationNoCheck
@@ -1944,7 +2027,7 @@ public final class L1Translator
 			addInstruction(
 				L2_INVOKE.instance,
 				functionToCallReg,
-				new L2ReadVectorOperand(arguments),
+				new L2ReadVectorOperand<>(arguments),
 				edgeTo(successBlock),
 				edgeTo(skipCheck
 					? callSiteHelper.onReificationNoCheck
@@ -2052,7 +2135,7 @@ public final class L1Translator
 		addInstruction(
 			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
-			new L2ReadVectorOperand(
+			new L2ReadVectorOperand<>(
 				asList(
 					getReturningFunctionRegister(),
 					constantRegister(expectedType),
@@ -2313,7 +2396,7 @@ public final class L1Translator
 			addInstruction(
 				L2_TUPLE_AT_CONSTANT.instance,
 				tupleReg,
-				new L2ImmediateOperand(i),
+				new L2IntImmediateOperand(i),
 				elementWriter);
 			elementReaders.add(elementWriter.read());
 		}
@@ -2378,7 +2461,7 @@ public final class L1Translator
 			addInstruction(
 				L2_LOOKUP_BY_VALUES.instance,
 				new L2SelectorOperand(bundle),
-				new L2ReadVectorOperand(arguments),
+				new L2ReadVectorOperand<>(arguments),
 				functionReg,
 				errorCodeReg,
 				new L2PcOperand(
@@ -2453,7 +2536,7 @@ public final class L1Translator
 			addInstruction(
 				L2_LOOKUP_BY_TYPES.instance,
 				new L2SelectorOperand(bundle),
-				new L2ReadVectorOperand(argTypeRegs),
+				new L2ReadVectorOperand<>(argTypeRegs),
 				functionReg,
 				errorCodeReg,
 				new L2PcOperand(
@@ -2500,12 +2583,12 @@ public final class L1Translator
 				null);
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
-			new L2ReadVectorOperand(arguments),
+			new L2ReadVectorOperand<>(arguments),
 			argumentsTupleWrite);
 		addInstruction(
 			L2_INVOKE.instance,
 			invalidSendReg.read(),
-			new L2ReadVectorOperand(
+			new L2ReadVectorOperand<>(
 				asList(
 					errorCodeReg.read(),
 					constantRegister(method),
@@ -2563,9 +2646,9 @@ public final class L1Translator
 			createBasicBlock("on reification");
 		addInstruction(
 			L2_REIFY.instance,
-			new L2ImmediateOperand(1),
-			new L2ImmediateOperand(1),
-			new L2ImmediateOperand(
+			new L2IntImmediateOperand(1),
+			new L2IntImmediateOperand(1),
+			new L2IntImmediateOperand(
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal()),
 			new L2PcOperand(onReification, currentManifest));
 		startBlock(onReification);
@@ -2627,7 +2710,7 @@ public final class L1Translator
 		addInstruction(
 			L2_INVOKE.instance,
 			unassignedReadFunction.read(),
-			new L2ReadVectorOperand(emptyList()),
+			new L2ReadVectorOperand<>(emptyList()),
 			unreachablePcOperand(),
 			edgeTo(onReificationDuringFailure));
 
@@ -2687,14 +2770,14 @@ public final class L1Translator
 				null);
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
-			new L2ReadVectorOperand(asList(variable, newValue)),
+			new L2ReadVectorOperand<>(asList(variable, newValue)),
 			variableAndValueTupleReg);
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
 		addInstruction(
 			L2_INVOKE.instance,
 			observeFunction.read(),
-			new L2ReadVectorOperand(
+			new L2ReadVectorOperand<>(
 				asList(
 					constantRegister(Interpreter.assignmentFunction()),
 					variableAndValueTupleReg.read())),
@@ -2766,7 +2849,7 @@ public final class L1Translator
 		// offset 1 (after the L2_TRY_OPTIONAL_PRIMITIVE) would also work.
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2ImmediateOperand(0),
+			new L2IntImmediateOperand(0),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at the beginning."));
 
@@ -2778,9 +2861,9 @@ public final class L1Translator
 				L2Chunk.countdownForNewlyOptimizedCode());
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
-				new L2ImmediateOperand(
+				new L2IntImmediateOperand(
 					OptimizationLevel.FIRST_TRANSLATION.ordinal()),
-				new L2ImmediateOperand(0));
+				new L2IntImmediateOperand(0));
 			// If it was reoptimized, it would have jumped to the
 			// afterOptionalInitialPrimitiveBlock in the new chunk.
 		}
@@ -2789,16 +2872,16 @@ public final class L1Translator
 		final int numArgs = code.numArgs();
 		if (numArgs > 0)
 		{
-			final List<L2WritePointerOperand> argRegs =
-				new ArrayList<>(numArgs);
 			final A_Type tupleType = code.functionType().argsTupleType();
 			for (int i = 1; i <= numArgs; i++)
 			{
-				argRegs.add(writeSlot(i, tupleType.typeAtIndex(i), null));
+				final L2WritePointerOperand argReg =
+					writeSlot(i, tupleType.typeAtIndex(i), null);
+				addInstruction(
+					L2_GET_ARGUMENT.instance,
+					new L2IntImmediateOperand(i),
+					argReg);
 			}
-			addInstruction(
-				L2_GET_ARGUMENTS.instance,
-				new L2WriteVectorOperand(argRegs));
 		}
 
 		// Create the locals.
@@ -2909,9 +2992,9 @@ public final class L1Translator
 			new L2Instruction(
 				reenterFromRestartBlock,
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
-				new L2ImmediateOperand(
+				new L2IntImmediateOperand(
 					OptimizationLevel.FIRST_TRANSLATION.ordinal()),
-				new L2ImmediateOperand(1)));
+				new L2IntImmediateOperand(1)));
 		// 2. Build registers, get arguments, create locals, capture primitive
 		// failure value, if any.
 		reenterFromRestartBlock.addInstruction(
@@ -3038,7 +3121,7 @@ public final class L1Translator
 		addInstruction(
 			L2_CREATE_FUNCTION.instance,
 			new L2ConstantOperand(codeLiteral),
-			new L2ReadVectorOperand(outers),
+			new L2ReadVectorOperand<>(outers),
 			writeSlot(stackp, codeLiteral.functionType(), null));
 
 		// Now that the function has been constructed, clear the slots that
@@ -3111,7 +3194,7 @@ public final class L1Translator
 			newObjectRegisterWriter(outerType, null);
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
+			new L2IntImmediateOperand(outerIndex),
 			functionReg,
 			tempVarReg);
 		emitGetVariableOffRamp(
@@ -3185,7 +3268,7 @@ public final class L1Translator
 					.toArray(A_Type[]::new));
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
-				new L2ReadVectorOperand(vector),
+				new L2ReadVectorOperand<>(vector),
 				writeSlot(stackp, tupleType, null));
 		}
 	}
@@ -3226,9 +3309,9 @@ public final class L1Translator
 		final L2BasicBlock onReification = createBasicBlock("on reification");
 		addInstruction(
 			L2_REIFY.instance,
-			new L2ImmediateOperand(1),
-			new L2ImmediateOperand(0),
-			new L2ImmediateOperand(
+			new L2IntImmediateOperand(1),
+			new L2IntImmediateOperand(0),
+			new L2IntImmediateOperand(
 				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
 			new L2PcOperand(onReification, currentManifest));
 
@@ -3263,9 +3346,9 @@ public final class L1Translator
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
 			getCurrentContinuation(),  // the caller, since we popped already.
-			new L2ImmediateOperand(0),  // indicates a label.
-			new L2ImmediateOperand(numSlots + 1),  // empty stack
-			new L2ReadVectorOperand(slotsForLabel),
+			new L2IntImmediateOperand(0),  // indicates a label.
+			new L2IntImmediateOperand(numSlots + 1),  // empty stack
+			new L2ReadVectorOperand<>(slotsForLabel),
 			destinationRegister,
 			new L2PcOperand(initialBlock, new L2ValueManifest()),
 			edgeTo(afterCreation),

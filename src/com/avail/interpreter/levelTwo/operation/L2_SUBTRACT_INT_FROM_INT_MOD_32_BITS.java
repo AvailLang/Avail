@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -67,11 +67,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister subtrahendReg =
+		final L2IntRegister subtrahendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister minuendReg =
+		final L2IntRegister minuendReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister differenceReg =
+		final L2IntRegister differenceReg =
 			instruction.writeIntRegisterAt(2).register();
 
 		translator.load(method, subtrahendReg);

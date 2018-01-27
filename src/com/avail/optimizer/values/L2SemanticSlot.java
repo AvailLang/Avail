@@ -1,4 +1,4 @@
-/**
+/*
  * L2SemanticSlot.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -38,8 +38,11 @@ import static com.avail.descriptor.AvailObject.multiplier;
 /**
  * A semantic value which represents a slot of some {@link Frame}'s effective
  * {@link A_Continuation}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticSlot extends L2SemanticValue
+final class L2SemanticSlot
+extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is a virtualized slot. */
 	public final Frame frame;

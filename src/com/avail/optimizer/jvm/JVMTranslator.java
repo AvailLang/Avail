@@ -46,7 +46,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -322,19 +323,36 @@ public final class JVMTranslator
 
 	/**
 	 * Generate a load of the local associated with the specified {@link
-	 * L2IntegerRegister}.
+	 * L2IntRegister}.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntegerRegister}.
+	 *        A bound {@code L2IntRegister}.
 	 */
 	public void load (
 		final MethodVisitor method,
-		final L2IntegerRegister register)
+		final L2IntRegister register)
 	{
 		method.visitVarInsn(ILOAD, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a load of the local associated with the specified {@link
+	 * L2FloatRegister}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2FloatRegister}.
+	 */
+	public void load (
+		final MethodVisitor method,
+		final L2FloatRegister register)
+	{
+		method.visitVarInsn(DLOAD, stripNull(locals.get(register)));
 	}
 
 	/**
@@ -356,20 +374,38 @@ public final class JVMTranslator
 
 	/**
 	 * Generate a store into the local associated with the specified {@link
-	 * L2IntegerRegister}. The value to be stored should already be on top of
+	 * L2IntRegister}. The value to be stored should already be on top of
 	 * the stack and correctly typed.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntegerRegister}.
+	 *        A bound {@code L2IntRegister}.
 	 */
 	public void store (
 		final MethodVisitor method,
-		final L2IntegerRegister register)
+		final L2IntRegister register)
 	{
 		method.visitVarInsn(ISTORE, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a store into the local associated with the specified {@link
+	 * L2FloatRegister}. The value to be stored should already be on top of
+	 * the stack and correctly typed.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2FloatRegister}.
+	 */
+	public void store (
+		final MethodVisitor method,
+		final L2FloatRegister register)
+	{
+		method.visitVarInsn(DSTORE, stripNull(locals.get(register)));
 	}
 
 	/**
@@ -461,7 +497,7 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2ImmediateOperand operand)
+		public void doOperand (final L2IntImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
 				operand.value,
@@ -469,6 +505,18 @@ public final class JVMTranslator
 					invalidIndex,
 					null,
 					method -> intConstant(method, (int) object),
+					null));
+		}
+
+		@Override
+		public void doOperand (final L2FloatImmediateOperand operand)
+		{
+			literals.computeIfAbsent(
+				operand.value,
+				object -> new LiteralAccessor(
+					invalidIndex,
+					null,
+					method -> doubleConstant(method, (double) object),
 					null));
 		}
 
@@ -496,6 +544,14 @@ public final class JVMTranslator
 		}
 
 		@Override
+		public void doOperand (final L2ReadFloatOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(DOUBLE_TYPE));
+		}
+
+		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			locals.computeIfAbsent(
@@ -504,12 +560,12 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public void doOperand (final L2ReadVectorOperand<?> vector)
 		{
-			for (final L2ReadPointerOperand pointerOperand : operand.elements())
+			for (final L2ReadOperand<?, ?> operand : vector.elements())
 			{
 				locals.computeIfAbsent(
-					pointerOperand.register(),
+					operand.register(),
 					register -> nextLocal(getType(AvailObject.class)));
 			}
 		}
@@ -565,6 +621,14 @@ public final class JVMTranslator
 		}
 
 		@Override
+		public void doOperand (final L2WriteFloatOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(DOUBLE_TYPE));
+		}
+
+		@Override
 		public void doOperand (final L2WritePointerOperand operand)
 		{
 			locals.computeIfAbsent(
@@ -573,15 +637,12 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2WriteVectorOperand operand)
+		public void doOperand (final L2WritePhiOperand<?, ?> operand)
 		{
-			for (final L2WritePointerOperand pointerOperand
-					: operand.elements())
-			{
-				locals.computeIfAbsent(
-					pointerOperand.register(),
-					register -> nextLocal(getType(AvailObject.class)));
-			}
+			assert false
+				: "L2 code generation should not have left any "
+				+ "L2WritePhiOperands in existence";
+			throw new RuntimeException();
 		}
 	}
 
@@ -985,7 +1046,7 @@ public final class JVMTranslator
 	 * @param value
 	 *        The {@code double}.
 	 */
-	@SuppressWarnings({"unused", "FloatingPointEquality"})
+	@SuppressWarnings({"FloatingPointEquality", "WeakerAccess"})
 	public void doubleConstant (final MethodVisitor method, final double value)
 	{
 		if (value == 0.0d)
@@ -1028,7 +1089,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to store each of the {@link L2IntegerRegister}s into a new
+	 * Emit code to store each of the {@link L2IntRegister}s into a new
 	 * {@code int} array. Leave the new array on top of the stack.
 	 *
 	 * @param method
@@ -1519,10 +1580,10 @@ public final class JVMTranslator
 		{
 			final L2Register register = entry.getKey();
 			final int local = entry.getValue();
-			final boolean isIntRegister = register instanceof L2IntegerRegister;
+			final boolean isIntRegister = register instanceof L2IntRegister;
 			//noinspection StringConcatenationMissingWhitespace
 			method.visitLocalVariable(
-				(isIntRegister ? "i" : "r") + local,
+				register.namePrefix() + local,
 				isIntRegister
 					? INT_TYPE.getDescriptor()
 					: getDescriptor(AvailObject.class),

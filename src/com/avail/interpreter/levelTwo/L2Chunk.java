@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.operation
 	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
@@ -124,7 +124,7 @@ implements ExecutableChunk
 	private final int numObjects;
 
 	/**
-	 * The number of {@linkplain L2IntegerRegister integer registers} that
+	 * The number of {@linkplain L2IntRegister integer registers} that
 	 * are used by this chunk. Having this recorded separately allows the
 	 * register list to be dynamically expanded as needed only when starting
 	 * or resuming a continuation.
@@ -642,7 +642,7 @@ implements ExecutableChunk
 	 *        The number of {@linkplain L2ObjectRegister object registers} that
 	 *        this chunk will require.
 	 * @param numIntegers
-	 *        The number of {@linkplain L2IntegerRegister integer registers}
+	 *        The number of {@linkplain L2IntRegister integer registers}
 	 *        that this chunk will require.
 	 * @param numFloats
 	 *        The number of {@linkplain L2FloatRegister floating point

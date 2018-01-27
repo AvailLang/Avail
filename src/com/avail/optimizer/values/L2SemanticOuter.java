@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticOuter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,8 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * A semantic value which represents a numbered outer variable in the function
  * of some {@link Frame}.
  */
-final class L2SemanticOuter extends L2SemanticValue
+final class L2SemanticOuter
+extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is an outer of its function. */
 	public final Frame frame;

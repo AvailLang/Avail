@@ -1,5 +1,5 @@
 /*
- * L2ImmediateOperand.java
+ * L2WritePhiOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,50 +32,49 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
- * An {@code L2ConstantOperand} is an operand of type {@link
- * L2OperandType#IMMEDIATE}, which holds an {@code int} value representing
- * itself.
+ * An {@code L2WritePhiOperand} is an operand of type {@link
+ * L2OperandType#WRITE_PHI}.  It holds the actual {@link L2Register}
+ * that is to be accessed.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2ImmediateOperand
-extends L2Operand
+public class L2WritePhiOperand<R extends L2Register<T>, T extends A_BasicObject>
+extends L2WriteOperand<R, T>
 {
 	/**
-	 * The actual {@code int} value.
-	 */
-	public final int value;
-
-	/**
-	 * Construct a new {@code L2ImmediateOperand} with the specified {@code int}
-	 * value.
+	 * Construct a new {@code L2WritePhiOperand} for the specified {@link
+	 * L2Register} at the same time.
 	 *
-	 * @param value The constant {@code int} itself.
+	 * @param register
+	 *        The type of the value that will be written to this register.
 	 */
-	public L2ImmediateOperand (final int value)
+	public L2WritePhiOperand (final R register)
 	{
-		this.value = value;
+		super(register);
 	}
 
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.IMMEDIATE;
+		return L2OperandType.WRITE_PHI;
+	}
+
+	@Override
+	public final L2ReadOperand<R, T> read ()
+	{
+		//noinspection unchecked
+		return (L2ReadOperand<R, T>) register.read(register.restriction());
 	}
 
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "#" + value;
 	}
 }
