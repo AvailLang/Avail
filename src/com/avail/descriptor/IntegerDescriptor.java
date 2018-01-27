@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -2118,6 +2119,7 @@ extends ExtendedIntegerDescriptor
 	 * @param anInteger A Java {@code int}.
 	 * @return An {@link AvailObject}.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject fromInt (final int anInteger)
 	{
 		if (anInteger == (anInteger & 255))

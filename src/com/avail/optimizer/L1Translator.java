@@ -63,6 +63,7 @@ import com.avail.utility.MutableInt;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -146,7 +147,7 @@ public final class L1Translator
 	 * The current level one nybblecode program counter during naive translation
 	 * to level two.
 	 */
-	private final MutableInt pc = new MutableInt(1);
+	@InnerAccess final MutableInt pc = new MutableInt(1);
 
 	/**
 	 * The current stack depth during naive translation to level two.
@@ -370,21 +371,23 @@ public final class L1Translator
 	 * the arguments, the local variables, the local constants, and finally the
 	 * stack entries.  Slots are numbered starting at 1.
 	 *
+	 * // TODO: [MvG] Document the arguments.
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
 	 * @return A register write representing that continuation slot.
 	 */
 	private L2WritePointerOperand writeSlot (
 		final int slotIndex,
+		final int effectivePc,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		// Create a new L2SemanticSlot at the current pc, representing this
 		// newly written value.
 		final L2SemanticValue semanticValue =
-			topFrame.slot(slotIndex, pc.value);
+			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
-		currentManifest.removeBinding(semanticValue);
+//		currentManifest.removeBinding(semanticValue);
 		final L2WritePointerOperand writer =
 			newObjectRegisterWriter(type, constantOrNull);
 		currentManifest.addBinding(
@@ -407,12 +410,32 @@ public final class L1Translator
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
+		forceSlotRegister(slotIndex, pc.value, register);
+	}
+
+	/**
+	 * Set the specified slot register to the provided register.  This is a low
+	 * level operation, used when {@link #startBlock(L2BasicBlock) starting
+	 * generation} of basic blocks.
+	 *
+	 * @param slotIndex
+	 *        The slot index to replace.
+	 * @param effectivePc
+	 *        The effective pc.
+	 * @param register
+	 *        The {@link L2ReadPointerOperand} that should now be considered the
+	 *        current register representing that slot.
+	 */
+	@InnerAccess void forceSlotRegister (
+		final int slotIndex,
+		final int effectivePc,
+		final L2ReadPointerOperand register)
+	{
 		// Create a new L2SemanticSlot at the current pc, representing this
 		// newly written value.
 		final L2SemanticValue semanticValue =
-			topFrame.slot(slotIndex, pc.value);
+			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
-		currentManifest.removeBinding(semanticValue);
 		currentManifest.addBinding(semanticValue, register);
 	}
 
@@ -570,23 +593,17 @@ public final class L1Translator
 			&& !outerType.isInstanceMeta())
 		{
 			// The exact outer is known statically.
-			moveConstantToSlot(outerType.instance(), stackp);
-			outerRead = readSlot(stackp);
+			return constantRegister(outerType.instance());
 		}
-		else
-		{
-			final L2ReadPointerOperand functionRead = getCurrentFunction();
-			final L2WritePointerOperand outerWrite =
-				newObjectRegisterWriter(outerType, null);
-			addInstruction(
-				L2_MOVE_OUTER_VARIABLE.instance,
-				new L2IntImmediateOperand(outerIndex),
-				functionRead,
-				outerWrite);
-			outerRead = outerWrite.read();
-		}
-		currentManifest.addBinding(semanticOuter, outerRead);
-		return outerRead;
+		final L2ReadPointerOperand functionRead = getCurrentFunction();
+		final L2WritePointerOperand outerWrite =
+			newObjectRegisterWriter(outerType, null);
+		addInstruction(
+			L2_MOVE_OUTER_VARIABLE.instance,
+			new L2IntImmediateOperand(outerIndex),
+			functionRead,
+			outerWrite);
+		return outerWrite.read();
 	}
 
 	/**
@@ -751,8 +768,7 @@ public final class L1Translator
 	 *        The immediate int to write to a new int register.
 	 * @return The {@link L2ReadIntOperand} for the new register.
 	 */
-	@SuppressWarnings("unused")
-	private L2ReadIntOperand constantIntRegister (final int value)
+	public L2ReadIntOperand constantIntRegister (final int value)
 	{
 		final A_Number boxed = IntegerDescriptor.fromInt(value);
 		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
@@ -785,8 +801,7 @@ public final class L1Translator
 	 *        The immediate double to write to a new double register.
 	 * @return The {@link L2ReadFloatOperand} for the new register.
 	 */
-	@SuppressWarnings("unused")
-	private L2ReadFloatOperand constantFloatRegister (final double value)
+	public L2ReadFloatOperand constantFloatRegister (final double value)
 	{
 		final A_Number boxed = DoubleDescriptor.fromDouble(value);
 		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
@@ -808,6 +823,45 @@ public final class L1Translator
 		currentManifest.addBinding(constant, read);
 		return read;
 	}
+
+	// TODO: [TLS] Get back to this.
+//	public L2ReadIntOperand unboxIntoIntRegister (
+//		final L2ReadPointerOperand sourceRegister)
+//	{
+//		final Set<L2SemanticValue> semanticValues =
+//			currentManifest.registerToSemanticValues(sourceRegister.register());
+//		// Ensure attempts to look up semantic values that were attached to
+//		// the sourceRegister now produce the destination register.  Also
+//		// ensure attempts to look up the unboxed versions of the semantic
+//		// values that were attached to the sourceRegister will produce the
+//		// destination register.
+//		for (final L2SemanticValue semanticValue :
+//			new ArrayList<>(semanticValues))
+//		{
+//			currentManifest.removeBinding(semanticValue.unboxedAsInt());
+//			currentManifest.addBinding(
+//				semanticValue.immutable(), destinationRead);
+//		}
+//
+//		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
+//		final @Nullable L2ReadIntOperand existingConstant =
+//			currentManifest.semanticValueToRegister(constant);
+//		if (existingConstant != null)
+//		{
+//			return existingConstant;
+//		}
+//		final L2WriteIntOperand registerWrite =
+//			newIntRegisterWriter(
+//				InstanceTypeDescriptor.instanceType(boxed),
+//				boxed);
+//		addInstruction(
+//			L2_MOVE_INT_CONSTANT.instance,
+//			new L2IntImmediateOperand(value),
+//			registerWrite);
+//		final L2ReadIntOperand read = registerWrite.read();
+//		currentManifest.addBinding(constant, read);
+//		return read;
+//	}
 
 	/**
 	 * Generate instruction(s) to move from one register to another.  Remove the
@@ -843,6 +897,10 @@ public final class L1Translator
 	private L2ReadPointerOperand makeImmutable (
 		final L2ReadPointerOperand sourceRegister)
 	{
+		if (currentManifest.isAlreadyImmutable(sourceRegister))
+		{
+			return sourceRegister;
+		}
 		final L2WritePointerOperand destinationWrite =
 			newObjectRegisterWriter(
 				sourceRegister.type(), sourceRegister.constantOrNull());
@@ -852,23 +910,19 @@ public final class L1Translator
 			destinationWrite);
 		final L2ReadPointerOperand destinationRead = destinationWrite.read();
 
-		final @Nullable Set<L2SemanticValue> semanticValues =
+		final Set<L2SemanticValue> semanticValues =
 			currentManifest.registerToSemanticValues(sourceRegister.register());
-		if (semanticValues != null)
+		// Ensure attempts to look up semantic values that were attached to
+		// the sourceRegister now produce the destination register.  Also
+		// ensure attempts to look up the immutable-wrapped versions of the
+		// semantic values that were attached to the sourceRegister will
+		// produce the destination register.
+		currentManifest.replaceRegister(sourceRegister, destinationWrite);
+		for (final L2SemanticValue semanticValue :
+			new ArrayList<>(semanticValues))
 		{
-			// Ensure attempts to look up semantic values that were attached to
-			// the sourceRegister now produce the destination register.  Also
-			// ensure attempts to look up the immutable-wrapped versions of the
-			// semantic values that were attached to the sourceRegister will
-			// produce the destination register.
-			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(semanticValues))
-			{
-				currentManifest.removeBinding(semanticValue.immutable());
-				currentManifest.addBinding(
-					semanticValue.immutable(), destinationRead);
-			}
-			currentManifest.replaceRegister(sourceRegister, destinationWrite);
+			currentManifest.addBinding(
+				semanticValue.immutable(), destinationRead);
 		}
 		return destinationRead;
 	}
@@ -891,10 +945,14 @@ public final class L1Translator
 	 * exploded back into registers, and the actual label will be created from
 	 * the continuation that was just resumed.</p>
 	 *
+	 * @param expectedValueOrNull
+	 *        A constant type to replace the top-of-stack in the reified
+	 *        continuation.  If {@code null}, don't replace the top-of-stack.
 	 * @param typeOfEntryPoint
 	 *        The kind of {@link ChunkEntryPoint} to re-enter at.
 	 */
 	public void reify (
+		final @Nullable A_Type expectedValueOrNull,
 		final ChunkEntryPoint typeOfEntryPoint)
 	{
 		final L2WritePointerOperand newContinuationRegister =
@@ -910,16 +968,32 @@ public final class L1Translator
 			new ArrayList<>(numSlots);
 		final List<L2WritePointerOperand> writeSlotsAfter =
 			new ArrayList<>(numSlots);
+		final BitSet alreadyImmutable = new BitSet(numSlots);
 		for (int i = 1; i <= numSlots; i++)
 		{
 			final L2SemanticValue semanticValue = semanticSlot(i);
-			final L2ReadPointerOperand read = stripNull(
-				currentManifest.semanticValueToRegister(semanticValue));
-			readSlotsBefore.add(read);
-			final TypeRestriction<?> originalRestriction = read.restriction();
-			final L2WritePointerOperand slotWriter = newObjectRegisterWriter(
-				originalRestriction.type, originalRestriction.constantOrNull);
-			writeSlotsAfter.add(slotWriter);
+			if (i == stackp && expectedValueOrNull != null)
+			{
+				readSlotsBefore.add(constantRegister(expectedValueOrNull));
+				writeSlotsAfter.add(null);
+			}
+			else
+			{
+				final L2ReadPointerOperand read = stripNull(
+					currentManifest.semanticValueToRegister(semanticValue));
+				if (currentManifest.isAlreadyImmutable(read))
+				{
+					alreadyImmutable.set(i - 1);
+				}
+				readSlotsBefore.add(read);
+				final TypeRestriction<?> originalRestriction =
+					read.restriction();
+				final L2WritePointerOperand slotWriter =
+					newObjectRegisterWriter(
+						originalRestriction.type,
+						originalRestriction.constantOrNull);
+				writeSlotsAfter.add(slotWriter);
+			}
 		}
 		// Now generate the reification instructions, ensuring that when
 		// returning into the resulting continuation it will enter a block where
@@ -956,29 +1030,39 @@ public final class L1Translator
 		{
 			final L2WritePointerOperand writeSlot =
 				writeSlotsAfter.get(i - 1);
-			final TypeRestriction<?> restriction =
-				writeSlot.register().restriction();
-			// If the restriction is known to be a constant, don't take it from
-			// the continuation.
-			final @Nullable A_BasicObject constant = restriction.constantOrNull;
-			if (constant != null)
+			if (writeSlot != null)
 			{
-				// We know the slot contains a particular constant, so don't
-				// read it from the continuation.
-				currentManifest.addBinding(
-					semanticSlot(i),
-					constantRegister(constant));
-			}
-			else
-			{
-				addInstruction(
-					L2_EXTRACT_CONTINUATION_SLOT.instance,
-					popped,
-					new L2IntImmediateOperand(i),
-					writeSlot);
-				currentManifest.addBinding(
-					semanticSlot(i),
-					writeSlot.read());
+				final TypeRestriction<?> restriction =
+					writeSlot.register().restriction();
+				// If the restriction is known to be a constant, don't take it
+				// from the continuation.
+				final @Nullable A_BasicObject constant =
+					restriction.constantOrNull;
+				if (constant != null)
+				{
+					// We know the slot contains a particular constant, so don't
+					// read it from the continuation.
+					currentManifest.addBinding(
+						semanticSlot(i),
+						constantRegister(constant));
+				}
+				else
+				{
+					addInstruction(
+						L2_EXTRACT_CONTINUATION_SLOT.instance,
+						popped,
+						new L2IntImmediateOperand(i),
+						writeSlot);
+					currentManifest.addBinding(
+						semanticSlot(i),
+						writeSlot.read());
+					if (alreadyImmutable.get(i - 1))
+					{
+						currentManifest.addBinding(
+							semanticSlot(i).immutable(),
+							writeSlot.read());
+					}
+				}
 			}
 		}
 	}
@@ -1172,7 +1256,7 @@ public final class L1Translator
 		 */
 		public void useAnswer (final L2ReadPointerOperand answerReg)
 		{
-			forceSlotRegister(stackp, answerReg);
+			forceSlotRegister(stackp, pc.value - 1, answerReg);
 			final A_Type answerType = answerReg.type();
 			if (answerType.isBottom())
 			{
@@ -1276,14 +1360,10 @@ public final class L1Translator
 		}
 		// Pop the arguments, but push a slot for the expectedType.
 		stackp += nArgs - 1;
-		// Write the expected type.  Note that even though it's a type, the
-		// exact value is known statically, not just its meta.
-		moveConstantToSlot(expectedType, stackp);
-
-		// At this point we've captured and popped the argument registers,
-		// nilled their new SSA versions, and pushed the expectedType.  That's
-		// the reifiable state of the continuation during the call.
-
+		// At this point we've captured and popped the argument registers, and
+		// nilled their new SSA versions for reification.  The reification
+		// clauses will explicitly ensure the expected type appears in the top
+		// of stack position.
 
 		// Determine which applicable definitions have already been expanded in
 		// the lookup tree.
@@ -1452,14 +1532,16 @@ public final class L1Translator
 		//    2. reification leading to return check,
 		//    3. reification with no check,
 		//    4. after call with return check,
-		//    5. after call with no check.
+		//    5. after call with no check,
+		//    6. after everything.
 		// Clause {2.3} entry expects the value in interpreter.latestResult.
 		// Clause {4,5} entry expects the value in top-of-stack.
 		// There are edges between
 		//    1 -> {<2.4>, <3,5>} depending on type guarantees,
 		//    2 -> {4}
 		//    3 -> {5}
-		//    4 -> {5}.
+		//    4 -> {6}
+		//    5 -> {6}.
 		// Clauses with no actual predecessors are not generated.
 
 		// #1: Default lookup.
@@ -1474,7 +1556,7 @@ public final class L1Translator
 		startBlock(callSiteHelper.onReificationWithCheck);
 		if (currentlyReachable())
 		{
-			reify(TO_RETURN_INTO);
+			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
 				stackp, getLatestReturnValue(unionOfPossibleResults));
@@ -1486,7 +1568,7 @@ public final class L1Translator
 		startBlock(callSiteHelper.onReificationNoCheck);
 		if (currentlyReachable())
 		{
-			reify(TO_RETURN_INTO);
+			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
 				stackp, getLatestReturnValue(unionOfPossibleResults));
@@ -1496,18 +1578,36 @@ public final class L1Translator
 
 		// #4: After call with return check.
 		startBlock(callSiteHelper.afterCallWithCheck);
+		final L2BasicBlock afterEverything =
+			new L2BasicBlock("after entire call");
+
 		if (currentlyReachable())
 		{
 			generateReturnTypeCheck(expectedType);
 			addInstruction(
-				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
+				L2_JUMP.instance, edgeTo(afterEverything));
 		}
 
 		// #5: After call without return check.
+		// Make the version of the stack with the unchecked value available.
 		startBlock(callSiteHelper.afterCallNoCheck);
+		if (currentlyReachable())
+		{
+			// Copy the unchecked value into a fresh register representing the
+			// checked value.  Since generating the check (#4) above would have
+			// replaced the semanticSlot entry, we have to read from the
+			// register that held the unchecked value at pc - 1.
+			final L2ReadPointerOperand uncheckedValue = stripNull(
+				currentManifest.semanticValueToRegister(
+					topFrame.slot(stackp, pc.value - 1)));
+			forceSlotRegister(stackp, uncheckedValue);
+			addInstruction(
+				L2_JUMP.instance, edgeTo(afterEverything));
+		}
 
 		// If it's possible to return a valid value from the call, this will be
 		// reachable.
+		startBlock(afterEverything);
 	}
 
 	/**
@@ -2038,7 +2138,7 @@ public final class L1Translator
 		startBlock(successBlock);
 		addInstruction(
 			L2_GET_LATEST_RETURN_VALUE.instance,
-			writeSlot(stackp, guaranteedResultType, null));
+			writeSlot(stackp, pc.value - 1, guaranteedResultType, null));
 		addInstruction(
 			L2_JUMP.instance,
 			edgeTo(skipCheck
@@ -2147,7 +2247,7 @@ public final class L1Translator
 
 		// Reification has been requested while the call is in progress.
 		startBlock(onReificationInHandler);
-		reify(TO_RETURN_INTO);
+		reify(bottom(), TO_RETURN_INTO);
 		addUnreachableCode();
 
 		// Generate the much more likely passed-check flow.
@@ -2156,6 +2256,7 @@ public final class L1Translator
 		{
 			forceSlotRegister(
 				stackp,
+				pc.value - 1,
 				new L2ReadPointerOperand(
 					valueReg.register(),
 					valueReg.restriction().intersection(
@@ -2282,6 +2383,9 @@ public final class L1Translator
 		{
 			// The top-of-stack was replaced, but it wasn't convenient to do
 			// a jump to the appropriate exit handlers.  Do that now.
+			// TODO: [MvG] This is probably related to the schism between
+			// pc - 1 and pc. Put an L2SemanticValue into the CallSiteHelper
+			// that indicates where to write the value.
 			callSiteHelper.useAnswer(readSlot(stackp));
 		}
 		return generated;
@@ -2600,7 +2704,7 @@ public final class L1Translator
 
 		// Reification has been requested while the failure call is in progress.
 		startBlock(onReificationDuringFailure);
-		reify(TO_RETURN_INTO);
+		reify(bottom(), TO_RETURN_INTO);
 		addUnreachableCode();
 
 		// Now invoke the method definition's body.  We've already examined all
@@ -2657,7 +2761,7 @@ public final class L1Translator
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
-		reify(TO_RESUME);
+		reify(null, TO_RESUME);
 		addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(merge, currentManifest));
@@ -2703,7 +2807,6 @@ public final class L1Translator
 		// this case, since it won't have been populated (by definition,
 		// otherwise we wouldn't have failed).
 		startBlock(failure);
-		moveConstantToSlot(bottom(), stackp);
 		final L2WritePointerOperand unassignedReadFunction =
 			newObjectRegisterWriter(unassignedVariableReadFunctionType, null);
 		addInstruction(
@@ -2718,7 +2821,7 @@ public final class L1Translator
 
 		// Reification has been requested while the failure call is in progress.
 		startBlock(onReificationDuringFailure);
-		reify(TO_RETURN_INTO);
+		reify(bottom(), TO_RETURN_INTO);
 		addUnreachableCode();
 
 		// End with the success path.
@@ -2787,7 +2890,7 @@ public final class L1Translator
 			edgeTo(onReificationDuringFailure));
 
 		startBlock(onReificationDuringFailure);
-		reify(TO_RETURN_INTO);
+		reify(null, TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
 			edgeTo(success));
@@ -2877,8 +2980,8 @@ public final class L1Translator
 			final A_Type tupleType = code.functionType().argsTupleType();
 			for (int i = 1; i <= numArgs; i++)
 			{
-				final L2WritePointerOperand argReg =
-					writeSlot(i, tupleType.typeAtIndex(i), null);
+				final L2WritePointerOperand argReg = writeSlot(
+					i, pc.value, tupleType.typeAtIndex(i), null);
 				addInstruction(
 					L2_GET_ARGUMENT.instance,
 					new L2IntImmediateOperand(i),
@@ -2894,7 +2997,7 @@ public final class L1Translator
 			addInstruction(
 				L2_CREATE_VARIABLE.instance,
 				new L2ConstantOperand(localType),
-				writeSlot(numArgs + local, localType, null));
+				writeSlot(numArgs + local, pc.value, localType, null));
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
@@ -3074,7 +3177,8 @@ public final class L1Translator
 		final L2ReadPointerOperand source = readSlot(localIndex);
 		moveRegister(
 			source,
-			writeSlot(stackp, source.type(), source.constantOrNull()));
+			writeSlot(
+				stackp, pc.value, source.type(), source.constantOrNull()));
 		nilSlot(localIndex);
 	}
 
@@ -3083,8 +3187,10 @@ public final class L1Translator
 	{
 		final int localIndex = code.nextNybblecodeOperand(pc);
 		stackp--;
-		final L2ReadPointerOperand source = readSlot(localIndex);
-		forceSlotRegister(stackp, makeImmutable(source));
+		final L2ReadPointerOperand sourceRegister =
+			makeImmutable(readSlot(localIndex));
+		forceSlotRegister(stackp, sourceRegister);
+		forceSlotRegister(localIndex, sourceRegister);
 	}
 
 	@Override
@@ -3093,18 +3199,11 @@ public final class L1Translator
 		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		stackp--;
-		final L2SemanticValue semanticImmutableOuter =
-			topFrame.outer(outerIndex).immutable();
-		@Nullable L2ReadPointerOperand immutableOuterRegister =
-			currentManifest.semanticValueToRegister(semanticImmutableOuter);
-		if (immutableOuterRegister == null)
-		{
-			immutableOuterRegister = makeImmutable(
-				getOuterRegister(outerIndex, outerType));
-		}
 		// For now, simplify the logic related to L1's nilling of mutable outers
 		// upon their final use.  Just make it immutable instead.
-		forceSlotRegister(stackp, immutableOuterRegister);
+		forceSlotRegister(
+			stackp,
+			makeImmutable(getOuterRegister(outerIndex, outerType)));
 	}
 
 	@Override
@@ -3124,7 +3223,7 @@ public final class L1Translator
 			L2_CREATE_FUNCTION.instance,
 			new L2ConstantOperand(codeLiteral),
 			new L2ReadVectorOperand<>(outers),
-			writeSlot(stackp, codeLiteral.functionType(), null));
+			writeSlot(stackp, pc.value, codeLiteral.functionType(), null));
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which
@@ -3156,7 +3255,7 @@ public final class L1Translator
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			readSlot(index),
-			writeSlot(stackp, innerType, null));
+			writeSlot(stackp, pc.value, innerType, null));
 	}
 
 	@Override
@@ -3165,16 +3264,9 @@ public final class L1Translator
 		final int outerIndex = code.nextNybblecodeOperand(pc);
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		stackp--;
-		final L2SemanticValue semanticImmutableOuter =
-			topFrame.outer(outerIndex).immutable();
-		@Nullable L2ReadPointerOperand immutableOuterRegister =
-			currentManifest.semanticValueToRegister(semanticImmutableOuter);
-		if (immutableOuterRegister == null)
-		{
-			immutableOuterRegister = makeImmutable(
-				getOuterRegister(outerIndex, outerType));
-		}
-		forceSlotRegister(stackp, immutableOuterRegister);
+		forceSlotRegister(
+			stackp,
+			makeImmutable(getOuterRegister(outerIndex, outerType)));
 	}
 
 	@Override
@@ -3202,7 +3294,7 @@ public final class L1Translator
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			tempVarReg.read(),
-			writeSlot(stackp, innerType, null));
+			writeSlot(stackp, pc.value, innerType, null));
 	}
 
 	@Override
@@ -3229,7 +3321,7 @@ public final class L1Translator
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
 			readSlot(index),
-			writeSlot(stackp, innerType, null));
+			writeSlot(stackp, pc.value, innerType, null));
 	}
 
 	@Override
@@ -3271,7 +3363,7 @@ public final class L1Translator
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
 				new L2ReadVectorOperand<>(vector),
-				writeSlot(stackp, tupleType, null));
+				writeSlot(stackp, pc.value, tupleType, null));
 		}
 	}
 
@@ -3287,7 +3379,7 @@ public final class L1Translator
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
 			outerRead,
-			writeSlot(stackp, innerType, null));
+			writeSlot(stackp, pc.value, innerType, null));
 	}
 
 	@Override
@@ -3318,7 +3410,7 @@ public final class L1Translator
 			new L2PcOperand(onReification, currentManifest));
 
 		startBlock(onReification);
-		reify(UNREACHABLE);
+		reify(null, UNREACHABLE);
 
 		// We just continued the reified continuation, having exploded the
 		// continuation into slot registers.  Create a label based on it, but
@@ -3341,7 +3433,7 @@ public final class L1Translator
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
 		final L2WritePointerOperand destinationRegister =
-			writeSlot(stackp, continuationType, null);
+			writeSlot(stackp, pc.value, continuationType, null);
 		final L2BasicBlock afterCreation =
 			createBasicBlock("after creating label");
 		addInstruction(
@@ -3390,7 +3482,7 @@ public final class L1Translator
 			emitGetVariableOffRamp(
 				L2_GET_VARIABLE.instance,
 				constantRegister(literalVariable),
-				writeSlot(stackp, innerType, null));
+				writeSlot(stackp, pc.value, innerType, null));
 		}
 	}
 
@@ -3438,7 +3530,10 @@ public final class L1Translator
 			moveRegister(
 				temp,
 				writeSlot(
-					stackp + size - i, temp.type(), temp.constantOrNull()));
+					stackp + size - i,
+					pc.value,
+					temp.type(),
+					temp.constantOrNull()));
 		}
 	}
 
@@ -3462,7 +3557,10 @@ public final class L1Translator
 		moveRegister(
 			source,
 			writeSlot(
-				destinationIndex, source.type(), source.constantOrNull()));
+				destinationIndex,
+				pc.value,
+				source.type(),
+				source.constantOrNull()));
 		nilSlot(stackp);
 		stackp++;
 	}

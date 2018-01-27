@@ -1,6 +1,6 @@
 /*
  * L2ValueManifest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,7 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -47,6 +42,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
 /**
@@ -140,12 +136,12 @@ public final class L2ValueManifest
 	 * @return The {@link Set} of {@link L2SemanticValue}s that it currently
 	 *         holds.
 	 */
-	public @Nullable Set<L2SemanticValue> registerToSemanticValues (
+	public Set<L2SemanticValue> registerToSemanticValues (
 		final L2Register<?> register)
 	{
-		final @Nullable Set<L2SemanticValue> set =
+		final Set<L2SemanticValue> set =
 			registerToSemanticValues.get(register);
-		return set == null ? null : unmodifiableSet(set);
+		return set == null ? emptySet() : unmodifiableSet(set);
 	}
 
 	/**
@@ -171,14 +167,35 @@ public final class L2ValueManifest
 	}
 
 	/**
+	 * Is there an immutable {@link L2SemanticValue} for the specified
+	 * {@link L2ReadPointerOperand}?
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return {@code true} if such a variant exists, {@code false} otherwise.
+	 */
+	public boolean isAlreadyImmutable (final L2ReadPointerOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (semanticValue.isImmutable())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Record the fact that the given semantic value no longer has any register
 	 * mapped to it.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to disassociate from its register.
 	 */
-	public void removeBinding (
-		final L2SemanticValue semanticValue)
+	@Deprecated
+	public void removeBinding (final L2SemanticValue semanticValue)
 	{
 		final L2ReadOperand<?, ?> oldRegisterRead =
 			semanticValueToRegister.remove(semanticValue);
@@ -208,16 +225,15 @@ public final class L2ValueManifest
 	 *        The destination of the register-register move.
 	 */
 	public void replaceRegister (
-		final L2ReadPointerOperand sourceRead,
-		final L2WritePointerOperand destinationWrite)
+		final L2ReadOperand<?, ?> sourceRead,
+		final L2WriteOperand<?, ?> destinationWrite)
 	{
 		final L2Register<?> sourceRegister = sourceRead.register();
 		final @Nullable Set<L2SemanticValue> sourceSemanticValues =
 			registerToSemanticValues.get(sourceRegister);
 		if (sourceSemanticValues != null)
 		{
-			final L2ReadPointerOperand destinationRead =
-				destinationWrite.read();
+			final L2ReadOperand<?, ?> destinationRead = destinationWrite.read();
 			for (final L2SemanticValue semanticValue : sourceSemanticValues)
 			{
 				assert semanticValueToRegister.get(semanticValue).register()

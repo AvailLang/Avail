@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -229,6 +230,7 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Number fromDouble (final double aDouble)
 	{
 		final AvailObject result = mutable.create();

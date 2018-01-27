@@ -1,6 +1,6 @@
 /*
  * P_Addition.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
@@ -191,4 +194,17 @@ extends Primitive
 	{
 		return enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES));
 	}
+
+	// TODO: [TLS] Get back to this.
+//	@Override
+//	public boolean tryToGenerateSpecialPrimitiveInvocation (
+//		final L2ReadPointerOperand functionToCallReg,
+//		final A_RawFunction rawFunction,
+//		final List<L2ReadPointerOperand> arguments,
+//		final List<A_Type> argumentTypes,
+//		final L1Translator translator,
+//		final CallSiteHelper callSiteHelper)
+//	{
+//
+//	}
 }

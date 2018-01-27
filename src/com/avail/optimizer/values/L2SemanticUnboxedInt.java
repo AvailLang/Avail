@@ -1,19 +1,19 @@
 /*
- * L2SemanticMakeImmutable.java
+ * L2SemanticUnboxedInt.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -29,54 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.optimizer.values;
+
 import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
- * A semantic value which ensures the inner semantic value being wrapped has
- * been made immutable.
+ * {@link L2SemanticUnboxedInt} represents the unboxing of an {@code int}-valued
+ * {@link L2SemanticValue}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class L2SemanticMakeImmutable
+final class L2SemanticUnboxedInt
 extends L2SemanticValue
 {
-	/** The semantic value that is wrapped with the immutability assurance. */
+	/**
+	 * The {@link L2SemanticValue} that is wrapped with the unboxing qualifier.
+	 */
 	public final L2SemanticValue innerSemanticValue;
 
 	/**
-	 * Create a new {@code L2SemanticMakeImmutable} semantic value.
+	 * Construct a new {@code L2SemanticUnboxedInt}.
 	 *
 	 * @param innerSemanticValue
-	 *        The semantic value being wrapped.
+	 *        The {@link L2SemanticValue} being wrapped.
 	 */
-	L2SemanticMakeImmutable (
-		final L2SemanticValue innerSemanticValue)
+	L2SemanticUnboxedInt (final L2SemanticValue innerSemanticValue)
 	{
-		assert !(innerSemanticValue instanceof L2SemanticMakeImmutable);
+		assert !(innerSemanticValue instanceof L2SemanticUnboxedInt);
 		this.innerSemanticValue = innerSemanticValue;
-	}
-
-	@Override
-	public L2SemanticValue immutable ()
-	{
-		// It's already immutable.  Immutability wrapping is idempotent.
-		return this;
-	}
-
-	@Override
-	public boolean isImmutable ()
-	{
-		return true;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		if (obj instanceof L2SemanticMakeImmutable)
+		if (obj instanceof L2SemanticUnboxedInt)
 		{
-			final L2SemanticMakeImmutable imm = (L2SemanticMakeImmutable) obj;
-			return innerSemanticValue.equals(imm.innerSemanticValue);
+			final L2SemanticUnboxedInt unboxedInt = (L2SemanticUnboxedInt) obj;
+			return innerSemanticValue.equals(unboxedInt.innerSemanticValue);
 		}
 		return false;
 	}
@@ -84,25 +74,26 @@ extends L2SemanticValue
 	@Override
 	public int hashCode ()
 	{
-		return innerSemanticValue.hashCode() ^ 0xB9E019AE;
+		return innerSemanticValue.hashCode() ^ 0xDEF56A59;
 	}
 
 	@Override
-	public L2SemanticMakeImmutable transform (
+	public L2SemanticValue transform (
 		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Transformer1NotNull<Frame, Frame>
+			frameTransformer)
 	{
 		final L2SemanticValue newInner =
 			semanticValueTransformer.value(innerSemanticValue);
 		return (newInner.equals(innerSemanticValue))
 			? this
-			: new L2SemanticMakeImmutable(newInner);
+			: new L2SemanticUnboxedInt(newInner);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "Immutable(" + innerSemanticValue + ")";
+		return "UnboxedInt(" + innerSemanticValue + ")";
 	}
 }

@@ -396,6 +396,7 @@ extends A_BasicObject
 	 *
 	 * @return A Java {@code double}.
 	 */
+	@ReferencedInGeneratedCode
 	double extractDouble ();
 
 	/**
@@ -411,6 +412,7 @@ extends A_BasicObject
 	 *
 	 * @return A 32-bit signed Java {@code int}.
 	 */
+	@ReferencedInGeneratedCode
 	int extractInt ();
 
 	/**

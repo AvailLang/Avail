@@ -800,6 +800,7 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
+	@ReferencedInGeneratedCode
 	boolean isInt ();
 
 	/**
@@ -877,6 +878,7 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
+	@ReferencedInGeneratedCode
 	boolean isDouble ();
 
 	/**

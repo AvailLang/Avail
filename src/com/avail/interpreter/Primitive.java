@@ -1,6 +1,6 @@
 /*
  * Primitive.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -755,12 +756,12 @@ implements IntegerEnumSlotDescriptionEnum
 			primitiveFlags.add(flag);
 		}
 		// Sanity check certain conditions.
-		assert !primitiveFlags.contains(Flag.CanFold)
-				|| primitiveFlags.contains(Flag.CanInline)
+		assert !primitiveFlags.contains(CanFold)
+				|| primitiveFlags.contains(CanInline)
 			: "Primitive " + getClass().getSimpleName()
 				+ " has CanFold without CanInline";
-		assert !primitiveFlags.contains(Flag.Invokes)
-				|| primitiveFlags.contains(Flag.CanInline)
+		assert !primitiveFlags.contains(Invokes)
+				|| primitiveFlags.contains(CanInline)
 			: "Primitive " + getClass().getSimpleName()
 				+ " has Invokes without CanInline";
 		// Register this instance.
@@ -768,7 +769,7 @@ implements IntegerEnumSlotDescriptionEnum
 		holder.primitive = this;
 		//noinspection StringConcatenationMissingWhitespace
 		runningNanos = new Statistic(
-			(hasFlag(Flag.CanInline) ? "" : "[NOT INLINE]")
+			(hasFlag(CanInline) ? "" : "[NOT INLINE]")
 				+ getClass().getSimpleName()
 				+ " (running)",
 			StatisticReport.PRIMITIVES);
@@ -848,7 +849,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public boolean canHaveNybblecodes ()
 	{
-		return !hasFlag(CannotFail) || hasFlag(Flag.SpecialForm);
+		return !hasFlag(CannotFail) || hasFlag(SpecialForm);
 	}
 
 	/**
@@ -1015,10 +1016,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        The {@link L1Translator} on which to emit code, if possible.
 	 * @param callSiteHelper
 	 *        Information about the call site being generated.
-	 * @return The {@link L2ReadPointerOperand} that will hold the result of the
-	 *         invocation-equivalent instructions that were output, or {@code
-	 *         null} if no such optimization was possible, implying a general
-	 *         invocation should be generated instead.
+	 * @return {@code true} if a specialized {@link L2Instruction} sequence was
+	 *         generated, {@code false} if nothing was emitted and the general
+	 *         mechanism should be used instead.
 	 */
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
