@@ -1,4 +1,4 @@
-/**
+/*
  * AvailObjectFieldHelper.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
@@ -163,69 +162,82 @@ public class AvailObjectFieldHelper
 	@SuppressWarnings("unused")
 	public String nameForDebugger ()
 	{
-		@Nullable String string = name;
-		if (string == null)
+		if (name != null)
 		{
-			final StringBuilder builder = new StringBuilder();
-			builder.append(slot.name());
-			if (subscript != -1)
-			{
-				builder.append('[');
-				builder.append(subscript);
-				builder.append(']');
-			}
-			if (value == null)
-			{
-				builder.append(" = Java null");
-			}
-			else if (value instanceof AvailObject)
-			{
-				builder.append(' ');
-				builder.append(((AvailObject) value).nameForDebugger());
-			}
-			else if (value instanceof AvailIntegerValueHelper)
-			{
-				try
-				{
-					final IntegerSlotsEnum strongSlot =
-						(IntegerSlotsEnum) slot;
-					final List<BitField> bitFields =
-						AbstractDescriptor.bitFieldsFor(strongSlot);
-					if (bitFields.isEmpty())
-					{
-						builder.append(" = ");
-					}
-					AbstractDescriptor.describeIntegerSlot(
-						(AvailObject) stripNull(parentObject),
-						((AvailIntegerValueHelper) value).longValue,
-						strongSlot,
-						bitFields,
-						builder);
-				}
-				catch (final RuntimeException e)
-				{
-					builder.append(
-						"PROBLEM DESCRIBING INTEGER FIELD:\n");
-					builder.append(trace(e));
-				}
-			}
-			else if (value instanceof String)
-			{
-				builder.append(" = Java String: ");
-				builder.append((String) value);
-			}
-			else if (value instanceof String[])
-			{
-				builder.append(" = Multi-line text");
-			}
-			else
-			{
-				builder.append(" = ").append(value.getClass().getCanonicalName());
-			}
-			string = builder.toString();
-			name = string;
+			return name;
 		}
+		final String string = privateComputeNameForDebugger();
+		name = string;
 		return string;
+	}
+
+	private String privateComputeNameForDebugger ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		if (subscript != -1)
+		{
+			builder.append(slot.name(), 0, slot.name().length() - 1);
+			builder.append('[');
+			builder.append(subscript);
+			builder.append(']');
+		}
+		else
+		{
+			builder.append(slot.name());
+		}
+
+		if (value == null)
+		{
+			builder.append(" = Java null");
+		}
+		else if (value instanceof AvailObject)
+		{
+			builder.append(' ');
+			builder.append(((AvailObject) value).nameForDebugger());
+		}
+		else if (value instanceof AvailIntegerValueHelper)
+		{
+			try
+			{
+				final IntegerSlotsEnum strongSlot =
+					(IntegerSlotsEnum) slot;
+				final List<BitField> bitFields =
+					AbstractDescriptor.bitFieldsFor(strongSlot);
+				if (!bitFields.isEmpty())
+				{
+					// Remove the name.
+					builder.delete(0, builder.length());
+				}
+				AbstractDescriptor.describeIntegerSlot(
+					(AvailObject) stripNull(parentObject),
+					((AvailIntegerValueHelper) value).longValue,
+					strongSlot,
+					bitFields,
+					builder);
+			}
+			catch (final RuntimeException e)
+			{
+				builder.append(
+					"PROBLEM DESCRIBING INTEGER FIELD:\n");
+				builder.append(trace(e));
+			}
+		}
+		else if (value instanceof String)
+		{
+			builder.append(" = Java String: ");
+			builder.append((String) value);
+		}
+		else if (value instanceof String[])
+		{
+			builder.append(" = Multi-line text");
+		}
+		else
+		{
+			builder
+				.append(" = ")
+				.append(value.getClass().getCanonicalName());
+		}
+		return builder.toString();
 	}
 
 	@SuppressWarnings("unused")

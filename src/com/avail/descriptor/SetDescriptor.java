@@ -163,7 +163,7 @@ extends Descriptor
 		 * A fake slot to present in the debugging view for each of the elements
 		 * of this set.
 		 */
-		ELEMENT
+		ELEMENT_
 	}
 
 	/**
@@ -182,7 +182,7 @@ extends Descriptor
 		for (final AvailObject element : object)
 		{
 			fields[counter] = new AvailObjectFieldHelper(
-				object, FakeSetSlots.ELEMENT, counter + 1, element);
+				object, FakeSetSlots.ELEMENT_, counter + 1, element);
 			counter++;
 		}
 		return fields;
