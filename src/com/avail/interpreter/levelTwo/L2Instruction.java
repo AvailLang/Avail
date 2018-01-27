@@ -45,12 +45,9 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -96,9 +93,16 @@ public final class L2Instruction
 	 */
 	public final L2BasicBlock basicBlock;
 
-	@InnerAccess final List<L2Register> sourceRegisters = new ArrayList<>();
+	/**
+	 * The source {@link L2Register}s.
+	 */
+	@InnerAccess final List<L2Register<?>> sourceRegisters = new ArrayList<>();
 
-	@InnerAccess final List<L2Register> destinationRegisters = new ArrayList<>();
+	/**
+	 * The destination {@link L2Register}s.
+	 */
+	@InnerAccess final List<L2Register<?>> destinationRegisters =
+		new ArrayList<>();
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.
@@ -121,19 +125,6 @@ public final class L2Instruction
 	{
 		this.offset = offset;
 	}
-
-	/**
-	 * Each {@link L2Operation} is responsible for generating this {@link
-	 * Transformer1NotNullArg} as an action to directly invoke to accomplish the
-	 * effect of this instruction.  This interim measure helps alleviate some of
-	 * the runtime instruction decoding cost, until we're able to generate JVM
-	 * instructions directly.
-	 *
-	 * <p>Note that we have to wait until code generation of an {@link L2Chunk}
-	 * has completed before being able to set this action meaningfully, since
-	 * the point of it is to cache register numbering and target offsets.</p>
-	 */
-	public Transformer1NotNullArg<Interpreter, StackReifier> action;
 
 	/**
 	 * Construct a new {@code L2Instruction}.
@@ -169,29 +160,6 @@ public final class L2Instruction
 			operand.addSourceRegistersTo(sourceRegisters);
 			operand.addDestinationRegistersTo(destinationRegisters);
 		}
-		//noinspection ThisEscapedInObjectConstruction
-		action = uninitializedAction;
-	}
-
-	private static final Transformer1NotNullArg<Interpreter, StackReifier>
-		uninitializedAction = interpreter ->
-		{
-			assert false : "Instruction has not had its action initialized yet";
-			return null;
-		};
-
-	/**
-	 * Execute this {@linkplain #action} of this {@linkplain L2Instruction
-	 * instruction} upon the specified {@linkplain Interpreter interpreter}.
-	 *
-	 * @param interpreter
-	 *        The {@code Interpreter}.
-	 * @return {@code null} if the step completes normally, or a {@link
-	 *         StackReifier} if the instruction triggers stack reification.
-	 */
-	public @Nullable StackReifier runAction (final Interpreter interpreter)
-	{
-		return action.value(interpreter);
 	}
 
 	/**
@@ -200,8 +168,9 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
-	public List<L2Register> sourceRegisters ()
+	public List<L2Register<?>> sourceRegisters ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return sourceRegisters;
 	}
 
@@ -211,8 +180,9 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register}s.
 	 */
-	public List<L2Register> destinationRegisters ()
+	public List<L2Register<?>> destinationRegisters ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return destinationRegisters;
 	}
 
@@ -270,10 +240,11 @@ public final class L2Instruction
 	 *        L2Register}s having the same {@link L2Register#registerKind()}.
 	 */
 	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap)
+		final Map<L2Register<?>, L2Register<?>> registerRemap)
 	{
-		final List<L2Register> sourcesBefore = new ArrayList<>(sourceRegisters);
-		final List<L2Register> destinationsBefore =
+		final List<L2Register<?>> sourcesBefore =
+			new ArrayList<>(sourceRegisters);
+		final List<L2Register<?>> destinationsBefore =
 			new ArrayList<>(destinationRegisters);
 		for (final L2Operand operand : operands)
 		{
@@ -569,7 +540,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Translate the {@link L2Instruction} into corresponding JVM instructions.
+	 * Translate the {@code L2Instruction} into corresponding JVM instructions.
 	 *
 	 * @param translator
 	 *        The {@link JVMTranslator} responsible for the translation.
@@ -577,7 +548,9 @@ public final class L2Instruction
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 */
-	public void translateToJVM (JVMTranslator translator, MethodVisitor method)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method)
 	{
 		operation.translateToJVM(translator, method, this);
 	}

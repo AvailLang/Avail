@@ -61,7 +61,8 @@ extends PublicCloneable<L2Operand>
 	 * Dispatch this {@code L2Operand} to the provided {@link
 	 * L2OperandDispatcher}.
 	 *
-	 * @param dispatcher The {@code L2OperandDispatcher} visiting the receiver.
+	 * @param dispatcher
+	 *        The {@code L2OperandDispatcher} visiting the receiver.
 	 */
 	public abstract void dispatchOperand (
 		final L2OperandDispatcher dispatcher);
@@ -103,8 +104,9 @@ extends PublicCloneable<L2Operand>
 	 * @param instruction
 	 *        The instruction containing this operand.
 	 */
+	@SuppressWarnings("unused")
 	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
+		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
 		// By default do nothing.
@@ -115,7 +117,9 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param sourceRegisters The {@link List} to update.
 	 */
-	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	@SuppressWarnings("unused")
+	public void addSourceRegistersTo (
+		final List<L2Register<?>> sourceRegisters)
 	{
 		// Do nothing by default.
 	}
@@ -125,8 +129,9 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param destinationRegisters The {@link List} to update.
 	 */
+	@SuppressWarnings("unused")
 	public void addDestinationRegistersTo (
-		final List<L2Register> destinationRegisters)
+		final List<L2Register<?>> destinationRegisters)
 	{
 		// Do nothing by default.
 	}

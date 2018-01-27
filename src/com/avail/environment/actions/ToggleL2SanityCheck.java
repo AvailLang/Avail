@@ -1,19 +1,19 @@
 /*
- * L2WriteFloatOperand.java
+ * ToggleL2SanityCheck.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,51 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operand;
+package com.avail.environment.actions;
 
-import com.avail.descriptor.A_Number;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.environment.AvailWorkbench;
+import com.avail.optimizer.L2Optimizer;
+
+import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
 
 /**
- * An {@code L2WriteFloatOperand} is an operand of type {@link
- * L2OperandType#WRITE_FLOAT}.  It holds the actual {@link L2FloatRegister}
- * that is to be accessed.
+ * A {@code ToggleL2SanityCheck} toggles the flag that
+ * indicates whether enable debugging support for JVM translation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2WriteFloatOperand
-extends L2WriteOperand<L2FloatRegister, A_Number>
+public class ToggleL2SanityCheck
+extends AbstractWorkbenchAction
 {
 	@Override
-	public L2OperandType operandType ()
+	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		return L2OperandType.WRITE_FLOAT;
+		//noinspection AssignmentToStaticFieldFromInstanceMethod
+		L2Optimizer.shouldSanityCheck ^= true;
 	}
 
 	/**
-	 * Construct a new {@code L2WriteFloatOperand}, creating an {@link
-	 * L2FloatRegister} at the same time. Record the provided type information
-	 * and optional constant information in the new register.
+	 * Construct a new {@code ToggleDebugJVM}.
 	 *
-	 * @param register
-	 *        The {@link L2FloatRegister}.
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
 	 */
-	public L2WriteFloatOperand (final L2FloatRegister register)
+	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
+	public ToggleL2SanityCheck (final AvailWorkbench workbench)
 	{
-		super(register);
-	}
-
-	@Override
-	public final L2ReadFloatOperand read ()
-	{
-		return new L2ReadFloatOperand(register, register.restriction());
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
+		super(workbench, "Enable L2 sanity checks");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Toggle L2 sanity checking.");
+		putValue(SELECTED_KEY, L2Optimizer.shouldSanityCheck);
 	}
 }

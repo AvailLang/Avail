@@ -229,15 +229,22 @@ public abstract class L2Register<T extends A_BasicObject>
 	 */
 	public L2Instruction definitionSkippingMoves ()
 	{
-		assert definitions.size() == 1;
-		final L2Instruction definition = definitions.iterator().next();
-		if (definition.operation.isMove())
+		L2Register<?> other = this;
+		while (true)
 		{
-			final List<L2Register> sources = definition.sourceRegisters();
-			assert sources.size() == 1;
-			return sources.get(0).definitionSkippingMoves();
+			assert other.definitions.size() == 1;
+			final L2Instruction definition =
+				other.definitions.iterator().next();
+			if (definition.operation.isMove())
+			{
+				final List<L2Register<?>> sources =
+					definition.sourceRegisters();
+				assert sources.size() == 1;
+				other = sources.get(0);
+				continue;
+			}
+			return definition;
 		}
-		return definition;
 	}
 
 	/**
@@ -249,6 +256,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 */
 	public Collection<L2Instruction> definitions ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return definitions;
 	}
 
@@ -288,6 +296,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 */
 	public Set<L2Instruction> uses ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return uses;
 	}
 

@@ -93,9 +93,9 @@ public final class TypeRestriction<T extends A_BasicObject>
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable();
 		//noinspection unchecked
-		this.constantOrNull = constantOrNull == null
-			? null
-			: (T) constantOrNull.makeImmutable();
+		this.constantOrNull = (constantOrNull != null)
+			? (T) constantOrNull.makeImmutable()
+			: null;
 	}
 
 	/**
@@ -304,10 +304,13 @@ public final class TypeRestriction<T extends A_BasicObject>
 			AvailObject.class.cast(constantOrNull);
 		if (constant != null)
 		{
-			return "=" + constant.typeTag().name().replace("_TAG", "");
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			return "=" + constant.typeTag().name().replace(
+				"_TAG", "");
 		}
 		if (!type.equals(TOP.o()))
 		{
+			//noinspection DynamicRegexReplaceableByCompiledPattern
 			return ":" + AvailObject.class.cast(type).typeTag().name()
 				.replace("_TAG", "");
 		}

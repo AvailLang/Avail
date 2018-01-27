@@ -1174,6 +1174,10 @@ extends JFrame
 	@InnerAccess final ToggleDebugInterpreterL2 toggleDebugL2 =
 		new ToggleDebugInterpreterL2(this);
 
+	/** The {@linkplain ToggleL2SanityCheck} toggle L2 sanity checks action}. */
+	@InnerAccess final ToggleL2SanityCheck toggleL2SanityCheck =
+		new ToggleL2SanityCheck(this);
+
 	/**
 	 * The {@linkplain ToggleDebugInterpreterPrimitives toggle primitive debug
 	 * action}.
@@ -1183,8 +1187,7 @@ extends JFrame
 
 	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
 	@InnerAccess
-	final ToggleDebugJVM toggleDebugJVM =
-		new ToggleDebugJVM(this);
+	final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
@@ -2794,6 +2797,7 @@ extends JFrame
 						null,
 						new JCheckBoxMenuItem(toggleDebugL1),
 						new JCheckBoxMenuItem(toggleDebugL2),
+						new JCheckBoxMenuItem(toggleL2SanityCheck),
 						new JCheckBoxMenuItem(toggleDebugPrimitives),
 						null,
 						new JCheckBoxMenuItem(toggleDebugJVM),

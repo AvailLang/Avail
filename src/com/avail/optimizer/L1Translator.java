@@ -456,7 +456,7 @@ public final class L1Translator
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		return new L2WritePointerOperand(new L2ObjectRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -476,7 +476,7 @@ public final class L1Translator
 		final @Nullable A_Number constantOrNull)
 	{
 		return new L2WriteIntOperand(new L2IntRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -496,7 +496,7 @@ public final class L1Translator
 		final @Nullable A_Number constantOrNull)
 	{
 		return new L2WriteFloatOperand(new L2FloatRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -507,6 +507,7 @@ public final class L1Translator
 	 *        The register.
 	 * @return The new register write operand.
 	 */
+	@SuppressWarnings("MethodMayBeStatic")
 	public L2WritePhiOperand<?, ?> newPhiRegisterWriter (
 		final L2Register<?> register)
 	{
@@ -915,7 +916,7 @@ public final class L1Translator
 			final L2ReadPointerOperand read = stripNull(
 				currentManifest.semanticValueToRegister(semanticValue));
 			readSlotsBefore.add(read);
-			final TypeRestriction originalRestriction = read.restriction();
+			final TypeRestriction<?> originalRestriction = read.restriction();
 			final L2WritePointerOperand slotWriter = newObjectRegisterWriter(
 				originalRestriction.type, originalRestriction.constantOrNull);
 			writeSlotsAfter.add(slotWriter);
@@ -955,7 +956,7 @@ public final class L1Translator
 		{
 			final L2WritePointerOperand writeSlot =
 				writeSlotsAfter.get(i - 1);
-			final TypeRestriction restriction =
+			final TypeRestriction<?> restriction =
 				writeSlot.register().restriction();
 			// If the restriction is known to be a constant, don't take it from
 			// the continuation.
@@ -1084,6 +1085,7 @@ public final class L1Translator
 			this.argumentIndexToTest = argumentIndexToTest;
 			this.typeToTest = typeToTest;
 			this.argumentBeforeComparison = argumentBeforeComparison;
+			//noinspection DynamicRegexReplaceableByCompiledPattern
 			final String shortTypeName =
 				branchLabelCounter
 					+ " (arg#"

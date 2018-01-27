@@ -57,7 +57,7 @@ public final class L2RegisterColorer
 	 */
 	private static class RegisterGroup
 	{
-		Set<L2Register> registers = new HashSet<>();
+		Set<L2Register<?>> registers = new HashSet<>();
 
 		int finalIndex = -1;
 
@@ -78,7 +78,7 @@ public final class L2RegisterColorer
 			final StringBuilder builder = new StringBuilder();
 			builder.append("RegisterGroup: (");
 			boolean first = true;
-			for (final L2Register r : registers)
+			for (final L2Register<?> r : registers)
 			{
 				if (!first)
 				{
@@ -96,13 +96,13 @@ public final class L2RegisterColorer
 	 * The {@link List} of all {@link L2Register}s that occur in the control
 	 * flow graph.
 	 */
-	private final List<L2Register> allRegisters;
+	private final List<L2Register<?>> allRegisters;
 
 	/**
 	 * The unique number of the register being traced from its uses back to its
 	 * definition(s).
 	 */
-	private @Nullable L2Register registerBeingTraced;
+	private @Nullable L2Register<?> registerBeingTraced;
 
 	/**
 	 * A map from registers to sets of registers that can be colored the same
@@ -114,7 +114,7 @@ public final class L2RegisterColorer
 	 * interference graph first.  We populate the registerSets with singleton
 	 * sets before this.</p>
 	 */
-	private final Map<L2Register, RegisterGroup> registerGroups =
+	private final Map<L2Register<?>, RegisterGroup> registerGroups =
 		new HashMap<>();
 
 	/**
@@ -231,7 +231,8 @@ public final class L2RegisterColorer
 			assert instruction.operation != L2_ENTER_L2_CHUNK.instance
 				: "Liveness trace must not reach an L2_ENTER_L2_CHUNK";
 			boolean definesCurrentRegister = false;
-			for (final L2Register written : instruction.destinationRegisters())
+			for (final L2Register<?> written
+				: instruction.destinationRegisters())
 			{
 				if (written == registerBeingTraced)
 				{
@@ -335,7 +336,7 @@ public final class L2RegisterColorer
 							}
 							interferences.exciseVertex(smallSet);
 							// Merge the smallSet elements into the largeSet.
-							for (final L2Register r : smallSet.registers)
+							for (final L2Register<?> r : smallSet.registers)
 							{
 								registerGroups.put(r, largeSet);
 							}
@@ -417,7 +418,7 @@ public final class L2RegisterColorer
 			final int color = neighbors.nextClearBit(0);
 			group.setFinalIndex(color);
 		}
-		for (final L2Register register : registerGroups.keySet())
+		for (final L2Register<?> register : registerGroups.keySet())
 		{
 			assert register.finalIndex() != -1;
 		}
