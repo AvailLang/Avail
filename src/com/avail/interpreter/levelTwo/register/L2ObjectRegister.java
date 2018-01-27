@@ -121,7 +121,7 @@ extends L2Register<A_BasicObject>
 	}
 
 	@Override
-	String namePrefix ()
+	public String namePrefix ()
 	{
 		return "r";
 	}

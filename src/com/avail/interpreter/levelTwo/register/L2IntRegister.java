@@ -121,7 +121,7 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	String namePrefix ()
+	public String namePrefix ()
 	{
 		return "i";
 	}
