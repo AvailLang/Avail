@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
@@ -82,7 +81,6 @@ public final class L2Optimizer
 	public final List<L2BasicBlock> blocks;
 
 	/** Whether to sanity-check the graph between optimization steps. */
-	@SuppressWarnings("FieldCanBeLocal")
 	public static boolean shouldSanityCheck = false;
 
 	/** The register coloring algorithm. */
