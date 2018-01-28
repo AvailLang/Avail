@@ -456,7 +456,7 @@ public final class L1Translator
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		return new L2WritePointerOperand(new L2ObjectRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -476,7 +476,7 @@ public final class L1Translator
 		final @Nullable A_Number constantOrNull)
 	{
 		return new L2WriteIntOperand(new L2IntRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -496,7 +496,7 @@ public final class L1Translator
 		final @Nullable A_Number constantOrNull)
 	{
 		return new L2WriteFloatOperand(new L2FloatRegister(
-			nextUnique(), TypeRestriction.restriction(type, constantOrNull)));
+			nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**

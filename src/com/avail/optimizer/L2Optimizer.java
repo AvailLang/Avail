@@ -81,7 +81,7 @@ public final class L2Optimizer
 
 	/** Whether to sanity-check the graph between optimization steps. */
 	@SuppressWarnings("FieldCanBeLocal")
-	private static boolean shouldSanityCheck = false;
+	private static final boolean shouldSanityCheck = false;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
