@@ -32,6 +32,7 @@
 
 package com.avail.utility.dot;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.CheckedConsumer;
 import com.avail.utility.Pair;
 
@@ -40,8 +41,11 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.avail.utility.Strings.tabs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
@@ -90,18 +94,18 @@ public final class DotWriter
 	 * If {@code true}, then a directed graph will be generated; otherwise, an
 	 * undirected graph will be generated.
 	 */
-	private final boolean isDirected;
+	@InnerAccess final boolean isDirected;
 
 	/**
 	 * The number of characters to emit per line. Only applies to formatting
 	 * of block comments.
 	 */
-	private int charactersPerLine;
+	@InnerAccess int charactersPerLine;
 
 	/**
 	 * The accumulator for the generated source code.
 	 */
-	private final Appendable accumulator;
+	@InnerAccess final Appendable accumulator;
 
 	/**
 	 * Construct a new {@code DotWriter}.
@@ -129,6 +133,9 @@ public final class DotWriter
 		this.accumulator = accumulator;
 	}
 
+	/** A single tab character as a {@link Pattern}. */
+	private static final Pattern tab = Pattern.compile("\t", Pattern.LITERAL);
+
 	/**
 	 * Answer a variant of the specified text such that tabs are replaced by
 	 * spaces, for use with the {@code label}, {@code headlabel}, and {@code
@@ -140,8 +147,12 @@ public final class DotWriter
 	 */
 	public static String label (final String text)
 	{
-		return text.replace("\t", "    ");
+		return tab.matcher(text).replaceAll(Matcher.quoteReplacement("    "));
 	}
+
+	/** A single line-feed character as a {@link Pattern}. */
+	private static final Pattern lineFeed =
+		Pattern.compile("\n", Pattern.LITERAL);
 
 	/**
 	 * Answer a left-justified variant of the specified text, for use with the
@@ -155,7 +166,8 @@ public final class DotWriter
 	@SuppressWarnings("unused")
 	public static String leftJustified (final String text)
 	{
-		return label(text).replace("\n", "\\l");
+		return lineFeed.matcher(label(text))
+			.replaceAll(Matcher.quoteReplacement("\\l"));
 	}
 
 	/**
@@ -170,33 +182,32 @@ public final class DotWriter
 	@SuppressWarnings("unused")
 	public static String rightJustified (final String text)
 	{
-		return label(text).replace("\n", "\\r");
+		return lineFeed.matcher(label(text))
+			.replaceAll(Matcher.quoteReplacement("\\r"));
 	}
 
 	/**
 	 * The keywords reserved by {@code dot}. Identifiers must not collide with
 	 * these names.
 	 */
-	private static final Set<String> keywords =
+	@InnerAccess static final Set<String> keywords =
 		unmodifiableSet(new HashSet<>(asList(
 			"strict", "graph", "digraph", "subgraph", "node", "edge")));
 
 	/**
 	 * The indentation level.
 	 */
-	private int indentationLevel = 0;
-
-	/**
-	 * Precomputed indentation for frequently used indentation levels.
-	 */
-	private static final String[] indentation =
-		{"", "\t", "\t\t", "\t\t\t", "\t\t\t\t", "\t\t\t\t\t", "\t\t\t\t\t\t"};
+	@InnerAccess int indentationLevel = 0;
 
 	/**
 	 * Was the last character to be emitted a linefeed? Initialize this to
 	 * {@code true} so that the first {@link AttributeWriter#indent()} is valid.
 	 */
-	private boolean justEmittedLinefeed = true;
+	@InnerAccess boolean justEmittedLinefeed = true;
+
+	/** A pattern for matching tokens. */
+	@InnerAccess static final Pattern tokenPattern =
+		Pattern.compile("[A-Za-z0-9]+");
 
 	/**
 	 * An {@code AttributeWriter} provides the ability to write generally
@@ -246,23 +257,8 @@ public final class DotWriter
 				: "indentation level must not be negative";
 			assert justEmittedLinefeed
 				: "indentation must only be emitted after a linefeed";
-			try
-			{
-				accumulator.append(indentation[indentationLevel]);
-			}
-			catch (final ArrayIndexOutOfBoundsException e)
-			{
-				assert indentationLevel >= indentation.length;
-				accumulator.append(indentation[indentation.length - 1]);
-				for (int i = indentation.length; i < indentationLevel; i++)
-				{
-					accumulator.append('\t');
-				}
-			}
-			finally
-			{
-				justEmittedLinefeed = false;
-			}
+			accumulator.append(tabs(indentationLevel));
+			justEmittedLinefeed = false;
 		}
 
 		/**
@@ -333,7 +329,8 @@ public final class DotWriter
 			// The run length of that whitespace.
 			int wlen = 0;
 			int i = 0;
-			for (int limit = min(s.length(), max); i < max;)
+			final int lineLimit = min(s.length(), max);
+			while (i < max)
 			{
 				int cp = s.codePointAt(i);
 				if (cp == '\n')
@@ -353,7 +350,7 @@ public final class DotWriter
 					while (true)
 					{
 						i += sz;
-						if (i < limit)
+						if (i < lineLimit)
 						{
 							cp = s.codePointAt(i);
 							if (!Character.isWhitespace(cp))
@@ -382,8 +379,9 @@ public final class DotWriter
 				// If no whitespace was discovered, then we cannot honor the
 				// character limit strictly. Look for the next whitespace
 				// character and terminate the line there.
+				final int wideLimit = s.length();
 				outer:
-				for (int limit = s.length(); i < limit;)
+				while (i < wideLimit)
 				{
 					int cp = s.codePointAt(i);
 					if (Character.isWhitespace(i))
@@ -394,7 +392,7 @@ public final class DotWriter
 						while (true)
 						{
 							i += sz;
-							if (i < limit)
+							if (i < wideLimit)
 							{
 								cp = s.codePointAt(i);
 								if (!Character.isWhitespace(cp))
@@ -476,7 +474,7 @@ public final class DotWriter
 				// quoted before it can be used as an identifier.
 				id = "\"" + proposedId + "\"";
 			}
-			else if (proposedId.matches("[A-Za-z0-9]+"))
+			else if (tokenPattern.matcher(proposedId).matches())
 			{
 				// The proposed identifier comprises only alphanumerics, so it
 				// doesn't require any escaping.
@@ -537,7 +535,7 @@ public final class DotWriter
 	/**
 	 * The prebuilt {@link AttributeWriter} for dependency injection.
 	 */
-	private final AttributeWriter attributeWriter = new AttributeWriter();
+	@InnerAccess final AttributeWriter attributeWriter = new AttributeWriter();
 
 	/**
 	 * {@code DefaultAttributeBlockType} represents the scope of a default
@@ -626,7 +624,7 @@ public final class DotWriter
 		 * @param compassPoint
 		 *        The {@link CompassPoint}, if any.
 		 */
-		private DecoratedNode (
+		@InnerAccess DecoratedNode (
 			final String name,
 			final @Nullable String port,
 			final @Nullable CompassPoint compassPoint)
@@ -760,7 +758,7 @@ public final class DotWriter
 		/**
 		 * Write an appropriately indented named subgraph block.
 		 *
-		 * @param name
+		 * @param subgraphName
 		 *        The name of the subgraph.
 		 * @param block
 		 * 	      The {@link CheckedConsumer} to apply to emit the content of
@@ -770,13 +768,13 @@ public final class DotWriter
 		 */
 		@SuppressWarnings("unused")
 		public void subgraph (
-			final String name,
+			final String subgraphName,
 			final CheckedConsumer<GraphWriter> block)
 		throws IOException
 		{
 			indent();
 			emit("subgraph ");
-			identifier(name);
+			identifier(subgraphName);
 			linefeed();
 			subgraph(block);
 		}
@@ -784,7 +782,7 @@ public final class DotWriter
 		/**
 		 * Emit a node with attributes.
 		 *
-		 * @param name
+		 * @param nodeName
 		 * 	      The identifier of the node.
 		 * @param block
 		 * 	      The {@link CheckedConsumer} to apply to generate the node's
@@ -793,12 +791,12 @@ public final class DotWriter
 		 * 	       If emission fails.
 		 */
 		public void node (
-			final String name,
+			final String nodeName,
 			final @Nullable CheckedConsumer<AttributeWriter> block)
 		throws IOException
 		{
 			indent();
-			identifier(name);
+			identifier(nodeName);
 			linefeed();
 			if (block != null)
 			{
@@ -1083,7 +1081,7 @@ public final class DotWriter
 		 * @throws IOException
 		 *         If emission fails.
 		 */
-		@SuppressWarnings("unused")
+		@SuppressWarnings({"unused", "unchecked"})
 		public void interleaved (
 			final List<Object> nodes,
 			final @Nullable CheckedConsumer<AttributeWriter> block)
@@ -1119,7 +1117,6 @@ public final class DotWriter
 						{
 							linefeed();
 						}
-						//noinspection unchecked
 						subgraph((CheckedConsumer<GraphWriter>) o);
 					}
 					else
@@ -1149,7 +1146,7 @@ public final class DotWriter
 	/**
 	 * The prebuilt {@link GraphWriter} for dependency injection.
 	 */
-	private final GraphWriter graphWriter = new GraphWriter();
+	@InnerAccess final GraphWriter graphWriter = new GraphWriter();
 
 	/**
 	 * Emit a block comment, such as a copyright banner or statement of

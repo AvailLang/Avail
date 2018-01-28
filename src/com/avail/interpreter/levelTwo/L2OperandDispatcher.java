@@ -32,10 +32,12 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
  * An {@code L2OperandDispatcher} acts as a visitor for the actual operands of
@@ -126,7 +128,11 @@ public interface L2OperandDispatcher
 	 * @param operand
 	 *        An {@link L2ReadVectorOperand}.
 	 */
-	void doOperand (L2ReadVectorOperand<?> operand);
+	<
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	void doOperand (final L2ReadVectorOperand<RR, R, T> operand);
 
 	/**
 	 * Process an operand which is a literal {@link A_Bundle} which the
@@ -167,5 +173,6 @@ public interface L2OperandDispatcher
 	 * @param operand
 	 *        An {@link L2WritePhiOperand}.
 	 */
-	void doOperand (L2WritePhiOperand<?, ?> operand);
+	<R extends L2Register<T>, T extends A_BasicObject> void doOperand (
+		final L2WritePhiOperand<R, T> operand);
 }

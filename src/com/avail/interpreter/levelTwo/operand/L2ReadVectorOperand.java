@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -49,16 +50,21 @@ import static java.util.Collections.unmodifiableList;
  * L2ReadOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <R>
+ *        A subclass of L2Register&lt;T>
  * @param <T>
  *        A subclass of {@link L2ReadOperand}.
  */
-public class L2ReadVectorOperand<T extends L2ReadOperand<?, ?>>
+public class L2ReadVectorOperand<
+	RR extends L2ReadOperand<R, T>,
+	R extends L2Register<T>,
+	T extends A_BasicObject>
 extends L2Operand
 {
 	/**
 	 * The {@link List} of {@link L2ReadPointerOperand}s.
 	 */
-	private final List<T> elements;
+	private final List<RR> elements;
 
 	/**
 	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
@@ -67,21 +73,20 @@ extends L2Operand
 	 * @param elements
 	 *        The list of {@link L2ReadOperand}s.
 	 */
-	public L2ReadVectorOperand (final List<T> elements)
+	public L2ReadVectorOperand (
+		final List<? extends RR> elements)
 	{
 		this.elements = unmodifiableList(elements);
 	}
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@SuppressWarnings({"MethodDoesntCallSuperMethod", "unchecked"})
 	@Override
-	public L2Operand clone ()
+	public L2ReadVectorOperand<RR, R, T> clone ()
 	{
-		final List<T> clonedElements =
-			new ArrayList<>(elements.size());
-		for (final T element : elements)
+		final List<RR> clonedElements = new ArrayList<>(elements.size());
+		for (final RR element : elements)
 		{
-			//noinspection unchecked
-			clonedElements.add((T) element.clone());
+			clonedElements.add((RR) element.clone());
 		}
 		return new L2ReadVectorOperand<>(clonedElements);
 	}
@@ -97,7 +102,7 @@ extends L2Operand
 	 *
 	 * @return The requested operands.
 	 */
-	public List<T> elements ()
+	public List<RR> elements ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
@@ -112,7 +117,7 @@ extends L2Operand
 	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		for (final T element : elements)
+		for (final RR element : elements)
 		{
 			element.instructionWasAdded(instruction);
 		}
@@ -121,7 +126,7 @@ extends L2Operand
 	@Override
 	public void instructionWasRemoved (final L2Instruction instruction)
 	{
-		for (final T element : elements)
+		for (final RR element : elements)
 		{
 			element.instructionWasRemoved(instruction);
 		}
@@ -132,7 +137,7 @@ extends L2Operand
 		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
-		for (final T read : elements)
+		for (final RR read : elements)
 		{
 			read.replaceRegisters(registerRemap, instruction);
 		}
@@ -141,7 +146,7 @@ extends L2Operand
 	@Override
 	public void addSourceRegistersTo (final List<L2Register<?>> sourceRegisters)
 	{
-		for (final T read : elements)
+		for (final RR read : elements)
 		{
 			read.addSourceRegistersTo(sourceRegisters);
 		}
@@ -153,7 +158,7 @@ extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append("@<");
 		boolean first = true;
-		for (final T read : elements)
+		for (final RR read : elements)
 		{
 			if (!first)
 			{

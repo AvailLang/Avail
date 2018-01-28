@@ -34,6 +34,7 @@ package com.avail.optimizer.jvm;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailThread;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_RawFunction;
@@ -123,7 +124,7 @@ public final class JVMTranslator
 	 * subclass. The {@code ClassWriter} is configured to automatically compute
 	 * stack map frames and method limits (e.g., stack depths).
 	 */
-	private final ClassWriter classWriter;
+	@InnerAccess final ClassWriter classWriter;
 
 	/**
 	 * The name of the generated class, formed from a {@link UUID} to ensure
@@ -134,7 +135,7 @@ public final class JVMTranslator
 	/**
 	 * The internal name of the generated class.
 	 */
-	private final String classInternalName;
+	@InnerAccess final String classInternalName;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -258,7 +259,7 @@ public final class JVMTranslator
 	 * embedded into the translated {@link JVMChunk}, mapped to their
 	 * {@linkplain LiteralAccessor accessors}.
 	 */
-	private final Map<Object, LiteralAccessor> literals = new HashMap<>();
+	@InnerAccess final Map<Object, LiteralAccessor> literals = new HashMap<>();
 
 	/**
 	 * Emit code to push the specified literal on top of the stack.
@@ -278,7 +279,7 @@ public final class JVMTranslator
 	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
 	 * {@linkplain Label labels}.
 	 */
-	private final Map<Integer, Label> labels = new HashMap<>();
+	@InnerAccess final Map<Integer, Label> labels = new HashMap<>();
 
 	/**
 	 * Answer the {@link Label} for the specified {@link L2Instruction}
@@ -297,7 +298,7 @@ public final class JVMTranslator
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	private final Map<L2Register, Integer> locals = new HashMap<>();
+	@InnerAccess final Map<L2Register<?>, Integer> locals = new HashMap<>();
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -560,7 +561,11 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand<?> vector)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void doOperand (final L2ReadVectorOperand<RR, R, T> vector)
 		{
 			for (final L2ReadOperand<?, ?> operand : vector.elements())
 			{
@@ -637,7 +642,8 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2WritePhiOperand<?, ?> operand)
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
 		{
 			assert false
 				: "L2 code generation should not have left any "
@@ -1576,9 +1582,9 @@ public final class JVMTranslator
 		// register names. At present, we just claim that every variable is live
 		// from the beginning of the method until the badOffsetLabel, but we can
 		// always tighten this up later if we care.
-		for (final Entry<L2Register, Integer> entry : locals.entrySet())
+		for (final Entry<L2Register<?>, Integer> entry : locals.entrySet())
 		{
-			final L2Register register = entry.getKey();
+			final L2Register<?> register = entry.getKey();
 			final int local = entry.getValue();
 			final boolean isIntRegister = register instanceof L2IntRegister;
 			//noinspection StringConcatenationMissingWhitespace

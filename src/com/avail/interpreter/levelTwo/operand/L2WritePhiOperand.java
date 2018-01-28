@@ -65,10 +65,10 @@ extends L2WriteOperand<R, T>
 		return L2OperandType.WRITE_PHI;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public final L2ReadOperand<R, T> read ()
 	{
-		//noinspection unchecked
 		return (L2ReadOperand<R, T>) register.read(register.restriction());
 	}
 

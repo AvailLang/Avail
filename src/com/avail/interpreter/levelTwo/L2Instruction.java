@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.AvailObject;
@@ -479,17 +480,25 @@ public final class L2Instruction
 	 * L2ReadVectorOperand} having the specified position in my array of
 	 * operands.
 	 *
-	 * @param <U>
-	 *        The type of the {@link L2ReadOperand}.
+	 * @param <RR>
+	 *        The type of {@link L2ReadOperand}s in this vector.
+	 * @param <R>
+	 *        The type of {@link L2Register}s in this vector.
+	 * @param <T>
+	 *        The type of values in the registers.
 	 * @param operandIndex
 	 *        Which operand holds a read of a register vector.
 	 * @return The list of {@link L2ReadPointerOperand}s.
 	 */
-	public <U extends L2ReadOperand<?, ?>> List<U> readVectorRegisterAt (
-		final int operandIndex)
+	@SuppressWarnings("unchecked")
+	public <
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	List<RR> readVectorRegisterAt (final int operandIndex)
 	{
-		//noinspection unchecked
-		return ((L2ReadVectorOperand<U>) operands[operandIndex]).elements();
+		return (
+			(L2ReadVectorOperand<RR, R, T>) operands[operandIndex]).elements();
 	}
 
 	/**
@@ -500,10 +509,10 @@ public final class L2Instruction
 	 *        Which operand holds a phi write.
 	 * @return The specified {@code L2WritePhiOperand}.
 	 */
+	@SuppressWarnings("unchecked")
 	public <U extends L2WritePhiOperand<?, ?>> U writePhiRegisterAt (
 		final int operandIndex)
 	{
-		//noinspection unchecked
 		return (U) operands[operandIndex];
 	}
 

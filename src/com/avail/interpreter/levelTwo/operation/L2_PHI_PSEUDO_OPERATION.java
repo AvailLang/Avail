@@ -31,9 +31,15 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -84,13 +90,13 @@ extends L2Operation
 		@NotNull final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final List<L2ReadOperand<?, ?>> inputRegs =
+		final List<? extends L2ReadOperand<?, ?>> inputRegs =
 			instruction.readVectorRegisterAt(0);
 		final L2WritePhiOperand<?, ?> destinationReg =
 			instruction.writePhiRegisterAt(1);
 
 		@SuppressWarnings("ConstantConditions")
-		final TypeRestriction restriction = inputRegs.stream()
+		final TypeRestriction<?> restriction = inputRegs.stream()
 			.map(L2ReadOperand::restriction)
 			.reduce(TypeRestriction::union)
 			.get();
@@ -131,12 +137,13 @@ extends L2Operation
 	 * @param inputIndex
 	 *        The index to remove.
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static L2Instruction withoutIndex (
 		final L2Instruction instruction,
 		final int inputIndex)
 	{
 		assert instruction.operation == instance;
-		final List<L2ReadOperand<?, ?>> oldSources =
+		final List<? extends L2ReadOperand<?, ?>> oldSources =
 			instruction.readVectorRegisterAt(0);
 		final L2WritePhiOperand<?, ?> destinationReg =
 			instruction.writePhiRegisterAt(1);
@@ -161,7 +168,7 @@ extends L2Operation
 		return new L2Instruction(
 			instruction.basicBlock,
 			L2_PHI_PSEUDO_OPERATION.instance,
-			new L2ReadVectorOperand<>(newSources),
+			new L2ReadVectorOperand(newSources),
 			destinationReg);
 	}
 
@@ -179,7 +186,7 @@ extends L2Operation
 	 */
 	public static List<L2BasicBlock> predecessorBlocksForUseOf (
 		final L2Instruction instruction,
-		final L2Register usedRegister)
+		final L2Register<?> usedRegister)
 	{
 		assert instruction.operation == instance;
 
@@ -190,7 +197,7 @@ extends L2Operation
 
 		final List<L2PcOperand> predecessorEdges =
 			instruction.basicBlock.predecessorEdges();
-		final List<L2ReadOperand<?, ?>> sources =
+		final List<? extends L2ReadOperand<?, ?>> sources =
 			instruction.readVectorRegisterAt(0);
 		return IntStream.range(0, sources.size())
 			.filter(i -> sources.get(i).register() == usedRegister)
@@ -209,11 +216,11 @@ extends L2Operation
 	 *        The instruction to examine.  It must be a phi operation.
 	 * @return The instruction's destination {@link L2WritePhiOperand}.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <U extends L2WritePhiOperand<?, ?>>
 	U destinationRegisterWrite (final L2Instruction instruction)
 	{
 		assert instruction.operation instanceof L2_PHI_PSEUDO_OPERATION;
-		//noinspection unchecked
 		return (U) instruction.writePhiRegisterAt(1);
 	}
 
@@ -226,7 +233,11 @@ extends L2Operation
 	 *        The phi instruction.
 	 * @return The instruction's list of sources.
 	 */
-	public static <U extends L2ReadOperand<?, ?>> List<U> sourceRegisterReads (
+	public static <
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	List<RR> sourceRegisterReads (
 		final L2Instruction instruction)
 	{
 		return instruction.readVectorRegisterAt(0);

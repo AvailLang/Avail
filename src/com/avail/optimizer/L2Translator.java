@@ -403,9 +403,14 @@ public final class L2Translator
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand<?> operand)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void
+			doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			for (final L2ReadOperand register : operand.elements())
+			for (final L2ReadOperand<?, ?> register : operand.elements())
 			{
 				objectMax = max(objectMax, register.finalIndex());
 			}
@@ -433,7 +438,8 @@ public final class L2Translator
 		}
 
 		@Override
-		public void doOperand (final L2WritePhiOperand<?, ?> operand)
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
 		{
 			final L2Register<?> register = operand.register();
 			if (register instanceof L2ObjectRegister)

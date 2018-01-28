@@ -115,6 +115,7 @@ extends L2Operand
 		register.removeDefinition(instruction);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public final void replaceRegisters (
 		final Map<L2Register<?>, L2Register<?>> registerRemap,
@@ -127,7 +128,6 @@ extends L2Operand
 		}
 		register.removeDefinition(instruction);
 		replacement.addDefinition(instruction);
-		//noinspection unchecked
 		register = (R) register.getClass().cast(replacement);
 	}
 

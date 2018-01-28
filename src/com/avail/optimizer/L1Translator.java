@@ -531,8 +531,8 @@ public final class L1Translator
 	 * @return The new register write operand.
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
-	public L2WritePhiOperand<?, ?> newPhiRegisterWriter (
-		final L2Register<?> register)
+	public <R extends L2Register<T>, T extends A_BasicObject>
+		L2WritePhiOperand<R, T> newPhiRegisterWriter (final R register)
 	{
 		return new L2WritePhiOperand<>(register);
 	}
@@ -583,7 +583,7 @@ public final class L1Translator
 		final A_Type outerType)
 	{
 		final L2SemanticValue semanticOuter = topFrame.outer(outerIndex);
-		@Nullable L2ReadPointerOperand outerRead =
+		final @Nullable L2ReadPointerOperand outerRead =
 			currentManifest.semanticValueToRegister(semanticOuter);
 		if (outerRead != null)
 		{

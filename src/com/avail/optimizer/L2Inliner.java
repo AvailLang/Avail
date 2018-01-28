@@ -140,15 +140,19 @@ public final class L2Inliner
 				mapRegister(operand.register()), operand.restriction());
 		}
 
+		@SuppressWarnings("rawtypes")
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			//noinspection unchecked
-			final List<L2ReadPointerOperand> oldElements =
+			@SuppressWarnings("unchecked")
+			final List<RR> oldElements =
 				operand.<L2ReadPointerOperand>elements();
-			final List<L2ReadPointerOperand> newElements =
-				new ArrayList<>(oldElements.size());
-			for (final L2ReadPointerOperand oldElement : oldElements)
+			final List<RR> newElements = new ArrayList<>(oldElements.size());
+			for (final RR oldElement : oldElements)
 			{
 				// Note: this clobbers currentOperand, but we'll set it later.
 				newElements.add(transformOperand(oldElement));
@@ -208,19 +212,18 @@ public final class L2Inliner
 		}
 
 		@Override
-		public void doOperand (final L2WritePhiOperand<?, ?> operand)
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
 		{
 			// Writes should always be encountered before reads, and only once.
-			final L2Register oldRegister = operand.register();
+			final R oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction restriction =
-				oldRegister.restriction();
-			//noinspection unchecked
-			final L2WritePhiOperand writer =
-				targetTranslator.newPhiRegisterWriter(
-					oldRegister.copyForTranslator(
-						targetTranslator, restriction));
-			final L2Register newRegister = writer.register();
+			@SuppressWarnings("unchecked")
+			final R copiedRegister = (R) oldRegister.copyForTranslator(
+				targetTranslator, oldRegister.restriction());
+			final L2WritePhiOperand<R, T> writer =
+				targetTranslator.newPhiRegisterWriter(copiedRegister);
+			final R newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
 		}
@@ -282,7 +285,7 @@ public final class L2Inliner
 	 * The accumulated mapping from original {@link L2Register}s to their
 	 * replacements.
 	 */
-	final Map<L2Register, L2Register> registerMap = new HashMap<>();
+	final Map<L2Register<?>, L2Register<?>> registerMap = new HashMap<>();
 
 	/**
 	 * Construct a new {@code L2Inliner}.
@@ -330,12 +333,12 @@ public final class L2Inliner
 	 * @return The looked up or created-and-stored {@link L2Register}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <R extends L2Register> R mapRegister (final R register)
+	public <R extends L2Register<?>> R mapRegister (final R register)
 	{
-		final L2Register copy = registerMap.computeIfAbsent(
+		final R copy = (R) registerMap.computeIfAbsent(
 			register, r -> r.copyForInliner(this));
 		assert register.registerKind() == copy.registerKind();
-		return (R) copy;
+		return copy;
 	}
 
 	/**

@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
@@ -82,7 +83,7 @@ public final class L2Optimizer
 
 	/** Whether to sanity-check the graph between optimization steps. */
 	@SuppressWarnings("FieldCanBeLocal")
-	private static final boolean shouldSanityCheck = false;
+	public static boolean shouldSanityCheck = false;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
@@ -346,7 +347,7 @@ public final class L2Optimizer
 						phiInstruction.destinationRegisters());
 					edgeAlwaysLiveIn.removeAll(
 						phiInstruction.destinationRegisters());
-					final List<L2ReadPointerOperand> sources =
+					final List<? extends L2ReadOperand<?, ?>> sources =
 						L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(
 							phiInstruction);
 					final L2Register<?> source =
@@ -544,6 +545,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@InnerAccess void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
@@ -578,7 +580,6 @@ public final class L2Optimizer
 					assert predecessor.finalInstruction().operation
 						instanceof L2_JUMP;
 					final L2Register<?> sourceReg = phiSources.get(i);
-					//noinspection unchecked,rawtypes
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
@@ -967,7 +968,7 @@ public final class L2Optimizer
 						assert added;
 						if (L2ReadVectorOperand.class.isInstance(operand))
 						{
-							final L2ReadVectorOperand<?> vector =
+							final L2ReadVectorOperand<?, ?, ?> vector =
 								L2ReadVectorOperand.class.cast(operand);
 							vector.elements().forEach(
 								read ->

@@ -85,6 +85,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        Either {@code null} or the exact value that some value somewhere
 	 *        must equal.
 	 */
+	@SuppressWarnings("unchecked")
 	private TypeRestriction (
 		final A_Type type,
 		final @Nullable T constantOrNull)
@@ -92,7 +93,6 @@ public final class TypeRestriction<T extends A_BasicObject>
 		// Make the Avail objects immutable.  They'll be made Shared if they
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable();
-		//noinspection unchecked
 		this.constantOrNull = (constantOrNull != null)
 			? (T) constantOrNull.makeImmutable()
 			: null;
@@ -189,6 +189,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
+	@SuppressWarnings("unchecked")
 	public TypeRestriction<T> union (final TypeRestriction<T> other)
 	{
 		if (constantOrNull != null
@@ -196,7 +197,6 @@ public final class TypeRestriction<T extends A_BasicObject>
 			&& constantOrNull.equals(other.constantOrNull))
 		{
 			// The two restrictions are for the same constant value.
-			//noinspection unchecked
 			return constantOrNull.equalsNil()
 				? (TypeRestriction<T>) nilRestriction
 				: restriction(
@@ -219,6 +219,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
+	@SuppressWarnings("unchecked")
 	public TypeRestriction<T> intersection (final TypeRestriction<T> other)
 	{
 		if (constantOrNull != null)
@@ -228,7 +229,6 @@ public final class TypeRestriction<T extends A_BasicObject>
 			{
 				// The two constants conflict.  Code using this register should
 				// not be reachable, but allow it to be generated for now.
-				//noinspection unchecked
 				return (TypeRestriction<T>) bottomRestriction;
 			}
 			// Rely on normalization to reject the constant if the type
@@ -255,12 +255,12 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
+	@SuppressWarnings("unchecked")
 	public TypeRestriction<T> minus (final TypeRestriction<T> other)
 	{
 		if (type.isSubtypeOf(other.type))
 		{
 			// Exclude everything.
-			//noinspection unchecked
 			return (TypeRestriction<T>) bottomRestriction;
 		}
 		if (constantOrNull != null)

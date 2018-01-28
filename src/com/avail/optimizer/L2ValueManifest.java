@@ -120,10 +120,10 @@ public final class L2ValueManifest
 	 *        The semantic value to look up.
 	 * @return The {@link L2ReadOperand} holding that value.
 	 */
+	@SuppressWarnings("unchecked")
 	public @Nullable <U extends L2ReadOperand<?, ?>>
 	U semanticValueToRegister (final L2SemanticValue semanticValue)
 	{
-		//noinspection unchecked
 		return (U) semanticValueToRegister.get(semanticValue);
 	}
 
@@ -281,6 +281,7 @@ public final class L2ValueManifest
 	 *        The {@link L1Translator} on which to write any necessary phi
 	 *        functions.
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
 		final L1Translator translator)
@@ -326,7 +327,6 @@ public final class L2ValueManifest
 				final L2Register<?> register = reader.register();
 				sources.add(reader);
 				distinctRegisters.add(register);
-				//noinspection unchecked,rawtypes
 				restriction = restriction == null
 					? reader.restriction()
 					: restriction.union((TypeRestriction) reader.restriction());
@@ -365,15 +365,14 @@ public final class L2ValueManifest
 			else
 			{
 				// Create a phi function.
-				//noinspection unchecked,rawtypes
-				final L2WritePhiOperand newWrite =
+				final L2WritePhiOperand<?, ?> newWrite =
 					translator.newPhiRegisterWriter(
 						sources.get(0).register().copyForTranslator(
 							translator,
 							(TypeRestriction) restriction));
 				translator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
-					new L2ReadVectorOperand<>(sources),
+					new L2ReadVectorOperand(sources),
 					newWrite);
 				addBinding(semanticValue, newWrite.read());
 				if (constantSemanticValue != null
