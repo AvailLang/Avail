@@ -918,12 +918,13 @@ public final class L1Translator
 		// semantic values that were attached to the sourceRegister will
 		// produce the destination register.
 		currentManifest.replaceRegister(sourceRegister, destinationWrite);
-		for (final L2SemanticValue semanticValue :
-			new ArrayList<>(semanticValues))
-		{
-			currentManifest.addBinding(
-				semanticValue.immutable(), destinationRead);
-		}
+//TODO MvG - Remove dead code.
+//		for (final L2SemanticValue semanticValue :
+//			new ArrayList<>(semanticValues))
+//		{
+//			currentManifest.addBinding(
+//				semanticValue.immutable(), destinationRead);
+//		}
 		return destinationRead;
 	}
 
@@ -1245,6 +1246,12 @@ public final class L1Translator
 		public final L2BasicBlock afterCallNoCheck;
 
 		/**
+		 * Where it ends up after the entire call, regardless of whether the
+		 * returned value had to be checked or not.
+		 */
+		public final L2BasicBlock afterEverything;
+
+		/**
 		 * Record the fact that this call has produced a value in a particular
 		 * register which is to represent the new top-of-stack value.
 		 *
@@ -1256,22 +1263,26 @@ public final class L1Translator
 		 */
 		public void useAnswer (final L2ReadPointerOperand answerReg)
 		{
-			forceSlotRegister(stackp, pc.value - 1, answerReg);
 			final A_Type answerType = answerReg.type();
 			if (answerType.isBottom())
 			{
-				// The VM says we can't actually get here.
+				// The VM says we can't actually get here.  Don't bother
+				// associating the return value with either the checked or
+				// unchecked return result L2SemanticSlot.
 				addUnreachableCode();
+			}
+			else if (answerType.isSubtypeOf(expectedType))
+			{
+				// Capture it as the checked value L2SemanticSlot.
+				forceSlotRegister(stackp, pc.value, answerReg);
+				addInstruction(L2_JUMP.instance, edgeTo(afterCallNoCheck));
 			}
 			else
 			{
-				// Jump to the appropriate afterCall* exit.
-				addInstruction(
-					L2_JUMP.instance,
-					edgeTo(
-						answerType.isSubtypeOf(expectedType)
-							? afterCallNoCheck
-							: afterCallWithCheck));
+				// Capture it as the unchecked return value SemanticSlot by
+				// using pc - 1.
+				forceSlotRegister(stackp, pc.value - 1, answerReg);
+				addInstruction(L2_JUMP.instance, edgeTo(afterCallWithCheck));
 			}
 		}
 
@@ -1315,6 +1326,10 @@ public final class L1Translator
 				isSuper
 					? "after super call with check of " + quotedBundleName
 					: "after call with check of " + quotedBundleName);
+			this.afterEverything = createBasicBlock(
+				isSuper
+					? "after entire super call of " + quotedBundleName
+					: "after entire call of " + quotedBundleName);
 		}
 	}
 
@@ -1559,7 +1574,9 @@ public final class L1Translator
 			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
-				stackp, getLatestReturnValue(unionOfPossibleResults));
+				stackp,
+				pc.value - 1,
+				getLatestReturnValue(unionOfPossibleResults));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
 		}
@@ -1571,21 +1588,24 @@ public final class L1Translator
 			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
-				stackp, getLatestReturnValue(unionOfPossibleResults));
+				stackp,
+				pc.value,
+				getLatestReturnValue(unionOfPossibleResults));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
 		}
 
 		// #4: After call with return check.
 		startBlock(callSiteHelper.afterCallWithCheck);
-		final L2BasicBlock afterEverything =
-			new L2BasicBlock("after entire call");
-
 		if (currentlyReachable())
 		{
+			// The unchecked return value will have been put into the register
+			// bound to the L2SemanticSlot for the stackp and pc just after the
+			// call MINUS ONE.  Check it, moving it to a register that's bound
+			// to the L2SemanticSlot for the stackp and pc just after the call.
 			generateReturnTypeCheck(expectedType);
 			addInstruction(
-				L2_JUMP.instance, edgeTo(afterEverything));
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
 		}
 
 		// #5: After call without return check.
@@ -1593,21 +1613,19 @@ public final class L1Translator
 		startBlock(callSiteHelper.afterCallNoCheck);
 		if (currentlyReachable())
 		{
-			// Copy the unchecked value into a fresh register representing the
-			// checked value.  Since generating the check (#4) above would have
-			// replaced the semanticSlot entry, we have to read from the
-			// register that held the unchecked value at pc - 1.
-			final L2ReadPointerOperand uncheckedValue = stripNull(
+			// The value will have been put into a register bound to the
+			// L2SemanticSlot for the stackp and pc just after the call.
+			assert
 				currentManifest.semanticValueToRegister(
-					topFrame.slot(stackp, pc.value - 1)));
-			forceSlotRegister(stackp, uncheckedValue);
+						topFrame.slot(stackp, pc.value))
+					!= null;
 			addInstruction(
-				L2_JUMP.instance, edgeTo(afterEverything));
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
 		}
 
-		// If it's possible to return a valid value from the call, this will be
-		// reachable.
-		startBlock(afterEverything);
+		// #6: After everything.  If it's possible to return a valid value from
+		// the call, this will be reachable.
+		startBlock(callSiteHelper.afterEverything);
 	}
 
 	/**
@@ -2070,34 +2088,36 @@ public final class L1Translator
 					callSiteHelper);
 				if (generated)
 				{
-					if (currentlyReachable())
-					{
-						// It didn't do the jump to a suitable exit, so do that
-						// now.
-						final A_Type signatureTupleType =
-							rawFunction.functionType().argsTupleType();
-						final List<A_Type> intersectedArgumentTypes =
-							new ArrayList<>(argumentCount);
-						for (int i = 0; i < argumentCount; i++)
-						{
-							intersectedArgumentTypes.add(
-								arguments.get(i).type().typeIntersection(
-									signatureTupleType.typeAtIndex(i + 1)));
-						}
-						final A_Type primitiveGuarantee =
-							primitive.returnTypeGuaranteedByVM(
-								rawFunction, intersectedArgumentTypes);
-						guaranteedResultType =
-							guaranteedResultType.typeIntersection(
-								primitiveGuarantee);
-
-						forceSlotRegister(
-							stackp,
-							new L2ReadPointerOperand(
-								readSlot(stackp).register(),
-								restriction(guaranteedResultType, null)));
-						callSiteHelper.useAnswer(readSlot(stackp));
-					}
+					assert !currentlyReachable();
+//TODO MvG - Delete.
+//					if (currentlyReachable())
+//					{
+//						// It didn't do the jump to a suitable exit, so do that
+//						// now.
+//						final A_Type signatureTupleType =
+//							rawFunction.functionType().argsTupleType();
+//						final List<A_Type> intersectedArgumentTypes =
+//							new ArrayList<>(argumentCount);
+//						for (int i = 0; i < argumentCount; i++)
+//						{
+//							intersectedArgumentTypes.add(
+//								arguments.get(i).type().typeIntersection(
+//									signatureTupleType.typeAtIndex(i + 1)));
+//						}
+//						final A_Type primitiveGuarantee =
+//							primitive.returnTypeGuaranteedByVM(
+//								rawFunction, intersectedArgumentTypes);
+//						guaranteedResultType =
+//							guaranteedResultType.typeIntersection(
+//								primitiveGuarantee);
+//
+//						forceSlotRegister(
+//							stackp,
+//							new L2ReadPointerOperand(
+//								readSlot(stackp).register(),
+//								restriction(guaranteedResultType, null)));
+//						callSiteHelper.useAnswer(readSlot(stackp));
+//					}
 					return;
 				}
 			}
@@ -2136,14 +2156,22 @@ public final class L1Translator
 					: callSiteHelper.onReificationWithCheck));
 		}
 		startBlock(successBlock);
-		addInstruction(
-			L2_GET_LATEST_RETURN_VALUE.instance,
-			writeSlot(stackp, pc.value - 1, guaranteedResultType, null));
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(skipCheck
-				? callSiteHelper.afterCallNoCheck
-				: callSiteHelper.afterCallWithCheck));
+		if (skipCheck)
+		{
+			addInstruction(
+				L2_GET_LATEST_RETURN_VALUE.instance,
+				writeSlot(stackp, pc.value, guaranteedResultType, null));
+			addInstruction(
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
+		}
+		else
+		{
+			addInstruction(
+				L2_GET_LATEST_RETURN_VALUE.instance,
+				writeSlot(stackp, pc.value - 1, guaranteedResultType, null));
+			addInstruction(
+				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
+		}
 		assert !currentlyReachable();
 	}
 
@@ -2165,8 +2193,11 @@ public final class L1Translator
 	 */
 	private void generateReturnTypeCheck (final A_Type expectedType)
 	{
-		final L2ReadPointerOperand valueReg = readSlot(stackp);
-		if (valueReg.type().isBottom())
+		final L2ReadPointerOperand uncheckedValueReg =
+			stripNull(
+				currentManifest.semanticValueToRegister(
+					topFrame.slot(stackp, pc.value - 1)));
+		if (uncheckedValueReg.type().isBottom())
 		{
 			// Bottom has no instances, so we can't get here.  It would be wrong
 			// to do this based on the expectedType being bottom, since that's
@@ -2182,7 +2213,7 @@ public final class L1Translator
 			createBasicBlock("passed return check");
 		final L2BasicBlock failedCheck =
 			createBasicBlock("failed return check");
-		if (valueReg.type().typeIntersection(expectedType).isBottom())
+		if (uncheckedValueReg.type().typeIntersection(expectedType).isBottom())
 		{
 			// It's impossible to return a valid value here, since the value's
 			// type bound and the expected type don't intersect.  Always invoke
@@ -2193,20 +2224,20 @@ public final class L1Translator
 		}
 		else
 		{
-			assert !valueReg.type().isSubtypeOf(expectedType)
+			assert !uncheckedValueReg.type().isSubtypeOf(expectedType)
 				: "Attempting to create unnecessary type check";
 			addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueReg,
+				uncheckedValueReg,
 				new L2ConstantOperand(expectedType),
 				new L2PcOperand(
 					passedCheck,
 					currentManifest,
-					valueReg.restrictedTo(expectedType, null)),
+					uncheckedValueReg.restrictedTo(expectedType, null)),
 				new L2PcOperand(
 					failedCheck,
 					currentManifest,
-					valueReg.restrictedWithoutType(expectedType)));
+					uncheckedValueReg.restrictedWithoutType(expectedType)));
 		}
 
 		// The type check failed, so report it.
@@ -2222,7 +2253,7 @@ public final class L1Translator
 		addInstruction(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			variableToHoldValueWrite.read(),
-			valueReg,
+			uncheckedValueReg,
 			edgeTo(wroteVariable),
 			edgeTo(wroteVariable));
 
@@ -2256,10 +2287,9 @@ public final class L1Translator
 		{
 			forceSlotRegister(
 				stackp,
-				pc.value - 1,
 				new L2ReadPointerOperand(
-					valueReg.register(),
-					valueReg.restriction().intersection(
+					uncheckedValueReg.register(),
+					uncheckedValueReg.restriction().intersection(
 						restriction(expectedType, null))));
 		}
 	}
@@ -2890,7 +2920,7 @@ public final class L1Translator
 			edgeTo(onReificationDuringFailure));
 
 		startBlock(onReificationDuringFailure);
-		reify(null, TO_RETURN_INTO);
+		reify(bottom(), TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
 			edgeTo(success));
