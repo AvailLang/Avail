@@ -59,7 +59,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
  *        The type for {@link TypeRestriction}s.
  */
 public abstract class L2ReadOperand<
-	R extends L2Register,
+	R extends L2Register<T>,
 	T extends A_BasicObject>
 extends L2Operand
 {
@@ -163,10 +163,10 @@ extends L2Operand
 
 	@Override
 	public final void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
+		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
-		final @Nullable L2Register replacement = registerRemap.get(register);
+		final @Nullable L2Register<?> replacement = registerRemap.get(register);
 		if (replacement == null || replacement == register)
 		{
 			return;
@@ -179,7 +179,7 @@ extends L2Operand
 
 	@Override
 	public final void addSourceRegistersTo (
-		final List<L2Register> sourceRegisters)
+		final List<L2Register<?>> sourceRegisters)
 	{
 		sourceRegisters.add(register);
 	}

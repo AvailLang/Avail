@@ -129,7 +129,7 @@ extends L2Operand
 
 	@Override
 	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
+		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
 		for (final T read : elements)
@@ -139,7 +139,7 @@ extends L2Operand
 	}
 
 	@Override
-	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	public void addSourceRegistersTo (final List<L2Register<?>> sourceRegisters)
 	{
 		for (final T read : elements)
 		{

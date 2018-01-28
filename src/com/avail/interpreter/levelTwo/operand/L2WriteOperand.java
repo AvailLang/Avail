@@ -54,7 +54,7 @@ import java.util.Map;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class L2WriteOperand<
-	R extends L2Register,
+	R extends L2Register<T>,
 	T extends A_BasicObject>
 extends L2Operand
 {
@@ -117,10 +117,10 @@ extends L2Operand
 
 	@Override
 	public final void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
+		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
-		final @Nullable L2Register replacement = registerRemap.get(register);
+		final @Nullable L2Register<?> replacement = registerRemap.get(register);
 		if (replacement == null || replacement == register)
 		{
 			return;
@@ -133,7 +133,7 @@ extends L2Operand
 
 	@Override
 	public final void addDestinationRegistersTo (
-		final List<L2Register> destinationRegisters)
+		final List<L2Register<?>> destinationRegisters)
 	{
 		destinationRegisters.add(register);
 	}
@@ -141,6 +141,7 @@ extends L2Operand
 	@Override
 	public final String toString ()
 	{
+		//noinspection StringConcatenationMissingWhitespace
 		return "→"
 			+ register
 			+ register.restriction().suffixString();

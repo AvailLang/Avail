@@ -43,6 +43,7 @@ import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -86,6 +87,6 @@ public final class P_SetSize extends Primitive
 		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		return argumentTypes.get(0).sizeRange();
+		return argumentTypes.get(0).sizeRange().typeIntersection(int32());
 	}
 }

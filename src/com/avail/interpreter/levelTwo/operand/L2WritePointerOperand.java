@@ -76,6 +76,7 @@ extends L2WriteOperand<L2ObjectRegister, A_BasicObject>
 	 *
 	 * @return The new {@link L2ReadPointerOperand}.
 	 */
+	@Override
 	public final L2ReadPointerOperand read ()
 	{
 		return new L2ReadPointerOperand(register, register.restriction());

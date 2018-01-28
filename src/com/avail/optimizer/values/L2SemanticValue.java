@@ -45,6 +45,17 @@ import com.avail.utility.evaluation.Transformer1NotNull;
 public abstract class L2SemanticValue
 {
 	/**
+	 * Answer the semantic value representing a particular constant value.
+	 *
+	 * @param value The actual Avail value.
+	 * @return A {@link L2SemanticConstant} representing the constant.
+	 */
+	public static L2SemanticValue constant (final A_BasicObject value)
+	{
+		return new L2SemanticConstant(value);
+	}
+
+	/**
 	 * Answer the semantic value like the receiver, but wrapped to ensure it's
 	 * immutable.
 	 *
@@ -56,14 +67,25 @@ public abstract class L2SemanticValue
 	}
 
 	/**
-	 * Answer the semantic value representing a particular constant value.
+	 * Answer the semantic value like the receiver, but wrapped to qualify that
+	 * it's been unboxed as an {@code int}.
 	 *
-	 * @param value The actual Avail value.
-	 * @return A {@link L2SemanticConstant} representing the constant.
+	 * @return The {@link L2SemanticUnboxedInt}.
 	 */
-	public static L2SemanticValue constant (final A_BasicObject value)
+	public L2SemanticUnboxedInt unboxedAsInt ()
 	{
-		return new L2SemanticConstant(value);
+		return new L2SemanticUnboxedInt(this);
+	}
+
+	/**
+	 * Answer the semantic value like the receiver, but wrapped to qualify that
+	 * it's been unboxed as a {@code double}.
+	 *
+	 * @return The {@link L2SemanticUnboxedFloat}.
+	 */
+	public L2SemanticUnboxedFloat unboxedAsFloat ()
+	{
+		return new L2SemanticUnboxedFloat(this);
 	}
 
 	/**
@@ -82,4 +104,15 @@ public abstract class L2SemanticValue
 		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
 		final Transformer1NotNull<Frame, Frame> frameTransformer);
+
+	/**
+	 * Is the receiver immutable?
+	 *
+	 * @return {@code true} if the receiver is immutable, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isImmutable ()
+	{
+		return false;
+	}
 }

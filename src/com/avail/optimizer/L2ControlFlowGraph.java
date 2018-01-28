@@ -99,9 +99,9 @@ public final class L2ControlFlowGraph
 	 *
 	 * @return A {@link List} of {@link L2Register}s without repetitions.
 	 */
-	public List<L2Register> allRegisters ()
+	public List<L2Register<?>> allRegisters ()
 	{
-		final Set<L2Register> allRegisters = new HashSet<>();
+		final Set<L2Register<?>> allRegisters = new HashSet<>();
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
 			for (final L2Instruction instruction : block.instructions())

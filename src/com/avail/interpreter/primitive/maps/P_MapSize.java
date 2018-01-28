@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.maps;
 
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
@@ -42,6 +43,7 @@ import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -78,5 +80,13 @@ public final class P_MapSize extends Primitive
 		return functionType(
 			tuple(mostGeneralMapType()),
 			wholeNumbers());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
+		final List<? extends A_Type> argumentTypes)
+	{
+		return argumentTypes.get(0).sizeRange().typeIntersection(int32());
 	}
 }
