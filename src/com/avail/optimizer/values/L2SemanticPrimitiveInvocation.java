@@ -46,10 +46,16 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * isn't executed too many or too few times.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class L2SemanticPrimitiveInvocation
 extends L2SemanticValue
 {
+	/**
+	 * The program counter, or {@code 0} for pure {@link Primitive}s.
+	 */
+	public final int pc;
+
 	/**
 	 * The {@link Primitive} whose invocation is being represented.
 	 */
@@ -69,19 +75,25 @@ extends L2SemanticValue
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
 	 *
+	 * @param pc
+	 *        The program counter, or {@code 0} for pure {@link Primitive}s.
 	 * @param primitive
 	 *        The primitive whose invocation is being represented.
 	 * @param argumentSemanticValues
 	 *        The semantic values.
 	 */
 	public L2SemanticPrimitiveInvocation (
+		final int pc,
 		final Primitive primitive,
 		final List<L2SemanticValue> argumentSemanticValues)
 	{
 		this.primitive = primitive;
 		this.argumentSemanticValues = new ArrayList<>(argumentSemanticValues);
+		this.pc = pc;
 		// Compute the hash.
 		int h = primitive.primitiveNumber * multiplier;
+		h ^= pc;
+		h *= multiplier;
 		for (final L2SemanticValue argument : argumentSemanticValues)
 		{
 			h ^= argument.hashCode();
@@ -103,7 +115,8 @@ extends L2SemanticValue
 		}
 		final L2SemanticPrimitiveInvocation
 			invocation = (L2SemanticPrimitiveInvocation) obj;
-		return primitive == invocation.primitive
+		return pc == invocation.pc
+			&& primitive == invocation.primitive
 			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
 	}
 
@@ -130,7 +143,7 @@ extends L2SemanticValue
 			if (!newArguments.get(i).equals(argumentSemanticValues.get(i)))
 			{
 				return new L2SemanticPrimitiveInvocation(
-					primitive, newArguments);
+					pc, primitive, newArguments);
 			}
 		}
 		return this;
@@ -140,7 +153,7 @@ extends L2SemanticValue
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Invoke ");
+		builder.append("Invoke");
 		builder.append(primitive.name());
 		builder.append("(");
 		boolean first = true;
