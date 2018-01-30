@@ -253,7 +253,7 @@ extends L2Operation
 	{
 		assert this == instruction.operation;
 		builder.append("ϕ ");
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(instruction.writePhiRegisterAt(1).register());
 		builder.append(" ← ");
 		builder.append(instruction.operands[0]);
 	}

@@ -90,4 +90,11 @@ extends L2SemanticValue
 			.replace("\t", "\\t");
 		return "Constant(" + valueString + ")";
 	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// In fact, constants are *always* immutable (and shared).
+		return true;
+	}
 }

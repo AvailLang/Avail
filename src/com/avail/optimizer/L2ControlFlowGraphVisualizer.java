@@ -447,16 +447,14 @@ public class L2ControlFlowGraphVisualizer
 						Integer.toString(
 							sourceBlock.finalInstruction().offset() != -1
 								? sourceBlock.finalInstruction().offset()
-								: sourceBlock.instructions().size() - 1)),
+								: sourceBlock.instructions().size())),
 					targetBlock.offset() != -1
 						? sourceBlock.offset() <= targetBlock.offset()
 							? node(basicBlockName(targetBlock))
 							: node(
 								basicBlockName(targetBlock),
 								Integer.toString(targetBlock.offset()))
-						: !targetBlock.instructions().isEmpty()
-							? node(basicBlockName(targetBlock), "1")
-							: node(basicBlockName(targetBlock)),
+						: node(basicBlockName(targetBlock)),
 					attr ->
 					{
 						final @Nullable Purpose purpose = type.purpose();

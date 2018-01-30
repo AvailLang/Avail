@@ -115,4 +115,14 @@ extends L2SemanticValue
 	{
 		return "Slot #" + slotIndex + " of " + frame + " as of pc=" + pcAfter;
 	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// A virtual slot of a continuation, once made immutable, continues to
+		// be immutable even after we follow an off-ramp/on-ramp pair.  That's
+		// because the value that was written to the reified continuation will
+		// be immutable, and will be read back into a register as immutable.
+		return true;
+	}
 }

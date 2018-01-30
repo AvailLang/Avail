@@ -83,4 +83,12 @@ extends L2SemanticValue
 	{
 		return "Function of " + frame;
 	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// A function, once made immutable, continues to be immutable even after
+		// we follow an off-ramp/on-ramp pair.
+		return true;
+	}
 }

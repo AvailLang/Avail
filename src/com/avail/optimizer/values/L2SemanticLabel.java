@@ -90,4 +90,12 @@ final class L2SemanticLabel extends L2SemanticValue
 	{
 		return "Label for " + frame;
 	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// A label, once made immutable, continues to be immutable even after we
+		// follow an off-ramp/on-ramp pair.
+		return true;
+	}
 }

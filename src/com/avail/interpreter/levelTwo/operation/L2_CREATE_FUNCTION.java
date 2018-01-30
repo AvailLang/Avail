@@ -39,6 +39,7 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -54,7 +55,8 @@ import java.util.Set;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -129,13 +131,39 @@ extends L2Operation
 //		final int newFunctionRegIndex =
 //			instruction.writeObjectRegisterAt(2).finalIndex();
 
+		// Narrow the outerType by the type that the raw function says the outer
+		// must have.
 		final A_Type typeFromCode = code.outerTypeAt(outerIndex);
-		final A_Type intersection = outerType.typeIntersection(typeFromCode);
+		A_Type intersection = outerType.typeIntersection(typeFromCode);
 		assert !intersection.isBottom();
 
-		return new L2ReadPointerOperand(
-			outerRegs.get(outerIndex - 1).register(),
-			restriction(intersection, null));
+		final L2ReadPointerOperand originalRegister =
+			outerRegs.get(outerIndex - 1);
+		// Narrow the intersection with this register's restriction.
+		intersection = intersection.typeIntersection(originalRegister.type());
+		assert !intersection.isBottom();
+
+		if (!translator.currentManifest().registerToSemanticValues(
+			originalRegister.register()).isEmpty())
+		{
+			// The register that supplied the outer value is still live.  Use it
+			// directly, which may allow the function creation to be elided.
+			return new L2ReadPointerOperand(
+				originalRegister.register(),
+				restriction(intersection, null));
+		}
+
+		// The register that supplied the value is no longer live.  Extract the
+		// value from the actual function.  Note that it's still guaranteed to
+		// have the strengthened type.
+		final L2WritePointerOperand tempReg =
+			translator.newObjectRegisterWriter(intersection, null);
+		translator.addInstruction(
+			L2_MOVE_OUTER_VARIABLE.instance,
+			new L2IntImmediateOperand(outerIndex),
+			functionRegister,
+			tempReg);
+		return tempReg.read();
 	}
 
 	/**

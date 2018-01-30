@@ -166,4 +166,24 @@ public final class L2ControlFlowGraph
 			block.generateOn(instructions);
 		}
 	}
+
+	/**
+	 * Answer a visualization of this {@code L2ControlFlowGraph}. This is a
+	 * debug method, intended to be called via evaluation during debugging.
+	 *
+	 * @return The requested visualization.
+	 */
+	public String visualize ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		final L2ControlFlowGraphVisualizer visualizer =
+			new L2ControlFlowGraphVisualizer(
+				"«control flow graph»",
+				"«chunk»",
+				80,
+				this,
+				builder);
+		visualizer.visualize();
+		return builder.toString();
+	}
 }

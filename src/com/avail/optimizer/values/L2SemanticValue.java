@@ -56,14 +56,16 @@ public abstract class L2SemanticValue
 	}
 
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to ensure it's
-	 * immutable.
+	 * For some semantic values, reification doesn't affect whether the actual
+	 * value is still immutable, but for others, new objects have to be created
+	 * which might be mutable.
 	 *
- 	 * @return The {@link L2SemanticMakeImmutable}.
+	 * @return Whether to consider immutability before reification to still hold
+	 *         upon return into the corresponding on-ramp.
 	 */
-	public L2SemanticValue immutable ()
+	public boolean immutabilityTranscendsReification ()
 	{
-		return new L2SemanticMakeImmutable(this);
+		return false;
 	}
 
 	/**

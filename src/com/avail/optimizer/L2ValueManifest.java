@@ -85,12 +85,22 @@ public final class L2ValueManifest
 		registerToSemanticValues;
 
 	/**
+	 * The (mutable) {@link Set} of semantic values which are known to have
+	 * already been made immutable at the position associated with this
+	 * manifest.  DO NOT include values that might be regenerated as equivalent
+	 * but <em>mutable</em> objects.  Values captured by closures or
+	 * continuations are fine.
+	 */
+	public final Set<L2SemanticValue> semanticValuesKnownToBeImmutable;
+
+	/**
 	 * Create an empty manifest.
 	 */
 	public L2ValueManifest ()
 	{
 		this.semanticValueToRegister = new HashMap<>();
 		this.registerToSemanticValues = new HashMap<>();
+		this.semanticValuesKnownToBeImmutable = new HashSet<>();
 	}
 
 	/**
@@ -101,8 +111,8 @@ public final class L2ValueManifest
 	 */
 	public L2ValueManifest (final L2ValueManifest originalManifest)
 	{
-		this.semanticValueToRegister = new HashMap<>(
-			originalManifest.semanticValueToRegister);
+		this.semanticValueToRegister =
+			new HashMap<>(originalManifest.semanticValueToRegister);
 		this.registerToSemanticValues = new HashMap<>();
 		for (final Entry<L2Register<?>, Set<L2SemanticValue>> entry
 			: originalManifest.registerToSemanticValues.entrySet())
@@ -110,6 +120,8 @@ public final class L2ValueManifest
 			registerToSemanticValues.put(
 				entry.getKey(), new HashSet<>(entry.getValue()));
 		}
+		this.semanticValuesKnownToBeImmutable =
+			new HashSet<>(originalManifest.semanticValuesKnownToBeImmutable);
 	}
 
 	/**
@@ -167,52 +179,25 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Is there an immutable {@link L2SemanticValue} for the specified
-	 * {@link L2ReadPointerOperand}?
+	 * Have any of this register's {@link L2SemanticValue}s been marked
+	 * immutable?
 	 *
 	 * @param registerRead
 	 *        The {@code L2ReadPointerOperand} to test.
-	 * @return {@code true} if such a variant exists, {@code false} otherwise.
+	 * @return {@code true} if the register is known to contain an immutable
+	 *         value here, {@code false} otherwise.
 	 */
 	public boolean isAlreadyImmutable (final L2ReadPointerOperand registerRead)
 	{
 		for (final L2SemanticValue semanticValue :
 			registerToSemanticValues(registerRead.register()))
 		{
-			if (semanticValue.isImmutable())
+			if (semanticValuesKnownToBeImmutable.contains(semanticValue))
 			{
 				return true;
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Record the fact that the given semantic value no longer has any register
-	 * mapped to it.
-	 *
-	 * @param semanticValue
-	 *        The {@link L2SemanticValue} to disassociate from its register.
-	 */
-	@Deprecated
-	public void removeBinding (final L2SemanticValue semanticValue)
-	{
-		final L2ReadOperand<?, ?> oldRegisterRead =
-			semanticValueToRegister.remove(semanticValue);
-		if (oldRegisterRead != null)
-		{
-			final L2Register<?> oldRegister = oldRegisterRead.register();
-			final @Nullable Set<L2SemanticValue> semanticValues =
-				registerToSemanticValues.get(oldRegister);
-			if (semanticValues != null)
-			{
-				semanticValues.remove(semanticValue);
-				if (semanticValues.isEmpty())
-				{
-					registerToSemanticValues.remove(oldRegister);
-				}
-			}
-		}
 	}
 
 	/**
@@ -260,12 +245,14 @@ public final class L2ValueManifest
 
 	/**
 	 * Remove all information about registers and semantic values from this
-	 * manifest.
+	 * manifest, including information about which semantic values are known to
+	 * be immutable.
 	 */
 	public void clear ()
 	{
 		registerToSemanticValues.clear();
 		semanticValueToRegister.clear();
+		semanticValuesKnownToBeImmutable.clear();
 	}
 
 	/**
@@ -288,6 +275,7 @@ public final class L2ValueManifest
 	{
 		assert semanticValueToRegister.isEmpty();
 		assert registerToSemanticValues.isEmpty();
+		assert semanticValuesKnownToBeImmutable.isEmpty();
 		final int manifestsSize = manifests.size();
 		if (manifestsSize == 0)
 		{
@@ -304,16 +292,27 @@ public final class L2ValueManifest
 				registerToSemanticValues.put(
 					entry.getKey(), new HashSet<>(entry.getValue()));
 			}
+			semanticValuesKnownToBeImmutable.addAll(
+				soleManifest.semanticValuesKnownToBeImmutable);
 			return;
 		}
 		final Iterator<L2ValueManifest> iterator = manifests.iterator();
+		final L2ValueManifest firstManifest = iterator.next();
 		final Set<L2SemanticValue> semanticValues = new HashSet<>(
-			iterator.next().semanticValueToRegister.keySet());
+			firstManifest.semanticValueToRegister.keySet());
+		final Set<L2SemanticValue> knownImmutables = new HashSet<>(
+			firstManifest.semanticValuesKnownToBeImmutable);
 		while (iterator.hasNext())
 		{
+			final L2ValueManifest nextManifest = iterator.next();
 			semanticValues.retainAll(
-				iterator.next().semanticValueToRegister.keySet());
+				nextManifest.semanticValueToRegister.keySet());
+			knownImmutables.retainAll(
+				nextManifest.semanticValuesKnownToBeImmutable);
 		}
+		// Note that the set of knownImmutables is allowed to include values for
+		// which there is not currently a bound semantic value in the manifest.
+		semanticValuesKnownToBeImmutable.addAll(knownImmutables);
 		for (final L2SemanticValue semanticValue : semanticValues)
 		{
 			final List<L2ReadOperand<?, ?>> sources =
