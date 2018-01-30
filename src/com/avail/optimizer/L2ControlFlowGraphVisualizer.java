@@ -49,10 +49,7 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -157,6 +154,19 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/**
+	 * A generator of unique identifiers, for construction of
+	 * {@link L2BasicBlock} names when the {@link L2ControlFlowGraph} is
+	 * incomplete or inconsistent.
+	 */
+	private int blockId = 0;
+
+	/**
+	 * The node name of the {@link L2BasicBlock}s, as a {@linkplain Map map}
+	 * from {@code L2BasicBlock}s to their names.
+	 */
+	private final Map<L2BasicBlock, String> basicBlockNames = new HashMap<>();
+
+	/**
 	 * Compute a unique name for the specified {@link L2BasicBlock}.
 	 *
 	 * @param basicBlock
@@ -167,9 +177,19 @@ public class L2ControlFlowGraphVisualizer
 	 */
 	private String basicBlockName (final L2BasicBlock basicBlock)
 	{
-		return String.format(
-			"[pc: %d] %s", basicBlock.offset(),
-			basicBlock.name());
+		return basicBlockNames.computeIfAbsent(
+			basicBlock,
+			b ->
+			{
+				final int offset = basicBlock.offset();
+				final int id = offset == -1 ? ++blockId : offset;
+				final String prefix =
+					String.format(offset == -1 ? "[id: %d]" : "[pc: %d]", id);
+				return String.format(
+					"%s %s",
+					prefix,
+					basicBlock.name());
+			});
 	}
 
 	/**
@@ -270,8 +290,9 @@ public class L2ControlFlowGraphVisualizer
 		final StringBuilder builder = new StringBuilder();
 		builder.append(
 			"<table border=\"0\" cellspacing=\"0\">");
-		final L2Instruction first =
-			basicBlock.instructions().get(0);
+		final List<L2Instruction> instructions = basicBlock.instructions();
+		final @Nullable L2Instruction first =
+			!instructions.isEmpty() ? basicBlock.instructions().get(0) : null;
 		final String bgcolor;
 		final String fontcolor;
 		if (basicBlock.instructions().stream().anyMatch(
@@ -280,7 +301,7 @@ public class L2ControlFlowGraphVisualizer
 			bgcolor = "#000000";
 			fontcolor = "#ffffff";
 		}
-		else if (first.operation.isEntryPoint(first))
+		else if (first != null && first.operation.isEntryPoint(first))
 		{
 			bgcolor = "#ffd394";
 			fontcolor = "#000000";
@@ -308,14 +329,28 @@ public class L2ControlFlowGraphVisualizer
 			bgcolor,
 			fontcolor,
 			escape(basicBlock.name())));
-		for (final L2Instruction instruction : basicBlock.instructions())
+		if (!instructions.isEmpty())
 		{
-			builder.append(String.format(
+			int instructionId = 0;
+			for (final L2Instruction instruction : basicBlock.instructions())
+			{
+				final int offset = instruction.offset();
+				final int id = offset == -1 ? ++instructionId : offset;
+				builder.append(String.format(
+					"<tr><td align=\"left\" balign=\"left\" border=\"1\" "
+						+ "port=\"%d\" valign=\"top\">",
+					id));
+				builder.append(instruction(instruction));
+				builder.append("</td></tr>");
+			}
+		}
+		else
+		{
+			builder.append(
 				"<tr><td align=\"left\" balign=\"left\" border=\"1\" "
-				+ "port=\"%d\" valign=\"top\">",
-				instruction.offset()));
-			builder.append(instruction(instruction));
-			builder.append("</td></tr>");
+					+ " valign=\"top\">"
+						+ "<i>No instructions generated.</i>"
+					+ "</td></tr>");
 		}
 		builder.append("</table>");
 		try
@@ -388,7 +423,7 @@ public class L2ControlFlowGraphVisualizer
 				builder.setLength(builder.length() - 2);
 				builder.append("</b><br/>");
 			}
-			final Set<L2Register> notAlwaysLiveInRegisters =
+			final Set<L2Register<?>> notAlwaysLiveInRegisters =
 				new HashSet<>(edge.sometimesLiveInRegisters);
 			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
 			if (!notAlwaysLiveInRegisters.isEmpty())
@@ -410,13 +445,18 @@ public class L2ControlFlowGraphVisualizer
 					node(
 						basicBlockName(sourceBlock),
 						Integer.toString(
-							sourceBlock.finalInstruction().offset())),
-					sourceBlock.offset() <= targetBlock.offset()
-						? node(basicBlockName(targetBlock))
-						: node(
-							basicBlockName(targetBlock),
-							Integer.toString(
-								targetBlock.offset())),
+							sourceBlock.finalInstruction().offset() != -1
+								? sourceBlock.finalInstruction().offset()
+								: sourceBlock.instructions().size() - 1)),
+					targetBlock.offset() != -1
+						? sourceBlock.offset() <= targetBlock.offset()
+							? node(basicBlockName(targetBlock))
+							: node(
+								basicBlockName(targetBlock),
+								Integer.toString(targetBlock.offset()))
+						: !targetBlock.instructions().isEmpty()
+							? node(basicBlockName(targetBlock), "1")
+							: node(basicBlockName(targetBlock)),
 					attr ->
 					{
 						final @Nullable Purpose purpose = type.purpose();

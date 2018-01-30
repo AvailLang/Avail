@@ -545,8 +545,12 @@ public abstract class L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		builder.append(instruction.offset());
-		builder.append(". ");
+		final int offset = instruction.offset();
+		if (offset != -1)
+		{
+			builder.append(instruction.offset());
+			builder.append(". ");
+		}
 		builder.append(this);
 	}
 

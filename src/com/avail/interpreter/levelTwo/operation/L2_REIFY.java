@@ -38,8 +38,10 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -56,6 +58,7 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
@@ -163,6 +166,16 @@ extends L2Operation
 				builder.append("process interrupt");
 			}
 			builder.append(']');
+		}
+		final L2NamedOperandType type = operandTypes()[3];
+		if (desiredTypes.contains(type.operandType()))
+		{
+			final L2Operand operand = instruction.operands[3];
+			builder.append("\n\t");
+			assert operand.operandType() == type.operandType();
+			builder.append(type.name());
+			builder.append(" = ");
+			builder.append(increaseIndentation(operand.toString(), 1));
 		}
 	}
 
