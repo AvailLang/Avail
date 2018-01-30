@@ -52,7 +52,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.Map.Entry;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -477,14 +476,28 @@ public class L2ControlFlowGraphVisualizer
 				{
 					builder.append(
 						"<font face=\"Helvetica\"><i>manifest:</i></font>");
-					for (final Entry<L2SemanticValue, L2ReadOperand<?, ?>>
-						binding : bindings.entrySet())
-					{
-						builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-						builder.append(binding.getKey());
-						builder.append(" → ");
-						builder.append(binding.getValue());
-					}
+					bindings.entrySet().stream()
+						.sorted((a, b) ->
+						{
+							final int classCmp =
+								a.getKey().getClass().getSimpleName()
+									.compareTo(
+										b.getKey().getClass().getSimpleName());
+							if (classCmp != 0)
+							{
+								return classCmp;
+							}
+							return a.getKey().toString().compareTo(
+								b.getKey().toString());
+						})
+						.forEach(binding ->
+						{
+							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
+							builder.append("<font face=\"Helvetica\"><i>");
+							builder.append(binding.getKey());
+							builder.append("</i> → ");
+							builder.append(binding.getValue());
+						});
 				}
 			}
 			builder.append("</td></tr></table>");
