@@ -165,7 +165,13 @@ extends L2Operand
 				builder.append(", ");
 			}
 			builder.append(read.register());
-			builder.append(read.restriction().suffixString());
+			final TypeRestriction<?> restriction = read.restriction();
+			if (restriction.constantOrNull == null)
+			{
+				// Don't redundantly print restriction information for
+				// constants.
+				builder.append(restriction.suffixString());
+			}
 			first = false;
 		}
 		builder.append(">");

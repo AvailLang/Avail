@@ -141,9 +141,15 @@ extends L2Operand
 	@Override
 	public final String toString ()
 	{
-		//noinspection StringConcatenationMissingWhitespace
-		return "→"
-			+ register
-			+ register.restriction().suffixString();
+		final StringBuilder builder = new StringBuilder();
+		builder.append('→');
+		builder.append(register);
+		final TypeRestriction<?> restriction = register.restriction();
+		if (restriction.constantOrNull == null)
+		{
+			// Don't redundantly print restriction information for constants.
+			builder.append(restriction.suffixString());
+		}
+		return builder.toString();
 	}
 }
