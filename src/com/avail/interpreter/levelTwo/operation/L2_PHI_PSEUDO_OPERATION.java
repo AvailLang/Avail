@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
@@ -51,6 +52,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
@@ -241,6 +243,19 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		return instruction.readVectorRegisterAt(0);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		builder.append("ϕ ");
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
 	}
 
 	@Override
