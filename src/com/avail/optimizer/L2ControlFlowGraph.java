@@ -173,6 +173,7 @@ public final class L2ControlFlowGraph
 	 *
 	 * @return The requested visualization.
 	 */
+	@SuppressWarnings("unused")
 	public String visualize ()
 	{
 		final StringBuilder builder = new StringBuilder();
@@ -182,6 +183,8 @@ public final class L2ControlFlowGraph
 				"«chunk»",
 				80,
 				this,
+				true,
+				true,
 				builder);
 		visualizer.visualize();
 		return builder.toString();

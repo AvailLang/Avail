@@ -1444,6 +1444,8 @@ public final class JVMTranslator
 					chunkName,
 					80,
 					controlFlowGraph,
+					true,
+					false,
 					builder);
 			visualizer.visualize();
 			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(

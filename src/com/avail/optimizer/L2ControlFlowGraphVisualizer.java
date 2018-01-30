@@ -38,8 +38,10 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.dot.DotWriter;
 import com.avail.utility.dot.DotWriter.GraphWriter;
 
@@ -50,6 +52,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.Map.Entry;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -90,6 +93,16 @@ public class L2ControlFlowGraphVisualizer
 	private final L2ControlFlowGraph controlFlowGraph;
 
 	/**
+	 * Should edges be annotated with {@link L2Register} liveness?
+	 */
+	private final boolean visualizeLiveness;
+
+	/**
+	 * Should edges be annotated with their {@link L2ValueManifest} manifest?
+	 */
+	private final boolean visualizeManifest;
+
+	/**
 	 * The {@linkplain Appendable accumulator} for the generated {@code dot}
 	 * source text.
 	 */
@@ -109,6 +122,12 @@ public class L2ControlFlowGraphVisualizer
 	 *        formatting of block comments.
 	 * @param controlFlowGraph
 	 *        The {@code L2ControlFlowGraph}.
+	 * @param visualizeLiveness
+	 *        {@code true} if edges should be annotated with {@link L2Register}
+	 *        liveness, {@code false} otherwise.
+	 * @param visualizeManifest
+	 *        {@code true} if edges should be annotated with their {@link
+	 *        L2ValueManifest}, {@code false otherwise}.
 	 * @param accumulator
 	 *        The {@linkplain Appendable accumulator} for the generated {@code
 	 *        dot} source text.
@@ -118,12 +137,16 @@ public class L2ControlFlowGraphVisualizer
 		final String name,
 		final int charactersPerLine,
 		final L2ControlFlowGraph controlFlowGraph,
+		final boolean visualizeLiveness,
+		final boolean visualizeManifest,
 		final Appendable accumulator)
 	{
 		this.fileName = fileName;
 		this.name = name;
 		this.charactersPerLine = charactersPerLine;
 		this.controlFlowGraph = controlFlowGraph;
+		this.visualizeLiveness = visualizeLiveness;
+		this.visualizeManifest = visualizeManifest;
 		this.accumulator = accumulator;
 	}
 
@@ -411,32 +434,58 @@ public class L2ControlFlowGraphVisualizer
 						+ "<font face=\"Helvetica\"><b>");
 			builder.append(type.name());
 			builder.append("</b></font><br/>");
-			if (!edge.alwaysLiveInRegisters.isEmpty())
+			if (visualizeLiveness)
 			{
-				builder.append(
-					"<font face=\"Helvetica\"><i>always live-in:</i></font>"
-					+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-				edge.alwaysLiveInRegisters.stream()
-					.sorted(Comparator.comparingInt(L2Register::finalIndex))
-					.forEach(
-						r -> builder.append(escape(r.toString())).append(", "));
-				builder.setLength(builder.length() - 2);
-				builder.append("</b><br/>");
+				if (!edge.alwaysLiveInRegisters.isEmpty())
+				{
+					builder.append(
+						"<font face=\"Helvetica\"><i>always live-in:</i></font>"
+							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+					edge.alwaysLiveInRegisters.stream()
+						.sorted(Comparator.comparingInt(L2Register::finalIndex))
+						.forEach(
+							r -> builder
+								.append(escape(r.toString()))
+								.append(", "));
+					builder.setLength(builder.length() - 2);
+					builder.append("</b><br/>");
+				}
+				final Set<L2Register<?>> notAlwaysLiveInRegisters =
+					new HashSet<>(edge.sometimesLiveInRegisters);
+				notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
+				if (!notAlwaysLiveInRegisters.isEmpty())
+				{
+					builder.append(
+						"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
+							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+					notAlwaysLiveInRegisters.stream()
+						.sorted(Comparator.comparingInt(L2Register::finalIndex))
+						.forEach(
+							r -> builder
+								.append(escape(r.toString()))
+								.append(", "));
+					builder.setLength(builder.length() - 2);
+					builder.append("</b><br/>");
+				}
 			}
-			final Set<L2Register<?>> notAlwaysLiveInRegisters =
-				new HashSet<>(edge.sometimesLiveInRegisters);
-			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
-			if (!notAlwaysLiveInRegisters.isEmpty())
+			if (visualizeManifest)
 			{
-				builder.append(
-					"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
-					+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-				notAlwaysLiveInRegisters.stream()
-					.sorted(Comparator.comparingInt(L2Register::finalIndex))
-					.forEach(
-						r -> builder.append(escape(r.toString())).append(", "));
-				builder.setLength(builder.length() - 2);
-				builder.append("</b><br/>");
+				final L2ValueManifest manifest = edge.manifest();
+				final Map<L2SemanticValue, L2ReadOperand<?, ?>> bindings =
+					manifest.bindings();
+				if (!bindings.isEmpty())
+				{
+					builder.append(
+						"<font face=\"Helvetica\"><i>manifest:</i></font>");
+					for (final Entry<L2SemanticValue, L2ReadOperand<?, ?>>
+						binding : bindings.entrySet())
+					{
+						builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
+						builder.append(binding.getKey());
+						builder.append(" → ");
+						builder.append(binding.getValue());
+					}
+				}
 			}
 			builder.append("</td></tr></table>");
 			try
