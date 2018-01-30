@@ -495,7 +495,7 @@ public class L2ControlFlowGraphVisualizer
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
 							builder.append("<font face=\"Helvetica\"><i>");
 							builder.append(binding.getKey());
-							builder.append("</i> → ");
+							builder.append("</i></font> → ");
 							builder.append(binding.getValue());
 						});
 				}
