@@ -493,9 +493,8 @@ public class L2ControlFlowGraphVisualizer
 						.forEach(binding ->
 						{
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							builder.append("<i>");
 							builder.append(binding.getKey());
-							builder.append("</i> → ");
+							builder.append(" → ");
 							builder.append(binding.getValue());
 						});
 				}
