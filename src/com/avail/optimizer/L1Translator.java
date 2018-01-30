@@ -2947,7 +2947,7 @@ public final class L1Translator
 			edgeTo(onReificationDuringFailure));
 
 		startBlock(onReificationDuringFailure);
-		reify(bottom(), TO_RETURN_INTO);
+		reify(TOP.o(), TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
 			edgeTo(success));
@@ -3296,6 +3296,10 @@ public final class L1Translator
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			readSlot(localIndex),
 			readSlot(stackp));
+		// Now we have to nil the stack slot which held the value that we
+		// assigned.  This same slot potentially captured the expectedType in a
+		// continuation if we needed to reify during the failure path.
+		forceSlotRegister(stackp, constantRegister(nil));
 		stackp++;
 	}
 
@@ -3353,6 +3357,10 @@ public final class L1Translator
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			tempVarReg,
 			readSlot(stackp));
+		// Now we have to nil the stack slot which held the value that we
+		// assigned.  This same slot potentially captured the expectedType in a
+		// continuation if we needed to reify during the failure path.
+		forceSlotRegister(stackp, constantRegister(nil));
 		stackp++;
 	}
 
@@ -3538,6 +3546,10 @@ public final class L1Translator
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			constantRegister(literalVariable),
 			readSlot(stackp));
+		// Now we have to nil the stack slot which held the value that we
+		// assigned.  This same slot potentially captured the expectedType in a
+		// continuation if we needed to reify during the failure path.
+		forceSlotRegister(stackp, constantRegister(nil));
 		stackp++;
 	}
 
