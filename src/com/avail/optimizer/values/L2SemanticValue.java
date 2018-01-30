@@ -117,4 +117,26 @@ public abstract class L2SemanticValue
 	{
 		return false;
 	}
+
+	/**
+	 * Is the receiver an unboxed {@code int}?
+	 *
+	 * @return {@code true} if the receiver is an unboxed {@code int}, {@code
+	 *         false} otherwise.
+	 */
+	public boolean isUnboxedInt ()
+	{
+		return false;
+	}
+
+	/**
+	 * Is the receiver an unboxed {@code double}?
+	 *
+	 * @return {@code true} if the receiver is an unboxed {@code double}, {@code
+	 *         false} otherwise.
+	 */
+	public boolean isUnboxedFloat ()
+	{
+		return false;
+	}
 }

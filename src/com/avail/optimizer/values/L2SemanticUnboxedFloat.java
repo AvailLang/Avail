@@ -61,6 +61,12 @@ extends L2SemanticValue
 	}
 
 	@Override
+	public boolean isUnboxedFloat ()
+	{
+		return true;
+	}
+
+	@Override
 	public boolean equals (final Object obj)
 	{
 		if (obj instanceof L2SemanticUnboxedFloat)

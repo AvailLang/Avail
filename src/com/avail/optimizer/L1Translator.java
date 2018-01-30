@@ -70,30 +70,26 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -101,8 +97,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -832,44 +827,78 @@ public final class L1Translator
 		return read;
 	}
 
-	// TODO: [TLS] Get back to this.
-//	public L2ReadIntOperand unboxIntoIntRegister (
-//		final L2ReadPointerOperand sourceRegister)
-//	{
-//		final Set<L2SemanticValue> semanticValues =
-//			currentManifest.registerToSemanticValues(sourceRegister.register());
-//		// Ensure attempts to look up semantic values that were attached to
-//		// the sourceRegister now produce the destination register.  Also
-//		// ensure attempts to look up the unboxed versions of the semantic
-//		// values that were attached to the sourceRegister will produce the
-//		// destination register.
-//		for (final L2SemanticValue semanticValue :
-//			new ArrayList<>(semanticValues))
-//		{
-//			currentManifest.removeBinding(semanticValue.unboxedAsInt());
-//			currentManifest.addBinding(
-//				semanticValue.immutable(), destinationRead);
-//		}
-//
-//		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
-//		final @Nullable L2ReadIntOperand existingConstant =
-//			currentManifest.semanticValueToRegister(constant);
-//		if (existingConstant != null)
-//		{
-//			return existingConstant;
-//		}
-//		final L2WriteIntOperand registerWrite =
-//			newIntRegisterWriter(
-//				InstanceTypeDescriptor.instanceType(boxed),
-//				boxed);
-//		addInstruction(
-//			L2_MOVE_INT_CONSTANT.instance,
-//			new L2IntImmediateOperand(value),
-//			registerWrite);
-//		final L2ReadIntOperand read = registerWrite.read();
-//		currentManifest.addBinding(constant, read);
-//		return read;
-//	}
+	/**
+	 * Write an unboxed {@code int} value into a new {@link L2IntRegister}, if
+	 * necessary, but prefer to answer an existing register that already has an
+	 * appropriate value.
+	 *
+	 * @param read
+	 *        The boxed {@link L2ReadPointerOperand}.
+	 * @return The unboxed {@link L2ReadIntOperand}.
+	 */
+	public L2ReadIntOperand unboxIntoIntRegister (
+		final L2ReadPointerOperand read)
+	{
+		@Nullable L2ReadIntOperand unboxed =
+			currentManifest.alreadyUnboxedInt(read);
+		if (unboxed == null)
+		{
+			final L2WriteIntOperand unboxedWriter =
+				newIntRegisterWriter(
+					read.type(),
+					(A_Number) read.constantOrNull());
+			addInstruction(
+				L2_UNBOX_INT.instance,
+				read,
+				unboxedWriter);
+			// Now create unboxed variants for each relevant semantic value.
+			for (final L2SemanticValue semanticValue :
+				new ArrayList<>(
+					currentManifest.registerToSemanticValues(read.register())))
+			{
+				currentManifest.addBinding(semanticValue.unboxedAsInt(), read);
+			}
+			unboxed = unboxedWriter.read();
+		}
+		return unboxed;
+	}
+
+	/**
+	 * Write an unboxed {@code double} value into a new {@link L2FloatRegister},
+	 * if necessary, but prefer to answer an existing register that already has
+	 * an appropriate value.
+	 *
+	 * @param read
+	 *        The boxed {@link L2ReadPointerOperand}.
+	 * @return The unboxed {@link L2ReadFloatOperand}.
+	 */
+	public L2ReadFloatOperand unboxIntoFloatRegister (
+		final L2ReadPointerOperand read)
+	{
+		@Nullable L2ReadFloatOperand unboxed =
+			currentManifest.alreadyUnboxedFloat(read);
+		if (unboxed == null)
+		{
+			final L2WriteFloatOperand unboxedWriter =
+				newFloatRegisterWriter(
+					read.type(),
+					(A_Number) read.constantOrNull());
+			addInstruction(
+				L2_UNBOX_FLOAT.instance,
+				read,
+				unboxedWriter);
+			// Now create unboxed variants for each relevant semantic value.
+			for (final L2SemanticValue semanticValue :
+				new ArrayList<>(
+					currentManifest.registerToSemanticValues(read.register())))
+			{
+				currentManifest.addBinding(
+					semanticValue.unboxedAsFloat(), read);
+			}
+			unboxed = unboxedWriter.read();
+		}
+		return unboxed;
+	}
 
 	/**
 	 * Generate instruction(s) to move from one register to another.  Remove the

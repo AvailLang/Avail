@@ -195,16 +195,21 @@ extends Primitive
 		return enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES));
 	}
 
-	// TODO: [TLS] Get back to this.
-//	@Override
-//	public boolean tryToGenerateSpecialPrimitiveInvocation (
-//		final L2ReadPointerOperand functionToCallReg,
-//		final A_RawFunction rawFunction,
-//		final List<L2ReadPointerOperand> arguments,
-//		final List<A_Type> argumentTypes,
-//		final L1Translator translator,
-//		final CallSiteHelper callSiteHelper)
-//	{
-//
-//	}
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
+	{
+		return super.tryToGenerateSpecialPrimitiveInvocation(
+			functionToCallReg,
+			rawFunction,
+			arguments,
+			argumentTypes,
+			translator,
+			callSiteHelper);
+	}
 }

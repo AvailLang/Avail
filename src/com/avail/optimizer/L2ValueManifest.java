@@ -201,6 +201,51 @@ public final class L2ValueManifest
 	}
 
 	/**
+	 * Answer the unboxed {@code int} variant of the specified {@link
+	 * L2ReadPointerOperand}, if one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return The requested unboxed variant.
+	 */
+	public @Nullable L2ReadIntOperand alreadyUnboxedInt (
+		final L2ReadPointerOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (semanticValue.isUnboxedInt())
+			{
+				return semanticValueToRegister(semanticValue);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the unboxed {@code double} variant of the specified {@link
+	 * L2ReadPointerOperand}, if one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return The requested unboxed variant.
+	 */
+	public @Nullable L2ReadFloatOperand alreadyUnboxedFloat (
+		final L2ReadPointerOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (semanticValue.isUnboxedFloat())
+			{
+				return semanticValueToRegister(semanticValue);
+			}
+		}
+		return null;
+	}
+
+
+	/**
 	 * Replace all bindings for the sourceRead's register with bindings to the
 	 * same {@link L2SemanticValue}s for the destinationWrite's register.
 	 *
