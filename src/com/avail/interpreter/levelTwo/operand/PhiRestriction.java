@@ -55,12 +55,12 @@ public final class PhiRestriction
 	 * The {@link L2Register} which is to be restricted along this
 	 * control flow branch.
 	 */
-	public final L2Register register;
+	public final L2Register<?> register;
 
 	/**
 	 * The {@link TypeRestriction} being placed on the register.
 	 */
-	public final TypeRestriction typeRestriction;
+	public final TypeRestriction<?> typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
@@ -75,7 +75,7 @@ public final class PhiRestriction
 	 *        along this branch.
 	 */
 	public PhiRestriction (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{

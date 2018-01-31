@@ -75,14 +75,14 @@ public final class RegisterState
 	 * efficiently disconnect this information.
 	 * </p>
 	 */
-	private List<L2Register> origins = Collections.emptyList();
+	private List<L2Register<?>> origins = Collections.emptyList();
 
 	/**
 	 * The inverse of {@link #origins}.  For each key, the value is the
 	 * collection of registers that this value has been copied into (and not yet
 	 * been overwritten).
 	 */
-	private List<L2Register> invertedOrigins = Collections.emptyList();
+	private List<L2Register<?>> invertedOrigins = Collections.emptyList();
 
 	/**
 	 * The {@link Set} of {@link L2Instruction}s that may have provided the
@@ -199,7 +199,7 @@ public final class RegisterState
 	 *
 	 * @return The source registers.
 	 */
-	public List<L2Register> origins ()
+	public List<L2Register<?>> origins ()
 	{
 //		return Collections.unmodifiableList(origins);
 		return origins;
@@ -211,7 +211,7 @@ public final class RegisterState
 	 *
 	 * @param originRegisters The source registers.
 	 */
-	public void origins (final List<L2Register> originRegisters)
+	public void origins (final List<L2Register<?>> originRegisters)
 	{
 		assert !isShared;
 		assert originRegisters.size() <= 1
@@ -224,9 +224,10 @@ public final class RegisterState
 	 * The receiver must be mutable.
 	 *
 	 * @param origin
-	 *        The L2Register that the current register is no longer fed from.
+	 *        The {@link L2Register} that the current register is no longer fed
+	 *        from.
 	 */
-	public void removeOrigin (final L2Register origin)
+	public void removeOrigin (final L2Register<?> origin)
 	{
 		assert !isShared;
 		if (!origins.isEmpty())
@@ -248,7 +249,7 @@ public final class RegisterState
 	 *
 	 * @return An immutable list of registers.
 	 */
-	public List<L2Register> invertedOrigins ()
+	public List<L2Register<?>> invertedOrigins ()
 	{
 //		return Collections.unmodifiableList(invertedOrigins);
 		return invertedOrigins;
@@ -260,7 +261,7 @@ public final class RegisterState
 	 *
 	 * @param invertedOriginRegisters The destination registers.
 	 */
-	public void invertedOrigins (final List<L2Register> invertedOriginRegisters)
+	public void invertedOrigins (final List<L2Register<?>> invertedOriginRegisters)
 	{
 		assert !isShared;
 		assert invertedOriginRegisters.size() <= 1
@@ -273,9 +274,10 @@ public final class RegisterState
 	 * Update my {@link #invertedOrigins} to include the specified {@link
 	 * L2Register}.  The receiver must be mutable.
 	 *
-	 * @param invertedOrigin The L2Register that the current register feeds.
+	 * @param invertedOrigin
+	 *        The {@link L2Register} that the current register feeds.
 	 */
-	public void addInvertedOrigin (final L2Register invertedOrigin)
+	public void addInvertedOrigin (final L2Register<?> invertedOrigin)
 	{
 		assert !isShared;
 		invertedOrigins = append(invertedOrigins, invertedOrigin);
@@ -286,10 +288,10 @@ public final class RegisterState
 	 * L2Register}.  The receiver must be mutable.
 	 *
 	 * @param invertedOrigin
-	 *        The L2Register that the current register no longer is considered
-	 *        to feed.
+	 *        The {@link L2Register} that the current register no longer is
+	 *        considered to feed.
 	 */
-	public void removeInvertedOrigin (final L2Register invertedOrigin)
+	public void removeInvertedOrigin (final L2Register<?> invertedOrigin)
 	{
 		assert !isShared;
 		if (!invertedOrigins.isEmpty())
@@ -351,7 +353,7 @@ public final class RegisterState
 	}
 
 	/**
-	 * Copy a {@link RegisterState}.
+	 * Copy a {@code RegisterState}.
 	 *
 	 * @param original The original RegisterSet to copy.
 	 */

@@ -73,7 +73,6 @@ public final class OSXUtility
 	/** The method Application.setDockIconBadge(String). */
 	@InnerAccess static final Method setDockIconBadgeMethod;
 
-
 	static
 	{
 		try
@@ -106,6 +105,11 @@ public final class OSXUtility
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+	private OSXUtility ()
+	{
+		assert false : "Utility class - do not call private constructor.";
 	}
 
 	/**
@@ -217,7 +221,7 @@ public final class OSXUtility
 		{
 			final Object proxy = Proxy.newProxyInstance(
 				OSXUtility.class.getClassLoader(),
-				new Class[] { applicationListenerClass },
+				new Class<?>[] { applicationListenerClass },
 				(thisProxy, method, args) ->
 				{
 					assert thisProxy != null;
