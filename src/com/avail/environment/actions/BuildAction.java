@@ -34,7 +34,6 @@ package com.avail.environment.actions;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.editor.ModuleEditor;
 import com.avail.environment.tasks.BuildTask;
 
 import javax.annotation.Nullable;
@@ -90,8 +89,6 @@ extends AbstractWorkbenchAction
 	/**
 	 * Effectively perform {@link BuildAction#actionPerformed(ActionEvent)}
 	 * for the given {@link ResolvedModuleName} and {@link AvailWorkbench}.
-	 *
-	 * <p>This is to enable building from the {@link ModuleEditor}.</p>
 	 *
 	 * @param resolvedModuleName
 	 *        The {@code ResolvedModuleName} to build.

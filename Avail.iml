@@ -16,14 +16,5 @@
     <orderEntry type="library" exported="" name="annotations" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="junit" level="project" />
     <orderEntry type="library" name="asm" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/libraries/richtextfx-fat-1.0.0-SNAPSHOT.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
   </component>
 </module>

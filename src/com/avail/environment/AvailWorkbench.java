@@ -38,8 +38,6 @@ import com.avail.builder.*;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
-import com.avail.environment.editor.ModuleEditor;
-import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
 import com.avail.environment.nodes.EntryPointModuleNode;
 import com.avail.environment.nodes.EntryPointNode;
@@ -896,12 +894,6 @@ extends JFrame
 	public ModuleTemplates moduleTemplates;
 
 	/**
-	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
-	 */
-	public final ReplaceTextTemplate replaceTextTemplate =
-		new ReplaceTextTemplate();
-
-	/**
 	 * Answer an array of {@link #moduleTemplates} names.
 	 *
 	 * @return An array of strings.
@@ -1120,25 +1112,6 @@ extends JFrame
 	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
 		new SetDocumentationPathAction(this);
 
-	/**
-	 * The {@linkplain NewModuleAction new module path dialog action}.
-	 */
-	@InnerAccess final NewModuleAction newModuleAction =
-		new NewModuleAction(this);
-
-	/**
-	 * The {@linkplain NewPackageAction new module path dialog action}.
-	 */
-	@InnerAccess final NewPackageAction newPackageAction =
-		new NewPackageAction(this);
-
-	/**
-	 * The {@linkplain AddModuleTemplateAction module template path dialog
-	 * action}.
-	 */
-	@InnerAccess final AddModuleTemplateAction addModuleTemplateAction =
-		new AddModuleTemplateAction(this);
-
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
 	@InnerAccess final ShowVMReportAction showVMReportAction =
 		new ShowVMReportAction(this);
@@ -1217,10 +1190,6 @@ extends JFrame
 	@InnerAccess final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
 
-	/** The {@linkplain EditModuleAction action to open a source module}. */
-	@InnerAccess final EditModuleAction editModuleAction =
-		new EditModuleAction(this);
-
 //	/**
 //	 * The {@linkplain DisplayCodeCoverageReport action to display the current
 //	 * code coverage session's report data}.
@@ -1272,13 +1241,6 @@ extends JFrame
 					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
-		editModuleAction.setEnabled(
-			!busy && selectedModuleIsLoaded());
-		newModuleAction.setEnabled(!busy &&
-			(selectedModule() != null || selectedModuleRoot() != null));
-		newPackageAction.setEnabled(!busy &&
-			(selectedModule() != null || selectedModuleRoot() != null));
-		addModuleTemplateAction.setEnabled(!busy);
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -2733,7 +2695,6 @@ extends JFrame
 		// times during construction.
 		final LayoutConfiguration configuration = getInitialConfiguration();
 		this.moduleTemplates = getInitialModuleTemplate();
-		replaceTextTemplate.initializeTemplatesFromPropertiesFile();
 
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -2757,11 +2718,6 @@ extends JFrame
 				null,
 			refreshAction);
 		menuBar.add(buildMenu);
-		final JMenu moduleMenu = menu(
-			"Module",
-			newPackageAction, newModuleAction, editModuleAction, null,
-			addModuleTemplateAction);
-		menuBar.add(moduleMenu);
 		if (!runningOnMac)
 		{
 			augment(buildMenu, null, preferencesAction);
@@ -2814,7 +2770,6 @@ extends JFrame
 		final JMenu buildPopup = menu(
 			"Modules",
 			buildAction,
-			editModuleAction,
 			documentAction,
 			null,
 			unloadAction,
@@ -2830,8 +2785,7 @@ extends JFrame
 
 		final JMenu entryPointsPopup = menu(
 			"Entry points",
-			buildEntryPointModuleAction, null,
-			editModuleAction, null,
+			buildEntryPointModuleAction, null, null,
 			insertEntryPointAction, null,
 			createProgramAction, null,
 			refreshAction);
@@ -2874,7 +2828,6 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
-		actionMap.put("view", editModuleAction);
 		// Expand rows bottom-to-top to expand only the root nodes.
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{

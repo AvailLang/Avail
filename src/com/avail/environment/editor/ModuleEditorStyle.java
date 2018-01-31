@@ -39,7 +39,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * {@code ModuleEditorStyle} enumerates the allowed styles for a {@link
+ * {@code ModuleEditorStyle} enumerates the allowed styles for a {@code
  * ModuleEditor}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -207,7 +207,7 @@ public enum ModuleEditorStyle
 	 */
 	@SuppressWarnings("StringConcatenationMissingWhitespace")
 	public static final String editorStyleSheet =
-		ModuleEditor.class.getResource(
+		ModuleEditorStyle.class.getResource(
 			AvailWorkbench.resourcePrefix +
 				"module_editor_styles.css").toExternalForm();
 
