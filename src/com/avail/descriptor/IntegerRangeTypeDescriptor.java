@@ -1,6 +1,6 @@
-/**
+/*
  * IntegerRangeTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,10 +47,8 @@ import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.*;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots
-	.LOWER_BOUND;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots
-	.UPPER_BOUND;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 

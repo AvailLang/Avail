@@ -1,6 +1,6 @@
-/**
+/*
  * StringDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,10 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.ByteStringDescriptor
-	.mutableObjectFromNativeByteString;
+import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.mutableObjectFromNativeTwoByteString;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual

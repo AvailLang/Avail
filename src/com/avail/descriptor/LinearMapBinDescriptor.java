@@ -1,6 +1,6 @@
-/**
+/*
  * LinearMapBinDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,13 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
 
-import static com.avail.descriptor.AvailObject
-	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.HashedMapBinDescriptor.checkHashedMapBin;

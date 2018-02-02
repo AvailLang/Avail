@@ -119,7 +119,7 @@ extends L2Operation
 		final L2ObjectRegister sourceReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2FloatRegister destinationReg =
-			instruction.readFloatRegisterAt(1).register();
+			instruction.writeFloatRegisterAt(1).register();
 		final L2PcOperand ifUnboxed = instruction.pcAt(2);
 		final int ifNotUnboxed = instruction.pcOffsetAt(3);
 

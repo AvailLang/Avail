@@ -1,6 +1,6 @@
-/**
+/*
  * P_CompiledCodeFunctionType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,10 @@ import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;

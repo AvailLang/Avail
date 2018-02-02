@@ -1,6 +1,6 @@
-/**
+/*
  * P_ContinuationStackData.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,13 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.ContinuationDescriptor.nilSubstitute;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.*;

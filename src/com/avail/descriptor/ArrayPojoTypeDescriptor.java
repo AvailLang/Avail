@@ -1,6 +1,6 @@
-/**
+/*
  * ArrayPojoTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,10 +43,8 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots
-	.HASH_AND_MORE;
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
@@ -58,8 +56,7 @@ import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor
-	.createUnfusedPojoType;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 
 /**
  * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array

@@ -1,6 +1,6 @@
-/**
+/*
  * ListNodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
@@ -51,9 +51,7 @@ import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.EXPRESSIONS_TU
 import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**

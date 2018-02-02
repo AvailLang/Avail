@@ -1,6 +1,6 @@
-/**
+/*
  * P_MapReplacingKey.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,11 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -48,8 +43,7 @@ import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.two;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;

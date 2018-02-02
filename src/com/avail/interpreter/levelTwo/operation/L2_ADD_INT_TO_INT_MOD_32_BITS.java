@@ -33,10 +33,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -60,6 +63,22 @@ extends L2Operation
 			READ_INT.is("addend"),
 			READ_INT.is("augend"),
 			WRITE_INT.is("sum"));
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(" ← ");
+		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(" + ");
+		builder.append(instruction.readIntRegisterAt(1).register());
+	}
 
 	@Override
 	public void translateToJVM (

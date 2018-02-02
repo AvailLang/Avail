@@ -1,6 +1,6 @@
-/**
+/*
  * MarkerNodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,8 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots
-	.MARKER_VALUE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.MARKER_NODE;
+import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.MARKER_VALUE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.MARKER_NODE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 

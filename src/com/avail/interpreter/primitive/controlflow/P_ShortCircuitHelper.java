@@ -1,6 +1,6 @@
-/**
+/*
  * P_ShortCircuitHelper.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,10 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -122,6 +123,7 @@ public final class P_ShortCircuitHelper extends Primitive
 			functionReg,  // the function in the 2nd (=args[1]) argument.
 			emptyList(),   // takes no arguments.
 			functionReg.type().returnType(),
+			true,
 			callSiteHelper);
 		return true;
 	}

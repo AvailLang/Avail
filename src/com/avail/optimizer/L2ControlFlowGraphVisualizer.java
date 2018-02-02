@@ -83,7 +83,7 @@ public class L2ControlFlowGraphVisualizer
 	 * The number of characters to emit per line. Only applies to formatting
 	 * of block comments.
 	 */
-	private int charactersPerLine;
+	private final int charactersPerLine;
 
 	/**
 	 * The {@link L2ControlFlowGraph} that should be visualized by a {@code dot}
@@ -221,7 +221,7 @@ public class L2ControlFlowGraphVisualizer
 	 *        Some arbitrary text.
 	 * @return The escaped text.
 	 */
-	private String escape (final String s)
+	private static String escape (final String s)
 	{
 		final int limit = s.length();
 		final StringBuilder builder = new StringBuilder(limit);
@@ -246,6 +246,7 @@ public class L2ControlFlowGraphVisualizer
 			{
 				builder.appendCodePoint(cp);
 			}
+			//noinspection AssignmentToForLoopParameter
 			i += Character.charCount(cp);
 		}
 		return builder.toString();
@@ -261,7 +262,7 @@ public class L2ControlFlowGraphVisualizer
 	 *        An {@code L2Instruction}.
 	 * @return The requested description.
 	 */
-	private String instruction (final L2Instruction instruction)
+	private static String instruction (final L2Instruction instruction)
 	{
 		final StringBuilder builder = new StringBuilder();
 		// Hoist a comment operand, if one is present.
@@ -278,7 +279,7 @@ public class L2ControlFlowGraphVisualizer
 				// In particular, Courier, Arial, Helvetica, and Times are
 				// supported.
 				builder.append("<font face=\"Helvetica\" color=\"gray\"><i>");
-				builder.append(operand.toString());
+				builder.append(operand);
 				builder.append("</i></font><br/>");
 				// There should never be a second comment. If there is — tough.
 				break;
@@ -371,7 +372,7 @@ public class L2ControlFlowGraphVisualizer
 			builder.append(
 				"<tr><td align=\"left\" balign=\"left\" border=\"1\" "
 					+ " valign=\"top\">"
-						+ "<i>No instructions generated.</i>"
+						+ "No instructions generated."
 					+ "</td></tr>");
 		}
 		builder.append("</table>");

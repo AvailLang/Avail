@@ -1,6 +1,6 @@
 /*
  * L2_PHI_PSEUDO_OPERATION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
@@ -88,8 +87,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final List<? extends L2ReadOperand<?, ?>> inputRegs =

@@ -1,6 +1,6 @@
-/**
+/*
  * ModuleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,15 +54,13 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code

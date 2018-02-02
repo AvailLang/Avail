@@ -1,6 +1,6 @@
-/**
+/*
  * FilterTrieComboBox.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.avail.utility.evaluation.Continuation0;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;

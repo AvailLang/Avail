@@ -1,6 +1,6 @@
-/**
+/*
  * AvailTask.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,7 @@ import javax.annotation.Nullable;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.SCHEDULED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 
 /**
  * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are

@@ -1,6 +1,6 @@
-/**
+/*
  * BootstrapGenerator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,7 @@
 package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;

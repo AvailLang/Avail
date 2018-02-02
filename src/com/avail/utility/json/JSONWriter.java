@@ -1,6 +1,6 @@
-/**
+/*
  * JSONWriter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.utility.json;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;

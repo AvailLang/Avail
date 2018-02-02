@@ -1,6 +1,6 @@
-/**
+/*
  * ShowCCReportAction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@ import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 
-import static com.avail.descriptor.CompiledCodeDescriptor
-	.codeCoverageReportsThen;
+import static com.avail.descriptor.CompiledCodeDescriptor.codeCoverageReportsThen;
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**

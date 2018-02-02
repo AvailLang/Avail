@@ -1,6 +1,6 @@
-/**
+/*
  * AtomWithPropertiesSharedDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
 
-import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor
-	.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor.IntegerSlots.HASH_OR_ZERO;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

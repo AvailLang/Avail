@@ -1,6 +1,6 @@
-/**
+/*
  * L1Decompiler.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,6 @@ import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;

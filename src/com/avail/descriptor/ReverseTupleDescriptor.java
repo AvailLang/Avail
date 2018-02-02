@@ -1,6 +1,6 @@
-/**
+/*
  * ReverseTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.IndexedGenerator;
 
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots
-	.ORIGIN_TUPLE;
+import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE;
 import static com.avail.descriptor.TreeTupleDescriptor.*;
 
 /**

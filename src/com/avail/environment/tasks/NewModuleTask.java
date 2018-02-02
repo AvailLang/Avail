@@ -1,6 +1,6 @@
-/**
+/*
  * NewModuleTask.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,6 @@ import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.editor.NewModuleWindow;
 import javafx.scene.Scene;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;

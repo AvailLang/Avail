@@ -1,6 +1,6 @@
-/**
+/*
  * P_FiberResult.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,19 +38,18 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.MutableOrNull;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode
-	.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT;
+import static com.avail.exceptions.AvailErrorCode.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT;
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 

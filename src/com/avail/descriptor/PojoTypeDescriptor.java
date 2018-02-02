@@ -1,6 +1,6 @@
-/**
+/*
  * PojoTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,23 +39,9 @@ import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
@@ -81,8 +67,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor
-	.createUnfusedPojoType;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
 

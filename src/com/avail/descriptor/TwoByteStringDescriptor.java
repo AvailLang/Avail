@@ -1,6 +1,6 @@
-/**
+/*
  * TwoByteStringDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,17 +40,13 @@ import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.CharacterDescriptor
-	.computeHashOfCharacterWithCodePoint;
+import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
-	.RAW_LONGS_;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of

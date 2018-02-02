@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreatePojoStaticMethodFunction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,9 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -60,8 +61,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
-import static com.avail.exceptions.AvailErrorCode
-	.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 

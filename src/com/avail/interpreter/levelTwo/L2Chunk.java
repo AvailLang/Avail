@@ -1,6 +1,6 @@
 /*
  * L2Chunk.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,13 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operation
-	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
@@ -58,13 +56,7 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

@@ -214,9 +214,12 @@ public final class L2ValueManifest
 		for (final L2SemanticValue semanticValue :
 			registerToSemanticValues(registerRead.register()))
 		{
-			if (semanticValue.isUnboxedInt())
+			final L2SemanticValue unboxedValue = semanticValue.unboxedAsInt();
+			final @Nullable L2ReadIntOperand unboxedInt =
+				semanticValueToRegister(unboxedValue);
+			if (unboxedInt != null)
 			{
-				return semanticValueToRegister(semanticValue);
+				return unboxedInt;
 			}
 		}
 		return null;
@@ -236,7 +239,32 @@ public final class L2ValueManifest
 		for (final L2SemanticValue semanticValue :
 			registerToSemanticValues(registerRead.register()))
 		{
-			if (semanticValue.isUnboxedFloat())
+			final L2SemanticValue unboxedValue = semanticValue.unboxedAsFloat();
+			final @Nullable L2ReadFloatOperand unboxedFloat =
+				semanticValueToRegister(unboxedValue);
+			if (unboxedFloat != null)
+			{
+				return unboxedFloat;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the boxed variant of the specified {@link L2ReadIntOperand}, if
+	 * one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadIntOperand} to test.
+	 * @return The requested boxed variant.
+	 */
+	public @Nullable L2ReadPointerOperand alreadyBoxed (
+		final L2ReadIntOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (!semanticValue.isUnboxedInt())
 			{
 				return semanticValueToRegister(semanticValue);
 			}
@@ -244,6 +272,27 @@ public final class L2ValueManifest
 		return null;
 	}
 
+	/**
+	 * Answer the boxed variant of the specified {@link L2ReadFloatOperand}, if
+	 * one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadFloatOperand} to test.
+	 * @return The requested boxed variant.
+	 */
+	public @Nullable L2ReadPointerOperand alreadyBoxed (
+		final L2ReadFloatOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (!semanticValue.isUnboxedFloat())
+			{
+				return semanticValueToRegister(semanticValue);
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Replace all bindings for the sourceRead's register with bindings to the

@@ -1,6 +1,6 @@
-/**
+/*
  * ParsingConversionRule.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,25 +33,15 @@
 package com.avail.compiler;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralNodeDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

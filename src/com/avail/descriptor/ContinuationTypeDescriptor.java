@@ -1,6 +1,6 @@
-/**
+/*
  * ContinuationTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,15 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots
-	.FUNCTION_TYPE;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.FUNCTION_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.SetDescriptor.emptySet;

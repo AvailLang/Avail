@@ -1,6 +1,6 @@
-/**
+/*
  * AvailCompilerBipartiteRendezvous.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
  */
 
 package com.avail.compiler;
-
-import com.avail.compiler.AvailCompiler.Con;
 
 import java.util.ArrayList;
 import java.util.List;

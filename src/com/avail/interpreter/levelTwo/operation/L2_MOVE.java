@@ -44,11 +44,9 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
@@ -80,8 +78,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand sourceReg =

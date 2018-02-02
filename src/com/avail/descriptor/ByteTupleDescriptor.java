@@ -1,6 +1,6 @@
-/**
+/*
  * ByteTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,16 +41,13 @@ import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
-	.RAW_LONG_AT_;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;

@@ -1,6 +1,6 @@
 /*
  * Interpreter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,23 +82,18 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
-	.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.PERMIT_UNAVAILABLE;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag
-	.TRACE_VARIABLE_READS_BEFORE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag
-	.TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;

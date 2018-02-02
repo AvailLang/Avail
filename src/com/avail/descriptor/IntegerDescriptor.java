@@ -1,6 +1,6 @@
-/**
+/*
  * IntegerDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,7 @@ import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
-	.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;

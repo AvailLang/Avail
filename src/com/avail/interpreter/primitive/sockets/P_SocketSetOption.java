@@ -1,6 +1,6 @@
-/**
+/*
  * P_SocketSetOption.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,18 +39,17 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;

@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
@@ -73,8 +72,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final A_Type outerType = instruction.constantAt(0);

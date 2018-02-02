@@ -1,6 +1,6 @@
-/**
+/*
  * AvailBuilder.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,15 +96,13 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SEND_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

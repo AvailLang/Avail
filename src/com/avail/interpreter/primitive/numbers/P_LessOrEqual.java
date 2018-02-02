@@ -1,6 +1,6 @@
-/**
+/*
  * P_LessOrEqual.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,16 +39,16 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.possibleOrdersWhenComparingInstancesOf;
+import static com.avail.descriptor.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;

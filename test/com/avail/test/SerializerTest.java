@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerTest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,7 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;

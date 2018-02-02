@@ -1,6 +1,6 @@
-/**
+/*
  * AvailLoader.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,22 +61,13 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractDefinitionDescriptor
-	.newAbstractDefinition;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.newAbstractDefinition;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.error;
@@ -84,19 +75,15 @@ import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
-import static com.avail.descriptor.ForwardDefinitionDescriptor
-	.newForwardDefinition;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.newForwardDefinition;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor
-	.newGrammaticalRestriction;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.newGrammaticalRestriction;
 import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
-import static com.avail.descriptor.MethodDefinitionDescriptor
-	.newMethodDefinition;
+import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;

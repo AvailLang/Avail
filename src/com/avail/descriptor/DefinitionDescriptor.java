@@ -1,6 +1,6 @@
-/**
+/*
  * DefinitionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,11 @@ import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots
-	.DEFINITION_METHOD;
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.MODULE;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a

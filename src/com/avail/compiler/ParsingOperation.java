@@ -1,6 +1,6 @@
-/**
+/*
  * ParsingOperation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,9 @@ import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
-	.newMacroSubstitution;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.VARIABLE_USE_NODE;
-import static com.avail.descriptor.PermutedListNodeDescriptor
-	.newPermutedListNode;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.newMacroSubstitution;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
 import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;

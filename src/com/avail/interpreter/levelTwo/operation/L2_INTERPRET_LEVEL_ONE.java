@@ -41,7 +41,6 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
@@ -90,8 +89,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// No real optimization should ever be done near this wordcode.

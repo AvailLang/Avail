@@ -1,6 +1,6 @@
-/**
+/*
  * ContinuationDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
@@ -63,11 +62,9 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**

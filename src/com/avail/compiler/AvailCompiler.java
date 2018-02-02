@@ -1,6 +1,6 @@
-/**
+/*
  * AvailCompiler.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -65,14 +65,7 @@ import com.avail.utility.MutableInt;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation3;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.SimpleDescriber;
-import com.avail.utility.evaluation.Transformer3;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,8 +89,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
@@ -111,21 +103,17 @@ import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralNodeDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -432,62 +420,6 @@ public final class AvailCompiler
 				builder.append(" others)");
 			}
 			pointer = pointer.parent;
-		}
-	}
-
-	/**
-	 * This is a subtype of {@link Continuation1NotNull}, but it also tracks the
-	 * {@link PartialSubexpressionList} that describes the nesting of parse
-	 * expressions that led to this particular continuation.  A {@link
-	 * Continuation1NotNull} is also supplied to the constructor.  It will only
-	 * be invoked with a non-null argument.
-	 */
-	static final class Con
-	implements Continuation1NotNull<CompilerSolution>
-	{
-		/**
-		 * A {@link PartialSubexpressionList} containing all enclosing
-		 * incomplete expressions currently being parsed along this history.
-		 */
-		@InnerAccess final @Nullable PartialSubexpressionList superexpressions;
-
-		/**
-		 * Ensure this is not a root {@link PartialSubexpressionList} (i.e., its
-		 * {@link #superexpressions} list is not {@code null}), then answer
-		 * the parent list.
-		 *
-		 * @return The (non-null) parent superexpressions list.
-		 */
-		@InnerAccess PartialSubexpressionList superexpressions ()
-		{
-			return stripNull(superexpressions);
-		}
-
-		/**
-		 * A {@link Continuation1NotNull} to invoke.
-		 */
-		private final Continuation1NotNull<CompilerSolution> innerContinuation;
-
-		/**
-		 * Construct a new {@code Con}.
-		 *
-		 * @param superexpressions
-		 *        The enclosing partially-parsed expressions.
-		 * @param innerContinuation
-		 *        A {@link Continuation1NotNull} that will be invoked.
-		 */
-		@InnerAccess Con (
-			final @Nullable PartialSubexpressionList superexpressions,
-			final Continuation1NotNull<CompilerSolution> innerContinuation)
-		{
-			this.superexpressions = superexpressions;
-			this.innerContinuation = innerContinuation;
-		}
-
-		@Override
-		public void value (final CompilerSolution solution)
-		{
-			innerContinuation.value(solution);
 		}
 	}
 

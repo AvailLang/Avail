@@ -67,6 +67,18 @@ extends L2SemanticValue
 	}
 
 	@Override
+	public L2SemanticUnboxedInt unboxedAsInt ()
+	{
+		return this;
+	}
+
+	@Override
+	public L2SemanticValue boxed ()
+	{
+		return innerSemanticValue;
+	}
+
+	@Override
 	public boolean equals (final Object obj)
 	{
 		if (obj instanceof L2SemanticUnboxedInt)

@@ -1,6 +1,6 @@
-/**
+/*
  * CompilationContext.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -75,8 +75,7 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.EXECUTION;
 import static com.avail.compiler.problems.ProblemType.INTERNAL;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;

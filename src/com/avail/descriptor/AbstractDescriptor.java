@@ -1,6 +1,6 @@
-/**
+/*
  * AbstractDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -56,13 +55,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.AvailUnsupportedOperationException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;

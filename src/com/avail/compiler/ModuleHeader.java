@@ -1,6 +1,6 @@
-/**
+/*
  * ModuleHeader.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MessageBundleDescriptor.newBundle;

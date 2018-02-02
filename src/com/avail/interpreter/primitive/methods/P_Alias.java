@@ -1,6 +1,6 @@
-/**
+/*
  * P_Alias.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,7 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
@@ -47,21 +41,19 @@ import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;

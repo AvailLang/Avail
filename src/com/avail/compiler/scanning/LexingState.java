@@ -1,6 +1,6 @@
-/**
+/*
  * LexingState.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,13 +34,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Lexer;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;

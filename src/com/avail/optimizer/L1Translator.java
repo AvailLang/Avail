@@ -34,6 +34,7 @@ package com.avail.optimizer;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
@@ -88,10 +89,9 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
@@ -110,9 +110,12 @@ import static java.util.Collections.singletonList;
  * two instructions}, under the assumption that further optimization steps will
  * be able to transform this code into something much more efficient – without
  * altering the level one semantics.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L1Translator
-	implements L1OperationDispatcher
+implements L1OperationDispatcher
 {
 	/**
 	 * The {@link L2Translator} for which I'm producing an initial translation.
@@ -775,11 +778,12 @@ public final class L1Translator
 	{
 		final A_Number boxed = IntegerDescriptor.fromInt(value);
 		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
-		final @Nullable L2ReadIntOperand existingConstant =
-			currentManifest.semanticValueToRegister(constant);
-		if (existingConstant != null)
+		final @Nullable L2ReadOperand<?, A_Number>
+			existingConstant = currentManifest.semanticValueToRegister(
+				constant);
+		if (existingConstant instanceof L2ReadIntOperand)
 		{
-			return existingConstant;
+			return (L2ReadIntOperand) existingConstant;
 		}
 		final L2WriteIntOperand registerWrite =
 			newIntRegisterWriter(
@@ -790,7 +794,7 @@ public final class L1Translator
 			new L2IntImmediateOperand(value),
 			registerWrite);
 		final L2ReadIntOperand read = registerWrite.read();
-		currentManifest.addBinding(constant, read);
+		currentManifest.addBinding(constant.unboxedAsInt(), read);
 		return read;
 	}
 
@@ -808,11 +812,12 @@ public final class L1Translator
 	{
 		final A_Number boxed = DoubleDescriptor.fromDouble(value);
 		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
-		final @Nullable L2ReadFloatOperand existingConstant =
-			currentManifest.semanticValueToRegister(constant);
-		if (existingConstant != null)
+		final @Nullable L2ReadOperand<?, A_Number>
+			existingConstant = currentManifest.semanticValueToRegister(
+				constant);
+		if (existingConstant instanceof L2ReadFloatOperand)
 		{
-			return existingConstant;
+			return (L2ReadFloatOperand) existingConstant;
 		}
 		final L2WriteFloatOperand registerWrite =
 			newFloatRegisterWriter(
@@ -823,44 +828,98 @@ public final class L1Translator
 			new L2FloatImmediateOperand(value),
 			registerWrite);
 		final L2ReadFloatOperand read = registerWrite.read();
-		currentManifest.addBinding(constant, read);
+		currentManifest.addBinding(constant.unboxedAsFloat(), read);
 		return read;
 	}
 
 	/**
 	 * Write an unboxed {@code int} value into a new {@link L2IntRegister}, if
 	 * necessary, but prefer to answer an existing register that already has an
-	 * appropriate value.
+	 * appropriate value. Use the most efficient technique available, based on
+	 * the supplied type information.
 	 *
 	 * @param read
 	 *        The boxed {@link L2ReadPointerOperand}.
+	 * @param restrictedType
+	 *        The restricted {@linkplain A_Type type} for the reader, which is
+	 *        required to intersect {@link
+	 *        IntegerRangeTypeDescriptor#int32() int32()}.
+	 * @param onSuccess
+	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
+	 *        succeeds. The {@link L2ValueManifest manifest} at this location
+	 *        will contain bindings for the unboxed {@code int}. {@linkplain
+	 *        #startBlock(L2BasicBlock) Start} this block if a {@code
+	 *        L2_JUMP_IF_UNBOX_INT} was needed.
+	 * @param onFailure
+	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
+	 *        fails. The manifest at this location will not contain bindings for
+	 *        the unboxed {@code int} (since unboxing was not possible).
 	 * @return The unboxed {@link L2ReadIntOperand}.
 	 */
 	public L2ReadIntOperand unboxIntoIntRegister (
-		final L2ReadPointerOperand read)
+		final L2ReadPointerOperand read,
+		final A_Type restrictedType,
+		final L2BasicBlock onSuccess,
+		final L2BasicBlock onFailure)
 	{
+		assert !restrictedType.typeIntersection(int32()).isBottom();
 		@Nullable L2ReadIntOperand unboxed =
 			currentManifest.alreadyUnboxedInt(read);
 		if (unboxed == null)
 		{
-			final L2WriteIntOperand unboxedWriter =
-				newIntRegisterWriter(
-					read.type(),
-					(A_Number) read.constantOrNull());
-			addInstruction(
-				L2_UNBOX_INT.instance,
-				read,
-				unboxedWriter);
+			if (read.constantOrNull() != null)
+			{
+				// The reader is a constant.
+				final A_Number value =
+					(A_Number) stripNull(read.constantOrNull());
+				final L2WriteIntOperand unboxedWriter =
+					newIntRegisterWriter(
+						InstanceTypeDescriptor.instanceType(value),
+						value);
+				addInstruction(
+					L2_MOVE_INT_CONSTANT.instance,
+					new L2IntImmediateOperand(value.extractInt()),
+					unboxedWriter);
+				unboxed = unboxedWriter.read();
+			}
+			else if (restrictedType.isSubtypeOf(int32()))
+			{
+				// The reader is guaranteed to be unboxable. Create unboxed
+				// variants for each relevant semantic value.
+				final L2WriteIntOperand unboxedWriter =
+					newIntRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_UNBOX_INT.instance,
+					read,
+					unboxedWriter);
+				unboxed = unboxedWriter.read();
+			}
+			else
+			{
+				// The reader may be unboxable. Copy the manifest for the
+				// success case, adding unboxed variants for the unboxed
+				// reader. Do not add these bindings to the failure case.
+				final L2WriteIntOperand unboxedWriter =
+					newIntRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_JUMP_IF_UNBOX_INT.instance,
+					read,
+					unboxedWriter,
+					new L2PcOperand(onSuccess, currentManifest),
+					new L2PcOperand(onFailure, currentManifest));
+				unboxed = unboxedWriter.read();
+				startBlock(onSuccess);
+			}
 			// Now create unboxed variants for each relevant semantic value.
 			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(
-					currentManifest.registerToSemanticValues(read.register())))
+				new ArrayList<>(currentManifest.registerToSemanticValues(
+					read.register())))
 			{
-				currentManifest.addBinding(semanticValue.unboxedAsInt(), read);
+				currentManifest.addBinding(
+					semanticValue.unboxedAsInt(), unboxed);
 			}
-			unboxed = unboxedWriter.read();
 		}
-		return unboxed;
+		return stripNull(unboxed);
 	}
 
 	/**
@@ -870,34 +929,178 @@ public final class L1Translator
 	 *
 	 * @param read
 	 *        The boxed {@link L2ReadPointerOperand}.
+	 * @param restrictedType
+	 *        The restricted {@linkplain A_Type type} for the reader, which is
+	 *        required to intersect {@link Types#DOUBLE DOUBLE}.
+	 * @param onSuccess
+	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
+	 *        succeeds. The {@link L2ValueManifest manifest} at this location
+	 *        will contain bindings for the unboxed {@code double}. {@linkplain
+	 *        #startBlock(L2BasicBlock) Start} this block if a {@code
+	 *        L2_JUMP_IF_UNBOX_FLOAT} was needed.
+	 * @param onFailure
+	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
+	 *        fails. The manifest at this location will not contain bindings for
+	 *        the unboxed {@code double} (since unboxing was not possible).
 	 * @return The unboxed {@link L2ReadFloatOperand}.
 	 */
 	public L2ReadFloatOperand unboxIntoFloatRegister (
-		final L2ReadPointerOperand read)
+		final L2ReadPointerOperand read,
+		final A_Type restrictedType,
+		final L2BasicBlock onSuccess,
+		final L2BasicBlock onFailure)
 	{
+		assert !restrictedType.typeIntersection(DOUBLE.o()).isBottom();
 		@Nullable L2ReadFloatOperand unboxed =
 			currentManifest.alreadyUnboxedFloat(read);
 		if (unboxed == null)
 		{
-			final L2WriteFloatOperand unboxedWriter =
-				newFloatRegisterWriter(
-					read.type(),
-					(A_Number) read.constantOrNull());
-			addInstruction(
-				L2_UNBOX_FLOAT.instance,
-				read,
-				unboxedWriter);
+			if (read.constantOrNull() != null)
+			{
+				// The reader is a constant.
+				final A_Number value =
+					(A_Number) stripNull(read.constantOrNull());
+				final L2WriteFloatOperand unboxedWriter =
+					newFloatRegisterWriter(
+						InstanceTypeDescriptor.instanceType(value),
+						value);
+				addInstruction(
+					L2_MOVE_FLOAT_CONSTANT.instance,
+					new L2FloatImmediateOperand(value.extractDouble()),
+					unboxedWriter);
+				unboxed = unboxedWriter.read();
+			}
+			else if (restrictedType.isSubtypeOf(DOUBLE.o()))
+			{
+				// The reader is guaranteed to be unboxable. Create unboxed
+				// variants for each relevant semantic value.
+				final L2WriteFloatOperand unboxedWriter =
+					newFloatRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_UNBOX_FLOAT.instance,
+					read,
+					unboxedWriter);
+				unboxed = unboxedWriter.read();
+			}
+			else
+			{
+				// The reader may be unboxable. Copy the manifest for the
+				// success case, adding unboxed variants for the unboxed
+				// reader. Do not add these bindings to the failure case.
+				final L2WriteFloatOperand unboxedWriter =
+					newFloatRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_JUMP_IF_UNBOX_FLOAT.instance,
+					read,
+					unboxedWriter,
+					new L2PcOperand(onSuccess, currentManifest),
+					new L2PcOperand(onFailure, currentManifest));
+				unboxed = unboxedWriter.read();
+				startBlock(onSuccess);
+			}
 			// Now create unboxed variants for each relevant semantic value.
 			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(
-					currentManifest.registerToSemanticValues(read.register())))
+				new ArrayList<>(currentManifest.registerToSemanticValues(
+					read.register())))
 			{
 				currentManifest.addBinding(
-					semanticValue.unboxedAsFloat(), read);
+					semanticValue.unboxedAsFloat(), unboxed);
 			}
-			unboxed = unboxedWriter.read();
 		}
-		return unboxed;
+		return stripNull(unboxed);
+	}
+
+	/**
+	 * Write a boxed {@code int} value into a new {@link L2ObjectRegister}, if
+	 * necessary, but prefer to answer an existing register that already has an
+	 * appropriate value.
+	 *
+	 * @param read
+	 *        The boxed {@link L2ReadIntOperand}.
+	 * @param restrictedType
+	 *        The restricted {@linkplain A_Type type} for the reader.
+	 * @return The boxed {@link L2ReadPointerOperand}.
+	 */
+	public L2ReadPointerOperand box (
+		final L2ReadIntOperand read,
+		final A_Type restrictedType)
+	{
+		@Nullable L2ReadPointerOperand boxed =
+			currentManifest.alreadyBoxed(read);
+		if (boxed == null)
+		{
+			if (read.constantOrNull() != null)
+			{
+				// The reader is a constant.
+				boxed = constantRegister(stripNull(read.constantOrNull()));
+			}
+			else
+			{
+				// The read must be boxed.
+				final L2WritePointerOperand boxedWriter =
+					newObjectRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_BOX_INT.instance,
+					read,
+					boxedWriter);
+				boxed = boxedWriter.read();
+			}
+			// Now create boxed variants for each relevant semantic value.
+			for (final L2SemanticValue semanticValue :
+				new ArrayList<>(currentManifest.registerToSemanticValues(
+					read.register())))
+			{
+				currentManifest.addBinding(semanticValue, read);
+				currentManifest.addBinding(semanticValue.boxed(), boxed);
+			}
+		}
+		return boxed;
+	}
+
+	/**
+	 * Write a boxed {@code double} value into a new {@link L2ObjectRegister},
+	 * if necessary, but prefer to answer an existing register that already has
+	 * an appropriate value.
+	 *
+	 * @param read
+	 *        The boxed {@link L2ReadFloatOperand}.
+	 * @param restrictedType
+	 *        The restricted {@linkplain A_Type type} for the reader.
+	 * @return The boxed {@link L2ReadPointerOperand}.
+	 */
+	public L2ReadPointerOperand box (
+		final L2ReadFloatOperand read,
+		final A_Type restrictedType)
+	{
+		@Nullable L2ReadPointerOperand boxed =
+			currentManifest.alreadyBoxed(read);
+		if (boxed == null)
+		{
+			if (read.constantOrNull() != null)
+			{
+				// The reader is a constant.
+				boxed = constantRegister(stripNull(read.constantOrNull()));
+			}
+			else
+			{
+				// The read must be boxed.
+				final L2WritePointerOperand boxedWriter =
+					newObjectRegisterWriter(restrictedType, null);
+				addInstruction(
+					L2_BOX_FLOAT.instance,
+					read,
+					boxedWriter);
+				boxed = boxedWriter.read();
+			}
+			// Now create boxed variants for each relevant semantic value.
+			for (final L2SemanticValue semanticValue :
+				new ArrayList<>(currentManifest.registerToSemanticValues(
+					read.register())))
+			{
+				currentManifest.addBinding(semanticValue.boxed(), boxed);
+			}
+		}
+		return boxed;
 	}
 
 	/**
@@ -1131,8 +1334,7 @@ public final class L1Translator
 	 * @param targetBlock The target {@link L2BasicBlock}.
 	 * @return The new {@link L2PcOperand}.
 	 */
-	@InnerAccess public L2PcOperand edgeTo (
-		final L2BasicBlock targetBlock)
+	public L2PcOperand edgeTo (final L2BasicBlock targetBlock)
 	{
 		return new L2PcOperand(targetBlock, currentManifest);
 	}
@@ -1715,6 +1917,7 @@ public final class L1Translator
 					constantRegister(solution.bodyBlock()),
 					arguments,
 					expectedType,
+					true,
 					callSiteHelper);
 				assert !currentlyReachable();
 				return;
@@ -2088,14 +2291,20 @@ public final class L1Translator
 	 *        The {@link List} of {@link L2ReadPointerOperand}s that supply
 	 *        arguments to the function.
 	 * @param givenGuaranteedResultType
-	 *        The type guaranteed by the VM to be returned by the call.
+ *            The type guaranteed by the VM to be returned by the call.
+	 * @param tryToGenerateSpecialPrimitiveInvocation
+	 *        {@code true} if an attempt should be made to generate a customized
+	 *        {@link L2Instruction} sequence for a {@link Primitive} invocation,
+	 *        {@code false} otherwise. This should generally be {@code false}
+	 *        only to prevent recursion from {@code Primitive} customization.
 	 * @param callSiteHelper
-	 *        Information about the current call site.
+	 *        Information about the call being generated.
 	 */
 	public void generateGeneralFunctionInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final A_Type givenGuaranteedResultType,
+		final boolean tryToGenerateSpecialPrimitiveInvocation,
 		final CallSiteHelper callSiteHelper)
 	{
 		assert functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType());
@@ -2128,44 +2337,65 @@ public final class L1Translator
 			final @Nullable Primitive primitive = rawFunction.primitive();
 			if (primitive != null)
 			{
-				final boolean generated = tryToGenerateSpecialInvocation(
-					functionToCallReg,
-					rawFunction,
-					primitive,
-					arguments,
-					callSiteHelper);
+				final boolean generated;
+				if (tryToGenerateSpecialPrimitiveInvocation)
+				{
+					// We are not recursing here from a primitive override of
+					// tryToGenerateSpecialPrimitiveInvocation(), so try to
+					// generate a special primitive invocation.
+					generated = tryToGenerateSpecialInvocation(
+						functionToCallReg,
+						rawFunction,
+						primitive,
+						arguments,
+						callSiteHelper);
+				}
+				else
+				{
+					// We are recursing here from a primitive override of
+					// tryToGenerateSpecialPrimitiveInvocation(), so do not
+					// recurse again; just generate the best invocation possible
+					// given what we know.
+					final A_Type signatureTupleType =
+						rawFunction.functionType().argsTupleType();
+					final List<A_Type> argumentTypes =
+						new ArrayList<>(argumentCount);
+					for (int i = 0; i < argumentCount; i++)
+					{
+						final L2ReadPointerOperand argument = arguments.get(i);
+						final A_Type narrowedType =
+							argument.type().typeIntersection(
+								signatureTupleType.typeAtIndex(i + 1));
+						argumentTypes.add(narrowedType);
+					}
+					if (primitive.fallibilityForArgumentTypes(argumentTypes)
+						== CallSiteCannotFail)
+					{
+						// The primitive cannot fail at this site. Output code
+						// to run the primitive as simply as possible, feeding a
+						// register with as strong a type as possible.
+						final L2WritePointerOperand writer =
+							newObjectRegisterWriter(
+								primitive.returnTypeGuaranteedByVM(
+									rawFunction, argumentTypes),
+								null);
+						addInstruction(
+							L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+							new L2ConstantOperand(rawFunction),
+							new L2PrimitiveOperand(primitive),
+							new L2ReadVectorOperand<>(arguments),
+							writer);
+						callSiteHelper.useAnswer(writer.read());
+						generated = true;
+					}
+					else
+					{
+						generated = false;
+					}
+				}
 				if (generated)
 				{
 					assert !currentlyReachable();
-//TODO MvG - Delete.
-//					if (currentlyReachable())
-//					{
-//						// It didn't do the jump to a suitable exit, so do that
-//						// now.
-//						final A_Type signatureTupleType =
-//							rawFunction.functionType().argsTupleType();
-//						final List<A_Type> intersectedArgumentTypes =
-//							new ArrayList<>(argumentCount);
-//						for (int i = 0; i < argumentCount; i++)
-//						{
-//							intersectedArgumentTypes.add(
-//								arguments.get(i).type().typeIntersection(
-//									signatureTupleType.typeAtIndex(i + 1)));
-//						}
-//						final A_Type primitiveGuarantee =
-//							primitive.returnTypeGuaranteedByVM(
-//								rawFunction, intersectedArgumentTypes);
-//						guaranteedResultType =
-//							guaranteedResultType.typeIntersection(
-//								primitiveGuarantee);
-//
-//						forceSlotRegister(
-//							stackp,
-//							new L2ReadPointerOperand(
-//								readSlot(stackp).register(),
-//								restriction(guaranteedResultType, null)));
-//						callSiteHelper.useAnswer(readSlot(stackp));
-//					}
 					return;
 				}
 			}
@@ -2344,9 +2574,10 @@ public final class L1Translator
 
 	/**
 	 * Attempt to create a more specific instruction sequence than just an
-	 * {@link L2_INVOKE}.  In particular, see if the functionToCallReg is known
-	 * to contain a constant function (a common case) which is an inlineable
-	 * primitive, and if so, delegate this opportunity to the primitive.
+	 * {@link L2_INVOKE}.  In particular, see if the {@code functionToCallReg}
+	 * is known to contain a constant function (a common case) which is an
+	 * inlineable primitive, and if so, delegate this opportunity to the
+	 * primitive.
 	 *
 	 * <p>We must either answer {@code false} and generate no code, or answer
 	 * {@code true} and generate code that has the same effect as having run the
@@ -2355,18 +2586,20 @@ public final class L1Translator
 	 * L2_MOVE_CONSTANT} into the top-of-stack register and answer true.</p>
 	 *
 	 * @param functionToCallReg
-	 *        The register containing the function to invoke.
+	 *        The register containing the {@linkplain A_Function function} to
+	 *        invoke.
 	 * @param rawFunction
-	 *        The raw function being invoked.
+	 *        The {@linkplain A_RawFunction raw function} being invoked.
 	 * @param primitive
-	 *        The primitive being invoked.
+	 *        The {@link Primitive} being invoked.
 	 * @param arguments
 	 *        The arguments to supply to the function.
 	 * @param callSiteHelper
 	 *        Information about the method call site having its dispatch tree
 	 *        inlined.  It also contains merge points for this call, so if a
 	 *        specific code generation happens it should jump to one of these.
-	 * @return The register that holds the result of the invocation.
+	 * @return {@code true} if a special instruction sequence was generated,
+	 *         {@code false} otherwise.
 	 */
 	private boolean tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
@@ -2461,9 +2694,6 @@ public final class L1Translator
 		{
 			// The top-of-stack was replaced, but it wasn't convenient to do
 			// a jump to the appropriate exit handlers.  Do that now.
-			// TODO: [MvG] This is probably related to the schism between
-			// pc - 1 and pc. Put an L2SemanticValue into the CallSiteHelper
-			// that indicates where to write the value.
 			callSiteHelper.useAnswer(readSlot(stackp));
 		}
 		return generated;
@@ -2793,6 +3023,7 @@ public final class L1Translator
 			functionReg.read(),
 			arguments,
 			guaranteedReturnType,
+			true,
 			callSiteHelper);
 	}
 

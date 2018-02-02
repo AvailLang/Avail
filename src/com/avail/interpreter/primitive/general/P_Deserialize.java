@@ -1,6 +1,6 @@
-/**
+/*
  * P_Deserialize.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.serialization.Deserializer;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.serialization.Deserializer;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -48,8 +49,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.SetDescriptor.set;

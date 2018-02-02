@@ -1,6 +1,6 @@
-/**
+/*
  * P_SimpleMacroDefinitionForAtom.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,14 @@ package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ParseNodeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +49,10 @@ import java.util.List;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;

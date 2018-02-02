@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticValue.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,6 +88,16 @@ public abstract class L2SemanticValue
 	public L2SemanticUnboxedFloat unboxedAsFloat ()
 	{
 		return new L2SemanticUnboxedFloat(this);
+	}
+
+	/**
+	 * Answer the semantic value like the receiver, but unboxed.
+	 *
+	 * @return The {@link L2SemanticValue}.
+	 */
+	public L2SemanticValue boxed ()
+	{
+		return this;
 	}
 
 	/**

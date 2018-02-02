@@ -1,6 +1,6 @@
-/**
+/*
  * P_Assert.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,18 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -200,6 +193,7 @@ public final class P_Assert extends Primitive
 				translator.constantRegister(falseObject()),
 				arguments.get(1)),
 			functionToCallReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		// Happy case.  Just push nil and jump to a suitable exit point.

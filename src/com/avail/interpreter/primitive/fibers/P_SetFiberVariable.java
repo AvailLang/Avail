@@ -1,6 +1,6 @@
-/**
+/*
  * P_SetFiberVariable.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,11 @@
  */
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;

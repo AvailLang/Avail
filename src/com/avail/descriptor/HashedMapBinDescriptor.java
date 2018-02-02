@@ -1,6 +1,6 @@
-/**
+/*
  * HashedMapBinDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.LinearMapBinDescriptor
-	.createSingleLinearMapBin;
+import static com.avail.descriptor.LinearMapBinDescriptor.createSingleLinearMapBin;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;

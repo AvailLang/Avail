@@ -1,6 +1,6 @@
-/**
+/*
  * PrefixSharingList.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,8 @@
 
 package com.avail.utility;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static com.avail.utility.Nulls.stripNull;
 

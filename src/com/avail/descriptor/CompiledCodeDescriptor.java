@@ -1,6 +1,6 @@
-/**
+/*
  * CompiledCodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,21 +69,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
-import static com.avail.descriptor.AvailObject
-	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
+import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.compiledCodeTypeForFunctionType;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

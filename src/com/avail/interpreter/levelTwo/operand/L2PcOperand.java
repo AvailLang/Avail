@@ -43,7 +43,6 @@ import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -197,8 +196,10 @@ extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("pc %d: %s",
-			targetBlock.offset(),
+		return format("%s%s",
+			targetBlock.offset() != -1
+				? "pc " + targetBlock.offset() + ": "
+				: "",
 			targetBlock.name());
 	}
 

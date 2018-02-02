@@ -1,6 +1,6 @@
-/**
+/*
  * ReadWriteVariableTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,8 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.ReadWriteVariableTypeDescriptor
-	.ObjectSlots.READ_TYPE;
-import static com.avail.descriptor.ReadWriteVariableTypeDescriptor
-	.ObjectSlots.WRITE_TYPE;
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.READ_TYPE;
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.WRITE_TYPE;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Optional.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 
 /**
  * An {@code Optional} is a {@link Sequence} wrapped in guillemets («»), and

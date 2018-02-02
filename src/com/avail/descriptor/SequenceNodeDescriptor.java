@@ -1,6 +1,6 @@
-/**
+/*
  * SequenceNodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
@@ -43,10 +43,8 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SEQUENCE_NODE;
-import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots
-	.STATEMENTS;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
+import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.STATEMENTS;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 

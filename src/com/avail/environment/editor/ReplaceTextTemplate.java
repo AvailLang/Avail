@@ -1,6 +1,6 @@
 /*
  * ReplaceTextTemplate.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.environment.editor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.utility.PrefixTrie;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

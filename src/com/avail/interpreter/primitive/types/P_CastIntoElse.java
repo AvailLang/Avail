@@ -1,6 +1,6 @@
-/**
+/*
  * P_CastIntoElse.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -52,6 +52,7 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -238,6 +239,7 @@ public final class P_CastIntoElse extends Primitive
 						castFunctionReg,
 						singletonList(valueReg),
 						castFunctionReg.type().returnType(),
+						true,
 						callSiteHelper);
 				}
 				else
@@ -246,6 +248,7 @@ public final class P_CastIntoElse extends Primitive
 						elseFunctionReg,
 						emptyList(),
 						elseFunctionReg.type().returnType(),
+						true,
 						callSiteHelper);
 				}
 				return true;
@@ -296,6 +299,7 @@ public final class P_CastIntoElse extends Primitive
 			castFunctionReg,
 			singletonList(valueReg),
 			castFunctionReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		// Now deal with invoking the elseBlock instead.
@@ -304,6 +308,7 @@ public final class P_CastIntoElse extends Primitive
 			elseFunctionReg,
 			emptyList(),
 			elseFunctionReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		return true;

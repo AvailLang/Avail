@@ -1,6 +1,6 @@
-/**
+/*
  * BlockNodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,13 +54,10 @@ import java.util.Set;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.PRIMITIVE;
-import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots
-	.STARTING_LINE_NUMBER;
+import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
 import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
-	.MODULE_CONSTANT;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
-	.MODULE_VARIABLE;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_CONSTANT;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_VARIABLE;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;

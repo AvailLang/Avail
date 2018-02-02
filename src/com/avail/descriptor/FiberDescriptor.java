@@ -1,6 +1,6 @@
-/**
+/*
  * FiberDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,15 +60,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
-	.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
