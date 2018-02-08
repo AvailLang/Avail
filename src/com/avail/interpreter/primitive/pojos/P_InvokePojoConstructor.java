@@ -31,7 +31,14 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.RawPojoDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -40,7 +47,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -78,14 +84,13 @@ public final class P_InvokePojoConstructor extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_BasicObject constructorPojo = args.get(0);
-		final A_Tuple constructorArgs = args.get(1);
-		final A_Tuple marshaledTypePojos = args.get(2);
-		final A_Type expectedType = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_BasicObject constructorPojo = interpreter.argument(0);
+		final A_Tuple constructorArgs = interpreter.argument(1);
+		final A_Tuple marshaledTypePojos = interpreter.argument(2);
+		final A_Type expectedType = interpreter.argument(3);
 		final Constructor<?> constructor = constructorPojo.javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[constructorArgs.tupleSize()];
 		// Marshal the arguments.

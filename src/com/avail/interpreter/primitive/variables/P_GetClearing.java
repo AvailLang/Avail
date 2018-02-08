@@ -73,11 +73,10 @@ public final class P_GetClearing extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Variable var = interpreter.argument(0);
 		try
 		{
 			final A_BasicObject valueObject = var.getValue();

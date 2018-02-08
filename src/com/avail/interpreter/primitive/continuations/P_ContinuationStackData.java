@@ -31,17 +31,25 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.ContinuationDescriptor.nilSubstitute;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -65,11 +73,10 @@ public final class P_ContinuationStackData extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Continuation con = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Continuation con = interpreter.argument(0);
 		final A_Tuple tuple = generateObjectTupleFrom(
 			con.function().code().numSlots(),
 			index ->

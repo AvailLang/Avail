@@ -41,8 +41,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -70,11 +68,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject value = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_BasicObject value = interpreter.argument(0);
 		final JSONWriter writer = new JSONWriter();
 		value.writeTo(writer);
 		final A_String json = stringFrom(writer.toString());

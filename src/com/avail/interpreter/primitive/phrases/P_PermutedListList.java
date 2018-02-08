@@ -34,18 +34,17 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.PermutedListNodeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PERMUTED_LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -68,11 +67,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase permuted = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase permuted = interpreter.argument(0);
 		return interpreter.primitiveSuccess(permuted.list());
 	}
 

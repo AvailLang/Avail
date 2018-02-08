@@ -35,19 +35,20 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag
+	.IS_EVALUATING_MACRO;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -73,10 +74,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
 			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO);

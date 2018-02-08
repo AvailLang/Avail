@@ -33,22 +33,21 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.VariableUseNodeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
@@ -71,11 +70,10 @@ public final class P_CreateReferenceExpression extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase variableUse = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase variableUse = interpreter.argument(0);
 
 		final A_Phrase declaration = variableUse.declaration();
 		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)

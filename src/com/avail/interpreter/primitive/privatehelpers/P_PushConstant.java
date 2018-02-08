@@ -75,7 +75,6 @@ public final class P_PushConstant extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
 		final A_RawFunction code = stripNull(interpreter.function).code();

@@ -43,13 +43,14 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -86,12 +87,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject handle = args.get(0);
-		final AvailObject options = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject handle = interpreter.argument(0);
+		final AvailObject options = interpreter.argument(1);
 		final AvailObject pojo =
 			handle.getAtomProperty(SOCKET_KEY.atom);
 		if (pojo.equalsNil())
@@ -106,7 +106,6 @@ extends Primitive
 			{
 				final AvailObject key = entry.key();
 				final AvailObject entryValue = entry.value();
-				assert key != null;
 				@SuppressWarnings("rawtypes")
 				final SocketOption option = socketOptions[key.extractInt()];
 				final Class<?> type = option.type();

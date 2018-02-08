@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.types;
 
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -67,12 +66,11 @@ public final class P_IsSubtypeOf extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type type1 = args.get(0);
-		final A_Type type2 = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type type1 = interpreter.argument(0);
+		final A_Type type2 = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(type1.isSubtypeOf(type2)));
 	}

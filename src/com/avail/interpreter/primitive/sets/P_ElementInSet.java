@@ -40,8 +40,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -66,12 +64,11 @@ public final class P_ElementInSet extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject element = args.get(0);
-		final A_Set set = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_BasicObject element = interpreter.argument(0);
+		final A_Set set = interpreter.argument(1);
 
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(set.hasElement(element)));

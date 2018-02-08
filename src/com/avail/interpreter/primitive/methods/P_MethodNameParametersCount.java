@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.methods;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.MalformedMessageException;
@@ -43,10 +42,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -75,11 +73,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_String name = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_String name = interpreter.argument(0);
 		final MessageSplitter splitter;
 		try
 		{

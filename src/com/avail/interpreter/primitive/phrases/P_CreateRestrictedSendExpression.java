@@ -113,13 +113,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Atom messageName = args.get(0);
-		final A_Phrase argsListNode = args.get(1);
-		final A_Type returnType = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Atom messageName = interpreter.argument(0);
+		final A_Phrase argsListNode = interpreter.argument(1);
+		final A_Type returnType = interpreter.argument(2);
 
 		final A_Tuple argExpressions = argsListNode.expressionsTuple();
 		final int argsCount = argExpressions.tupleSize();
@@ -205,7 +204,8 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		interpreter.primitiveSuspend(primitiveFunction);
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();
 		final Continuation0 decrement = () ->

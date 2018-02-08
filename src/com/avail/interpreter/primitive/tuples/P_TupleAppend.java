@@ -72,12 +72,11 @@ public final class P_TupleAppend extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Tuple tuple = args.get(0);
-		final A_BasicObject newElement = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Tuple tuple = interpreter.argument(0);
+		final A_BasicObject newElement = interpreter.argument(1);
 
 		return interpreter.primitiveSuccess(
 			tuple.appendCanDestroy(newElement, true));

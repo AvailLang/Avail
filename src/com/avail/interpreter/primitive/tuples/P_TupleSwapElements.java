@@ -74,13 +74,12 @@ public final class P_TupleSwapElements extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Tuple tuple = args.get(0);
-		final A_Number indexObject1 = args.get(1);
-		final A_Number indexObject2 = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Tuple tuple = interpreter.argument(0);
+		final A_Number indexObject1 = interpreter.argument(1);
+		final A_Number indexObject2 = interpreter.argument(2);
 
 		if (!indexObject1.isInt() || !indexObject2.isInt())
 		{

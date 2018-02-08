@@ -38,8 +38,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -63,11 +61,10 @@ public final class P_AsDouble extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject number = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject number = interpreter.argument(0);
 		if (number.isDouble())
 		{
 			return interpreter.primitiveSuccess(number);

@@ -31,7 +31,12 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,7 +48,8 @@ import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.two;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -67,13 +73,12 @@ public final class P_MapReplacingKey extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Map map = args.get(0);
-		final A_BasicObject key = args.get(1);
-		final A_BasicObject value = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Map map = interpreter.argument(0);
+		final A_BasicObject key = interpreter.argument(1);
+		final A_BasicObject value = interpreter.argument(2);
 		return interpreter.primitiveSuccess(
 			map.mapAtPuttingCanDestroy(key, value, true));
 	}

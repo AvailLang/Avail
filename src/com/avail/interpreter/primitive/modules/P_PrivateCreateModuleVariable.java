@@ -35,13 +35,10 @@ import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableSharedGlobalDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -69,14 +66,14 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		final A_Module module = args.get(0);
-		final A_String name = args.get(1);
-		final A_Type varType = args.get(2);
-		final boolean isConstant = args.get(3).extractBoolean();
-		final boolean stablyComputed = args.get(4).extractBoolean();
+		interpreter.checkArgumentCount(5);
+		final A_Module module = interpreter.argument(0);
+		final A_String name = interpreter.argument(1);
+		final A_Type varType = interpreter.argument(2);
+		final boolean isConstant = interpreter.argument(3).extractBoolean();
+		final boolean stablyComputed = interpreter.argument(4).extractBoolean();
 
 		assert isConstant || !stablyComputed;
 

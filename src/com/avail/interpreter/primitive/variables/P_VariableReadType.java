@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.variables;
 
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -64,11 +63,10 @@ public final class P_VariableReadType extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Type type = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Type type = interpreter.argument(0);
 		return interpreter.primitiveSuccess(type.readType());
 	}
 

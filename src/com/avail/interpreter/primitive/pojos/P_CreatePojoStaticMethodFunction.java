@@ -87,14 +87,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final AvailObject pojoType = args.get(0);
-		final A_String methodName = args.get(1);
-		final A_Tuple paramTypes = args.get(2);
-		final AvailObject failFunction = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final AvailObject pojoType = interpreter.argument(0);
+		final A_String methodName = interpreter.argument(1);
+		final A_Tuple paramTypes = interpreter.argument(2);
+		final AvailObject failFunction = interpreter.argument(3);
 		// Marshal the argument types.
 		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
 		try

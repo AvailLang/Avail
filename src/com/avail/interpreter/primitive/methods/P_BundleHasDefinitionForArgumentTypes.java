@@ -32,15 +32,22 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
@@ -73,12 +80,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom methodName = args.get(0);
-		final A_Tuple argTypes = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Atom methodName = interpreter.argument(0);
+		final A_Tuple argTypes = interpreter.argument(1);
 		final A_Bundle bundle = methodName.bundleOrNil();
 		if (bundle.equalsNil())
 		{

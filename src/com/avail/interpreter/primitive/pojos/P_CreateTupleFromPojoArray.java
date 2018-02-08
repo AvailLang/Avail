@@ -42,8 +42,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -71,11 +69,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject array = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject array = interpreter.argument(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
 		array.lock(() ->
 			tuple.value = tuple(array.<AvailObject[]>javaObjectNotNull()));

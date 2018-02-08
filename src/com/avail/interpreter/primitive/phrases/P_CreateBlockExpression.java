@@ -32,7 +32,13 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,21 +48,24 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.containsOnlyStatements;
+import static com.avail.descriptor.ParseNodeTypeDescriptor
+	.containsOnlyStatements;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS;
+import static com.avail.exceptions.AvailErrorCode
+	.E_BLOCK_CONTAINS_INVALID_STATEMENTS;
 import static com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -82,15 +91,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_Tuple argDecls = args.get(0);
-		final A_String primitiveName = args.get(1);
-		final A_Tuple statements = args.get(2);
-		final A_Type resultType = args.get(3);
-		final A_Set exceptions = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_Tuple argDecls = interpreter.argument(0);
+		final A_String primitiveName = interpreter.argument(1);
+		final A_Tuple statements = interpreter.argument(2);
+		final A_Type resultType = interpreter.argument(3);
+		final A_Set exceptions = interpreter.argument(4);
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".

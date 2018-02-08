@@ -35,12 +35,9 @@ package com.avail.interpreter.primitive.doubles;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -70,13 +67,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Token integerPart = args.get(0);
-		final A_Token fractionalPart = args.get(1);
-		final A_Token exponentPart = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Token integerPart = interpreter.argument(0);
+		final A_Token fractionalPart = interpreter.argument(1);
+		final A_Token exponentPart = interpreter.argument(2);
 
 		// Since we expect that this primitive will only be used for building
 		// floating-point literals, it doesn't need to be particularly
@@ -85,6 +81,7 @@ extends Primitive
 		// convert. This is less efficient than doing the work ourselves, but
 		// gives us the opportunity to leverage well-tested and tuned Java
 		// library code.
+		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final String numeral =
 			integerPart.string().asNativeString()
 			+ "."

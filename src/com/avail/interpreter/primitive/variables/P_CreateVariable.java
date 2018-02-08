@@ -32,19 +32,18 @@
 package com.avail.interpreter.primitive.variables;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
@@ -65,11 +64,10 @@ public final class P_CreateVariable extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Type innerType = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Type innerType = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
 			newVariableWithContentType(innerType));
 	}

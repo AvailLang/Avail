@@ -35,7 +35,6 @@ import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -48,7 +47,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.possibleOrdersWhenComparingInstancesOf;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -72,12 +72,11 @@ public final class P_LessThan extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Number a = interpreter.argument(0);
+		final A_Number b = interpreter.argument(1);
 		return interpreter.primitiveSuccess(objectFromBoolean(a.lessThan(b)));
 	}
 

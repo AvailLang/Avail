@@ -35,7 +35,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -66,7 +65,6 @@ public final class P_PushLastOuter extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
 		final A_Function function = stripNull(interpreter.function);

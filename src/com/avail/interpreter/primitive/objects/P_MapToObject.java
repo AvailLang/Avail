@@ -39,11 +39,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -67,11 +66,10 @@ public final class P_MapToObject extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject map = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject map = interpreter.argument(0);
 		return interpreter.primitiveSuccess(objectFromMap(map));
 	}
 

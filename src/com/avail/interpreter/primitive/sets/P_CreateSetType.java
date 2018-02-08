@@ -38,8 +38,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -65,12 +63,11 @@ public final class P_CreateSetType extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject contentType = args.get(0);
-		final AvailObject sizeRange = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject contentType = interpreter.argument(0);
+		final AvailObject sizeRange = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			setTypeForSizesContentType(sizeRange, contentType));
 	}

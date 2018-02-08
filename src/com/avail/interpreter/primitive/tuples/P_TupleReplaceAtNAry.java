@@ -32,15 +32,20 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -49,7 +54,8 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -88,6 +94,7 @@ extends Primitive
 	 * @return
 	 *         The outermost tuple with the update applied.
 	 * @throws AvailException
+	 *         If a problem occurs.
 	 */
 	private A_Tuple recursivelyUpdateTuple (
 			final A_Tuple targetTuple,
@@ -188,13 +195,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Tuple tuple = args.get(0);
-		final A_Tuple pathTuple = args.get(1);
-		final A_BasicObject newValue = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Tuple tuple = interpreter.argument(0);
+		final A_Tuple pathTuple = interpreter.argument(1);
+		final A_BasicObject newValue = interpreter.argument(2);
 		try
 		{
 			return interpreter.primitiveSuccess(recursivelyUpdateTuple(

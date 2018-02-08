@@ -31,14 +31,20 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -70,12 +76,11 @@ public final class P_GetObjectTypeField extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type objectType = args.get(0);
-		final A_Atom field = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type objectType = interpreter.argument(0);
+		final A_Atom field = interpreter.argument(1);
 		final A_Map fieldTypeMap = objectType.fieldTypeMap();
 		if (!fieldTypeMap.hasKey(field))
 		{

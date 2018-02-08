@@ -76,13 +76,12 @@ public final class P_TupleReplaceAt extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Tuple tuple = args.get(0);
-		final A_Number indexObject = args.get(1);
-		final AvailObject value = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Tuple tuple = interpreter.argument(0);
+		final A_Number indexObject = interpreter.argument(1);
+		final AvailObject value = interpreter.argument(2);
 		if (!indexObject.isInt())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);

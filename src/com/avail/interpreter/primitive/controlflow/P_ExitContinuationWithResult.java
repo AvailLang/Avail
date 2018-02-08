@@ -39,8 +39,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -74,12 +72,11 @@ public final class P_ExitContinuationWithResult extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Continuation con = args.get(0);
-		final AvailObject result = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Continuation con = interpreter.argument(0);
+		final AvailObject result = interpreter.argument(1);
 
 		// The primitive fails if the value being returned disagrees with the
 		// label continuation's function's return type.  Any stronger check, as

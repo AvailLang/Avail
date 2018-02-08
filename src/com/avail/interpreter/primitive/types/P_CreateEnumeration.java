@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.types;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -43,7 +42,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.Enumeration;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -67,11 +67,10 @@ public final class P_CreateEnumeration extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Set instanceSet = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Set instanceSet = interpreter.argument(0);
 		final A_Type enumeration = enumerationWith(instanceSet);
 		return interpreter.primitiveSuccess(enumeration);
 	}

@@ -32,13 +32,10 @@
 package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailBreakpointException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -62,9 +59,9 @@ public final class P_BreakPoint extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
+		interpreter.checkArgumentCount(0);
 		// Throw and catch a RuntimeException.  A sensibly configured debugger
 		// will pause during the throw. There are also ample locations here to
 		// insert an explicit breakpoint if you don't want to pause on caught

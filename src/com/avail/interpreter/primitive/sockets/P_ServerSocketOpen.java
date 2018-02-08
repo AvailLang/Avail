@@ -43,10 +43,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousServerSocketChannel;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -81,11 +81,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_String name = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_String name = interpreter.argument(0);
 		try
 		{
 			final A_Atom handle = createAtom(name, currentModule());

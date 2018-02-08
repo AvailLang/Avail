@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.functions;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BlockNodeDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -43,11 +42,11 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.BLOCK_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -71,11 +70,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Function function = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Function function = interpreter.argument(0);
 		final A_Phrase decompiled = L1Decompiler.parse(function);
 		return interpreter.primitiveSuccess(decompiled);
 	}

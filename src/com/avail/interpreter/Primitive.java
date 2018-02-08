@@ -84,13 +84,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * This enumeration represents the interface between Avail's Level One
  * nybblecode interpreter and the underlying interfaces of the built-in objects,
- * providing functionality that is (generally) inexpressible within Level One
- * in terms of other Level One operations.  A conforming Avail implementation
- * must provide these primitives with equivalent semantics.
+ * providing functionality that is (generally) inexpressible within Level One in
+ * terms of other Level One operations.  A conforming Avail implementation must
+ * provide these primitives with equivalent semantics.
  *
- * <p>The enumeration defines an {@link #attempt(List, Interpreter)} operation
- * that takes a {@linkplain List list} of arguments of type {@link AvailObject},
- * as well as the {@link Interpreter} on whose behalf the primitive attempt is
+ * <p>The enumeration defines an {@link #attempt(Interpreter)} operation that
+ * takes a {@linkplain List list} of arguments of type {@link AvailObject}, as
+ * well as the {@link Interpreter} on whose behalf the primitive attempt is
  * being made.  The specific enumeration values override the {@code attempt}
  * method with behavior specific to that primitive.</p>
  *
@@ -290,29 +290,24 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Attempt this primitive with the given arguments, and the {@linkplain
-	 * Interpreter interpreter} on whose behalf to attempt the primitive.
-	 * If the primitive fails, it should set the primitive failure code by
-	 * calling {@link Interpreter#primitiveFailure(A_BasicObject)} and returning
-	 * its result from the primitive.  Otherwise it should set the interpreter's
-	 * primitive result by calling {@link
+	 * Attempt this primitive with the given {@link Interpreter}.  The
+	 * interpreter's {@linkplain Interpreter#argsBuffer's argument list} must be
+	 * set up prior to this call.  If the primitive fails, it should set the
+	 * primitive failure code by calling {@link Interpreter#primitiveFailure(
+	 * A_BasicObject)} and returning its result from the primitive.  Otherwise
+	 * it should set the interpreter's primitive result by calling {@link
 	 * Interpreter#primitiveSuccess(A_BasicObject)} and then return its result
 	 * from the primitive.  For unusual primitives that replace the current
 	 * continuation, {@link Result#CONTINUATION_CHANGED} is more appropriate,
-	 * and the latestResult need not be set.  For primitives that need to
-	 * cause a context switch, {@link Result#FIBER_SUSPENDED} should be
-	 * returned.
+	 * and the latestResult need not be set.  For primitives that need to cause
+	 * a context switch, {@link Result#FIBER_SUSPENDED} should be returned.
 	 *
-	 * @param args
-	 *            The {@linkplain List list} of arguments to the primitive.
 	 * @param interpreter
-	 *            The {@link Interpreter} that is executing.
+	 *        The {@link Interpreter} that is executing.
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
 	 */
-	public abstract Result attempt (
-		List<AvailObject> args,
-		Interpreter interpreter);
+	public abstract Result attempt (Interpreter interpreter);
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined

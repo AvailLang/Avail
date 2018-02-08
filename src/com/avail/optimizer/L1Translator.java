@@ -60,10 +60,13 @@ import com.avail.interpreter.primitive.general.P_Equality;
 import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -71,14 +74,19 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
@@ -87,7 +95,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
@@ -97,7 +106,8 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -376,9 +386,16 @@ implements L1OperationDispatcher
 	 * the arguments, the local variables, the local constants, and finally the
 	 * stack entries.  Slots are numbered starting at 1.
 	 *
-	 * // TODO: [MvG] Document the arguments.
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
+	 * @param effectivePc
+	 *        The Level One pc at which this write should be considered
+	 *        effective.
+	 * @param type
+	 *        The bounding type for the new register.
+	 * @param constantOrNull
+	 *        The constant value that will be written, if known, otherwise
+	 *        {@code null}.
 	 * @return A register write representing that continuation slot.
 	 */
 	private L2WritePointerOperand writeSlot (
@@ -2641,7 +2658,9 @@ implements L1OperationDispatcher
 				final Result success;
 				try
 				{
-					success = primitive.attempt(constants, interpreter);
+					interpreter.argsBuffer.clear();
+					interpreter.argsBuffer.addAll(constants);
+					success = primitive.attempt(interpreter);
 				}
 				finally
 				{
@@ -3231,12 +3250,25 @@ implements L1OperationDispatcher
 		return new L2BasicBlock(name);
 	}
 
+	/** Statistic for generating an L2Chunk's preamble. */
+	private static final Statistic preambleGenerationStat =
+		new Statistic(
+			"(generate preamble)",
+			StatisticReport.L1_NAIVE_TRANSLATION_TIME);
+
+	private static final Statistic[] levelOneGenerationStats =
+		Arrays.stream(L1Operation.values())
+			.map(operation -> new Statistic(
+				operation.name(), StatisticReport.L1_NAIVE_TRANSLATION_TIME))
+			.toArray(Statistic[]::new);
+
 	/**
 	 * For each level one instruction, write a suitable transliteration into
 	 * level two instructions.
 	 */
 	void translateL1Instructions ()
 	{
+		final long timeAtStartOfTranslation = captureNanos();
 		initialBlock.makeIrremovable();
 		startBlock(initialBlock);
 		final @Nullable Primitive primitive = code.primitive();
@@ -3345,12 +3377,22 @@ implements L1OperationDispatcher
 		// continuation again.
 		emitInterruptOffRamp();
 
+		// Capture the time it took to generate the whole preamble.
+		final int interpreterIndex = translator.interpreter.interpreterIndex;
+		preambleGenerationStat.record(
+			captureNanos() - timeAtStartOfTranslation, interpreterIndex);
+
 		// Transliterate each level one nybblecode into L2Instructions.
 		final int numNybbles = code.numNybbles();
 		while (pc.value <= numNybbles)
 		{
-			code.nextNybblecodeOperation(pc).dispatch(this);
+			final long before = captureNanos();
+			final L1Operation operation = code.nextNybblecodeOperation(pc);
+			operation.dispatch(this);
+			levelOneGenerationStats[operation.ordinal()].record(
+				captureNanos() - before, interpreterIndex);
 		}
+
 		// Generate the implicit return after the instruction sequence.
 		final L2ReadPointerOperand readResult = readSlot(stackp);
 		addInstruction(

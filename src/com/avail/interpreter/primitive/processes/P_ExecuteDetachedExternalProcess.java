@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.processes;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -48,10 +47,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -82,16 +83,15 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_Tuple processArgsTuple = args.get(0);
-		final A_Tuple optDir = args.get(1);
-		final A_Tuple optIn = args.get(2);
-		final A_Tuple optOut = args.get(3);
-		final A_Tuple optError = args.get(4);
-		final A_Tuple optEnvironment = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_Tuple processArgsTuple = interpreter.argument(0);
+		final A_Tuple optDir = interpreter.argument(1);
+		final A_Tuple optIn = interpreter.argument(2);
+		final A_Tuple optOut = interpreter.argument(3);
+		final A_Tuple optError = interpreter.argument(4);
+		final A_Tuple optEnvironment = interpreter.argument(5);
 		final List<String> processArgs = new ArrayList<>(
 			processArgsTuple.tupleSize());
 		for (final A_String processArg : processArgsTuple)

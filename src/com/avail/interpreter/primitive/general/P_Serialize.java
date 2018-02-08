@@ -34,16 +34,15 @@ package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.Serializer;
 
 import java.io.ByteArrayOutputStream;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
@@ -72,11 +71,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject value = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_BasicObject value = interpreter.argument(0);
 		final ByteArrayOutputStream out = new ByteArrayOutputStream(100);
 		final Serializer serializer = new Serializer(out);
 		try

@@ -77,12 +77,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Variable var = args.get(0);
-		final AvailObject value = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Variable var = interpreter.argument(0);
+		final AvailObject value = interpreter.argument(1);
 		try
 		{
 			var.setValue(value);

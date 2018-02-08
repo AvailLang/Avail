@@ -112,9 +112,9 @@ extends L2Operation
 	 * @param interpreter
 	 *        The {@link Interpreter}.
 	 * @param function
-	 *        The {@link A_Function}.
+	 *        The primitive {@link A_Function} to invoke.
 	 * @param primitive
-	 *        The {@link Primitive}.
+	 *        The {@link Primitive} to attempt.
 	 * @return The {@link StackReifier}, if any.
 	 */
 	@SuppressWarnings("unused")
@@ -134,7 +134,11 @@ extends L2Operation
 				interpreter.debugModeString,
 				primitive.name());
 		}
-		final Result result = interpreter.attemptPrimitive(primitive);
+		final long timeBefore = interpreter.beforeAttemptPrimitive(primitive);
+
+		final Result result = primitive.attempt(interpreter);
+
+		interpreter.afterAttemptPrimitive(primitive, timeBefore, result);
 		switch (result)
 		{
 			case SUCCESS:
@@ -286,7 +290,11 @@ extends L2Operation
 						interpreter.debugModeString,
 						primitive.name());
 				}
-				final Result result = interpreter.attemptPrimitive(primitive);
+				final long timeBefore =
+					interpreter.beforeAttemptPrimitive(primitive);
+				final Result result = primitive.attempt(interpreter);
+				interpreter.afterAttemptPrimitive(
+					primitive, timeBefore, result);
 				switch (result)
 				{
 					case SUCCESS:

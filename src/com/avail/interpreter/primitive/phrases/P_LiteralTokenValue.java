@@ -33,16 +33,14 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.LiteralTokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -63,11 +61,10 @@ public final class P_LiteralTokenValue extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Token literalToken = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Token literalToken = interpreter.argument(0);
 		return interpreter.primitiveSuccess(literalToken.literal());
 	}
 

@@ -36,13 +36,10 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
@@ -71,11 +68,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Atom trueName = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Atom trueName = interpreter.argument(0);
 		final A_Bundle bundle = trueName.bundleOrNil();
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(!bundle.equalsNil()));

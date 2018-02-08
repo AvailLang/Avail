@@ -120,16 +120,15 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_Number positionObject = args.get(0);
-		final A_Number sizeObject = args.get(1);
-		final A_Atom atom = args.get(2);
-		final A_Function succeed = args.get(3);
-		final A_Function fail = args.get(4);
-		final A_Number priority = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_Number positionObject = interpreter.argument(0);
+		final A_Number sizeObject = interpreter.argument(1);
+		final A_Atom atom = interpreter.argument(2);
+		final A_Function succeed = interpreter.argument(3);
+		final A_Function fail = interpreter.argument(4);
+		final A_Number priority = interpreter.argument(5);
 
 		final A_BasicObject pojo =
 			atom.getAtomProperty(FILE_KEY.atom);

@@ -34,15 +34,12 @@ package com.avail.interpreter.primitive.maps;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
@@ -69,11 +66,10 @@ public final class P_MapBindings extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Map map = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Map map = interpreter.argument(0);
 
 		final A_Tuple[] bindings = new A_Tuple[map.mapSize()];
 		int index = 0;

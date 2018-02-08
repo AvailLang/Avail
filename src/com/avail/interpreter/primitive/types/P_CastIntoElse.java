@@ -85,13 +85,12 @@ public final class P_CastIntoElse extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject value = args.get(0);
-		final A_Function castFunction = args.get(1);
-		final A_Function elseFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final AvailObject value = interpreter.argument(0);
+		final A_Function castFunction = interpreter.argument(1);
+		final A_Function elseFunction = interpreter.argument(2);
 
 		interpreter.argsBuffer.clear();
 		if (value.isInstanceOf(

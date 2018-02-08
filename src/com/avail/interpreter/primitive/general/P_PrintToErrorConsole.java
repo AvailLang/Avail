@@ -86,11 +86,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_String string = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_String string = interpreter.argument(0);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
@@ -103,7 +102,8 @@ extends Primitive
 		final TextInterface textInterface = fiber.textInterface();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.postExitContinuation(
 			() -> textInterface.errorChannel().write(
 				string.asNativeString(),

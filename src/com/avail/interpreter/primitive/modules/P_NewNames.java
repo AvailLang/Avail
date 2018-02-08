@@ -32,16 +32,20 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
@@ -69,11 +73,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Module module = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Module module = interpreter.argument(0);
 		return interpreter.primitiveSuccess(module.newNames());
 	}
 

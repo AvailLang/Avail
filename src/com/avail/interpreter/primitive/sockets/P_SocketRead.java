@@ -45,10 +45,10 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
@@ -100,15 +100,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_Number size = args.get(0);
-		final A_Atom handle = args.get(1);
-		final A_Function succeed = args.get(2);
-		final A_Function fail = args.get(3);
-		final A_Number priority = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_Number size = interpreter.argument(0);
+		final A_Atom handle = interpreter.argument(1);
+		final A_Function succeed = interpreter.argument(2);
+		final A_Function fail = interpreter.argument(3);
+		final A_Number priority = interpreter.argument(4);
 		final A_BasicObject pojo =
 			handle.getAtomProperty(SOCKET_KEY.atom);
 		if (pojo.equalsNil())

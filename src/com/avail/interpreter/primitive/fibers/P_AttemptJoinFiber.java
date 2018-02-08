@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
@@ -43,10 +42,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -79,11 +78,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Fiber joinee = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Fiber joinee = interpreter.argument(0);
 		final Mutable<Boolean> shouldPark = new Mutable<>(false);
 		final A_Fiber current = interpreter.fiber();
 		// Forbid auto-joining.

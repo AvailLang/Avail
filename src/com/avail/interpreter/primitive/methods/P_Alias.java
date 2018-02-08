@@ -33,7 +33,12 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
@@ -45,15 +50,17 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -81,12 +88,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_String newString = args.get(0);
-		final A_Atom oldAtom = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_String newString = interpreter.argument(0);
+		final A_Atom oldAtom = interpreter.argument(1);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)

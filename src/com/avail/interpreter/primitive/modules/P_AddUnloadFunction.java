@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.modules;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.AvailLoader;
@@ -44,16 +43,18 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_DEFINE_DURING_COMPILATION;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
@@ -78,12 +79,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Function unloadFunction = args.get(0);
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		interpreter.checkArgumentCount(1);
+		final A_Function unloadFunction = interpreter.argument(0);
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

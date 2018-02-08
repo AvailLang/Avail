@@ -113,17 +113,16 @@ public final class P_BootstrapBlockMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 7;
-		final A_Phrase optionalArgumentDeclarations = args.get(0);
-		final A_Phrase optionalPrimitive = args.get(1);
-		final A_Phrase optionalLabel = args.get(2);
-		final A_Phrase statements = args.get(3);
-		final A_Phrase optionalReturnExpression = args.get(4);
-		final A_Phrase optionalReturnType = args.get(5);
-		final A_Phrase optionalExceptionTypes = args.get(6);
+		interpreter.checkArgumentCount(7);
+		final A_Phrase optionalArgumentDeclarations = interpreter.argument(0);
+		final A_Phrase optionalPrimitive = interpreter.argument(1);
+		final A_Phrase optionalLabel = interpreter.argument(2);
+		final A_Phrase statements = interpreter.argument(3);
+		final A_Phrase optionalReturnExpression = interpreter.argument(4);
+		final A_Phrase optionalReturnType = interpreter.argument(5);
+		final A_Phrase optionalExceptionTypes = interpreter.argument(6);
 
 		A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		if (!fiberGlobals.hasKey(clientDataKey))

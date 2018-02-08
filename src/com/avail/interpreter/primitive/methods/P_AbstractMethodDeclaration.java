@@ -32,7 +32,13 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailTask;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractDefinitionDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -47,7 +53,8 @@ import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -79,12 +86,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_String string = args.get(0);
-		final A_Type blockSignature = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_String string = interpreter.argument(0);
+		final A_Type blockSignature = interpreter.argument(1);
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
@@ -98,7 +104,8 @@ extends Primitive
 		}
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
@@ -111,10 +118,7 @@ extends Primitive
 						final A_Atom atom = loader.lookupName(string);
 						loader.addAbstractSignature(atom, blockSignature);
 						Interpreter.resumeFromSuccessfulPrimitive(
-							currentRuntime(),
-							fiber,
-							this,
-							nil);
+							currentRuntime(), fiber, this, nil);
 					}
 					catch (
 						final MalformedMessageException

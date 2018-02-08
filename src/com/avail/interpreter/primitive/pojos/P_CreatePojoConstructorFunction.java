@@ -31,7 +31,14 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,7 +49,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -88,13 +96,12 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Type pojoType = args.get(0);
-		final A_Tuple paramTypes = args.get(1);
-		final A_Function failFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Type pojoType = interpreter.argument(0);
+		final A_Tuple paramTypes = interpreter.argument(1);
+		final A_Function failFunction = interpreter.argument(2);
 		// Do not attempt to bind a constructor to an abstract pojo type.
 		if (pojoType.isAbstract())
 		{

@@ -35,21 +35,21 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.STATEMENT_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.STATEMENT_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -76,14 +76,13 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-//		final A_Phrase blockArgumentsPhrase = args.get(0);
-//		final A_Phrase optionalPrimFailurePhrase = args.get(1);
-//		final A_Phrase optionalLabelPhrase = args.get(2);
-		final A_Phrase statementsPhrase = args.get(3);
+		interpreter.checkArgumentCount(4);
+//		final A_Phrase blockArgumentsPhrase = interpreter.argument(0);
+//		final A_Phrase optionalPrimFailurePhrase = interpreter.argument(1);
+//		final A_Phrase optionalLabelPhrase = interpreter.argument(2);
+		final A_Phrase statementsPhrase = interpreter.argument(3);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)

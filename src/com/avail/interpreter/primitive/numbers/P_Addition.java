@@ -36,7 +36,6 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -56,8 +55,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.binaryNumericOperationTypeBound;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -68,7 +69,8 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_ADD_UNLIKE_INFINITIES;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -92,12 +94,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Number a = interpreter.argument(0);
+		final A_Number b = interpreter.argument(1);
 		try
 		{
 			return interpreter.primitiveSuccess(a.plusCanDestroy(b, true));

@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.tuples;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -66,11 +65,10 @@ public final class P_TupleSize extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Tuple tuple = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Tuple tuple = interpreter.argument(0);
 		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize()));
 	}
 

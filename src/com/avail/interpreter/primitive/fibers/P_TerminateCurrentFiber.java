@@ -34,13 +34,10 @@ package com.avail.interpreter.primitive.fibers;
 
 import com.avail.compiler.FiberTerminationException;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -67,10 +64,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		// Throw an exception to ensure that the fiber's (Java) failure
 		// continuation will be executed.
 		throw new FiberTerminationException();

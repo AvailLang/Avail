@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.functions;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -68,12 +67,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type functionType = args.get(0);
-		final A_Number indexObject = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type functionType = interpreter.argument(0);
+		final A_Number indexObject = interpreter.argument(1);
 		final A_Type parametersType = functionType.argsTupleType();
 		if (!indexObject.isInt())
 		{

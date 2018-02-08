@@ -35,11 +35,9 @@ package com.avail.interpreter.primitive.controlflow;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -75,12 +73,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Variable variable = args.get(0);
-		final A_Number mark = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Variable variable = interpreter.argument(0);
+		final A_Number mark = interpreter.argument(1);
 		return interpreter.markGuardVariable(variable, mark);
 	}
 

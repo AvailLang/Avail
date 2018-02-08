@@ -38,8 +38,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -63,12 +61,11 @@ public final class P_FloatModulus extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject a = interpreter.argument(0);
+		final AvailObject b = interpreter.argument(1);
 		final float fa = a.extractFloat();
 		final float fb = b.extractFloat();
 		final float div = fa / fb;

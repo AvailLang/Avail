@@ -64,11 +64,10 @@ public final class P_PushArgument extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject argument = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject argument = interpreter.argument(0);
 		return interpreter.primitiveSuccess(argument);
 	}
 

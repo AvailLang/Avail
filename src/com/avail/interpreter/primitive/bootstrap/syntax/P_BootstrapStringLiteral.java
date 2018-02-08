@@ -34,17 +34,15 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -67,11 +65,10 @@ public final class P_BootstrapStringLiteral extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase stringTokenLiteral = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase stringTokenLiteral = interpreter.argument(0);
 
 		final A_Token outerToken = stringTokenLiteral.token();
 		final A_Token innerToken = outerToken.literal();

@@ -34,12 +34,9 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -86,10 +83,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
 			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_ACCEPTANCE);

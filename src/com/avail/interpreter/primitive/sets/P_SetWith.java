@@ -71,12 +71,11 @@ public final class P_SetWith extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Set set = args.get(0);
-		final A_BasicObject newElement = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Set set = interpreter.argument(0);
+		final A_BasicObject newElement = interpreter.argument(1);
 
 		return interpreter.primitiveSuccess(
 			set.setWithElementCanDestroy(newElement, true));

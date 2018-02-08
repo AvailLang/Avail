@@ -34,14 +34,11 @@ package com.avail.interpreter.primitive.integers;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -69,14 +66,13 @@ public final class P_CreateIntegerRange extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_Number min = args.get(0);
-		final A_Atom minInc = args.get(1);
-		final A_Number max = args.get(2);
-		final A_Atom maxInc = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_Number min = interpreter.argument(0);
+		final A_Atom minInc = interpreter.argument(1);
+		final A_Number max = interpreter.argument(2);
+		final A_Atom maxInc = interpreter.argument(3);
 		return interpreter.primitiveSuccess(
 			integerRangeType(
 				min,

@@ -36,14 +36,12 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
-import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -76,11 +74,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Atom atom = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Atom atom = interpreter.argument(0);
 		final A_BasicObject pojo = atom.getAtomProperty(FILE_KEY.atom);
 		if (pojo.equalsNil())
 		{

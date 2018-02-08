@@ -34,13 +34,21 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation
+	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
@@ -268,6 +276,8 @@ public final class L2Translator
 		// we only translate one method at a time, the first instruction always
 		// represents the start of this compiledCode.
 		final long beforeL1Naive = AvailRuntime.captureNanos();
+		final List<AvailObject> savedArguments =
+			new ArrayList<>(interpreter.argsBuffer);
 		final L1Translator translator = new L1Translator(this);
 		translator.translateL1Instructions();
 		final long afterL1Naive = AvailRuntime.captureNanos();
@@ -283,6 +293,8 @@ public final class L2Translator
 		final long beforeChunkGeneration = AvailRuntime.captureNanos();
 		createChunk(translator.controlFlowGraph);
 		assert code.startingChunk() == chunk;
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.addAll(savedArguments);
 		final long afterChunkGeneration = AvailRuntime.captureNanos();
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,

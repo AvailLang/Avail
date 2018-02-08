@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.files;
 
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -44,7 +43,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -98,10 +96,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		return interpreter.primitiveSuccess(currentWorkingDirectory);
 	}
 

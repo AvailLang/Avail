@@ -34,14 +34,12 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -68,15 +66,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		interpreter.checkArgumentCount(1);
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
 			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION);
 		}
-		final A_String rejectionString = args.get(0);
+		final A_String rejectionString = interpreter.argument(0);
 		throw new AvailRejectedParseException(rejectionString);
 	}
 

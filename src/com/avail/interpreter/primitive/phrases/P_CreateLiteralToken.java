@@ -39,11 +39,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -71,12 +70,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject value = args.get(0);
-		final AvailObject fakeText = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject value = interpreter.argument(0);
+		final AvailObject fakeText = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			literalToken(
 				fakeText,

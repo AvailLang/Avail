@@ -31,17 +31,22 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -63,11 +68,10 @@ public final class P_OuterVariables extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Function aFunction = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Function aFunction = interpreter.argument(0);
 		final A_Tuple newTupleObject = generateObjectTupleFrom(
 			aFunction.numOuterVars(),
 			index ->

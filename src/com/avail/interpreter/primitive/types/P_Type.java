@@ -63,11 +63,10 @@ public final class P_Type extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject value = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject value = interpreter.argument(0);
 		return interpreter.primitiveSuccess(instanceTypeOrMetaOn(value));
 	}
 

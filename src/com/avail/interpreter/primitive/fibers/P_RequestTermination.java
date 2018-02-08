@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
@@ -41,13 +40,14 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.TimerTask;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -76,11 +76,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Fiber fiber = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Fiber fiber = interpreter.argument(0);
 		fiber.lock(() ->
 		{
 			// Set the interrupt request flag.

@@ -41,12 +41,12 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -72,11 +72,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject expressions = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject expressions = interpreter.argument(0);
 		return interpreter.primitiveSuccess(newListNode(expressions));
 	}
 

@@ -41,9 +41,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
@@ -53,7 +52,8 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -76,12 +76,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject key = args.get(0);
-		final AvailObject var = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject key = interpreter.argument(0);
+		final AvailObject var = interpreter.argument(1);
 		try
 		{
 			return interpreter.primitiveSuccess(

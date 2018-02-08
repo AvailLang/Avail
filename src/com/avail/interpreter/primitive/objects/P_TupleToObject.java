@@ -32,7 +32,15 @@
 
 package com.avail.interpreter.primitive.objects;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.ObjectDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -72,11 +80,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Tuple tuple = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Tuple tuple = interpreter.argument(0);
 		return interpreter.primitiveSuccess(objectFromTuple(tuple));
 	}
 

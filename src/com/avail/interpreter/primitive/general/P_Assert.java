@@ -31,8 +31,15 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -79,12 +86,11 @@ public final class P_Assert extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom predicate = args.get(0);
-		final A_String failureMessage = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Atom predicate = interpreter.argument(0);
+		final A_String failureMessage = interpreter.argument(1);
 		if (!predicate.extractBoolean())
 		{
 			final A_Fiber fiber = interpreter.fiber();

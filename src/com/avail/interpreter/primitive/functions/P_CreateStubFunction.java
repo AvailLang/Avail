@@ -33,14 +33,11 @@ package com.avail.interpreter.primitive.functions;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionDescriptor.createStubWithArgTypes;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
@@ -65,12 +62,11 @@ public final class P_CreateStubFunction extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type newFunctionType = args.get(0);
-		final A_Function function = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type newFunctionType = interpreter.argument(0);
+		final A_Function function = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			createStubWithArgTypes(newFunctionType, function));
 	}

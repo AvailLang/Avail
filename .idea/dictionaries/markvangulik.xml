@@ -31,6 +31,7 @@
       <w>gulik</w>
       <w>homogenous</w>
       <w>idempotently</w>
+      <w>immutables</w>
       <w>indexable</w>
       <w>inlineable</w>
       <w>inlined</w>
@@ -119,6 +120,7 @@
       <w>transactionally</w>
       <w>tuples</w>
       <w>unbackquoted</w>
+      <w>unbox</w>
       <w>unboxed</w>
       <w>uncached</w>
       <w>underflows</w>

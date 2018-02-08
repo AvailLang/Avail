@@ -34,15 +34,13 @@ package com.avail.interpreter.primitive.modules;
 
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ModuleDescriptor.currentModule;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -71,10 +69,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		final A_Module module = currentModule();
 		if (module.equalsNil())
 		{

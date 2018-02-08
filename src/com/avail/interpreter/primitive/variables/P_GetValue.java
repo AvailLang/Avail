@@ -75,11 +75,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject var = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject var = interpreter.argument(0);
 		try
 		{
 			return interpreter.primitiveSuccess(var.getValue());

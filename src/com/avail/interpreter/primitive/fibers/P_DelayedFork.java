@@ -84,14 +84,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_Number sleepMillis = args.get(0);
-		final A_Function function = args.get(1);
-		final A_Tuple argTuple = args.get(2);
-		final A_Number priority = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_Number sleepMillis = interpreter.argument(0);
+		final A_Function function = interpreter.argument(1);
+		final A_Tuple argTuple = interpreter.argument(2);
+		final A_Number priority = interpreter.argument(3);
 
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();

@@ -41,7 +41,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.lang.reflect.Array;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -72,12 +71,11 @@ public final class P_CreatePojoArray extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject elementType = args.get(0);
-		final AvailObject length = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject elementType = interpreter.argument(0);
+		final AvailObject length = interpreter.argument(1);
 		final AvailObject pojoType = pojoArrayType(
 			elementType, singleInteger(length));
 		final Object array = Array.newInstance(

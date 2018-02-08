@@ -37,13 +37,12 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -76,12 +75,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

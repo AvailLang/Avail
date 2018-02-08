@@ -72,11 +72,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Tuple tuple = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Tuple tuple = interpreter.argument(0);
 		return interpreter.primitiveSuccess(objectTypeFromTuple(tuple));
 	}
 

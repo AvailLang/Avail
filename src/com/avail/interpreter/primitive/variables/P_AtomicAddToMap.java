@@ -45,9 +45,9 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
@@ -57,8 +57,10 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -82,13 +84,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject variable = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final AvailObject variable = interpreter.argument(0);
+		final AvailObject key = interpreter.argument(1);
+		final AvailObject value = interpreter.argument(2);
 		try
 		{
 			variable.atomicAddToMap(key, value);

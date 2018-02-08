@@ -37,7 +37,6 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -50,10 +49,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -67,7 +66,8 @@ import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
@@ -92,12 +92,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_String filename = args.get(0);
-		final A_Atom followSymlinks = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_String filename = interpreter.argument(0);
+		final A_Atom followSymlinks = interpreter.argument(1);
 		final AvailRuntime runtime = currentRuntime();
 		final Path path;
 		try

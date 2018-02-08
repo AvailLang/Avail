@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -56,7 +55,13 @@ import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.CheckMethodAdapter;
 
 import javax.annotation.Nonnull;
@@ -79,7 +84,8 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
+import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor
+	.invalidIndex;
 import static com.avail.performance.StatisticReport.JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
@@ -458,43 +464,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2ConstantOperand operand)
 		{
-			literals.computeIfAbsent(
-				operand.object,
-				object ->
-				{
-					// Choose an index and name for the literal.
-					final int index = nextClassLoaderIndex++;
-					final String name = "literal_" + index;
-					// Generate a field that will hold the literal at runtime.
-					final FieldVisitor field = classWriter.visitField(
-						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
-						name,
-						getDescriptor(AvailObject.class),
-						null,
-						null);
-					field.visitAnnotation(getDescriptor(Nonnull.class), true);
-					field.visitEnd();
-					// Generate an accessor for the literal.
-					return new LiteralAccessor(
-						index,
-						name,
-						method -> method.visitFieldInsn(
-							GETSTATIC,
-							classInternalName,
-							name,
-							getDescriptor(AvailObject.class)),
-						method ->
-						{
-							method.visitTypeInsn(
-								CHECKCAST,
-								getInternalName(AvailObject.class));
-							method.visitFieldInsn(
-								PUTSTATIC,
-								classInternalName,
-								name,
-								getDescriptor(AvailObject.class));
-						});
-				});
+			recordLiteralObject(operand.object);
 		}
 
 		@Override
@@ -532,8 +502,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2PrimitiveOperand operand)
 		{
-			// Ignore primitives. The encapsulated primitive can be extracted
-			// during translation as needed.
+			recordLiteralObject(operand.primitive);
 		}
 
 		@Override
@@ -578,43 +547,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2SelectorOperand operand)
 		{
-			literals.computeIfAbsent(
-				operand.bundle,
-				object ->
-				{
-					// Choose an index and name for the literal.
-					final int index = nextClassLoaderIndex++;
-					final String name = "literal_" + index;
-					// Generate a field that will hold the literal at runtime.
-					final FieldVisitor field = classWriter.visitField(
-						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
-						name,
-						getDescriptor(A_Bundle.class),
-						null,
-						null);
-					field.visitAnnotation(getDescriptor(Nonnull.class), true);
-					field.visitEnd();
-					// Generate an accessor for the literal.
-					return new LiteralAccessor(
-						index,
-						name,
-						method -> method.visitFieldInsn(
-							GETSTATIC,
-							classInternalName,
-							name,
-							getDescriptor(A_Bundle.class)),
-						method ->
-						{
-							method.visitTypeInsn(
-								CHECKCAST,
-								getInternalName(A_Bundle.class));
-							method.visitFieldInsn(
-								PUTSTATIC,
-								classInternalName,
-								name,
-								getDescriptor(A_Bundle.class));
-						});
-				});
+			recordLiteralObject(operand.bundle);
 		}
 
 		@Override
@@ -649,6 +582,53 @@ public final class JVMTranslator
 				: "L2 code generation should not have left any "
 				+ "L2WritePhiOperands in existence";
 			throw new RuntimeException();
+		}
+
+		/**
+		 * Create a literal slot for the given arbitrary {@link Object}.
+		 *
+		 * @param value The actual literal value to capture.
+		 */
+		private void recordLiteralObject (final Object value)
+		{
+			literals.computeIfAbsent(
+				value,
+				object ->
+				{
+					// Choose an index and name for the literal.
+					final int index = nextClassLoaderIndex++;
+					final String name = "literal_" + index;
+					final Class<?> type = object.getClass();
+					// Generate a field that will hold the literal at runtime.
+					final FieldVisitor field = classWriter.visitField(
+						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
+						name,
+						getDescriptor(type),
+						null,
+						null);
+					field.visitAnnotation(getDescriptor(Nonnull.class), true);
+					field.visitEnd();
+					// Generate an accessor for the literal.
+					return new LiteralAccessor(
+						index,
+						name,
+						method -> method.visitFieldInsn(
+							GETSTATIC,
+							classInternalName,
+							name,
+							getDescriptor(type)),
+						method ->
+						{
+							method.visitTypeInsn(
+								CHECKCAST,
+								getInternalName(type));
+							method.visitFieldInsn(
+								PUTSTATIC,
+								classInternalName,
+								name,
+								getDescriptor(type));
+						});
+				});
 		}
 	}
 

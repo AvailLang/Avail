@@ -36,12 +36,9 @@ import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
@@ -76,13 +73,12 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_String source = args.get(0);
-		final A_Number sourcePositionInteger = args.get(1);
-		final A_Number lineNumberInteger = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_String source = interpreter.argument(0);
+		final A_Number sourcePositionInteger = interpreter.argument(1);
+		final A_Number lineNumberInteger = interpreter.argument(2);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();

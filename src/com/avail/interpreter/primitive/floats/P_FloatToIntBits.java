@@ -33,14 +33,11 @@ package com.avail.interpreter.primitive.floats;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -69,11 +66,10 @@ public final class P_FloatToIntBits extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Number floatObject = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Number floatObject = interpreter.argument(0);
 		final float floatValue = floatObject.extractFloat();
 		final int floatBits = Float.floatToRawIntBits(floatValue);
 		return interpreter.primitiveSuccess(fromInt(floatBits));

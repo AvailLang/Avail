@@ -33,7 +33,14 @@ package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -50,11 +57,11 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -155,14 +162,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_String filename = args.get(0);
-		final A_Number alignment = args.get(1);
-		final A_Set options = args.get(2);
-		final A_Set permissions = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_String filename = interpreter.argument(0);
+		final A_Number alignment = interpreter.argument(1);
+		final A_Set options = interpreter.argument(2);
+		final A_Set permissions = interpreter.argument(3);
 
 		if (!alignment.isInt())
 		{

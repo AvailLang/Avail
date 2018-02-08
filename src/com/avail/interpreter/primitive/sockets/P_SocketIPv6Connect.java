@@ -48,10 +48,10 @@ import java.net.UnknownHostException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Collections;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
@@ -62,7 +62,8 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -98,16 +99,15 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_Atom handle = args.get(0);
-		final A_Tuple addressTuple = args.get(1);
-		final A_Number port = args.get(2);
-		final A_Function succeed = args.get(3);
-		final A_Function fail = args.get(4);
-		final A_Number priority = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_Atom handle = interpreter.argument(0);
+		final A_Tuple addressTuple = interpreter.argument(1);
+		final A_Number port = interpreter.argument(2);
+		final A_Function succeed = interpreter.argument(3);
+		final A_Function fail = interpreter.argument(4);
+		final A_Number priority = interpreter.argument(5);
 		final A_BasicObject pojo =
 			handle.getAtomProperty(SOCKET_KEY.atom);
 		if (pojo.equalsNil())

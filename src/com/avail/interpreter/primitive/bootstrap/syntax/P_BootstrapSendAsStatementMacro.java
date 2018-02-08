@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ExpressionAsStatementNodeDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -43,10 +42,11 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -76,11 +76,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase sendPhraseInLiteral = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase sendPhraseInLiteral = interpreter.argument(0);
 
 		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)

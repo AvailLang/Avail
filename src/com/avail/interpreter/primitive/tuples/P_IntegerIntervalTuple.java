@@ -39,11 +39,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.createInterval;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -71,14 +71,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
+		interpreter.checkArgumentCount(3);
 
-		final AvailObject start = args.get(0);
-		final AvailObject end = args.get(1);
-		final AvailObject delta = args.get(2);
+		final AvailObject start = interpreter.argument(0);
+		final AvailObject end = interpreter.argument(1);
+		final AvailObject delta = interpreter.argument(2);
 		if (delta.equalsInt(0))
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);

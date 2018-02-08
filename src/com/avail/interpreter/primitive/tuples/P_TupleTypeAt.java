@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -65,12 +71,11 @@ public final class P_TupleTypeAt extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type tupleType = args.get(0);
-		final A_Number index = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type tupleType = interpreter.argument(0);
+		final A_Number index = interpreter.argument(1);
 		if (!index.isInt())
 		{
 			return interpreter.primitiveSuccess(bottom());

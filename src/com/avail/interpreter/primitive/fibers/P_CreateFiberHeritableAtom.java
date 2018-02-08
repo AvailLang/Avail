@@ -32,17 +32,22 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
@@ -78,11 +83,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_String name = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_String name = interpreter.argument(0);
 		final A_Module module = currentModule();
 		final MutableOrNull<A_Atom> trueName =
 			new MutableOrNull<>();

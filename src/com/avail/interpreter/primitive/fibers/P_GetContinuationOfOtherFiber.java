@@ -74,16 +74,16 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Fiber otherFiber = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Fiber otherFiber = interpreter.argument(0);
 
 		final A_Fiber thisFiber = interpreter.fiber();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.postExitContinuation(
 			() -> otherFiber.whenContinuationIsAvailableDo(
 				theContinuation ->

@@ -32,7 +32,15 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -40,7 +48,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -52,7 +59,8 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.exceptions.AvailErrorCode
+	.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
@@ -77,13 +85,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Type pojoType = args.get(0);
-		final A_String methodName = args.get(1);
-		final A_Tuple paramTypes = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Type pojoType = interpreter.argument(0);
+		final A_String methodName = interpreter.argument(1);
+		final A_Tuple paramTypes = interpreter.argument(2);
 		// Marshal the argument types.
 		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
 		try

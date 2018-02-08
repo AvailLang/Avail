@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.controlflow;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -70,13 +69,12 @@ public final class P_IfFalseThenElse extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-//		final A_Atom ignoredBoolean = args.get(0);
-//		final A_Function ignoredTrueFunction = args.get(1);
-		final A_Function falseFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+//		final A_Atom ignoredBoolean = interpreter.argument(0);
+//		final A_Function ignoredTrueFunction = interpreter.argument(1);
+		final A_Function falseFunction = interpreter.argument(2);
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();

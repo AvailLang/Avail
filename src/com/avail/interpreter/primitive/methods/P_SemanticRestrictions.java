@@ -31,7 +31,15 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -39,7 +47,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -49,7 +58,8 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
@@ -70,12 +80,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Method method = args.get(0);
-		final A_Tuple argTypes = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Method method = interpreter.argument(0);
+		final A_Tuple argTypes = interpreter.argument(1);
 
 		if (method.numArgs() != argTypes.tupleSize())
 		{

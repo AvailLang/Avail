@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,9 +41,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -72,13 +71,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		final A_Fiber fiber = interpreter.fiber();
 		return interpreter.suspendAndDo(
-			args,
 			(toSucceed, toFail) ->
 			{
 				final CharBuffer buffer = CharBuffer.allocate(1);

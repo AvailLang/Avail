@@ -39,9 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -76,12 +75,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom key = args.get(0);
-		final A_Function reactorFunction = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Atom key = interpreter.argument(0);
+		final A_Function reactorFunction = interpreter.argument(1);
 		if (!interpreter.traceVariableReadsBeforeWrites())
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);

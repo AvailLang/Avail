@@ -33,23 +33,22 @@ package com.avail.interpreter.primitive.doubles;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DoubleDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static java.lang.Math.*;
@@ -71,11 +70,10 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		final A_Number a = args.get(0);
-		assert args.size() == 1;
+		interpreter.checkArgumentCount(1);
+		final A_Number a = interpreter.argument(0);
 		// Extract the top three 32-bit sections.  That guarantees 65 bits
 		// of mantissa, which is more than a double actually captures.
 		double d = a.extractDouble();

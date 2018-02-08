@@ -31,12 +31,16 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -73,11 +77,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject exception = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_BasicObject exception = interpreter.argument(0);
 		// Attach the current continuation to the exception, so that a stack
 		// dump can be obtained later.
 		final A_Map fieldMap = exception.fieldMap();

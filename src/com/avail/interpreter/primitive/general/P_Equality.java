@@ -68,12 +68,11 @@ public final class P_Equality extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_BasicObject a = interpreter.argument(0);
+		final AvailObject b = interpreter.argument(1);
 		return interpreter.primitiveSuccess(objectFromBoolean(a.equals(b)));
 	}
 

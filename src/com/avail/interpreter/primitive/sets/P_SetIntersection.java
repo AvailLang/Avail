@@ -33,13 +33,10 @@ package com.avail.interpreter.primitive.sets;
 
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
@@ -62,12 +59,11 @@ public final class P_SetIntersection extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Set set1 = args.get(0);
-		final A_Set set2 = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Set set1 = interpreter.argument(0);
+		final A_Set set2 = interpreter.argument(1);
 
 		return interpreter.primitiveSuccess(
 			set1.setIntersectionCanDestroy(set2, true));

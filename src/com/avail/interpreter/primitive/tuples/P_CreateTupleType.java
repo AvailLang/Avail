@@ -38,8 +38,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -65,13 +63,12 @@ public final class P_CreateTupleType extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject typeTuple = args.get(0);
-		final AvailObject defaultType = args.get(1);
-		final AvailObject sizeRange = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final AvailObject typeTuple = interpreter.argument(0);
+		final AvailObject defaultType = interpreter.argument(1);
+		final AvailObject sizeRange = interpreter.argument(2);
 		return interpreter.primitiveSuccess(
 			tupleTypeForSizesTypesDefaultType(
 				sizeRange, typeTuple, defaultType));

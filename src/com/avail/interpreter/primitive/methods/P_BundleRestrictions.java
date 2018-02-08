@@ -33,13 +33,10 @@ package com.avail.interpreter.primitive.methods;
 
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MessageBundleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -67,11 +64,10 @@ public final class P_BundleRestrictions extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Bundle bundle = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Bundle bundle = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
 			bundle.grammaticalRestrictions().makeImmutable());
 	}

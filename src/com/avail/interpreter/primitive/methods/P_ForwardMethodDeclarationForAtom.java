@@ -83,12 +83,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom atom = args.get(0);
-		final A_Type blockSignature = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Atom atom = interpreter.argument(0);
+		final A_Type blockSignature = interpreter.argument(1);
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
@@ -102,7 +101,8 @@ extends Primitive
 		}
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),

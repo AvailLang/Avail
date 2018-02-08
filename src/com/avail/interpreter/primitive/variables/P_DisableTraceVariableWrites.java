@@ -32,16 +32,22 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -76,10 +82,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		final A_Fiber fiber = interpreter.fiber();
 		if (!fiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		{

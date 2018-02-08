@@ -36,7 +36,6 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
@@ -48,7 +47,6 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -79,11 +77,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Atom atom = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Atom atom = interpreter.argument(0);
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		final L1InstructionWriter writer = new L1InstructionWriter(

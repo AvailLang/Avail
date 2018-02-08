@@ -31,18 +31,24 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
@@ -67,12 +73,11 @@ public final class P_CreateFunction extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_RawFunction rawFunction = args.get(0);
-		final A_Tuple outers = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_RawFunction rawFunction = interpreter.argument(0);
+		final A_Tuple outers = interpreter.argument(1);
 		final int numOuters = rawFunction.numOuters();
 		if (outers.tupleSize() != numOuters)
 		{

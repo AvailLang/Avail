@@ -34,13 +34,10 @@ package com.avail.interpreter.primitive.atoms;
 
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
@@ -69,11 +66,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Atom name = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Atom name = interpreter.argument(0);
 		try
 		{
 			// Ignore the return value. We just want to see if the name is

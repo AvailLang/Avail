@@ -33,7 +33,14 @@ package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -41,9 +48,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
@@ -91,14 +98,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_Atom atom = args.get(0);
-		final A_Function succeed = args.get(1);
-		final A_Function fail = args.get(2);
-		final A_Number priority = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_Atom atom = interpreter.argument(0);
+		final A_Function succeed = interpreter.argument(1);
+		final A_Function fail = interpreter.argument(2);
+		final A_Number priority = interpreter.argument(3);
 
 		final A_BasicObject pojo =
 			atom.getAtomProperty(FILE_KEY.atom);

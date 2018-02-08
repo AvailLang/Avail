@@ -37,7 +37,6 @@ import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -46,18 +45,21 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralNodeDescriptor
+	.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.SEQUENCE_NODE;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -88,12 +90,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase nameLiteral = args.get(0);
-		final A_Phrase specialObjectLiteral = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase nameLiteral = interpreter.argument(0);
+		final A_Phrase specialObjectLiteral = interpreter.argument(1);
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null || loader.module().equalsNil())

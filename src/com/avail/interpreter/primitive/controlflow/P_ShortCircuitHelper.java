@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.controlflow;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
@@ -71,12 +70,11 @@ public final class P_ShortCircuitHelper extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-//		final A_Atom ignoredBool = args.get(0);
-		final A_Function function = args.get(1);
+		interpreter.checkArgumentCount(2);
+//		final A_Atom ignoredBool = interpreter.argument(0);
+		final A_Function function = interpreter.argument(1);
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();

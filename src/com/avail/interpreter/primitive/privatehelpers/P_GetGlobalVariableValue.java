@@ -35,7 +35,6 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -67,7 +66,6 @@ public final class P_GetGlobalVariableValue extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
 		final A_RawFunction code = stripNull(interpreter.function).code();
@@ -100,7 +98,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	}
 
 	@Override
-	public @Nullable boolean tryToGenerateSpecialPrimitiveInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,

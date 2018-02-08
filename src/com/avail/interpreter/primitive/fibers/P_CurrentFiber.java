@@ -32,13 +32,10 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -63,10 +60,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		return interpreter.primitiveSuccess(
 			interpreter.fiber().makeImmutable());
 	}

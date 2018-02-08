@@ -82,18 +82,23 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag
+	.TRACE_VARIABLE_READS_BEFORE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag
+	.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
@@ -104,7 +109,6 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -871,21 +875,18 @@ public final class Interpreter
 	 * other indicating how to cause the primitive to fail (taking an
 	 * AvailErrorCode).
 	 *
-	 * @param args
-	 *        The {@link List} of arguments to the primitive.
 	 * @param action
 	 *        The action supplied by the client that itself takes two actions
 	 *        for succeeding and failing the primitive at a later time.
 	 * @return The value FIBER_SUSPENDED.
 	 */
 	public Result suspendAndDo (
-		final List<AvailObject> args,
 		final Continuation2NotNull<
 				Continuation1NotNull<A_BasicObject>,
 				Continuation1NotNull<AvailErrorCode>>
 			action)
 	{
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs = new ArrayList<>(argsBuffer);
 		final AvailRuntime theRuntime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(function);
 		final @Nullable Primitive prim = primitiveFunction.code().primitive();
@@ -1234,6 +1235,23 @@ public final class Interpreter
 	public Result attemptPrimitive (
 		final Primitive primitive)
 	{
+		final long timeBefore = beforeAttemptPrimitive(primitive);
+		final Result success = primitive.attempt(this);
+		afterAttemptPrimitive(primitive, timeBefore, success);
+		return success;
+	}
+
+	/**
+	 * Prepare to execute the given primitive.  Answer the current time in
+	 * nanoseconds.
+	 *
+	 * @param primitive
+	 *        The {@link Primitive} that is about to run.
+	 * @return The current time in nanoseconds, as a {@code long}.
+	 */
+	@ReferencedInGeneratedCode
+	public long beforeAttemptPrimitive (final Primitive primitive)
+	{
 		if (debugPrimitives)
 		{
 			log(
@@ -1246,9 +1264,27 @@ public final class Interpreter
 		returnNow = false;
 		latestResult(null);
 		assert current() == this;
-		final long timeBefore = AvailRuntime.captureNanos();
-		final Result success =
-			primitive.attempt(unmodifiableArgsBuffer, this);
+		return AvailRuntime.captureNanos();
+	}
+
+	/**
+	 * The given primitive has just executed; do any necessary post-processing.
+	 *
+	 * @param primitive
+	 *        The primitive that just ran.
+	 * @param timeBefore
+	 *        The time in nanoseconds just prior to the primitive running.
+	 * @param success
+	 *        The {@link Result} of running the primitive, indicating whether
+	 *        it succeeded, failed, etc.
+	 * @return The same {@link Result} that was passed, to make calling simpler.
+	 */
+	@ReferencedInGeneratedCode
+	public Result afterAttemptPrimitive (
+		final Primitive primitive,
+		final long timeBefore,
+		final Result success)
+	{
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1340,10 +1376,29 @@ public final class Interpreter
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
 
 	/**
-	 * A reusable unmodifiable view of the {@link #argsBuffer}.
+	 * Assert that the number of arguments in the {@link #argsBuffer} agrees
+	 * with the given expected number.
+	 *
+	 * @param expectedCount
+	 *        The exact number of arguments that should be present.
 	 */
-	public final List<AvailObject> unmodifiableArgsBuffer =
-		unmodifiableList(argsBuffer);
+	public void checkArgumentCount (final int expectedCount)
+	{
+		assert argsBuffer.size() == expectedCount;
+	}
+
+	/**
+	 * Answer the specified element of argsBuffer.
+	 *
+	 * @param zeroBasedIndex
+	 *        The zero-based index at which to extract an argument being passed
+	 *        in an invocation.
+	 * @return The actual argument.
+	 */
+	public AvailObject argument (final int zeroBasedIndex)
+	{
+		return argsBuffer.get(zeroBasedIndex);
+	}
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One

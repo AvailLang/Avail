@@ -33,7 +33,15 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -41,13 +49,13 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
@@ -81,12 +89,11 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase variableNameLiteral = args.get(0);
-		final A_Phrase valueExpression = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase variableNameLiteral = interpreter.argument(0);
+		final A_Phrase valueExpression = interpreter.argument(1);
 
 		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)

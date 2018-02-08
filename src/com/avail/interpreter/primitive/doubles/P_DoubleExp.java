@@ -38,8 +38,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -66,12 +64,11 @@ public final class P_DoubleExp extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-//		final A_BasicObject euler = args.get(0);
-		final AvailObject a = args.get(1);
+		interpreter.checkArgumentCount(2);
+//		final A_BasicObject euler = interpreter.argument(0);
+		final AvailObject a = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			fromDoubleRecycling(exp(a.extractDouble()), a, true));
 	}
