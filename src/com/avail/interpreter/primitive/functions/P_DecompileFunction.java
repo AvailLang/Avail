@@ -43,10 +43,8 @@ import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.BLOCK_NODE;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 

@@ -32,19 +32,12 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockNodeDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -55,8 +48,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCONSISTENT_PREFIX_FUNCTION;
+import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CanInline;

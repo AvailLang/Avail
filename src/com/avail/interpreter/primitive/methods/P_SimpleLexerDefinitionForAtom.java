@@ -33,13 +33,7 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailTask;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Lexer;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -52,8 +46,7 @@ import javax.annotation.Nullable;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LexerDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -62,8 +55,7 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode
-	.E_CANNOT_DEFINE_DURING_COMPILATION;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;

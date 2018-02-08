@@ -43,8 +43,7 @@ import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 

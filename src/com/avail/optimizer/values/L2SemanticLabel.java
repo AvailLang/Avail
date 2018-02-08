@@ -30,8 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**

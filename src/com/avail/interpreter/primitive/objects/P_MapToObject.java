@@ -41,8 +41,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
 import static com.avail.descriptor.TupleDescriptor.tuple;

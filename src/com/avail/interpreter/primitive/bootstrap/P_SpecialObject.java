@@ -40,14 +40,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.LiteralNodeDescriptor
-	.syntheticLiteralNodeFor;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
+import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;

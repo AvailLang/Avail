@@ -41,8 +41,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor
-	.characterCodePoints;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.characterCodePoints;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.interpreter.Primitive.Flag.*;

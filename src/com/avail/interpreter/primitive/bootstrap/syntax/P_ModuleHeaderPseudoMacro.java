@@ -41,15 +41,13 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-	.MODULE_HEADER_METHOD;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER_METHOD;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

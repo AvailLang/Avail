@@ -43,8 +43,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE;
 import static com.avail.interpreter.Primitive.Flag.CanFold;

@@ -31,13 +31,7 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;

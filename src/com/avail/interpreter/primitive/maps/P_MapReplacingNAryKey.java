@@ -32,20 +32,13 @@
 
 package com.avail.interpreter.primitive.maps;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
 import static com.avail.descriptor.SetDescriptor.set;

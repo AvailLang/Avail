@@ -42,8 +42,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

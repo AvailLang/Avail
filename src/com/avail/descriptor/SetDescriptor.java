@@ -43,13 +43,11 @@ import com.avail.utility.json.JSONWriter;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

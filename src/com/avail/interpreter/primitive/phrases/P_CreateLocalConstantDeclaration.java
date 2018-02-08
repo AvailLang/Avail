@@ -43,10 +43,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.DeclarationNodeDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LOCAL_CONSTANT_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LOCAL_CONSTANT_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;

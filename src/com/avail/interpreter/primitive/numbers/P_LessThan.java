@@ -47,8 +47,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.possibleOrdersWhenComparingInstancesOf;
+import static com.avail.descriptor.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;

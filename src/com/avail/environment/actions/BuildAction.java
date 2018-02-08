@@ -38,7 +38,6 @@ import com.avail.environment.tasks.BuildTask;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 

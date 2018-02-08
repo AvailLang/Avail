@@ -40,8 +40,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SUPER_CAST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SUPER_CAST_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 

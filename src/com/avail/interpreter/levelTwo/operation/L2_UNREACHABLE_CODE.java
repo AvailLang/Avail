@@ -42,7 +42,8 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
 /**

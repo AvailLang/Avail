@@ -33,15 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -54,8 +46,7 @@ import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;

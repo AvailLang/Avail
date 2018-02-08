@@ -43,8 +43,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;

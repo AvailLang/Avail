@@ -33,15 +33,7 @@
 package com.avail.interpreter;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;

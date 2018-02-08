@@ -47,8 +47,7 @@ import java.util.TimerTask;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.ASLEEP;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
-	.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.zero;

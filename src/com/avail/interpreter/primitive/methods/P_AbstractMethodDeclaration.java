@@ -32,13 +32,7 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailTask;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractDefinitionDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -53,8 +47,7 @@ import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;

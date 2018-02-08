@@ -41,8 +41,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;

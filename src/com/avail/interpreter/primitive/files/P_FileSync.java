@@ -33,14 +33,7 @@ package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -49,8 +42,7 @@ import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;

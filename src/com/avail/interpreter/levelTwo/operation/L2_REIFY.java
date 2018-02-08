@@ -51,7 +51,6 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;

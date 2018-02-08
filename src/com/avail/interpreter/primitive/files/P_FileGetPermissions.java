@@ -33,13 +33,7 @@
 package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -55,8 +49,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;

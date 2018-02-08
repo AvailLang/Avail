@@ -47,19 +47,15 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SEQUENCE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;

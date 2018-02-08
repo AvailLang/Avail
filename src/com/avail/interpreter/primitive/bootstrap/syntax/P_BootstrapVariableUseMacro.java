@@ -33,16 +33,8 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.VariableUseNodeDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -52,18 +44,14 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tuple;

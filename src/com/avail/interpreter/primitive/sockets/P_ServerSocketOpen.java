@@ -45,8 +45,7 @@ import java.io.IOException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;

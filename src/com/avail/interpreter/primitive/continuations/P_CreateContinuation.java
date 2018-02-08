@@ -31,14 +31,7 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -46,28 +39,21 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.exceptions.AvailErrorCode
-	.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_CONTINUATION_STACK_SIZE;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**

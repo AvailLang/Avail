@@ -39,8 +39,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
