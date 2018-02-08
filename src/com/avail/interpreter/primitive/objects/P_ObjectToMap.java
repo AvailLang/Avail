@@ -75,10 +75,10 @@ public final class P_ObjectToMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(mostGeneralObjectType
-			()), mapTypeForSizesKeyTypeValueType(
-			wholeNumbers(),
-			ATOM.o(),
-			ANY.o()));
+		return functionType(
+			tuple(
+				mostGeneralObjectType()),
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), ATOM.o(), ANY.o()));
 	}
 }

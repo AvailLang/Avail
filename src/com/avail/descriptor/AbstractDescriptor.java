@@ -131,6 +131,38 @@ import static java.lang.Math.max;
  */
 public abstract class AbstractDescriptor
 {
+	/**
+	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
+	 * Useful for customizing debugger views of objects.
+	 */
+	final class DebuggerObjectSlots implements ObjectSlotsEnum
+	{
+		/** The slot name. */
+		public final String name;
+
+		/**
+		 * Create a new artificial slot with the given name.
+		 *
+		 * @param name The name of the slot.
+		 */
+		DebuggerObjectSlots (final String name)
+		{
+			this.name = name;
+		}
+
+		@Override
+		public String name ()
+		{
+			return name;
+		}
+
+		@Override
+		public int ordinal ()
+		{
+			return -1;
+		}
+	}
+
 	/** The {@linkplain Mutability mutability} of my instances. */
 	final Mutability mutability;
 

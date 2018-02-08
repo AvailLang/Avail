@@ -99,10 +99,10 @@ public final class P_ObjectTypeToMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return
-			functionType(tuple(mostGeneralObjectMeta()), mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				ATOM.o(),
-				anyMeta()));
+		return functionType(
+			tuple(
+				mostGeneralObjectMeta()),
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), ATOM.o(), anyMeta()));
 	}
 }

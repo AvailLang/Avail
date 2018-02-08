@@ -434,6 +434,7 @@ public final class FXUtility
 	 *        The type of item held in the choice box.
 	 * @return A {@code ChoiceBox}.
 	 */
+	@SafeVarargs
 	public static <T> ChoiceBox<T> choiceBox (
 		final double top,
 		final double right,
@@ -484,6 +485,7 @@ public final class FXUtility
 	 *        The type of item held in the choice box.
 	 * @return A {@code ChoiceBox}.
 	 */
+	@SafeVarargs
 	public static <T> ChoiceBox<T> choiceBox (
 		final double top,
 		final double right,
