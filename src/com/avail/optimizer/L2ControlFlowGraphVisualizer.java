@@ -345,8 +345,7 @@ public class L2ControlFlowGraphVisualizer
 			"<tr>"
 				+ "<td align=\"left\" balign=\"left\" border=\"1\" "
 				+ "bgcolor=\"%s\">"
-					+ "<font face=\"Helvetica\" color=\"%s\"><b><i>"
-						+ "%s</i></b></font>"
+					+ "<font face=\"Helvetica\" color=\"%s\">%s</font>"
 				+ "</td>"
 			+ "</tr>",
 			bgcolor,

@@ -275,6 +275,24 @@ public final class JVMTranslator
 	}
 
 	/**
+	 * Throw an {@link UnsupportedOperationException}. It is never valid to
+	 * treat an {@link L2Register} as a literal, so this method is marked as
+	 * {@linkplain Deprecated} to protect against code cloning and refactoring
+	 * errors by a programmer.
+	 *
+	 * @param method
+	 *        Unused.
+	 * @param reg
+	 *        Unused.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	public void literal (final MethodVisitor method, final L2Register<?> reg)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	/**
 	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
 	 * {@linkplain Label labels}.
 	 */

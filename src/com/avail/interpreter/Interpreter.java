@@ -1685,8 +1685,7 @@ public final class Interpreter
 	 *         a {@link StackReifier} used to indicate the stack is being
 	 *         unwound (and the Avail function is <em>not</em> returning).
 	 */
-	public @Nullable StackReifier invokeFunction (
-		final A_Function aFunction)
+	public @Nullable StackReifier invokeFunction (final A_Function aFunction)
 	{
 		assert !exitNow;
 		function = aFunction;
@@ -2218,66 +2217,6 @@ public final class Interpreter
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
 			});
-	}
-
-	/**
-	 * Check that the result is an instance of the expected type.  If it is,
-	 * return.  If not, invoke the resultDisagreedWithExpectedTypeFunction.
-	 * Also accumulate statistics related to the return type check.  The {@link
-	 * Interpreter#returningFunction} must have been set by the client.
-	 *
-	 * @param result
-	 *        The value that was just returned.
-	 * @param expectedReturnType
-	 *        The expected type to check the value against.
-	 * @param returnee
-	 *        The {@link A_Function} that we're returning into.
-	 * @return A {@link StackReifier} if reification is needed, otherwise {@code
-	 *         null}.
-	 */
-	public @Nullable StackReifier checkReturnType (
-		final AvailObject result,
-		final A_Type expectedReturnType,
-		final A_Function returnee)
-	{
-		final long before = AvailRuntime.captureNanos();
-		final boolean checkOk = result.isInstanceOf(expectedReturnType);
-		final long after = AvailRuntime.captureNanos();
-		final A_Function returner = stripNull(returningFunction);
-		final @Nullable Primitive calledPrimitive = returner.code().primitive();
-		if (calledPrimitive != null)
-		{
-			calledPrimitive.addNanosecondsCheckingResultType(
-				after - before, interpreterIndex);
-		}
-		else
-		{
-			returner.code().returnerCheckStat().record(
-				after - before, interpreterIndex);
-			returnee.code().returneeCheckStat().record(
-				after - before, interpreterIndex);
-		}
-		if (!checkOk)
-		{
-			final A_Variable reportedResult =
-				newVariableWithContentType(Types.ANY.o());
-			reportedResult.setValueNoCheck(result);
-			argsBuffer.clear();
-			argsBuffer.add((AvailObject) returner);
-			argsBuffer.add((AvailObject) expectedReturnType);
-			argsBuffer.add((AvailObject) reportedResult);
-			final @Nullable StackReifier reifier =
-				invokeFunction(
-					runtime.resultDisagreedWithExpectedTypeFunction());
-			// The function has to be bottom-valued, so it can't ever actually
-			// return.  However, it's reifiable.  Note that the original callee
-			// is not part of the stack.  No point, since it was returning and
-			// is probably mostly evacuated.
-			assert reifier != null;
-			return reifier;
-		}
-		// Check was ok.
-		return null;
 	}
 
 	/**

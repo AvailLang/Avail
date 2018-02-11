@@ -314,10 +314,9 @@ extends Primitive
 			}
 
 			// We need two successors, the happy one that has successfully
-			// performed the unboxed addition and the sad one that needs to
+			// performed the unboxed arithmetic and the sad one that needs to
 			// fall back to the full primitive invocation mechanism.
-			final L2BasicBlock boxUpSum =
-				new L2BasicBlock("box sum");
+			final L2BasicBlock boxUpSum = new L2BasicBlock("box sum");
 			translator.addInstruction(
 				operation,
 				op1,

@@ -973,7 +973,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param interpreterIndex
 	 *        The interpreterIndex of the current thread's interpreter.
 	 */
-	void addNanosecondsCheckingResultType (
+	public void addNanosecondsCheckingResultType (
 		final long deltaNanoseconds,
 		final int interpreterIndex)
 	{
