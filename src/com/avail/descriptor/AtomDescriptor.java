@@ -1,6 +1,6 @@
-/**
+/*
  * AtomDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -581,7 +581,6 @@ extends Descriptor
 	{
 		return FALSE.atom;
 	}
-
 
 	// An enumeration of special atoms that the VM is aware of which name
 	// methods for invoking specific primitives.  Multiple primitives may be

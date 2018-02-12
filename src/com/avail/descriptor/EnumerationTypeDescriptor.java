@@ -1,6 +1,6 @@
-/**
+/*
  * EnumerationTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,10 +47,8 @@ import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
-	.CACHED_SUPERKIND;
-import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
-	.INSTANCES;
+import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND;
+import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.INSTANCES;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;

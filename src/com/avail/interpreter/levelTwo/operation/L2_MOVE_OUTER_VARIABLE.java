@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -42,8 +43,9 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
@@ -65,17 +67,17 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_MOVE_OUTER_VARIABLE().init(
-			IMMEDIATE.is("outer index"),
+			INT_IMMEDIATE.is("outer index"),
 			READ_POINTER.is("function"),
 			WRITE_POINTER.is("destination"));
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final int outerIndex = instruction.immediateAt(0);
+		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(1);
 		final L2WritePointerOperand destinationReg =
@@ -93,12 +95,29 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(" ← ");
+		builder.append(instruction.readObjectRegisterAt(1));
+		builder.append('[');
+		builder.append(instruction.intImmediateAt(0));
+		builder.append(']');
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int outerIndex = instruction.immediateAt(0);
+		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1).register();
 		final L2ObjectRegister destinationReg =

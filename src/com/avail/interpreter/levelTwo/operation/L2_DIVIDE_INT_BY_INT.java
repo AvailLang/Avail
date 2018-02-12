@@ -34,11 +34,12 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.LONG_TYPE;
@@ -64,9 +65,9 @@ extends L2Operation
 			READ_INT.is("divisor"),
 			WRITE_INT.is("quotient"),
 			WRITE_INT.is("remainder"),
-			PC.is("out of range"),
-			PC.is("zero divisor"),
-			PC.is("success"));
+			PC.is("out of range", FAILURE),
+			PC.is("zero divisor", OFF_RAMP),
+			PC.is("success", SUCCESS));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -81,13 +82,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister dividendReg =
+		final L2IntRegister dividendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister divisorReg =
+		final L2IntRegister divisorReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister intQuotientReg =
+		final L2IntRegister intQuotientReg =
 			instruction.writeIntRegisterAt(2).register();
-		final L2IntegerRegister intRemainderReg =
+		final L2IntRegister intRemainderReg =
 			instruction.writeIntRegisterAt(3).register();
 		final int outOfRangeIndex = instruction.pcOffsetAt(4);
 		final int zeroDivisorIndex = instruction.pcOffsetAt(5);

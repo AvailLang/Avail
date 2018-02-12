@@ -1,6 +1,6 @@
-/**
+/*
  * AbstractDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -56,13 +55,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.AvailUnsupportedOperationException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -138,6 +131,38 @@ import static java.lang.Math.max;
  */
 public abstract class AbstractDescriptor
 {
+	/**
+	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
+	 * Useful for customizing debugger views of objects.
+	 */
+	final class DebuggerObjectSlots implements ObjectSlotsEnum
+	{
+		/** The slot name. */
+		public final String name;
+
+		/**
+		 * Create a new artificial slot with the given name.
+		 *
+		 * @param name The name of the slot.
+		 */
+		DebuggerObjectSlots (final String name)
+		{
+			this.name = name;
+		}
+
+		@Override
+		public String name ()
+		{
+			return name;
+		}
+
+		@Override
+		public int ordinal ()
+		{
+			return -1;
+		}
+	}
+
 	/** The {@linkplain Mutability mutability} of my instances. */
 	final Mutability mutability;
 
@@ -569,7 +594,6 @@ public abstract class AbstractDescriptor
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
-
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
@@ -707,6 +731,7 @@ public abstract class AbstractDescriptor
 			{
 				Strings.newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
+				final List<BitField> bitFields = bitFieldsFor(slot);
 				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -715,23 +740,22 @@ public abstract class AbstractDescriptor
 					builder.append(slotName, 0, slotName.length() - 1);
 					builder.append('[');
 					builder.append(subscript);
-					builder.append("]");
+					builder.append(']');
 				}
 				else
 				{
 					value = object.slot(slot);
-					builder.append(slotName);
-				}
-				final List<BitField> bitFields = bitFieldsFor(slot);
-				if (bitFields.isEmpty())
-				{
-					builder.append(" = ");
-					builder.append(value);
-				}
-				else
-				{
-					describeIntegerSlot(
-						object, value, slot, bitFields, builder);
+					if (bitFields.isEmpty())
+					{
+						builder.append(slotName);
+						builder.append(" = ");
+						builder.append(value);
+					}
+					else
+					{
+						describeIntegerSlot(
+							object, value, slot, bitFields, builder);
+					}
 				}
 			}
 		}
@@ -890,7 +914,7 @@ public abstract class AbstractDescriptor
 			}
 			else
 			{
-				builder.append(" (");
+				builder.append("(");
 				boolean first = true;
 				for (final BitField bitField : bitFields)
 				{

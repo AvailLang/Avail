@@ -33,14 +33,16 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -64,8 +66,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final AvailObject constant = instruction.constantAt(0);
@@ -98,6 +100,20 @@ extends L2Operation
 		final AvailObject constant = instruction.constantAt(0);
 		return super.debugNameIn(instruction)
 			+ "(const=" + constant.typeTag() + ")";
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * P_Subtraction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,32 +36,45 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operation.L2_NEGATE_INT_NO_CHECK;
+import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_CONSTANT_MINUS_INT;
+import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT;
+import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.exceptions.AvailErrorCode
-	.E_CANNOT_SUBTRACT_LIKE_INFINITIES;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Subtract {@linkplain
@@ -80,12 +93,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Number a = interpreter.argument(0);
+		final A_Number b = interpreter.argument(1);
 		try
 		{
 			return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
@@ -193,5 +205,157 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES));
+	}
+
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
+	{
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
+
+		// If either of the argument types does not intersect with int32, then
+		// fall back to the primitive invocation.
+		if (aType.typeIntersection(int32()).isBottom() ||
+			bType.typeIntersection(int32()).isBottom())
+		{
+			return false;
+		}
+
+		// Attempt to unbox the arguments.
+		final L2BasicBlock unboxedArg1Block =
+			new L2BasicBlock("unboxed arg#1");
+		final L2BasicBlock unboxedSubtraction =
+			new L2BasicBlock("unboxed subtraction");
+		final L2BasicBlock boxedSubtraction =
+			new L2BasicBlock("fall back to boxed subtraction");
+		final L2ReadIntOperand a = translator.unboxIntoIntRegister(
+			arguments.get(0),
+			aType,
+			unboxedArg1Block,
+			boxedSubtraction);
+		// unboxedArg1Block has been started, if necessary.
+		final L2ReadIntOperand b = translator.unboxIntoIntRegister(
+			arguments.get(1),
+			bType,
+			unboxedSubtraction,
+			boxedSubtraction);
+		// unboxedSubtraction has been started, if necessary.
+
+		// Emit the most efficient available unboxed arithmetic.
+		final A_Type returnType = returnTypeGuaranteedByVM(
+			rawFunction, argumentTypes);
+		final L2WriteIntOperand difference = translator.newIntRegisterWriter(
+			returnType, null);
+		if (returnType.isSubtypeOf(int32()))
+		{
+			// The result is guaranteed not to overflow, so emit an instruction
+			// that won't bother with an overflow check.
+			translator.addInstruction(
+				L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS.instance,
+				a,
+				b,
+				difference);
+			final L2ReadPointerOperand boxed =
+				translator.box(difference.read(), returnType);
+			callSiteHelper.useAnswer(boxed);
+		}
+		else
+		{
+			// The result may overflow, so we will need to emit an instruction
+			// that deals with overflow (by falling back on the original
+			// primitive invocation mechanism).
+			final L2Operation operation;
+			final L2Operand op1;
+			final L2Operand op2;
+			if (a.constantOrNull() != null || b.constantOrNull() != null)
+			{
+				// One of the arguments is a constant, so emit an instruction
+				// that takes an immediate.
+				if (a.constantOrNull() == null)
+				{
+					final int value =
+						stripNull(b.constantOrNull()).extractInt();
+					if (value == 0)
+					{
+						// If the immediate is zero, then we can avoid emitting
+						// any arithmetic altogether and just answer the
+						// non-immediate.
+						callSiteHelper.useAnswer(arguments.get(0));
+						return true;
+					}
+					operation = L2_SUBTRACT_INT_MINUS_INT_CONSTANT.instance;
+					op1 = a;
+					op2 = new L2IntImmediateOperand(value);
+				}
+				else
+				{
+					final int value =
+						stripNull(a.constantOrNull()).extractInt();
+					if (value == 0 && returnType.isSubtypeOf(int32()))
+					{
+						// If the immediate is zero and the guaranteed result
+						// type fits within int, then answer the negation of the
+						// non-immediate.
+						translator.addInstruction(
+							L2_NEGATE_INT_NO_CHECK.instance,
+							b,
+							difference);
+						final L2ReadPointerOperand boxed =
+							translator.box(difference.read(), returnType);
+						callSiteHelper.useAnswer(boxed);
+						return true;
+					}
+					operation = L2_SUBTRACT_INT_CONSTANT_MINUS_INT.instance;
+					op1 = new L2IntImmediateOperand(value);
+					op2 = b;
+				}
+			}
+			else
+			{
+				// Neither of the arguments is a constant, so emit an
+				// instruction that takes two readers.
+				operation = L2_SUBTRACT_INT_MINUS_INT.instance;
+				op1 = a;
+				op2 = b;
+			}
+
+			// We need two successors, the happy one that has successfully
+			// performed the unboxed arithmetic and the sad one that needs to
+			// fall back to the full primitive invocation mechanism.
+			final L2BasicBlock boxUpDifference =
+				new L2BasicBlock("box difference");
+			translator.addInstruction(
+				operation,
+				op1,
+				op2,
+				difference,
+				translator.edgeTo(boxUpDifference),
+				translator.edgeTo(boxedSubtraction));
+
+			// Here we've succeeded at performing unboxed arithmetic, so we need
+			// to arrange to box the result up again for delivery.
+			translator.startBlock(boxUpDifference);
+			final L2ReadPointerOperand boxed =
+				translator.box(difference.read(), returnType);
+			callSiteHelper.useAnswer(boxed);
+
+			// Here we've failed at performing unboxed arithmetic, so we need to
+			// fall back to primitive invocation.
+			translator.startBlock(boxedSubtraction);
+			translator.generateGeneralFunctionInvocation(
+				functionToCallReg,
+				arguments,
+				returnType,
+				false,
+				callSiteHelper);
+		}
+
+		return true;
 	}
 }

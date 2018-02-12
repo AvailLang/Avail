@@ -41,6 +41,8 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -62,8 +64,8 @@ extends L2Operation
 		new L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT().init(
 			READ_POINTER.is("value"),
 			CONSTANT.is("constant"),
-			PC.is("if greater or equal"),
-			PC.is("if less"));
+			PC.is("if greater or equal", SUCCESS),
+			PC.is("if less", FAILURE));
 
 	@Override
 	public boolean hasSideEffect ()

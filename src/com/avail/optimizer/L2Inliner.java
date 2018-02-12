@@ -1,6 +1,6 @@
-/**
+/*
  * L2Inliner.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,14 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.Frame;
@@ -70,7 +74,8 @@ public final class L2Inliner
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
 	 * the enclosing {@link L2Inliner}.
 	 */
-	private class OperandTransformer implements L2OperandDispatcher
+	private class OperandTransformer
+	implements L2OperandDispatcher
 	{
 		/**
 		 * The current operand being transformed.  It gets set before a dispatch
@@ -85,7 +90,10 @@ public final class L2Inliner
 		public void doOperand (final L2ConstantOperand operand) { }
 
 		@Override
-		public void doOperand (final L2ImmediateOperand operand) { }
+		public void doOperand (final L2IntImmediateOperand operand) { }
+
+		@Override
+		public void doOperand (final L2FloatImmediateOperand operand) { }
 
 		@Override
 		public void doOperand (final L2PcOperand operand)
@@ -96,13 +104,13 @@ public final class L2Inliner
 			{
 				final PhiRestriction phiRestriction = phiRestrictions[i];
 				phiRestrictions[i] = new PhiRestriction(
-					map(phiRestriction.register),
+					mapRegister(phiRestriction.register),
 					phiRestriction.typeRestriction.type,
 					phiRestriction.typeRestriction.constantOrNull);
 			}
 			currentOperand = new L2PcOperand(
-				map(operand.targetBlock()),
-				map(operand.manifest()),
+				mapBlock(operand.targetBlock()),
+				mapManifest(operand.manifest()),
 				phiRestrictions);
 		}
 
@@ -112,28 +120,44 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2ReadIntOperand operand)
 		{
-			currentOperand = new L2ReadIntOperand(map(operand.register()));
+			currentOperand =
+				new L2ReadIntOperand(
+					mapRegister(operand.register()), operand.restriction());
+		}
+
+		@Override
+		public void doOperand (final L2ReadFloatOperand operand)
+		{
+			currentOperand =
+				new L2ReadFloatOperand(
+					mapRegister(operand.register()), operand.restriction());
 		}
 
 		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			currentOperand = new L2ReadPointerOperand(
-				map(operand.register()), operand.restriction());
+				mapRegister(operand.register()), operand.restriction());
 		}
 
+		@SuppressWarnings("rawtypes")
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			final List<L2ReadPointerOperand> oldElements = operand.elements();
-			final List<L2ReadPointerOperand> newElements =
-				new ArrayList<>(oldElements.size());
-			for (final L2ReadPointerOperand oldElement : oldElements)
+			@SuppressWarnings("unchecked")
+			final List<RR> oldElements =
+				operand.<L2ReadPointerOperand>elements();
+			final List<RR> newElements = new ArrayList<>(oldElements.size());
+			for (final RR oldElement : oldElements)
 			{
 				// Note: this clobbers currentOperand, but we'll set it later.
 				newElements.add(transformOperand(oldElement));
 			}
-			currentOperand = new L2ReadVectorOperand(newElements);
+			currentOperand = new L2ReadVectorOperand<>(newElements);
 		}
 
 		@Override
@@ -142,7 +166,33 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2WriteIntOperand operand)
 		{
-			currentOperand = new L2WriteIntOperand(map(operand.register()));
+			// Writes should always be encountered before reads, and only once.
+			final L2IntRegister oldRegister = operand.register();
+			assert !registerMap.containsKey(oldRegister);
+			final TypeRestriction<A_Number> restriction =
+				oldRegister.restriction();
+			final L2WriteIntOperand writer =
+				targetTranslator.newIntRegisterWriter(
+					restriction.type, restriction.constantOrNull);
+			final L2IntRegister newRegister = writer.register();
+			registerMap.put(oldRegister, newRegister);
+			currentOperand = writer;
+		}
+
+		@Override
+		public void doOperand (final L2WriteFloatOperand operand)
+		{
+			// Writes should always be encountered before reads, and only once.
+			final L2FloatRegister oldRegister = operand.register();
+			assert !registerMap.containsKey(oldRegister);
+			final TypeRestriction<A_Number> restriction =
+				oldRegister.restriction();
+			final L2WriteFloatOperand writer =
+				targetTranslator.newFloatRegisterWriter(
+					restriction.type, restriction.constantOrNull);
+			final L2FloatRegister newRegister = writer.register();
+			registerMap.put(oldRegister, newRegister);
+			currentOperand = writer;
 		}
 
 		@Override
@@ -151,7 +201,8 @@ public final class L2Inliner
 			// Writes should always be encountered before reads, and only once.
 			final L2ObjectRegister oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction restriction = oldRegister.restriction();
+			final TypeRestriction<A_BasicObject> restriction =
+				oldRegister.restriction();
 			final L2WritePointerOperand writer =
 				targetTranslator.newObjectRegisterWriter(
 					restriction.type, restriction.constantOrNull);
@@ -161,17 +212,20 @@ public final class L2Inliner
 		}
 
 		@Override
-		public void doOperand (final L2WriteVectorOperand operand)
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
 		{
-			final List<L2WritePointerOperand> oldElements = operand.elements();
-			final List<L2WritePointerOperand> newElements =
-				new ArrayList<>(oldElements.size());
-			for (final L2WritePointerOperand oldElement : oldElements)
-			{
-				// Note: this clobbers currentOperand, but we'll set it later.
-				newElements.add(transformOperand(oldElement));
-			}
-			currentOperand = new L2WriteVectorOperand(newElements);
+			// Writes should always be encountered before reads, and only once.
+			final R oldRegister = operand.register();
+			assert !registerMap.containsKey(oldRegister);
+			@SuppressWarnings("unchecked")
+			final R copiedRegister = (R) oldRegister.copyForTranslator(
+				targetTranslator, oldRegister.restriction());
+			final L2WritePhiOperand<R, T> writer =
+				targetTranslator.newPhiRegisterWriter(copiedRegister);
+			final R newRegister = writer.register();
+			registerMap.put(oldRegister, newRegister);
+			currentOperand = writer;
 		}
 	}
 
@@ -231,7 +285,7 @@ public final class L2Inliner
 	 * The accumulated mapping from original {@link L2Register}s to their
 	 * replacements.
 	 */
-	final Map<L2Register, L2Register> registerMap = new HashMap<>();
+	final Map<L2Register<?>, L2Register<?>> registerMap = new HashMap<>();
 
 	/**
 	 * Construct a new {@code L2Inliner}.
@@ -266,7 +320,7 @@ public final class L2Inliner
 	 * @param block The basic block to look up.
 	 * @return The looked up or created-and-stored basic block.
 	 */
-	public L2BasicBlock map (final L2BasicBlock block)
+	public L2BasicBlock mapBlock (final L2BasicBlock block)
 	{
 		return blockMap.computeIfAbsent(block, b -> new L2BasicBlock(b.name()));
 	}
@@ -279,12 +333,12 @@ public final class L2Inliner
 	 * @return The looked up or created-and-stored {@link L2Register}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <R extends L2Register> R map (final R register)
+	public <R extends L2Register<?>> R mapRegister (final R register)
 	{
-		final L2Register copy = registerMap.computeIfAbsent(
+		final R copy = (R) registerMap.computeIfAbsent(
 			register, r -> r.copyForInliner(this));
 		assert register.registerKind() == copy.registerKind();
-		return (R) copy;
+		return copy;
 	}
 
 	/**
@@ -295,13 +349,14 @@ public final class L2Inliner
 	 *
 	 * @return The new {@link L2ValueManifest}.
 	 */
-	public L2ValueManifest map (final L2ValueManifest oldManifest)
+	public L2ValueManifest mapManifest (final L2ValueManifest oldManifest)
 	{
 		final L2ValueManifest newManifest = new L2ValueManifest();
-		for (final Entry<L2SemanticValue, L2ReadPointerOperand> entry :
+		for (final Entry<L2SemanticValue, L2ReadOperand<?, ?>> entry :
 			oldManifest.bindings().entrySet())
 		{
-			newManifest.addBinding(map(entry.getKey()), entry.getValue());
+			newManifest.addBinding(
+				mapSemanticValue(entry.getKey()), entry.getValue());
 		}
 		return newManifest;
 	}
@@ -315,11 +370,12 @@ public final class L2Inliner
 	 *        The original {@link L2SemanticValue} from the callee's code.
 	 * @return The replacement {@link L2SemanticValue}.
 	 */
-	public L2SemanticValue map (final L2SemanticValue oldSemanticValue)
+	public L2SemanticValue mapSemanticValue (
+		final L2SemanticValue oldSemanticValue)
 	{
 		return semanticValueMap.computeIfAbsent(
 			oldSemanticValue,
-			old -> old.transform(this::map, this::map));
+			old -> old.transform(this::mapSemanticValue, this::mapFrame));
 	}
 
 	/**
@@ -330,9 +386,9 @@ public final class L2Inliner
 	 *        The original {@link Frame} from the callee's code.
 	 * @return The replacement {@link Frame}.
 	 */
-	public Frame map (final Frame frame)
+	public Frame mapFrame (final Frame frame)
 	{
-		return frameMap.computeIfAbsent(frame, this::map);
+		return frameMap.computeIfAbsent(frame, this::mapFrame);
 	}
 
 	/**

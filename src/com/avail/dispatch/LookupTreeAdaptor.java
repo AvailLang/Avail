@@ -1,6 +1,6 @@
-/**
+/*
  * LookupTreeAdaptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,6 @@ public abstract class LookupTreeAdaptor<
 		}
 		return createTree(prequalified, undecided, knownArgumentTypes, memento);
 	}
-
 
 	/**
 	 * Create a {@link LookupTree} suitable for deciding which {@link Result}

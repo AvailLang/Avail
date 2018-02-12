@@ -43,13 +43,11 @@ import com.avail.utility.json.JSONWriter;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -163,7 +161,7 @@ extends Descriptor
 		 * A fake slot to present in the debugging view for each of the elements
 		 * of this set.
 		 */
-		ELEMENT
+		ELEMENT_
 	}
 
 	/**
@@ -182,7 +180,7 @@ extends Descriptor
 		for (final AvailObject element : object)
 		{
 			fields[counter] = new AvailObjectFieldHelper(
-				object, FakeSetSlots.ELEMENT, counter + 1, element);
+				object, FakeSetSlots.ELEMENT_, counter + 1, element);
 			counter++;
 		}
 		return fields;

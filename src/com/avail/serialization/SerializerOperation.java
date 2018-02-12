@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerOperation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,38 +46,29 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AssignmentNodeDescriptor.isInline;
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.compiledCodeTypeForFunctionType;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor
-	.newFirstOfSequenceNode;
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
@@ -87,25 +78,19 @@ import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PermutedListNodeDescriptor
-	.newPermutedListNode;
+import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoFromSerializationProxy;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoFromSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoSerializationProxy;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
@@ -113,16 +98,14 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;

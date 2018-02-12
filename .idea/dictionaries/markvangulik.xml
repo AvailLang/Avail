@@ -31,6 +31,7 @@
       <w>gulik</w>
       <w>homogenous</w>
       <w>idempotently</w>
+      <w>immutables</w>
       <w>indexable</w>
       <w>inlineable</w>
       <w>inlined</w>
@@ -49,7 +50,9 @@
       <w>looper</w>
       <w>megamorphic</w>
       <w>metacharacter</w>
+      <w>metacovariance</w>
       <w>metatype</w>
+      <w>metatypes</w>
       <w>metavariance</w>
       <w>monomorphic</w>
       <w>multimethod</w>
@@ -117,6 +120,7 @@
       <w>transactionally</w>
       <w>tuples</w>
       <w>unbackquoted</w>
+      <w>unbox</w>
       <w>unboxed</w>
       <w>uncached</w>
       <w>underflows</w>

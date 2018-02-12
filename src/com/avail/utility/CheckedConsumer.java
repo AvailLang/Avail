@@ -1,5 +1,5 @@
 /*
- * L2ImmediateOperand.java
+ * UncheckedAppendable.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operand;
+package com.avail.utility;
 
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-
-import static java.lang.String.format;
+import java.io.IOException;
 
 /**
- * An {@code L2ConstantOperand} is an operand of type {@link
- * L2OperandType#IMMEDIATE}, which holds an {@code int} value representing
- * itself.
+ * A {@code CheckedConsumer} functions as a consumer, but throws an {@link
+ * IOException}. It can therefore combine lambdas and I/O.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <T>
+ *        The type of the argument.
  */
-public class L2ImmediateOperand
-extends L2Operand
+@FunctionalInterface
+public interface CheckedConsumer<T>
 {
 	/**
-	 * The actual {@code int} value.
-	 */
-	public final int value;
-
-	/**
-	 * Construct a new {@code L2ImmediateOperand} with the specified {@code int}
-	 * value.
+	 * Perform the operation.
 	 *
-	 * @param value The constant {@code int} itself.
+	 * @param arg
+	 *        An argument to the operation.
+	 * @throws IOException
+	 *         If an I/O error occurs.
 	 */
-	public L2ImmediateOperand (final int value)
-	{
-		this.value = value;
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.IMMEDIATE;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return format("Imm(%d)", value);
-	}
+	void accept (T arg) throws IOException;
 }

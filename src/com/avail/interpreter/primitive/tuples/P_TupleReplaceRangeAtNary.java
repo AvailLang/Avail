@@ -1,6 +1,6 @@
-/**
+/*
  * P_TupleReplaceRangeAtNary.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,13 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -56,8 +47,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -100,7 +90,7 @@ extends Primitive
 	 *        the given target range.
 	 * @return
 	 *         The outermost tuple with the range updated.
-	 * @throws AvailException
+	 * @throws AvailException If a problem occurs.
 	 */
 	private A_Tuple recursivelyUpdateTuple (
 			final A_Tuple targetTuple,
@@ -179,7 +169,7 @@ extends Primitive
 	 * @return
 	 *         The outermost {@link A_Map map}, but with the inner tuple range
 	 *         updated.
-	 * @throws AvailException
+	 * @throws AvailException If a problem occurs.
 	 */
 	private A_Map recursivelyUpdateMap (
 		final A_Map targetMap,
@@ -226,15 +216,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_Tuple targetTuple = args.get(0);
-		final A_Tuple pathTuple = args.get(1);
-		final A_Number headLastIndex = args.get(2);
-		final A_Number tailFirstIndex = args.get(3);
-		final A_Tuple newValues = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_Tuple targetTuple = interpreter.argument(0);
+		final A_Tuple pathTuple = interpreter.argument(1);
+		final A_Number headLastIndex = interpreter.argument(2);
+		final A_Number tailFirstIndex = interpreter.argument(3);
+		final A_Tuple newValues = interpreter.argument(4);
 		if (!headLastIndex.isInt() || !tailFirstIndex.isInt())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);

@@ -1,6 +1,6 @@
-/**
+/*
  * PojoFieldDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.PojoFinalFieldDescriptor
-	.pojoFinalFieldForInnerType;
+import static com.avail.descriptor.PojoFinalFieldDescriptor.pojoFinalFieldForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 

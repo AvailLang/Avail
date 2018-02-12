@@ -1,19 +1,19 @@
 /*
- * L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS.java
+ * L2_BOX_FLOAT.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,34 +32,53 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DoubleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.ISUB;
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Type.*;
 
 /**
- * Subtract the subtrahend from the minuend, converting the result to a signed
- * 32-bit int through signed truncation.
+ * Box a {@code double} into an {@link AvailObject}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS
+public class L2_BOX_FLOAT
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
-			READ_INT.is("subtrahend"),
-			READ_INT.is("minuend"),
-			WRITE_INT.is("difference"));
+		new L2_BOX_FLOAT().init(
+			READ_FLOAT.is("source"),
+			WRITE_POINTER.is("destination"));
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.readFloatRegisterAt(0).register());
+	}
 
 	@Override
 	public void translateToJVM (
@@ -67,16 +86,19 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister subtrahendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister minuendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister differenceReg =
-			instruction.writeIntRegisterAt(2).register();
+		final L2FloatRegister sourceReg =
+			instruction.readFloatRegisterAt(0).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
 
-		translator.load(method, subtrahendReg);
-		translator.load(method, minuendReg);
-		method.visitInsn(ISUB);
-		translator.store(method, differenceReg);
+		// :: destination = IntegerDescriptor.fromInt(source);
+		translator.load(method, sourceReg);
+		method.visitMethodInsn(
+			INVOKESTATIC,
+			getInternalName(DoubleDescriptor.class),
+			"fromDouble",
+			getMethodDescriptor(getType(A_Number.class), DOUBLE_TYPE),
+			false);
+		translator.store(method, destinationReg);
 	}
 }

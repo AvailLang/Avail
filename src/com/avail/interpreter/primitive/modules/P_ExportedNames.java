@@ -1,6 +1,6 @@
-/**
+/*
  * P_ExportedNames.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,13 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -58,7 +57,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
  * A_Module#exportedNames() exported names} of the {@linkplain
  * ModuleDescriptor#currentModule() current module}.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_ExportedNames
 extends Primitive
@@ -73,10 +72,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)

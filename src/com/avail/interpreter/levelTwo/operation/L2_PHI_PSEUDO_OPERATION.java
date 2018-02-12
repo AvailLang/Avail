@@ -1,6 +1,6 @@
 /*
  * L2_PHI_PSEUDO_OPERATION.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,15 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
@@ -44,15 +47,15 @@ import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_PHI;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -80,22 +83,22 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_PHI_PSEUDO_OPERATION().init(
 			READ_VECTOR.is("potential sources"),
-			WRITE_POINTER.is("destination"));
+			WRITE_PHI.is("destination"));
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final List<L2ReadPointerOperand> inputRegs =
+		final List<? extends L2ReadOperand<?, ?>> inputRegs =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WritePhiOperand<?, ?> destinationReg =
+			instruction.writePhiRegisterAt(1);
 
 		@SuppressWarnings("ConstantConditions")
-		final TypeRestriction restriction = inputRegs.stream()
-			.map(L2ReadPointerOperand::restriction)
+		final TypeRestriction<?> restriction = inputRegs.stream()
+			.map(L2ReadOperand::restriction)
 			.reduce(TypeRestriction::union)
 			.get();
 		registerSet.removeConstantAt(destinationReg.register());
@@ -135,22 +138,23 @@ extends L2Operation
 	 * @param inputIndex
 	 *        The index to remove.
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static L2Instruction withoutIndex (
 		final L2Instruction instruction,
 		final int inputIndex)
 	{
 		assert instruction.operation == instance;
-		final List<L2ReadPointerOperand> oldSources =
+		final List<? extends L2ReadOperand<?, ?>> oldSources =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WritePhiOperand<?, ?> destinationReg =
+			instruction.writePhiRegisterAt(1);
 
-		final List<L2ReadPointerOperand> newSources =
+		final List<L2ReadOperand<?, ?>> newSources =
 			new ArrayList<>(oldSources);
 		newSources.remove(inputIndex);
 		final long distinctSourceRegisters =
 			newSources.stream()
-				.map(L2ReadPointerOperand::register)
+				.map(L2ReadOperand::register)
 				.distinct()
 				.count();
 		if (distinctSourceRegisters == 1)
@@ -183,18 +187,18 @@ extends L2Operation
 	 */
 	public static List<L2BasicBlock> predecessorBlocksForUseOf (
 		final L2Instruction instruction,
-		final L2Register usedRegister)
+		final L2Register<?> usedRegister)
 	{
 		assert instruction.operation == instance;
 
-//		final List<L2ReadPointerOperand> inputRegs =
+//		final List<L2ReadOperand<?, ?>> inputRegs =
 //			instruction.readVectorRegisterAt(0);
-//		final L2WritePointerOperand destinationReg =
-//			instruction.writeObjectRegisterAt(1);
+//		final L2WritePhiOperand<?, ?> destinationReg =
+//			instruction.writePhiRegisterAt(1);
 
 		final List<L2PcOperand> predecessorEdges =
 			instruction.basicBlock.predecessorEdges();
-		final List<L2ReadPointerOperand> sources =
+		final List<? extends L2ReadOperand<?, ?>> sources =
 			instruction.readVectorRegisterAt(0);
 		return IntStream.range(0, sources.size())
 			.filter(i -> sources.get(i).register() == usedRegister)
@@ -203,19 +207,22 @@ extends L2Operation
 	}
 
 	/**
-	 * Answer the {@link L2WritePointerOperand} from this phi function.  This
+	 * Answer the {@link L2WritePhiOperand} from this phi function.  This
 	 * should only be used when generating phi moves (which takes the {@link
 	 * L2ControlFlowGraph} out of Static Single Assignment form).
 	 *
+	 * @param <U>
+	 *        The type of the {@link L2WritePhiOperand}.
 	 * @param instruction
 	 *        The instruction to examine.  It must be a phi operation.
-	 * @return The instruction's destination {@link L2WritePointerOperand}.
+	 * @return The instruction's destination {@link L2WritePhiOperand}.
 	 */
-	public static L2WritePointerOperand destinationRegisterWrite (
-		final L2Instruction instruction)
+	@SuppressWarnings("unchecked")
+	public static <U extends L2WritePhiOperand<?, ?>>
+	U destinationRegisterWrite (final L2Instruction instruction)
 	{
 		assert instruction.operation instanceof L2_PHI_PSEUDO_OPERATION;
-		return instruction.writeObjectRegisterAt(1);
+		return (U) instruction.writePhiRegisterAt(1);
 	}
 
 	/**
@@ -227,10 +234,27 @@ extends L2Operation
 	 *        The phi instruction.
 	 * @return The instruction's list of sources.
 	 */
-	public static List<L2ReadPointerOperand> sourceRegisterReads (
+	public static <
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	List<RR> sourceRegisterReads (
 		final L2Instruction instruction)
 	{
 		return instruction.readVectorRegisterAt(0);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		builder.append("ϕ ");
+		builder.append(instruction.writePhiRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
 	}
 
 	@Override

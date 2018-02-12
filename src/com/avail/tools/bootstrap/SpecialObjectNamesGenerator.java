@@ -1,6 +1,6 @@
-/**
+/*
  * SpecialObjectNamesGenerator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,7 @@ import com.avail.descriptor.AvailObject;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.tools.bootstrap.Resources.Key.*;
 import static com.avail.tools.bootstrap.Resources.*;

@@ -1,6 +1,6 @@
-/**
- * RegisterTransformer.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+/*
+ * L2WriteFloatOperand.java
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.interpreter.levelTwo.operand;
+
+import com.avail.descriptor.A_Number;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 
 /**
- * A {@code RegisterTransformer} maps registers to registers of the same type.
+ * An {@code L2WriteFloatOperand} is an operand of type {@link
+ * L2OperandType#WRITE_FLOAT}.  It holds the actual {@link L2FloatRegister}
+ * that is to be accessed.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public interface RegisterTransformer<L2OperandType>
+public class L2WriteFloatOperand
+extends L2WriteOperand<L2FloatRegister, A_Number>
 {
-	<X extends L2Register> X value(
-		final X register,
-		final L2OperandType operandType);
+	@Override
+	public L2OperandType operandType ()
+	{
+		return L2OperandType.WRITE_FLOAT;
+	}
+
+	/**
+	 * Construct a new {@code L2WriteFloatOperand}, creating an {@link
+	 * L2FloatRegister} at the same time. Record the provided type information
+	 * and optional constant information in the new register.
+	 *
+	 * @param register
+	 *        The {@link L2FloatRegister}.
+	 */
+	public L2WriteFloatOperand (final L2FloatRegister register)
+	{
+		super(register);
+	}
+
+	@Override
+	public final L2ReadFloatOperand read ()
+	{
+		return new L2ReadFloatOperand(register, register.restriction());
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
 }

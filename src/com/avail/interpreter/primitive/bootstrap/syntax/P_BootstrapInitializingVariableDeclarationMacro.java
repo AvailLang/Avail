@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapInitializingVariableDeclarationMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,13 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -78,13 +77,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Phrase variableNameLiteral = args.get(0);
-		final A_Phrase typeLiteral = args.get(1);
-		final A_Phrase initializationExpression = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Phrase variableNameLiteral = interpreter.argument(0);
+		final A_Phrase typeLiteral = interpreter.argument(1);
+		final A_Phrase initializationExpression = interpreter.argument(2);
 
 		final A_Token nameToken = variableNameLiteral.token().literal();
 		final A_String nameString = nameToken.string();

@@ -1,6 +1,6 @@
-/**
+/*
  * RawWholeNumberLiteralTokenArgument.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
-import static com.avail.compiler.ParsingOperation
-	.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
+import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;

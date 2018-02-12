@@ -1,6 +1,6 @@
-/**
+/*
  * ContinuationDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,8 +46,7 @@ import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
@@ -61,11 +62,9 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**
@@ -104,16 +103,19 @@ extends Descriptor
 		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
-		 * The Level Two {@linkplain L2Chunk#instructions instruction} index at
-		 * which to resume.
+		 * A composite field containing the {@linkplain #LEVEL_TWO_OFFSET level
+		 * two offset}, and perhaps more later.
 		 */
-		LEVEL_TWO_OFFSET;
+		LEVEL_TWO_OFFSET_AND_OTHER;
 
 		/**
 		 * The index into the current continuation's {@linkplain
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		public static final BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			32,
@@ -124,9 +126,24 @@ extends Descriptor
 		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
 		 * deepest it just abuts the last local variable.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		public static final BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
+			32);
+
+		/**
+		 * The Level Two {@linkplain L2Chunk#instructions instruction} index at
+		 * which to resume.
+		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
+		public static final BitField LEVEL_TWO_OFFSET = bitField(
+			LEVEL_TWO_OFFSET_AND_OTHER,
+			32,
 			32);
 	}
 
@@ -172,7 +189,7 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == LEVEL_TWO_OFFSET
+		return e == LEVEL_TWO_OFFSET_AND_OTHER
 			|| e == LEVEL_TWO_CHUNK;
 	}
 
@@ -362,7 +379,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_LevelTwoOffset (final AvailObject object)
 	{
-		return (int) object.mutableSlot(LEVEL_TWO_OFFSET);
+		return object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	@Override

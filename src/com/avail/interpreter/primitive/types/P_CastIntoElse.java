@@ -1,6 +1,6 @@
-/**
+/*
  * P_CastIntoElse.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,9 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -52,6 +52,7 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -84,13 +85,12 @@ public final class P_CastIntoElse extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject value = args.get(0);
-		final A_Function castFunction = args.get(1);
-		final A_Function elseFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final AvailObject value = interpreter.argument(0);
+		final A_Function castFunction = interpreter.argument(1);
+		final A_Function elseFunction = interpreter.argument(2);
 
 		interpreter.argsBuffer.clear();
 		if (value.isInstanceOf(
@@ -238,6 +238,7 @@ public final class P_CastIntoElse extends Primitive
 						castFunctionReg,
 						singletonList(valueReg),
 						castFunctionReg.type().returnType(),
+						true,
 						callSiteHelper);
 				}
 				else
@@ -246,6 +247,7 @@ public final class P_CastIntoElse extends Primitive
 						elseFunctionReg,
 						emptyList(),
 						elseFunctionReg.type().returnType(),
+						true,
 						callSiteHelper);
 				}
 				return true;
@@ -278,7 +280,7 @@ public final class P_CastIntoElse extends Primitive
 			translator.addInstruction(
 				L2_FUNCTION_PARAMETER_TYPE.instance,
 				castFunctionReg,
-				new L2ImmediateOperand(1),
+				new L2IntImmediateOperand(1),
 				parameterTypeWrite);
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_OBJECT.instance,
@@ -296,6 +298,7 @@ public final class P_CastIntoElse extends Primitive
 			castFunctionReg,
 			singletonList(valueReg),
 			castFunctionReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		// Now deal with invoking the elseBlock instead.
@@ -304,6 +307,7 @@ public final class P_CastIntoElse extends Primitive
 			elseFunctionReg,
 			emptyList(),
 			elseFunctionReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		return true;

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreatePojoInstanceMethodFunction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,9 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -45,8 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -63,8 +63,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
-import static com.avail.exceptions.AvailErrorCode
-	.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
@@ -91,14 +90,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_Type pojoType = args.get(0);
-		final A_String methodName = args.get(1);
-		final A_Tuple paramTypes = args.get(2);
-		final A_Function failFunction = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_Type pojoType = interpreter.argument(0);
+		final A_String methodName = interpreter.argument(1);
+		final A_Tuple paramTypes = interpreter.argument(2);
+		final A_Function failFunction = interpreter.argument(3);
 		// Marshal the argument types.
 		final Class<?>[] marshaledTypes =
 			new Class<?>[paramTypes.tupleSize()];

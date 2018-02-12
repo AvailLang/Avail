@@ -32,17 +32,19 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
@@ -59,16 +61,16 @@ extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_MOVE_INT_CONSTANT().init(
-			IMMEDIATE.is("value"),
+			INT_IMMEDIATE.is("value"),
 			WRITE_INT.is("destination"));
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final int constant = instruction.immediateAt(0);
+		final int constant = instruction.intImmediateAt(0);
 		final L2WriteIntOperand destinationIntReg =
 			instruction.writeIntRegisterAt(1);
 
@@ -79,13 +81,27 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(" ← ");
+		builder.append(instruction.operands[0]);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int constant = instruction.immediateAt(0);
-		final L2IntegerRegister destinationIntReg =
+		final int constant = instruction.intImmediateAt(0);
+		final L2IntRegister destinationIntReg =
 			instruction.writeIntRegisterAt(1).register();
 
 		// :: destinationInt = constant;

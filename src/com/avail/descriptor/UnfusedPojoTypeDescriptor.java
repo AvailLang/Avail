@@ -1,6 +1,6 @@
-/**
+/*
  * UnfusedPojoTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,10 +50,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots
-	.HASH_AND_MORE;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
 import static java.lang.reflect.Modifier.*;
 

@@ -40,7 +40,10 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -52,9 +55,13 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -76,8 +83,8 @@ extends L2Operation
 		new L2_GET_VARIABLE_CLEARING().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("read succeeded"),
-			PC.is("read failed"));
+			PC.is("read succeeded", SUCCESS),
+			PC.is("read failed", OFF_RAMP));
 
 	@Override
 	protected void propagateTypes (
@@ -117,6 +124,35 @@ extends L2Operation
 	public boolean isVariableGet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final L2NamedOperandType[] types = operandTypes();
+		final L2Operand[] operands = instruction.operands;
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← ↓");
+		builder.append(instruction.readObjectRegisterAt(0).register());
+		for (int i = 2, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
 	}
 
 	@Override

@@ -33,14 +33,22 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
 
@@ -62,8 +70,8 @@ extends L2Operation
 			READ_INT.is("augend"),
 			READ_INT.is("addend"),
 			WRITE_INT.is("sum"),
-			PC.is("in range"),
-			PC.is("out of range"));
+			PC.is("in range", SUCCESS),
+			PC.is("out of range", FAILURE));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -73,16 +81,47 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final L2NamedOperandType[] types = operandTypes();
+		final L2Operand[] operands = instruction.operands;
+		builder.append(' ');
+		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(" ← ");
+		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(" + ");
+		builder.append(instruction.readIntRegisterAt(1).register());
+		for (int i = 3, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister augendReg =
+		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister addendReg =
+		final L2IntRegister addendReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister sumReg =
+		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);
@@ -93,7 +132,7 @@ extends L2Operation
 		translator.load(method, addendReg);
 		method.visitInsn(I2L);
 		method.visitInsn(LADD);
-		method.visitInsn(DUP);
+		method.visitInsn(DUP2);
 		// :: intSum = (int) longSum;
 		method.visitInsn(L2I);
 		method.visitInsn(DUP);

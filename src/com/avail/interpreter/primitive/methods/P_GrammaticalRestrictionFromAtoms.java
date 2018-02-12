@@ -1,6 +1,6 @@
-/**
+/*
  * P_GrammaticalRestrictionFromAtoms.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.methods;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
@@ -44,11 +43,11 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
+
+import javax.annotation.Nullable;
 
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -86,13 +85,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Set atomSet = args.get(0);
-		final A_Tuple exclusionsTuple = args.get(1);
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		interpreter.checkArgumentCount(2);
+		final A_Set atomSet = interpreter.argument(0);
+		final A_Tuple exclusionsTuple = interpreter.argument(1);
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

@@ -1,6 +1,6 @@
-/**
+/*
  * Descriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,8 +87,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
 
-import static com.avail.descriptor.LinearSetBinDescriptor
-	.createLinearSetBinPair;
+import static com.avail.descriptor.LinearSetBinDescriptor.createLinearSetBinPair;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static java.lang.String.format;
 
@@ -2094,7 +2093,6 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override
 	int o_TupleSize (final AvailObject object)
@@ -5015,8 +5013,6 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
-
 
 	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (

@@ -1,6 +1,6 @@
 /*
  * L2OperandDispatcher.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,19 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
-
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
  * An {@code L2OperandDispatcher} acts as a visitor for the actual operands of
  * {@linkplain L2Instruction level two instructions}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public interface L2OperandDispatcher
 {
@@ -63,12 +65,20 @@ public interface L2OperandDispatcher
 	void doOperand (L2ConstantOperand operand);
 
 	/**
-	 * Process an operand which is an immediate value.
+	 * Process an operand which is an {@code int} immediate value.
 	 *
 	 * @param operand
-	 *        An {@link L2ImmediateOperand}.
+	 *        An {@link L2IntImmediateOperand}.
 	 */
-	void doOperand (L2ImmediateOperand operand);
+	void doOperand (L2IntImmediateOperand operand);
+
+	/**
+	 * Process an operand which is a {@code double} immediate value.
+	 *
+	 * @param operand
+	 *        An {@link L2FloatImmediateOperand}.
+	 */
+	void doOperand (L2FloatImmediateOperand operand);
 
 	/**
 	 * Process an operand which is a constant level two offset into a
@@ -96,6 +106,14 @@ public interface L2OperandDispatcher
 	void doOperand (L2ReadIntOperand operand);
 
 	/**
+	 * Process an operand which is a read of a {@code double} register.
+	 *
+	 * @param operand
+	 *        An {@link L2ReadFloatOperand}.
+	 */
+	void doOperand (L2ReadFloatOperand operand);
+
+	/**
 	 * Process an operand which is a read of an {@link AvailObject} register.
 	 *
 	 * @param operand
@@ -110,7 +128,11 @@ public interface L2OperandDispatcher
 	 * @param operand
 	 *        An {@link L2ReadVectorOperand}.
 	 */
-	void doOperand (L2ReadVectorOperand operand);
+	<
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	void doOperand (final L2ReadVectorOperand<RR, R, T> operand);
 
 	/**
 	 * Process an operand which is a literal {@link A_Bundle} which the
@@ -130,6 +152,14 @@ public interface L2OperandDispatcher
 	void doOperand (L2WriteIntOperand operand);
 
 	/**
+	 * Process an operand which is a write of a {@code double} register.
+	 *
+	 * @param operand
+	 *        An {@link L2WriteFloatOperand}.
+	 */
+	void doOperand (L2WriteFloatOperand operand);
+
+	/**
 	 * Process an operand which is a write of an {@link AvailObject} register.
 	 *
 	 * @param operand
@@ -138,12 +168,11 @@ public interface L2OperandDispatcher
 	void doOperand (L2WritePointerOperand operand);
 
 	/**
-	 * Process an operand which is a write of a vector of {@link AvailObject}
-	 * registers.
+	 * Process an operand which is a phi write of a register.
 	 *
 	 * @param operand
-	 *        An {@link L2WriteVectorOperand}.
+	 *        An {@link L2WritePhiOperand}.
 	 */
-	void doOperand (L2WriteVectorOperand operand);
-
+	<R extends L2Register<T>, T extends A_BasicObject> void doOperand (
+		final L2WritePhiOperand<R, T> operand);
 }

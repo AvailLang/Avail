@@ -1,6 +1,6 @@
-/**
+/*
  * TypeConsistencyTest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,20 +43,13 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.Types;
 import static com.avail.descriptor.FiberTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
@@ -64,8 +57,7 @@ import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -1219,7 +1211,6 @@ public class TypeConsistencyTest
 			}
 		}
 
-
 		/**
 		 * The list of all {@link Node}s except BOTTOM.
 		 */
@@ -1323,7 +1314,6 @@ public class TypeConsistencyTest
 			values.add(this);
 		}
 
-
 		/* The nodes' slots have to be initialized here because they pass
 		 * the Node.class to the EnumSet factory, which attempts to
 		 * determine the number of enumeration values, which isn't known yet
@@ -1364,7 +1354,6 @@ public class TypeConsistencyTest
 			}
 			while (changed);
 		}
-
 
 		/**
 		 * Enumeration instances are required to implement this to construct the
@@ -1486,7 +1475,6 @@ public class TypeConsistencyTest
 				node.subtypeCache = new Boolean[0];
 			}
 		}
-
 	}
 
 	/**
@@ -1505,8 +1493,6 @@ public class TypeConsistencyTest
 
 		// dumpGraphTo(System.out);
 	}
-
-
 
 	/**
 	 * Output a machine-readable representation of the graph as a sequence of
@@ -1583,12 +1569,9 @@ public class TypeConsistencyTest
 				{
 					out.println("(" + i1 + " " + i2 + ")");
 				}
-
 			}
 		}
 	}
-
-
 
 	/**
 	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
@@ -1598,7 +1581,6 @@ public class TypeConsistencyTest
 	{
 		Node.eraseTypes();
 	}
-
 
 	/**
 	 * Compare the first two arguments for {@linkplain Object#equals(Object)
@@ -2214,7 +2196,6 @@ public class TypeConsistencyTest
 			}
 		}
 	}
-
 
 	/**
 	 * Check that the type intersection of two types' types is the same as the

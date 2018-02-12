@@ -1,6 +1,6 @@
-/**
+/*
  * L2NamedOperandType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
-
+import javax.annotation.Nullable;
 
 /**
  * An {@code L2NamedOperandType} is used to specify both an {@link
@@ -42,6 +42,7 @@ package com.avail.interpreter.levelTwo;
  * The names are not used in any way at runtime.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2NamedOperandType
 {
@@ -51,28 +52,78 @@ public class L2NamedOperandType
 	private final L2OperandType operandType;
 
 	/**
-	 * The {@link String} that names the receiver within an {@link L2Operation}.
-	 */
-	private final String name;
-
-	/**
 	 * Answer the {@link L2OperandType} that this decorates.
 	 *
 	 * @return The L2OperandType.
 	 */
-	L2OperandType operandType ()
+	public L2OperandType operandType ()
 	{
 		return operandType;
 	}
+
+	/**
+	 * The {@link String} that names the receiver within an {@link L2Operation}.
+	 */
+	private final String name;
 
 	/**
 	 * Answer the {@link String} that names the receiver.
 	 *
 	 * @return The receiver's name.
 	 */
-	String name ()
+	public String name ()
 	{
 		return name;
+	}
+
+	/**
+	 * A {@code Purpose} specifies additional semantic meaning for an
+	 * {@link L2NamedOperandType}.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	public enum Purpose
+	{
+		/**
+		 * Indicates that a {@link L2OperandType#PC PC} codes for a successful
+		 * operation.
+		 */
+		SUCCESS,
+
+		/**
+		 * Indicates that a {@link L2OperandType#PC PC} codes for a failed
+		 * operation. This represents ordinary failure, not "catastrophic"
+		 * failure which requires an off-ramp.
+		 */
+		FAILURE,
+
+		/**
+		 * Indicates that a {@link L2OperandType#PC PC} codes for an off-ramp.
+		 */
+		OFF_RAMP,
+
+		/**
+		 * Indicates that a {@link L2OperandType PC} codes for an on-ramp.
+		 */
+		ON_RAMP
+	}
+
+	/**
+	 * The {@link Purpose} that best describes the {@link L2NamedOperandType},
+	 * if any.
+	 */
+	private final @Nullable Purpose purpose;
+
+	/**
+	 * Answer the {@link Purpose} that best describes the {@link
+	 * L2NamedOperandType}, if any.
+	 *
+	 * @return The receiver's purpose, or {@code null} if nothing additional is
+	 *         known about its purpose.
+	 */
+	public @Nullable Purpose purpose ()
+	{
+		return purpose;
 	}
 
 	@Override
@@ -84,14 +135,21 @@ public class L2NamedOperandType
 	/**
 	 * Construct a new {@code L2NamedOperandType}.
 	 *
-	 * @param operandType The {@link L2OperandType} to wrap.
-	 * @param name The name of this operand.
+	 * @param operandType
+	 *        The {@link L2OperandType} to wrap.
+	 * @param name
+	 *        The name of this operand.
+	 * @param purpose
+	 *        The {@link Purpose} that best describes the {@link
+	 *        L2NamedOperandType}, if any.
 	 */
 	L2NamedOperandType (
 		final L2OperandType operandType,
-		final String name)
+		final String name,
+		final @Nullable Purpose purpose)
 	{
 		this.operandType = operandType;
 		this.name = name;
+		this.purpose = purpose;
 	}
 }

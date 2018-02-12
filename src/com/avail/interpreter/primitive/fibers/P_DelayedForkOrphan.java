@@ -1,6 +1,6 @@
-/**
+/*
  * P_DelayedForkOrphan.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,25 +33,17 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
@@ -67,8 +59,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -94,14 +85,13 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_Number sleepMillis = args.get(0);
-		final A_Function function = args.get(1);
-		final A_Tuple argTuple = args.get(2);
-		final A_Number priority = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_Number sleepMillis = interpreter.argument(0);
+		final A_Function function = interpreter.argument(1);
+		final A_Tuple argTuple = interpreter.argument(2);
+		final A_Number priority = interpreter.argument(3);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		final A_RawFunction code = function.code();

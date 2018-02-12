@@ -1,6 +1,6 @@
 /*
  * L2ControlFlowGraph.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,9 +99,9 @@ public final class L2ControlFlowGraph
 	 *
 	 * @return A {@link List} of {@link L2Register}s without repetitions.
 	 */
-	public List<L2Register> allRegisters ()
+	public List<L2Register<?>> allRegisters ()
 	{
-		final Set<L2Register> allRegisters = new HashSet<>();
+		final Set<L2Register<?>> allRegisters = new HashSet<>();
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
 			for (final L2Instruction instruction : block.instructions())
@@ -165,5 +165,28 @@ public final class L2ControlFlowGraph
 		{
 			block.generateOn(instructions);
 		}
+	}
+
+	/**
+	 * Answer a visualization of this {@code L2ControlFlowGraph}. This is a
+	 * debug method, intended to be called via evaluation during debugging.
+	 *
+	 * @return The requested visualization.
+	 */
+	@SuppressWarnings("unused")
+	public String visualize ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		final L2ControlFlowGraphVisualizer visualizer =
+			new L2ControlFlowGraphVisualizer(
+				"«control flow graph»",
+				"«chunk»",
+				80,
+				this,
+				true,
+				true,
+				builder);
+		visualizer.visualize();
+		return builder.toString();
 	}
 }

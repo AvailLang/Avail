@@ -1,6 +1,6 @@
-/**
+/*
  * ListNodeTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,21 +43,14 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots
-	.HASH_AND_MORE;
-import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots
-	.EXPRESSION_TYPE;
-import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots
-	.SUBEXPRESSIONS_TUPLE_TYPE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.PARSE_NODE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 
 /**
  * Define the structure and behavior of {@link ParseNodeKind#LIST_NODE list

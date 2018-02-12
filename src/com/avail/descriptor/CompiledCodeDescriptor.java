@@ -1,6 +1,6 @@
-/**
+/*
  * CompiledCodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -67,21 +69,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
-import static com.avail.descriptor.AvailObject
-	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
+import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.compiledCodeTypeForFunctionType;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -194,6 +191,9 @@ extends Descriptor
 		 * The number of outer variables that must captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_OUTERS = bitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
@@ -202,6 +202,9 @@ extends Descriptor
 		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
 		 * for continuations running this code.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField FRAME_SLOTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 48, 16);
 
@@ -209,6 +212,9 @@ extends Descriptor
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
 		 * code expects.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_ARGS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 32, 16);
 
@@ -216,6 +222,9 @@ extends Descriptor
 		 * The number of local variables declared in this code.  This does not
 		 * include arguments or local constants.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_LOCALS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 16, 16);
 
@@ -223,6 +232,9 @@ extends Descriptor
 		 * The number of local constants declared in this code.  These occur in
 		 * the frame after the arguments and local variables.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_CONSTANTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 0, 16);
 	}
@@ -254,7 +266,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code}, in which to record information
 		 * such as the file and line number of source code.
 		 */
-//		@HideFieldInDebugger
+		@HideFieldJustForPrinting
 		PROPERTY_ATOM,
 
 		/**
@@ -1163,13 +1175,17 @@ extends Descriptor
 			builder,
 			recursionMap,
 			indent);
-		Strings.newlineTab(builder, indent);
-		builder.append("Nybblecodes:\n");
-		L1Disassembler.disassemble(
-			object,
-			builder,
-			recursionMap,
-			indent + 1);
+		final int longCount = object.variableIntegerSlotsCount();
+		if (longCount > 0)
+		{
+			Strings.newlineTab(builder, indent);
+			builder.append("Nybblecodes:\n");
+			L1Disassembler.disassemble(
+				object,
+				builder,
+				recursionMap,
+				indent + 1);
+		}
 	}
 
 	/**

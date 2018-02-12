@@ -1,6 +1,6 @@
-/**
+/*
  * L1Decompiler.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,13 +46,10 @@ import java.util.Map;
 
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationNodeDescriptor.*;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor
-	.newFirstOfSequenceNode;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.newFirstOfSequenceNode;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.LiteralNodeDescriptor.*;
@@ -60,8 +57,7 @@ import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MarkerNodeDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.PermutedListNodeDescriptor
-	.newPermutedListNode;
+import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
 import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -69,8 +65,7 @@ import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
@@ -1019,6 +1014,51 @@ public class L1Decompiler
 		}
 		final L1Decompiler decompiler = new L1Decompiler(
 			aFunction.code(), functionOuters, generator);
+		return decompiler.block();
+	}
+
+	/**
+	 * Parse the given statically constructed function.  It treats outer
+	 * variables as private {@linkplain A_Atom atom} literals.  Answer the
+	 * resulting {@linkplain BlockNodeDescriptor block}.
+	 *
+	 * @param aRawFunction
+	 *        The function to decompile.
+	 * @return The {@linkplain BlockNodeDescriptor block} that is the
+	 *         decompilation of the provided function.
+	 */
+	public static A_Phrase parse (final A_RawFunction aRawFunction)
+	{
+		final Map<String, Integer> counts = new HashMap<>();
+		final Transformer1NotNull<String, String> generator =
+			prefix ->
+			{
+				Integer newCount = counts.get(prefix);
+				newCount = newCount == null ? 1 : newCount + 1;
+				counts.put(prefix, newCount);
+				//noinspection StringConcatenationMissingWhitespace
+				return prefix + newCount;
+			};
+		// Synthesize fake outers as literals to allow decompilation.
+		final int outerCount = aRawFunction.numOuters();
+		final A_Phrase[] functionOuters = new A_Phrase[outerCount];
+		for (int i = 1; i <= outerCount; i++)
+		{
+			final A_Variable var =
+				VariableDescriptor.newVariableWithOuterType(
+					VariableTypeDescriptor.mostGeneralVariableType());
+			final A_Token token = literalToken(
+				stringFrom("Outer#" + i),
+				emptyTuple(),
+				emptyTuple(),
+				0,
+				0,
+				SYNTHETIC_LITERAL,
+				var);
+			functionOuters[i - 1] = fromTokenForDecompiler(token);
+		}
+		final L1Decompiler decompiler = new L1Decompiler(
+			aRawFunction, functionOuters, generator);
 		return decompiler.block();
 	}
 }

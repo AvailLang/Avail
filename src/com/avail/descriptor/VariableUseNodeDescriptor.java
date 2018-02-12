@@ -1,6 +1,6 @@
-/**
+/*
  * VariableUseNodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
@@ -44,19 +44,14 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.FLAGS;
-import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots
-	.LAST_USE;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots
-	.DECLARATION;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots
-	.USE_TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.LAST_USE;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.DECLARATION;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.USE_TOKEN;
 
 /**
  * My instances represent the use of some {@linkplain DeclarationNodeDescriptor

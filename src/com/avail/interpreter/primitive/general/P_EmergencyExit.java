@@ -1,6 +1,6 @@
 /*
  * P_EmergencyExit.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,7 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
@@ -86,11 +79,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject errorMessageProducer = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_BasicObject errorMessageProducer = interpreter.argument(0);
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Continuation continuation =
 			stripNull(interpreter.reifiedContinuation);

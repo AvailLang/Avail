@@ -1,6 +1,6 @@
 /*
  * L2_MULTIPLY_INT_BY_INT.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,13 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -63,8 +65,8 @@ extends L2Operation
 			READ_INT.is("multiplicand"),
 			READ_INT.is("multiplier"),
 			WRITE_INT.is("product"),
-			PC.is("in range"),
-			PC.is("out of range"));
+			PC.is("in range", SUCCESS),
+			PC.is("out of range", FAILURE));
 
 	@Override
 	public boolean hasSideEffect ()
@@ -79,11 +81,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister multiplicandReg =
+		final L2IntRegister multiplicandReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister multiplierReg =
+		final L2IntRegister multiplierReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister productReg =
+		final L2IntRegister productReg =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);

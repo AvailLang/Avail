@@ -1,5 +1,5 @@
 /*
- * L2IntegerRegister.java
+ * package-info.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,62 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
-
-import com.avail.optimizer.L2Inliner;
-
-/**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-public class L2IntegerRegister
-extends L2Register
-{
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return RegisterKind.INTEGER;
-	}
-
-	/**
-	 * Construct a new {@code L2IntegerRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
-	 */
-	public L2IntegerRegister (final int debugValue)
-	{
-		super(debugValue);
-	}
-
-	@Override
-	public L2IntegerRegister copyAfterColoring ()
-	{
-		final L2IntegerRegister result = new L2IntegerRegister(finalIndex());
-		result.setFinalIndex(finalIndex());
-		return result;
-	}
-
-	@Override
-	public L2IntegerRegister copyForInliner (final L2Inliner inliner)
-	{
-		return inliner.targetTranslator.newIntegerRegister();
-	}
-
-	@Override
-	public String toString ()
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("i");
-		if (finalIndex() != -1)
-		{
-			builder.append(finalIndex());
-		}
-		else
-		{
-			builder.append(uniqueValue);
-		}
-		return builder.toString();
-	}
-}
+@NonnullByDefault
+package com.avail.utility.dot;
+import com.avail.annotations.NonnullByDefault;

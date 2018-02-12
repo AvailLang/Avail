@@ -1,6 +1,6 @@
-/**
+/*
  * P_ModuleHeaderPseudoMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,20 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-	.MODULE_HEADER_METHOD;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER_METHOD;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -83,16 +79,15 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_Phrase moduleNameLiteral = args.get(0);
-		final A_Phrase optionalVersions = args.get(1);
-		final A_Phrase allImports = args.get(2);
-		final A_Phrase optionalNames = args.get(3);
-		final A_Phrase optionalEntries = args.get(4);
-		final A_Phrase optionalPragmas = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_Phrase moduleNameLiteral = interpreter.argument(0);
+		final A_Phrase optionalVersions = interpreter.argument(1);
+		final A_Phrase allImports = interpreter.argument(2);
+		final A_Phrase optionalNames = interpreter.argument(3);
+		final A_Phrase optionalEntries = interpreter.argument(4);
+		final A_Phrase optionalPragmas = interpreter.argument(5);
 
 		return interpreter.primitiveSuccess(
 			newExpressionAsStatement(

@@ -1,6 +1,6 @@
-/**
+/*
  * ObjectTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,9 @@ import java.util.NoSuchElementException;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**

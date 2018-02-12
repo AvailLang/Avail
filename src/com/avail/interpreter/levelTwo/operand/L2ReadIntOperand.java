@@ -32,115 +32,50 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-
-import static java.lang.String.format;
 
 /**
  * An {@code L2ReadIntOperand} is an operand of type {@link
- * L2OperandType#READ_INT}.  It holds the actual {@link L2IntegerRegister} that
+ * L2OperandType#READ_INT}. It holds the actual {@link L2IntRegister} that
  * is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2ReadIntOperand
-extends L2Operand
+extends L2ReadOperand<L2IntRegister, A_Number>
 {
-	/**
-	 * The actual {@link L2IntegerRegister}.
-	 */
-	private L2IntegerRegister register;
-
-	/**
-	 * Answer the {@link L2IntegerRegister}'s {@link
-	 * L2IntegerRegister#finalIndex finalIndex}.
-	 *
-	 * @return The index of the integer register, computed during register
-	 *         coloring.
-	 */
-	public final int finalIndex ()
-	{
-		return register.finalIndex();
-	}
-
-	/**
-	 * Construct a new {@code L2ReadIntOperand} with the specified {@link
-	 * L2IntegerRegister}.
-	 *
-	 * @param register The integer register.
-	 */
-	public L2ReadIntOperand (final L2IntegerRegister register)
-	{
-		this.register = register;
-	}
-
-	/**
-	 * Answer this integer-read's {@link L2IntegerRegister}.
-	 *
-	 * @return The {@link L2IntegerRegister}.
-	 */
-	public L2IntegerRegister register ()
-	{
-		return register;
-	}
-
 	@Override
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.READ_INT;
 	}
 
+	/**
+	 * Construct a new {@code L2ReadIntOperand} for the specified {@link
+	 * L2IntRegister} and optional restriction.
+	 *
+	 * @param register
+	 *        The register.
+	 * @param restriction
+	 *        The further {@link TypeRestriction} to apply to this particular
+	 *        read.
+	 */
+	public L2ReadIntOperand (
+		final L2IntRegister register,
+		final @Nullable TypeRestriction<A_Number> restriction)
+	{
+		super(register, restriction);
+	}
+
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void instructionWasAdded (final L2Instruction instruction)
-	{
-		register.addUse(instruction);
-	}
-
-	@Override
-	public void instructionWasRemoved (final L2Instruction instruction)
-	{
-		register.removeUse(instruction);
-	}
-
-	@Override
-	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
-	{
-		final @Nullable L2Register replacement = registerRemap.get(register);
-		if (replacement == null || replacement == register)
-		{
-			return;
-		}
-		register.removeUse(instruction);
-		replacement.addUse(instruction);
-		register = L2IntegerRegister.class.cast(replacement);
-	}
-
-	@Override
-	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
-	{
-		sourceRegisters.add(register);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return format("ReadInt(%s)", register);
 	}
 }

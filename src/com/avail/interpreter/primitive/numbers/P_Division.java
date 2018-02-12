@@ -1,6 +1,6 @@
-/**
+/*
  * P_Division.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,15 @@ package com.avail.interpreter.primitive.numbers;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -75,12 +73,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Number a = interpreter.argument(0);
+		final A_Number b = interpreter.argument(1);
 		try
 		{
 			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true));

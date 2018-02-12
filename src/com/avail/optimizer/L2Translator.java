@@ -1,6 +1,6 @@
 /*
  * L2Translator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,10 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.performance.Statistic;
 
 import javax.annotation.Nullable;
@@ -264,6 +268,8 @@ public final class L2Translator
 		// we only translate one method at a time, the first instruction always
 		// represents the start of this compiledCode.
 		final long beforeL1Naive = AvailRuntime.captureNanos();
+		final List<AvailObject> savedArguments =
+			new ArrayList<>(interpreter.argsBuffer);
 		final L1Translator translator = new L1Translator(this);
 		translator.translateL1Instructions();
 		final long afterL1Naive = AvailRuntime.captureNanos();
@@ -279,6 +285,8 @@ public final class L2Translator
 		final long beforeChunkGeneration = AvailRuntime.captureNanos();
 		createChunk(translator.controlFlowGraph);
 		assert code.startingChunk() == chunk;
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.addAll(savedArguments);
 		final long afterChunkGeneration = AvailRuntime.captureNanos();
 		finalGenerationStat.record(
 			afterChunkGeneration - beforeChunkGeneration,
@@ -355,7 +363,8 @@ public final class L2Translator
 			"Number of methods depended upon",
 			L2_TRANSLATION_VALUES);
 
-	public static class RegisterCounter implements L2OperandDispatcher
+	public static class RegisterCounter
+	implements L2OperandDispatcher
 	{
 		int objectMax = -1;
 		int intMax = -1;
@@ -368,7 +377,10 @@ public final class L2Translator
 		public void doOperand (final L2ConstantOperand operand) { }
 
 		@Override
-		public void doOperand (final L2ImmediateOperand operand) { }
+		public void doOperand (final L2IntImmediateOperand operand) { }
+
+		@Override
+		public void doOperand (final L2FloatImmediateOperand operand) { }
 
 		@Override
 		public void doOperand (final L2PcOperand operand) { }
@@ -383,15 +395,26 @@ public final class L2Translator
 		}
 
 		@Override
+		public void doOperand (final L2ReadFloatOperand operand)
+		{
+			floatMax = max(floatMax, operand.finalIndex());
+		}
+
+		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			objectMax = max(objectMax, operand.finalIndex());
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void
+			doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			for (final L2ReadPointerOperand register : operand.elements())
+			for (final L2ReadOperand<?, ?> register : operand.elements())
 			{
 				objectMax = max(objectMax, register.finalIndex());
 			}
@@ -407,17 +430,34 @@ public final class L2Translator
 		}
 
 		@Override
+		public void doOperand (final L2WriteFloatOperand operand)
+		{
+			floatMax = max(floatMax, operand.finalIndex());
+		}
+
+		@Override
 		public void doOperand (final L2WritePointerOperand operand)
 		{
 			objectMax = max(objectMax, operand.finalIndex());
 		}
 
 		@Override
-		public void doOperand (final L2WriteVectorOperand operand)
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
 		{
-			for (final L2WritePointerOperand register : operand.elements())
+			final L2Register<?> register = operand.register();
+			if (register instanceof L2ObjectRegister)
 			{
-				objectMax = max(objectMax, register.finalIndex());
+				objectMax = max(objectMax, operand.finalIndex());
+			}
+			else if (register instanceof L2IntRegister)
+			{
+				intMax = max(intMax, operand.finalIndex());
+			}
+			else
+			{
+				assert register instanceof L2FloatRegister;
+				floatMax = max(floatMax, operand.finalIndex());
 			}
 		}
 	}

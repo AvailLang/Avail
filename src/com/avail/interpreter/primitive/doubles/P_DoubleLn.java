@@ -1,6 +1,6 @@
-/**
+/*
  * P_DoubleLn.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.avail.descriptor.DoubleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -62,11 +61,10 @@ public final class P_DoubleLn extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject a = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final AvailObject a = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
 			fromDoubleRecycling(log(a.extractDouble()), a, true));
 	}

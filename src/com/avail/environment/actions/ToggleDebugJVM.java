@@ -1,6 +1,6 @@
 /*
  * ToggleDebugDumpJVM.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,8 @@ import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 
 /**
- * A {@code ToggleRecordL2InstructionTimingsInJVM} toggles the flag that
- * indicates whether enable debugging support for JVM translation.
+ * A {@code ToggleDebugJVM} toggles the flag that indicates whether enable
+ * debugging support for JVM translation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

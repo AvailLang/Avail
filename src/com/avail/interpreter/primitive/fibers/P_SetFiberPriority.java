@@ -1,6 +1,6 @@
-/**
+/*
  * P_SetFiberPriority.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -63,12 +62,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Fiber fiber = args.get(0);
-		final AvailObject priority = args.get(0);
+		interpreter.checkArgumentCount(2);
+		final A_Fiber fiber = interpreter.argument(0);
+		final AvailObject priority = interpreter.argument(0);
 		final int priorityInt = priority.extractInt();
 		assert 0 <= priorityInt && priorityInt <= 255;
 		fiber.priority(priorityInt);

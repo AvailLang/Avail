@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerOperandEncoding.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,8 @@
 package com.avail.serialization;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IndexedIntGenerator;
 
 import java.io.OutputStream;
@@ -52,13 +46,10 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.generateTwoByteString;
+import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
 
 /**
  * A {@code SerializerOperandEncoding} is an encoding algorithm for part of a

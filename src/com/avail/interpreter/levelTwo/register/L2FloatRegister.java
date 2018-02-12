@@ -32,8 +32,16 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-
+import com.avail.descriptor.A_Number;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
+
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 
 /**
  * {@code L2FloatRegister} models the conceptual usage of a register that can
@@ -41,8 +49,8 @@ import com.avail.optimizer.L2Inliner;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2FloatRegister
-extends L2Register
+public final class L2FloatRegister
+extends L2Register<A_Number>
 {
 	@Override
 	public RegisterKind registerKind ()
@@ -53,41 +61,67 @@ extends L2Register
 	/**
 	 * Construct a new {@code L2FloatRegister}.
 	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * @param debugValue
+	 *        A value used to distinguish the new instance visually during
+	 *        debugging of L2 translations.
+	 * @param restriction
+	 * 	      The {@link TypeRestriction}.
 	 */
-	public L2FloatRegister (final int debugValue)
+	public L2FloatRegister (
+		final int debugValue,
+		final TypeRestriction<A_Number> restriction)
 	{
-		super(debugValue);
+		super(debugValue, restriction);
+	}
+
+	@Override
+	public L2ReadFloatOperand read (
+		final TypeRestriction<A_Number> typeRestriction)
+	{
+		return new L2ReadFloatOperand(this, typeRestriction);
+	}
+
+	@Override
+	public L2WriteFloatOperand write ()
+	{
+		return new L2WriteFloatOperand(this);
+	}
+
+	@Override
+	public L2Register<A_Number> copyForTranslator (
+		final L1Translator translator,
+		final TypeRestriction<A_Number> typeRestriction)
+	{
+		return new L2FloatRegister(translator.nextUnique(), typeRestriction);
 	}
 
 	@Override
 	public L2FloatRegister copyAfterColoring ()
 	{
-		final L2FloatRegister result = new L2FloatRegister(finalIndex());
+		final L2FloatRegister result = new L2FloatRegister(
+			finalIndex(),
+			TypeRestriction.restriction(DOUBLE.o(), null));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
 
 	@Override
-	public L2FloatRegister copyForInliner (
-		final L2Inliner inliner)
+	public L2FloatRegister copyForInliner (final L2Inliner inliner)
 	{
-		return inliner.targetTranslator.newFloatRegister();
+		return new L2FloatRegister(
+			inliner.targetTranslator.nextUnique(),
+			restriction);
 	}
 
 	@Override
-	public String toString ()
+	public L2Operation phiMoveOperation ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("f");
-		if (finalIndex() != -1)
-		{
-			builder.append(finalIndex());
-		}
-		else
-		{
-			builder.append(uniqueValue);
-		}
-		return builder.toString();
+		return L2_MOVE_FLOAT.instance;
+	}
+
+	@Override
+	public String namePrefix ()
+	{
+		return "f";
 	}
 }

@@ -34,12 +34,13 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
@@ -60,29 +61,24 @@ extends L2Operation
 	public static final L2Operation instance =
 		new L2_EXTRACT_CONTINUATION_SLOT().init(
 			READ_POINTER.is("continuation"),
-			IMMEDIATE.is("slot index"),
+			INT_IMMEDIATE.is("slot index"),
 			WRITE_POINTER.is("extracted slot"));
 
 	@Override
-	protected void propagateTypes (
+	public void toString (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
 	{
-//		final L2ReadPointerOperand continuationReg =
-//			instruction.readObjectRegisterAt(0);
-//		final int slotIndex = instruction.immediateAt(1);
-//		final L2WritePointerOperand explodedSlot =
-//			instruction.writeObjectRegisterAt(2);
-
-		// Update the type and value information to agree with the type and
-		// value known to be in that continuation slot.  Note that there are no
-		// exposed mechanisms for tampering with a continuation without setting
-		// its chunk to the default chunk, so we can be assured that the same
-		// values written to slots in an off-ramp are present in the
-		// continuation when it reaches the subsequent on-ramp.
-
-		//TODO MvG - This is deprecated anyhow.
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(" ← ");
+		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append('[');
+		builder.append(instruction.intImmediateAt(1));
+		builder.append(']');
 	}
 
 	@Override
@@ -94,7 +90,7 @@ extends L2Operation
 		// Extract a single slot from the given continuation.
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int slotIndex = instruction.immediateAt(1);
+		final int slotIndex = instruction.intImmediateAt(1);
 		final L2ObjectRegister explodedSlotReg =
 			instruction.writeObjectRegisterAt(2).register();
 

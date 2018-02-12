@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticFunction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,11 @@ import com.avail.utility.evaluation.Transformer1NotNull;
 /**
  * A semantic value which represents the current function while running code for
  * a particular {@link Frame}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticFunction extends L2SemanticValue
+final class L2SemanticFunction
+extends L2SemanticValue
 {
 	/** The frame for which this represents the current function. */
 	public final Frame frame;
@@ -79,5 +82,13 @@ final class L2SemanticFunction extends L2SemanticValue
 	public String toString ()
 	{
 		return "Function of " + frame;
+	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// A function, once made immutable, continues to be immutable even after
+		// we follow an off-ramp/on-ramp pair.
+		return true;
 	}
 }

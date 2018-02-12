@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -45,41 +46,49 @@ import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
- * L2OperandType#READ_VECTOR}.  It holds a {@link List} of {@link
- * L2ReadPointerOperand}s.
+ * L2OperandType#READ_VECTOR}. It holds a {@link List} of {@link
+ * L2ReadOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <R>
+ *        A subclass of L2Register&lt;T>
+ * @param <T>
+ *        A subclass of {@link L2ReadOperand}.
  */
-public class L2ReadVectorOperand
+public class L2ReadVectorOperand<
+	RR extends L2ReadOperand<R, T>,
+	R extends L2Register<T>,
+	T extends A_BasicObject>
 extends L2Operand
 {
 	/**
 	 * The {@link List} of {@link L2ReadPointerOperand}s.
 	 */
-	private final List<L2ReadPointerOperand> elements;
+	private final List<RR> elements;
 
 	/**
 	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
-	 * List} of {@link L2ReadPointerOperand}s.
+	 * List} of {@link L2ReadOperand}s.
 	 *
-	 * @param elements The list of {@link L2ReadPointerOperand}s.
+	 * @param elements
+	 *        The list of {@link L2ReadOperand}s.
 	 */
-	public L2ReadVectorOperand (final List<L2ReadPointerOperand> elements)
+	public L2ReadVectorOperand (
+		final List<? extends RR> elements)
 	{
 		this.elements = unmodifiableList(elements);
 	}
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@SuppressWarnings({"MethodDoesntCallSuperMethod", "unchecked"})
 	@Override
-	public L2Operand clone ()
+	public L2ReadVectorOperand<RR, R, T> clone ()
 	{
-		final List<L2ReadPointerOperand> clonedElements =
-			new ArrayList<>(elements.size());
-		for (final L2ReadPointerOperand element : elements)
+		final List<RR> clonedElements = new ArrayList<>(elements.size());
+		for (final RR element : elements)
 		{
-			clonedElements.add((L2ReadPointerOperand) element.clone());
+			clonedElements.add((RR) element.clone());
 		}
-		return new L2ReadVectorOperand(clonedElements);
+		return new L2ReadVectorOperand<>(clonedElements);
 	}
 
 	@Override
@@ -89,9 +98,11 @@ extends L2Operand
 	}
 
 	/**
-	 * Answer my {@link List} of {@link L2ReadPointerOperand}s.
+	 * Answer my {@link List} of {@link L2ReadOperand}s.
+	 *
+	 * @return The requested operands.
 	 */
-	public List<L2ReadPointerOperand> elements ()
+	public List<RR> elements ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
@@ -106,7 +117,7 @@ extends L2Operand
 	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand element : elements)
+		for (final RR element : elements)
 		{
 			element.instructionWasAdded(instruction);
 		}
@@ -115,7 +126,7 @@ extends L2Operand
 	@Override
 	public void instructionWasRemoved (final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand element : elements)
+		for (final RR element : elements)
 		{
 			element.instructionWasRemoved(instruction);
 		}
@@ -123,19 +134,19 @@ extends L2Operand
 
 	@Override
 	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
+		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
 	{
-		for (final L2ReadPointerOperand read : elements)
+		for (final RR read : elements)
 		{
 			read.replaceRegisters(registerRemap, instruction);
 		}
 	}
 
 	@Override
-	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	public void addSourceRegistersTo (final List<L2Register<?>> sourceRegisters)
 	{
-		for (final L2ReadPointerOperand read : elements)
+		for (final RR read : elements)
 		{
 			read.addSourceRegistersTo(sourceRegisters);
 		}
@@ -145,19 +156,25 @@ extends L2Operand
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("ReadVector(");
+		builder.append("@<");
 		boolean first = true;
-		for (final L2ReadPointerOperand read : elements)
+		for (final RR read : elements)
 		{
 			if (!first)
 			{
 				builder.append(", ");
 			}
 			builder.append(read.register());
-			builder.append(read.restriction().suffixString());
+			final TypeRestriction<?> restriction = read.restriction();
+			if (restriction.constantOrNull == null)
+			{
+				// Don't redundantly print restriction information for
+				// constants.
+				builder.append(restriction.suffixString());
+			}
 			first = false;
 		}
-		builder.append(")");
+		builder.append(">");
 		return builder.toString();
 	}
 }

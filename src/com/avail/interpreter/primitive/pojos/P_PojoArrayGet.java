@@ -1,6 +1,6 @@
-/**
+/*
  * P_PojoArrayGet.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,10 @@ import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.lang.reflect.Array;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import java.lang.reflect.Array;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
@@ -75,12 +74,11 @@ public final class P_PojoArrayGet extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject pojo = args.get(0);
-		final A_Number subscript = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_BasicObject pojo = interpreter.argument(0);
+		final A_Number subscript = interpreter.argument(1);
 		final A_BasicObject rawPojo = pojo.rawPojo();
 		final Object array = rawPojo.javaObjectNotNull();
 		final int index = subscript.extractInt();

@@ -1,6 +1,6 @@
-/**
+/*
  * StateVisitActions.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,7 +126,6 @@ final class StateSummary<
 		return entryAction;
 	}
 
-
 	/**
 	 * The action key whose {@linkplain Continuation1 action} should be invoked
 	 * when exiting a particular state.
@@ -171,7 +170,6 @@ final class StateSummary<
 	{
 		return exitAction;
 	}
-
 
 	/** The transition table. */
 	private final EnumMap<

@@ -1,6 +1,6 @@
-/**
+/*
  * AvailServer.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,7 @@ package com.avail.server;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParserException;
-import com.avail.builder.ResolvedModuleName;
-import com.avail.builder.UnresolvedDependencyException;
+import com.avail.builder.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;

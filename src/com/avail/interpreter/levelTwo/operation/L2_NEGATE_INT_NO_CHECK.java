@@ -1,19 +1,19 @@
 /*
- * L2_GET_ARGUMENTS.java
+ * L2_NEGATE_INT_NO_CHECK.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,41 +32,58 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
+import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static org.objectweb.asm.Opcodes.INEG;
 
 /**
- * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}, which
- * is how functions are supplied their arguments.
+ * Extract an {@code int} from the specified register and negate it. The result
+ * must also be an {@code int}; the result is not checked for overflow. If
+ * overflow detection is required, then use {@link
+ * L2_SUBTRACT_INT_MINUS_INT_CONSTANT} with an {@linkplain L2IntImmediateOperand
+ * immediate} {@code 0} instead.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_ARGUMENTS
+public class L2_NEGATE_INT_NO_CHECK
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_GET_ARGUMENTS().init(
-			WRITE_VECTOR.is("arguments"));
+		new L2_NEGATE_INT_NO_CHECK().init(
+			READ_INT.is("value"),
+			WRITE_INT.is("negation"));
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// Keep this instruction pinned in place for safety during inlining.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(" ← -");
+		builder.append(instruction.readIntRegisterAt(0).register());
 	}
 
 	@Override
@@ -75,31 +92,14 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2WritePointerOperand> argumentRegs =
-			instruction.writeVectorRegisterAt(0);
+		final L2IntRegister valueReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister negationReg =
+			instruction.writeIntRegisterAt(1).register();
 
-		// :: argsBuffer = interpreter.argsBuffer;
-		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"argsBuffer",
-			getDescriptor(List.class));
-		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
-		{
-			// :: «argument[i]» = argsBuffer.get(«i»);
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP);
-			}
-			translator.intConstant(method, i);
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(List.class),
-				"get",
-				getMethodDescriptor(getType(Object.class), INT_TYPE),
-				true);
-			translator.store(method, argumentRegs.get(i).register());
-		}
+		// :: negationReg = -valueReg;
+		translator.load(method, valueReg);
+		method.visitInsn(INEG);
+		translator.store(method, negationReg);
 	}
 }

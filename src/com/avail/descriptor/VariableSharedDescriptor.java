@@ -1,6 +1,6 @@
-/**
+/*
  * VariableSharedDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,10 +53,8 @@ import java.util.WeakHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots
-	.HASH_ALWAYS_SET;
-import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots
-	.HASH_AND_MORE;
+import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET;
+import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 
 /**

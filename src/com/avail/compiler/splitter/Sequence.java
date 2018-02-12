@@ -1,6 +1,6 @@
-/**
+/*
  * Sequence.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
@@ -48,8 +47,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter
-	.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;

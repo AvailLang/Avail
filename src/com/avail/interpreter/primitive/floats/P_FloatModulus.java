@@ -1,6 +1,6 @@
-/**
+/*
  * P_FloatModulus.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.avail.descriptor.FloatDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -62,12 +61,11 @@ public final class P_FloatModulus extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject a = interpreter.argument(0);
+		final AvailObject b = interpreter.argument(1);
 		final float fa = a.extractFloat();
 		final float fb = b.extractFloat();
 		final float div = fa / fb;

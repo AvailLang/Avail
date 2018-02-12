@@ -1,6 +1,6 @@
-/**
+/*
  * TypeRestriction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,8 @@ import com.avail.descriptor.NilDescriptor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -58,8 +56,13 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
  *
  * <p>Eventually we may also capture negative type information (e.g., "x isn't
  * an integer or a tuple").</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <T>
+ *        The best type for exact values.
  */
-public final class TypeRestriction
+public final class TypeRestriction<T extends A_BasicObject>
 {
 	/**
 	 * The type of value that known to be in this register if this control
@@ -71,7 +74,7 @@ public final class TypeRestriction
 	 * The exact value that is known to be in this register if this control
 	 * flow path is taken, or {@code null} if unknown.
 	 */
-	public final @Nullable A_BasicObject constantOrNull;
+	public final @Nullable T constantOrNull;
 
 	/**
 	 * Create a {@code TypeRestriction}.
@@ -82,38 +85,39 @@ public final class TypeRestriction
 	 *        Either {@code null} or the exact value that some value somewhere
 	 *        must equal.
 	 */
+	@SuppressWarnings("unchecked")
 	private TypeRestriction (
 		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final @Nullable T constantOrNull)
 	{
 		// Make the Avail objects immutable.  They'll be made Shared if they
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable();
-		this.constantOrNull = constantOrNull == null
-			? null
-			: constantOrNull.makeImmutable();
+		this.constantOrNull = (constantOrNull != null)
+			? (T) constantOrNull.makeImmutable()
+			: null;
 	}
 
 	/**
 	 * The {@link TypeRestriction} for a register that holds {@link
 	 * NilDescriptor#nil}.
 	 */
-	private static final TypeRestriction nilRestriction =
-		new TypeRestriction(TOP.o(), nil);
+	private static final TypeRestriction<A_BasicObject> nilRestriction =
+		new TypeRestriction<>(TOP.o(), nil);
 
 	/**
 	 * The {@link TypeRestriction} for a register that any value whatsoever,
 	 * including {@link NilDescriptor#nil}.
 	 */
-	private static final TypeRestriction topRestriction =
-		new TypeRestriction(TOP.o(), null);
+	private static final TypeRestriction<A_BasicObject> topRestriction =
+		new TypeRestriction<>(TOP.o(), null);
 
 	/**
 	 * The {@link TypeRestriction} for a register that cannot hold any value.
 	 * This can be useful for cleanly dealing with unreachable code.
 	 */
-	private static final TypeRestriction bottomRestriction =
-		new TypeRestriction(bottom(), null);
+	private static final TypeRestriction<A_BasicObject> bottomRestriction =
+		new TypeRestriction<>(bottom(), null);
 
 	/**
 	 * The {@link TypeRestriction} for a register that can only hold the value
@@ -121,12 +125,14 @@ public final class TypeRestriction
 	 * point in the type system, in that multiple otherwise unrelated type
 	 * hierarchies share the (uninstantiable) type bottom as a descendant.
 	 */
-	private static final TypeRestriction bottomTypeRestriction =
-		new TypeRestriction(instanceTypeOrMetaOn(bottom()), bottom());
+	private static final TypeRestriction<A_BasicObject> bottomTypeRestriction =
+		new TypeRestriction<>(instanceTypeOrMetaOn(bottom()), bottom());
 
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction}.
 	 *
+	 * @param <T>
+	 *        The best type for exact values.
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
 	 * @param constantOrNull
@@ -134,21 +140,22 @@ public final class TypeRestriction
 	 *        must equal.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	public static TypeRestriction restriction (
+	@SuppressWarnings("unchecked")
+	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
 		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final @Nullable T constantOrNull)
 	{
 		if (constantOrNull != null)
 		{
 			if (constantOrNull.equalsNil())
 			{
-				return nilRestriction;
+				return (TypeRestriction<T>) nilRestriction;
 			}
 			if (!constantOrNull.isInstanceOf(type))
 			{
-				return bottomRestriction;
+				return (TypeRestriction<T>) bottomRestriction;
 			}
-			return new TypeRestriction(
+			return new TypeRestriction<>(
 				instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
 		if (type.instanceCount().equalsInt(1))
@@ -157,19 +164,19 @@ public final class TypeRestriction
 			if (instance.equals(bottom()))
 			{
 				// Special case: bottom's type has one instance, bottom.
-				return bottomTypeRestriction;
+				return (TypeRestriction<T>) bottomTypeRestriction;
 			}
 			if (!type.isInstanceMeta())
 			{
 				// Its instance is a non-type, so it's exact.
-				return new TypeRestriction(type, instance);
+				return new TypeRestriction<>(type, (T) instance);
 			}
 		}
 		if (type.equals(TOP.o()))
 		{
-			return topRestriction;
+			return (TypeRestriction<T>) topRestriction;
 		}
-		return new TypeRestriction(type, null);
+		return new TypeRestriction<>(type, null);
 	}
 
 	/**
@@ -182,7 +189,8 @@ public final class TypeRestriction
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
-	public TypeRestriction union (final TypeRestriction other)
+	@SuppressWarnings("unchecked")
+	public TypeRestriction<T> union (final TypeRestriction<T> other)
 	{
 		if (constantOrNull != null
 			&& other.constantOrNull != null
@@ -190,7 +198,7 @@ public final class TypeRestriction
 		{
 			// The two restrictions are for the same constant value.
 			return constantOrNull.equalsNil()
-				? nilRestriction
+				? (TypeRestriction<T>) nilRestriction
 				: restriction(
 					instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
@@ -211,7 +219,8 @@ public final class TypeRestriction
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
-	public TypeRestriction intersection (final TypeRestriction other)
+	@SuppressWarnings("unchecked")
+	public TypeRestriction<T> intersection (final TypeRestriction<T> other)
 	{
 		if (constantOrNull != null)
 		{
@@ -220,7 +229,7 @@ public final class TypeRestriction
 			{
 				// The two constants conflict.  Code using this register should
 				// not be reachable, but allow it to be generated for now.
-				return bottomRestriction;
+				return (TypeRestriction<T>) bottomRestriction;
 			}
 			// Rely on normalization to reject the constant if the type
 			// intersection is vacuous (bottom).
@@ -246,12 +255,13 @@ public final class TypeRestriction
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
-	public TypeRestriction minus (final TypeRestriction other)
+	@SuppressWarnings("unchecked")
+	public TypeRestriction<T> minus (final TypeRestriction<T> other)
 	{
 		if (type.isSubtypeOf(other.type))
 		{
 			// Exclude everything.
-			return bottomRestriction;
+			return (TypeRestriction<T>) bottomRestriction;
 		}
 		if (constantOrNull != null)
 		{
@@ -294,11 +304,15 @@ public final class TypeRestriction
 			AvailObject.class.cast(constantOrNull);
 		if (constant != null)
 		{
-			return "=" + constant.typeTag();
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			return "=" + constant.typeTag().name().replace(
+				"_TAG", "");
 		}
 		if (!type.equals(TOP.o()))
 		{
-			return ":" + AvailObject.class.cast(type).typeTag();
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			return ":" + AvailObject.class.cast(type).typeTag().name()
+				.replace("_TAG", "");
 		}
 		return "";
 	}

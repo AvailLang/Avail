@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateParseNodeType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,12 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -69,12 +67,11 @@ public final class P_CreateParseNodeType extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject baseType = args.get(0);
-		final AvailObject expressionType = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject baseType = interpreter.argument(0);
+		final AvailObject expressionType = interpreter.argument(1);
 		if (baseType.isBottom())
 		{
 			return interpreter.primitiveSuccess(baseType);

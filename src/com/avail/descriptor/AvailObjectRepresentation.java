@@ -1,6 +1,6 @@
-/**
+/*
  * AvailObjectRepresentation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import sun.misc.Unsafe;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Set;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 

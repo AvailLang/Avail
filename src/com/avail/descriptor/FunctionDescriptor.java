@@ -1,6 +1,6 @@
-/**
+/*
  * FunctionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ extends Descriptor
 		A_Phrase phrase = code.originatingPhrase();
 		if (phrase.equalsNil())
 		{
-			phrase = L1Decompiler.parse(object);
+			phrase = L1Decompiler.parse((A_Function) object);
 		}
 		phrase.printOnAvoidingIndent(
 			aStream, recursionMap, indent + 1);
@@ -551,7 +551,6 @@ extends Descriptor
 	{
 		return immutable;
 	}
-
 
 	/** The shared {@link FunctionDescriptor}. */
 	private static final FunctionDescriptor shared =

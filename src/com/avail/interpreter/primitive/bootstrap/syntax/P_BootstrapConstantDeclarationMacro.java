@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapConstantDeclarationMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,13 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.DeclarationNodeDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -77,12 +76,11 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase constantNameLiteral = args.get(0);
-		final A_Phrase initializationExpression = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase constantNameLiteral = interpreter.argument(0);
+		final A_Phrase initializationExpression = interpreter.argument(1);
 
 		final A_Token nameToken = constantNameLiteral.token().literal();
 		final A_String nameString = nameToken.string();

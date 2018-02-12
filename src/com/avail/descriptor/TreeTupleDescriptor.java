@@ -1,6 +1,6 @@
-/**
+/*
  * TreeTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,10 @@ import com.avail.annotations.HideFieldInDebugger;
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.AvailObject
-	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
-	.CUMULATIVE_SIZES_AREA_;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_;
 import static java.lang.Math.max;
 import static java.lang.Math.min;

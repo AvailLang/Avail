@@ -1,6 +1,6 @@
-/**
+/*
  * P_GetGlobalVariableValue.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,21 +35,19 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -68,7 +66,6 @@ public final class P_GetGlobalVariableValue extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
 		final A_RawFunction code = stripNull(interpreter.function).code();
@@ -101,7 +98,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	}
 
 	@Override
-	public @Nullable boolean tryToGenerateSpecialPrimitiveInvocation (
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final A_RawFunction rawFunction,
 		final List<L2ReadPointerOperand> arguments,
@@ -131,15 +128,11 @@ public final class P_GetGlobalVariableValue extends Primitive
 				translator.constantRegister(variable.getValue()));
 			return true;
 		}
-		final L2WritePointerOperand valueRegisterWriter =
-			translator.newObjectRegisterWriter(
-				variable.kind().readType(),
-				null);
-		translator.emitGetVariableOffRamp(
+		final L2ReadPointerOperand valueReg = translator.emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
 			translator.constantRegister(variable),
-			valueRegisterWriter);
-		callSiteHelper.useAnswer(valueRegisterWriter.read());
+			false);
+		callSiteHelper.useAnswer(valueReg);
 		return true;
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_RecordNewTypeName.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,15 @@ package com.avail.interpreter.primitive.objects;
 
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -71,12 +70,11 @@ public final class P_RecordNewTypeName extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type userType = args.get(0);
-		final A_String name = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type userType = interpreter.argument(0);
+		final A_String name = interpreter.argument(1);
 
 		userType.makeImmutable();
 		name.makeImmutable();

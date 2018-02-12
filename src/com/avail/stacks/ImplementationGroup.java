@@ -1,6 +1,6 @@
-/**
+/*
  * ImplementationGroup.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,6 @@ public class ImplementationGroup
 	{
 		return hasStickyComment;
 	}
-
 
 	/**
 	 * set the boolean, {@linkplain #hasStickyComment}, presumably to true
@@ -461,7 +460,6 @@ public class ImplementationGroup
 							.mergeGrammaticalRestrictionImplementations(
 								restrictions.get(i));
 					}
-
 				}
 				restrictions.get(0)
 					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
@@ -515,7 +513,6 @@ public class ImplementationGroup
 							.mergeGrammaticalRestrictionImplementations(
 								restrictions.get(i));
 					}
-
 				}
 				restrictions.get(0)
 					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);

@@ -1,6 +1,6 @@
-/**
+/*
  * MessageBundleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor
-	.newParsingPlan;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;

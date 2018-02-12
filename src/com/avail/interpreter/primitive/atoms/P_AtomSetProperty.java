@@ -1,6 +1,6 @@
-/**
+/*
  * P_AtomSetProperty.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,12 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -72,13 +71,12 @@ public final class P_AtomSetProperty extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Atom atom = args.get(0);
-		final A_Atom propertyKey = args.get(1);
-		final AvailObject propertyValue = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Atom atom = interpreter.argument(0);
+		final A_Atom propertyKey = interpreter.argument(1);
+		final AvailObject propertyValue = interpreter.argument(2);
 		if (atom.isAtomSpecial() || propertyKey.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);

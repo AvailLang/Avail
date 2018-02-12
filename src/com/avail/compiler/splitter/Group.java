@@ -1,6 +1,6 @@
-/**
+/*
  * Group.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,7 @@ package com.avail.compiler.splitter;
 
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.dispatch.LookupTree;
+import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -51,8 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter
-	.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -61,10 +53,8 @@ import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.exceptions.AvailErrorCode.*;

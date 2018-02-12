@@ -1,6 +1,6 @@
-/**
+/*
  * P_FileSetGroup.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,10 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
@@ -50,11 +50,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -87,13 +85,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_String filename = args.get(0);
-		final A_String groupName = args.get(1);
-		final A_Atom followSymlinks = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_String filename = interpreter.argument(0);
+		final A_String groupName = interpreter.argument(1);
+		final A_Atom followSymlinks = interpreter.argument(2);
 		final AvailRuntime runtime = currentRuntime();
 		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		final Path path;

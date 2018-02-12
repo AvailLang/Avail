@@ -43,7 +43,6 @@ import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -91,7 +90,7 @@ extends L2Operand
 	 *
 	 * <p>This is a superset of {@link #sometimesLiveInRegisters}.</p>
 	 */
-	public final Set<L2Register> alwaysLiveInRegisters = new HashSet<>();
+	public final Set<L2Register<?>> alwaysLiveInRegisters = new HashSet<>();
 
 	/**
 	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
@@ -101,7 +100,7 @@ extends L2Operand
 	 *
 	 * <p>This is a subset of {@link #alwaysLiveInRegisters}.</p>
 	 */
-	public final Set<L2Register> sometimesLiveInRegisters = new HashSet<>();
+	public final Set<L2Register<?>> sometimesLiveInRegisters = new HashSet<>();
 
 	/**
 	 * Construct a new {@code L2PcOperand} with the specified {@link
@@ -197,8 +196,10 @@ extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("Pc(%d: %s)",
-			targetBlock.offset(),
+		return format("%s%s",
+			targetBlock.offset() != -1
+				? "pc " + targetBlock.offset() + ": "
+				: "",
 			targetBlock.name());
 	}
 

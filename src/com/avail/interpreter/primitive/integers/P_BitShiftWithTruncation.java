@@ -1,6 +1,6 @@
-/**
+/*
  * P_BitShiftWithTruncation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,17 @@ package com.avail.interpreter.primitive.integers;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.exceptions.AvailErrorCode
-	.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE;
+import static com.avail.exceptions.AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE;
 import static com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -74,13 +70,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Number baseInteger = args.get(0);
-		final A_Number shiftFactor = args.get(1);
-		final A_Number truncationBits = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Number baseInteger = interpreter.argument(0);
+		final A_Number shiftFactor = interpreter.argument(1);
+		final A_Number truncationBits = interpreter.argument(2);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShiftLeftTruncatingToBits(
 				shiftFactor, truncationBits, true));

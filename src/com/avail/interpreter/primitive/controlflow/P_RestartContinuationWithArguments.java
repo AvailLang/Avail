@@ -1,6 +1,6 @@
 /*
  * P_RestartContinuationWithArguments.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,12 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
-import com.avail.interpreter.levelTwo.operation
-	.L2_RESTART_CONTINUATION_WITH_ARGUMENTS;
+import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -54,19 +44,16 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
@@ -98,12 +85,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Continuation originalCon = args.get(0);
-		final A_Tuple arguments = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Continuation originalCon = interpreter.argument(0);
+		final A_Tuple arguments = interpreter.argument(1);
 
 		final A_RawFunction code = originalCon.function().code();
 		//TODO MvG - This should be a primitive failure.
@@ -127,7 +113,10 @@ extends Primitive
 		}
 		// Move the arguments into interpreter.argsBuffer.
 		interpreter.argsBuffer.clear();
-		interpreter.argsBuffer.addAll(toList(arguments));
+		for (final AvailObject arg : arguments)
+		{
+			interpreter.argsBuffer.add(arg);
+		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
 		interpreter.reifiedContinuation = originalCon.caller();
@@ -191,10 +180,9 @@ extends Primitive
 		}
 		final int argsSize = upperBound.extractInt();
 		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegs =
-			L2_EXPLODE_TUPLE.explodeTupleIfPossible(
+			translator.explodeTupleIfPossible(
 				argumentsTupleReg,
-				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)),
-				translator);
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)));
 		if (explodedArgumentRegs == null)
 		{
 			return false;
@@ -203,7 +191,7 @@ extends Primitive
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
 			continuationReg,
-			new L2ReadVectorOperand(explodedArgumentRegs));
+			new L2ReadVectorOperand<>(explodedArgumentRegs));
 		assert !translator.currentlyReachable();
 		translator.startBlock(
 			translator.createBasicBlock(

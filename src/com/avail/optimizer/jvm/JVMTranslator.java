@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -47,10 +46,12 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
@@ -60,6 +61,7 @@ import org.objectweb.asm.util.CheckMethodAdapter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -132,7 +134,7 @@ public final class JVMTranslator
 	/**
 	 * The internal name of the generated class.
 	 */
-	public final String classInternalName;
+	@InnerAccess final String classInternalName;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -273,6 +275,24 @@ public final class JVMTranslator
 	}
 
 	/**
+	 * Throw an {@link UnsupportedOperationException}. It is never valid to
+	 * treat an {@link L2Register} as a literal, so this method is marked as
+	 * {@linkplain Deprecated} to protect against code cloning and refactoring
+	 * errors by a programmer.
+	 *
+	 * @param method
+	 *        Unused.
+	 * @param reg
+	 *        Unused.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	public void literal (final MethodVisitor method, final L2Register<?> reg)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	/**
 	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
 	 * {@linkplain Label labels}.
 	 */
@@ -295,7 +315,7 @@ public final class JVMTranslator
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	@InnerAccess final Map<L2Register, Integer> locals = new HashMap<>();
+	@InnerAccess final Map<L2Register<?>, Integer> locals = new HashMap<>();
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -321,19 +341,36 @@ public final class JVMTranslator
 
 	/**
 	 * Generate a load of the local associated with the specified {@link
-	 * L2IntegerRegister}.
+	 * L2IntRegister}.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntegerRegister}.
+	 *        A bound {@code L2IntRegister}.
 	 */
 	public void load (
 		final MethodVisitor method,
-		final L2IntegerRegister register)
+		final L2IntRegister register)
 	{
 		method.visitVarInsn(ILOAD, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a load of the local associated with the specified {@link
+	 * L2FloatRegister}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2FloatRegister}.
+	 */
+	public void load (
+		final MethodVisitor method,
+		final L2FloatRegister register)
+	{
+		method.visitVarInsn(DLOAD, stripNull(locals.get(register)));
 	}
 
 	/**
@@ -355,20 +392,38 @@ public final class JVMTranslator
 
 	/**
 	 * Generate a store into the local associated with the specified {@link
-	 * L2IntegerRegister}. The value to be stored should already be on top of
+	 * L2IntRegister}. The value to be stored should already be on top of
 	 * the stack and correctly typed.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntegerRegister}.
+	 *        A bound {@code L2IntRegister}.
 	 */
 	public void store (
 		final MethodVisitor method,
-		final L2IntegerRegister register)
+		final L2IntRegister register)
 	{
 		method.visitVarInsn(ISTORE, stripNull(locals.get(register)));
+	}
+
+	/**
+	 * Generate a store into the local associated with the specified {@link
+	 * L2FloatRegister}. The value to be stored should already be on top of
+	 * the stack and correctly typed.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param register
+	 *        A bound {@code L2FloatRegister}.
+	 */
+	public void store (
+		final MethodVisitor method,
+		final L2FloatRegister register)
+	{
+		method.visitVarInsn(DSTORE, stripNull(locals.get(register)));
 	}
 
 	/**
@@ -420,47 +475,11 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2ConstantOperand operand)
 		{
-			literals.computeIfAbsent(
-				operand.object,
-				object ->
-				{
-					// Choose an index and name for the literal.
-					final int index = nextClassLoaderIndex++;
-					final String name = "literal_" + index;
-					// Generate a field that will hold the literal at runtime.
-					final FieldVisitor field = classWriter.visitField(
-						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
-						name,
-						getDescriptor(AvailObject.class),
-						null,
-						null);
-					field.visitAnnotation(getDescriptor(Nonnull.class), true);
-					field.visitEnd();
-					// Generate an accessor for the literal.
-					return new LiteralAccessor(
-						index,
-						name,
-						method -> method.visitFieldInsn(
-							GETSTATIC,
-							classInternalName,
-							name,
-							getDescriptor(AvailObject.class)),
-						method ->
-						{
-							method.visitTypeInsn(
-								CHECKCAST,
-								getInternalName(AvailObject.class));
-							method.visitFieldInsn(
-								PUTSTATIC,
-								classInternalName,
-								name,
-								getDescriptor(AvailObject.class));
-						});
-				});
+			recordLiteralObject(operand.object);
 		}
 
 		@Override
-		public void doOperand (final L2ImmediateOperand operand)
+		public void doOperand (final L2IntImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
 				operand.value,
@@ -468,6 +487,18 @@ public final class JVMTranslator
 					invalidIndex,
 					null,
 					method -> intConstant(method, (int) object),
+					null));
+		}
+
+		@Override
+		public void doOperand (final L2FloatImmediateOperand operand)
+		{
+			literals.computeIfAbsent(
+				operand.value,
+				object -> new LiteralAccessor(
+					invalidIndex,
+					null,
+					method -> doubleConstant(method, (double) object),
 					null));
 		}
 
@@ -482,8 +513,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2PrimitiveOperand operand)
 		{
-			// Ignore primitives. The encapsulated primitive can be extracted
-			// during translation as needed.
+			recordLiteralObject(operand.primitive);
 		}
 
 		@Override
@@ -495,6 +525,14 @@ public final class JVMTranslator
 		}
 
 		@Override
+		public void doOperand (final L2ReadFloatOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(DOUBLE_TYPE));
+		}
+
+		@Override
 		public void doOperand (final L2ReadPointerOperand operand)
 		{
 			locals.computeIfAbsent(
@@ -503,12 +541,16 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2ReadVectorOperand operand)
+		public <
+			RR extends L2ReadOperand<R, T>,
+			R extends L2Register<T>,
+			T extends A_BasicObject>
+		void doOperand (final L2ReadVectorOperand<RR, R, T> vector)
 		{
-			for (final L2ReadPointerOperand pointerOperand : operand.elements())
+			for (final L2ReadOperand<?, ?> operand : vector.elements())
 			{
 				locals.computeIfAbsent(
-					pointerOperand.register(),
+					operand.register(),
 					register -> nextLocal(getType(AvailObject.class)));
 			}
 		}
@@ -516,18 +558,63 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2SelectorOperand operand)
 		{
+			recordLiteralObject(operand.bundle);
+		}
+
+		@Override
+		public void doOperand (final L2WriteIntOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(INT_TYPE));
+		}
+
+		@Override
+		public void doOperand (final L2WriteFloatOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(DOUBLE_TYPE));
+		}
+
+		@Override
+		public void doOperand (final L2WritePointerOperand operand)
+		{
+			locals.computeIfAbsent(
+				operand.register(),
+				register -> nextLocal(getType(AvailObject.class)));
+		}
+
+		@Override
+		public <R extends L2Register<T>, T extends A_BasicObject> void
+			doOperand (final L2WritePhiOperand<R, T> operand)
+		{
+			assert false
+				: "L2 code generation should not have left any "
+				+ "L2WritePhiOperands in existence";
+			throw new RuntimeException();
+		}
+
+		/**
+		 * Create a literal slot for the given arbitrary {@link Object}.
+		 *
+		 * @param value The actual literal value to capture.
+		 */
+		private void recordLiteralObject (final Object value)
+		{
 			literals.computeIfAbsent(
-				operand.bundle,
+				value,
 				object ->
 				{
 					// Choose an index and name for the literal.
 					final int index = nextClassLoaderIndex++;
 					final String name = "literal_" + index;
+					final Class<?> type = object.getClass();
 					// Generate a field that will hold the literal at runtime.
 					final FieldVisitor field = classWriter.visitField(
 						ACC_PRIVATE | ACC_STATIC | ACC_FINAL,
 						name,
-						getDescriptor(A_Bundle.class),
+						getDescriptor(type),
 						null,
 						null);
 					field.visitAnnotation(getDescriptor(Nonnull.class), true);
@@ -540,47 +627,19 @@ public final class JVMTranslator
 							GETSTATIC,
 							classInternalName,
 							name,
-							getDescriptor(A_Bundle.class)),
+							getDescriptor(type)),
 						method ->
 						{
 							method.visitTypeInsn(
 								CHECKCAST,
-								getInternalName(A_Bundle.class));
+								getInternalName(type));
 							method.visitFieldInsn(
 								PUTSTATIC,
 								classInternalName,
 								name,
-								getDescriptor(A_Bundle.class));
+								getDescriptor(type));
 						});
 				});
-		}
-
-		@Override
-		public void doOperand (final L2WriteIntOperand operand)
-		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(INT_TYPE));
-		}
-
-		@Override
-		public void doOperand (final L2WritePointerOperand operand)
-		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(getType(AvailObject.class)));
-		}
-
-		@Override
-		public void doOperand (final L2WriteVectorOperand operand)
-		{
-			for (final L2WritePointerOperand pointerOperand
-					: operand.elements())
-			{
-				locals.computeIfAbsent(
-					pointerOperand.register(),
-					register -> nextLocal(getType(AvailObject.class)));
-			}
 		}
 	}
 
@@ -785,7 +844,7 @@ public final class JVMTranslator
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public void loadReceiver (final MethodVisitor method)
 	{
 		method.visitVarInsn(ALOAD, receiverLocal());
@@ -797,6 +856,7 @@ public final class JVMTranslator
 	 *
 	 * @return The {@code Interpreter} formal parameter local.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public static int interpreterLocal ()
 	{
 		return 1;
@@ -823,7 +883,7 @@ public final class JVMTranslator
 	 *
 	 * @return The {@code offset} formal parameter local.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int offsetLocal ()
 	{
 		return 2;
@@ -983,7 +1043,7 @@ public final class JVMTranslator
 	 * @param value
 	 *        The {@code double}.
 	 */
-	@SuppressWarnings({"unused", "FloatingPointEquality"})
+	@SuppressWarnings({"FloatingPointEquality", "WeakerAccess"})
 	public void doubleConstant (final MethodVisitor method, final double value)
 	{
 		if (value == 0.0d)
@@ -1026,7 +1086,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to store each of the {@link L2IntegerRegister}s into a new
+	 * Emit code to store each of the {@link L2IntRegister}s into a new
 	 * {@code int} array. Leave the new array on top of the stack.
 	 *
 	 * @param method
@@ -1116,7 +1176,7 @@ public final class JVMTranslator
 	 *        the two branch targets.
 	 * @return The branch opcode with the reversed sense.
 	 */
-	@SuppressWarnings("MethodMayBeStatic")
+	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int reverseOpcode (final int opcode)
 	{
 		final int reversedOpcode;
@@ -1347,8 +1407,9 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Dump the {@link L2ControlFlowGraph} for the {@link L2Chunk} to an
-	 * appropriately named file.
+	 * Dump the {@linkplain L2ControlFlowGraphVisualizer visualized} {@link
+	 * L2ControlFlowGraph} for the {@link L2Chunk} to an appropriately named
+	 * file.
 	 *
 	 * @return The absolute path of the resultant file, for inclusion in a
 	 *         {@link JVMChunkL2Source} annotation of the generated {@link
@@ -1358,7 +1419,6 @@ public final class JVMTranslator
 	{
 		try
 		{
-			final String transcript = chunkName + ":\n\n" + controlFlowGraph;
 			final int lastSlash =
 				classInternalName.lastIndexOf('/');
 			final String pkg =
@@ -1367,14 +1427,26 @@ public final class JVMTranslator
 			final Path dir = tempDir.resolve(Paths.get(pkg));
 			Files.createDirectories(dir);
 			final String base = classInternalName.substring(lastSlash + 1);
-			final Path l2File = dir.resolve(base + ".l2");
-			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(transcript);
+			final Path l2File = dir.resolve(base + ".dot");
+			final StringBuilder builder = new StringBuilder();
+			final L2ControlFlowGraphVisualizer visualizer =
+				new L2ControlFlowGraphVisualizer(
+					base,
+					chunkName,
+					80,
+					controlFlowGraph,
+					true,
+					false,
+					builder);
+			visualizer.visualize();
+			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
+				builder.toString());
 			final byte[] bytes = new byte[buffer.limit()];
 			buffer.get(bytes);
 			Files.write(l2File, bytes);
 			return l2File.toAbsolutePath().toString();
 		}
-		catch (final IOException e)
+		catch (final IOException|UncheckedIOException e)
 		{
 			Interpreter.log(
 				Interpreter.loggerDebugJVM,
@@ -1503,14 +1575,14 @@ public final class JVMTranslator
 		// register names. At present, we just claim that every variable is live
 		// from the beginning of the method until the badOffsetLabel, but we can
 		// always tighten this up later if we care.
-		for (final Entry<L2Register, Integer> entry : locals.entrySet())
+		for (final Entry<L2Register<?>, Integer> entry : locals.entrySet())
 		{
-			final L2Register register = entry.getKey();
+			final L2Register<?> register = entry.getKey();
 			final int local = entry.getValue();
-			final boolean isIntRegister = register instanceof L2IntegerRegister;
+			final boolean isIntRegister = register instanceof L2IntRegister;
 			//noinspection StringConcatenationMissingWhitespace
 			method.visitLocalVariable(
-				(isIntRegister ? "i" : "r") + local,
+				register.namePrefix() + local,
 				isIntRegister
 					? INT_TYPE.getDescriptor()
 					: getDescriptor(AvailObject.class),

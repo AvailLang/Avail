@@ -1,5 +1,5 @@
 /*
- * L2_SUBTRACT_INT_FROM_INT.java
+ * L2_GET_ARGUMENTS.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,45 +32,60 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
+import java.util.List;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Type.*;
 
 /**
- * Subtract the subtrahend from the minuend, jumping to the specified target if
- * the result does not fit in an int.
+ * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}'s n-th
+ * element.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_SUBTRACT_INT_FROM_INT
+public class L2_GET_ARGUMENT
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT().init(
-			READ_INT.is("minuend"),
-			READ_INT.is("subtrahend"),
-			WRITE_INT.is("difference"),
-			PC.is("in range"),
-			PC.is("out of range"));
+		new L2_GET_ARGUMENT().init(
+			INT_IMMEDIATE.is("subscript into argsBuffer"),
+			WRITE_POINTER.is("argument"));
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps if the result doesn't fit in an int.
+		// Keep this instruction pinned in place for safety during inlining.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(" ← arg#");
+		builder.append(instruction.intImmediateAt(0));
 	}
 
 	@Override
@@ -79,48 +94,24 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister minuend =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister subtrahend =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister differenceReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2PcOperand inRange = instruction.pcAt(3);
-		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ObjectRegister argumentReg =
+			instruction.writeObjectRegisterAt(1).register();
+		final int subscript = instruction.intImmediateAt(0);
 
-		// :: longDifference = (long) minuend - (long) subtrahend;
-		translator.load(method, minuend);
-		method.visitInsn(I2L);
-		translator.load(method, subtrahend);
-		method.visitInsn(I2L);
-		method.visitInsn(LSUB);
-		method.visitInsn(DUP);
-		// :: intDifference = (int) longDifference;
-		method.visitInsn(L2I);
-		method.visitInsn(DUP);
-		final int intDifferenceLocal = translator.nextLocal(INT_TYPE);
-		final Label intDifferenceStart = new Label();
-		method.visitLabel(intDifferenceStart);
-		method.visitVarInsn(ISTORE, intDifferenceLocal);
-		// :: if (longDifference != intDifference) goto outOfRange;
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeOffset));
-		// :: else {
-		// ::    sum = intDifference;
-		// ::    goto inRange;
-		// :: }
-		method.visitVarInsn(ILOAD, intDifferenceLocal);
-		final Label intDifferenceEnd = new Label();
-		method.visitLabel(intDifferenceEnd);
-		method.visitLocalVariable(
-			"intDifference",
-			INT_TYPE.getDescriptor(),
-			null,
-			intDifferenceStart,
-			intDifferenceEnd,
-			intDifferenceLocal);
-		translator.store(method, differenceReg);
-		translator.branch(method, instruction, inRange);
+		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"argsBuffer",
+			getDescriptor(List.class));
+		translator.literal(method, subscript - 1);
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			getInternalName(List.class),
+			"get",
+			getMethodDescriptor(getType(Object.class), INT_TYPE),
+			true);
+		translator.store(method, argumentReg);
 	}
 }

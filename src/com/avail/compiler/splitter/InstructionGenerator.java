@@ -1,6 +1,6 @@
-/**
+/*
  * InstructionGenerator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,6 @@ class InstructionGenerator
 		expressionList.add(expression);
 		instructions.add(operation.encoding(operand));
 	}
-
 
 	/**
 	 * Emit a {@link ParsingOperation} that takes no operand, but only if the
@@ -341,7 +340,6 @@ class InstructionGenerator
 		delayedExpressionList.add(expression);
 		delayedArgumentInstructions.add(operation.encoding(operand));
 	}
-
 
 	/**
 	 * Flush any delayed instructions to the main instruction list.

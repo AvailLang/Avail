@@ -1,6 +1,6 @@
 /*
  * L2Chunk.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,13 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operation
-	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
@@ -58,13 +56,7 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -109,7 +101,7 @@ implements ExecutableChunk
 	 * The optimized, non-SSA {@link L2ControlFlowGraph} from which the chunk
 	 * was created.  Useful for debugging.
 	 */
-	public final L2ControlFlowGraph controlFlowGraph;
+	private final L2ControlFlowGraph controlFlowGraph;
 
 	/** The code that was translated to L2.  Null for the default (L1) chunk. */
 	final @Nullable A_RawFunction code;
@@ -124,7 +116,7 @@ implements ExecutableChunk
 	private final int numObjects;
 
 	/**
-	 * The number of {@linkplain L2IntegerRegister integer registers} that
+	 * The number of {@linkplain L2IntRegister integer registers} that
 	 * are used by this chunk. Having this recorded separately allows the
 	 * register list to be dynamically expanded as needed only when starting
 	 * or resuming a continuation.
@@ -360,7 +352,6 @@ implements ExecutableChunk
 		{
 			return super.toString() + " (size=" + chunks.size() + ")";
 		}
-
 	}
 
 	/**
@@ -643,7 +634,7 @@ implements ExecutableChunk
 	 *        The number of {@linkplain L2ObjectRegister object registers} that
 	 *        this chunk will require.
 	 * @param numIntegers
-	 *        The number of {@linkplain L2IntegerRegister integer registers}
+	 *        The number of {@linkplain L2IntRegister integer registers}
 	 *        that this chunk will require.
 	 * @param numFloats
 	 *        The number of {@linkplain L2FloatRegister floating point
