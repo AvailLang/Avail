@@ -92,7 +92,6 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;

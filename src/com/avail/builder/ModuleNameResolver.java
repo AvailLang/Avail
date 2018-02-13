@@ -37,7 +37,6 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.LRUCache;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -131,7 +130,7 @@ public final class ModuleNameResolver
 	 *
 	 * @return A non-modifiable map.
 	 */
-	public @NotNull Map<String, String> renameRules ()
+	public Map<String, String> renameRules ()
 	{
 		return Collections.unmodifiableMap(renames);
 	}
@@ -172,18 +171,6 @@ public final class ModuleNameResolver
 	{
 		assert !renames.containsKey(modulePath);
 		renames.put(modulePath, substitutePath);
-	}
-
-	/**
-	 * Remove a rule from this {@link ModuleNameResolver}.
-	 *
-	 * @param modulePath
-	 *        A fully-qualified module name.
-	 */
-	public void removeRenameRule (
-		final String modulePath)
-	{
-		renames.remove(modulePath);
 	}
 
 	/**
