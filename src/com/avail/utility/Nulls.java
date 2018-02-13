@@ -32,7 +32,10 @@
 
 package com.avail.utility;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 /**
  * Static utility methods related to null handling.
@@ -42,9 +45,67 @@ public final class Nulls
 	/** Prevent instantiation. */
 	private Nulls () {};
 
-	public static <X> X stripNull (final @Nullable X x)
+	/**
+	 * Strip the nullness from the value. If the value is null, throw an {@link
+	 * AssertionError}.
+	 *
+	 * @param x
+	 *        The value to strip the {@code nullness} from.
+	 * @param <X>
+	 *        The type of the input value.
+	 * @return The value.
+	 */
+	public static <X> @NotNull X stripNull (final @Nullable X x)
 	{
 		assert x != null;
+		return x;
+	}
+
+	/**
+	 * Strip the nullness from the value.  If the value is null, throw an {@link
+	 * AssertionError}.
+	 *
+	 * @param x
+	 *        The value to strip the {@code nullness} from.
+	 * @param failMessage
+	 *        A {@code String} message to be associated with the assertion
+	 *        failure if the value is {@code null}.
+	 * @param <X>
+	 *        The type of the input value.
+	 * @return The value.
+	 */
+	public static <X> @NotNull X stripNull (
+		final @Nullable X x,
+		final @NotNull String failMessage)
+	{
+		assert x != null : failMessage;
+		return x;
+	}
+
+	/**
+	 * Strip the nullness from the value.  If the value is null, throw an {@link
+	 * AssertionError}.
+	 *
+	 * @param x
+	 *        The value to strip the {@code nullness} from.
+	 * @param throwableSupplier
+	 *        A {@link Supplier} that provides a {@link Throwable} to be thrown
+	 *        if the value is {@code null}.
+	 * @param <X>
+	 *        The type of the input value.
+	 * @param <T>
+	 *        The type of {@link Throwable} to be thrown if the value is null.
+	 * @return The value.
+	 */
+	public static <X, T extends Throwable> @NotNull X stripNull (
+		final @Nullable X x,
+		final @NotNull Supplier<T> throwableSupplier)
+	throws T
+	{
+		if (x == null)
+		{
+			throw throwableSupplier.get();
+		}
 		return x;
 	}
 }

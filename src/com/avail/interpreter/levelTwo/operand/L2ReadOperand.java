@@ -42,8 +42,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
