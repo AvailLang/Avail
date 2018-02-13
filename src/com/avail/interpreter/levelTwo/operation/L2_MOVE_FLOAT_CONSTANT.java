@@ -55,12 +55,20 @@ public class L2_MOVE_FLOAT_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MOVE_FLOAT_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_MOVE().init(
+	private L2_MOVE_FLOAT_CONSTANT ()
+	{
+		super(
 			READ_FLOAT.is("source"),
 			WRITE_FLOAT.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MOVE_FLOAT_CONSTANT instance =
+		new L2_MOVE_FLOAT_CONSTANT();
 
 	@Override
 	protected void propagateTypes (
@@ -85,11 +93,15 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final double constant = instruction.floatImmediateAt(0);
+		final L2FloatRegister destinationFloatReg =
+			instruction.writeFloatRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeFloatRegisterAt(1).register());
+		builder.append(destinationFloatReg);
 		builder.append(" ← ");
-		builder.append(instruction.operands[0]);
+		builder.append(constant);
 	}
 
 

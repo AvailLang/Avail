@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -66,11 +67,19 @@ public class L2_RETURN_FROM_REIFICATION_HANDLER
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_RETURN_FROM_REIFICATION_HANDLER}.
+	 */
+	private L2_RETURN_FROM_REIFICATION_HANDLER ()
+	{
+		super(
+			READ_VECTOR.is("returned continuations"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_RETURN_FROM_REIFICATION_HANDLER().init(
-			READ_VECTOR.is("returned continuations"));
+	public static final L2_RETURN_FROM_REIFICATION_HANDLER instance =
+		new L2_RETURN_FROM_REIFICATION_HANDLER();
 
 	@Override
 	protected void propagateTypes (
@@ -102,9 +111,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand registers = instruction.operands[0];
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(registers);
 	}
 
 	@Override

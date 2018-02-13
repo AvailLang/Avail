@@ -57,12 +57,20 @@ public class L2_EXTRACT_CONTINUATION_FUNCTION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_EXTRACT_CONTINUATION_FUNCTION}.
 	 */
-	public static final L2Operation instance =
-		new L2_EXTRACT_CONTINUATION_FUNCTION().init(
+	private L2_EXTRACT_CONTINUATION_FUNCTION ()
+	{
+		super(
 			READ_POINTER.is("continuation"),
 			WRITE_POINTER.is("extracted function"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_EXTRACT_CONTINUATION_FUNCTION instance =
+		new L2_EXTRACT_CONTINUATION_FUNCTION();
 
 	@Override
 	public void toString (
@@ -71,11 +79,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister functionReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(functionReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
+		builder.append(continuationReg);
 	}
 
 	@Override

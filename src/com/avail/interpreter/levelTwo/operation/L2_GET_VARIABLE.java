@@ -37,10 +37,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -52,7 +50,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -67,14 +64,21 @@ public class L2_GET_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_GET_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_VARIABLE().init(
+	private L2_GET_VARIABLE ()
+	{
+		super(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
 			PC.is("read succeeded", SUCCESS),
 			PC.is("read failed", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_GET_VARIABLE instance = new L2_GET_VARIABLE();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -96,26 +100,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1).register();
+//		final int successIndex = instruction.pcOffsetAt(2);
+//		final L2PcOperand failure = instruction.pcAt(3);
+
 		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(destReg);
 		builder.append(" ← ↓");
-		builder.append(instruction.readObjectRegisterAt(0).register());
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(variableReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

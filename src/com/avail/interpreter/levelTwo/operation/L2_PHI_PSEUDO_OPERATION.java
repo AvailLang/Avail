@@ -35,12 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -77,12 +72,20 @@ public class L2_PHI_PSEUDO_OPERATION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_PHI_PSEUDO_OPERATION}.
 	 */
-	public static final L2Operation instance =
-		new L2_PHI_PSEUDO_OPERATION().init(
+	private L2_PHI_PSEUDO_OPERATION ()
+	{
+		super(
 			READ_VECTOR.is("potential sources"),
 			WRITE_PHI.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_PHI_PSEUDO_OPERATION instance =
+		new L2_PHI_PSEUDO_OPERATION();
 
 	@Override
 	protected void propagateTypes (
@@ -267,10 +270,13 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand vector = instruction.operands[0];
+		final L2Register<?> target =
+			instruction.writePhiRegisterAt(1).register();
 		builder.append("ϕ ");
-		builder.append(instruction.writePhiRegisterAt(1).register());
+		builder.append(target);
 		builder.append(" ← ");
-		builder.append(instruction.operands[0]);
+		builder.append(vector);
 	}
 
 	@Override

@@ -65,12 +65,20 @@ public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}.
 	 */
-	public static final L2Operation instance =
-		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init(
+	private L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ()
+	{
+		super(
 			INT_IMMEDIATE.is("new optimization level"),
 			INT_IMMEDIATE.is("is entry point"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO instance =
+		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO();
 
 	@Override
 	public boolean hasSideEffect ()

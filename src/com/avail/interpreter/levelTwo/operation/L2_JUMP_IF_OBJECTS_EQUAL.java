@@ -35,10 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -56,7 +54,6 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -71,14 +68,22 @@ public class L2_JUMP_IF_OBJECTS_EQUAL
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_OBJECTS_EQUAL}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_OBJECTS_EQUAL().init(
+	private L2_JUMP_IF_OBJECTS_EQUAL ()
+	{
+		super(
 			READ_POINTER.is("first value"),
 			READ_POINTER.is("second value"),
 			PC.is("is equal", SUCCESS),
 			PC.is("is not equal", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_OBJECTS_EQUAL instance =
+		new L2_JUMP_IF_OBJECTS_EQUAL();
 
 	@Override
 	public boolean regenerate (
@@ -172,26 +177,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister firstReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister secondReg =
+			instruction.readObjectRegisterAt(1).register();
+//		final L2PcOperand ifEqual = instruction.pcAt(2);
+//		final L2PcOperand notEqual = instruction.pcAt(3);
+
 		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(operands[0]);
+		builder.append(firstReg);
 		builder.append(" = ");
-		builder.append(operands[1]);
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(secondReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

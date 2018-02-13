@@ -36,6 +36,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -43,6 +44,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -61,13 +63,53 @@ public class L2_CREATE_MAP
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_MAP}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_MAP().init(
+	private L2_CREATE_MAP ()
+	{
+		super(
 			READ_VECTOR.is("keys"),
 			READ_VECTOR.is("values"),
 			WRITE_POINTER.is("new map"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_MAP instance = new L2_CREATE_MAP();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final List<L2ReadPointerOperand> keysVector =
+			instruction.readVectorRegisterAt(0);
+		final List<L2ReadPointerOperand> valuesVector =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister destinationMapReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destinationMapReg);
+		builder.append(" ← {");
+		for (int i = 0, limit = keysVector.size(); i < limit; i++)
+		{
+			if (i > 0)
+			{
+				builder.append(", ");
+			}
+			final L2ReadPointerOperand key = keysVector.get(i);
+			final L2ReadPointerOperand value = valuesVector.get(i);
+			builder.append(key);
+			builder.append("→");
+			builder.append(value);
+		}
+		builder.append('}');
+	}
 
 	@Override
 	public void translateToJVM (

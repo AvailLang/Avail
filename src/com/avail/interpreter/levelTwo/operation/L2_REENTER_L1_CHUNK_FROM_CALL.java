@@ -72,10 +72,18 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_REENTER_L1_CHUNK_FROM_CALL}.
+	 */
+	private L2_REENTER_L1_CHUNK_FROM_CALL ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_REENTER_L1_CHUNK_FROM_CALL().init();
+	public static final L2_REENTER_L1_CHUNK_FROM_CALL instance =
+		new L2_REENTER_L1_CHUNK_FROM_CALL();
 
 	@Override
 	public boolean hasSideEffect ()

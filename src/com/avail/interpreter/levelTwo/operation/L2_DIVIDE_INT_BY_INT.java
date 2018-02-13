@@ -33,11 +33,14 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -57,10 +60,11 @@ public class L2_DIVIDE_INT_BY_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_DIVIDE_INT_BY_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_DIVIDE_INT_BY_INT().init(
+	private L2_DIVIDE_INT_BY_INT ()
+	{
+		super(
 			READ_INT.is("dividend"),
 			READ_INT.is("divisor"),
 			WRITE_INT.is("quotient"),
@@ -68,12 +72,49 @@ extends L2Operation
 			PC.is("out of range", FAILURE),
 			PC.is("zero divisor", OFF_RAMP),
 			PC.is("success", SUCCESS));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_DIVIDE_INT_BY_INT instance =
+		new L2_DIVIDE_INT_BY_INT();
 
 	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps for division by zero or out-of-range.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2IntRegister dividendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister divisorReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister quotientReg =
+			instruction.writeIntRegisterAt(2).register();
+		final L2IntRegister remainderReg =
+			instruction.writeIntRegisterAt(3).register();
+//		final L2PcOperand undefined = instruction.pcAt(4);
+//		final int successIndex = instruction.pcOffsetAt(5);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(quotientReg);
+		builder.append(", ");
+		builder.append(remainderReg);
+		builder.append(" ← ");
+		builder.append(dividendReg);
+		builder.append(" ÷ ");
+		builder.append(divisorReg);
+		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
 	}
 
 	@Override

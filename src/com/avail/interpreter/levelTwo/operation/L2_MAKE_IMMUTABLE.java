@@ -67,12 +67,19 @@ public class L2_MAKE_IMMUTABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MAKE_IMMUTABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_MAKE_IMMUTABLE().init(
+	private L2_MAKE_IMMUTABLE ()
+	{
+		super(
 			READ_POINTER.is("input"),
 			WRITE_POINTER.is("output"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MAKE_IMMUTABLE instance = new L2_MAKE_IMMUTABLE();
 
 	@Override
 	public void toString (
@@ -81,11 +88,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister inputReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister outputReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(outputReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
+		builder.append(inputReg);
 	}
 
 	@Override

@@ -85,14 +85,21 @@ public class L2_REIFY
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_REIFY}.
 	 */
-	public static final L2Operation instance =
-		new L2_REIFY().init(
+	private L2_REIFY ()
+	{
+		super(
 			INT_IMMEDIATE.is("capture frames"),
 			INT_IMMEDIATE.is("process interrupt"),
 			INT_IMMEDIATE.is("statistic category"),
 			PC.is("on reification", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_REIFY instance = new L2_REIFY();
 
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
@@ -142,11 +149,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		renderPreamble(instruction, builder);
 		final boolean actuallyReify = instruction.intImmediateAt(0) == 1;
 		final boolean processInterrupt = instruction.intImmediateAt(1) == 1;
 		final StatisticCategory category =
 			StatisticCategory.values()[instruction.intImmediateAt(2)];
+
+		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
 		if (actuallyReify || processInterrupt)

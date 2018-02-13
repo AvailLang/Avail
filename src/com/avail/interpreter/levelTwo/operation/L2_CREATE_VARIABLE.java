@@ -63,12 +63,19 @@ public class L2_CREATE_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_VARIABLE().init(
+	private L2_CREATE_VARIABLE ()
+	{
+		super(
 			CONSTANT.is("outerType"),
 			WRITE_POINTER.is("variable"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_VARIABLE instance = new L2_CREATE_VARIABLE();
 
 	@Override
 	protected void propagateTypes (
@@ -93,11 +100,15 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final A_Type outerType = instruction.constantAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(destReg);
 		builder.append(" ← new ");
-		builder.append(instruction.constantAt(0));
+		builder.append(outerType);
 	}
 
 	@Override

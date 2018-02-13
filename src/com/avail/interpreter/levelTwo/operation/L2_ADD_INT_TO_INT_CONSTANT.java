@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -48,7 +47,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
 
@@ -63,15 +61,23 @@ public class L2_ADD_INT_TO_INT_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_ADD_INT_TO_INT_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_CONSTANT().init(
+	private L2_ADD_INT_TO_INT_CONSTANT ()
+	{
+		super(
 			READ_INT.is("augend"),
 			INT_IMMEDIATE.is("addend"),
 			WRITE_INT.is("sum"),
 			PC.is("in range", SUCCESS),
 			PC.is("out of range", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_ADD_INT_TO_INT_CONSTANT instance =
+		new L2_ADD_INT_TO_INT_CONSTANT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -86,28 +92,23 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
 		final L2Operand[] operands = instruction.operands;
+		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2Operand addend = operands[1];
+		final L2IntRegister sumReg =
+			instruction.writeIntRegisterAt(2).register();
+//		final L2PcOperand inRange = instruction.pcAt(3);
+//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+
+		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(sumReg);
 		builder.append(" ← ");
-		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(augendReg);
 		builder.append(" + ");
-		builder.append(operands[1]);
-		for (int i = 3, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(addend);
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
 	}
 
 	@Override

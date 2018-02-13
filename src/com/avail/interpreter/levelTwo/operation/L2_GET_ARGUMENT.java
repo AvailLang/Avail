@@ -60,12 +60,19 @@ public class L2_GET_ARGUMENT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_GET_ARGUMENT}.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_ARGUMENT().init(
+	private L2_GET_ARGUMENT ()
+	{
+		super(
 			INT_IMMEDIATE.is("subscript into argsBuffer"),
 			WRITE_POINTER.is("argument"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_GET_ARGUMENT instance = new L2_GET_ARGUMENT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -81,11 +88,15 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister argumentReg =
+			instruction.writeObjectRegisterAt(1).register();
+		final int subscript = instruction.intImmediateAt(0);
 		renderPreamble(instruction, builder);
+
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(argumentReg);
 		builder.append(" ← arg#");
-		builder.append(instruction.intImmediateAt(0));
+		builder.append(subscript);
 	}
 
 	@Override

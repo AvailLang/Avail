@@ -59,12 +59,19 @@ public class L2_BOX_FLOAT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_BOX_FLOAT}.
 	 */
-	public static final L2Operation instance =
-		new L2_BOX_FLOAT().init(
+	private L2_BOX_FLOAT ()
+	{
+		super(
 			READ_FLOAT.is("source"),
 			WRITE_POINTER.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_BOX_FLOAT instance = new L2_BOX_FLOAT();
 
 	@Override
 	public void toString (
@@ -73,11 +80,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2FloatRegister sourceReg =
+			instruction.readFloatRegisterAt(0).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readFloatRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

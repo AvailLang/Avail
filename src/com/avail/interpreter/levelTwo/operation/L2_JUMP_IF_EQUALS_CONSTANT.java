@@ -33,9 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -55,7 +53,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -71,14 +68,22 @@ public class L2_JUMP_IF_EQUALS_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_EQUALS_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_EQUALS_CONSTANT().init(
+	private L2_JUMP_IF_EQUALS_CONSTANT ()
+	{
+		super(
 			READ_POINTER.is("value"),
 			CONSTANT.is("constant"),
 			PC.is("if equal", SUCCESS),
 			PC.is("if unequal", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_EQUALS_CONSTANT instance =
+		new L2_JUMP_IF_EQUALS_CONSTANT();
 
 	@Override
 	public boolean regenerate (
@@ -128,9 +133,9 @@ extends L2Operation
 //		final RegisterSet ifEqualSet = registerSets.get(0);
 //		final RegisterSet ifUnequalSet = registerSets.get(1);
 
-//TODO MvG - We need to be able to strengthen the variable by introducing a new
-// version somehow.  Likewise, we can capture an is-not-a set of types along the
-// other path.
+		// TODO MvG - We need to be able to strengthen the variable by
+		// introducing a new version somehow.  Likewise, we can capture an
+		// is-not-a set of types along the other path.
 //		postJumpSet.strengthenTestedValueAtPut(objectReg, value);
 	}
 
@@ -142,40 +147,25 @@ extends L2Operation
 	}
 
 	@Override
-	public String debugNameIn (
-		final L2Instruction instruction)
-	{
-		final AvailObject constant = instruction.constantAt(1);
-		return name() + "(const=" + constant.typeTag() + ")";
-	}
-
-	@Override
 	public void toString (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
 		final L2Operand[] operands = instruction.operands;
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2Operand constant = operands[1];
+//		final L2PcOperand ifEqual = instruction.pcAt(2);
+//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(operands[0]);
+		builder.append(valueReg);
 		builder.append(" = ");
-		builder.append(operands[1]);
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(constant);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

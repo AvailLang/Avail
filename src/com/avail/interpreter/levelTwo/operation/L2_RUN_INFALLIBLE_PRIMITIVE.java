@@ -41,6 +41,7 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -78,14 +79,22 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_RUN_INFALLIBLE_PRIMITIVE}.
 	 */
-	public static final L2Operation instance =
-		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
+	private L2_RUN_INFALLIBLE_PRIMITIVE ()
+	{
+		super(
 			CONSTANT.is("raw function"),  // Used for inlining/reoptimization.
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("primitive result"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_RUN_INFALLIBLE_PRIMITIVE instance =
+		new L2_RUN_INFALLIBLE_PRIMITIVE();
 
 	@Override
 	protected void propagateTypes (
@@ -178,13 +187,20 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand[] operands = instruction.operands;
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final L2Operand primitive = operands[1];
+		final L2Operand argumentRegs = operands[2];
+		final L2ObjectRegister resultReg =
+			instruction.writeObjectRegisterAt(3).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(3).register());
+		builder.append(resultReg);
 		builder.append(" ← ");
-		builder.append(instruction.operands[1]);
+		builder.append(primitive);
 		builder.append('(');
-		builder.append(instruction.operands[2]);
+		builder.append(argumentRegs);
 		builder.append(')');
 	}
 

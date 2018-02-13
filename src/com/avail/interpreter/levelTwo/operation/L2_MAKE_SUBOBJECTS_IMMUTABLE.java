@@ -36,6 +36,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -61,11 +62,19 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_MAKE_SUBOBJECTS_IMMUTABLE}.
+	 */
+	private L2_MAKE_SUBOBJECTS_IMMUTABLE ()
+	{
+		super(
+			READ_POINTER.is("object"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_MAKE_SUBOBJECTS_IMMUTABLE().init(
-			READ_POINTER.is("object"));
+	public static final L2_MAKE_SUBOBJECTS_IMMUTABLE instance =
+		new L2_MAKE_SUBOBJECTS_IMMUTABLE();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -90,9 +99,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand objectReg = instruction.operands[0];
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(objectReg);
 	}
 
 	@Override

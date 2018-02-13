@@ -37,6 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -59,11 +60,19 @@ public class L2_POP_CURRENT_CONTINUATION
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_POP_CURRENT_CONTINUATION}.
+	 */
+	private L2_POP_CURRENT_CONTINUATION ()
+	{
+		super(
+			WRITE_POINTER.is("current continuation"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_POP_CURRENT_CONTINUATION().init(
-			WRITE_POINTER.is("current continuation"));
+	public static final L2_POP_CURRENT_CONTINUATION instance =
+		new L2_POP_CURRENT_CONTINUATION();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -79,9 +88,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand targetReg = instruction.operands[0];
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(targetReg);
 	}
 
 	@Override

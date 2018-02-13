@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -48,7 +47,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
 
@@ -62,15 +60,23 @@ public class L2_SUBTRACT_INT_CONSTANT_MINUS_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_SUBTRACT_INT_CONSTANT_MINUS_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_SUBTRACT_INT_CONSTANT_MINUS_INT().init(
+	private L2_SUBTRACT_INT_CONSTANT_MINUS_INT ()
+	{
+		super(
 			INT_IMMEDIATE.is("minuend"),
 			READ_INT.is("subtrahend"),
 			WRITE_INT.is("difference"),
 			PC.is("in range", SUCCESS),
 			PC.is("out of range", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_SUBTRACT_INT_CONSTANT_MINUS_INT instance =
+		new L2_SUBTRACT_INT_CONSTANT_MINUS_INT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -85,28 +91,23 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
 		final L2Operand[] operands = instruction.operands;
+		final L2Operand minuend = operands[0];
+		final L2IntRegister subtrahend =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister difference =
+			instruction.writeIntRegisterAt(2).register();
+//		final L2PcOperand inRange = instruction.pcAt(3);
+//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+
+		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(difference);
 		builder.append(" ← ");
-		builder.append(operands[0]);
+		builder.append(minuend);
 		builder.append(" - ");
-		builder.append(instruction.readIntRegisterAt(1).register());
-		for (int i = 3, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(subtrahend);
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
 	}
 
 	@Override
@@ -118,7 +119,7 @@ extends L2Operation
 		final int minuend = instruction.intImmediateAt(0);
 		final L2IntRegister subtrahend =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister differenceReg =
+		final L2IntRegister difference =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);
@@ -155,7 +156,7 @@ extends L2Operation
 			intDifferenceStart,
 			intDifferenceEnd,
 			intDifferenceLocal);
-		translator.store(method, differenceReg);
+		translator.store(method, difference);
 		translator.branch(method, instruction, inRange);
 	}
 }

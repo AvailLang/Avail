@@ -63,13 +63,21 @@ public class L2_TUPLE_AT_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_TUPLE_AT_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_TUPLE_AT_CONSTANT().init(
+	private L2_TUPLE_AT_CONSTANT ()
+	{
+		super(
 			READ_POINTER.is("tuple"),
 			INT_IMMEDIATE.is("immediate subscript"),
 			WRITE_POINTER.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_TUPLE_AT_CONSTANT instance =
+		new L2_TUPLE_AT_CONSTANT();
 
 	@Override
 	protected void propagateTypes (
@@ -99,13 +107,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister tupleReg =
+			instruction.readObjectRegisterAt(0).register();
+		final int subscript = instruction.intImmediateAt(1);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append(tupleReg);
 		builder.append('[');
-		builder.append(instruction.intImmediateAt(1));
+		builder.append(subscript);
 		builder.append(']');
 	}
 

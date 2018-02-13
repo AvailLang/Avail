@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -46,6 +47,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -66,12 +68,20 @@ public class L2_CONCATENATE_TUPLES
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CONCATENATE_TUPLES}.
 	 */
-	public static final L2Operation instance =
-		new L2_CONCATENATE_TUPLES().init(
+	private L2_CONCATENATE_TUPLES ()
+	{
+		super(
 			READ_VECTOR.is("tuples to concatenate"),
 			WRITE_POINTER.is("concatenated tuple"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CONCATENATE_TUPLES instance =
+		new L2_CONCATENATE_TUPLES();
 
 	@Override
 	protected void propagateTypes (
@@ -102,6 +112,33 @@ extends L2Operation
 		}
 		registerSet.constantAtPut(
 			targetTupleReg.register(), resultType, instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final List<L2ReadPointerOperand> vector =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister targetTupleReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(targetTupleReg);
+		builder.append(" ← ");
+		for (int i = 0, limit = vector.size(); i < limit; i++)
+		{
+			if (i > 0)
+			{
+				builder.append(" ++ ");
+			}
+			final L2ReadPointerOperand element = vector.get(i);
+			builder.append(element);
+		}
 	}
 
 	@Override

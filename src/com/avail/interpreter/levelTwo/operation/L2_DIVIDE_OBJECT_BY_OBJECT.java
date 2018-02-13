@@ -35,12 +35,15 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Number;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -60,22 +63,60 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_DIVIDE_OBJECT_BY_OBJECT}.
 	 */
-	public static final L2Operation instance =
-		new L2_DIVIDE_OBJECT_BY_OBJECT().init(
+	private L2_DIVIDE_OBJECT_BY_OBJECT ()
+	{
+		super(
 			READ_POINTER.is("dividend"),
 			READ_POINTER.is("divisor"),
 			WRITE_POINTER.is("quotient"),
 			WRITE_POINTER.is("remainder"),
 			PC.is("if undefined", OFF_RAMP),
 			PC.is("success", SUCCESS));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_DIVIDE_OBJECT_BY_OBJECT instance =
+		new L2_DIVIDE_OBJECT_BY_OBJECT();
 
 	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps for division by zero.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister dividendReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister divisorReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister quotientReg =
+			instruction.writeObjectRegisterAt(2).register();
+		final L2ObjectRegister remainderReg =
+			instruction.writeObjectRegisterAt(3).register();
+//		final L2PcOperand undefined = instruction.pcAt(4);
+//		final int successIndex = instruction.pcOffsetAt(5);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(quotientReg);
+		builder.append(", ");
+		builder.append(remainderReg);
+		builder.append(" ← ");
+		builder.append(dividendReg);
+		builder.append(" ÷ ");
+		builder.append(divisorReg);
+		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
 	}
 
 	@Override

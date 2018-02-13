@@ -31,13 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -60,7 +58,6 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -84,14 +81,21 @@ public class L2_INVOKE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_INVOKE}.
 	 */
-	public static final L2Operation instance =
-		new L2_INVOKE().init(
+	private L2_INVOKE ()
+	{
+		super(
 			READ_POINTER.is("called function"),
 			READ_VECTOR.is("arguments"),
 			PC.is("on return", SUCCESS),
 			PC.is("on reification", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_INVOKE instance = new L2_INVOKE();
 
 	@Override
 	protected void propagateTypes (
@@ -111,50 +115,25 @@ extends L2Operation
 	}
 
 	@Override
-	public String debugNameIn (
-		final L2Instruction instruction)
-	{
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(0);
-		final @Nullable A_BasicObject exactFunction =
-			functionReg.constantOrNull();
-		if (exactFunction == null)
-		{
-			return name() + "(function unknown)";
-		}
-		return name()
-			+ ": "
-			+ ((A_Function) exactFunction).code().methodName().asNativeString();
-	}
-
-	@Override
 	public void toString (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
+		final L2Operand[] operands = instruction.operands;
+		final L2Operand calledFunctionReg = operands[0];
+		final L2Operand argsRegsList = operands[1];
+//		final L2PcOperand onNormalReturn = instruction.pcAt(2);
+//		final L2PcOperand onReification = instruction.pcAt(3);
+
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(operands[0]);
+		builder.append(calledFunctionReg);
 		builder.append("(");
-		builder.append(operands[1]);
+		builder.append(argsRegsList);
 		builder.append(")");
-		final L2NamedOperandType[] types = operandTypes();
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	/**

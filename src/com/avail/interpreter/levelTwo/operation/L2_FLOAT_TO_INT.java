@@ -55,12 +55,18 @@ public class L2_FLOAT_TO_INT
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_FLOAT_TO_INT}.
+	 */
+	private L2_FLOAT_TO_INT ()
+	{
+		super(
+			READ_FLOAT.is("source"),
+			WRITE_INT.is("destination"));	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_FLOAT_TO_INT().init(
-			READ_FLOAT.is("source"),
-			WRITE_INT.is("destination"));
+	public static final L2_FLOAT_TO_INT instance = new L2_FLOAT_TO_INT();
 
 	@Override
 	public void toString (
@@ -68,12 +74,17 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
+		final L2FloatRegister sourceReg =
+			instruction.readFloatRegisterAt(0).register();
+		final L2IntRegister destinationReg =
+			instruction.writeIntRegisterAt(1).register();
+
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readFloatRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

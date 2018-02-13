@@ -74,12 +74,20 @@ public class L2_INTERPRET_LEVEL_ONE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_INTERPRET_LEVEL_ONE}.
 	 */
-	public static final L2Operation instance =
-		new L2_INTERPRET_LEVEL_ONE().init(
+	private L2_INTERPRET_LEVEL_ONE ()
+	{
+		super(
 			PC.is("call reentry point", ON_RAMP),
 			PC.is("interrupt reentry point", ON_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_INTERPRET_LEVEL_ONE instance =
+		new L2_INTERPRET_LEVEL_ONE();
 
 	@Override
 	public boolean reachesNextInstruction ()

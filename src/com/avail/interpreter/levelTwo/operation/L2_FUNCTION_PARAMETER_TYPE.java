@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -69,13 +70,21 @@ public class L2_FUNCTION_PARAMETER_TYPE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_FUNCTION_PARAMETER_TYPE}.
 	 */
-	public static final L2Operation instance =
-		new L2_FUNCTION_PARAMETER_TYPE().init(
+	private L2_FUNCTION_PARAMETER_TYPE ()
+	{
+		super(
 			READ_POINTER.is("function"),
 			INT_IMMEDIATE.is("parameter index"),
 			WRITE_POINTER.is("parameter type"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_FUNCTION_PARAMETER_TYPE instance =
+		new L2_FUNCTION_PARAMETER_TYPE();
 
 	@Override
 	protected void propagateTypes (
@@ -185,13 +194,18 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand function = instruction.readObjectRegisterAt(0);
+		final int paramIndex = instruction.intImmediateAt(1);
+		final L2ObjectRegister outputParamTypeReg =
+			instruction.writeObjectRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(outputParamTypeReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append(function);
 		builder.append('[');
-		builder.append(instruction.intImmediateAt(1));
+		builder.append(paramIndex);
 		builder.append(']');
 	}
 

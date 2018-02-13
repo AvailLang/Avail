@@ -56,13 +56,21 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_ADD_INT_TO_INT_MOD_32_BITS}.
+	 */
+	private L2_ADD_INT_TO_INT_MOD_32_BITS ()
+	{
+		super(
+			READ_INT.is("augend"),
+			READ_INT.is("addend"),
+			WRITE_INT.is("sum"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
-			READ_INT.is("addend"),
-			READ_INT.is("augend"),
-			WRITE_INT.is("sum"));
+	public static final L2_ADD_INT_TO_INT_MOD_32_BITS instance =
+		new L2_ADD_INT_TO_INT_MOD_32_BITS();
 
 	@Override
 	public void toString (
@@ -71,13 +79,20 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister addendReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister sumReg =
+			instruction.writeIntRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(sumReg);
 		builder.append(" ← ");
-		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(augendReg);
 		builder.append(" + ");
-		builder.append(instruction.readIntRegisterAt(1).register());
+		builder.append(addendReg);
 	}
 
 	@Override
@@ -86,16 +101,16 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister addendReg =
-			instruction.readIntRegisterAt(0).register();
 		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister addendReg =
 			instruction.readIntRegisterAt(1).register();
 		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 
-		// :: sum = addend + augend;
-		translator.load(method, addendReg);
+		// :: sum = augend + addend;
 		translator.load(method, augendReg);
+		translator.load(method, addendReg);
 		method.visitInsn(IADD);
 		translator.store(method, sumReg);
 	}

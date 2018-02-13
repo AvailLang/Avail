@@ -78,16 +78,24 @@ public class L2_LOOKUP_BY_VALUES
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_LOOKUP_BY_VALUES}.
 	 */
-	public static final L2Operation instance =
-		new L2_LOOKUP_BY_VALUES().init(
+	private L2_LOOKUP_BY_VALUES ()
+	{
+		super(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
 			PC.is("lookup succeeded", SUCCESS),
 			PC.is("lookup failed", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_LOOKUP_BY_VALUES instance =
+		new L2_LOOKUP_BY_VALUES();
 
 	/**
 	 * The error codes that can be produced by a failed lookup.

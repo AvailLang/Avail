@@ -53,11 +53,18 @@ public class L2_JUMP
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_JUMP}.
+	 */
+	private L2_JUMP ()
+	{
+		super(
+			PC.is("target", SUCCESS));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP().init(
-			PC.is("target", SUCCESS));
+	public static final L2_JUMP instance = new L2_JUMP();
 
 	@Override
 	protected void propagateTypes (

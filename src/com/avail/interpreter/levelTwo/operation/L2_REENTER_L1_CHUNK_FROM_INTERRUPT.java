@@ -66,10 +66,18 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_REENTER_L1_CHUNK_FROM_INTERRUPT}.
+	 */
+	private L2_REENTER_L1_CHUNK_FROM_INTERRUPT ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT().init();
+	public static final L2_REENTER_L1_CHUNK_FROM_INTERRUPT instance =
+		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT();
 
 	@Override
 	public boolean hasSideEffect ()

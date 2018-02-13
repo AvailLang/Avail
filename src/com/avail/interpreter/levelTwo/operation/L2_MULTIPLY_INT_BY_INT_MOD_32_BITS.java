@@ -33,10 +33,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -54,13 +57,44 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MULTIPLY_INT_BY_INT_MOD_32_BITS}.
 	 */
-	public static final L2Operation instance =
-		new L2_MULTIPLY_INT_BY_INT().init(
+	private L2_MULTIPLY_INT_BY_INT_MOD_32_BITS ()
+	{
+		super(
 			READ_INT.is("multiplier"),
 			READ_INT.is("multiplicand"),
 			WRITE_INT.is("product"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MULTIPLY_INT_BY_INT_MOD_32_BITS instance =
+		new L2_MULTIPLY_INT_BY_INT_MOD_32_BITS();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2IntRegister multiplicandReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister multiplierReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister productReg =
+			instruction.writeIntRegisterAt(2).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(productReg);
+		builder.append(" ← ");
+		builder.append(multiplicandReg);
+		builder.append(" × ");
+		builder.append(multiplierReg);
+	}
 
 	@Override
 	public void translateToJVM (

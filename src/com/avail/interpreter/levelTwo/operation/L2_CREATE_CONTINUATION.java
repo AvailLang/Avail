@@ -38,7 +38,6 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -54,7 +53,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -71,10 +69,11 @@ public class L2_CREATE_CONTINUATION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_CONTINUATION}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_CONTINUATION().init(
+	private L2_CREATE_CONTINUATION ()
+	{
+		super(
 			READ_POINTER.is("function"),
 			READ_POINTER.is("caller"),
 			INT_IMMEDIATE.is("level one pc"),
@@ -84,6 +83,13 @@ extends L2Operation
 			PC.is("on-ramp", ON_RAMP),
 			PC.is("fall through after creation", OFF_RAMP),
 			COMMENT.is("usage comment"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_CONTINUATION instance =
+		new L2_CREATE_CONTINUATION();
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
@@ -109,34 +115,30 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand function = instruction.readObjectRegisterAt(0);
+		final L2Operand caller = instruction.readObjectRegisterAt(1);
+		final int levelOnePC = instruction.intImmediateAt(2);
+		final int levelOneStackp = instruction.intImmediateAt(3);
+		final L2Operand slots = instruction.operands[4];
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(5).register();
+//		final int onRampOffset = instruction.pcOffsetAt(6);
+//		final L2PcOperand fallThrough = instruction.pcAt(7);
+
 		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(5).register());
+		builder.append(destReg);
 		builder.append(" ← $[");
-		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append(function);
 		builder.append("]:pc=");
-		builder.append(instruction.intImmediateAt(2));
+		builder.append(levelOnePC);
 		builder.append(" stack=");
-		builder.append(operands[4]);
+		builder.append(slots);
 		builder.append('[');
-		builder.append(instruction.intImmediateAt(3));
+		builder.append(levelOneStackp);
 		builder.append("] caller=");
-		builder.append(instruction.readObjectRegisterAt(1));
-		for (int i = 6, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(caller);
+		renderOperandsStartingAt(instruction, 6, desiredTypes, builder);
 	}
 
 	@Override

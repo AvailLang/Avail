@@ -100,7 +100,7 @@ public abstract class L2Operation
 	/**
 	 * The array of operand indices which have type {@link L2PcOperand}.
 	 */
-	private int[] labelOperandIndices = {};
+	private int[] labelOperandIndices;
 
 	/**
 	 * Whether this operation can do something other than fall through to the
@@ -137,6 +137,9 @@ public abstract class L2Operation
 		return stripNull(name);
 	}
 
+	/** An empty array of ints. */
+	static final int[] emptyIntArray = new int[0];
+
 	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
@@ -147,27 +150,12 @@ public abstract class L2Operation
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
 	 */
-	protected L2Operation ()
+	protected L2Operation (final L2NamedOperandType... theNamedOperandTypes)
 	{
 		final String className = this.getClass().getSimpleName();
 		name = className;
 		jvmTranslationTime = new Statistic(
 			className, StatisticReport.JVM_TRANSLATION_TIME);
-	}
-
-	/** An empty array of ints. */
-	static int[] emptyIntArray = new int[0];
-
-	/**
-	 * Initialize a fresh {@code L2Operation}.
-	 *
-	 * @param theNamedOperandTypes
-	 *        The named operand types that this operation expects.
-	 * @return The receiver.
-	 */
-	public L2Operation init (final L2NamedOperandType... theNamedOperandTypes)
-	{
-		assert namedOperandTypes == null;
 		namedOperandTypes = theNamedOperandTypes.clone();
 
 		// The number of targets won't be large, so don't worry about the
@@ -187,7 +175,6 @@ public abstract class L2Operation
 			: labelIndicesList.stream().mapToInt(Integer::intValue).toArray();
 		altersControlFlow = labelOperandIndices.length > 0
 			|| !reachesNextInstruction();
-		return this;
 	}
 
 	/**
@@ -353,14 +340,11 @@ public abstract class L2Operation
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
 	 */
-	public void instructionWasAdded (
-		final L2Instruction instruction)
+	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		if (isEntryPoint(instruction))
-		{
-			assert instruction.basicBlock.instructions().get(0) == instruction
-				: "Entry point instruction must be at start of a block";
-		}
+		assert !isEntryPoint(instruction)
+				|| instruction.basicBlock.instructions().get(0) == instruction
+			: "Entry point instruction must be at start of a block";
 	}
 
 	/**
@@ -510,18 +494,6 @@ public abstract class L2Operation
 			.collect(toList());
 	}
 
-	/**
-	 * Produce a suitable name to describe this instruction.
-	 *
-	 * @param instruction The instruction to name.
-	 * @return The name of the instruction, suitable for debugging.
-	 */
-	public String debugNameIn (final L2Instruction instruction)
-	{
-		assert instruction.operation == this;
-		return name();
-	}
-
 	@Override
 	public final String toString ()
 	{
@@ -555,25 +527,41 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Produce a sensible textual rendition of the specified {@link L2Operand}
-	 * iff its {@link L2OperandType} is desired.
+	 * Generically render all {@linkplain L2Operand operands} of the specified
+	 * {@link L2Instruction} starting at the specified index.
 	 *
-	 * @param operand
-	 *        The {@code L2Operand}.
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param start
+	 *        The start index.
 	 * @param desiredTypes
-	 *        The desired {@link L2OperandType}s.
+	 *        The {@link L2OperandType}s of {@link L2Operand}s to be included in
+	 *        generic renditions. Customized renditions may not honor these
+	 *        types.
 	 * @param builder
 	 *        The {@link StringBuilder} to which the rendition should be
 	 *        written.
 	 */
-	protected final void renderOperand (
-		final L2Operand operand,
+	protected final void renderOperandsStartingAt (
+		final L2Instruction instruction,
+		final int start,
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		if (desiredTypes.contains(operand.operandType()))
+		final L2Operand[] operands = instruction.operands;
+		final L2NamedOperandType[] types = operandTypes();
+		for (int i = start, limit = operands.length; i < limit; i++)
 		{
-			builder.append(operand);
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
 		}
 	}
 
@@ -590,7 +578,6 @@ public abstract class L2Operation
 	 * @param builder
 	 *        The {@link StringBuilder} to which the rendition should be
 	 *        written.
-	 * @return The requested text.
 	 */
 	public void toString (
 		final L2Instruction instruction,

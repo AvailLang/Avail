@@ -59,12 +59,20 @@ public class L2_NEGATE_INT_NO_CHECK
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_NEGATE_INT_NO_CHECK}.
 	 */
-	public static final L2Operation instance =
-		new L2_NEGATE_INT_NO_CHECK().init(
+	private L2_NEGATE_INT_NO_CHECK ()
+	{
+		super(
 			READ_INT.is("value"),
 			WRITE_INT.is("negation"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_NEGATE_INT_NO_CHECK instance =
+		new L2_NEGATE_INT_NO_CHECK();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -79,11 +87,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2IntRegister valueReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister negationReg =
+			instruction.writeIntRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(negationReg);
 		builder.append(" ← -");
-		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(valueReg);
 	}
 
 	@Override

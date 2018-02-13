@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -57,7 +56,6 @@ import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -73,14 +71,22 @@ public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_SUBTYPE_OF_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_SUBTYPE_OF_CONSTANT().init(
+	private L2_JUMP_IF_SUBTYPE_OF_CONSTANT ()
+	{
+		super(
 			READ_POINTER.is("type to check"),
 			CONSTANT.is("constant type"),
 			PC.is("is subtype", SUCCESS),
 			PC.is("not subtype", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_SUBTYPE_OF_CONSTANT instance =
+		new L2_JUMP_IF_SUBTYPE_OF_CONSTANT();
 
 	@Override
 	public boolean regenerate (
@@ -186,26 +192,18 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister typeRegister =
+			instruction.readObjectRegisterAt(0).register();
+		final L2Operand constantType = instruction.operands[1];
+//		final L2PcOperand isSubtype = instruction.pcAt(2);
+//		final L2PcOperand notSubtype = instruction.pcAt(3);
+
 		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(operands[0]);
+		builder.append(typeRegister);
 		builder.append(" ⊆ ");
-		builder.append(operands[1]);
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(constantType);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

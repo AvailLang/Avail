@@ -59,12 +59,19 @@ public class L2_MOVE_FLOAT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MOVE_FLOAT}.
 	 */
-	public static final L2Operation instance =
-		new L2_MOVE_FLOAT().init(
+	private L2_MOVE_FLOAT ()
+	{
+		super(
 			READ_FLOAT.is("source"),
 			WRITE_FLOAT.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MOVE_FLOAT instance = new L2_MOVE_FLOAT();
 
 	@Override
 	protected void propagateTypes (
@@ -141,11 +148,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2FloatRegister sourceReg =
+			instruction.readFloatRegisterAt(0).register();
+		final L2FloatRegister destinationReg =
+			instruction.writeFloatRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeFloatRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readFloatRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

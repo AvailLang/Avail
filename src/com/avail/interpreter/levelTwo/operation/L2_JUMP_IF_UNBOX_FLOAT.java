@@ -36,10 +36,8 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -51,7 +49,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -66,14 +63,22 @@ public class L2_JUMP_IF_UNBOX_FLOAT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_UNBOX_FLOAT}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_UNBOX_FLOAT().init(
+	private L2_JUMP_IF_UNBOX_FLOAT ()
+	{
+		super(
 			READ_POINTER.is("source"),
 			WRITE_FLOAT.is("destination"),
 			PC.is("if unboxed", SUCCESS),
 			PC.is("if not unboxed", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_UNBOX_FLOAT instance =
+		new L2_JUMP_IF_UNBOX_FLOAT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -88,26 +93,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister sourceReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2FloatRegister destinationReg =
+			instruction.writeFloatRegisterAt(1).register();
+//		final L2PcOperand ifUnboxed = instruction.pcAt(2);
+//		final int ifNotUnboxed = instruction.pcOffsetAt(3);
+
 		renderPreamble(instruction, builder);
-		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
 		builder.append(' ');
-		builder.append(instruction.writeFloatRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ←? ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
-		for (int i = 2, limit = operands.length; i < limit; i++)
-		{
-			final L2NamedOperandType type = types[i];
-			if (desiredTypes.contains(type.operandType()))
-			{
-				final L2Operand operand = operands[i];
-				builder.append("\n\t");
-				assert operand.operandType() == type.operandType();
-				builder.append(type.name());
-				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
-			}
-		}
+		builder.append(sourceReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

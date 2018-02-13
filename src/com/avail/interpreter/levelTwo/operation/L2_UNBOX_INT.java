@@ -58,12 +58,19 @@ public class L2_UNBOX_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_UNBOX_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_UNBOX_INT().init(
+	private L2_UNBOX_INT ()
+	{
+		super(
 			READ_POINTER.is("source"),
 			WRITE_INT.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_UNBOX_INT instance = new L2_UNBOX_INT();
 
 	@Override
 	public void toString (
@@ -71,12 +78,16 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		final L2ObjectRegister sourceReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2IntRegister destinationReg =
+			instruction.writeIntRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

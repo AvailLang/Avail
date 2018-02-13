@@ -58,12 +58,19 @@ public class L2_BOX_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_BOX_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_BOX_INT().init(
+	private L2_BOX_INT ()
+	{
+		super(
 			READ_INT.is("source"),
 			WRITE_POINTER.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_BOX_INT instance = new L2_BOX_INT();
 
 	@Override
 	public void toString (
@@ -72,11 +79,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2IntRegister sourceReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

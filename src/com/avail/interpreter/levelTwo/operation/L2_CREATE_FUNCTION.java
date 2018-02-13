@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -70,13 +71,21 @@ public class L2_CREATE_FUNCTION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_FUNCTION}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_FUNCTION().init(
+	private L2_CREATE_FUNCTION ()
+	{
+		super(
 			CONSTANT.is("compiled code"),
 			READ_VECTOR.is("captured variables"),
 			WRITE_POINTER.is("new function"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_FUNCTION instance =
+		new L2_CREATE_FUNCTION();
 
 	@Override
 	protected void propagateTypes (
@@ -189,18 +198,22 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		String decompiled = instruction.operands[0].toString();
-		final List<L2ReadPointerOperand> outers =
+		final L2Operand code = instruction.operands[0];
+		final List<L2ReadPointerOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
-		for (int i = 0, limit = outers.size(); i < limit; i++)
-		{
-			decompiled = decompiled.replace(
-				"Outer#" + (i + 1), outers.get(i).toString());
-		}
+		final L2ObjectRegister newFunctionReg =
+			instruction.writeObjectRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(newFunctionReg);
 		builder.append(" ← ");
+		String decompiled = code.toString();
+		for (int i = 0, limit = outerRegs.size(); i < limit; i++)
+		{
+			decompiled = decompiled.replace(
+				"Outer#" + (i + 1), outerRegs.get(i).toString());
+		}
 		builder.append(increaseIndentation(decompiled, 1));
 	}
 

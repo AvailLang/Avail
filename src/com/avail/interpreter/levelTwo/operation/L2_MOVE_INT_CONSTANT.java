@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.L2Translator;
@@ -57,12 +58,20 @@ public class L2_MOVE_INT_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MOVE_INT_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_MOVE_INT_CONSTANT().init(
+	private L2_MOVE_INT_CONSTANT ()
+	{
+		super(
 			INT_IMMEDIATE.is("value"),
 			WRITE_INT.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MOVE_INT_CONSTANT instance =
+		new L2_MOVE_INT_CONSTANT();
 
 	@Override
 	protected void propagateTypes (
@@ -87,11 +96,15 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand constant = instruction.operands[0];
+		final L2IntRegister destinationIntReg =
+			instruction.writeIntRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(1).register());
+		builder.append(destinationIntReg);
 		builder.append(" ← ");
-		builder.append(instruction.operands[0]);
+		builder.append(constant);
 	}
 
 	@Override

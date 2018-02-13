@@ -60,12 +60,19 @@ public class L2_ENTER_L2_CHUNK
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_ENTER_L2_CHUNK}.
 	 */
-	public static final L2Operation instance =
-		new L2_ENTER_L2_CHUNK().init(
+	private L2_ENTER_L2_CHUNK ()
+	{
+		super(
 			INT_IMMEDIATE.is("entry point offset in default chunk"),
 			COMMENT.is("chunk entry point name"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_ENTER_L2_CHUNK instance = new L2_ENTER_L2_CHUNK();
 
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
@@ -85,6 +92,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
+//		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
+
 		assert this == instruction.operation;
 		renderPreamble(instruction, builder);
 	}

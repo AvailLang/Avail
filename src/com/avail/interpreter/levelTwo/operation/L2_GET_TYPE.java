@@ -67,12 +67,19 @@ public class L2_GET_TYPE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_GET_TYPE}.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_TYPE().init(
+	private L2_GET_TYPE ()
+	{
+		super(
 			READ_POINTER.is("value"),
 			WRITE_POINTER.is("value's type"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_GET_TYPE instance = new L2_GET_TYPE();
 
 	@Override
 	protected void propagateTypes (
@@ -132,11 +139,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister typeReg =
+			instruction.writeObjectRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(1).register());
+		builder.append(typeReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
+		builder.append(valueReg);
 	}
 
 	@Override

@@ -61,12 +61,20 @@ public class L2_JUMP_IF_INTERRUPT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_INTERRUPT}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_INTERRUPT().init(
+	private L2_JUMP_IF_INTERRUPT ()
+	{
+		super(
 			PC.is("if interrupt", OFF_RAMP),
 			PC.is("if not interrupt", SUCCESS));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_INTERRUPT instance =
+		new L2_JUMP_IF_INTERRUPT();
 
 	@Override
 	protected void propagateTypes (

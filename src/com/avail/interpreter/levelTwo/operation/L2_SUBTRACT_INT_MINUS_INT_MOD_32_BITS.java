@@ -56,13 +56,21 @@ public class L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS}.
 	 */
-	public static final L2Operation instance =
-		new L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS().init(
+	private L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS ()
+	{
+		super(
 			READ_INT.is("minuend"),
 			READ_INT.is("subtrahend"),
 			WRITE_INT.is("difference"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS instance =
+		new L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS();
 
 	@Override
 	public void toString (
@@ -71,13 +79,20 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2IntRegister minuendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister subtrahendReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister differenceReg =
+			instruction.writeIntRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeIntRegisterAt(2).register());
+		builder.append(differenceReg);
 		builder.append(" ← ");
-		builder.append(instruction.readIntRegisterAt(0).register());
+		builder.append(minuendReg);
 		builder.append(" - ");
-		builder.append(instruction.readIntRegisterAt(1).register());
+		builder.append(subtrahendReg);
 	}
 
 	@Override

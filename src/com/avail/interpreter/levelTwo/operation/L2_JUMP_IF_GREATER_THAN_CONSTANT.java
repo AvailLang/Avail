@@ -35,11 +35,15 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -57,20 +61,50 @@ public class L2_JUMP_IF_GREATER_THAN_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_GREATER_THAN_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_GREATER_THAN_CONSTANT().init(
+	private L2_JUMP_IF_GREATER_THAN_CONSTANT ()
+	{
+		super(
 			READ_POINTER.is("value"),
 			CONSTANT.is("constant"),
 			PC.is("if greater", SUCCESS),
 			PC.is("if less or equal", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_GREATER_THAN_CONSTANT instance =
+		new L2_JUMP_IF_GREATER_THAN_CONSTANT();
 
 	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand[] operands = instruction.operands;
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2Operand constant = operands[1];
+//		final L2PcOperand ifEqual = instruction.pcAt(2);
+//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(valueReg);
+		builder.append(" > ");
+		builder.append(constant);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

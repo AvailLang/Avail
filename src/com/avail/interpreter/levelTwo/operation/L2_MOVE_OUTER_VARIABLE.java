@@ -63,13 +63,21 @@ public class L2_MOVE_OUTER_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MOVE_OUTER_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_MOVE_OUTER_VARIABLE().init(
+	private L2_MOVE_OUTER_VARIABLE ()
+	{
+		super(
 			INT_IMMEDIATE.is("outer index"),
 			READ_POINTER.is("function"),
 			WRITE_POINTER.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MOVE_OUTER_VARIABLE instance =
+		new L2_MOVE_OUTER_VARIABLE();
 
 	@Override
 	protected void propagateTypes (
@@ -101,13 +109,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final int outerIndex = instruction.intImmediateAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(1));
+		builder.append(functionReg);
 		builder.append('[');
-		builder.append(instruction.intImmediateAt(0));
+		builder.append(outerIndex);
 		builder.append(']');
 	}
 

@@ -37,6 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -58,11 +59,19 @@ public class L2_GET_LATEST_RETURN_VALUE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_LATEST_RETURN_VALUE}.
+	 */
+	private L2_GET_LATEST_RETURN_VALUE ()
+	{
+		super(
+			WRITE_POINTER.is("latest result"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_LATEST_RETURN_VALUE().init(
-			WRITE_POINTER.is("latest result"));
+	public static final L2_GET_LATEST_RETURN_VALUE instance =
+		new L2_GET_LATEST_RETURN_VALUE();
 
 	@Override
 	public void toString (
@@ -71,9 +80,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand targetReg = instruction.operands[0];
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(targetReg);
 	}
 
 	@Override

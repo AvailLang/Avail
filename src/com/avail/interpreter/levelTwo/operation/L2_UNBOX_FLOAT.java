@@ -58,12 +58,19 @@ public class L2_UNBOX_FLOAT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_UNBOX_FLOAT}.
 	 */
-	public static final L2Operation instance =
-		new L2_UNBOX_FLOAT().init(
+	private L2_UNBOX_FLOAT ()
+	{
+		super(
 			READ_POINTER.is("source"),
 			WRITE_FLOAT.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_UNBOX_FLOAT instance = new L2_UNBOX_FLOAT();
 
 	@Override
 	public void toString (
@@ -72,11 +79,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister sourceReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2FloatRegister destinationReg =
+			instruction.writeFloatRegisterAt(1).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeFloatRegisterAt(1).register());
+		builder.append(destinationReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0).register());
+		builder.append(sourceReg);
 	}
 
 	@Override

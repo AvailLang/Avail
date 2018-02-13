@@ -75,10 +75,18 @@ public class L2_TRY_OPTIONAL_PRIMITIVE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_TRY_OPTIONAL_PRIMITIVE}.
+	 */
+	private L2_TRY_OPTIONAL_PRIMITIVE ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_TRY_OPTIONAL_PRIMITIVE().init();
+	public static final L2_TRY_OPTIONAL_PRIMITIVE instance =
+		new L2_TRY_OPTIONAL_PRIMITIVE();
 
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)

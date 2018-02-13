@@ -56,13 +56,21 @@ public class L2_EXTRACT_CONTINUATION_SLOT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_EXTRACT_CONTINUATION_SLOT}.
 	 */
-	public static final L2Operation instance =
-		new L2_EXTRACT_CONTINUATION_SLOT().init(
+	private L2_EXTRACT_CONTINUATION_SLOT ()
+	{
+		super(
 			READ_POINTER.is("continuation"),
 			INT_IMMEDIATE.is("slot index"),
 			WRITE_POINTER.is("extracted slot"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_EXTRACT_CONTINUATION_SLOT instance =
+		new L2_EXTRACT_CONTINUATION_SLOT();
 
 	@Override
 	public void toString (
@@ -71,13 +79,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0).register();
+		final int slotIndex = instruction.intImmediateAt(1);
+		final L2ObjectRegister explodedSlotReg =
+			instruction.writeObjectRegisterAt(2).register();
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.writeObjectRegisterAt(2).register());
+		builder.append(explodedSlotReg);
 		builder.append(" ← ");
-		builder.append(instruction.readObjectRegisterAt(0));
+		builder.append(continuationReg);
 		builder.append('[');
-		builder.append(instruction.intImmediateAt(1));
+		builder.append(slotIndex);
 		builder.append(']');
 	}
 

@@ -79,16 +79,24 @@ public class L2_LOOKUP_BY_TYPES
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_LOOKUP_BY_TYPES}.
 	 */
-	public static final L2Operation instance =
-		new L2_LOOKUP_BY_TYPES().init(
+	private L2_LOOKUP_BY_TYPES ()
+	{
+		super(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("argument types"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
 			PC.is("lookup succeeded", SUCCESS),
 			PC.is("lookup failed", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_LOOKUP_BY_TYPES instance =
+		new L2_LOOKUP_BY_TYPES();
 
 	/** The type of failure codes that a failed lookup can produce. */
 	private final A_Type failureCodesType = enumerationWith(

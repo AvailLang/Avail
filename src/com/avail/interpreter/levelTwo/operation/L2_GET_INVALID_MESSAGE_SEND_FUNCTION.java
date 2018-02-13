@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
@@ -64,11 +65,19 @@ public final class L2_GET_INVALID_MESSAGE_SEND_FUNCTION
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_INVALID_MESSAGE_SEND_FUNCTION}.
+	 */
+	private L2_GET_INVALID_MESSAGE_SEND_FUNCTION ()
+	{
+		super(
+			WRITE_POINTER.is("invalid message send function"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION().init(
-			WRITE_POINTER.is("invalid message send function"));
+	public static final L2_GET_INVALID_MESSAGE_SEND_FUNCTION instance =
+		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION();
 
 	@Override
 	protected void propagateTypes (
@@ -91,9 +100,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
+		final L2Operand destination = instruction.operands[0];
+
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(instruction.operands[0]);
+		builder.append(destination);
 	}
 
 	@Override
