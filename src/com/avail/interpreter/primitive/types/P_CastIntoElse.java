@@ -41,7 +41,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
@@ -259,14 +258,10 @@ public final class P_CastIntoElse extends Primitive
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				valueReg,
 				new L2ConstantOperand(typeTest),
-				new L2PcOperand(
-					castBlock,
-					translator.currentManifest(),
-					valueReg.restrictedTo(typeTest, null)),
-				new L2PcOperand(
-					elseBlock,
-					translator.currentManifest(),
-					valueReg.restrictedWithoutType(typeTest)));
+				translator.edgeTo(
+					castBlock, valueReg.restrictedToType(typeTest)),
+				translator.edgeTo(
+					elseBlock, valueReg.restrictedWithoutType(typeTest)));
 		}
 		else
 		{

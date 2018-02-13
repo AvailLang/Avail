@@ -418,8 +418,8 @@ extends Descriptor
 		final A_Type firstType,
 		final A_Type secondType)
 	{
-		assert !firstType.equals(bottom());
-		assert !secondType.equals(bottom());
+		assert !firstType.isBottom();
+		assert !secondType.isBottom();
 		final Set<Order> possibleResults = EnumSet.noneOf(Order.class);
 		// Note that we can't intersect the two types to determine, in either
 		// conservative sense, whether numeric equality is possible.  It fails
@@ -595,7 +595,7 @@ extends Descriptor
 			return possibleResults;
 		}
 		// They're both integer ranges.  Just check for non-empty intersection.
-		if (!firstType.typeIntersection(secondType).equals(bottom()))
+		if (!firstType.typeIntersection(secondType).isBottom())
 		{
 			possibleResults.add(EQUAL);
 		}

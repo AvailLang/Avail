@@ -31,13 +31,7 @@
  */
 
 package com.avail.interpreter.levelTwo.operand;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.register.L2Register;
-
-import javax.annotation.Nullable;
-
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 
 /**
  * This mechanism allows type information for an {@link L2Register} to be
@@ -58,28 +52,25 @@ public final class PhiRestriction
 	public final L2Register<?> register;
 
 	/**
-	 * The {@link TypeRestriction} being placed on the register.
+	 * The new {@link TypeRestriction} for the register along the affected edge.
 	 */
 	public final TypeRestriction<?> typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.
+	 * restriction along a control flow edge.
 	 *
 	 * @param register
-	 *        The register to restrict along this branch.
-	 * @param type
-	 *        The type that the register will hold along this branch.
-	 * @param constantOrNull
-	 *        Either {@code null} or the exact value that the register will hold
-	 *        along this branch.
+	 *        The register to restrict along this edge.
+	 * @param typeRestriction
+	 *        The {@link TypeRestriction} that the register will have along the
+	 *        affected edge.
 	 */
 	public PhiRestriction (
 		final L2Register<?> register,
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final TypeRestriction<?> typeRestriction)
 	{
 		this.register = register;
-		this.typeRestriction = restriction(type, constantOrNull);
+		this.typeRestriction = typeRestriction;
 	}
 }

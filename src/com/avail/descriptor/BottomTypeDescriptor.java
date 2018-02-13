@@ -343,7 +343,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		assert !aType.equals(bottom());
+		assert !aType.isBottom();
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 			|| aType.isSubtypeOf(topMeta());
 	}

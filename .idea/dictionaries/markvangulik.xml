@@ -9,6 +9,9 @@
       <w>bytecodes</w>
       <w>callees</w>
       <w>callerless</w>
+      <w>canonicalization</w>
+      <w>canonicalized</w>
+      <w>canonicalizing</w>
       <w>choosable</w>
       <w>codepoints</w>
       <w>colorer</w>

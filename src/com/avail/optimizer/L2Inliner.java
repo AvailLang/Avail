@@ -105,8 +105,7 @@ public final class L2Inliner
 				final PhiRestriction phiRestriction = phiRestrictions[i];
 				phiRestrictions[i] = new PhiRestriction(
 					mapRegister(phiRestriction.register),
-					phiRestriction.typeRestriction.type,
-					phiRestriction.typeRestriction.constantOrNull);
+					phiRestriction.typeRestriction);
 			}
 			currentOperand = new L2PcOperand(
 				mapBlock(operand.targetBlock()),

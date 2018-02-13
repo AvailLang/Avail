@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
@@ -43,9 +42,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
@@ -190,7 +188,6 @@ extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append('@');
 		builder.append(register);
-		final TypeRestriction<?> restriction = restriction();
 		if (restriction.constantOrNull == null)
 		{
 			// Don't redundantly print restriction information for constants.
@@ -201,23 +198,17 @@ extends L2Operand
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch. The type and optional constant
-	 * value are supplied.
+	 * information along a control flow branch.
 	 *
 	 * @param restrictedType
-	 *        The type that the register will hold along this branch.
-	 * @param restrictedConstantOrNull
-	 *        Either {@code null} or the exact value that the register will hold
-	 *        along this branch.
+	 *        The type that the register was successfully tested against along
+	 *        this branch.
 	 */
-	public final PhiRestriction restrictedTo (
-		final A_Type restrictedType,
-		final @Nullable A_BasicObject restrictedConstantOrNull)
+	public final PhiRestriction restrictedToType (final A_Type restrictedType)
 	{
 		return new PhiRestriction(
 			register,
-			restrictedType.typeIntersection(type()),
-			restrictedConstantOrNull);
+			restriction.intersectionWithType(restrictedType));
 	}
 
 	/**
@@ -234,8 +225,9 @@ extends L2Operand
 			: "This register has no possible values.";
 		return new PhiRestriction(
 			register,
-			instanceTypeOrMetaOn(restrictedConstant).typeIntersection(type),
-			restrictedConstant);
+			TypeRestriction.restriction(
+				instanceTypeOrMetaOn(restrictedConstant).typeIntersection(type),
+				restrictedConstant));
 	}
 
 	/**
@@ -250,35 +242,9 @@ extends L2Operand
 	public final PhiRestriction restrictedWithoutValue (
 		final T excludedConstant)
 	{
-		final @Nullable A_Type type = type();
-		final @Nullable A_BasicObject constantOrNull = constantOrNull();
-		if (constantOrNull != null)
-		{
-			// It's unclear if this is necessarily a problem, or if it's
-			// actually reasonable for code that will soon be marked dead.
-			assert !excludedConstant.equals(constantOrNull)
-				: "This register has no possible values.";
-			// The excluded value is irrelevant.
-			return new PhiRestriction(register, type, constantOrNull);
-		}
-		final A_Type restrictedType;
-		if (type.instanceCount().isFinite() && !type.isInstanceMeta())
-		{
-			restrictedType = enumerationWith(
-				type.instances().setWithoutElementCanDestroy(
-					excludedConstant, false));
-		}
-		else
-		{
-			restrictedType = type;
-		}
 		return new PhiRestriction(
 			register,
-			restrictedType,
-			restrictedType.instanceCount().equalsInt(1)
-				&& !restrictedType.isInstanceMeta()
-				? restrictedType.instance()
-				: null);
+			restriction.minusValue(excludedConstant));
 	}
 
 	/**
@@ -293,33 +259,8 @@ extends L2Operand
 	public final PhiRestriction restrictedWithoutType (
 		final A_Type excludedType)
 	{
-		final @Nullable A_Type type = type();
-		final @Nullable A_BasicObject constantOrNull = constantOrNull();
-		if (constantOrNull != null)
-		{
-			// It's unclear if this is necessarily a problem, or if it's
-			// actually reasonable for code that will soon be marked dead.
-			assert !constantOrNull.isInstanceOf(excludedType)
-				: "This register has no possible values.";
-			// The excluded type is irrelevant.
-			return new PhiRestriction(register, type, constantOrNull);
-		}
-		if (type.instanceCount().isFinite() && !type.isInstanceMeta())
-		{
-			A_Set elements = emptySet();
-			for (final A_BasicObject element : type.instances())
-			{
-				if (!element.isInstanceOf(excludedType))
-				{
-					elements = elements.setWithElementCanDestroy(element, true);
-				}
-			}
-			elements = elements.makeImmutable();
-			return new PhiRestriction(
-				register, enumerationWith(elements), null);
-		}
-		// Be conservative and ignore the type subtraction.  We could eventually
-		// record this information.
-		return new PhiRestriction(register, type, null);
+		return new PhiRestriction(
+			register,
+			restriction.minusType(excludedType));
 	}
 }

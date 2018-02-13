@@ -296,7 +296,10 @@ public class LexingState
 
 	/**
 	 * Run a lexer.  When it completes, decrement the countdown.  If it reaches
-	 * zero,
+	 * zero, run {@link #lexerBodyWasSuccessful(A_Tuple, AtomicInteger)} with
+	 * all the possible tokens at this position to indicate success (otherwise
+	 * indicate an expectation of a valid token).
+	 *
 	 * @param lexer
 	 *        The lexer to execute.
 	 * @param arguments

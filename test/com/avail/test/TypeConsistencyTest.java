@@ -191,12 +191,15 @@ public class TypeConsistencyTest
 			{
 				if (!primitiveTypes.containsKey(type))
 				{
-					final Types typeParent = type.parent;
-					final Node [] parents =
-						new Node[typeParent == null ? 0 : 1];
+					final @Nullable Types typeParent = type.parent;
+					final Node [] parents;
 					if (typeParent != null)
 					{
-						parents[0] = primitiveTypes.get(typeParent);
+						parents = new Node[]{primitiveTypes.get(typeParent)};
+					}
+					else
+					{
+						parents = new Node[0];
 					}
 					final Node node = new Node(type.name(), parents)
 					{

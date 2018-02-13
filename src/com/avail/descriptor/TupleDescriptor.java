@@ -45,10 +45,12 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -1351,7 +1353,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a {@linkplain List list} from the specified {@linkplain
+	 * Construct a Java {@link List} from the specified {@linkplain
 	 * TupleDescriptor tuple}. The elements are not made immutable.
 	 *
 	 * @param tuple
@@ -1368,6 +1370,26 @@ extends Descriptor
 			list.add((X) element);
 		}
 		return list;
+	}
+
+	/**
+	 * Construct a Java {@link Set} from the specified {@linkplain
+	 * TupleDescriptor tuple}. The elements are not made immutable.
+	 *
+	 * @param tuple
+	 *        A tuple.
+	 * @return The corresponding {@link Set} of objects.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <X extends A_BasicObject> Set<X> toSet (
+		final A_Tuple tuple)
+	{
+		final Set<X> set = new HashSet<>(tuple.tupleSize());
+		for (final AvailObject element : tuple)
+		{
+			set.add((X) element);
+		}
+		return set;
 	}
 
 	/**

@@ -1127,6 +1127,21 @@ extends AbstractTypeDescriptor
 	}
 
 	/**
+	 * Answer whether the first type is a proper subtype of the second type,
+	 * meaning that it's a subtype but not equal.
+	 *
+	 * @param type1 The purported subtype.
+	 * @param type2 The purported supertype.
+	 * @return If type1 is a subtype of but not equal to type2.
+	 */
+	public static boolean isProperSubtype (
+		final A_Type type1,
+		final A_Type type2)
+	{
+		return !type1.equals(type2) && type1.isSubtypeOf(type2);
+	}
+
+	/**
 	 * Construct a new {@code TypeDescriptor}.
 	 *
 	 * @param mutability

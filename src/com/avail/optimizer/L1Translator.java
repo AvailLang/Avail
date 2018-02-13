@@ -1341,12 +1341,17 @@ implements L1OperationDispatcher
 	/**
 	 * Create an {@link L2PcOperand} with suitable defaults.
 	 *
-	 * @param targetBlock The target {@link L2BasicBlock}.
+	 * @param targetBlock
+	 *        The target {@link L2BasicBlock}.
+	 * @param phiRestrictions
+	 *        Any restrictions for the manifest along this edge.
 	 * @return The new {@link L2PcOperand}.
 	 */
-	public L2PcOperand edgeTo (final L2BasicBlock targetBlock)
+	public L2PcOperand edgeTo (
+		final L2BasicBlock targetBlock,
+		final PhiRestriction... phiRestrictions)
 	{
-		return new L2PcOperand(targetBlock, currentManifest);
+		return new L2PcOperand(targetBlock, currentManifest, phiRestrictions);
 	}
 
 	/**
@@ -1718,8 +1723,8 @@ implements L1OperationDispatcher
 					final L2ReadPointerOperand argUponFailure =
 						new L2ReadPointerOperand(
 							argBeforeTest.register(),
-							argBeforeTest.restriction().minus(
-								restriction(memento.typeToTest, null)));
+							argBeforeTest.restriction().minusType(
+								memento.typeToTest));
 					arguments.set(
 						memento.argumentIndexToTest - 1, argUponFailure);
 				}
@@ -1982,7 +1987,7 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand passedTestArg =
 			new L2ReadPointerOperand(
 				arg.register(),
-				arg.restriction().intersection(restriction(typeToTest, null)));
+				arg.restriction().intersectionWithType(typeToTest));
 		arguments.set(argumentIndexToTest - 1, passedTestArg);
 		return memento;
 	}
@@ -2082,8 +2087,12 @@ implements L1OperationDispatcher
 					generateJumpIfEqualsConstant(
 						arg,
 						instance,
-						edgeTo(memento.passCheckBasicBlock),
-						edgeTo(nextCheckOrFail));
+						edgeTo(
+							memento.passCheckBasicBlock,
+							arg.restrictedToValue(instance)),
+						edgeTo(
+							nextCheckOrFail,
+							arg.restrictedWithoutValue(instance)));
 					if (!last)
 					{
 						startBlock(nextCheckOrFail);
@@ -2096,8 +2105,12 @@ implements L1OperationDispatcher
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				arg,
 				new L2ConstantOperand(typeToTest),
-				edgeTo(memento.passCheckBasicBlock),
-				edgeTo(memento.failCheckBasicBlock));
+				edgeTo(
+					memento.passCheckBasicBlock,
+					arg.restrictedToType(typeToTest)),
+				edgeTo(
+					memento.failCheckBasicBlock,
+					arg.restrictedWithoutType(typeToTest)));
 			return memento;
 		}
 
@@ -2521,7 +2534,7 @@ implements L1OperationDispatcher
 				new L2PcOperand(
 					passedCheck,
 					currentManifest,
-					uncheckedValueReg.restrictedTo(expectedType, null)),
+					uncheckedValueReg.restrictedToType(expectedType)),
 				new L2PcOperand(
 					failedCheck,
 					currentManifest,
@@ -2890,22 +2903,13 @@ implements L1OperationDispatcher
 				new L2ReadVectorOperand<>(arguments),
 				functionReg,
 				errorCodeReg,
-				new L2PcOperand(
+				edgeTo(
 					lookupSucceeded,
-					currentManifest,
-					new PhiRestriction(
-						functionReg.register(),
-						functionTypeUnion,
-						possibleFunctions.size() == 1
-							? possibleFunctions.get(0)
-							: null)),
-				new L2PcOperand(
+					functionReg.read().restrictedToType(functionTypeUnion)),
+				edgeTo(
 					lookupFailed,
-					currentManifest,
-					new PhiRestriction(
-						errorCodeReg.register(),
-						L2_LOOKUP_BY_VALUES.lookupErrorsType,
-						null)));
+					errorCodeReg.read().restrictedToType(
+						L2_LOOKUP_BY_VALUES.lookupErrorsType)));
 		}
 		else
 		{
@@ -2965,22 +2969,13 @@ implements L1OperationDispatcher
 				new L2ReadVectorOperand<>(argTypeRegs),
 				functionReg,
 				errorCodeReg,
-				new L2PcOperand(
+				edgeTo(
 					lookupSucceeded,
-					currentManifest,
-					new PhiRestriction(
-						functionReg.register(),
-						functionTypeUnion,
-						possibleFunctions.size() == 1
-							? possibleFunctions.get(0)
-							: null)),
-				new L2PcOperand(
+					functionReg.read().restrictedToType(functionTypeUnion)),
+				edgeTo(
 					lookupFailed,
-					currentManifest,
-					new PhiRestriction(
-						errorCodeReg.register(),
-						L2_LOOKUP_BY_VALUES.lookupErrorsType,
-						null)));
+					errorCodeReg.read().restrictedToType(
+						L2_LOOKUP_BY_VALUES.lookupErrorsType)));
 		}
 		// At this point, we've attempted to look up the method, and either
 		// jumped to lookupSucceeded with functionReg set to the body function,

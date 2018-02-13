@@ -41,7 +41,9 @@ import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
@@ -629,6 +631,26 @@ extends Descriptor
 			set = set.setWithElementCanDestroy(element, true);
 		}
 		return set;
+	}
+
+	/**
+	 * Construct a Java {@link Set} from the specified Avail {@link A_Set}.  The
+	 * elements are not made immutable.
+	 *
+	 * @param set
+	 *        An Avail set.
+	 * @return The corresponding Java {@link Set} of objects.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <X extends A_BasicObject> Set<X> toSet (
+		final A_Set set)
+	{
+		final Set<X> nativeSet = new HashSet<>(set.setSize());
+		for (final AvailObject element : set)
+		{
+			nativeSet.add((X) element);
+		}
+		return nativeSet;
 	}
 
 	/**
