@@ -279,7 +279,7 @@ public class L2ControlFlowGraphVisualizer
 				// In particular, Courier, Arial, Helvetica, and Times are
 				// supported.
 				builder.append("<font face=\"Helvetica\" color=\"gray\"><i>");
-				builder.append(operand);
+				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 				// There should never be a second comment. If there is — tough.
 				break;
@@ -493,9 +493,10 @@ public class L2ControlFlowGraphVisualizer
 						.forEach(binding ->
 						{
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							builder.append(binding.getKey());
+							builder.append(escape(binding.getKey().toString()));
 							builder.append(" → ");
-							builder.append(binding.getValue());
+							builder.append(escape(
+								binding.getValue().toString()));
 						});
 				}
 			}
