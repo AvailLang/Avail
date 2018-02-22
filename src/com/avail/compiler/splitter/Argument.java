@@ -31,8 +31,8 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.exceptions.SignatureException;
 
@@ -42,6 +42,7 @@ import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code Argument} is an occurrence of {@linkplain
@@ -125,12 +126,11 @@ extends Expression
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert arguments != null;
-		arguments.next().printOnAvoidingIndent(
+		stripNull(arguments).next().printOnAvoidingIndent(
 			builder,
 			new IdentityHashMap<>(),
 			indent + 1);

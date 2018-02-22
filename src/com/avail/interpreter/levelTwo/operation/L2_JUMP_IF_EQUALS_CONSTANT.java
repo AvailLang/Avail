@@ -64,7 +64,7 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_EQUALS_CONSTANT
+public final class L2_JUMP_IF_EQUALS_CONSTANT
 extends L2Operation
 {
 	/**

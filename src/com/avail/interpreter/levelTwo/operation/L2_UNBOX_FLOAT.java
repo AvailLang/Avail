@@ -54,7 +54,7 @@ import static org.objectweb.asm.Type.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_UNBOX_FLOAT
+public final class L2_UNBOX_FLOAT
 extends L2Operation
 {
 	/**

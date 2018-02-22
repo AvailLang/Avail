@@ -214,11 +214,11 @@ extends ParseNodeDescriptor
 					builder, recursionMap, indent);
 				if (argIndex < argCount)
 				{
-					builder.append(",");
+					builder.append(',');
 				}
 			}
 			Strings.newlineTab(builder, indent - 1);
-			builder.append("|");
+			builder.append('|');
 		}
 		boolean skipFailureDeclaration = false;
 		if (primitive != null && !primitive.hasFlag(Flag.SpecialForm))
@@ -232,10 +232,10 @@ extends ParseNodeDescriptor
 				builder.append(" (");
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
 					builder, recursionMap, indent);
-				builder.append(")");
+				builder.append(')');
 				skipFailureDeclaration = true;
 			}
-			builder.append(";");
+			builder.append(';');
 		}
 		for (int index = 1; index <= statementsSize; index++)
 		{
@@ -254,7 +254,7 @@ extends ParseNodeDescriptor
 					builder, recursionMap, indent);
 				if (index < statementsSize || endsWithStatement)
 				{
-					builder.append(";");
+					builder.append(';');
 				}
 			}
 		}

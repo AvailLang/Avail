@@ -51,7 +51,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 /**
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_FLOAT_CONSTANT
+public final class L2_MOVE_FLOAT_CONSTANT
 extends L2Operation
 {
 	/**

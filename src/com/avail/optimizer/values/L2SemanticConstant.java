@@ -82,13 +82,13 @@ extends L2SemanticValue
 		String valueString = value.toString();
 		if (valueString.length() > 50)
 		{
-			valueString = valueString.substring(0, 50) + "…";
+			valueString = valueString.substring(0, 50) + '…';
 		}
 		//noinspection DynamicRegexReplaceableByCompiledPattern
 		valueString = valueString
 			.replace("\n", "\\n")
 			.replace("\t", "\\t");
-		return "Constant(" + valueString + ")";
+		return "Constant(" + valueString + ')';
 	}
 
 	@Override

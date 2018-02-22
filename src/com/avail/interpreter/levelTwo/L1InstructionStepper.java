@@ -66,6 +66,7 @@ import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
@@ -472,9 +473,21 @@ public final class L1InstructionStepper
 				}
 				case L1_doMakeTuple:
 				{
-					push(
-						generateReversedFrom(
-							code.nextNybblecodeOperand(pc), ignored -> pop()));
+					final int size = code.nextNybblecodeOperand(pc);
+					if (size == 0)
+					{
+						// Common case for varargs.
+						push(emptyTuple());
+					}
+					else if (size == 1)
+					{
+						// Common case for varargs.
+						push(tuple(pop()));
+					}
+					else
+					{
+						push(generateReversedFrom(size, ignored -> pop()));
+					}
 					break;
 				}
 				case L1_doGetOuter:

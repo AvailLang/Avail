@@ -65,12 +65,12 @@ extends L2SemanticValue
 	 * The {@link List} of {@link L2SemanticValue}s that represent the arguments
 	 * to the invocation of the primitive.
 	 */
-	public final List<L2SemanticValue> argumentSemanticValues;
+	private final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
 	 * The hash value of the receiver, computed during construction.
 	 */
-	public final int hashOrZero;
+	private final int hash;
 
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
@@ -99,7 +99,7 @@ extends L2SemanticValue
 			h ^= argument.hashCode();
 			h *= multiplier;
 		}
-		hashOrZero = h;
+		hash = h;
 	}
 
 	@Override
@@ -123,7 +123,7 @@ extends L2SemanticValue
 	@Override
 	public int hashCode ()
 	{
-		return hashOrZero;
+		return hash;
 	}
 
 	@Override
@@ -155,7 +155,7 @@ extends L2SemanticValue
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Invoke");
 		builder.append(primitive.name());
-		builder.append("(");
+		builder.append('(');
 		boolean first = true;
 		for (final L2SemanticValue arg : argumentSemanticValues)
 		{
@@ -166,7 +166,7 @@ extends L2SemanticValue
 			builder.append(arg);
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 }

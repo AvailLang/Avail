@@ -32,8 +32,8 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 
 import javax.annotation.Nullable;
@@ -43,7 +43,8 @@ import java.util.List;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCONSISTENT_ARGUMENT_REORDERING;
 
 /**
  * A {@code CompletelyOptional} is a special {@linkplain Expression
@@ -63,7 +64,7 @@ final class CompletelyOptional
 extends Expression
 {
 	/** The governed {@linkplain Sequence sequence}. */
-	final Sequence sequence;
+	private final Sequence sequence;
 
 	/**
 	 * Construct a new {@link CompletelyOptional}.
@@ -163,12 +164,12 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + sequence.expressions + ")";
+		return getClass().getSimpleName() + '(' + sequence.expressions + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -186,12 +187,12 @@ extends Expression
 		else
 		{
 			// A sequence of tokens that are optional (in aggregate).
-			builder.append("«");
+			builder.append('«');
 			sequence.printWithArguments(
 				emptyTuple().iterator(), builder, indent);
-			builder.append("»");
+			builder.append('»');
 		}
-		builder.append("⁇");
+		builder.append('⁇');
 	}
 
 	@Override

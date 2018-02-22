@@ -56,7 +56,7 @@ import static org.objectweb.asm.Type.LONG_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_DIVIDE_INT_BY_INT
+public final class L2_DIVIDE_INT_BY_INT
 extends L2Operation
 {
 	/**
@@ -194,7 +194,7 @@ extends L2Operation
 		method.visitInsn(LSUB);
 		final int remainder = translator.nextLocal(LONG_TYPE);
 		method.visitVarInsn(LSTORE, remainder);
-		
+
 		// :: if (quotient != (int) quotient) goto outOfRange;
 		method.visitVarInsn(LLOAD, quotient);
 		method.visitInsn(DUP);

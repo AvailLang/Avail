@@ -56,7 +56,7 @@ import static org.objectweb.asm.Type.INT_TYPE;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_SUBTRACT_INT_MINUS_INT_CONSTANT
+public final class L2_SUBTRACT_INT_MINUS_INT_CONSTANT
 extends L2Operation
 {
 	/**

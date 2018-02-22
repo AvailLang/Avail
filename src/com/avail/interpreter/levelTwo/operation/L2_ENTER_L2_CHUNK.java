@@ -56,7 +56,7 @@ import static org.objectweb.asm.Type.*;
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.</p>
  */
-public class L2_ENTER_L2_CHUNK
+public final class L2_ENTER_L2_CHUNK
 extends L2Operation
 {
 	/**

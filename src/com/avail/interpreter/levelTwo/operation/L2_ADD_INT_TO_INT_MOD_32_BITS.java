@@ -52,7 +52,7 @@ import static org.objectweb.asm.Opcodes.IADD;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_ADD_INT_TO_INT_MOD_32_BITS
+public final class L2_ADD_INT_TO_INT_MOD_32_BITS
 extends L2Operation
 {
 	/**

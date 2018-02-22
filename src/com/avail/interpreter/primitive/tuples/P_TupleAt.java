@@ -42,8 +42,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -114,6 +116,23 @@ public final class P_TupleAt extends Primitive
 			tupleType.unionOfTypesAtThrough(lowerInt, upperInt);
 		unionType.makeImmutable();
 		return unionType;
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type tupleType = argumentTypes.get(0);
+		final A_Type subscripts = argumentTypes.get(1);
+
+		final A_Type tupleTypeSizes = tupleType.sizeRange();
+		final A_Number minTupleSize = tupleTypeSizes.lowerBound();
+		if (subscripts.lowerBound().greaterOrEqual(one())
+			&& subscripts.upperBound().lessOrEqual(minTupleSize))
+		{
+			return Fallibility.CallSiteCannotFail;
+		}
+		return super.fallibilityForArgumentTypes(argumentTypes);
 	}
 
 	@Override

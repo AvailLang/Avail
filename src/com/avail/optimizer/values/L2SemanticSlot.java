@@ -45,10 +45,10 @@ final class L2SemanticSlot
 extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is a virtualized slot. */
-	public final Frame frame;
+	private final Frame frame;
 
 	/** The one-based index of the slot in its {@link Frame}. */
-	public final int slotIndex;
+	private final int slotIndex;
 
 	/**
 	 * The level one {@link A_Continuation#pc()} at the position just after the
@@ -56,7 +56,12 @@ extends L2SemanticValue
 	 * distinguish semantic slots at the same index but at different times,
 	 * allowing a correct SSA graph and the reordering that it supports.
 	 */
-	public final int pcAfter;
+	private final int pcAfter;
+
+	/**
+	 * The previously computed hash value.
+	 */
+	private final int hash;
 
 	/**
 	 * Create a new {@code L2SemanticSlot} semantic value.
@@ -75,6 +80,9 @@ extends L2SemanticValue
 		this.frame = frame;
 		this.slotIndex = slotIndex;
 		this.pcAfter = pcAfter;
+		int h = slotIndex * multiplier ^ pcAfter;
+		h = h * multiplier ^ frame.hashCode();
+		this.hash = h;
 	}
 
 	@Override
@@ -93,9 +101,7 @@ extends L2SemanticValue
 	@Override
 	public int hashCode ()
 	{
-		int h = slotIndex * multiplier ^ pcAfter;
-		h = h * multiplier ^ frame.hashCode();
-		return h;
+		return hash;
 	}
 
 	@Override

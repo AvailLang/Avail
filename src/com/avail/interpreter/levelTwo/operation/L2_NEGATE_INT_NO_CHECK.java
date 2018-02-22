@@ -55,7 +55,7 @@ import static org.objectweb.asm.Opcodes.INEG;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_NEGATE_INT_NO_CHECK
+public final class L2_NEGATE_INT_NO_CHECK
 extends L2Operation
 {
 	/**

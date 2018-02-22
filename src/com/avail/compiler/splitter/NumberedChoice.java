@@ -34,7 +34,6 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
 
@@ -50,7 +49,9 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
@@ -208,17 +209,16 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + alternation + ")";
+		return getClass().getSimpleName() + '(' + alternation + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert argumentProvider != null;
-		final A_Phrase literal = argumentProvider.next();
+		final A_Phrase literal = stripNull(argumentProvider).next();
 		assert literal.isInstanceOf(
 			ParseNodeKind.LITERAL_NODE.mostGeneralType());
 		final int index = literal.token().literal().extractInt();

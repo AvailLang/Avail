@@ -31,9 +31,9 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
@@ -299,7 +299,7 @@ extends Expression
 	 *        sequence.  Indexed by the second()s of the run pairs.
 	 */
 	@InnerAccess
-	void emitRunOn (
+	private void emitRunOn (
 		final List<Pair<Expression, Integer>> run,
 		final int positionInRun,
 		final InstructionGenerator generator,
@@ -327,7 +327,6 @@ extends Expression
 		{
 			((Optional) expression).emitInRunThen(
 				generator,
-				subexpressionType,
 				() -> emitRunOn(
 					run,
 					positionInRun + 1,
@@ -460,13 +459,13 @@ extends Expression
 			}
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -476,7 +475,7 @@ extends Expression
 		{
 			if (needsSpace && expression.shouldBeSeparatedOnLeft())
 			{
-				builder.append(" ");
+				builder.append(' ');
 			}
 			final int oldLength = builder.length();
 			expression.printWithArguments(
@@ -546,7 +545,7 @@ extends Expression
 				E_INCONSISTENT_ARGUMENT_REORDERING,
 				"The circled numbers for this clause must range from 1 "
 				+ "to the number of arguments/groups, but must not be "
-				+ "in ascending order (got " + usedOrdinalsList + ")");
+				+ "in ascending order (got " + usedOrdinalsList + ')');
 		}
 		assert permutedArguments.isEmpty();
 		permutedArguments.addAll(usedOrdinalsList);

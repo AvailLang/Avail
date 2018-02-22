@@ -51,7 +51,7 @@ import static org.objectweb.asm.Opcodes.I2D;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_INT_TO_FLOAT
+public final class L2_INT_TO_FLOAT
 extends L2Operation
 {
 	/**

@@ -118,17 +118,6 @@ public abstract class L2SemanticValue
 		final Transformer1NotNull<Frame, Frame> frameTransformer);
 
 	/**
-	 * Is the receiver immutable?
-	 *
-	 * @return {@code true} if the receiver is immutable, {@code false}
-	 *         otherwise.
-	 */
-	public boolean isImmutable ()
-	{
-		return false;
-	}
-
-	/**
 	 * Is the receiver an unboxed {@code int}?
 	 *
 	 * @return {@code true} if the receiver is an unboxed {@code int}, {@code

@@ -503,9 +503,9 @@ public final class MessageSplitter
 		builder.append("\n------\n");
 		for (final A_String part : messagePartsList)
 		{
-			builder.append("\t");
+			builder.append('\t');
 			builder.append(part.asNativeString());
-			builder.append("\n");
+			builder.append('\n');
 		}
 	}
 
@@ -593,12 +593,12 @@ public final class MessageSplitter
 		final StringBuilder builder,
 		final int indent)
 	{
-		builder.append("«");
+		builder.append('«');
 		rootSequence.printWithArguments(
 			sendNode.argumentsListNode().expressionsTuple().iterator(),
 			builder,
 			indent);
-		builder.append("»");
+		builder.append('»');
 	}
 
 	/**
@@ -1573,7 +1573,7 @@ public final class MessageSplitter
 				builder.append(before.asNativeString());
 				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
 				builder.append(after.asNativeString());
-				builder.append("\"");
+				builder.append('"');
 				return builder.toString();
 			});
 	}

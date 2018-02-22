@@ -155,12 +155,12 @@ implements L1OperationDispatcher
 	 * The current level one nybblecode program counter during naive translation
 	 * to level two.
 	 */
-	@InnerAccess final MutableInt pc = new MutableInt(1);
+	private final MutableInt pc = new MutableInt(1);
 
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	@InnerAccess int stackp;
+	private int stackp;
 
 	/**
 	 * The exact function that we're translating, if known.  This is only
@@ -420,7 +420,7 @@ implements L1OperationDispatcher
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
-	@InnerAccess void forceSlotRegister (
+	private void forceSlotRegister (
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{

@@ -536,7 +536,7 @@ extends TupleDescriptor
 	 * @param size The number of elements in the resulting tuple.
 	 * @return An uninitialized object tuple of the requested size.
 	 */
-	public static AvailObject createUninitialized (final int size)
+	private static AvailObject createUninitialized (final int size)
 	{
 		return mutable.create(size);
 	}

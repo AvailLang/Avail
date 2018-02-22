@@ -32,8 +32,8 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -134,12 +134,12 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + expression + ")";
+		return getClass().getSimpleName() + '(' + expression + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -147,7 +147,7 @@ extends Expression
 			argumentProvider,
 			builder,
 			indent);
-		builder.append("~");
+		builder.append('~');
 	}
 
 	@Override

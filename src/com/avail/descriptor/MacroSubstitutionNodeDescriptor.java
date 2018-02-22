@@ -99,8 +99,8 @@ extends ParseNodeDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		object.slot(MACRO_ORIGINAL_SEND).printOnAvoidingIndent(
-			builder, recursionMap, indent);
+		final A_Phrase outputPhrase = object.slot(OUTPUT_PARSE_NODE);
+		outputPhrase.printOnAvoidingIndent(builder, recursionMap, indent);
 	}
 
 	@Override @AvailMethod
@@ -375,7 +375,7 @@ extends ParseNodeDescriptor
 	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return SerializerOperation.MACRO_SUBSTITITION_PHRASE;
+		return SerializerOperation.MACRO_SUBSTITUTION_PHRASE;
 	}
 
 	@Override

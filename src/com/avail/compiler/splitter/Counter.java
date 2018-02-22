@@ -34,7 +34,6 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
@@ -49,7 +48,9 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code Counter} is a special subgroup (i.e., not a root group)
@@ -206,17 +207,16 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + group + ")";
+		return getClass().getSimpleName() + '(' + group + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert argumentProvider != null;
-		final A_Phrase countLiteral = argumentProvider.next();
+		final A_Phrase countLiteral = stripNull(argumentProvider).next();
 		assert countLiteral.isInstanceOf(
 			ParseNodeKind.LITERAL_NODE.mostGeneralType());
 		final int count = countLiteral.token().literal().extractInt();
@@ -224,7 +224,7 @@ extends Expression
 		{
 			if (i > 1)
 			{
-				builder.append(" ");
+				builder.append(' ');
 			}
 			group.printGroupOccurrence(
 				Collections.emptyIterator(),
@@ -232,7 +232,7 @@ extends Expression
 				indent,
 				isArgumentOrGroup());
 		}
-		builder.append("#");
+		builder.append('#');
 	}
 
 	@Override

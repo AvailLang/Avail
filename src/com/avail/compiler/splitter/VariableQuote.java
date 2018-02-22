@@ -31,8 +31,8 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.VariableDescriptor;
@@ -42,6 +42,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code VariableQuote} is an occurrence of {@linkplain
@@ -88,16 +89,15 @@ extends Argument
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert arguments != null;
 		// Describe the variable reference that was parsed as this argument.
-		arguments.next().printOnAvoidingIndent(
+		stripNull(arguments).next().printOnAvoidingIndent(
 			builder,
 			new IdentityHashMap<>(),
 			indent + 1);
-		builder.append("↑");
+		builder.append('↑');
 	}
 }

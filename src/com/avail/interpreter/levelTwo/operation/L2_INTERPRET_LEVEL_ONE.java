@@ -70,7 +70,7 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_INTERPRET_LEVEL_ONE
+public final class L2_INTERPRET_LEVEL_ONE
 extends L2Operation
 {
 	/**

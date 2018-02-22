@@ -35,6 +35,7 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
@@ -42,7 +43,13 @@ import com.avail.utility.evaluation.Continuation0;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A {@code Serializer} converts a series of objects passed individually to
@@ -58,14 +65,22 @@ public class Serializer
 	 * AvailRuntime#specialObjects() special objects} list.  Entries that are
 	 * {@code null} (i.e., unused entries} are not included.
 	 */
-	static final Map<A_BasicObject, Integer> specialObjects =
+	private static final Map<A_BasicObject, Integer> specialObjects =
 		new HashMap<>(1000);
 
 	/**
 	 * Special system {@link AtomDescriptor atoms} that aren't already in the
 	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}.
 	 */
-	static final Map<A_Atom, Integer> specialAtoms =
+	private static final Map<A_Atom, Integer> specialAtoms =
+		new HashMap<>(100);
+
+	/**
+	 * Special system {@link AtomDescriptor atoms} that aren't already in the
+	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}, keyed by
+	 * their {@link A_String}, where the value is the {@link A_Atom} itself.
+	 */
+	static final Map<A_String, A_Atom> specialAtomsByName =
 		new HashMap<>(100);
 
 	/**
@@ -73,20 +88,19 @@ public class Serializer
 	 * from each {@link AvailObject} to the {@link SerializerInstruction} that
 	 * will be output for it at the appropriate time.
 	 */
-	final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
+	private final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
 		new HashMap<>(100);
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	final Set<A_Variable> variablesToAssign =
-		new HashSet<>(100);
+	private final Set<A_Variable> variablesToAssign = new HashSet<>(100);
 
 	/**
 	 * The number of instructions that have been written to the {@link #output}.
 	 */
-	int instructionsWritten = 0;
+	private int instructionsWritten = 0;
 
 	/**
 	 * This maintains a stack of {@linkplain SerializerInstruction serializer
@@ -95,13 +109,12 @@ public class Serializer
 	 * avoids using Java's limited stack, since Avail structures may in theory
 	 * be exceptionally deep.
 	 */
-	final Deque<Continuation0> workStack =
-		new ArrayDeque<>(1000);
+	private final Deque<Continuation0> workStack = new ArrayDeque<>(1000);
 
 	/**
 	 * The {@link OutputStream} on which to write the serialized objects.
 	 */
-	final OutputStream output;
+	private final OutputStream output;
 
 	/**
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
@@ -234,14 +247,33 @@ public class Serializer
 	}
 
 	/**
+	 * Trace the object and answer, but don't emit, a {@link
+	 * SerializerInstruction} suitable for adding to the {@link
+	 * #encounteredObjects} {@link Map}.
+	 *
+	 * @param object The {@link A_BasicObject} to trace.
+	 * @return The new {@link SerializerInstruction}.
+	 */
+	private SerializerInstruction newInstruction (
+		final A_BasicObject object)
+	{
+		return new SerializerInstruction(
+			specialObjects.containsKey(object)
+				? SerializerOperation.SPECIAL_OBJECT
+				: object.serializerOperation(),
+			object,
+			this);
+	}
+
+	/**
 	 * Trace an object, ensuring that it and its subobjects will be written out
 	 * in the correct order during actual serialization.  Use the {@link
 	 * #workStack} rather than recursion to avoid Java stack overflow for deep
 	 * Avail structures.
 	 *
 	 * <p>
-	 * To trace an object X with children Y and Z, first push onto the workstack
-	 * an action (a {@link Continuation0}) which will write X's {@link
+	 * To trace an object X with children Y and Z, first push onto the work
+	 * stack an action (a {@link Continuation0}) which will write X's {@link
 	 * SerializerInstruction}.  Then examine X to discover Y and Z, pushing
 	 * {@code Continuation0}s which will trace Y then trace Z.  Since those will
 	 * be processed completely before the first action gets a chance to run
@@ -254,30 +286,11 @@ public class Serializer
 	 * @param object The object to trace.
 	 */
 	void traceOne (
-		final A_BasicObject object)
+		final AvailObject object)
 	{
-		final SerializerInstruction instruction;
-		if (encounteredObjects.containsKey(object))
-		{
-			instruction = encounteredObjects.get(object);
-		}
-		else
-		{
-			// Build but don't yet emit the instruction.
-			final SerializerOperation operation;
-			if (specialObjects.containsKey(object))
-			{
-				operation = SerializerOperation.SPECIAL_OBJECT;
-			}
-			else
-			{
-				operation = object.serializerOperation();
-			}
-			instruction = new SerializerInstruction(
-				(AvailObject) object,
-				operation);
-			encounteredObjects.put(object, instruction);
-		}
+		// Build but don't yet emit the instruction.
+		final SerializerInstruction instruction =
+			encounteredObjects.computeIfAbsent(object, this::newInstruction);
 		// Do nothing if the object's instruction has already been emitted.
 		if (!instruction.hasBeenWritten())
 		{
@@ -294,8 +307,7 @@ public class Serializer
 				{
 					if (!instruction.hasBeenWritten())
 					{
-						instruction.index(instructionsWritten);
-						instructionsWritten++;
+						instruction.index(instructionsWritten++);
 						instruction.writeTo(Serializer.this);
 						assert instruction.hasBeenWritten();
 					}
@@ -304,61 +316,60 @@ public class Serializer
 				@Override
 				public String toString ()
 				{
-					return "Assemble " + instruction.operation + "("
-						+ instruction.object + ")";
+					return "Assemble " + instruction.operation()
+						+ '(' + object + ')';
 				}
 			});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
-			final A_BasicObject[] subobjects = instruction.decomposed(this);
 			final SerializerOperand[] operands =
 				instruction.operation().operands();
+			final A_BasicObject[] subobjects = instruction.subobjects();
 			assert subobjects.length == operands.length;
-			for (int i = operands.length - 1; i >= 0; i--)
+			for (int i = subobjects.length - 1; i >= 0; i--)
 			{
-				final int index = i;
+				final SerializerOperand operand = operands[i];
+				final A_BasicObject operandValue = subobjects[i];
 				workStack.addLast(new Continuation0()
 				{
+
 					@Override
 					public void value ()
 					{
-						operands[index].trace(
-							(AvailObject) subobjects[index],
+						operand.trace(
+							(AvailObject) operandValue,
 							Serializer.this);
 					}
 
 					@Override
 					public String toString ()
 					{
-						return "Trace(" + subobjects[index] + ")";
+						return "Trace(" + operandValue + ')';
 					}
 				});
 			}
-			if (instruction.operation.isVariableCreation())
+			if (instruction.operation().isVariableCreation()
+				&& !object.value().equalsNil())
 			{
-				final A_Variable variable = (A_Variable)object;
-				if (!variable.value().equalsNil())
+				variablesToAssign.add(object);
+				// Output an action to the *start* of the workStack to trace the
+				// variable's value.  This prevents recursion, but ensures that
+				// everything reachable, including through variables, will be
+				// traced.
+				workStack.addFirst(new Continuation0()
 				{
-					variablesToAssign.add(variable);
-					// Output an action to the *start* of the workStack to trace
-					// the variable's value.  This prevents recursion, but
-					// ensures that everything reachable, including through
-					// variables, will be traced.
-					workStack.addFirst(new Continuation0()
+					@Override
+					public void value ()
 					{
-						@Override
-						public void value ()
-						{
-							traceOne(variable.value());
-						}
+						traceOne(object.value());
+					}
 
-						@Override
-						public String toString ()
-						{
-							return "TraceVariable(" + variable.kind() + ")";
-						}
-					});
-				}
+					@Override
+					public String toString ()
+					{
+						return "TraceVariable(" + object.kind() + ')';
+					}
+				});
 			}
 		}
 	}
@@ -383,6 +394,7 @@ public class Serializer
 			if (specialAtom != null)
 			{
 				specialAtoms.put(specialAtom, i);
+				specialAtomsByName.put(specialAtom.atomName(), specialAtom);
 			}
 		}
 	}
@@ -405,7 +417,8 @@ public class Serializer
 	 */
 	public void serialize (final A_BasicObject object)
 	{
-		traceOne(object);
+		final AvailObject strongObject = (AvailObject) object;
+		traceOne(strongObject);
 		while (!workStack.isEmpty())
 		{
 			workStack.removeLast().value();
@@ -416,8 +429,9 @@ public class Serializer
 			assert !variable.value().equalsNil();
 			final SerializerInstruction assignment =
 				new SerializerInstruction(
-					(AvailObject) variable,
-					SerializerOperation.ASSIGN_TO_VARIABLE);
+					SerializerOperation.ASSIGN_TO_VARIABLE,
+					variable,
+					this);
 			assignment.index(instructionsWritten);
 			instructionsWritten++;
 			assignment.writeTo(this);
@@ -427,8 +441,9 @@ public class Serializer
 		// Finally, write a checkpoint to say there's something ready for the
 		// deserializer to answer.
 		final SerializerInstruction checkpoint = new SerializerInstruction(
-			(AvailObject) object,
-			SerializerOperation.CHECKPOINT);
+			SerializerOperation.CHECKPOINT,
+			strongObject,
+			this);
 		checkpoint.index(instructionsWritten);
 		instructionsWritten++;
 		checkpoint.writeTo(this);

@@ -31,9 +31,9 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.ParsingOperation;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -109,16 +109,17 @@ extends Expression
 	public String toString ()
 	{
 		return getClass().getSimpleName() +
-			"(" + messageSplitter.messagePartsList.get(tokenIndex - 1) + ")";
+			'(' + messageSplitter.messagePartsList.get(tokenIndex - 1) + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		final A_String token = messageSplitter.messagePartsList.get(tokenIndex - 1);
+		final A_String token =
+			messageSplitter.messagePartsList.get(tokenIndex - 1);
 		builder.append(token.asNativeString());
 	}
 

@@ -31,15 +31,27 @@
  */
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.emptySet;
@@ -96,7 +108,7 @@ public final class L2ValueManifest
 	/**
 	 * Create an empty manifest.
 	 */
-	public L2ValueManifest ()
+	L2ValueManifest ()
 	{
 		this.semanticValueToRegister = new HashMap<>();
 		this.registerToSemanticValues = new HashMap<>();
@@ -407,9 +419,13 @@ public final class L2ValueManifest
 		// Note that the set of knownImmutables is allowed to include values for
 		// which there is not currently a bound semantic value in the manifest.
 		semanticValuesKnownToBeImmutable.addAll(knownImmutables);
+		final Map<List<L2Register<?>>, L2ReadOperand<?, ?>> phiMap =
+			new HashMap<>();
 		for (final L2SemanticValue semanticValue : semanticValues)
 		{
 			final List<L2ReadOperand<?, ?>> sources =
+				new ArrayList<>(manifests.size());
+			final List<L2Register<?>> sourceRegisters =
 				new ArrayList<>(manifests.size());
 			final Set<L2Register<?>> distinctRegisters = new HashSet<>();
 			@Nullable TypeRestriction<?> restriction = null;
@@ -419,41 +435,30 @@ public final class L2ValueManifest
 					stripNull(manifest.semanticValueToRegister(semanticValue));
 				final L2Register<?> register = reader.register();
 				sources.add(reader);
+				sourceRegisters.add(register);
 				distinctRegisters.add(register);
 				restriction = restriction == null
 					? reader.restriction()
 					: restriction.union((TypeRestriction) reader.restriction());
 			}
 			assert restriction != null;
-			final @Nullable A_BasicObject constant = restriction.constantOrNull;
-			final @Nullable L2SemanticValue constantSemanticValue =
-				constant != null
-					? L2SemanticValue.constant(constant)
-					: null;
 			if (distinctRegisters.size() == 1)
 			{
 				// All of the incoming edges had the same register bound to the
 				// semantic value.
-				//noinspection unchecked,rawtypes
 				addBinding(
 					semanticValue,
-					distinctRegisters.iterator().next().read(
+					sourceRegisters.get(0).read(
 						(TypeRestriction) restriction));
 			}
-			else if (constantSemanticValue != null
-				&& semanticValueToRegister.containsKey(constantSemanticValue))
+			else if (phiMap.containsKey(sourceRegisters))
 			{
-				// We've already made this value available in an existing
-				// register.  Add another binding for the semantic value we're
-				// adding.  Make sure to skip it if it was added as a constant
-				// binding (as part of the phi case below) and we're trying to
-				// add that same binding again.
-				if (!semanticValue.equals(constantSemanticValue))
-				{
-					addBinding(
-						semanticValue,
-						semanticValueToRegister.get(constantSemanticValue));
-				}
+				// This combination of input registers already occurs as a phi
+				// in this block.  Simply bind the existing phi to this
+				// additional semanticValue.
+				final L2ReadOperand<?, ?> existingPhi =
+					phiMap.get(sourceRegisters);
+				addBinding(semanticValue, existingPhi);
 			}
 			else
 			{
@@ -467,15 +472,9 @@ public final class L2ValueManifest
 					L2_PHI_PSEUDO_OPERATION.instance,
 					new L2ReadVectorOperand(sources),
 					newWrite);
-				addBinding(semanticValue, newWrite.read());
-				if (constantSemanticValue != null
-					&& !semanticValueToRegister.containsKey(
-						constantSemanticValue))
-				{
-					// It's also a constant, so make it available as such if it
-					// isn't already.
-					addBinding(constantSemanticValue, newWrite.read());
-				}
+				final L2ReadOperand<?, ?> newRead = newWrite.read();
+				phiMap.put(sourceRegisters, newRead);
+				addBinding(semanticValue, newRead);
 			}
 		}
 	}

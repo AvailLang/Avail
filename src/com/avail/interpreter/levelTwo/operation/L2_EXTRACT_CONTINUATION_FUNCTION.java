@@ -53,7 +53,7 @@ import static org.objectweb.asm.Type.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_EXTRACT_CONTINUATION_FUNCTION
+public final class L2_EXTRACT_CONTINUATION_FUNCTION
 extends L2Operation
 {
 	/**

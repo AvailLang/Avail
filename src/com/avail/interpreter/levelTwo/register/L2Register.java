@@ -366,7 +366,7 @@ public abstract class L2Register<T extends A_BasicObject>
 			String constString = restriction.constantOrNull.toString();
 			if (constString.length() > 50)
 			{
-				constString = constString.substring(0, 50) + "…";
+				constString = constString.substring(0, 50) + '…';
 			}
 			//noinspection DynamicRegexReplaceableByCompiledPattern
 			constString = constString

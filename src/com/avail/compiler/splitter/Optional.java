@@ -35,7 +35,6 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
@@ -50,7 +49,9 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code Optional} is a {@link Sequence} wrapped in guillemets («»), and
@@ -173,7 +174,6 @@ extends Expression
 
 	void emitInRunThen (
 		final InstructionGenerator generator,
-		final A_Type phraseType,
 		final Continuation0 continuation)
 	{
 		// emit branch $absent.
@@ -216,23 +216,22 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + sequence + ")";
+		return getClass().getSimpleName() + '(' + sequence + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert argumentProvider != null;
-		final A_Phrase literal = argumentProvider.next();
+		final A_Phrase literal = stripNull(argumentProvider).next();
 		assert literal.isInstanceOf(
 			ParseNodeKind.LITERAL_NODE.mostGeneralType());
 		final boolean flag = literal.token().literal().extractBoolean();
 		if (flag)
 		{
-			builder.append("«");
+			builder.append('«');
 			sequence.printWithArguments(
 				Collections.emptyIterator(), builder, indent);
 			builder.append("»?");

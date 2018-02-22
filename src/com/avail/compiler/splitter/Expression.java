@@ -31,8 +31,8 @@
  */
 package com.avail.compiler.splitter;
 
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.SignatureException;
@@ -230,17 +230,15 @@ abstract class Expression
 	/**
 	 * Pretty-print this part of the message, using the provided argument
 	 * {@linkplain ParseNodeDescriptor nodes}.
-	 *
-	 * @param arguments
+	 *  @param arguments
 	 *        An {@link Iterator} that provides parse nodes to fill in for
 	 *        arguments and subgroups.
 	 * @param builder
 	 *        The {@link StringBuilder} on which to print.
 	 * @param indent
-	 *        The indentation level.
 	 */
 	public abstract void printWithArguments (
-		@Nullable Iterator<AvailObject> arguments,
+		@Nullable Iterator<? extends A_Phrase> arguments,
 		StringBuilder builder,
 		int indent);
 

@@ -81,7 +81,7 @@ public final class L2Optimizer
 	public final List<L2BasicBlock> blocks;
 
 	/** Whether to sanity-check the graph between optimization steps. */
-	public static boolean shouldSanityCheck = false;
+	public static boolean shouldSanityCheck = true;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
@@ -905,11 +905,11 @@ public final class L2Optimizer
 			builder.append(":\n");
 			for (final L2Instruction instruction : block.instructions())
 			{
-				builder.append("\t");
+				builder.append('\t');
 				builder.append(increaseIndentation(instruction.toString(), 1));
-				builder.append("\n");
+				builder.append('\n');
 			}
-			builder.append("\n");
+			builder.append('\n');
 		}
 		return builder.toString();
 	}

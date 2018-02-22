@@ -33,19 +33,23 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.IntegerSlots.TUPLE_TYPE_COMPLEXITY;
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.FIRST_TUPLE_TYPE;
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.SECOND_TUPLE_TYPE;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.IntegerSlots.TUPLE_TYPE_COMPLEXITY;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.ObjectSlots.FIRST_TUPLE_TYPE;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.ObjectSlots.SECOND_TUPLE_TYPE;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -552,7 +556,7 @@ extends TypeDescriptor
 	 * @return The type of the specified index within the concatenated tuple
 	 *         type.
 	 */
-	@InnerAccess static A_Type elementOfConcatenation (
+	private static A_Type elementOfConcatenation (
 		final A_Type firstTupleType,
 		final A_Type secondTupleType,
 		final int index)

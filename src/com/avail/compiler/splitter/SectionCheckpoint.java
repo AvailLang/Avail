@@ -32,14 +32,15 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION;
+import static com.avail.compiler.ParsingOperation
+	.PREPARE_TO_RUN_PREFIX_FUNCTION;
 import static com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION;
 
 /**
@@ -113,11 +114,11 @@ extends Expression
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		builder.append("§");
+		builder.append('§');
 	}
 
 	@Override

@@ -405,6 +405,6 @@ public final class L2BasicBlock
 	@Override
 	public String toString ()
 	{
-		return "BasicBlock(" + name + ")";
+		return "BasicBlock(" + name + ')';
 	}
 }

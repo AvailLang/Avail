@@ -59,7 +59,7 @@ import static org.objectweb.asm.Type.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_UNBOX_INT
+public final class L2_JUMP_IF_UNBOX_INT
 extends L2Operation
 {
 	/**

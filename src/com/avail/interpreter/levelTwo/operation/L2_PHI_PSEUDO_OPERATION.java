@@ -68,7 +68,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_PHI;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_PHI_PSEUDO_OPERATION
+public final class L2_PHI_PSEUDO_OPERATION
 extends L2Operation
 {
 	/**

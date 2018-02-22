@@ -31,8 +31,8 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.LiteralNodeDescriptor;
 
 import javax.annotation.Nullable;
@@ -41,7 +41,9 @@ import java.util.Iterator;
 
 import static com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.EXPRESSION_NODE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ArgumentInModuleScope} is an occurrence of an {@linkplain
@@ -100,16 +102,15 @@ extends Argument
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert arguments != null;
 		// Describe the token that was parsed as this raw token argument.
-		arguments.next().printOnAvoidingIndent(
+		stripNull(arguments).next().printOnAvoidingIndent(
 			builder,
 			new IdentityHashMap<>(),
 			indent + 1);
-		builder.append("†");
+		builder.append('†');
 	}
 }

@@ -34,7 +34,13 @@ package com.avail.compiler.splitter;
 
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InfinityDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -44,7 +50,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter
+	.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -53,11 +60,14 @@ import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@linkplain Group} is delimited by the {@linkplain
@@ -865,19 +875,18 @@ extends Expression
 			builder.append(s);
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert argumentProvider != null;
 		final boolean needsDouble = needsDoubleWrapping();
-		final A_Phrase groupArguments = argumentProvider.next();
+		final A_Phrase groupArguments = stripNull(argumentProvider).next();
 		final Iterator<AvailObject> occurrenceProvider =
 			groupArguments.expressionsTuple().iterator();
 		while (occurrenceProvider.hasNext())
@@ -938,7 +947,7 @@ extends Expression
 		final int indent,
 		final boolean completeGroup)
 	{
-		builder.append("«");
+		builder.append('«');
 		final List<Expression> expressionsToVisit;
 		if (completeGroup && !afterDagger.expressions.isEmpty())
 		{
@@ -960,14 +969,14 @@ extends Expression
 			if (expr == null)
 			{
 				// Place-holder for the double-dagger.
-				builder.append("‡");
+				builder.append('‡');
 				needsSpace = false;
 			}
 			else
 			{
 				if (needsSpace && expr.shouldBeSeparatedOnLeft())
 				{
-					builder.append(" ");
+					builder.append(' ');
 				}
 				final int oldLength = builder.length();
 				expr.printWithArguments(argumentProvider, builder, indent);
@@ -976,7 +985,7 @@ extends Expression
 			}
 		}
 		assert !argumentProvider.hasNext();
-		builder.append("»");
+		builder.append('»');
 	}
 
 	@Override

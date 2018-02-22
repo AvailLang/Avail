@@ -33,8 +33,14 @@
 package com.avail.serialization;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IndexedIntGenerator;
 
 import java.io.OutputStream;
@@ -46,10 +52,14 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.generateTwoByteString;
 
 /**
  * A {@code SerializerOperandEncoding} is an encoding algorithm for part of a
@@ -321,7 +331,7 @@ enum SerializerOperandEncoding
 			// Visit the *elements* of the tuple.
 			for (final A_BasicObject element : object)
 			{
-				serializer.traceOne(element);
+				serializer.traceOne((AvailObject) element);
 			}
 		}
 
@@ -555,6 +565,11 @@ enum SerializerOperandEncoding
 		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
+			if (tupleSize == 0)
+			{
+				// Reasonably common case.
+				return emptyTuple();
+			}
 			return generateNybbleTupleFrom(
 				tupleSize,
 				new IndexedIntGenerator()

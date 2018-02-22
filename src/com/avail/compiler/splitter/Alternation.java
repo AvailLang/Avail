@@ -32,8 +32,8 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -182,7 +182,7 @@ extends Expression
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(getClass().getSimpleName());
-		builder.append("(");
+		builder.append('(');
 		boolean first = true;
 		for (final Expression expression : alternatives)
 		{
@@ -193,13 +193,13 @@ extends Expression
 			builder.append(expression);
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -208,7 +208,7 @@ extends Expression
 		{
 			if (!isFirst)
 			{
-				builder.append("|");
+				builder.append('|');
 			}
 			alternative.printWithArguments(
 				null,
