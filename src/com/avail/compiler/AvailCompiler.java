@@ -2910,10 +2910,17 @@ public final class AvailCompiler
 							builder.format("%n\t\t\t#%d = %s", i, s);
 						}
 					}
-					assert !allVisible.isEmpty()
-						: "No visible implementations; should have "
-							+ "been excluded.";
-					c.value(builder.toString());
+					if (allVisible.isEmpty())
+					{
+						c.value(
+							"[[[Internal problem - No visible implementations;"
+								+ " should have been excluded.]]]\n"
+								+ builder.toString());
+					}
+					else
+					{
+						c.value(builder.toString());
+					}
 				});
 		};
 	}
