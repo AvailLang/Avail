@@ -44,8 +44,8 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * Information that a {@link ModuleHeader} uses to keep track of a module
- * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
- * {@linkplain ExpectedToken#USES Uses} clause.
+ * import, whether from an Extends clause or a Uses clause, as specified by the
+ * {@link MethodDescriptor.SpecialMethodAtom#MODULE_HEADER_METHOD}.
  */
 public class ModuleImport
 {
@@ -62,9 +62,9 @@ public class ModuleImport
 	public final A_Set acceptableVersions;
 
 	/**
-	 * Whether this {@link ModuleImport} is due to a {@linkplain
-	 * ExpectedToken#EXTENDS Extends} clause rather than a {@linkplain
-	 * ExpectedToken#USES Uses} clause.
+	 * Whether this {@link ModuleImport} is due to an Extends clause rather than
+	 * a Uses clause, as indicated by {@link
+	 * MethodDescriptor.SpecialMethodAtom#MODULE_HEADER_METHOD}.
 	 */
 	public final boolean isExtension;
 
@@ -154,9 +154,8 @@ public class ModuleImport
 	}
 
 	/**
-	 * Produce an {@linkplain ModuleImport import} that represents an
-	 * {@link ExpectedToken#EXTENDS Extend} of the provided {@linkplain
-	 * A_Module module}.
+	 * Produce a {@link ModuleImport} that represents an extension of the
+	 * provided {@link A_Module}.
 	 *
 	 * @param module
 	 *        A module.
@@ -244,7 +243,7 @@ public class ModuleImport
 				// This will quote the string.
 				builder.append(redundant);
 			}
-			builder.append(")");
+			builder.append(')');
 			throw new ImportValidationException(builder.toString());
 		}
 	}

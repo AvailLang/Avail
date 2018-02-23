@@ -1836,12 +1836,15 @@ public final class Interpreter
 	 *        What zero-argument function to invoke after reification.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
+	 * @param shouldReturnNow
+	 *        Whether an Avail return should happen after reification.
 	 * @return The {@link StackReifier} that collects reified continuations on
 	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
-		final Statistic reificationStatistic)
+		final Statistic reificationStatistic,
+		final boolean shouldReturnNow)
 	{
 		return reifyThen(
 			reificationStatistic,
@@ -1851,6 +1854,7 @@ public final class Interpreter
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
+				returnNow = shouldReturnNow;
 			});
 	}
 
@@ -1863,6 +1867,8 @@ public final class Interpreter
 	 *        What three-argument function to invoke after reification.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
+	 * @param shouldReturnNow
+	 *        Whether an Avail return should happen after reification.
 	 * @param arg1
 	 *        The first argument of the function.
 	 * @param arg2
@@ -1875,6 +1881,7 @@ public final class Interpreter
 	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
 		final Statistic reificationStatistic,
+		final boolean shouldReturnNow,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2,
 		final A_BasicObject arg3)
@@ -1890,14 +1897,15 @@ public final class Interpreter
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
+				returnNow = shouldReturnNow;
 			});
 	}
 
 	/**
-	 * Immediately throw a {@link StackReifier}.  Various Java stack
-	 * frames will catch and rethrow it, accumulating reified {@link
-	 * A_Continuation}s along the way.  The outer interpreter loop should catch
-	 * this, then run the provided {@link Continuation0}.
+	 * Create and return a {@link StackReifier}.  This will get returned all the
+	 * way out to the {@link #run()} method, accumulating reified stack frames
+	 * along the way.  The run() method will then invoke the given
+	 * postReificationAction and resume execution.
 	 *
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.

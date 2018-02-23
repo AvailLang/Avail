@@ -741,8 +741,7 @@ public class AvailScanner
 				final A_Token token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
-					&& token.string().equals(
-						ExpectedToken.BODY.lexeme()))
+					&& token.string().equals(ExpectedToken.BODY.lexeme()))
 				{
 					scanner.encounteredBodyToken = true;
 				}

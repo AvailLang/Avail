@@ -1049,6 +1049,7 @@ public final class L1InstructionStepper
 		return interpreter.reifyThenCall3(
 			interpreter.runtime().invalidMessageSendFunction(),
 			reificationForFailedLookupStat,
+			false,
 			errorCode.numericCode(),
 			method,
 			tupleFromList(interpreter.argsBuffer));
