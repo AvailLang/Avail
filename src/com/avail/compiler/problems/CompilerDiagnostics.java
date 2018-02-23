@@ -701,15 +701,9 @@ public class CompilerDiagnostics
 					}
 					// Avoid using direct recursion to keep the stack
 					// from getting too deep.
-					currentRuntime().execute(new AvailTask(
-						FiberDescriptor.compilerPriority)
-					{
-						@Override
-						public void value ()
-						{
-							continueReport.value().value();
-						}
-					});
+					currentRuntime().execute(
+						FiberDescriptor.compilerPriority,
+						() -> continueReport.value().value());
 				});
 		};
 		// Initiate all the grouped error printing.

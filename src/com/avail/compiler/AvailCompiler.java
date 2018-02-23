@@ -663,15 +663,8 @@ public final class AvailCompiler
 						sourceBuilder.append(output);
 						file.close();
 						runtime.execute(
-							new AvailTask(FiberDescriptor.compilerPriority)
-							{
-								@Override
-								public void value ()
-								{
-									continuation.value(
-										sourceBuilder.toString());
-								}
-							});
+							FiberDescriptor.compilerPriority,
+							() -> continuation.value(sourceBuilder.toString()));
 					}
 				}
 				catch (final IOException e)
@@ -2295,6 +2288,12 @@ public final class AvailCompiler
 	 *        first argument.
 	 * @param consumedAnything
 	 *        Whether any tokens or arguments have been consumed yet.
+	 * @param consumedTokens
+	 *        The immutable {@link List} of "static" {@link A_Token}s that have
+	 *        been encountered and consumed for the current method or macro
+	 *        invocation being parsed.  These are the tokens that correspond
+	 *        with tokens that occur verbatim inside the name of the method or
+	 *        macro.
 	 * @param successorTrees
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        MessageBundleTreeDescriptor bundle trees} at which to continue

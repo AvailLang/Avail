@@ -32,7 +32,6 @@
 
 package com.avail;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
@@ -87,9 +86,11 @@ import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
@@ -104,7 +105,8 @@ import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -351,6 +353,25 @@ public final class AvailRuntime
 	public void execute (final AvailTask task)
 	{
 		executor.execute(task);
+	}
+
+	/**
+	 * Schedule the specified {@linkplain AvailTask task} for eventual
+	 * execution. The implementation is free to run the task immediately or
+	 * delay its execution arbitrarily. The task is guaranteed to execute on an
+	 * {@linkplain AvailThread Avail thread}.
+	 *
+	 * @param priority
+	 *        The desired priority, a long tied to milliseconds since the
+	 *        current epoch.
+	 * @param body
+	 *        The {@link Continuation0} to execute for this task.
+	 */
+	public void execute (
+		final int priority,
+		final Continuation0 body)
+	{
+		executor.execute(new AvailTask(priority, body));
 	}
 
 	/**
@@ -1957,7 +1978,7 @@ public final class AvailRuntime
 	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
 	 * Level Two chunk.  These two activities are mutually exclusive.</p>
 	 */
-	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
+	private final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
 	/**
 	 * The {@linkplain Queue queue} of Level One-safe {@linkplain Runnable
@@ -1970,34 +1991,34 @@ public final class AvailRuntime
 	 * running} a Level Two chunk. These two activities are mutually exclusive.
 	 * </p>
 	 */
-	@InnerAccess final Queue<AvailTask> levelOneSafeTasks = new ArrayDeque<>();
+	private final Queue<AvailTask> levelOneSafeTasks = new ArrayDeque<>();
 
 	/**
 	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain
 	 * Runnable tasks}. A Level One-unsafe task requires that no
 	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
 	 */
-	@InnerAccess final Queue<AvailTask> levelOneUnsafeTasks = new ArrayDeque<>();
+	private final Queue<AvailTask> levelOneUnsafeTasks = new ArrayDeque<>();
 
 	/**
 	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that
 	 * have been {@linkplain #executor scheduled for execution} but have not
 	 * yet reached completion.
 	 */
-	@InnerAccess int incompleteLevelOneSafeTasks = 0;
+	private int incompleteLevelOneSafeTasks = 0;
 
 	/**
 	 * The number of {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks}
 	 * that have been {@linkplain #executor scheduled for execution} but have
 	 * not yet reached completion.
 	 */
-	@InnerAccess int incompleteLevelOneUnsafeTasks = 0;
+	private int incompleteLevelOneUnsafeTasks = 0;
 
 	/**
 	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
 	 * safety} been requested?
 	 */
-	@InnerAccess volatile boolean levelOneSafetyRequested = false;
+	private volatile boolean levelOneSafetyRequested = false;
 
 	/**
 	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
@@ -2027,10 +2048,9 @@ public final class AvailRuntime
 		final int priority,
 		final Continuation0 unsafeAction)
 	{
-		final AvailTask wrapped = new AvailTask(priority)
-		{
-			@Override
-			public void value ()
+		final AvailTask wrapped = new AvailTask(
+			priority,
+			() ->
 			{
 				try
 				{
@@ -2065,8 +2085,7 @@ public final class AvailRuntime
 						levelOneSafeLock.unlock();
 					}
 				}
-			}
-		};
+			});
 		levelOneSafeLock.lock();
 		try
 		{
@@ -2107,10 +2126,9 @@ public final class AvailRuntime
 		final int priority,
 		final Continuation0 safeAction)
 	{
-		final AvailTask task = new AvailTask(priority)
-		{
-			@Override
-			public void value ()
+		final AvailTask task = new AvailTask(
+			priority,
+			() ->
 			{
 				try
 				{
@@ -2134,10 +2152,9 @@ public final class AvailRuntime
 							levelOneSafetyRequested = false;
 							incompleteLevelOneUnsafeTasks =
 								levelOneUnsafeTasks.size();
-							//noinspection AnonymousClassVariableHidesContainingMethodVariable
-							for (final AvailTask task : levelOneUnsafeTasks)
+							for (final AvailTask t : levelOneUnsafeTasks)
 							{
-								execute(task);
+								execute(t);
 							}
 							levelOneUnsafeTasks.clear();
 						}
@@ -2147,8 +2164,7 @@ public final class AvailRuntime
 						levelOneSafeLock.unlock();
 					}
 				}
-			}
-		};
+			});
 		levelOneSafeLock.lock();
 		try
 		{

@@ -33,7 +33,6 @@
 package com.avail.environment.actions;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
@@ -50,20 +49,15 @@ public final class ParserIntegrityCheckAction
 extends AbstractWorkbenchAction
 {
 	/** The current runtime. */
-	final AvailRuntime runtime;
+	private final AvailRuntime runtime;
 
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		workbench.clearTranscript();
-		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
-		{
-			@Override
-			public void value ()
-			{
-				runtime.integrityCheck();
-			}
-		});
+		runtime.execute(
+			FiberDescriptor.commandPriority,
+			runtime::integrityCheck);
 	}
 
 	/**

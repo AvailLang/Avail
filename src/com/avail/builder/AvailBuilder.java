@@ -757,10 +757,9 @@ public final class AvailBuilder
 						{
 							traceRequests++;
 						}
-						runtime.execute(new AvailTask(0)
-						{
-							@Override
-							public void value ()
+						runtime.execute(
+							0,
+							() ->
 							{
 								final StringBuilder builder =
 									new StringBuilder(100);
@@ -785,8 +784,7 @@ public final class AvailBuilder
 									new ResolvedModuleName(
 										moduleName, moduleRoots, false);
 								traceOneModuleHeader(resolved, moduleAction);
-							}
-						});
+							});
 						return CONTINUE;
 					}
 
@@ -982,10 +980,9 @@ public final class AvailBuilder
 		{
 			assert moduleName != null;
 			assert completionAction != null;
-			runtime.execute(new AvailTask(loaderPriority)
-			{
-				@Override
-				public void value()
+			runtime.execute(
+				loaderPriority,
+				() ->
 				{
 					boolean dirty = false;
 					for (final ResolvedModuleName predecessor :
@@ -1026,8 +1023,7 @@ public final class AvailBuilder
 					loadedModule.deletionRequest = dirty;
 					log(Level.FINEST, "(Module %s is dirty)", moduleName);
 					completionAction.value();
-				}
-			});
+				});
 		}
 
 		/**
@@ -1117,26 +1113,23 @@ public final class AvailBuilder
 				assert moduleName != null;
 				assert completionAction != null;
 				runtime.execute(
-					new AvailTask(loaderPriority)
+					loaderPriority,
+					() ->
 					{
-						@Override
-						public void value()
+						for (final ResolvedModuleName predecessor
+							: moduleGraph.predecessorsOf(moduleName))
 						{
-							for (final ResolvedModuleName predecessor
-								: moduleGraph.predecessorsOf(moduleName))
+							final LoadedModule predecessorLoadedModule =
+								stripNull(getLoadedModule(predecessor));
+							if (predecessorLoadedModule.deletionRequest)
 							{
-								final LoadedModule predecessorLoadedModule =
-									stripNull(getLoadedModule(predecessor));
-								if (predecessorLoadedModule.deletionRequest)
-								{
-									final LoadedModule loadedModule =
-										stripNull(getLoadedModule(moduleName));
-									loadedModule.deletionRequest = true;
-									break;
-								}
+								final LoadedModule loadedModule =
+									stripNull(getLoadedModule(moduleName));
+								loadedModule.deletionRequest = true;
+								break;
 							}
-							completionAction.value();
 						}
+						completionAction.value();
 					});
 			}
 		};
@@ -1231,10 +1224,9 @@ public final class AvailBuilder
 			final @Nullable ResolvedModuleName resolvedSuccessor,
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
-			runtime.execute(new AvailTask(tracerPriority)
-			{
-				@Override
-				public void value ()
+			runtime.execute(
+				tracerPriority,
+				() ->
 				{
 					if (!shouldStopBuild())
 					{
@@ -1284,8 +1276,7 @@ public final class AvailBuilder
 						// account for the previous increment of traceRequests.
 						indicateTraceCompleted();
 					}
-				}
-			});
+				});
 		}
 
 		/**
@@ -1639,10 +1630,9 @@ public final class AvailBuilder
 				completionAction.value();
 				return;
 			}
-			runtime.execute(new AvailTask(loaderPriority)
-			{
-				@Override
-				public void value ()
+			runtime.execute(
+				loaderPriority,
+				() ->
 				{
 					if (shouldStopBuild())
 					{
@@ -1654,8 +1644,7 @@ public final class AvailBuilder
 					{
 						loadModule(target, completionAction);
 					}
-				}
-			});
+				});
 		}
 
 		/**
@@ -2301,10 +2290,9 @@ public final class AvailBuilder
 				completionAction.value();
 				return;
 			}
-			runtime.execute(new AvailTask(loaderPriority)
-			{
-				@Override
-				public void value ()
+			runtime.execute(
+				loaderPriority,
+				() ->
 				{
 					if (shouldStopBuild())
 					{
@@ -2316,8 +2304,7 @@ public final class AvailBuilder
 					{
 						loadComments(moduleName, completionAction);
 					}
-				}
-			});
+				});
 		}
 
 		/**
@@ -3064,15 +3051,10 @@ public final class AvailBuilder
 		final Continuation0 onFailure)
 	{
 		clearShouldStopBuild();
-		runtime.execute(new AvailTask(commandPriority)
-		{
-			@Override
-			public void value ()
-			{
-				scheduleAttemptCommand(
-					command, onAmbiguity, onSuccess, onFailure);
-			}
-		});
+		runtime.execute(
+			commandPriority,
+			() -> scheduleAttemptCommand(
+				command, onAmbiguity, onSuccess, onFailure));
 	}
 
 	/**
@@ -3328,14 +3310,9 @@ public final class AvailBuilder
 			for (final Continuation1NotNull<Continuation0> continuation :
 				continuations)
 			{
-				runtime.execute(new AvailTask(commandPriority)
-				{
-					@Override
-					public void value ()
-					{
-						continuation.value(decrement);
-					}
-				});
+				runtime.execute(
+					commandPriority,
+					() -> continuation.value(decrement));
 			}
 		};
 	}

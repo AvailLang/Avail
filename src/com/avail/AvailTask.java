@@ -52,9 +52,50 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.SCHEDULED
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class AvailTask
+public final class AvailTask
 implements Comparable<AvailTask>, Runnable
 {
+	/** The action to perform for this task. */
+	private final Continuation0 body;
+
+	/**
+	 * The priority of the {@linkplain AvailTask task}.  It must be a value in
+	 * the range 0..255.
+	 *
+	 * @see #quasiDeadline
+	 */
+	public final int priority;
+
+	/**
+	 * The quasi-deadline of the task.  This is the moment that the task can no
+	 * longer be preceded by a new task.  Given a priority in the range 0..255,
+	 * the quasi-deadline is System.currentTimeMillis() plus a time delta.  The
+	 * delta is 1000ms * (1 - (priority / 256)).  That places it one second in
+	 * the future for priority = 0, and places it essentially at the current
+	 * moment for priority = 255.
+	 */
+	private final long quasiDeadline;
+
+	/**
+	 * Construct a new {@code AvailTask}.
+	 *
+	 * @param priority
+	 *        The desired priority, a long tied to milliseconds since the
+	 *        current epoch.
+	 * @param body
+	 *        The {@link Continuation0} to execute for this task.
+	 */
+	public AvailTask (
+		final int priority,
+		final Continuation0 body)
+	{
+		assert priority >= 0 && priority <= 255;
+		this.priority = priority;
+		final long deltaNanos = (1_000_000_000L * (255 - priority)) >> 8;
+		this.quasiDeadline = System.nanoTime() + deltaNanos;
+		this.body = body;
+	}
+
 	/**
 	 * Answer an {@code AvailTask} suitable for resuming the specified
 	 * {@linkplain FiberDescriptor fiber} using the specified {@linkplain
@@ -193,40 +234,6 @@ implements Comparable<AvailTask>, Runnable
 		};
 	}
 
-	/**
-	 * The priority of the {@linkplain AvailTask task}.  It must be a value in
-	 * the range 0..255.
-	 *
-	 * @see #quasiDeadline
-	 */
-	public final int priority;
-
-	/**
-	 * The quasi-deadline of the task.  This is the moment that the task can no
-	 * longer be preceded by a new task.  Given a priority in the range 0..255,
-	 * the quasi-deadline is System.currentTimeMillis() plus a time delta.  The
-	 * delta is 1000ms * (1 - (priority / 256)).  That places it one second in
-	 * the future for priority = 0, and places it essentially at the current
-	 * moment for priority = 255.
-	 */
-	private final long quasiDeadline;
-
-	/**
-	 * Construct a new {@code AvailTask}.
-	 *
-	 * @param priority
-	 *        The desired priority, a long tied to milliseconds since the
-	 *        current epoch.
-	 */
-	public AvailTask (
-		final int priority)
-	{
-		assert priority >= 0 && priority <= 255;
-		this.priority = priority;
-		final long deltaNanos = (1_000_000_000L * (255 - priority)) >> 8;
-		this.quasiDeadline = System.nanoTime() + deltaNanos;
-	}
-
 	@Override
 	public int compareTo (final @Nullable AvailTask other)
 	{
@@ -245,7 +252,7 @@ implements Comparable<AvailTask>, Runnable
 	{
 		try
 		{
-			value();
+			body.value();
 		}
 		catch (final Throwable e)
 		{
@@ -257,7 +264,4 @@ implements Comparable<AvailTask>, Runnable
 			e.printStackTrace();
 		}
 	}
-
-	/** Subclasses must override this to provide specific behavior. */
-	public abstract void value ();
 }

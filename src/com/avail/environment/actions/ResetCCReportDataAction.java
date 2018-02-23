@@ -57,16 +57,11 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
-		{
-			@Override
-			public void value ()
-			{
-				resetCodeCoverageDetailsThen(
-					() -> workbench.writeText("Code coverage data reset.\n",
-						INFO));
-			}
-		});
+		runtime.execute(
+			FiberDescriptor.commandPriority,
+			() -> resetCodeCoverageDetailsThen(
+				() -> workbench.writeText(
+					"Code coverage data reset.\n", INFO)));
 	}
 
 	/**

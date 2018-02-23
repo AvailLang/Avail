@@ -97,25 +97,6 @@ public class CompilationContext
 		CompilationContext.class.getName());
 
 	/**
-	 * A {@link Runnable} which supports a natural ordering (via the {@link
-	 * Comparable} interface) which will favor processing of the leftmost
-	 * available tasks first.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	abstract static class ParsingTask
-		extends AvailTask
-	{
-		/**
-		 * Construct a new {@code ParsingTask}.
-		 */
-		@InnerAccess ParsingTask ()
-		{
-			super(FiberDescriptor.compilerPriority);
-		}
-	}
-
-	/**
 	 * The {@link CompilerDiagnostics} that tracks potential errors during
 	 * compilation.
 	 */
@@ -126,13 +107,12 @@ public class CompilationContext
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
 	 */
-	@InnerAccess
-	final AvailRuntime runtime = currentRuntime();
+	private final AvailRuntime runtime = currentRuntime();
 
 	/**
 	 * The header information for the current module being parsed.
 	 */
-	final @Nullable ModuleHeader moduleHeader;
+	private final @Nullable ModuleHeader moduleHeader;
 
 	public ModuleHeader getModuleHeader ()
 	{
@@ -142,7 +122,7 @@ public class CompilationContext
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	@InnerAccess final A_Module module;
+	private final A_Module module;
 
 	public A_Module module ()
 	{
@@ -155,7 +135,7 @@ public class CompilationContext
 	 *
 	 * @return The module name.
 	 */
-	@InnerAccess ModuleName moduleName ()
+	private ModuleName moduleName ()
 	{
 		return new ModuleName(module().moduleName().asNativeString());
 	}
@@ -165,7 +145,7 @@ public class CompilationContext
 	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
 	 * {@linkplain ModuleDescriptor modules}.
 	 */
-	@Nullable AvailLoader loader;
+	private @Nullable AvailLoader loader;
 
 	public void setLoader (final AvailLoader loader)
 	{
@@ -200,7 +180,7 @@ public class CompilationContext
 	 * A_Fiber fibers} started by this {@linkplain AvailCompiler
 	 * compiler}.
 	 */
-	@InnerAccess final TextInterface textInterface;
+	private final TextInterface textInterface;
 
 	public TextInterface getTextInterface ()
 	{
@@ -208,7 +188,7 @@ public class CompilationContext
 	}
 
 	/** The number of work units that have been queued. */
-	@InnerAccess final AtomicLong workUnitsQueued = new AtomicLong(0);
+	private final AtomicLong workUnitsQueued = new AtomicLong(0);
 
 	public long getWorkUnitsQueued ()
 	{
@@ -216,7 +196,7 @@ public class CompilationContext
 	}
 
 	/** The number of work units that have been completed. */
-	@InnerAccess final AtomicLong workUnitsCompleted = new AtomicLong(0);
+	private final AtomicLong workUnitsCompleted = new AtomicLong(0);
 
 	public long getWorkUnitsCompleted ()
 	{
@@ -226,7 +206,7 @@ public class CompilationContext
 	/**
 	 * What to do when there are no more work units.
 	 */
-	@InnerAccess volatile @Nullable Continuation0 noMoreWorkUnits = null;
+	private volatile @Nullable Continuation0 noMoreWorkUnits = null;
 
 	public @Nullable Continuation0 getNoMoreWorkUnits ()
 	{
@@ -256,7 +236,7 @@ public class CompilationContext
 	 * number on which the last complete statement concluded, the position of
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess final CompilerProgressReporter progressReporter;
+	private final CompilerProgressReporter progressReporter;
 
 	public CompilerProgressReporter getProgressReporter ()
 	{
@@ -296,12 +276,12 @@ public class CompilationContext
 	 * different ideas about what line number they're at, the key is a long,
 	 * computed from (lineNumber << 32) + position.
 	 */
-	final Map<Long, LexingState> lexingStates = new HashMap<>(100);
+	private final Map<Long, LexingState> lexingStates = new HashMap<>(100);
 
 	/**
 	 * The lock used to control access to the {@link #lexingStates}.
 	 */
-	final ReadWriteLock lexingStatesLock = new ReentrantReadWriteLock();
+	private final ReadWriteLock lexingStatesLock = new ReentrantReadWriteLock();
 
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
@@ -340,10 +320,9 @@ public class CompilationContext
 		final LexingState lexingState,
 		final Continuation0 continuation)
 	{
-		runtime.execute(new AvailTask(FiberDescriptor.compilerPriority)
-		{
-			@Override
-			public void value ()
+		runtime.execute(
+			FiberDescriptor.compilerPriority,
+			() ->
 			{
 				try
 				{
@@ -354,8 +333,7 @@ public class CompilationContext
 					reportInternalProblem(
 						lexingState.lineNumber, lexingState.position, e);
 				}
-			}
-		});
+			});
 	}
 
 	/**
@@ -382,9 +360,9 @@ public class CompilationContext
 					+ completed
 					+ " (delta="
 					+ (queued - completed)
-					+ ")"
+					+ ')'
 					+ (countToBeQueued > 1
-						   ? " (bulk=" + countToBeQueued + ")"
+						   ? " (bulk=" + countToBeQueued + ')'
 						   : "")
 					+ "\n\t" + trace.trim());
 		}
@@ -468,7 +446,7 @@ public class CompilationContext
 							+ completed
 							+ " (delta="
 							+ (queued - completed)
-							+ ")");
+							+ ')');
 				}
 				logger.log(
 					Level.FINEST,
@@ -530,14 +508,8 @@ public class CompilationContext
 				final Continuation1NotNull<ArgType> workUnit =
 					workUnitCompletion(lexingState, null, continuation);
 				runtime.execute(
-					new ParsingTask()
-					{
-						@Override
-						public void value ()
-						{
-							workUnit.value(argument);
-						}
-					});
+					FiberDescriptor.compilerPriority,
+					() -> workUnit.value(argument));
 			}
 		}
 		else
@@ -548,14 +520,8 @@ public class CompilationContext
 				: continuations)
 			{
 				runtime.execute(
-					new ParsingTask()
-					{
-						@Override
-						public void value ()
-						{
-							continuation.value(argument);
-						}
-					});
+					FiberDescriptor.compilerPriority,
+					() -> continuation.value(argument));
 			}
 		}
 	}
@@ -649,7 +615,7 @@ public class CompilationContext
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	@InnerAccess void evaluateFunctionThen (
+	private void evaluateFunctionThen (
 		final A_Function function,
 		final int lineNumber,
 		final List<? extends A_BasicObject> args,
@@ -770,7 +736,7 @@ public class CompilationContext
 	 *
 	 * @param function The function that has already run.
 	 */
-	@InnerAccess synchronized void serializeAfterRunning (
+	private synchronized void serializeAfterRunning (
 		final A_Function function)
 	{
 		final A_RawFunction code = function.code();
@@ -810,9 +776,9 @@ public class CompilationContext
 				{
 					System.out.println(
 						module.moduleName().asNativeString()
-							+ ":" + startingLineNumber
+							+ ':' + startingLineNumber
 							+ " Summary -- " + function
-							+ "(batch = " + batchCount + ")");
+							+ "(batch = " + batchCount + ')');
 				}
 				serializer.serialize(summaryFunction);
 			}

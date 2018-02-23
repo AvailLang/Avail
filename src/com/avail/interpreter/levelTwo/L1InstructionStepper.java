@@ -59,17 +59,20 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
-import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
@@ -89,7 +92,7 @@ public final class L1InstructionStepper
 	/**
 	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
-	final Interpreter interpreter;
+	private final Interpreter interpreter;
 
 	/** The current one-based index into the nybblecodes. */
 	public final MutableInt pc = new MutableInt(-999);
@@ -122,7 +125,7 @@ public final class L1InstructionStepper
 	}
 
 	/** An empty array used for clearing the pointers quickly. */
-	public static final AvailObject[] emptyPointersArray = new AvailObject[0];
+	private static final AvailObject[] emptyPointersArray = new AvailObject[0];
 
 	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
@@ -963,7 +966,7 @@ public final class L1InstructionStepper
 	 * @return A {@link StackReifier} if reification is needed, otherwise {@code
 	 *         null}.
 	 */
-	public @Nullable StackReifier checkReturnType (
+	private @Nullable StackReifier checkReturnType (
 		final AvailObject result,
 		final A_Type expectedReturnType,
 		final A_Function returnee)

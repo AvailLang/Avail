@@ -33,7 +33,14 @@
 package com.avail.utility;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -327,7 +334,8 @@ public final class PrefixSharingList<E>
 			{
 				return butLast;
 			}
-			final List<E2> flat = stripNull(strongOriginal.cachedFlatListOrMore);
+			final List<E2> flat = stripNull(
+				strongOriginal.cachedFlatListOrMore);
 			return new PrefixSharingList<>(flat, originalList.size() - 1);
 		}
 		return new PrefixSharingList<>(originalList, originalList.size() - 1);
@@ -379,7 +387,7 @@ public final class PrefixSharingList<E>
 		if (fromIndex > toIndex)
 		{
 			throw new IllegalArgumentException("fromIndex(" + fromIndex +
-				") > toIndex(" + toIndex + ")");
+				") > toIndex(" + toIndex + ')');
 		}
 		return cacheFlatListOrMore().subList(fromIndex, toIndex);
 	}
