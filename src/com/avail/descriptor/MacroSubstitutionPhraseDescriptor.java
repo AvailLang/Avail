@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Primitive;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -46,29 +46,27 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.OUTPUT_PARSE_NODE;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PARSE_NODE;
 
 /**
- * A {@code MacroSubstitutionNodeDescriptor macro substitution node}
+ * A {@code MacroSubstitutionPhraseDescriptor macro substitution phrase}
  * represents the result of applying a {@linkplain MacroDefinitionDescriptor
- * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
- * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.
+ * macro} to its argument {@linkplain PhraseDescriptor expressions} to produce
+ * an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output phrase}.
  *
- * <p>
- * It's kept around specifically to allow grammatical restrictions to operate on
- * the actual occurring macro (and method) names, not what they've turned into.
- * As such, the macro substitution node should be {@linkplain
+ * <p> It's kept around specifically to allow grammatical restrictions to
+ * operate on the actual occurring macro (and method) names, not what they've
+ * turned into. As such, the macro substitution phrase should be {@linkplain
  * #o_StripMacro(AvailObject) stripped off} prior to being composed into a
- * larger parse tree, whether a send node, another macro invocation, or direct
+ * larger parse tree, whether a send phrase, another macro invocation, or direct
  * embedding within an assignment statement, variable reference, or any other
- * hierarchical parsing structure.
- * </p>
+ * hierarchical parsing structure. </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class MacroSubstitutionNodeDescriptor
-extends ParseNodeDescriptor
+public final class MacroSubstitutionPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -79,14 +77,14 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain SendNodeDescriptor send phrase} prior to its
+		 * The {@linkplain SendPhraseDescriptor send phrase} prior to its
 		 * transformation into the {@link #OUTPUT_PARSE_NODE}.
 		 */
 		MACRO_ORIGINAL_SEND,
 
 		/**
-		 * The {@linkplain ParseNodeDescriptor parse node} that is the result of
-		 * transforming the input parse node through a {@linkplain
+		 * The {@linkplain PhraseDescriptor phrase} that is the result of
+		 * transforming the input phrase through a {@linkplain
 		 * MacroDefinitionDescriptor macro} substitution.
 		 */
 		OUTPUT_PARSE_NODE
@@ -124,7 +122,7 @@ extends ParseNodeDescriptor
 	@Override
 	A_Bundle o_Bundle (final AvailObject object)
 	{
-		// Reach into the output node.  If you want the macro name, use the
+		// Reach into the output phrase.  If you want the macro name, use the
 		// apparentSendName instead.
 		return object.slot(OUTPUT_PARSE_NODE).bundle();
 	}
@@ -140,20 +138,20 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		// Don't transform the original phrase, just the output phrase.
 		object.setSlot(
 			OUTPUT_PARSE_NODE,
-			aBlock.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
+			transformer.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
 	}
 
 	@Override
 	A_Phrase o_CopyWith (
-		final AvailObject object, final A_Phrase newParseNode)
+		final AvailObject object, final A_Phrase newPhrase)
 	{
 		// Create a copy the list, not this macro substitution.
-		return object.slot(OUTPUT_PARSE_NODE).copyWith(newParseNode);
+		return object.slot(OUTPUT_PARSE_NODE).copyWith(newPhrase);
 	}
 
 	@Override
@@ -206,15 +204,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return aParseNode.isMacroSubstitutionNode()
+		return aPhrase.isMacroSubstitutionNode()
 			&& object.slot(MACRO_ORIGINAL_SEND).equals(
-				aParseNode.macroOriginalSendNode())
+				aPhrase.macroOriginalSendNode())
 			&& object.slot(OUTPUT_PARSE_NODE).equals(
-				aParseNode.outputParseNode());
+				aPhrase.outputPhrase());
 	}
 
 	@Override
@@ -339,25 +337,25 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Phrase o_OutputParseNode (final AvailObject object)
+	A_Phrase o_OutputPhrase (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		// Answer the output phrase's kind, not this macro substitution's kind.
-		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
+		return object.slot(OUTPUT_PARSE_NODE).phraseKind();
 	}
 
 	@Override
-	boolean o_ParseNodeKindIsUnder (
-		final AvailObject object, final ParseNodeKind expectedParseNodeKind)
+	boolean o_PhraseKindIsUnder (
+		final AvailObject object, final PhraseKind expectedPhraseKind)
 	{
 		// Use the output phrase's kind, not this macro substitution's kind.
-		return object.slot(OUTPUT_PARSE_NODE).parseNodeKindIsUnder(
-			expectedParseNodeKind);
+		return object.slot(OUTPUT_PARSE_NODE).phraseKindIsUnder(
+			expectedPhraseKind);
 	}
 
 	@Override
@@ -462,32 +460,32 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new macro substitution node.
+	 * Construct a new macro substitution phrase.
 	 *
 	 * @param macroSend
-	 *        The send of the macro that produced this node.
-	 * @param outputParseNode
+	 *        The send of the macro that produced this phrase.
+	 * @param outputPhrase
 	 *        The expression produced by the macro body.
-	 * @return The new macro substitution node.
+	 * @return The new macro substitution phrase.
 	 */
 	public static AvailObject newMacroSubstitution (
 		final A_Phrase macroSend,
-		final A_Phrase outputParseNode)
+		final A_Phrase outputPhrase)
 	{
 		final AvailObject newNode = mutable.create();
 		newNode.setSlot(MACRO_ORIGINAL_SEND, macroSend);
-		newNode.setSlot(OUTPUT_PARSE_NODE, outputParseNode);
+		newNode.setSlot(OUTPUT_PARSE_NODE, outputPhrase);
 		newNode.makeShared();
 		return newNode;
 	}
 
 	/**
-	 * Construct a new {@code MacroSubstitutionNodeDescriptor}.
+	 * Construct a new {@code MacroSubstitutionPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public MacroSubstitutionNodeDescriptor (final Mutability mutability)
+	public MacroSubstitutionPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -496,22 +494,22 @@ extends ParseNodeDescriptor
 			null);
 	}
 
-	/** The mutable {@link MacroSubstitutionNodeDescriptor}. */
-	private static final MacroSubstitutionNodeDescriptor mutable =
-		new MacroSubstitutionNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link MacroSubstitutionPhraseDescriptor}. */
+	private static final MacroSubstitutionPhraseDescriptor mutable =
+		new MacroSubstitutionPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MacroSubstitutionNodeDescriptor mutable ()
+	MacroSubstitutionPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link MacroSubstitutionNodeDescriptor}. */
-	private static final MacroSubstitutionNodeDescriptor shared =
-		new MacroSubstitutionNodeDescriptor(Mutability.SHARED);
+	/** The immutable {@link MacroSubstitutionPhraseDescriptor}. */
+	private static final MacroSubstitutionPhraseDescriptor shared =
+		new MacroSubstitutionPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	MacroSubstitutionNodeDescriptor shared ()
+	MacroSubstitutionPhraseDescriptor shared ()
 	{
 		return shared;
 	}

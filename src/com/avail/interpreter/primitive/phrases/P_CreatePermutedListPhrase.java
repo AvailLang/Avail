@@ -35,8 +35,8 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.PermutedListNodeDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.PermutedListPhraseDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,17 +44,17 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
-import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * <strong>Primitive</strong>: Create a {@linkplain PermutedListNodeDescriptor
- * permuted list phrase} from the given {@linkplain ListNodeDescriptor list
+ * <strong>Primitive</strong>: Create a {@linkplain PermutedListPhraseDescriptor
+ * permuted list phrase} from the given {@linkplain ListPhraseDescriptor list
  * phrase} and permutation {@linkplain TupleDescriptor tuple}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -85,8 +85,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				LIST_NODE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType(),
 				oneOrMoreOf(naturalNumbers())),
-			PERMUTED_LIST_NODE.mostGeneralType());
+			PERMUTED_LIST_PHRASE.mostGeneralType());
 	}
 }

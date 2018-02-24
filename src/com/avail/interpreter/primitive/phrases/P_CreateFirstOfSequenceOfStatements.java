@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FirstOfSequenceNodeDescriptor;
+import com.avail.descriptor.FirstOfSequencePhraseDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -45,11 +45,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.newFirstOfSequenceNode;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.FIRST_OF_SEQUENCE_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.containsOnlyStatements;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -60,7 +60,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
- * FirstOfSequenceNodeDescriptor first-of-sequence} node from the specified
+ * FirstOfSequencePhraseDescriptor first-of-sequence} phrase from the specified
  * {@linkplain TupleDescriptor tuple} of statements.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -103,8 +103,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				zeroOrMoreOf(PARSE_NODE.mostGeneralType())),
-			FIRST_OF_SEQUENCE_NODE.mostGeneralType());
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
+			FIRST_OF_SEQUENCE_PHRASE.mostGeneralType());
 	}
 
 	@Override

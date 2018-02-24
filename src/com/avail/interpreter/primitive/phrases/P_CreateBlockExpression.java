@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,13 +43,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.containsOnlyStatements;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -62,8 +62,8 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain BlockNodeDescriptor
- * block expression} from the specified {@linkplain ParseNodeKind#ARGUMENT_NODE
+ * <strong>Primitive:</strong> Create a {@linkplain BlockPhraseDescriptor
+ * block expression} from the specified {@linkplain PhraseKind#ARGUMENT_PHRASE
  * argument declarations}, primitive number, statements, result type, and
  * exception set.
  *
@@ -135,12 +135,12 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType()),
+				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
 				stringType(),
-				zeroOrMoreOf(PARSE_NODE.mostGeneralType()),
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
 				topMeta(),
 				setTypeForSizesContentType(wholeNumbers(), exceptionType())),
-			BLOCK_NODE.mostGeneralType());
+			BLOCK_PHRASE.mostGeneralType());
 	}
 
 	@Override

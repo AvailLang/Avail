@@ -42,19 +42,19 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -91,7 +91,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -166,9 +166,9 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name for assignment */
-				LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Assignment value */
-				EXPRESSION_NODE.create(ANY.o())),
-			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType());
 	}
 }

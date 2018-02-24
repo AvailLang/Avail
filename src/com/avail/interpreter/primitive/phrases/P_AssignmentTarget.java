@@ -34,22 +34,22 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AssignmentNodeDescriptor;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.ASSIGNMENT_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
- * VariableUseNodeDescriptor target variable} of the {@linkplain
- * AssignmentNodeDescriptor assignment}.
+ * VariableUsePhraseDescriptor target variable} of the {@linkplain
+ * AssignmentPhraseDescriptor assignment}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,7 +77,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(ASSIGNMENT_NODE.mostGeneralType()),
-				VARIABLE_USE_NODE.mostGeneralType());
+			functionType(
+				tuple(
+					ASSIGNMENT_PHRASE.mostGeneralType()),
+				VARIABLE_USE_PHRASE.mostGeneralType());
 	}
 }

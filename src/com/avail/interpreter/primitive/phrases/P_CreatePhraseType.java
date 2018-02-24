@@ -1,5 +1,5 @@
 /*
- * P_ParseNodeTypeExpressionType.java
+ * P_CreatePhraseType.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,44 +31,56 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PhraseTypeDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.List;
-
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Extract the result {@linkplain TypeDescriptor
- * type} of a {@linkplain ParseNodeTypeDescriptor parse node type}.
+ * <strong>Primitive:</strong> Create a variation of a {@linkplain
+ * PhraseTypeDescriptor phrase type}.  In particular, create a phrase type of
+ * the same {@linkplain PhraseKind kind} but with the specified expression type.
  */
-public final class P_ParseNodeTypeExpressionType extends Primitive
+public final class P_CreatePhraseType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_ParseNodeTypeExpressionType().init(
-			1, CannotFail, CanFold, CanInline);
+		new P_CreatePhraseType().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(1);
-		final A_Type parseNodeType = interpreter.argument(0);
-		return interpreter.primitiveSuccess(parseNodeType.expressionType());
+		interpreter.checkArgumentCount(2);
+		final AvailObject baseType = interpreter.argument(0);
+		final AvailObject expressionType = interpreter.argument(1);
+		if (baseType.isBottom())
+		{
+			return interpreter.primitiveSuccess(baseType);
+		}
+		final PhraseKind kind = baseType.phraseKind();
+		if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType()))
+		{
+			return interpreter.primitiveFailure(E_BAD_YIELD_TYPE);
+		}
+		return interpreter.primitiveSuccess(kind.create(expressionType));
 	}
 
 	@Override
@@ -76,16 +88,14 @@ public final class P_ParseNodeTypeExpressionType extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(PARSE_NODE.mostGeneralType())),
-			topMeta());
+				instanceMeta(PARSE_PHRASE.mostGeneralType()),
+				topMeta()),
+			instanceMeta(PARSE_PHRASE.mostGeneralType()));
 	}
 
 	@Override
-	public A_Type returnTypeGuaranteedByVM (
-		final A_RawFunction rawFunction,
-		final List<? extends A_Type> argumentTypes)
+	protected A_Type privateFailureVariableType ()
 	{
-		final A_Type phraseMeta = argumentTypes.get(0);
-		return instanceMeta(phraseMeta.instance().expressionType());
+		return instanceType(E_BAD_YIELD_TYPE.numericCode());
 	}
 }

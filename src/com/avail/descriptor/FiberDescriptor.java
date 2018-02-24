@@ -1355,7 +1355,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up the {@linkplain DeclarationNodeDescriptor declaration} with the
+	 * Look up the {@linkplain DeclarationPhraseDescriptor declaration} with the
 	 * given name in the current compiler scope.  This information is associated
 	 * with the current {@link Interpreter}, and therefore the {@linkplain
 	 * A_Fiber fiber} that it is executing.  If no such binding exists, answer
@@ -1363,7 +1363,7 @@ extends Descriptor
 	 *
 	 * @param name
 	 *        The name of the binding to look up in the current scope.
-	 * @return The {@linkplain DeclarationNodeDescriptor declaration} that was
+	 * @return The {@linkplain DeclarationPhraseDescriptor declaration} that was
 	 *         requested, or {@code null} if there is no binding in scope with
 	 *         that name.
 	 */
@@ -1387,9 +1387,9 @@ extends Descriptor
 	 * the client data stored in the current fiber.  If there is already a
 	 * declaration by that name, return it; otherwise return {@code null}.
 	 *
-	 * @param declaration A {@link DeclarationNodeDescriptor declaration}.
+	 * @param declaration A {@link DeclarationPhraseDescriptor declaration}.
 	 * @return {@code Null} if successful, otherwise the existing {@link
-	 *         DeclarationNodeDescriptor declaration} that was in conflict.
+	 *         DeclarationPhraseDescriptor declaration} that was in conflict.
 	 */
 	public static @Nullable A_Phrase addDeclaration (
 		final A_Phrase declaration)

@@ -664,7 +664,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		// By default, nothing is a supertype of a list node type unless it
+		// By default, nothing is a supertype of a list phrase type unless it
 		// states otherwise.
 		return false;
 	}
@@ -698,9 +698,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return false;
 	}
@@ -920,9 +920,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return bottom();
 	}
@@ -1049,9 +1049,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return object.typeUnion(NONTYPE.o());
 	}

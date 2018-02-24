@@ -34,17 +34,17 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newPrimitiveFailureVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -52,7 +52,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
- * ParseNodeKind#PRIMITIVE_FAILURE_REASON_NODE primitive failure variable
+ * PhraseKind#PRIMITIVE_FAILURE_REASON_PHRASE primitive failure variable
  * declaration} from the specified {@linkplain TokenDescriptor token} and
  * type.
  *
@@ -87,6 +87,6 @@ extends Primitive
 			tuple(
 				TOKEN.o(),
 				anyMeta()),
-			PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType());
+			PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType());
 	}
 }

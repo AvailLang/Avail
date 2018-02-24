@@ -34,17 +34,17 @@ package com.avail.compiler.instruction;
 
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.BlockNodeDescriptor;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 
 import java.io.ByteArrayOutputStream;
 
 /**
  * An {@code AvailLabel} is a pseudo-instruction in the {@linkplain
  * AvailInstruction Level One instruction} set.  It represents a {@linkplain
- * DeclarationKind#LABEL label node} in the parse tree of a {@linkplain
- * BlockNodeDescriptor block}.  If a label declaration occurs at all in a block,
- * it must be the first statement of the block.
+ * DeclarationKind#LABEL label phrase} in the parse tree of a {@linkplain
+ * BlockPhraseDescriptor block}.  If a label declaration occurs at all in a
+ * block, it must be the first statement of the block.
  *
  * <p>No actual nybblecodes are generated for an {@code AvailLabel}.  The only
  * reason for a label pseudo-instruction to exist is to keep track of which

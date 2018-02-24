@@ -35,25 +35,25 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationNodeDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
- * VariableUseNodeDescriptor variable use} from the specified {@linkplain
- * TokenDescriptor token} and {@linkplain DeclarationNodeDescriptor
+ * VariableUsePhraseDescriptor variable use} from the specified {@linkplain
+ * TokenDescriptor token} and {@linkplain DeclarationPhraseDescriptor
  * declaration}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -84,8 +84,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				DECLARATION_NODE.mostGeneralType(),
+				DECLARATION_PHRASE.mostGeneralType(),
 				TOKEN.o()),
-			VARIABLE_USE_NODE.mostGeneralType());
+			VARIABLE_USE_PHRASE.mostGeneralType());
 	}
 }

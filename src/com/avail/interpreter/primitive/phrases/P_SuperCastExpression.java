@@ -33,21 +33,21 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.SuperCastNodeDescriptor;
+import com.avail.descriptor.SuperCastPhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SUPER_CAST_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Extract the base expression from a
- * {@linkplain SuperCastNodeDescriptor supercast phrase}.
+ * {@linkplain SuperCastPhraseDescriptor supercast phrase}.
  */
 public final class P_SuperCastExpression extends Primitive
 {
@@ -73,7 +73,9 @@ public final class P_SuperCastExpression extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(SUPER_CAST_NODE.mostGeneralType()),
-				EXPRESSION_NODE.create(ANY.o()));
+			functionType(
+				tuple(
+					SUPER_CAST_PHRASE.mostGeneralType()),
+				EXPRESSION_PHRASE.create(ANY.o()));
 	}
 }

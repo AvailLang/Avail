@@ -34,17 +34,17 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newArgument;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.ARGUMENT_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -52,7 +52,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain
- * ParseNodeKind#ARGUMENT_NODE argument declaration} from the specified
+ * PhraseKind#ARGUMENT_PHRASE argument declaration} from the specified
  * {@linkplain TokenDescriptor token} and type.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -85,6 +85,6 @@ extends Primitive
 			tuple(
 				TOKEN.o(),
 				anyMeta()),
-			ARGUMENT_NODE.mostGeneralType());
+			ARGUMENT_PHRASE.mostGeneralType());
 	}
 }

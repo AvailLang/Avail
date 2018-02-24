@@ -863,7 +863,7 @@ extends Descriptor
 
 	/**
 	 * Answer a new {@code MethodDescriptor method}. It has no name yet,
-	 * but will before it gets used in a send node.  It gets named by virtue of
+	 * but will before it gets used in a send phrase.  It gets named by virtue of
 	 * it being referenced by one or more {@linkplain MessageBundleDescriptor
 	 * message bundle}s, each of which keeps track of how to parse it using that
 	 * bundle's name.  The bundles will be grouped into a bundle tree to allow

@@ -36,7 +36,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.EnumerationTypeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -48,7 +48,7 @@ import java.util.List;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 import static com.avail.utility.Nulls.stripNull;
@@ -152,14 +152,14 @@ extends Expression
 		 */
 		generator.flushDelayed();
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(emptyListNodeType());
+			sequence.mightBeEmpty(emptyListPhraseType());
 		final Label $absent = new Label();
 		final Label $after = new Label();
 		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
-			emptyListNodeType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
+			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
@@ -189,7 +189,7 @@ extends Expression
 		//  new boolean, which will need to be permuted into its correct place)
 		assert !hasSectionCheckpoints();
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(emptyListNodeType());
+			sequence.mightBeEmpty(emptyListPhraseType());
 		generator.flushDelayed();
 		final Label $absent = new Label();
 		final Label $merge = new Label();
@@ -197,7 +197,7 @@ extends Expression
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
-			emptyListNodeType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
+			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
@@ -227,7 +227,7 @@ extends Expression
 	{
 		final A_Phrase literal = stripNull(argumentProvider).next();
 		assert literal.isInstanceOf(
-			ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			PhraseKind.LITERAL_PHRASE.mostGeneralType());
 		final boolean flag = literal.token().literal().extractBoolean();
 		if (flag)
 		{

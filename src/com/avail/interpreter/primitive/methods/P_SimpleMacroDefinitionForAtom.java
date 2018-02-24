@@ -52,7 +52,7 @@ import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -72,7 +72,7 @@ import static com.avail.utility.Nulls.stripNull;
  * occurrence of a {@linkplain Metacharacter#SECTION_SIGN section sign} (§)
  * in the macro name.  The third argument is the function to invoke for the
  * complete macro.  It is constrained to answer a {@linkplain
- * ParseNodeDescriptor parse node}.
+ * PhraseDescriptor phrase}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -115,7 +115,7 @@ extends Primitive
 			for (int argIndex = 1; argIndex <= numArgs; argIndex++)
 			{
 				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-					PARSE_NODE.mostGeneralType()))
+					PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE);
@@ -148,13 +148,13 @@ extends Primitive
 		for (int argIndex = 1; argIndex <= numArgs; argIndex++)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-				PARSE_NODE.mostGeneralType()))
+				PARSE_PHRASE.mostGeneralType()))
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 			}
 		}
-		if (!kind.returnType().isSubtypeOf(PARSE_NODE.mostGeneralType()))
+		if (!kind.returnType().isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE);
@@ -211,8 +211,11 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(ATOM.o(), zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
+			tuple(
+				ATOM.o(),
+				zeroOrMoreOf(mostGeneralFunctionType()),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
+			TOP.o());
 	}
 
 	@Override

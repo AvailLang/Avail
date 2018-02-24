@@ -282,9 +282,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -429,13 +429,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		if (NONTYPE.superTests[extractOrdinal(object)])
 		{
-			return aParseNodeType;
+			return aPhraseType;
 		}
 		return bottom();
 	}

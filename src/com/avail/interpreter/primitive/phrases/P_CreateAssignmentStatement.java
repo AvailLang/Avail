@@ -33,18 +33,18 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AssignmentNodeDescriptor;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.SequenceNodeDescriptor;
+import com.avail.descriptor.SequencePhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -55,16 +55,15 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Transform a variable reference and an
- * expression into an {@linkplain AssignmentNodeDescriptor assignment}
- * statement. Such a node has type {@linkplain
- * Types#TOP top} and cannot be embedded
- * as a subexpression.
+ * <strong>Primitive:</strong> Transform a variable reference and an expression
+ * into an {@linkplain AssignmentPhraseDescriptor assignment} statement. Such a
+ * phrase has type {@linkplain Types#TOP top} and cannot be embedded as a
+ * subexpression.
  *
- * <p>Note that because we can have "inner" assignment nodes (i.e.,
+ * <p>Note that because we can have "inner" assignment phrases (i.e.,
  * assignments used as subexpressions), we actually produce a {@linkplain
- * SequenceNodeDescriptor sequence node} here, consisting of the assignment
- * node proper (whose output is effectively discarded) and a literal
+ * SequencePhraseDescriptor sequence phrase} here, consisting of the assignment
+ * phrase proper (whose output is effectively discarded) and a literal
  * {@linkplain NilDescriptor#nil null value}.</p>
  */
 public final class P_CreateAssignmentStatement extends Primitive
@@ -86,8 +85,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 		final A_Phrase expression = interpreter.argument(1);
 
 		final A_Phrase declaration = variable.declaration();
-		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declaration.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
@@ -107,9 +106,9 @@ public final class P_CreateAssignmentStatement extends Primitive
 	{
 		return functionType(
 			tuple(
-				VARIABLE_USE_NODE.mostGeneralType(),
-				EXPRESSION_NODE.create(ANY.o())),
-			ASSIGNMENT_NODE.mostGeneralType());
+				VARIABLE_USE_PHRASE.mostGeneralType(),
+				EXPRESSION_PHRASE.create(ANY.o())),
+			ASSIGNMENT_PHRASE.mostGeneralType());
 	}
 
 	@Override

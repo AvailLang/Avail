@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -45,22 +45,21 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
-import static com.avail.descriptor.PermutedListNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**
- * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
- * will generate <em>permuted</em> tuples at runtime.  The elements still have
- * to be generated in their lexical order, but an {@link
- * L1Operation#L1Ext_doPermute} changes their order while they're still on the
- * stack (before being made into a tuple or passed as the top level arguments
- * in a send).
+ * My instances represent {@linkplain PhraseDescriptor phrases} which will
+ * generate <em>permuted</em> tuples at runtime.  The elements still have to be
+ * generated in their lexical order, but an {@link L1Operation#L1Ext_doPermute}
+ * changes their order while they're still on the stack (before being made into
+ * a tuple or passed as the top level arguments in a send).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class PermutedListNodeDescriptor
-extends ParseNodeDescriptor
+public final class PermutedListPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -71,13 +70,13 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain ListNodeDescriptor list node} to permute when
+		 * The {@linkplain ListPhraseDescriptor list phrase} to permute when
 		 * generating level one nybblecodes.
 		 */
 		LIST,
 
 		/**
-		 * The permutation to apply to the list node when generating level one
+		 * The permutation to apply to the list phrase when generating level one
 		 * nybblecodes.
 		 */
 		PERMUTATION,
@@ -148,9 +147,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
-		object.setSlot(LIST, aBlock.valueNotNull(object.slot(LIST)));
+		object.setSlot(LIST, transformer.valueNotNull(object.slot(LIST)));
 	}
 
 	@Override
@@ -174,14 +173,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.list().equals(aParseNode.list())
-			&& object.permutation().equals(aParseNode.permutation());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.list().equals(aPhrase.list())
+			&& object.permutation().equals(aPhrase.permutation());
 	}
 
 	@Override
@@ -236,9 +235,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return PERMUTED_LIST_NODE;
+		return PERMUTED_LIST_PHRASE;
 	}
 
 	@Override
@@ -264,10 +263,11 @@ extends ParseNodeDescriptor
 	@Override
 	A_Phrase o_StripMacro (final AvailObject object)
 	{
-		// Strip away macro substitution nodes inside my recursive list
-		// structure.  This has to be done recursively over list nodes because
-		// of the way the "leaf" nodes are checked for grammatical restrictions,
-		// but the "root" nodes are what get passed into functions.
+		// Strip away macro substitution phrases inside my recursive list
+		// structure.  This has to be done recursively over list phrases because
+		// of the way the "leaf" phrases are checked for grammatical
+		// restrictions, but the "root" phrases are what get passed into
+		// functions.
 		final A_Phrase originalList = object.slot(LIST);
 		final A_Phrase strippedList = originalList.stripMacro();
 		if (strippedList.sameAddressAs(originalList))
@@ -342,14 +342,14 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Create a new permuted list phrase from the given {@linkplain
-	 * ListNodeDescriptor list node} and {@linkplain TupleDescriptor
+	 * ListPhraseDescriptor list phrase} and {@linkplain TupleDescriptor
 	 * permutation}.
 	 *
 	 * @param list
-	 *        The list node to wrap.
+	 *        The list phrase to wrap.
 	 * @param permutation
-	 *        The permutation to perform on the list node's elements.
-	 * @return The resulting permuted list node.
+	 *        The permutation to perform on the list phrase's elements.
+	 * @return The resulting permuted list phrase.
 	 */
 	public static AvailObject newPermutedListNode (
 		final A_Phrase list,
@@ -364,12 +364,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@code PermutedListNodeDescriptor}.
+	 * Construct a new {@code PermutedListPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private PermutedListNodeDescriptor (final Mutability mutability)
+	private PermutedListPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -378,22 +378,22 @@ extends ParseNodeDescriptor
 			null);
 	}
 
-	/** The mutable {@link PermutedListNodeDescriptor}. */
-	private static final PermutedListNodeDescriptor mutable =
-		new PermutedListNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link PermutedListPhraseDescriptor}. */
+	private static final PermutedListPhraseDescriptor mutable =
+		new PermutedListPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PermutedListNodeDescriptor mutable ()
+	PermutedListPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link PermutedListNodeDescriptor}. */
-	private static final PermutedListNodeDescriptor shared =
-		new PermutedListNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link PermutedListPhraseDescriptor}. */
+	private static final PermutedListPhraseDescriptor shared =
+		new PermutedListPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	PermutedListNodeDescriptor shared ()
+	PermutedListPhraseDescriptor shared ()
 	{
 		return shared;
 	}

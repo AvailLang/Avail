@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -47,21 +47,21 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.EXPRESSIONS_TUPLE;
-import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.TUPLE_TYPE;
+import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE;
+import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**
- * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
+ * My instances represent {@linkplain PhraseDescriptor phrases} which
  * will generate tuples directly at runtime.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ListNodeDescriptor
-extends ParseNodeDescriptor
+public final class ListPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -73,7 +73,7 @@ extends ParseNodeDescriptor
 	{
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
-		 * ParseNodeDescriptor parse nodes} that produce the values that will be
+		 * PhraseDescriptor phrases} that produce the values that will be
 		 * aggregated into a tuple at runtime.
 		 */
 		EXPRESSIONS_TUPLE,
@@ -156,39 +156,39 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		A_Tuple expressions = object.expressionsTuple();
 		for (int i = 1; i <= expressions.tupleSize(); i++)
 		{
 			expressions = expressions.tupleAtPuttingCanDestroy(
 				i,
-				aBlock.valueNotNull(expressions.tupleAt(i)),
+				transformer.valueNotNull(expressions.tupleAt(i)),
 				true);
 		}
 		object.setSlot(EXPRESSIONS_TUPLE, expressions);
 	}
 
 	/**
-	 * Create a new {@code ListNodeDescriptor list node} with one more parse
-	 * node added to the end of the list.
+	 * Create a new {@code ListPhraseDescriptor list phrase} with one more
+	 * phrase added to the end of the list.
 	 *
 	 * @param object
-	 *        The list node to extend.
-	 * @param newParseNode
-	 *        The parse node to append.
+	 *        The list phrase to extend.
+	 * @param newPhrase
+	 *        The phrase to append.
 	 * @return
-	 *         A new {@code ListNodeDescriptor list node} with the parse node
+	 *         A new {@code ListPhraseDescriptor list phrase} with the phrase
 	 *         appended.
 	 */
 	@Override @AvailMethod
 	A_Phrase o_CopyWith (
 		final AvailObject object,
-		final A_Phrase newParseNode)
+		final A_Phrase newPhrase)
 	{
 		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
 		final A_Tuple newTuple = oldTuple.appendCanDestroy(
-			newParseNode,
+			newPhrase,
 			true);
 		return newListNode(newTuple);
 	}
@@ -219,13 +219,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.expressionsTuple().equals(aPhrase.expressionsTuple());
 	}
 
 	@Override
@@ -268,9 +268,9 @@ extends ParseNodeDescriptor
 	@Override
 	boolean o_HasSuperCast (final AvailObject object)
 	{
-		for (final A_Phrase node : object.slot(EXPRESSIONS_TUPLE))
+		for (final A_Phrase phrase : object.slot(EXPRESSIONS_TUPLE))
 		{
-			if (node.hasSuperCast())
+			if (phrase.hasSuperCast())
 			{
 				return true;
 			}
@@ -287,8 +287,8 @@ extends ParseNodeDescriptor
 		{
 			return false;
 		}
-		// Also check the list node type's subexpressions type.
-		return !aType.isSubtypeOf(LIST_NODE.mostGeneralType())
+		// Also check the list phrase type's subexpressions type.
+		return !aType.isSubtypeOf(LIST_PHRASE.mostGeneralType())
 			|| object.slot(EXPRESSIONS_TUPLE).isInstanceOf(
 				aType.subexpressionsTupleType());
 	}
@@ -302,18 +302,19 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return LIST_NODE;
+		return LIST_PHRASE;
 	}
 
 	@Override
 	A_Phrase o_StripMacro (final AvailObject object)
 	{
-		// Strip away macro substitution nodes inside my recursive list
-		// structure.  This has to be done recursively over list nodes because
-		// of the way the "leaf" nodes are checked for grammatical restrictions,
-		// but the "root" nodes are what get passed into functions.
+		// Strip away macro substitution phrases inside my recursive list
+		// structure.  This has to be done recursively over list phrases because
+		// of the way the "leaf" phrases are checked for grammatical
+		// restrictions, but the "root" phrases are what get passed into
+		// functions.
 		A_Tuple expressionsTuple =
 			object.slot(EXPRESSIONS_TUPLE).makeImmutable();
 		boolean anyStripped = false;
@@ -409,11 +410,11 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Create a new list phrase from the given {@linkplain TupleDescriptor
-	 * tuple} of {@linkplain ParseNodeDescriptor expressions}.
+	 * tuple} of {@linkplain PhraseDescriptor expressions}.
 	 *
 	 * @param expressions
 	 *        The expressions to assemble into a list phrase.
-	 * @return The resulting list node.
+	 * @return The resulting list phrase.
 	 */
 	public static AvailObject newListNode (final A_Tuple expressions)
 	{
@@ -425,44 +426,44 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@code ListNodeDescriptor}.
+	 * Construct a new {@code ListPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private ListNodeDescriptor (final Mutability mutability)
+	private ListPhraseDescriptor (final Mutability mutability)
 	{
 		super(mutability, TypeTag.LIST_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link ListNodeDescriptor}. */
-	private static final ListNodeDescriptor mutable =
-		new ListNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link ListPhraseDescriptor}. */
+	private static final ListPhraseDescriptor mutable =
+		new ListPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ListNodeDescriptor mutable ()
+	ListPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link ListNodeDescriptor}. */
-	private static final ListNodeDescriptor shared =
-		new ListNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link ListPhraseDescriptor}. */
+	private static final ListPhraseDescriptor shared =
+		new ListPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ListNodeDescriptor shared ()
+	ListPhraseDescriptor shared ()
 	{
 		return shared;
 	}
 
-	/** The empty {@link ListNodeDescriptor list node}. */
+	/** The empty {@link ListPhraseDescriptor list phrase}. */
 	private static final AvailObject empty =
 		newListNode(emptyTuple()).makeShared();
 
 	/**
 	 * Answer the empty list phrase.
 	 *
-	 * @return The empty list node.
+	 * @return The empty list phrase.
 	 */
 	public static AvailObject emptyListNode ()
 	{

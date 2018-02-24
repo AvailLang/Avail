@@ -34,23 +34,23 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.SendNodeDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.SendPhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
- * SendNodeDescriptor send expression}'s {@linkplain ListNodeDescriptor list} of
- * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}.
+ * SendPhraseDescriptor send expression}'s {@linkplain ListPhraseDescriptor
+ * list} of {@linkplain PhraseKind#EXPRESSION_PHRASE argument expressions}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -79,7 +79,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(SEND_NODE.mostGeneralType()),
-				LIST_NODE.mostGeneralType());
+			functionType(
+				tuple(
+					SEND_PHRASE.mostGeneralType()),
+				LIST_PHRASE.mostGeneralType());
 	}
 }

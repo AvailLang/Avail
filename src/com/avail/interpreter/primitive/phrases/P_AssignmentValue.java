@@ -34,23 +34,23 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AssignmentNodeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.ASSIGNMENT_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
- * AssignmentNodeDescriptor assignment}'s {@linkplain
- * ParseNodeKind#EXPRESSION_NODE value expression}.
+ * AssignmentPhraseDescriptor assignment}'s {@linkplain
+ * PhraseKind#EXPRESSION_PHRASE value expression}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -78,7 +78,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(ASSIGNMENT_NODE.mostGeneralType()),
-				EXPRESSION_NODE.create(ANY.o()));
+			functionType(
+				tuple(
+					ASSIGNMENT_PHRASE.mostGeneralType()),
+				EXPRESSION_PHRASE.create(ANY.o()));
 	}
 }

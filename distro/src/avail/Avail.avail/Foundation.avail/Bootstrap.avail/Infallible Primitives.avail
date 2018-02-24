@@ -1323,7 +1323,7 @@ Primitive "Assert:_(_)" is
  * Cause the Avail virtual machine to raise an
  * `org.availlang.exceptions.AvailBreakpointException` that a Java debugger
  * can trap upon raise.
- * 
+ *
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
  *
@@ -2813,7 +2813,7 @@ Primitive "_'s⁇semantic type" is
 [
 	node : phrase
 |
-	Primitive ParseNodeExpressionType;
+	Primitive PhraseExpressionType;
 ] : type;
 
 /**
@@ -2830,7 +2830,7 @@ Primitive "_'s⁇semantic type" is
 [
 	phraseType : phrase meta
 |
-	Primitive ParseNodeTypeExpressionType;
+	Primitive PhraseTypeExpressionType;
 ] : type;
 
 /**
@@ -3370,9 +3370,9 @@ Primitive "_'s⁇implementation" is
 ] : function implementation;
 
 /**
- * Answer the name of the primitive linked to the specified function 
- * implementation. If the function implementation does not have
- * primitive linkage, then answer the empty string.
+ * Answer the name of the primitive linked to the specified function
+ * implementation. If the function implementation does not have primitive
+ * linkage, then answer the empty string.
  *
  * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇primitive name"

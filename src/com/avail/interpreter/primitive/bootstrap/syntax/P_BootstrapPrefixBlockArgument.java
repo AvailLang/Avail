@@ -47,12 +47,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newArgument;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -102,8 +102,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		final A_Phrase namePhrase = lastPair.expressionAt(1);
 		final A_Phrase typePhrase = lastPair.expressionAt(2);
 
-		assert namePhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
-		assert typePhrase.isInstanceOfKind(LITERAL_NODE.create(anyMeta()));
+		assert namePhrase.isInstanceOfKind(LITERAL_PHRASE.create(TOKEN.o()));
+		assert typePhrase.isInstanceOfKind(LITERAL_PHRASE.create(anyMeta()));
 		final A_Token outerArgToken = namePhrase.token();
 		final A_Token argToken = outerArgToken.literal();
 		final A_String argName = argToken.string();
@@ -144,8 +144,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */

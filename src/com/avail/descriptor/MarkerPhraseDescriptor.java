@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -42,20 +42,20 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.MARKER_VALUE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.MARKER_NODE;
+import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
  * stack.  It should never occur as part of a composite {@linkplain
- * ParseNodeDescriptor parse node}, and is not capable of emitting code.
+ * PhraseDescriptor phrase}, and is not capable of emitting code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class MarkerNodeDescriptor
-extends ParseNodeDescriptor
+public final class MarkerPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -64,7 +64,7 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain MarkerNodeDescriptor marker} being wrapped in a form
+		 * The {@linkplain MarkerPhraseDescriptor marker} being wrapped in a form
 		 * suitable for the parse stack.
 		 */
 		MARKER_VALUE
@@ -93,7 +93,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		throw unsupportedOperationException();
 	}
@@ -103,17 +103,17 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		assert false : "A marker node can not generate code.";
+		assert false : "A marker phrase can not generate code.";
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.markerValue().equals(aParseNode.markerValue());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.markerValue().equals(aPhrase.markerValue());
 	}
 
 	@Override @AvailMethod
@@ -136,9 +136,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return MARKER_NODE;
+		return MARKER_PHRASE;
 	}
 
 	@Override
@@ -172,11 +172,11 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain MarkerNodeDescriptor marker node} wrapping the given
-	 * {@link A_BasicObject}.
+	 * Create a {@linkplain MarkerPhraseDescriptor marker phrase} wrapping the
+	 * given {@link A_BasicObject}.
 	 *
 	 * @param markerValue The value to wrap.
-	 * @return A new immutable marker node.
+	 * @return A new immutable marker phrase.
 	 */
 	public static AvailObject newMarkerNode (final A_BasicObject markerValue)
 	{
@@ -187,32 +187,32 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link MarkerNodeDescriptor}.
+	 * Construct a new {@link MarkerPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private MarkerNodeDescriptor (final Mutability mutability)
+	private MarkerPhraseDescriptor (final Mutability mutability)
 	{
 		super(mutability, TypeTag.MARKER_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link MarkerNodeDescriptor}. */
-	private static final MarkerNodeDescriptor mutable =
-		new MarkerNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link MarkerPhraseDescriptor}. */
+	private static final MarkerPhraseDescriptor mutable =
+		new MarkerPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MarkerNodeDescriptor mutable ()
+	MarkerPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link MarkerNodeDescriptor}. */
-	private static final MarkerNodeDescriptor shared =
-		new MarkerNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link MarkerPhraseDescriptor}. */
+	private static final MarkerPhraseDescriptor shared =
+		new MarkerPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	MarkerNodeDescriptor shared ()
+	MarkerPhraseDescriptor shared ()
 	{
 		return shared;
 	}

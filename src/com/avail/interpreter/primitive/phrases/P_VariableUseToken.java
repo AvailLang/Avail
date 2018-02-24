@@ -35,20 +35,21 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
- * VariableUseNodeDescriptor variable use}'s {@linkplain TokenDescriptor token}.
+ * VariableUsePhraseDescriptor variable use}'s {@linkplain TokenDescriptor
+ * token}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -76,7 +77,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(VARIABLE_USE_NODE.mostGeneralType()),
+			functionType(
+				tuple(
+					VARIABLE_USE_PHRASE.mostGeneralType()),
 				TOKEN.o());
 	}
 }

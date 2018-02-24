@@ -33,7 +33,7 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
 
 import static com.avail.compiler.ParsingOperation.*;
 
@@ -48,7 +48,7 @@ import static com.avail.compiler.ParsingOperation.*;
  * themselves (including phrases yielding ⊤ or ⊥) are what get passed to
  * the macro body.
  *
- * <p>Because {@link ListNodeDescriptor list phrases} have an {@linkplain
+ * <p>Because {@link ListPhraseDescriptor list phrases} have an {@linkplain
  * A_Phrase#expressionType()} that depends on the types of the expressionType
  * of each subexpression, and because ⊥ as an element in a tuple type makes
  * the entire resulting tuple type also be ⊥, we can't just directly accept

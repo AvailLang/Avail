@@ -115,9 +115,9 @@ Names
 	/*  21 */ "key-not-found code",
 	/*  70 */ "loading-is-over code",
 	/*  28 */ "local-type-literal-is-not-a-type code",
-	/*  34 */ "macro-argument-must-be-a-parse-node code",
-	/*  68 */ "macro-must-return-a-parse-node code",
-	/*  67 */ "macro-prefix-function-argument-must-be-a-parse-node code",
+	/*  34 */ "macro-argument-must-be-a-phrase code",
+	/*  68 */ "macro-must-return-a-phrase code",
+	/*  67 */ "macro-prefix-function-argument-must-be-a-phrase code",
 	/*  63 */ "macro-prefix-function-index-out-of-bounds code",
 	/*  59 */ "macro-prefix-functions-must-return-top code",
 	/*  72 */ "method-is-sealed code",
@@ -327,7 +327,7 @@ Primitive "invalid-special-object-number code" is
 	33
 ];
 
-Primitive "macro-argument-must-be-a-parse-node code" is
+Primitive "macro-argument-must-be-a-phrase code" is
 [
 	34
 ];
@@ -492,12 +492,12 @@ Primitive "bad-yield-type code" is
 	66
 ];
 
-Primitive "macro-prefix-function-argument-must-be-a-parse-node code" is
+Primitive "macro-prefix-function-argument-must-be-a-phrase code" is
 [
 	67
 ];
 
-Primitive "macro-must-return-a-parse-node code" is
+Primitive "macro-must-return-a-phrase code" is
 [
 	68
 ];

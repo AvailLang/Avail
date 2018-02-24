@@ -46,18 +46,18 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
-import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
+import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -145,7 +145,7 @@ extends Primitive
 			emptyTuple(),
 			CREATE_LITERAL_PHRASE.bundle,
 			newListNode(tuple(createLiteralToken)),
-			LITERAL_NODE.create(specialObjectLiteral.expressionType()));
+			LITERAL_PHRASE.create(specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = newSendNode(
 			emptyTuple(),
 			MACRO_DEFINER.bundle,
@@ -157,7 +157,7 @@ extends Primitive
 						emptyTuple(),
 						0,
 						tuple(createLiteralNode),
-						LITERAL_NODE.create(
+						LITERAL_PHRASE.create(
 							specialObjectLiteral.expressionType()),
 						emptySet(),
 						0,
@@ -175,8 +175,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				LITERAL_NODE.create(oneOrMoreOf(CHARACTER.o())),
-				LITERAL_NODE.create(ANY.o())),
-			SEQUENCE_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(oneOrMoreOf(CHARACTER.o())),
+				LITERAL_PHRASE.create(ANY.o())),
+			SEQUENCE_PHRASE.mostGeneralType());
 	}
 }

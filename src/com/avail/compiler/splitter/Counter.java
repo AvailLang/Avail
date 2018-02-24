@@ -35,7 +35,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -47,7 +47,7 @@ import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
 import static com.avail.utility.Nulls.stripNull;
@@ -177,7 +177,7 @@ extends Expression
 			assert !expression.isArgumentOrGroup();
 			generator.partialListsCount = Integer.MIN_VALUE;
 			expression.emitOn(
-				emptyListNodeType(),
+				emptyListPhraseType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 		}
@@ -188,7 +188,7 @@ extends Expression
 		{
 			assert !expression.isArgumentOrGroup();
 			expression.emitOn(
-				emptyListNodeType(),
+				emptyListPhraseType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 		}
@@ -218,7 +218,7 @@ extends Expression
 	{
 		final A_Phrase countLiteral = stripNull(argumentProvider).next();
 		assert countLiteral.isInstanceOf(
-			ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			PhraseKind.LITERAL_PHRASE.mostGeneralType());
 		final int count = countLiteral.token().literal().extractInt();
 		for (int i = 1; i <= count; i++)
 		{

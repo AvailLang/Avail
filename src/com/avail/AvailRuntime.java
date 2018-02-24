@@ -111,7 +111,7 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTypeDescriptor.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
@@ -1474,25 +1474,25 @@ public final class AvailRuntime
 		specials[46] = METHOD_DEFINITION.o();
 		specials[47] = MACRO_DEFINITION.o();
 		specials[48] = zeroOrMoreOf(mostGeneralFunctionType());
-		specials[50] = PARSE_NODE.mostGeneralType();
-		specials[51] = SEQUENCE_NODE.mostGeneralType();
-		specials[52] = EXPRESSION_NODE.mostGeneralType();
-		specials[53] = ASSIGNMENT_NODE.mostGeneralType();
-		specials[54] = BLOCK_NODE.mostGeneralType();
-		specials[55] = LITERAL_NODE.mostGeneralType();
-		specials[56] = REFERENCE_NODE.mostGeneralType();
-		specials[57] = SEND_NODE.mostGeneralType();
+		specials[50] = PARSE_PHRASE.mostGeneralType();
+		specials[51] = SEQUENCE_PHRASE.mostGeneralType();
+		specials[52] = EXPRESSION_PHRASE.mostGeneralType();
+		specials[53] = ASSIGNMENT_PHRASE.mostGeneralType();
+		specials[54] = BLOCK_PHRASE.mostGeneralType();
+		specials[55] = LITERAL_PHRASE.mostGeneralType();
+		specials[56] = REFERENCE_PHRASE.mostGeneralType();
+		specials[57] = SEND_PHRASE.mostGeneralType();
 		specials[58] = instanceMeta(mostGeneralLiteralTokenType());
-		specials[59] = LIST_NODE.mostGeneralType();
-		specials[60] = VARIABLE_USE_NODE.mostGeneralType();
-		specials[61] = DECLARATION_NODE.mostGeneralType();
-		specials[62] = ARGUMENT_NODE.mostGeneralType();
-		specials[63] = LABEL_NODE.mostGeneralType();
-		specials[64] = LOCAL_VARIABLE_NODE.mostGeneralType();
-		specials[65] = LOCAL_CONSTANT_NODE.mostGeneralType();
-		specials[66] = MODULE_VARIABLE_NODE.mostGeneralType();
-		specials[67] = MODULE_CONSTANT_NODE.mostGeneralType();
-		specials[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
+		specials[59] = LIST_PHRASE.mostGeneralType();
+		specials[60] = VARIABLE_USE_PHRASE.mostGeneralType();
+		specials[61] = DECLARATION_PHRASE.mostGeneralType();
+		specials[62] = ARGUMENT_PHRASE.mostGeneralType();
+		specials[63] = LABEL_PHRASE.mostGeneralType();
+		specials[64] = LOCAL_VARIABLE_PHRASE.mostGeneralType();
+		specials[65] = LOCAL_CONSTANT_PHRASE.mostGeneralType();
+		specials[66] = MODULE_VARIABLE_PHRASE.mostGeneralType();
+		specials[67] = MODULE_CONSTANT_PHRASE.mostGeneralType();
+		specials[68] = PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType();
 		specials[69] = anyMeta();
 		specials[70] = trueObject();
 		specials[71] = falseObject();
@@ -1549,11 +1549,11 @@ public final class AvailRuntime
 		specials[108] = tupleTypeForSizesTypesDefaultType(
 			wholeNumbers(), emptyTuple(),
 			functionTypeReturning(topMeta()));
-		specials[109] = functionTypeReturning(PARSE_NODE.mostGeneralType());
+		specials[109] = functionTypeReturning(PARSE_PHRASE.mostGeneralType());
 		specials[110] = instanceType(two());
 		specials[111] = fromDouble(Math.E);
 		specials[112] = instanceType(fromDouble(Math.E));
-		specials[113] = instanceMeta(PARSE_NODE.mostGeneralType());
+		specials[113] = instanceMeta(PARSE_PHRASE.mostGeneralType());
 		specials[114] = setTypeForSizesContentType(wholeNumbers(), ATOM.o());
 		specials[115] = TOKEN.o();
 		specials[116] = mostGeneralLiteralTokenType();
@@ -1565,12 +1565,12 @@ public final class AvailRuntime
 		specials[120] = zeroOrMoreOf(
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(2), tuple(ATOM.o()), ANY.o()));
-		specials[121] = zeroOrMoreOf(PARSE_NODE.mostGeneralType());
-		specials[122] = zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType());
-		specials[123] = zeroOrMoreOf(DECLARATION_NODE.mostGeneralType());
+		specials[121] = zeroOrMoreOf(PARSE_PHRASE.mostGeneralType());
+		specials[122] = zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType());
+		specials[123] = zeroOrMoreOf(DECLARATION_PHRASE.mostGeneralType());
 		specials[124] = variableReadWriteType(TOP.o(), bottom());
-		specials[125] = zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
-		specials[126] = EXPRESSION_NODE.create(ANY.o());
+		specials[125] = zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o()));
+		specials[126] = EXPRESSION_PHRASE.create(ANY.o());
 		specials[127] =
 			functionType(tuple(pojoTypeForClass(Throwable.class)), bottom());
 		specials[128] = zeroOrMoreOf(
@@ -1593,17 +1593,17 @@ public final class AvailRuntime
 			ANY.o());
 		// Some of these entries may need to be shuffled into earlier slots to
 		// maintain reasonable topical consistency.
-		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
-		specials[141] = PERMUTED_LIST_NODE.mostGeneralType();
-		specials[142] = SUPER_CAST_NODE.mostGeneralType();
+		specials[140] = FIRST_OF_SEQUENCE_PHRASE.mostGeneralType();
+		specials[141] = PERMUTED_LIST_PHRASE.mostGeneralType();
+		specials[142] = SUPER_CAST_PHRASE.mostGeneralType();
 		specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom;
 		specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom;
 		specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom;
 		specials[146] = int32();
 		specials[147] = int64();
-		specials[148] = STATEMENT_NODE.mostGeneralType();
+		specials[148] = STATEMENT_PHRASE.mostGeneralType();
 		specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom;
-		specials[150] = EXPRESSION_AS_STATEMENT_NODE.mostGeneralType();
+		specials[150] = EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType();
 		specials[151] = oneOrMoreOf(naturalNumbers());
 		specials[152] = zeroOrMoreOf(DEFINITION.o());
 		specials[153] = mapTypeForSizesKeyTypeValueType(

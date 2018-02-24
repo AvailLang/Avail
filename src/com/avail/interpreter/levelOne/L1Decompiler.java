@@ -34,7 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
@@ -44,36 +44,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationNodeDescriptor.*;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.newFirstOfSequenceNode;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor.*;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.LiteralPhraseDescriptor.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MarkerNodeDescriptor.newMarkerNode;
+import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
-import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
 import static com.avail.utility.PrefixSharingList.last;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
- * compiled code} object into an equivalent {@linkplain ParseNodeDescriptor
+ * compiled code} object into an equivalent {@linkplain PhraseDescriptor
  * parse tree}.
  *
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
@@ -95,11 +95,11 @@ public class L1Decompiler
 	final int numNybbles;
 
 	/**
-	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
-	 * lexically captured variables.  These can be {@linkplain
-	 * DeclarationNodeDescriptor declaration nodes} or {@linkplain
-	 * LiteralNodeDescriptor literal nodes}, but the latter may be phased out
-	 * in favor of module constants and module variables.
+	 * {@linkplain PhraseDescriptor Phrases} which correspond with the lexically
+	 * captured variables.  These can be {@linkplain DeclarationPhraseDescriptor
+	 * declaration phrases} or {@linkplain LiteralPhraseDescriptor literal
+	 * phrases}, but the latter may be phased out in favor of module constants
+	 * and module variables.
 	 */
 	@InnerAccess
 	final A_Phrase[] outers;
@@ -152,7 +152,7 @@ public class L1Decompiler
 	final List<A_Phrase> expressionStack = new ArrayList<>();
 
 	/**
-	 * The list of completely decompiled {@linkplain ParseNodeDescriptor
+	 * The list of completely decompiled {@linkplain PhraseDescriptor
 	 * statements}.
 	 */
 	@InnerAccess final List<A_Phrase> statements =
@@ -165,7 +165,7 @@ public class L1Decompiler
 	@InnerAccess boolean endsWithPushNil = false;
 
 	/**
-	 * The decompiled {@linkplain BlockNodeDescriptor block node}.
+	 * The decompiled {@linkplain BlockPhraseDescriptor block phrase}.
 	 */
 	@InnerAccess A_Phrase block;
 
@@ -176,7 +176,7 @@ public class L1Decompiler
 	 * @param aCodeObject
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param outerDeclarations
-	 *        The array of outer variable declarations and literal nodes.
+	 *        The array of outer variable declarations and literal phrases.
 	 * @param tempBlock
 	 *        A {@linkplain Transformer1NotNull transformer} that takes a prefix
 	 *        and generates a suitably unique temporary variable name.
@@ -289,10 +289,10 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Answer the {@linkplain BlockNodeDescriptor block node} which is a
+	 * Answer the {@linkplain BlockPhraseDescriptor block phrase} which is a
 	 * decompilation of the previously supplied raw function.
 	 *
-	 * @return A block node which is a decompilation of the raw function.
+	 * @return A block phrase which is a decompilation of the raw function.
 	 */
 	public A_Phrase block ()
 	{
@@ -302,7 +302,7 @@ public class L1Decompiler
 	/**
 	 * Answer the top value of the expression stack without removing it.
 	 *
-	 * @return The parse node that's still on the top of the stack.
+	 * @return The phrase that's still on the top of the stack.
 	 */
 	@InnerAccess A_Phrase peekExpression ()
 	{
@@ -310,10 +310,10 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Pop one {@linkplain ParseNodeDescriptor parse node} off the expression
+	 * Pop one {@linkplain PhraseDescriptor phrase} off the expression
 	 * stack and return it.
 	 *
-	 * @return The parse node popped off the stack.
+	 * @return The phrase popped off the stack.
 	 */
 	@InnerAccess A_Phrase popExpression ()
 	{
@@ -321,11 +321,11 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Pop some {@linkplain ParseNodeDescriptor parse nodes} off the expression
+	 * Pop some {@linkplain PhraseDescriptor phrases} off the expression
 	 * stack and return them in a {@linkplain List list}.
 	 *
-	 * @param count The number of parse nodes to pop.
-	 * @return The list of {@code count} parse nodes, in the order they were
+	 * @param count The number of phrases to pop.
+	 * @return The list of {@code count} phrases, in the order they were
 	 *         added to the stack.
 	 */
 	@InnerAccess List<A_Phrase> popExpressions (final int count)
@@ -339,7 +339,7 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Push the given {@linkplain ParseNodeDescriptor parse node} onto the
+	 * Push the given {@linkplain PhraseDescriptor phrase} onto the
 	 * expression stack.
 	 *
 	 * @param expression The expression to push.
@@ -352,7 +352,7 @@ public class L1Decompiler
 
 	/**
 	 * An {@link Enum} whose ordinals can be used as marker values in
-	 * {@linkplain MarkerNodeDescriptor marker nodes}.
+	 * {@linkplain MarkerPhraseDescriptor marker phrases}.
 	 */
 	enum MarkerTypes {
 		/**
@@ -389,12 +389,12 @@ public class L1Decompiler
 				// We just hit a permute of the top N items of the stack.  This
 				// is due to a permutation of the top-level arguments of a call,
 				// not an embedded guillemet expression (otherwise we would have
-				// hit an L1_doMakeTuple instead of this call).  A literal node
-				// containing the permutation to apply was pushed before the
-				// marker.
+				// hit an L1_doMakeTuple instead of this call).  A literal
+				// phrase containing the permutation to apply was pushed before
+				// the marker.
 				popExpression();
 				final A_Phrase permutationLiteral = popExpression();
-				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+				assert permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE);
 				permutationTuple = permutationLiteral.token().literal();
 			}
 			final A_Tuple argsTuple = tupleFromList(popExpressions(nArgs));
@@ -518,10 +518,10 @@ public class L1Decompiler
 			final List<A_Phrase> theOuters = popExpressions(nOuters);
 			for (final A_Phrase outer : theOuters)
 			{
-				final ParseNodeKind kind = outer.parseNodeKind();
-				assert kind == VARIABLE_USE_NODE
-					|| kind == REFERENCE_NODE
-					|| kind == LITERAL_NODE;
+				final PhraseKind kind = outer.phraseKind();
+				assert kind == VARIABLE_USE_PHRASE
+					|| kind == REFERENCE_PHRASE
+					|| kind == LITERAL_PHRASE;
 			}
 			final L1Decompiler decompiler = new L1Decompiler(
 				theCode,
@@ -565,7 +565,7 @@ public class L1Decompiler
 			final A_Phrase assignmentNode = newAssignment(
 				variableUse, valueNode, emptyTuple(), false);
 			if (expressionStack.isEmpty()
-				|| peekExpression().parseNodeKind() != MARKER_NODE)
+				|| peekExpression().phraseKind() != MARKER_PHRASE)
 			{
 				statements.add(assignmentNode);
 			}
@@ -573,7 +573,7 @@ public class L1Decompiler
 			{
 				// We had better see a dup marker, otherwise the code generator
 				// didn't do what we expected.  Remove the marker and replace it
-				// with the (embedded) assignment node itself.
+				// with the (embedded) assignment phrase itself.
 				final A_Phrase duplicateExpression = popExpression();
 				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
@@ -602,22 +602,22 @@ public class L1Decompiler
 			else
 			{
 				// This is very rare – it's a non-first statement of a
-				// FirstOfSequence node.  Determine if we're constructing or
+				// FirstOfSequence phrase.  Determine if we're constructing or
 				// extending an existing FirstOfSequence.
 				final A_Phrase lastExpression = popExpression();
 				final A_Phrase penultimateExpression = popExpression();
 				final A_Tuple newStatements;
-				if (penultimateExpression.parseNodeKind()
-					== FIRST_OF_SEQUENCE_NODE)
+				if (penultimateExpression.phraseKind()
+					== FIRST_OF_SEQUENCE_PHRASE)
 				{
-					// Extend an existing FirstOfSequence node.
+					// Extend an existing FirstOfSequence phrase.
 					newStatements =
 						penultimateExpression.statements().appendCanDestroy(
 							lastExpression, false);
 				}
 				else
 				{
-					// Create a two-element FirstOfSequence node.
+					// Create a two-element FirstOfSequence phrase.
 					newStatements =
 						tuple(penultimateExpression, lastExpression);
 				}
@@ -637,7 +637,7 @@ public class L1Decompiler
 			final A_Phrase outerExpr =
 				outers[code.nextNybblecodeOperand(pc) - 1];
 			final A_Phrase outerDeclaration;
-			if (outerExpr.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
+			if (outerExpr.isInstanceOfKind(LITERAL_PHRASE.mostGeneralType()))
 			{
 				// Writing into a synthetic literal (a byproduct of decompiling
 				// a block without decompiling its outer scopes).
@@ -651,7 +651,7 @@ public class L1Decompiler
 			else
 			{
 				assert outerExpr.isInstanceOfKind(
-					REFERENCE_NODE.mostGeneralType());
+					REFERENCE_PHRASE.mostGeneralType());
 				outerDeclaration = outerExpr.variable().declaration();
 			}
 			final A_Phrase variableUse =
@@ -667,7 +667,7 @@ public class L1Decompiler
 			{
 				// We had better see a dup marker, otherwise the code generator
 				// didn't do what we expected.  Remove that marker and replace
-				// it with the (embedded) assignment node itself.
+				// it with the (embedded) assignment phrase itself.
 				final A_Phrase duplicateExpression = popExpression();
 				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
@@ -694,11 +694,11 @@ public class L1Decompiler
 			{
 				// We just hit a permute of the top N items of the stack.  This
 				// is due to a permutation within a guillemet expression.  A
-				// literal node containing the permutation to apply was pushed
+				// literal phrase containing the permutation to apply was pushed
 				// before the marker.
 				popExpression();
 				final A_Phrase permutationLiteral = popExpression();
-				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+				assert permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE);
 				permutationTuple = permutationLiteral.token().literal();
 			}
 			final List<A_Phrase> expressions = popExpressions(count);
@@ -714,7 +714,7 @@ public class L1Decompiler
 		public void L1_doGetOuter ()
 		{
 			final A_Phrase outer = outers[code.nextNybblecodeOperand(pc) - 1];
-			if (outer.parseNodeKindIsUnder(LITERAL_NODE))
+			if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				pushExpression(outer);
 				return;
@@ -736,7 +736,7 @@ public class L1Decompiler
 			final A_Phrase label;
 			if (statements.size() > 0
 				&& statements.get(0).isInstanceOfKind(
-					LABEL_NODE.mostGeneralType()))
+					LABEL_PHRASE.mostGeneralType()))
 			{
 				label = statements.get(0);
 			}
@@ -800,7 +800,7 @@ public class L1Decompiler
 			{
 				// We had better see a dup marker, otherwise the code generator
 				// didn't do what we expected.  Remove that marker and replace
-				// it with the (embedded) assignment node itself.
+				// it with the (embedded) assignment phrase itself.
 				final A_Phrase duplicateExpression = popExpression();
 				assert duplicateExpression.equals(DUP.marker);
 				expressionStack.add(assignmentNode);
@@ -814,8 +814,8 @@ public class L1Decompiler
 		 * from a non-void valued {@linkplain FunctionDescriptor block}.
 		 *
 		 * <p>Pop the expression (that represents the right hand side of the
-		 * assignment), push a special {@linkplain MarkerNodeDescriptor
-		 * marker node} representing the dup, then push the right-hand side
+		 * assignment), push a special {@linkplain MarkerPhraseDescriptor
+		 * marker phrase} representing the dup, then push the right-hand side
 		 * expression back onto the expression stack.</p>
 		 */
 		@Override
@@ -909,12 +909,12 @@ public class L1Decompiler
 			// We just hit a permute of the top N items of the stack.  This
 			// is due to a permutation of the top-level arguments of a call,
 			// not an embedded guillemet expression (otherwise we would have
-			// hit an L1_doMakeTuple instead of this call).  A literal node
+			// hit an L1_doMakeTuple instead of this call).  A literal phrase
 			// containing the permutation to apply was pushed before the
 			// marker.
 			popExpression();
 			final A_Phrase permutationLiteral = popExpression();
-			assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+			assert permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE);
 			permutationTuple = permutationLiteral.token().literal();
 		}
 		final List<A_Phrase> argsList = popExpressions(nArgs);
@@ -926,8 +926,8 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Convert some of the descendants within a {@link ListNodeDescriptor
-	 * list phrase} into {@link SuperCastNodeDescriptor supercasts}, based
+	 * Convert some of the descendants within a {@link ListPhraseDescriptor
+	 * list phrase} into {@link SuperCastPhraseDescriptor supercasts}, based
 	 * on the given superUnionType.  Because the phrase is processed
 	 * recursively, some invocations will pass a non-list phrase.
 	 */
@@ -940,7 +940,7 @@ public class L1Decompiler
 			// No supercasts in this argument.
 			return phrase;
 		}
-		else if (phrase.parseNodeKindIsUnder(PERMUTED_LIST_NODE))
+		else if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE))
 		{
 			// Apply the superUnionType's elements to the permuted list.
 			final A_Tuple permutation = phrase.permutation();
@@ -957,7 +957,7 @@ public class L1Decompiler
 			return newPermutedListNode(
 				newListNode(tuple(outputArray)), permutation);
 		}
-		else if (phrase.parseNodeKindIsUnder(LIST_NODE))
+		else if (phrase.phraseKindIsUnder(LIST_PHRASE))
 		{
 			// Apply the superUnionType's elements to the list.
 			final int size = phrase.expressionsSize();
@@ -979,10 +979,10 @@ public class L1Decompiler
 	/**
 	 * Parse the given statically constructed function.  It treats outer
 	 * variables as literals.  Answer the resulting {@linkplain
-	 * BlockNodeDescriptor block}.
+	 * BlockPhraseDescriptor block}.
 	 *
 	 * @param aFunction The function to decompile.
-	 * @return The {@linkplain BlockNodeDescriptor block} that is the
+	 * @return The {@linkplain BlockPhraseDescriptor block} that is the
 	 *         decompilation of the provided function.
 	 */
 	public static A_Phrase parse (final A_Function aFunction)
@@ -1020,11 +1020,11 @@ public class L1Decompiler
 	/**
 	 * Parse the given statically constructed function.  It treats outer
 	 * variables as private {@linkplain A_Atom atom} literals.  Answer the
-	 * resulting {@linkplain BlockNodeDescriptor block}.
+	 * resulting {@linkplain BlockPhraseDescriptor block}.
 	 *
 	 * @param aRawFunction
 	 *        The function to decompile.
-	 * @return The {@linkplain BlockNodeDescriptor block} that is the
+	 * @return The {@linkplain BlockPhraseDescriptor block} that is the
 	 *         decompilation of the provided function.
 	 */
 	public static A_Phrase parse (final A_RawFunction aRawFunction)

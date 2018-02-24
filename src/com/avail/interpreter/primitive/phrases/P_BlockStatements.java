@@ -34,24 +34,24 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockNodeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain TupleDescriptor tuple}
- * of {@linkplain ParseNodeKind#PARSE_NODE statements} for the specified
- * {@linkplain BlockNodeDescriptor block}.
+ * of {@linkplain PhraseKind#PARSE_PHRASE statements} for the specified
+ * {@linkplain BlockPhraseDescriptor block}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -81,8 +81,7 @@ extends Primitive
 		return
 			functionType(
 				tuple(
-					BLOCK_NODE.mostGeneralType()),
-				zeroOrMoreOf(
-					PARSE_NODE.mostGeneralType()));
+					BLOCK_PHRASE.mostGeneralType()),
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()));
 	}
 }

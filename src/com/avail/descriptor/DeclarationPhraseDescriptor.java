@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -46,10 +47,9 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -62,8 +62,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class DeclarationNodeDescriptor
-extends ParseNodeDescriptor
+public final class DeclarationPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -85,14 +85,14 @@ extends ParseNodeDescriptor
 		DECLARED_TYPE,
 
 		/**
-		 * The {@link ParseNodeDescriptor expression} that produced the type for
+		 * The {@link PhraseDescriptor expression} that produced the type for
 		 * the entity being declared, or {@link NilDescriptor#nil nil} if
 		 * there was no such expression.
 		 */
 		TYPE_EXPRESSION,
 
 		/**
-		 * The optional {@linkplain ParseNodeDescriptor initialization
+		 * The optional {@linkplain PhraseDescriptor initialization
 		 * expression}, or {@link NilDescriptor#nil nil} otherwise. Not
 		 * applicable to all kinds of declarations.
 		 */
@@ -118,7 +118,7 @@ extends ParseNodeDescriptor
 		/**
 		 * This is an argument to a block.
 		 */
-		ARGUMENT("argument", false, false, ParseNodeKind.ARGUMENT_NODE)
+		ARGUMENT("argument", false, false, PhraseKind.ARGUMENT_PHRASE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -145,7 +145,7 @@ extends ParseNodeDescriptor
 		/**
 		 * This is a label declaration at the start of a block.
 		 */
-		LABEL("label", false, false, ParseNodeKind.LABEL_NODE)
+		LABEL("label", false, false, PhraseKind.LABEL_PHRASE)
 		{
 			/**
 			 * Let the code generator know that the label occurs at the
@@ -201,7 +201,7 @@ extends ParseNodeDescriptor
 		 * This is a local variable, declared within a block.
 		 */
 		LOCAL_VARIABLE(
-			"local variable", true, false, ParseNodeKind.LOCAL_VARIABLE_NODE)
+			"local variable", true, false, PhraseKind.LOCAL_VARIABLE_PHRASE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -268,7 +268,7 @@ extends ParseNodeDescriptor
 		 * This is a local constant, declared within a block.
 		 */
 		LOCAL_CONSTANT(
-			"local constant", false, false, ParseNodeKind.LOCAL_CONSTANT_NODE)
+			"local constant", false, false, PhraseKind.LOCAL_CONSTANT_PHRASE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -308,7 +308,7 @@ extends ParseNodeDescriptor
 		 * This is a variable declared at the outermost (module) scope.
 		 */
 		MODULE_VARIABLE(
-			"module variable", true, true, ParseNodeKind.MODULE_VARIABLE_NODE)
+			"module variable", true, true, PhraseKind.MODULE_VARIABLE_PHRASE)
 		{
 			@Override
 			public void emitVariableAssignmentForOn (
@@ -365,7 +365,7 @@ extends ParseNodeDescriptor
 		 * This is a constant declared at the outermost (module) scope.
 		 */
 		MODULE_CONSTANT(
-			"module constant", false, true, ParseNodeKind.MODULE_CONSTANT_NODE)
+			"module constant", false, true, PhraseKind.MODULE_CONSTANT_PHRASE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -398,7 +398,7 @@ extends ParseNodeDescriptor
 			"primitive failure reason",
 			true,
 			false,
-			ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE)
+			PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -430,10 +430,10 @@ extends ParseNodeDescriptor
 		private final boolean isModuleScoped;
 
 		/**
-		 * The instance of the enumeration {@link ParseNodeKind} that
+		 * The instance of the enumeration {@link PhraseKind} that
 		 * is associated with this kind of declaration.
 		 */
-		private final ParseNodeKind kindEnumeration;
+		private final PhraseKind kindEnumeration;
 
 		/** A Java {@link String} describing this kind of declaration */
 		private final String nativeKindName;
@@ -461,7 +461,7 @@ extends ParseNodeDescriptor
 			final String nativeKindName,
 			final boolean isVariable,
 			final boolean isModuleScoped,
-			final ParseNodeKind kindEnumeration)
+			final PhraseKind kindEnumeration)
 		{
 			this.nativeKindName = nativeKindName;
 			this.isVariable = isVariable;
@@ -508,12 +508,12 @@ extends ParseNodeDescriptor
 		}
 
 		/**
-		 * Return the instance of the enumeration {@link ParseNodeKind} that is
+		 * Return the instance of the enumeration {@link PhraseKind} that is
 		 * associated with this kind of declaration.
 		 *
-		 * @return The associated {@code ParseNodeKind} enumeration value.
+		 * @return The associated {@code PhraseKind} enumeration value.
 		 */
-		public final ParseNodeKind parseNodeKind ()
+		public final PhraseKind phraseKind ()
 		{
 			return kindEnumeration;
 		}
@@ -532,7 +532,7 @@ extends ParseNodeDescriptor
 		 * Return an Avail {@link StringDescriptor string} describing this kind
 		 * of declaration.
 		 *
-		 * @return The associated {@code ParseNodeKind} enumeration value.
+		 * @return The associated {@code PhraseKind} enumeration value.
 		 */
 		public final A_String kindName ()
 		{
@@ -604,7 +604,7 @@ extends ParseNodeDescriptor
 		 *        The {@link A_Tuple} of {@link A_Token}s associated with this
 		 *        call.
 		 * @param object
-		 *        The declaration node.
+		 *        The declaration phrase.
 		 * @param codeGenerator
 		 *        Where to emit the declaration.
 		 */
@@ -775,29 +775,29 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return object.sameAddressAs(aParseNode.traversed());
+		return object.sameAddressAs(aPhrase.traversed());
 	}
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		final A_Phrase typeExpression = object.typeExpression();
 		if (!typeExpression.equalsNil())
 		{
 			object.setSlot(
-				TYPE_EXPRESSION, aBlock.valueNotNull(typeExpression));
+				TYPE_EXPRESSION, transformer.valueNotNull(typeExpression));
 		}
 		final A_Phrase expression = object.initializationExpression();
 		if (!expression.equalsNil())
 		{
 			object.setSlot(
-				INITIALIZATION_EXPRESSION, aBlock.valueNotNull(expression));
+				INITIALIZATION_EXPRESSION, transformer.valueNotNull(expression));
 		}
 	}
 
@@ -830,10 +830,10 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (
+	PhraseKind o_PhraseKind (
 		final AvailObject object)
 	{
-		return object.declarationKind().parseNodeKind();
+		return object.declarationKind().phraseKind();
 	}
 
 	@Override
@@ -891,28 +891,28 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a declaration node of some {@linkplain DeclarationKind kind}.
+	 * Construct a declaration phrase of some {@linkplain DeclarationKind kind}.
 	 *
 	 * @param declarationKind
 	 *        The {@linkplain DeclarationKind kind} of {@linkplain
-	 *        DeclarationNodeDescriptor declaration} to create.
+	 *        DeclarationPhraseDescriptor declaration} to create.
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the entity being declared.
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
 	 * @param typeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
-	 *        An {@linkplain ParseNodeDescriptor expression} used for
+	 *        An {@linkplain PhraseDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
 	 *        NilDescriptor#nil nil} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
 	 *        being defined, or {@linkplain NilDescriptor#nil nil} if none.
-	 * @return The new declaration node.
+	 * @return The new declaration phrase.
 	 */
 	public static A_Phrase newDeclaration (
 		final DeclarationKind declarationKind,
@@ -926,7 +926,7 @@ extends ParseNodeDescriptor
 		assert token.isInstanceOf(Types.TOKEN.o());
 		assert initializationExpression.equalsNil()
 			|| initializationExpression.isInstanceOfKind(
-				ParseNodeKind.EXPRESSION_NODE.create(Types.ANY.o()));
+				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o()));
 		assert literalObject.equalsNil()
 			|| declarationKind == MODULE_VARIABLE
 			|| declarationKind == MODULE_CONSTANT;
@@ -953,7 +953,7 @@ extends ParseNodeDescriptor
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
 	 * @param typeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @return The argument declaration.
@@ -983,11 +983,11 @@ extends ParseNodeDescriptor
 	 *        The inner {@linkplain TypeDescriptor type} of the local variable
 	 *        being declared.
 	 * @param typeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
-	 *        An {@linkplain ParseNodeDescriptor expression} used for
+	 *        An {@linkplain PhraseDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
 	 *        NilDescriptor#nil nil} if none.
 	 * @return The new local variable declaration.
@@ -1015,7 +1015,7 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the local constant being declared.
 	 * @param initializationExpression
-	 *        An {@linkplain ParseNodeDescriptor expression} used to
+	 *        An {@linkplain PhraseDescriptor expression} used to
 	 *        provide the value of the local constant.
 	 * @return The new local constant declaration.
 	 */
@@ -1042,7 +1042,7 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the local constant being declared.
 	 * @param typeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param type
@@ -1072,7 +1072,7 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the label being declared.
 	 * @param returnTypeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.  Note that this expression
 	 *        produced the return type of the continuation type, not the
@@ -1111,7 +1111,7 @@ extends ParseNodeDescriptor
 	 *        The actual {@linkplain VariableDescriptor variable} to be used
 	 *        as a module variable.
 	 * @param typeExpression
-	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        The {@link PhraseDescriptor expression} that produced the type
 	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
@@ -1163,18 +1163,18 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@code DeclarationNodeDescriptor}.
+	 * Construct a new {@code DeclarationPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public DeclarationNodeDescriptor (
+	public DeclarationPhraseDescriptor (
 		final Mutability mutability,
 		final DeclarationKind declarationKind)
 	{
 		super(
 			mutability,
-			declarationKind.parseNodeKind().typeTag,
+			declarationKind.phraseKind().typeTag,
 			ObjectSlots.class,
 			null);
 		this.declarationKind = declarationKind;
@@ -1183,33 +1183,33 @@ extends ParseNodeDescriptor
 	/** The kind of declaration using this descriptor. */
 	private final DeclarationKind declarationKind;
 
-	/** The mutable {@link DeclarationNodeDescriptor}s. */
-	private static final DeclarationNodeDescriptor[] mutables =
-		new DeclarationNodeDescriptor[DeclarationKind.values().length];
+	/** The mutable {@link DeclarationPhraseDescriptor}s. */
+	private static final DeclarationPhraseDescriptor[] mutables =
+		new DeclarationPhraseDescriptor[DeclarationKind.values().length];
 
-	/** The shared {@link DeclarationNodeDescriptor}s. */
-	private static final DeclarationNodeDescriptor[] shareds =
-		new DeclarationNodeDescriptor[DeclarationKind.values().length];
+	/** The shared {@link DeclarationPhraseDescriptor}s. */
+	private static final DeclarationPhraseDescriptor[] shareds =
+		new DeclarationPhraseDescriptor[DeclarationKind.values().length];
 
 	static
 	{
 		for (final DeclarationKind kind : DeclarationKind.values())
 		{
-			mutables[kind.ordinal()] = new DeclarationNodeDescriptor(
+			mutables[kind.ordinal()] = new DeclarationPhraseDescriptor(
 				Mutability.MUTABLE, kind);
-			shareds[kind.ordinal()] = new DeclarationNodeDescriptor(
+			shareds[kind.ordinal()] = new DeclarationPhraseDescriptor(
 				Mutability.SHARED, kind);
 		}
 	}
 
 	@Override
-	DeclarationNodeDescriptor mutable ()
+	DeclarationPhraseDescriptor mutable ()
 	{
 		return mutables[declarationKind.ordinal()];
 	}
 
 	@Override
-	DeclarationNodeDescriptor shared ()
+	DeclarationPhraseDescriptor shared ()
 	{
 		return shareds[declarationKind.ordinal()];
 	}

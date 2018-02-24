@@ -36,19 +36,19 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BlockNodeDescriptor.recursivelyValidate;
+import static com.avail.descriptor.BlockPhraseDescriptor.recursivelyValidate;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.ModuleDescriptor.currentModule;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -58,7 +58,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Compile the specified {@linkplain
- * BlockNodeDescriptor block} into a {@linkplain FunctionDescriptor function}.
+ * BlockPhraseDescriptor block} into a {@linkplain FunctionDescriptor function}.
  * The block is treated as a top-level construct, so it must not refer to any
  * outer variables.
  *
@@ -117,7 +117,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				BLOCK_NODE.mostGeneralType()),
+				BLOCK_PHRASE.mostGeneralType()),
 			mostGeneralFunctionType());
 	}
 

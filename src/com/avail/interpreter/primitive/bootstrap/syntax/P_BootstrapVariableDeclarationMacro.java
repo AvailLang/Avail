@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
@@ -46,12 +46,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -118,9 +118,9 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name phrase. */
-				LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */
-				LITERAL_NODE.create(anyMeta())),
-			DECLARATION_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(anyMeta())),
+			DECLARATION_PHRASE.mostGeneralType());
 	}
 }

@@ -33,7 +33,6 @@
 package com.avail.builder;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
@@ -102,7 +101,7 @@ import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -3391,7 +3390,7 @@ public final class AvailBuilder
 			final List<String> moduleEntryPoints = entry.getKey().entryPoints();
 			for (final A_Phrase solution : entry.getValue())
 			{
-				if (solution.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+				if (solution.isInstanceOfKind(SEND_PHRASE.mostGeneralType()))
 				{
 					final A_Atom name = solution.apparentSendName();
 					final String nameString = name.atomName().asNativeString();

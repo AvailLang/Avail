@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -44,19 +44,19 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SUPER_CAST_NODE;
-import static com.avail.descriptor.SuperCastNodeDescriptor.ObjectSlots.EXPRESSION;
-import static com.avail.descriptor.SuperCastNodeDescriptor.ObjectSlots.TYPE_FOR_LOOKUP;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP;
 
 /**
- * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
- * are elements of recursive {@linkplain ListNodeDescriptor list nodes} holding
- * arguments to a (super) {@linkplain SendNodeDescriptor send node}.
+ * My instances represent {@linkplain PhraseDescriptor phrases} which are
+ * elements of recursive {@linkplain ListPhraseDescriptor list phrases} holding
+ * arguments to a (super) {@linkplain SendPhraseDescriptor send phrase}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class SuperCastNodeDescriptor
-extends ParseNodeDescriptor
+public final class SuperCastPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -73,7 +73,7 @@ extends ParseNodeDescriptor
 
 		/**
 		 * The static type used to look up this argument in the enclosing
-		 * (super) {@linkplain SendNodeDescriptor send node}.
+		 * (super) {@linkplain SendPhraseDescriptor send phrase}.
 		 */
 		TYPE_FOR_LOOKUP
 	}
@@ -103,10 +103,10 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		final A_Phrase expression =
-			aBlock.valueNotNull(object.slot(EXPRESSION));
+			transformer.valueNotNull(object.slot(EXPRESSION));
 		object.setSlot(EXPRESSION, expression);
 	}
 
@@ -119,14 +119,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.expression().equals(aParseNode.expression())
-			&& object.superUnionType().equals(aParseNode.superUnionType());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.expression().equals(aPhrase.expression())
+			&& object.superUnionType().equals(aPhrase.superUnionType());
 	}
 
 	/**
@@ -165,9 +165,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return SUPER_CAST_NODE;
+		return SUPER_CAST_PHRASE;
 	}
 
 	@Override
@@ -231,8 +231,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain SuperCastNodeDescriptor super cast node} from
-	 * the given {@linkplain ParseNodeDescriptor phrase} and {@linkplain
+	 * Create a new {@linkplain SuperCastPhraseDescriptor super cast phrase} from
+	 * the given {@linkplain PhraseDescriptor phrase} and {@linkplain
 	 * TypeDescriptor type} with which to perform a method lookup.
 	 *
 	 * @param expression
@@ -241,7 +241,7 @@ extends ParseNodeDescriptor
 	 *        The type to combine via a {@link A_Type#typeUnion(A_Type) type
 	 *        union} with the type of the actual runtime value produced by the
 	 *        expression, in order to look up the method.
-	 * @return The resulting super cast node.
+	 * @return The resulting super cast phrase.
 	 */
 	public static AvailObject newSuperCastNode (
 		final A_Phrase expression,
@@ -255,33 +255,33 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link SuperCastNodeDescriptor}.
+	 * Construct a new {@link SuperCastPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private SuperCastNodeDescriptor (final Mutability mutability)
+	private SuperCastPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability, TypeTag.SUPER_CAST_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link SuperCastNodeDescriptor}. */
-	private static final SuperCastNodeDescriptor mutable =
-		new SuperCastNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link SuperCastPhraseDescriptor}. */
+	private static final SuperCastPhraseDescriptor mutable =
+		new SuperCastPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SuperCastNodeDescriptor mutable ()
+	SuperCastPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link SuperCastNodeDescriptor}. */
-	private static final SuperCastNodeDescriptor shared =
-		new SuperCastNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link SuperCastPhraseDescriptor}. */
+	private static final SuperCastPhraseDescriptor shared =
+		new SuperCastPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SuperCastNodeDescriptor shared ()
+	SuperCastPhraseDescriptor shared ()
 	{
 		return shared;
 	}

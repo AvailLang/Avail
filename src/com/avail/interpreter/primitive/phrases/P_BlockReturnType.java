@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,13 +42,13 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
- * BlockNodeDescriptor block}'s return {@linkplain TypeDescriptor type}.
+ * BlockPhraseDescriptor block}'s return {@linkplain TypeDescriptor type}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -76,6 +76,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(BLOCK_NODE.mostGeneralType()), topMeta());
+			functionType(
+				tuple(
+					BLOCK_PHRASE.mostGeneralType()),
+				topMeta());
 	}
 }

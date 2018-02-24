@@ -88,8 +88,8 @@ public class AvailCompilerBipartiteRendezvous
 			// repeated arguments can be unrolled, which causes the plans for
 			// different definitions of the same method to have diverging
 			// instructions.  More than one of these paths might complete
-			// successfully.  The resulting send nodes don't indicate which plan
-			// completed, just the bundle and argument phrases, hence the
+			// successfully.  The resulting send phrases don't indicate which
+			// plan completed, just the bundle and argument phrases, hence the
 			// duplicate solutions.
 			return;
 			// throw new DuplicateSolutionException();

@@ -36,9 +36,9 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListNodeTypeDescriptor;
+import com.avail.descriptor.ListPhraseTypeDescriptor;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 
@@ -52,10 +52,10 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -118,7 +118,7 @@ public final class MessageSplitterTest
 	 *
 	 * @param message The message to split.
 	 * @param tokens The separated tokens from the message.
-	 * @param listPhraseType A {@link ListNodeTypeDescriptor list phrase type}.
+	 * @param listPhraseType A {@link ListPhraseTypeDescriptor list phrase type}.
 	 * @param instructions The parsing operations to parse this message.
 	 * @return An array of Strings starting with the message, then all the
 	 *         tokens, then a print representation of the numeric instructions
@@ -177,7 +177,7 @@ public final class MessageSplitterTest
 	 *        The vararg array of subexpression phrase types, the last one being
 	 *        implicitly repeated if the upperBound is bigger than the length of
 	 *        the array.
-	 * @return A {@link ListNodeTypeDescriptor list phrase type}.
+	 * @return A {@link ListPhraseTypeDescriptor list phrase type}.
 1	 */
 	static A_Type List(
 		final int lowerBound,
@@ -197,7 +197,7 @@ public final class MessageSplitterTest
 					? expressionPhraseTypes[expressionPhraseTypes.length - 1]
 					: bottom());
 		return createListNodeType(
-			LIST_NODE, mostGeneralTupleType(), subexpressionsTupleType);
+			LIST_PHRASE, mostGeneralTupleType(), subexpressionsTupleType);
 	}
 
 	/**
@@ -206,12 +206,12 @@ public final class MessageSplitterTest
 	 *
 	 * @param yieldType
 	 *        The type that the resulting phrase type would yield.
-	 * @return A {@link ParseNodeTypeDescriptor phrase type}.
+	 * @return A {@link PhraseTypeDescriptor phrase type}.
 	 */
 	static A_Type Phrase(
 		final A_Type yieldType)
 	{
-		return PARSE_NODE.create(yieldType);
+		return PARSE_PHRASE.create(yieldType);
 	}
 
 	/**

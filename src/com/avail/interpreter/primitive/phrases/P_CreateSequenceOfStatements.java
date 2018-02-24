@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.SequenceNodeDescriptor;
+import com.avail.descriptor.SequencePhraseDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -46,10 +46,10 @@ import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.containsOnlyStatements;
-import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements;
+import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -59,7 +59,7 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain SequenceNodeDescriptor
+ * <strong>Primitive:</strong> Create a {@linkplain SequencePhraseDescriptor
  * sequence} from the specified {@linkplain TupleDescriptor tuple} of
  * statements.
  *
@@ -102,8 +102,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				zeroOrMoreOf(PARSE_NODE.mostGeneralType())),
-			SEQUENCE_NODE.mostGeneralType());
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
+			SEQUENCE_PHRASE.mostGeneralType());
 	}
 
 	@Override

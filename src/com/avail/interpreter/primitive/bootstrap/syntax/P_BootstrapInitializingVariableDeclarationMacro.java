@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -45,10 +45,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -137,11 +137,11 @@ extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name token */
-				LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Variable type */
-				LITERAL_NODE.create(anyMeta()),
+				LITERAL_PHRASE.create(anyMeta()),
 				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			LOCAL_VARIABLE_PHRASE.mostGeneralType());
 	}
 }

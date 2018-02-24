@@ -132,7 +132,7 @@ extends A_BasicObject
 	boolean isMethodDefinition ();
 
 	/**
-	 * Answer the {@link ListNodeTypeDescriptor list phrase type} for this
+	 * Answer the {@link ListPhraseTypeDescriptor list phrase type} for this
 	 * definition.  The parser uses this type to produce a customized {@link
 	 * A_DefinitionParsingPlan parsing plan}, specialized to a particular {@link
 	 * A_Definition}.

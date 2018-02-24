@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
@@ -49,12 +49,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newPrimitiveFailureVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -98,7 +98,7 @@ extends Primitive
 		assert optionalPrimPhrase.expressionsSize() == 1;
 		final A_Phrase primPhrase = optionalPrimPhrase.expressionAt(1);
 		final A_Phrase primNamePhrase = primPhrase.expressionAt(1);
-		if (!primNamePhrase.parseNodeKindIsUnder(LITERAL_NODE))
+		if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
 			throw new AvailRejectedParseException(
 				"primitive specification to be a (compiler created) literal "
@@ -207,8 +207,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -219,8 +219,8 @@ extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */

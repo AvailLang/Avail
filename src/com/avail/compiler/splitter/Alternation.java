@@ -41,7 +41,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 
 /**
  * An {@code Alternation} is a special {@linkplain Expression expression}
@@ -160,7 +160,7 @@ extends Expression
 			// can produce a value (argument, counter, etc), there's no
 			// problem.
 			final WrapState newWrapState = alternatives.get(i).emitOn(
-				emptyListNodeType(), generator, wrapState);
+				emptyListPhraseType(), generator, wrapState);
 			assert newWrapState == wrapState;
 			// Generate a jump to the last label unless this is the last
 			// alternative.

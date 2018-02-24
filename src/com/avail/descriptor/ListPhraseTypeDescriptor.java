@@ -43,17 +43,17 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 
 /**
- * Define the structure and behavior of {@link ParseNodeKind#LIST_NODE list
+ * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
  * phrase types}.  List phrases are phrases that produce a tuple from a
  * particular tuple of any-yielding phrases.  Correspondingly, list phrase types
  * organize the part of the phrase type lattice related to list phrases.
@@ -66,15 +66,15 @@ import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes
  * 5 elements, where the first subexpression must be a declaration and the other
  * subexpressions are all assignment phrases.</p>
  *
- * <p>This descriptor is also used for {@link ParseNodeKind#PERMUTED_LIST_NODE
+ * <p>This descriptor is also used for {@link PhraseKind#PERMUTED_LIST_PHRASE
  * permuted list phrase types}.  In that case, the subexpressions tuple type
  * is for the permuted subexpressions, <em>not</em> the order that they
  * lexically occur.  The permutation itself is not captured by the type.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ListNodeTypeDescriptor
-extends ParseNodeTypeDescriptor
+public final class ListPhraseTypeDescriptor
+extends PhraseTypeDescriptor
 {
 	/**
 	 * My slots of type {@linkplain Integer int}.
@@ -95,9 +95,9 @@ extends ParseNodeTypeDescriptor
 
 		static
 		{
-			assert ParseNodeTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+			assert PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
 				== HASH_AND_MORE.ordinal();
-			assert ParseNodeTypeDescriptor.IntegerSlots.HASH_OR_ZERO
+			assert PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO
 				.isSamePlaceAs(HASH_OR_ZERO);
 		}
 	}
@@ -123,7 +123,7 @@ extends ParseNodeTypeDescriptor
 
 		static
 		{
-			assert ParseNodeTypeDescriptor.ObjectSlots.EXPRESSION_TYPE.ordinal()
+			assert PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE.ordinal()
 				== EXPRESSION_TYPE.ordinal();
 		}
 	}
@@ -140,14 +140,14 @@ extends ParseNodeTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ListNodeTypeDescriptor list phrase types} are equal when they
+	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
 	 * have the same expression type and same tuple type of subexpressions.
 	 * </p>
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		assert object.parseNodeKindIsUnder(LIST_NODE);
+		assert object.phraseKindIsUnder(LIST_PHRASE);
 		return another.equalsListNodeType(object);
 	}
 
@@ -155,18 +155,18 @@ extends ParseNodeTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ListNodeTypeDescriptor list phrase types} are equal when they
+	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
 	 * are of the same kind and have the same expression type and the same
-	 * subexpressions tuple type.  However, aParseNodeType can't be a list
+	 * subexpressions tuple type.  However, aPhraseType can't be a list
 	 * phrase type like the receiver is.
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsParseNodeType (
+	boolean o_EqualsPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		assert !aParseNodeType.parseNodeKindIsUnder(LIST_NODE);
+		assert !aPhraseType.phraseKindIsUnder(LIST_PHRASE);
 		return false;
  	}
 
@@ -175,8 +175,8 @@ extends ParseNodeTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		assert aListNodeType.parseNodeKindIsUnder(LIST_NODE);
-		return object.parseNodeKind() == aListNodeType.parseNodeKind()
+		assert aListNodeType.phraseKindIsUnder(LIST_PHRASE);
+		return object.phraseKind() == aListNodeType.phraseKind()
 			&& object.slot(EXPRESSION_TYPE).equals(
 				aListNodeType.expressionType())
 			&& object.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
@@ -218,7 +218,7 @@ extends ParseNodeTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		return aListNodeType.parseNodeKindIsUnder(object.parseNodeKind())
+		return aListNodeType.phraseKindIsUnder(object.phraseKind())
 			&& aListNodeType.expressionType().isSubtypeOf(
 				object.slot(EXPRESSION_TYPE))
 			&& aListNodeType.subexpressionsTupleType().isSubtypeOf(
@@ -226,11 +226,11 @@ extends ParseNodeTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		assert !aParseNodeType.parseNodeKindIsUnder(LIST_NODE);
+		assert !aPhraseType.phraseKindIsUnder(LIST_PHRASE);
 		return false;
 	}
 
@@ -253,15 +253,15 @@ extends ParseNodeTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		// Intersection of two list node types.
-		final @Nullable ParseNodeKind intersectionKind =
-			object.parseNodeKind().commonDescendantWith(
-				aListNodeType.parseNodeKind());
+		// Intersection of two list phrase types.
+		final @Nullable PhraseKind intersectionKind =
+			object.phraseKind().commonDescendantWith(
+				aListNodeType.phraseKind());
 		if (intersectionKind == null)
 		{
 			return bottom();
 		}
-		assert intersectionKind.isSubkindOf(LIST_NODE);
+		assert intersectionKind.isSubkindOf(LIST_PHRASE);
 		return createListNodeType(
 			intersectionKind,
 			object.expressionType().typeIntersection(
@@ -271,23 +271,23 @@ extends ParseNodeTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		assert !otherKind.isSubkindOf(LIST_NODE);
-		final @Nullable ParseNodeKind intersectionKind =
-			otherKind.commonDescendantWith(object.parseNodeKind());
+		final PhraseKind otherKind = aPhraseType.phraseKind();
+		assert !otherKind.isSubkindOf(LIST_PHRASE);
+		final @Nullable PhraseKind intersectionKind =
+			otherKind.commonDescendantWith(object.phraseKind());
 		if (intersectionKind == null)
 		{
 			return bottom();
 		}
-		assert intersectionKind.isSubkindOf(LIST_NODE);
+		assert intersectionKind.isSubkindOf(LIST_PHRASE);
 		return createListNodeType(
 			intersectionKind,
 			object.expressionType().typeIntersection(
-				aParseNodeType.expressionType()),
+				aPhraseType.expressionType()),
 			object.subexpressionsTupleType());
 	}
 
@@ -302,13 +302,13 @@ extends ParseNodeTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		// Union of two list node types.
-		final ParseNodeKind objectKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aListNodeType.parseNodeKind();
-		assert otherKind.isSubkindOf(LIST_NODE);
-		final ParseNodeKind unionKind = objectKind.commonAncestorWith(
+		// Union of two list phrase types.
+		final PhraseKind objectKind = object.phraseKind();
+		final PhraseKind otherKind = aListNodeType.phraseKind();
+		assert otherKind.isSubkindOf(LIST_PHRASE);
+		final PhraseKind unionKind = objectKind.commonAncestorWith(
 			otherKind);
-		assert unionKind.isSubkindOf(LIST_NODE);
+		assert unionKind.isSubkindOf(LIST_PHRASE);
 		return createListNodeType(
 			unionKind,
 			object.expressionType().typeUnion(aListNodeType.expressionType()),
@@ -317,19 +317,19 @@ extends ParseNodeTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		// Union of a list node type and a non-list parse node type is a
-		// non-list node type.
-		final ParseNodeKind objectKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		final ParseNodeKind unionKind = objectKind.commonAncestorWith(
+		// Union of a list phrase type and a non-list phrase type is a
+		// non-list phrase type.
+		final PhraseKind objectKind = object.phraseKind();
+		final PhraseKind otherKind = aPhraseType.phraseKind();
+		final PhraseKind unionKind = objectKind.commonAncestorWith(
 			otherKind);
-		assert !unionKind.isSubkindOf(LIST_NODE);
+		assert !unionKind.isSubkindOf(LIST_PHRASE);
 		return unionKind.create(
-			object.expressionType().typeUnion(aParseNodeType.expressionType()));
+			object.expressionType().typeUnion(aPhraseType.expressionType()));
 	}
 
 	@Override
@@ -337,7 +337,7 @@ extends ParseNodeTypeDescriptor
 	{
 		writer.startObject();
 		writer.write("kind");
-		writer.write(object.parseNodeKind().jsonName);
+		writer.write(object.phraseKind().jsonName);
 		writer.write("expression type");
 		object.slot(EXPRESSION_TYPE).writeTo(writer);
 		writer.write("subexpressions tuple type");
@@ -366,8 +366,8 @@ extends ParseNodeTypeDescriptor
 	 * mutual element constraints.
 	 *
 	 * @param kind
-	 *        The {@link ParseNodeKind} to instantiate.  This must be {@link
-	 *        ParseNodeKind#LIST_NODE} or a subkind.
+	 *        The {@link PhraseKind} to instantiate.  This must be {@link
+	 *        PhraseKind#LIST_PHRASE} or a subkind.
 	 * @param yieldType
 	 *        The tuple type that the list phrase will yield.
 	 * @param subexpressionsTupleType
@@ -376,11 +376,11 @@ extends ParseNodeTypeDescriptor
 	 * @return A canonized list phrase type.
 	 */
 	public static A_Type createListNodeType (
-		final ParseNodeKind kind,
+		final PhraseKind kind,
 		final A_Type yieldType,
 		final A_Type subexpressionsTupleType)
 	{
-		assert kind.isSubkindOf(LIST_NODE);
+		assert kind.isSubkindOf(LIST_PHRASE);
 		assert yieldType.isTupleType();
 		assert subexpressionsTupleType.isTupleType();
 		final A_Type yieldTypesAsPhrases =
@@ -389,7 +389,7 @@ extends ParseNodeTypeDescriptor
 				elementType ->
 				{
 					assert elementType != null;
-					return PARSE_NODE.create(elementType);
+					return PARSE_PHRASE.create(elementType);
 				});
 		final A_Type phraseTypesAsYields =
 			tupleTypeFromTupleOfTypes(
@@ -400,7 +400,7 @@ extends ParseNodeTypeDescriptor
 					final AbstractDescriptor descriptorTraversed =
 						subexpressionType.traversed().descriptor;
 					assert descriptorTraversed
-							instanceof ParseNodeTypeDescriptor
+							instanceof PhraseTypeDescriptor
 						|| descriptorTraversed
 							instanceof BottomTypeDescriptor;
 					return subexpressionType.expressionType();
@@ -415,18 +415,18 @@ extends ParseNodeTypeDescriptor
 	 * Create a list phrase type with the given tuple type of expression types.
 	 *
 	 * @param kind
-	 *        The {@link ParseNodeKind} to instantiate.  This must be {@link
-	 *        ParseNodeKind#LIST_NODE} or a subkind.
+	 *        The {@link PhraseKind} to instantiate.  This must be {@link
+	 *        PhraseKind#LIST_PHRASE} or a subkind.
 	 * @param subexpressionsTupleType
 	 *        The tuple type of types of expression phrases that are the
 	 *        sub-phrases of the list phrase type.
 	 * @return A canonized list phrase type.
 	 */
 	public static A_Type createListNodeType (
-		final ParseNodeKind kind,
+		final PhraseKind kind,
 		final A_Type subexpressionsTupleType)
 	{
-		assert kind.isSubkindOf(LIST_NODE);
+		assert kind.isSubkindOf(LIST_PHRASE);
 		assert subexpressionsTupleType.isTupleType();
 		final A_Type phraseTypesAsYields =
 			tupleTypeFromTupleOfTypes(
@@ -437,7 +437,7 @@ extends ParseNodeTypeDescriptor
 					final AbstractDescriptor descriptorTraversed =
 						subexpressionType.traversed().descriptor;
 					assert descriptorTraversed
-						instanceof ParseNodeTypeDescriptor
+						instanceof PhraseTypeDescriptor
 						|| descriptorTraversed
 						instanceof BottomTypeDescriptor;
 					return subexpressionType.expressionType();
@@ -453,7 +453,7 @@ extends ParseNodeTypeDescriptor
 	 * they should already be taking each other's restriction into account.
 	 *
 	 * @param listNodeEnumKind
-	 *        The partially initialized value {@link ParseNodeKind#LIST_NODE}.
+	 *        The partially initialized value {@link PhraseKind#LIST_PHRASE}.
 	 * @param yieldType
 	 *        The tuple type that the list phrase will yield.
 	 * @param subexpressionsTupleType
@@ -465,7 +465,7 @@ extends ParseNodeTypeDescriptor
 	 * @return A list phrase type.
 	 */
 	static A_Type createListNodeTypeNoCheck (
-		final ParseNodeKind listNodeEnumKind,
+		final PhraseKind listNodeEnumKind,
 		final A_Type yieldType,
 		final A_Type subexpressionsTupleType)
 	{
@@ -485,7 +485,7 @@ extends ParseNodeTypeDescriptor
 		/** The empty list phrase's type. */
 		@InnerAccess static final A_Type empty =
 			createListNodeTypeNoCheck(
-				LIST_NODE, tupleTypeForTypes(), tupleTypeForTypes()
+				LIST_PHRASE, tupleTypeForTypes(), tupleTypeForTypes()
 			).makeShared();
 
 		private Empty ()
@@ -495,7 +495,7 @@ extends ParseNodeTypeDescriptor
 	}
 
 	/** Answer the empty list phrase's type. */
-	public static A_Type emptyListNodeType ()
+	public static A_Type emptyListPhraseType ()
 	{
 		return Empty.empty;
 	}
@@ -506,11 +506,11 @@ extends ParseNodeTypeDescriptor
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param kind
-	 *            The {@link ParseNodeKind} of the new descriptor.
+	 *            The {@link PhraseKind} of the new descriptor.
 	 */
-	ListNodeTypeDescriptor (
+	ListPhraseTypeDescriptor (
 		final Mutability mutability,
-		final ParseNodeKind kind)
+		final PhraseKind kind)
 	{
 		super(mutability, kind, ObjectSlots.class, IntegerSlots.class);
 	}

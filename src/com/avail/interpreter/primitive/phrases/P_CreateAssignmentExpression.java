@@ -33,15 +33,15 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AssignmentNodeDescriptor;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -53,8 +53,8 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Transform a variable reference and an
- * expression into an inner {@linkplain AssignmentNodeDescriptor assignment
- * node}. Such a node also produces the assigned value as its result, so it
+ * expression into an inner {@linkplain AssignmentPhraseDescriptor assignment
+ * phrase}. Such a node also produces the assigned value as its result, so it
  * can be embedded as a subexpression.
  */
 public final class P_CreateAssignmentExpression extends Primitive
@@ -76,8 +76,8 @@ public final class P_CreateAssignmentExpression extends Primitive
 		final A_Phrase expression = interpreter.argument(1);
 
 		final A_Phrase declaration = variable.declaration();
-		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declaration.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
@@ -97,9 +97,9 @@ public final class P_CreateAssignmentExpression extends Primitive
 	{
 		return functionType(
 			tuple(
-				VARIABLE_USE_NODE.mostGeneralType(),
-				EXPRESSION_NODE.create(ANY.o())),
-			ASSIGNMENT_NODE.mostGeneralType());
+				VARIABLE_USE_PHRASE.mostGeneralType(),
+				EXPRESSION_PHRASE.create(ANY.o())),
+			ASSIGNMENT_PHRASE.mostGeneralType());
 	}
 
 	@Override

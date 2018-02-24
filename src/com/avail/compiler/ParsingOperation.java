@@ -35,7 +35,7 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -51,14 +51,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.avail.compiler.AvailCompiler.Con;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.newMacroSubstitution;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
-import static com.avail.descriptor.PermutedListNodeDescriptor.newPermutedListNode;
-import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.*;
@@ -81,9 +81,9 @@ public enum ParsingOperation
 	 */
 
 	/**
-	 * {@code 0} - Push a new {@linkplain ListNodeDescriptor list} that
+	 * {@code 0} - Push a new {@linkplain ListPhraseDescriptor list} that
 	 * contains an {@linkplain TupleDescriptor#emptyTuple() empty tuple} of
-	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
+	 * {@linkplain PhraseDescriptor phrases} onto the parse stack.
 	 */
 	EMPTY_LIST(0, true, true)
 	{
@@ -101,7 +101,7 @@ public enum ParsingOperation
 			final List<A_Token> consumedStaticTokens,
 			final Con continuation)
 		{
-			// Push an empty list node and continue.
+			// Push an empty list phrase and continue.
 			assert successorTrees.tupleSize() == 1;
 			final List<A_Phrase> newArgsSoFar =
 				append(argsSoFar, emptyListNode());
@@ -120,7 +120,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 1} - Pop an argument from the parse stack of the current
-	 * potential message send. Pop a {@linkplain ListNodeDescriptor list} from
+	 * potential message send. Pop a {@linkplain ListPhraseDescriptor list} from
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
@@ -314,7 +314,7 @@ public enum ParsingOperation
 					(CompilerSolution solution) ->
 					{
 						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.parseNode());
+							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTrees.tupleAt(1),
@@ -332,15 +332,15 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤,
-	 * then push <em>a literal node wrapping this expression</em> onto the parse
+	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤, then
+	 * push <em>a literal phrase wrapping this expression</em> onto the parse
 	 * stack.
 	 *
-	 * <p>If we didn't wrap the parse node inside a literal node, we wouldn't be
+	 * <p>If we didn't wrap the phrase inside a literal phrase, we wouldn't be
 	 * able to process sequences of statements in macros, since they would each
 	 * have an expressionType of ⊤ (or if one was ⊥, the entire expressionType
 	 * would also be ⊥).  Instead, they will have the expressionType phrase⇒⊤
-	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
+	 * (or phrase⇒⊥), which is perfectly fine to put inside a list phrase during
 	 * parsing.</p>
 	 */
 	PARSE_TOP_VALUED_ARGUMENT(6, false, true)
@@ -377,7 +377,7 @@ public enum ParsingOperation
 					solution ->
 					{
 						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.parseNode());
+							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTrees.tupleAt(1),
@@ -397,7 +397,7 @@ public enum ParsingOperation
 	/**
 	 * {@code 7} - Parse a {@linkplain TokenDescriptor raw token}. It should
 	 * correspond to a {@linkplain VariableDescriptor variable} that is
-	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
+	 * in scope. Push a {@linkplain ReferencePhraseDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
 	PARSE_VARIABLE_REFERENCE(7, false, true)
@@ -435,13 +435,13 @@ public enum ParsingOperation
 					{
 						assert successorTrees.tupleSize() == 1;
 						final A_Phrase variableUse =
-							variableUseSolution.parseNode();
+							variableUseSolution.phrase();
 						final A_Phrase rawVariableUse =
 							variableUse.stripMacro();
 						final ParserState afterUse =
 							variableUseSolution.endState();
-						if (!rawVariableUse.parseNodeKindIsUnder(
-							VARIABLE_USE_NODE))
+						if (!rawVariableUse.phraseKindIsUnder(
+							VARIABLE_USE_PHRASE))
 						{
 							if (consumedAnything)
 							{
@@ -452,7 +452,7 @@ public enum ParsingOperation
 									describeWhyVariableUseIsExpected(
 										successorTrees.tupleAt(1)));
 							}
-							// It wasn't a variable use node, so give up.
+							// It wasn't a variable use phrase, so give up.
 							return;
 						}
 						// Make sure taking a reference is appropriate.
@@ -533,9 +533,9 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 9} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
-	 * leaving it on the parse stack.  In particular, push a literal node whose
-	 * token is a synthetic literal token whose value is the actual token that
-	 * was parsed.
+	 * leaving it on the parse stack.  In particular, push a literal phrase
+	 * whose token is a synthetic literal token whose value is the actual token
+	 * that was parsed.
 	 */
 	PARSE_ANY_RAW_TOKEN(9, false, false)
 	{
@@ -1282,8 +1282,8 @@ public enum ParsingOperation
 	 * Make a copy of the parse stack, then perform the equivalent of an {@link
 	 * #APPEND_ARGUMENT} on the copy, the specified number of times minus one
 	 * (because zero is not a legal operand).  Make it into a single {@linkplain
-	 * ListNodeDescriptor list node} and push it onto the original parse stack.
-	 * It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
+	 * ListPhraseDescriptor list phrase} and push it onto the original parse
+	 * stack. It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
@@ -1400,10 +1400,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+9} - Permute the elements of the list node on the top of the
-	 * stack via the permutation found via {@linkplain
-	 * MessageSplitter#permutationAtIndex(int)}.  The list node must be the same
-	 * size as the permutation.
+	 * {@code 16*N+9} - Permute the elements of the list phrase on the top of
+	 * the stack via the permutation found via {@linkplain
+	 * MessageSplitter#permutationAtIndex(int)}.  The list phrase must be the
+	 * same size as the permutation.
 	 */
 	PERMUTE_LIST(9, true, true)
 	{
@@ -1441,9 +1441,9 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
-	 * least the specified size.  Proceed to the next instruction only if this
-	 * is the case.
+	 * {@code 16*N+10} - Check that the list phrase on the top of the stack has
+	 * at least the specified size.  Proceed to the next instruction only if
+	 * this is the case.
 	 */
 	CHECK_AT_LEAST(10, true, true)
 	{
@@ -1480,8 +1480,8 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+11} - Check that the list node on the top of the stack has at
-	 * most the specified size.  Proceed to the next instruction only if this
+	 * {@code 16*N+11} - Check that the list phrase on the top of the stack has
+	 * at most the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
 	CHECK_AT_MOST(11, true, true)
@@ -1556,7 +1556,7 @@ public enum ParsingOperation
 	/**
 	 * {@code 16*N+13} - Pop N arguments from the parse stack of the current
 	 * potential message send. Create an N-element {@linkplain
-	 * ListNodeDescriptor list} with them, and push the list back onto the
+	 * ListPhraseDescriptor list} with them, and push the list back onto the
 	 * parse stack.
 	 *
 	 * <p>This is the equivalent of pushing an empty list prior to pushing those
@@ -1608,7 +1608,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+14} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 16*N+14} - Push a {@link LiteralPhraseDescriptor literal phrase}
 	 * containing the constant found at the position in the type list indicated
 	 * by the operand.
 	 */
@@ -1939,8 +1939,8 @@ public enum ParsingOperation
 	 *        with tokens that occur verbatim inside the name of the method or
 	 *        macro.
 	 * @param continuation
-	 *        What to do with a complete {@linkplain SendNodeDescriptor message
-	 *        send}.
+	 *        What to do with a complete {@linkplain SendPhraseDescriptor
+	 *        message send}.
 	 */
 	abstract void execute (
 		final AvailCompiler compiler,

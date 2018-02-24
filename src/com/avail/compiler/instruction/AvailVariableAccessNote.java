@@ -32,18 +32,18 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.BlockPhraseDescriptor;
 
 import javax.annotation.Nullable;
 
 
 /**
  * An {@code AvailVariableAccessNote} is a helper class used during data flow
- * analysis.  As it progresses forward through a {@linkplain BlockNodeDescriptor
- * block}'s {@link AvailInstruction}s, it tracks, for a particular variable, the
- * most recent instruction which pushes that variable itself on the stack.  It
- * also tracks the most recent instruction which pushes that variable's
- * <em>value</em> on the stack.
+ * analysis.  As it progresses forward through a {@linkplain
+ * BlockPhraseDescriptor block}'s {@link AvailInstruction}s, it tracks, for a
+ * particular variable, the most recent instruction which pushes that variable
+ * itself on the stack.  It also tracks the most recent instruction which pushes
+ * that variable's <em>value</em> on the stack.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

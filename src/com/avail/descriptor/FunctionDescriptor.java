@@ -45,7 +45,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
@@ -380,7 +380,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Convert a {@link ParseNodeDescriptor phrase} into a zero-argument
+	 * Convert a {@link PhraseDescriptor phrase} into a zero-argument
 	 * {@link A_Function}.
 	 *
 	 * @param phrase
@@ -407,7 +407,7 @@ extends Descriptor
 			emptySet(),
 			lineNumber,
 			phrase.tokens());
-		BlockNodeDescriptor.recursivelyValidate(block);
+		BlockPhraseDescriptor.recursivelyValidate(block);
 		final A_RawFunction compiledBlock = block.generateInModule(module);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated

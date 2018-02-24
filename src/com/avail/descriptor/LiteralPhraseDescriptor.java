@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.TOKEN;
+import static com.avail.descriptor.LiteralPhraseDescriptor.ObjectSlots.TOKEN;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -59,8 +59,8 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class LiteralNodeDescriptor
-extends ParseNodeDescriptor
+public final class LiteralPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -95,7 +95,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		// Do nothing.
 	}
@@ -118,13 +118,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(TOKEN).equals(aParseNode.token());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(TOKEN).equals(aPhrase.token());
 	}
 
 	@Override @AvailMethod
@@ -144,9 +144,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return ParseNodeKind.LITERAL_NODE;
+		return PhraseKind.LITERAL_PHRASE;
 	}
 
 	@Override
@@ -208,13 +208,13 @@ extends ParseNodeDescriptor
 	 * token}.
 	 *
 	 * @param token The token that describes the literal.
-	 * @return The new literal node.
+	 * @return The new literal phrase.
 	 */
 	public static AvailObject fromTokenForDecompiler (final A_Token token)
 	{
-		final AvailObject node = mutable.create();
-		node.setSlot(TOKEN, token);
-		return node.makeShared();
+		final AvailObject phrase = mutable.create();
+		phrase.setSlot(TOKEN, token);
+		return phrase.makeShared();
 	}
 
 	/**
@@ -222,22 +222,22 @@ extends ParseNodeDescriptor
 	 * token}.
 	 *
 	 * @param token The token that describes the literal.
-	 * @return The new literal node.
+	 * @return The new literal phrase.
 	 */
 	public static AvailObject literalNodeFromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(mostGeneralLiteralTokenType());
-		final AvailObject node = mutable.create();
-		node.setSlot(TOKEN, token);
-		return node.makeShared();
+		final AvailObject phrase = mutable.create();
+		phrase.setSlot(TOKEN, token);
+		return phrase.makeShared();
 	}
 
 	/**
 	 * Create a literal phrase from an {@link AvailObject}, the literal value
 	 * itself.  Automatically wrap the value inside a synthetic literal token.
 	 *
-	 * @param literalValue The value that this literal node should produce.
-	 * @return The new literal node.
+	 * @param literalValue The value that this literal phrase should produce.
+	 * @return The new literal phrase.
 	 */
 	public static AvailObject syntheticLiteralNodeFor (
 		final A_BasicObject literalValue)
@@ -256,12 +256,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@code LiteralNodeDescriptor}.
+	 * Construct a new {@code LiteralPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public LiteralNodeDescriptor (final Mutability mutability)
+	public LiteralPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -270,22 +270,22 @@ extends ParseNodeDescriptor
 			null);
 	}
 
-	/** The mutable {@link LiteralNodeDescriptor}. */
-	private static final LiteralNodeDescriptor mutable =
-		new LiteralNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link LiteralPhraseDescriptor}. */
+	private static final LiteralPhraseDescriptor mutable =
+		new LiteralPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LiteralNodeDescriptor mutable ()
+	LiteralPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link LiteralNodeDescriptor}. */
-	private static final LiteralNodeDescriptor shared =
-		new LiteralNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link LiteralPhraseDescriptor}. */
+	private static final LiteralPhraseDescriptor shared =
+		new LiteralPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	LiteralNodeDescriptor shared ()
+	LiteralPhraseDescriptor shared ()
 	{
 		return shared;
 	}

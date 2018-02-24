@@ -41,7 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCONSISTENT_ARGUMENT_REORDERING;
@@ -136,7 +136,7 @@ extends Expression
 		 * @expressionSkip:
 		 */
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(emptyListNodeType());
+			sequence.mightBeEmpty(emptyListPhraseType());
 		final Label $expressionSkip = new Label();
 		generator.emitBranchForward(this, $expressionSkip);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
@@ -150,7 +150,7 @@ extends Expression
 		for (final Expression expression : sequence.expressions)
 		{
 			expression.emitOn(
-				emptyListNodeType(),
+				emptyListPhraseType(),
 				generator,
 				WrapState.SHOULD_NOT_HAVE_ARGUMENTS);
 		}

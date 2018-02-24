@@ -40,6 +40,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -85,7 +86,7 @@ extends PropertiesFileGenerator
 			primitiveNumber <= Primitive.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
-			final Primitive primitive =
+			final @Nullable Primitive primitive =
 				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.CannotFail))
 			{

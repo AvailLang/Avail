@@ -39,7 +39,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1OperandType;
@@ -1447,14 +1447,14 @@ extends Descriptor
 	}
 
 	/**
-	 * The key used to track the {@link ParseNodeDescriptor phrase} that a raw
+	 * The key used to track the {@link PhraseDescriptor phrase} that a raw
 	 * function was created from.
 	 */
 	private static final A_Atom originatingPhraseKeyAtom =
 		createSpecialAtom("originating phrase key");
 
 	/**
-	 * Answer the key used to track the {@link ParseNodeDescriptor phrase} that
+	 * Answer the key used to track the {@link PhraseDescriptor phrase} that
 	 * a raw function was created from.
 	 *
 	 * @return A special atom.

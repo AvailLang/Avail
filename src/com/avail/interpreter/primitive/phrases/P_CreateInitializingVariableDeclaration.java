@@ -35,18 +35,18 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LOCAL_VARIABLE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -55,9 +55,9 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create an initializing {@linkplain
- * ParseNodeKind#LOCAL_VARIABLE_NODE local variable declaration} from the
+ * PhraseKind#LOCAL_VARIABLE_PHRASE local variable declaration} from the
  * specified {@linkplain TokenDescriptor token}, type, and {@linkplain
- * ParseNodeKind#EXPRESSION_NODE expression}.
+ * PhraseKind#EXPRESSION_PHRASE expression}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -91,7 +91,7 @@ extends Primitive
 			tuple(
 				TOKEN.o(),
 				anyMeta(),
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			LOCAL_VARIABLE_PHRASE.mostGeneralType());
 	}
 }

@@ -35,8 +35,8 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.serialization.SerializerOperation;
@@ -53,15 +53,15 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.PRIMITIVE;
-import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
-import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_CONSTANT;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_VARIABLE;
+import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;
+import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
+import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
@@ -71,8 +71,8 @@ import static com.avail.descriptor.TupleDescriptor.tupleFromList;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class BlockNodeDescriptor
-extends ParseNodeDescriptor
+public final class BlockPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@linkplain Integer int}.
@@ -130,7 +130,7 @@ extends ParseNodeDescriptor
 
 		/**
 		 * A tuple of variables needed by this block.  This is set after the
-		 * {@linkplain BlockNodeDescriptor block node} has already been
+		 * {@linkplain BlockPhraseDescriptor block phrase} has already been
 		 * created.
 		 */
 		NEEDED_VARIABLES,
@@ -243,7 +243,7 @@ extends ParseNodeDescriptor
 			if (skipFailureDeclaration)
 			{
 				assert statement.isInstanceOf(
-					DECLARATION_NODE.mostGeneralType());
+					DECLARATION_PHRASE.mostGeneralType());
 				skipFailureDeclaration = false;
 			}
 			else
@@ -305,20 +305,20 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		A_Tuple arguments = object.argumentsTuple();
 		for (int i = 1; i <= arguments.tupleSize(); i++)
 		{
 			arguments = arguments.tupleAtPuttingCanDestroy(
-				i, aBlock.valueNotNull(arguments.tupleAt(i)), true);
+				i, transformer.valueNotNull(arguments.tupleAt(i)), true);
 		}
 		object.setSlot(ARGUMENTS_TUPLE, arguments);
 		A_Tuple statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
-				i, aBlock.valueNotNull(statements.tupleAt(i)), true);
+				i, transformer.valueNotNull(statements.tupleAt(i)), true);
 		}
 		object.setSlot(STATEMENTS_TUPLE, statements);
 	}
@@ -364,17 +364,17 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.argumentsTuple().equals(aParseNode.argumentsTuple())
-			&& object.statementsTuple().equals(aParseNode.statementsTuple())
-			&& object.resultType().equals(aParseNode.resultType())
-			&& object.neededVariables().equals(aParseNode.neededVariables())
-			&& object.primitive() == aParseNode.primitive();
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.argumentsTuple().equals(aPhrase.argumentsTuple())
+			&& object.statementsTuple().equals(aPhrase.statementsTuple())
+			&& object.resultType().equals(aPhrase.resultType())
+			&& object.neededVariables().equals(aPhrase.neededVariables())
+			&& object.primitive() == aPhrase.primitive();
 	}
 
 	@Override @AvailMethod
@@ -391,7 +391,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Answer an Avail compiled block compiled from the given block node, using
+	 * Answer an Avail compiled block compiled from the given block phrase, using
 	 * the given {@link AvailCodeGenerator}.
 	 *
 	 * @param object
@@ -438,9 +438,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return BLOCK_NODE;
+		return BLOCK_PHRASE;
 	}
 
 	@Override @AvailMethod
@@ -550,11 +550,11 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Return a {@linkplain List list} of all {@linkplain
-	 * DeclarationNodeDescriptor declaration nodes} defined by this block.
-	 * This includes arguments, locals, constants, and labels.
+	 * Return a {@link List} of all {@linkplain DeclarationPhraseDescriptor
+	 * declaration phrases} defined by this block. This includes arguments,
+	 * locals, constants, and labels.
 	 *
-	 * @param object The Avail block node to scan.
+	 * @param object The Avail block phrase to scan.
 	 * @return The list of declarations.
 	 */
 	private static List<A_Phrase> allLocallyDefinedVariables (
@@ -575,7 +575,7 @@ extends ParseNodeDescriptor
 	 * Answer the labels present in this block's list of statements. There is
 	 * either zero or one label, and it must be the first statement.
 	 *
-	 * @param object The block node to examine.
+	 * @param object The block phrase to examine.
 	 * @return A list of between zero and one labels.
 	 */
 	public static List<A_Phrase> labels (final A_Phrase object)
@@ -583,7 +583,7 @@ extends ParseNodeDescriptor
 		final List<A_Phrase> labels = new ArrayList<>(1);
 		for (final AvailObject phrase : object.statementsTuple())
 		{
-			if (phrase.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
+			if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType()))
 			{
 				assert phrase.declarationKind() == DeclarationKind.LABEL;
 				labels.add(phrase);
@@ -599,7 +599,7 @@ extends ParseNodeDescriptor
 	 *
 	 * <p>Include the primitive failure reason variable, if present.</p>
 	 *
-	 * @param object The block node to examine.
+	 * @param object The block phrase to examine.
 	 * @return This block's local variable declarations.
 	 */
 	public static List<A_Phrase> locals (final A_Phrase object)
@@ -607,7 +607,7 @@ extends ParseNodeDescriptor
 		final List<A_Phrase> locals = new ArrayList<>(5);
 		for (final A_Phrase phrase : object.statementsTuple())
 		{
-			if (phrase.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
+			if (phrase.isInstanceOfKind(DECLARATION_PHRASE.mostGeneralType()))
 			{
 				final DeclarationKind kind = phrase.declarationKind();
 				if (kind == DeclarationKind.LOCAL_VARIABLE
@@ -625,7 +625,7 @@ extends ParseNodeDescriptor
 	 * the label declaration if present, nor argument declarations, nor local
 	 * variables.
 	 *
-	 * @param object The block node to examine.
+	 * @param object The block phrase to examine.
 	 * @return This block's local constant declarations.
 	 */
 	public static List<A_Phrase> constants (final A_Phrase object)
@@ -633,7 +633,7 @@ extends ParseNodeDescriptor
 		final List<A_Phrase> constants = new ArrayList<>(5);
 		for (final A_Phrase phrase : object.statementsTuple())
 		{
-			if (phrase.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
+			if (phrase.isInstanceOfKind(DECLARATION_PHRASE.mostGeneralType())
 				&& phrase.declarationKind()
 					== DeclarationKind.LOCAL_CONSTANT)
 			{
@@ -648,12 +648,12 @@ extends ParseNodeDescriptor
 	 *
 	 * @param arguments
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *        DeclarationNodeDescriptor argument declarations}.
+	 *        DeclarationPhraseDescriptor argument declarations}.
 	 * @param primitive
 	 *        The index of the primitive that the resulting block will invoke.
 	 * @param statements
 	 *        The {@link A_Tuple tuple} of statement {@linkplain
-	 *        ParseNodeDescriptor nodes}.
+	 *        PhraseDescriptor phrases}.
 	 * @param resultType
 	 *        The {@link A_Type type} that will be returned by the block.
 	 * @param declaredExceptions
@@ -686,7 +686,7 @@ extends ParseNodeDescriptor
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
 			final A_BasicObject statement = flattenedStatements.get(index);
-			if (statement.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
+			if (statement.isInstanceOfKind(LITERAL_PHRASE.mostGeneralType()))
 			{
 				flattenedStatements.remove(index);
 			}
@@ -724,7 +724,7 @@ extends ParseNodeDescriptor
 	 *
 	 * @param object The block phrase to analyze.
 	 */
-	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
+	private void collectNeededVariablesOfOuterBlocks (final A_Phrase object)
 	{
 		final Set<A_Phrase> providedByMe =
 			new HashSet<>(allLocallyDefinedVariables(object));
@@ -733,12 +733,12 @@ extends ParseNodeDescriptor
 		object.childrenDo(new Continuation1NotNull<A_Phrase>()
 		{
 			@Override
-			public void value (final @Nullable A_Phrase node)
+			public void value (final @Nullable A_Phrase phrase)
 			{
-				assert node != null;
-				if (node.parseNodeKindIsUnder(BLOCK_NODE))
+				assert phrase != null;
+				if (phrase.phraseKindIsUnder(BLOCK_PHRASE))
 				{
-					for (final A_Phrase declaration : node.neededVariables())
+					for (final A_Phrase declaration : phrase.neededVariables())
 					{
 						if (!providedByMe.contains(declaration)
 							&& !neededDeclarationsSet.contains(declaration))
@@ -749,9 +749,9 @@ extends ParseNodeDescriptor
 					}
 					return;
 				}
-				if (node.parseNodeKindIsUnder(VARIABLE_USE_NODE))
+				if (phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE))
 				{
-					final A_Phrase declaration = node.declaration();
+					final A_Phrase declaration = phrase.declaration();
 					if (!providedByMe.contains(declaration)
 						&& declaration.declarationKind() != MODULE_VARIABLE
 						&& declaration.declarationKind() != MODULE_CONSTANT
@@ -766,19 +766,19 @@ extends ParseNodeDescriptor
 					// be captured as well.
 					return;
 				}
-				node.childrenDo(this);
+				phrase.childrenDo(this);
 			}
 		});
 		object.neededVariables(tupleFromList(neededDeclarations));
 	}
 
 	/**
-	 * Construct a new {@code BlockNodeDescriptor}.
+	 * Construct a new {@code BlockPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private BlockNodeDescriptor (final Mutability mutability)
+	private BlockPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -787,22 +787,22 @@ extends ParseNodeDescriptor
 			IntegerSlots.class);
 	}
 
-	/** The mutable {@link BlockNodeDescriptor}. */
-	private static final BlockNodeDescriptor mutable =
-		new BlockNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link BlockPhraseDescriptor}. */
+	private static final BlockPhraseDescriptor mutable =
+		new BlockPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	BlockNodeDescriptor mutable ()
+	BlockPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link BlockNodeDescriptor}. */
-	private static final BlockNodeDescriptor shared =
-		new BlockNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link BlockPhraseDescriptor}. */
+	private static final BlockPhraseDescriptor shared =
+		new BlockPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	BlockNodeDescriptor shared ()
+	BlockPhraseDescriptor shared ()
 	{
 		return shared;
 	}

@@ -35,16 +35,16 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.MODULE_VARIABLE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
@@ -53,7 +53,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain
- * ParseNodeKind#MODULE_VARIABLE_NODE module variable declaration} from the
+ * PhraseKind#MODULE_VARIABLE_PHRASE module variable declaration} from the
  * specified {@linkplain TokenDescriptor token} and actual {@linkplain
  * A_Variable variable}.
  *
@@ -88,6 +88,6 @@ extends Primitive
 			tuple(
 				mostGeneralVariableType(),
 				TOKEN.o()),
-			MODULE_VARIABLE_NODE.mostGeneralType());
+			MODULE_VARIABLE_PHRASE.mostGeneralType());
 	}
 }

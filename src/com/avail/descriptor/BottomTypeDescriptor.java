@@ -480,7 +480,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override
 	A_Type o_SubexpressionsTupleType (final AvailObject object)
 	{
-		// See ListNodeDescriptor.
+		// See ListPhraseDescriptor.
 		return object;
 	}
 

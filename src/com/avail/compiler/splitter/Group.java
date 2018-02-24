@@ -58,12 +58,12 @@ import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LIST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -425,7 +425,7 @@ extends Expression
 					subexpressionsTupleType.typeAtIndex(index);
 				final A_Type singularListType =
 					createListNodeType(
-						LIST_NODE,
+						LIST_PHRASE,
 						tupleTypeForTypes(
 							innerPhraseType.expressionType()),
 						tupleTypeForTypes(innerPhraseType));
@@ -451,7 +451,8 @@ extends Expression
 					generator.emitWrapped(this, 1);
 					hasWrapped = true;
 				}
-				afterDagger.emitOn(emptyListNodeType(), generator, PUSHED_LIST);
+				afterDagger.emitOn(
+					emptyListPhraseType(), generator, PUSHED_LIST);
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
@@ -466,7 +467,7 @@ extends Expression
 				subexpressionsTupleType.defaultType();
 			final A_Type singularListType =
 				createListNodeType(
-					LIST_NODE,
+					LIST_PHRASE,
 					tupleTypeForTypes(innerPhraseType.expressionType()),
 					tupleTypeForTypes(innerPhraseType));
 			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST);
@@ -479,7 +480,8 @@ extends Expression
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
-				afterDagger.emitOn(emptyListNodeType(), generator, PUSHED_LIST);
+				afterDagger.emitOn(
+					emptyListPhraseType(), generator, PUSHED_LIST);
 				generator.flushDelayed();
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
@@ -700,7 +702,7 @@ extends Expression
 			else
 			{
 				expression.emitOn(
-					emptyListNodeType(),
+					emptyListPhraseType(),
 					generator,
 					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
@@ -762,7 +764,7 @@ extends Expression
 			else
 			{
 				expression.emitOn(
-					emptyListNodeType(),
+					emptyListPhraseType(),
 					generator,
 					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
@@ -895,21 +897,20 @@ extends Expression
 			final Iterator<AvailObject> innerIterator;
 			if (needsDouble)
 			{
-				// The occurrence is itself a list node containing the
-				// parse nodes to fill in to this group's arguments and
-				// subgroups.
+				// The occurrence is itself a list phrase containing the phrases
+				// to fill in to this group's arguments and subgroups.
 				assert occurrence.isInstanceOfKind(
-					LIST_NODE.mostGeneralType());
+					LIST_PHRASE.mostGeneralType());
 				innerIterator = occurrence.expressionsTuple().iterator();
 			}
 			else
 			{
-				// The argumentObject is a listNode of parse nodes.
-				// Each parse node is for the single argument or subgroup
-				// which is left of the double-dagger (and there are no
-				// arguments or subgroups to the right).
+				// The argumentObject is a listNode of phrases. Each phrase is
+				// for the single argument or subgroup which is left of the
+				// double-dagger (and there are no arguments or subgroups to the
+				// right).
 				assert occurrence.isInstanceOfKind(
-					EXPRESSION_NODE.mostGeneralType());
+					EXPRESSION_PHRASE.mostGeneralType());
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(occurrence);
 				innerIterator = argumentNodes.iterator();
@@ -930,7 +931,7 @@ extends Expression
 	 * subsequent subexpressions should also be printed.
 	 *
 	 * @param argumentProvider
-	 *        An iterator to provide parse nodes for this group occurrence's
+	 *        An iterator to provide phrases for this group occurrence's
 	 *        arguments and subgroups.
 	 * @param builder
 	 *        The {@link StringBuilder} on which to print.

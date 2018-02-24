@@ -36,7 +36,7 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
@@ -50,13 +50,13 @@ import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newLabel;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newLabel;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -122,7 +122,7 @@ extends Primitive
 		{
 			labelReturnTypePhrase =
 				optionalLabelReturnTypePhrase.expressionAt(1);
-			assert labelReturnTypePhrase.parseNodeKindIsUnder(LITERAL_NODE);
+			assert labelReturnTypePhrase.phraseKindIsUnder(LITERAL_PHRASE);
 			labelReturnType = labelReturnTypePhrase.token().literal();
 		}
 		else
@@ -149,7 +149,7 @@ extends Primitive
 				assert argumentPair.expressionsSize() == 2;
 				final A_Phrase typePhrase = argumentPair.expressionAt(2);
 				assert typePhrase.isInstanceOfKind(
-					LITERAL_NODE.create(anyMeta()));
+					LITERAL_PHRASE.create(anyMeta()));
 				final A_Type argType = typePhrase.token().literal();
 				assert argType.isType();
 				blockArgumentTypes.add(argType);
@@ -180,8 +180,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -192,8 +192,8 @@ extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */
@@ -208,8 +208,8 @@ extends Primitive
 									TOKEN.o(),
 									/* Primitive failure variable type */
 									anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional label declaration. */
 					zeroOrOneOf(
 						/* Label parts. */

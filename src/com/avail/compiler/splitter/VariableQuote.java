@@ -33,8 +33,8 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ReferenceNodeDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.ReferencePhraseDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 
 import javax.annotation.Nullable;
@@ -49,7 +49,7 @@ import static com.avail.utility.Nulls.stripNull;
  * Metacharacter#UP_ARROW up arrow} (↑) after an underscore in a
  * message name. It indicates that the expression must be the name of a
  * {@linkplain VariableDescriptor variable} that is currently in-scope. It
- * produces a {@linkplain ReferenceNodeDescriptor reference} to the
+ * produces a {@linkplain ReferencePhraseDescriptor reference} to the
  * variable, rather than extracting its value.
  */
 final class VariableQuote
@@ -76,7 +76,7 @@ extends Argument
 		generator.flushDelayed();
 		generator.emit(this, PARSE_VARIABLE_REFERENCE);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		if (!ParseNodeKind.REFERENCE_NODE.mostGeneralType().isSubtypeOf(
+		if (!PhraseKind.REFERENCE_PHRASE.mostGeneralType().isSubtypeOf(
 			phraseType))
 		{
 			generator.emitDelayed(

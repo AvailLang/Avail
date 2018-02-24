@@ -37,7 +37,7 @@ import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -59,9 +59,9 @@ import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.*;
@@ -77,9 +77,9 @@ import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
- * {@linkplain SendNodeDescriptor send phrase} from the specified {@linkplain
- * A_Bundle message bundle}, {@linkplain ListNodeDescriptor list node} of
- * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}, and
+ * {@linkplain SendPhraseDescriptor send phrase} from the specified {@linkplain
+ * A_Bundle message bundle}, {@linkplain ListPhraseDescriptor list phrase} of
+ * {@linkplain PhraseKind#EXPRESSION_PHRASE argument expressions}, and
  * {@linkplain TypeDescriptor return type}.  In addition, run all semantic
  * restrictions in separate fibers.  The resulting send phrase's return type
  * will be the intersection of the supplied type, the return types produced by
@@ -220,7 +220,7 @@ extends Primitive
 			if (problems.isEmpty())
 			{
 				// There were no problems.  Succeed the primitive with a
-				// send node yielding the intersection type.
+				// send phrase yielding the intersection type.
 				resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
@@ -347,9 +347,9 @@ extends Primitive
 		return functionType(
 			tuple(
 				ATOM.o(),
-				LIST_NODE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
-			SEND_NODE.mostGeneralType());
+			SEND_PHRASE.mostGeneralType());
 	}
 
 	@Override
@@ -363,7 +363,7 @@ extends Primitive
 		final A_Type returnTypeType = argumentTypes.get(2);
 
 		final A_Type returnType = returnTypeType.instance();
-		return SEND_NODE.create(returnType);
+		return SEND_PHRASE.create(returnType);
 	}
 
 	@Override

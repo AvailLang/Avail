@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -46,9 +46,9 @@ import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -58,10 +58,10 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain SendNodeDescriptor send
+ * <strong>Primitive:</strong> Create a {@linkplain SendPhraseDescriptor send
  * expression} from the specified {@linkplain MessageBundleDescriptor message
- * bundle}, {@linkplain ListNodeDescriptor list node} of {@linkplain
- * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
+ * bundle}, {@linkplain ListPhraseDescriptor list phrase} of {@linkplain
+ * PhraseKind#EXPRESSION_PHRASE argument expressions}, and {@linkplain
  * TypeDescriptor return type}.  Do not apply semantic restrictions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -113,9 +113,9 @@ extends Primitive
 		return functionType(
 			tuple(
 				ATOM.o(),
-				LIST_NODE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
-			SEND_NODE.mostGeneralType());
+			SEND_PHRASE.mostGeneralType());
 	}
 
 	@Override
@@ -129,7 +129,7 @@ extends Primitive
 		final A_Type returnTypeType = argumentTypes.get(2);
 
 		final A_Type returnType = returnTypeType.instance();
-		return SEND_NODE.create(returnType);
+		return SEND_PHRASE.create(returnType);
 	}
 
 	@Override

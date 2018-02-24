@@ -43,7 +43,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -55,7 +55,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixEndOfBlockBody} primitive is used for
- * bootstrapping the {@link BlockNodeDescriptor block} syntax for defining
+ * bootstrapping the {@link BlockPhraseDescriptor block} syntax for defining
  * {@link FunctionDescriptor functions}.
  *
  * <p>It ensures that declarations introduced within the block body end scope
@@ -131,8 +131,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -143,8 +143,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */
@@ -159,8 +159,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 									TOKEN.o(),
 									/* Primitive failure variable type */
 									anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional label declaration. */
 					zeroOrOneOf(
 						/* Label parts. */
@@ -171,19 +171,19 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Statements and declarations so far. */
 					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o().
 						 */
-						STATEMENT_NODE.mostGeneralType())),
+						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_NODE.create(
+				LIST_PHRASE.create(
 					zeroOrOneOf(
-						PARSE_NODE.create(ANY.o())))),
+						PARSE_PHRASE.create(ANY.o())))),
 			TOP.o());
 	}
 

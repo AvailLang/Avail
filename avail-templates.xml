@@ -37,84 +37,90 @@ Private method "${methodName}" is
 
 ]:${returnType};
 </template><template autoinsert="true" context="java" deleted="false" description="The micro (µ) sign." enabled="true" name="micro">µ</template><template autoinsert="true" context="java" deleted="false" description="A middle dot (·)." enabled="true" name="middledot">·</template><template autoinsert="true" context="java" deleted="false" description="New Avail primitive implementation." enabled="true" name="newprimitiveimpl">/**
- * ${file}
- * Copyright © 1993-${year}, The Avail Foundation, LLC.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+    * ${file}
+    * Copyright © 1993-${year}, The Avail Foundation, LLC.
+    * All rights reserved.
+    *
+    * Redistribution and use in source and binary forms, with or without
+    * modification, are permitted provided that the following conditions are
+    met:
+    *
+    * * Redistributions of source code must retain the above copyright notice,
+    this
+    * list of conditions and the following disclaimer.
+    *
+    * * Redistributions in binary form must reproduce the above copyright
+    notice,
+    * this list of conditions and the following disclaimer in the documentation
+    * and/or other materials provided with the distribution.
+    *
+    * * Neither the name of the copyright holder nor the names of the
+    contributors
+    * may be used to endorse or promote products derived from this software
+    * without specific prior written permission.
+    *
+    * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS"
+    * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    * POSSIBILITY OF SUCH DAMAGE.
+    */
 
-package com.avail.interpreter.primitive;
+    package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import java.util.List;
-import javax.annotation.Nonnull;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+    import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+    import static com.avail.descriptor.TypeDescriptor.Types.*;
+    import static com.avail.exceptions.AvailErrorCode.*;
+    import static com.avail.interpreter.Primitive.Flag.*;
+    import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+    import static com.avail.descriptor.TupleDescriptor.tuple;
+    import java.util.List;
+    import javax.annotation.Nonnull;
+    import com.avail.descriptor.*;
+    import com.avail.interpreter.*;
 
-/**
- * &lt;strong&gt;Primitive ${primitiveNumber}&lt;/strong&gt;: TODO: [TLS] Document this!
- *
- * @author ${authorName} &amp;lt;${emailAddress}@availlang.org&amp;gt;
- */
-public final class ${primary_type_name}
-extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final @Nonnull static Primitive instance =
-		new ${primary_type_name}().init(${primitiveArgCount}, ${primitiveFlags});
+    /**
+    * &lt;strong&gt;Primitive ${primitiveNumber}&lt;/strong&gt;: TODO: [TLS]
+    Document this!
+    *
+    * @author ${authorName} &amp;lt;${emailAddress}@availlang.org&amp;gt;
+    */
+    public final class ${primary_type_name}
+    extends Primitive
+    {
+    /**
+    * The sole instance of this primitive class. Accessed through reflection.
+    */
+    public final @Nonnull static Primitive instance =
+    new ${primary_type_name}().init(${primitiveArgCount}, ${primitiveFlags});
 
-	@Override
-	public Result attempt (
-		final List&lt;AvailObject&gt; args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == ${primitiveArgCount};
-		// TODO: [TLS] Implement this!
-		${cursor}
-	}
+    @Override
+    public Result attempt (
+    final List&lt;AvailObject&gt; args,
+    final Interpreter interpreter,
+    final boolean skipReturnCheck)
+    {
+    assert args.size() == ${primitiveArgCount};
+    // TODO: [TLS] Implement this!
+    ${cursor}
+    }
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(
-			tuple(
-				${primitiveArgTypes}),
-			${primitiveReturnType});
-	}
-}
+    @Override
+    protected A_Type privateBlockTypeRestriction ()
+    {
+    return functionType(
+    tuple(
+    ${primitiveArgTypes}),
+    ${primitiveReturnType});
+    }
+    }
 </template><template autoinsert="true" context="java" deleted="false" description="New Avail file." enabled="true" name="newsysfile">/*
  * ${file}
  * Copyright © 1993-${year}, The Avail Foundation, LLC.

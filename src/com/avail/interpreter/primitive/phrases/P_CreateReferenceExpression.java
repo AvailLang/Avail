@@ -33,16 +33,16 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ReferenceNodeDescriptor;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.ReferencePhraseDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
@@ -51,8 +51,8 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Transform a {@linkplain
- * VariableUseNodeDescriptor variable use} into a {@linkplain
- * ReferenceNodeDescriptor reference}.
+ * VariableUsePhraseDescriptor variable use} into a {@linkplain
+ * ReferencePhraseDescriptor reference}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -74,8 +74,8 @@ public final class P_CreateReferenceExpression extends Primitive
 		final A_Phrase variableUse = interpreter.argument(0);
 
 		final A_Phrase declaration = variableUse.declaration();
-		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declaration.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
@@ -88,8 +88,9 @@ public final class P_CreateReferenceExpression extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(VARIABLE_USE_NODE.mostGeneralType()),
-			REFERENCE_NODE.mostGeneralType());
+			tuple(
+				VARIABLE_USE_PHRASE.mostGeneralType()),
+			REFERENCE_PHRASE.mostGeneralType());
 	}
 
 	@Override

@@ -33,7 +33,7 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -41,8 +41,8 @@ import java.util.Iterator;
 
 import static com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.EXPRESSION_PHRASE;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -51,7 +51,7 @@ import static com.avail.utility.Nulls.stripNull;
  * immediately by a {@linkplain Metacharacter#SINGLE_DAGGER single dagger} (†).
  * It indicates where an argument is expected, but the argument must not make
  * use of any local declarations. The argument expression will be evaluated at
- * compile time and replaced by a {@linkplain LiteralNodeDescriptor literal}
+ * compile time and replaced by a {@linkplain LiteralPhraseDescriptor literal}
  * based on the produced value.
  */
 final class ArgumentInModuleScope
@@ -75,7 +75,7 @@ extends Argument
 	 * that argument position).  Also ensure that no local declarations that
 	 * were in scope before parsing the argument are used by the argument.
 	 * Then evaluate the argument expression (at compile time) and replace
-	 * it with a {@link LiteralNodeDescriptor literal phrase} wrapping the
+	 * it with a {@link LiteralPhraseDescriptor literal phrase} wrapping the
 	 * produced value.
 	 */
 	@Override
@@ -90,7 +90,7 @@ extends Argument
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
 		// Check that it's any kind of expression with the right yield type,
 		// since it's going to be evaluated and wrapped in a literal phrase.
-		final A_Type expressionType = EXPRESSION_NODE.create(
+		final A_Type expressionType = EXPRESSION_PHRASE.create(
 			phraseType.expressionType());
 		generator.emitDelayed(
 			this,

@@ -33,15 +33,15 @@
 package com.avail.compiler;
 
 import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 
 import javax.annotation.Nullable;
 
 /**
- * An {@code CompilerSolution} is a record of having parsed some
- * {@linkplain ParseNodeDescriptor parse node} from a stream of tokens,
- * combined with the {@linkplain ParserState position and state} of the parser
- * after the parse node was parsed.
+ * An {@code CompilerSolution} is a record of having parsed some {@linkplain
+ * PhraseDescriptor phrase} from a stream of tokens, combined with the
+ * {@linkplain ParserState position and state} of the parser after the phrase
+ * was parsed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -54,13 +54,13 @@ final class CompilerSolution implements AbstractSolution
 	private final ParserState endState;
 
 	/**
-	 * A parse node that ends at the specified ending position.
+	 * A phrase that ends at the specified ending position.
 	 */
-	private final A_Phrase parseNode;
+	private final A_Phrase phrase;
 
 
 	/**
-	 * Answer the {@linkplain ParserState position} just after the parse node's
+	 * Answer the {@linkplain ParserState position} just after the phrase's
 	 * tokens.
 	 *
 	 * @return the position after which this solution ends.
@@ -71,14 +71,14 @@ final class CompilerSolution implements AbstractSolution
 	}
 
 	/**
-	 * The {@linkplain ParseNodeDescriptor parse node} that this solution
+	 * The {@linkplain PhraseDescriptor phrase} that this solution
 	 * represents.
 	 *
-	 * @return a parse node.
+	 * @return a phrase.
 	 */
-	A_Phrase parseNode ()
+	A_Phrase phrase ()
 	{
-		return parseNode;
+		return phrase;
 	}
 
 	@Override
@@ -90,13 +90,13 @@ final class CompilerSolution implements AbstractSolution
 		}
 		final CompilerSolution other = (CompilerSolution) obj;
 		return endState.equals(other.endState)
-			&& parseNode.equals(other.parseNode);
+			&& phrase.equals(other.phrase);
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return parseNode.hash();
+		return phrase.hash();
 	}
 
 	@Override
@@ -108,24 +108,24 @@ final class CompilerSolution implements AbstractSolution
 				+ ": "
 				+ endState.clientDataMap
 				+ ") = "
-				+ parseNode();
+				+ phrase();
 	}
 
 	/**
 	 * Construct a new {@link CompilerSolution}.
 	 *
 	 * @param endState
-	 *            The {@link ParserState} after the specified parse node's
+	 *            The {@link ParserState} after the specified phrase's
 	 *            tokens.
-	 * @param parseNode
-	 *            The {@linkplain ParseNodeDescriptor parse node} that ends at
+	 * @param phrase
+	 *            The {@linkplain PhraseDescriptor phrase} that ends at
 	 *            the specified endState.
 	 */
 	CompilerSolution (
 		final ParserState endState,
-		final A_Phrase parseNode)
+		final A_Phrase phrase)
 	{
 		this.endState = endState;
-		this.parseNode = parseNode;
+		this.phrase = phrase;
 	}
 }

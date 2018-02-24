@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
@@ -48,15 +48,15 @@ import java.util.List;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 
 /**
- * I'm used to implement the abstract notion of parse nodes. All concrete parse
- * nodes are below me in the hierarchy.
+ * I'm used to implement the abstract notion of phrases.  All concrete phrase
+ * kinds are below me in the hierarchy.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class ParseNodeDescriptor
+public abstract class PhraseDescriptor
 extends Descriptor
 {
 	@Override int maximumIndent ()
@@ -66,9 +66,9 @@ extends Descriptor
 
 	/**
 	 * The {@code apparentSendName} of something that isn't a {@linkplain
-	 * SendNodeDescriptor send node} or {@linkplain
-	 * MacroSubstitutionNodeDescriptor macro substitution node} is always {@link
-	 * NilDescriptor#nil nil}.
+	 * SendPhraseDescriptor send phrase} or {@linkplain
+	 * MacroSubstitutionPhraseDescriptor macro substitution phrase} is always
+	 * {@link NilDescriptor#nil nil}.
 	 */
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
@@ -77,11 +77,11 @@ extends Descriptor
 	}
 
 	/**
-	 * Visit every node constituting this parse tree, invoking the passed {@link
-	 * Continuation1} with each.
+	 * Visit every phrase constituting this parse tree, invoking the passed
+	 * {@link Continuation1} with each.
 	 *
 	 * @param object
-	 *        The {@linkplain ParseNodeDescriptor parse node} to traverse.
+	 *        The {@linkplain PhraseDescriptor phrase} to traverse.
 	 * @param action
 	 *        The {@linkplain Continuation1 action} to perform with each of
 	 */
@@ -91,32 +91,31 @@ extends Descriptor
 		final Continuation1NotNull<A_Phrase> action);
 
 	/**
-	 * Visit and transform the direct descendants of this parse node.  Map this
-	 * parse node's children through the
+	 * Visit and transform the direct descendants of this phrase.  Map this
+	 * phrase's children through the
 	 * (destructive) transformation specified by aBlock, assigning them back
 	 * into my slots.
+	 *  @param object The phrase to transform.
+	 * @param transformer The {@linkplain Transformer1 transformation} through which
 	 *
-	 * @param object The parse node to transform.
-	 * @param aBlock The {@linkplain Transformer1 transformation} through which
-	 *               to map this parse node's children.
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock);
+		final Transformer1<A_Phrase, A_Phrase> transformer);
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
-	 * parse node.  Otherwise, answer the receiver itself.
+	 * phrase.  Otherwise, answer the receiver itself.
 	 *
 	 * @param object
-	 *        The {@linkplain ParseNodeDescriptor parse node} of which to
+	 *        The {@linkplain PhraseDescriptor phrase} of which to
 	 *        create a mutable copy.
-	 * @return A mutable {@linkplain ParseNodeDescriptor parse node} equivalent
-	 *         to the passed parse node, possibly the same object.
+	 * @return A mutable {@linkplain PhraseDescriptor phrase} equivalent
+	 *         to the passed phrase, possibly the same object.
 	 */
 	@Override @AvailMethod
-	A_Phrase o_CopyMutableParseNode (final AvailObject object)
+	A_Phrase o_CopyMutablePhrase (final AvailObject object)
 	{
 		object.makeSubobjectsImmutable();
 		if (isMutable())
@@ -127,10 +126,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Emit the effect of this node.  By default that means to emit the value of
-	 * the node, then to pop the unwanted value from the stack.
+	 * Emit the effect of this phrase.  By default that means to emit the value
+	 * of the phrase, then to pop the unwanted value from the stack.
 	 *
-	 * @param object The parse node.
+	 * @param object The phrase.
 	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
@@ -143,10 +142,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Emit the value of this node.  That means emit a sequence of instructions
-	 * that will cause this node's value to end up on the stack.
+	 * Emit the value of this phrase.  That means emit a sequence of
+	 * instructions that will cause this phrase's value to end up on the stack.
 	 *
-	 * @param object The parse node.
+	 * @param object The phrase.
 	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
@@ -155,31 +154,31 @@ extends Descriptor
 		final AvailCodeGenerator codeGenerator);
 
 	/**
-	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_Phrase)}.
+	 * {@linkplain PhraseDescriptor phrases} must implement {@link
+	 * PhraseDescriptor#o_EqualsPhrase(AvailObject, A_Phrase)}.
 	 */
 	@Override @AvailMethod
 	final boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
-		return another.equalsParseNode(object);
+		return another.equalsPhrase(object);
 	}
 
 	/**
-	 * Compare this parse node to the given parse node.
+	 * Compare this phrase to the given phrase.
 	 */
 	@Override @AvailMethod
-	abstract boolean o_EqualsParseNode (
+	abstract boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode);
+		final A_Phrase aPhrase);
 
 	/**
-	 * Return the parse node's expression type, which is the type of object that
-	 * will be produced by this parse node.
+	 * Return the phrase's expression type, which is the type of object that
+	 * will be produced by this phrase.
 	 *
 	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by this parse node.
+	 *         that will be produced by this phrase.
 	 */
 	@Override @AvailMethod
 	abstract A_Type o_ExpressionType (final AvailObject object);
@@ -193,7 +192,7 @@ extends Descriptor
 	}
 
 	/**
-	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
+	 * {@linkplain PhraseDescriptor phrases} must implement {@link
 	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
@@ -213,12 +212,12 @@ extends Descriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
+		if (PARSE_PHRASE.mostGeneralType().isSubtypeOf(aType))
 		{
 			return true;
 		}
-		return aType.isSubtypeOf(PARSE_NODE.mostGeneralType())
-			&& object.parseNodeKindIsUnder(aType.parseNodeKind())
+		return aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType())
+			&& object.phraseKindIsUnder(aType.phraseKind())
 			&& object.expressionType().isSubtypeOf(aType.expressionType());
 	}
 
@@ -231,7 +230,7 @@ extends Descriptor
 	@Override @AvailMethod
 	final A_Type o_Kind (final AvailObject object)
 	{
-		return object.parseNodeKind().create(object.expressionType());
+		return object.phraseKind().create(object.expressionType());
 	}
 
 	@Override
@@ -247,21 +246,21 @@ extends Descriptor
 	}
 
 	/**
-	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
-	 * node's type implements.
+	 * Return the {@linkplain PhraseKind phrase kind} that this phrase's type
+	 * implements.
 	 *
-	 * @return The {@linkplain ParseNodeKind kind} of parse node that the
+	 * @return The {@linkplain PhraseKind kind} of phrase that the
 	 *         object's type would be.
 	 */
 	@Override @AvailMethod
-	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
+	abstract PhraseKind o_PhraseKind (final AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_ParseNodeKindIsUnder (
+	boolean o_PhraseKindIsUnder (
 		final AvailObject object,
-		final ParseNodeKind expectedParseNodeKind)
+		final PhraseKind expectedPhraseKind)
 	{
-		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+		return object.phraseKind().isSubkindOf(expectedPhraseKind);
 	}
 
 	@Override
@@ -291,13 +290,13 @@ extends Descriptor
 	abstract A_Tuple o_Tokens (final AvailObject object);
 
 	/**
-	 * Validate this node, throwing an exception if there is a problem.
+	 * Validate this phrase, throwing an exception if there is a problem.
 	 *
 	 * @param object
-	 *        The {@linkplain ParseNodeDescriptor parse node} to validate.
+	 *        The {@linkplain PhraseDescriptor phrase} to validate.
 	 * @param parent
-	 *        The {@linkplain ParseNodeDescriptor parse node} which contains the
-	 *        parse node to validate.
+	 *        The {@linkplain PhraseDescriptor phrase} which contains the
+	 *        phrase to validate.
 	 */
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
@@ -306,15 +305,15 @@ extends Descriptor
 
 	/**
 	 * Visit the entire tree with the given {@linkplain Continuation3 block},
-	 * children before parents.  The block takes three arguments: the node, its
-	 * parent, and the list of enclosing block nodes.
+	 * children before parents.  The block takes three arguments: the phrase,
+	 * its parent, and the list of enclosing block phrases.
 	 *
 	 * @param object
-	 *        The current {@linkplain ParseNodeDescriptor parse node}.
+	 *        The current {@linkplain PhraseDescriptor phrase}.
 	 * @param aBlock
 	 *        What to do with each descendant.
 	 * @param parentNode
-	 *        This node's parent, or {@code null}.
+	 *        This phrase's parent, or {@code null}.
 	 */
 	@InnerAccess static void treeDoWithParent (
 		final A_Phrase object,
@@ -327,7 +326,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ParseNodeDescriptor}.
+	 * Construct a new {@link PhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
@@ -342,7 +341,7 @@ extends Descriptor
 	 *            IntegerSlotsEnum} and defines this object's object slots
 	 *            layout, or null if there are no integer slots.
 	 */
-	protected ParseNodeDescriptor (
+	protected PhraseDescriptor (
 		final Mutability mutability,
 		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
@@ -352,7 +351,7 @@ extends Descriptor
 	}
 
 	@Override
-	final ParseNodeDescriptor immutable ()
+	final PhraseDescriptor immutable ()
 	{
 		// Subclasses do not have an immutable descriptor, so use the shared one
 		// instead.
@@ -360,5 +359,5 @@ extends Descriptor
 	}
 
 	@Override
-	abstract ParseNodeDescriptor shared ();
+	abstract PhraseDescriptor shared ();
 }

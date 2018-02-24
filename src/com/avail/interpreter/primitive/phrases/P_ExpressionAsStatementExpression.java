@@ -39,8 +39,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_AS_STATEMENT_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -74,7 +74,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(EXPRESSION_AS_STATEMENT_NODE.mostGeneralType()),
-				EXPRESSION_NODE.mostGeneralType());
+			functionType(
+				tuple(
+					EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType()),
+				EXPRESSION_PHRASE.mostGeneralType());
 	}
 }

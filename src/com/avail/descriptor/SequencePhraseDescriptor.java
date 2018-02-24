@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -43,19 +43,19 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
-import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.STATEMENTS;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.SequencePhraseDescriptor.ObjectSlots.STATEMENTS;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
- * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
- * nodes} to be treated as statements, except possibly the last one.
+ * My instances represent a sequence of {@linkplain PhraseDescriptor phrases} to
+ * be treated as statements, except possibly the last one.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class SequenceNodeDescriptor
-extends ParseNodeDescriptor
+public final class SequencePhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -64,7 +64,7 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain ParseNodeDescriptor statements} that should be
+		 * The {@linkplain PhraseDescriptor statements} that should be
 		 * considered to execute sequentially, discarding each result except
 		 * possibly for that of the last statement.
 		 */
@@ -85,14 +85,14 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		A_Tuple statements = object.slot(STATEMENTS);
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
 				i,
-				aBlock.valueNotNull(statements.tupleAt(i)),
+				transformer.valueNotNull(statements.tupleAt(i)),
 				true);
 		}
 		object.setSlot(STATEMENTS, statements);
@@ -127,13 +127,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(STATEMENTS).equals(aParseNode.statements());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(STATEMENTS).equals(aPhrase.statements());
 	}
 
 	@Override @AvailMethod
@@ -163,9 +163,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return SEQUENCE_NODE;
+		return SEQUENCE_PHRASE;
 	}
 
 	@Override @AvailMethod
@@ -228,14 +228,14 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the
+	 * Create a new {@linkplain SequencePhraseDescriptor sequence phrase} from the
 	 * given {@linkplain TupleDescriptor tuple} of {@linkplain
-	 * ParseNodeDescriptor statements}.
+	 * PhraseDescriptor statements}.
 	 *
 	 * @param statements
 	 *        The expressions to assemble into a {@linkplain
-	 *        SequenceNodeDescriptor sequence node}.
-	 * @return The resulting sequence node.
+	 *        SequencePhraseDescriptor sequence phrase}.
+	 * @return The resulting sequence phrase.
 	 */
 	public static A_Phrase newSequence (final A_Tuple statements)
 	{
@@ -246,32 +246,32 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link SequenceNodeDescriptor}.
+	 * Construct a new {@link SequencePhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private SequenceNodeDescriptor (final Mutability mutability)
+	private SequencePhraseDescriptor (final Mutability mutability)
 	{
 		super(mutability, TypeTag.SEQUENCE_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link SequenceNodeDescriptor}. */
-	private static final SequenceNodeDescriptor mutable =
-		new SequenceNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link SequencePhraseDescriptor}. */
+	private static final SequencePhraseDescriptor mutable =
+		new SequencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SequenceNodeDescriptor mutable ()
+	SequencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link SequenceNodeDescriptor}. */
-	private static final SequenceNodeDescriptor shared =
-		new SequenceNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link SequencePhraseDescriptor}. */
+	private static final SequencePhraseDescriptor shared =
+		new SequencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SequenceNodeDescriptor shared ()
+	SequencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

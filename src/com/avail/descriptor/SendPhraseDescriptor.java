@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -45,17 +45,17 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEND_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.*;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class SendNodeDescriptor
-extends ParseNodeDescriptor
+public final class SendPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -65,12 +65,12 @@ extends ParseNodeDescriptor
 	{
 		/**
 		 * The {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens} that
-		 * comprise this {@linkplain SendNodeDescriptor send}.
+		 * comprise this {@linkplain SendPhraseDescriptor send}.
 		 */
 		TOKENS,
 
 		/**
-		 * A {@link ListNodeDescriptor list node} containing the expressions
+		 * A {@link ListPhraseDescriptor list phrase} containing the expressions
 		 * that yield the arguments of the method invocation.
 		 */
 		ARGUMENTS_LIST_NODE,
@@ -80,7 +80,7 @@ extends ParseNodeDescriptor
 		 * send was intended to invoke.  Technically, it's the {@linkplain
 		 * MethodDescriptor method} inside the bundle that will be invoked, so
 		 * the bundle gets stripped off when generating a raw function from a
-		 * {@linkplain BlockNodeDescriptor block node} containing this send.
+		 * {@linkplain BlockPhraseDescriptor block phrase} containing this send.
 		 */
 		BUNDLE,
 
@@ -132,11 +132,11 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		object.setSlot(
 			ARGUMENTS_LIST_NODE,
-			aBlock.valueNotNull(object.slot(ARGUMENTS_LIST_NODE)));
+			transformer.valueNotNull(object.slot(ARGUMENTS_LIST_NODE)));
 	}
 
 	@Override @AvailMethod
@@ -166,16 +166,16 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(BUNDLE).equals(aParseNode.bundle())
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(BUNDLE).equals(aPhrase.bundle())
 			&& object.slot(ARGUMENTS_LIST_NODE).equals(
-				aParseNode.argumentsListNode())
-			&& object.slot(RETURN_TYPE).equals(aParseNode.expressionType());
+				aPhrase.argumentsListNode())
+			&& object.slot(RETURN_TYPE).equals(aPhrase.expressionType());
 	}
 
 	@Override @AvailMethod
@@ -195,9 +195,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return SEND_NODE;
+		return SEND_PHRASE;
 	}
 
 	@Override
@@ -261,22 +261,22 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
-	 * {@linkplain MethodDescriptor method}, {@linkplain ListNodeDescriptor
-	 * list node} of argument expressions, and return {@linkplain TypeDescriptor
+	 * Create a new {@linkplain SendPhraseDescriptor send phrase} from the specified
+	 * {@linkplain MethodDescriptor method}, {@linkplain ListPhraseDescriptor
+	 * list phrase} of argument expressions, and return {@linkplain TypeDescriptor
 	 * type}.
 	 *
 	 * @param tokens
 	 *        The {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens} that
-	 *        comprise the {@linkplain SendNodeDescriptor send}.
+	 *        comprise the {@linkplain SendPhraseDescriptor send}.
 	 * @param bundle
 	 *        The method bundle for which this represents an invocation.
 	 * @param argsListNode
-	 *        A {@linkplain ListNodeDescriptor list node} of argument
+	 *        A {@linkplain ListPhraseDescriptor list phrase} of argument
 	 *        expressions.
 	 * @param returnType
 	 *        The target method's expected return type.
-	 * @return A new send node.
+	 * @return A new send phrase.
 	 */
 	public static A_Phrase newSendNode (
 		final A_Tuple tokens,
@@ -285,7 +285,7 @@ extends ParseNodeDescriptor
 		final A_Type returnType)
 	{
 		assert bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o());
-		assert argsListNode.parseNodeKindIsUnder(LIST_NODE);
+		assert argsListNode.phraseKindIsUnder(LIST_PHRASE);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(TOKENS, tokens);
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
@@ -295,32 +295,32 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link SendNodeDescriptor}.
+	 * Construct a new {@link SendPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private SendNodeDescriptor (final Mutability mutability)
+	private SendPhraseDescriptor (final Mutability mutability)
 	{
 		super(mutability, TypeTag.SEND_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link SendNodeDescriptor}. */
-	private static final SendNodeDescriptor mutable =
-		new SendNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link SendPhraseDescriptor}. */
+	private static final SendPhraseDescriptor mutable =
+		new SendPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SendNodeDescriptor mutable ()
+	SendPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link SendNodeDescriptor}. */
-	private static final SendNodeDescriptor shared =
-		new SendNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link SendPhraseDescriptor}. */
+	private static final SendPhraseDescriptor shared =
+		new SendPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SendNodeDescriptor shared ()
+	SendPhraseDescriptor shared ()
 	{
 		return shared;
 	}

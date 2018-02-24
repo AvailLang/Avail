@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -44,23 +44,23 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots.STATEMENTS;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.FIRST_OF_SEQUENCE_NODE;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
- * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
- * nodes} to be treated as statements, except possibly the <em>first</em> one.
- * All parse nodes are executed, and all results except the one from the first
- * parse node are discarded.  The {@linkplain FirstOfSequenceNodeDescriptor
- * first-of-sequence} node's effective value is the value produced by the first
- * parse node.
+ * My instances represent a sequence of {@linkplain PhraseDescriptor phrases} to
+ * be treated as statements, except possibly the <em>first</em> one. All phrases
+ * are executed, and all results except the one from the first phrase are
+ * discarded.  The {@linkplain FirstOfSequencePhraseDescriptor
+ * first-of-sequence} phrase's effective value is the value produced by the
+ * first phrase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class FirstOfSequenceNodeDescriptor
-extends ParseNodeDescriptor
+public final class FirstOfSequencePhraseDescriptor
+extends PhraseDescriptor
 {
 
 	/**
@@ -70,15 +70,15 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link A_Tuple} of {@linkplain ParseNodeDescriptor expressions}
+		 * The {@link A_Tuple} of {@linkplain PhraseDescriptor expressions}
 		 * that should be considered to execute sequentially, discarding each
 		 * result except for that of the <em>first</em> expression. There must
 		 * be at least one expression.  All expressions but the first must be
 		 * typed as ⊤.  The first one is also allowed to be typed as ⊤, but even
 		 * if so, if the actual value produced is more specific (i.e., not
 		 * {@linkplain NilDescriptor#nil nil}, then that is what the
-		 * {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence} node's
-		 * effective value will be.
+		 * {@linkplain FirstOfSequencePhraseDescriptor first-of-sequence}
+		 * phrase's effective value will be.
 		 */
 		STATEMENTS;
 	}
@@ -97,14 +97,14 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		A_Tuple statements = object.slot(STATEMENTS);
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
 				i,
-				aBlock.valueNotNull(statements.tupleAt(i)),
+				transformer.valueNotNull(statements.tupleAt(i)),
 				true);
 		}
 		object.setSlot(STATEMENTS, statements);
@@ -152,13 +152,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(STATEMENTS).equals(aParseNode.statements());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(STATEMENTS).equals(aPhrase.statements());
 	}
 
 	@Override @AvailMethod
@@ -205,9 +205,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return FIRST_OF_SEQUENCE_NODE;
+		return FIRST_OF_SEQUENCE_PHRASE;
 	}
 
 	@Override
@@ -270,15 +270,15 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence
-	 * node} from the given {@linkplain TupleDescriptor tuple} of {@linkplain
-	 * ParseNodeDescriptor statements}.
+	 * Create a new {@linkplain FirstOfSequencePhraseDescriptor
+	 * first-of-sequence phrase} from the given {@linkplain TupleDescriptor
+	 * tuple} of statements.
 	 *
 	 * @param statements
 	 *        The expressions to assemble into a {@linkplain
-	 *        FirstOfSequenceNodeDescriptor first-of-sequence node}, the
+	 *        FirstOfSequencePhraseDescriptor first-of-sequence phrase}, the
 	 *        <em>first</em> of which provides the value.
-	 * @return The resulting first-of-sequence node.
+	 * @return The resulting first-of-sequence phrase.
 	 */
 	public static A_Phrase newFirstOfSequenceNode (final A_Tuple statements)
 	{
@@ -290,12 +290,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link FirstOfSequenceNodeDescriptor}.
+	 * Construct a new {@link FirstOfSequencePhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private FirstOfSequenceNodeDescriptor (final Mutability mutability)
+	private FirstOfSequencePhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -304,22 +304,22 @@ extends ParseNodeDescriptor
 			null);
 	}
 
-	/** The mutable {@link FirstOfSequenceNodeDescriptor}. */
-	private static final FirstOfSequenceNodeDescriptor mutable =
-		new FirstOfSequenceNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link FirstOfSequencePhraseDescriptor}. */
+	private static final FirstOfSequencePhraseDescriptor mutable =
+		new FirstOfSequencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FirstOfSequenceNodeDescriptor mutable ()
+	FirstOfSequencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link FirstOfSequenceNodeDescriptor}. */
-	private static final FirstOfSequenceNodeDescriptor shared =
-		new FirstOfSequenceNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link FirstOfSequencePhraseDescriptor}. */
+	private static final FirstOfSequencePhraseDescriptor shared =
+		new FirstOfSequencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	FirstOfSequenceNodeDescriptor shared ()
+	FirstOfSequencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

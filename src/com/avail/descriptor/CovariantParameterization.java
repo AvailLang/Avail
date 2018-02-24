@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.InnerAccess;
 
 /**
- * A dimension along which a {@link ParseNodeTypeDescriptor phrase type} can
+ * A dimension along which a {@link PhraseTypeDescriptor phrase type} can
  * be covariantly specialized.
  */
 public final class CovariantParameterization

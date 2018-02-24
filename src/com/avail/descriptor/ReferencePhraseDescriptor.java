@@ -34,8 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -46,8 +46,8 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.REFERENCE_NODE;
-import static com.avail.descriptor.ReferenceNodeDescriptor.ObjectSlots.VARIABLE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor.ObjectSlots.VARIABLE;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
@@ -57,8 +57,8 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ReferenceNodeDescriptor
-extends ParseNodeDescriptor
+public final class ReferencePhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -69,8 +69,8 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain VariableUseNodeDescriptor variable use node} for
-		 * which the {@linkplain ReferenceNodeDescriptor reference} is being
+		 * The {@linkplain VariableUsePhraseDescriptor variable use phrase} for
+		 * which the {@linkplain ReferencePhraseDescriptor reference} is being
 		 * taken.
 		 */
 		VARIABLE
@@ -112,13 +112,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(VARIABLE).equals(aParseNode.variable());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(VARIABLE).equals(aPhrase.variable());
 	}
 
 	@Override @AvailMethod
@@ -140,9 +140,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
-		object.setSlot(VARIABLE, aBlock.valueNotNull(object.slot(VARIABLE)));
+		object.setSlot(VARIABLE, transformer.valueNotNull(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod
@@ -188,9 +188,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return REFERENCE_NODE;
+		return REFERENCE_PHRASE;
 	}
 
 	@Override
@@ -228,12 +228,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain ReferenceNodeDescriptor reference node} from the
-	 * given {@linkplain VariableUseNodeDescriptor variable use node}.
+	 * Create a new {@linkplain ReferencePhraseDescriptor reference phrase} from
+	 * the given {@linkplain VariableUsePhraseDescriptor variable use phrase}.
 	 *
 	 * @param variableUse
-	 *        A variable use node for which to construct a reference node.
-	 * @return The new reference node.
+	 *        A variable use phrase for which to construct a reference phrase.
+	 * @return The new reference phrase.
 	 */
 	public static A_Phrase referenceNodeFromUse (final A_Phrase variableUse)
 	{
@@ -244,33 +244,33 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ReferenceNodeDescriptor}.
+	 * Construct a new {@link ReferencePhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ReferenceNodeDescriptor (final Mutability mutability)
+	public ReferencePhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability, TypeTag.REFERENCE_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link ReferenceNodeDescriptor}. */
-	private static final ReferenceNodeDescriptor mutable =
-		new ReferenceNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link ReferencePhraseDescriptor}. */
+	private static final ReferencePhraseDescriptor mutable =
+		new ReferencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ReferenceNodeDescriptor mutable ()
+	ReferencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link ReferenceNodeDescriptor}. */
-	private static final ReferenceNodeDescriptor shared =
-		new ReferenceNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link ReferencePhraseDescriptor}. */
+	private static final ReferencePhraseDescriptor shared =
+		new ReferencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ReferenceNodeDescriptor shared ()
+	ReferencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

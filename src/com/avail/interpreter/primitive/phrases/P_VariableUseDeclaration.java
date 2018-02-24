@@ -34,22 +34,22 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DeclarationNodeDescriptor;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
- * DeclarationNodeDescriptor declaration} that created the entity referenced by
- * this {@linkplain VariableUseNodeDescriptor variable use}.
+ * DeclarationPhraseDescriptor declaration} that created the entity referenced
+ * by this {@linkplain VariableUsePhraseDescriptor variable use}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,7 +77,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(VARIABLE_USE_NODE.mostGeneralType()),
-				DECLARATION_NODE.mostGeneralType());
+			functionType(
+				tuple(
+					VARIABLE_USE_PHRASE.mostGeneralType()),
+				DECLARATION_PHRASE.mostGeneralType());
 	}
 }

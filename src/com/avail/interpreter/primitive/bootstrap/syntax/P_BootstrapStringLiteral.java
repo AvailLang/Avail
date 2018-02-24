@@ -39,9 +39,9 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -81,8 +81,8 @@ public final class P_BootstrapStringLiteral extends Primitive
 	{
 		return functionType(
 			tuple(
-				LITERAL_NODE.create(
+				LITERAL_PHRASE.create(
 				literalTokenType(stringType()))),
-			LITERAL_NODE.create(stringType()));
+			LITERAL_PHRASE.create(stringType()));
 	}
 }

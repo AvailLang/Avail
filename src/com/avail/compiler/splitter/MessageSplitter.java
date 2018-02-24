@@ -64,9 +64,9 @@ import static com.avail.exceptions.AvailErrorCode.*;
  * parsing.
  *
  * <p>Message splitting occurs in two phases.  In the first setPhase, the
- * message is tokenized and parsed into an abstract {@link Expression} tree.
- * In the second setPhase, a {@linkplain TupleTypeDescriptor tuple type} of {@link
- * ParseNodeTypeDescriptor phrase types} is supplied, and produces a tuple of
+ * message is tokenized and parsed into an abstract {@link Expression} tree. In
+ * the second setPhase, a {@linkplain TupleTypeDescriptor tuple type} of {@link
+ * PhraseTypeDescriptor phrase types} is supplied, and produces a tuple of
  * integer-encoded {@link ParsingOperation}s.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -577,10 +577,10 @@ public final class MessageSplitter
 	}
 
 	/**
-	 * Pretty-print a send of this message with given argument nodes.
+	 * Pretty-print a send of this message with given argument phrases.
 	 *
-	 * @param sendNode
-	 *        The {@linkplain SendNodeDescriptor send node} that is being
+	 * @param sendPhrase
+	 *        The {@linkplain SendPhraseDescriptor send phrase} that is being
 	 *        printed.
 	 * @param builder
 	 *        A {@link StringBuilder} on which to pretty-print the send of my
@@ -589,13 +589,13 @@ public final class MessageSplitter
 	 *        The current indentation level.
 	 */
 	public void printSendNodeOnIndent (
-		final A_Phrase sendNode,
+		final A_Phrase sendPhrase,
 		final StringBuilder builder,
 		final int indent)
 	{
 		builder.append('«');
 		rootSequence.printWithArguments(
-			sendNode.argumentsListNode().expressionsTuple().iterator(),
+			sendPhrase.argumentsListNode().expressionsTuple().iterator(),
 			builder,
 			indent);
 		builder.append('»');

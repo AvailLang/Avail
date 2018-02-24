@@ -41,7 +41,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
@@ -61,13 +60,22 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.newAbstractDefinition;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AbstractDefinitionDescriptor
+	.newAbstractDefinition;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.error;
@@ -75,15 +83,20 @@ import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
-import static com.avail.descriptor.ForwardDefinitionDescriptor.newForwardDefinition;
+import static com.avail.descriptor.ForwardDefinitionDescriptor
+	.newForwardDefinition;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.newGrammaticalRestriction;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor
+	.newGrammaticalRestriction;
 import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
-import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
+import static com.avail.descriptor.MethodDefinitionDescriptor
+	.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -114,7 +127,7 @@ public final class AvailLoader
 
 		boolean frozen = false;
 
-		public synchronized void freezeFromChanges()
+		@InnerAccess synchronized void freezeFromChanges()
 		{
 			assert !frozen;
 			frozen = true;
@@ -617,7 +630,7 @@ public final class AvailLoader
 	}
 
 	/** Used for extracting tokens from the source text. */
-	private LexicalScanner lexicalScanner;
+	private @Nullable LexicalScanner lexicalScanner;
 
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
@@ -625,7 +638,7 @@ public final class AvailLoader
 	 */
 	public LexicalScanner lexicalScanner ()
 	{
-		return lexicalScanner;
+		return stripNull(lexicalScanner);
 	}
 
 	/**
@@ -1141,8 +1154,8 @@ public final class AvailLoader
 	 * @param methodName
 	 *        The macro's name, an {@linkplain AtomDescriptor atom}.
 	 * @param macroBody
-	 *        A {@linkplain FunctionDescriptor function} that manipulates parse
-	 *        nodes.
+	 *        A {@linkplain FunctionDescriptor function} that manipulates
+	 *        phrases.
 	 * @param prefixFunctions
 	 *        The tuple of functions to run during macro parsing, corresponding
 	 *        with occurrences of section checkpoints ("§") in the macro name.
@@ -1168,7 +1181,7 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		if (!macroBody.code().functionType().returnType().isSubtypeOf(
-			ParseNodeKind.PARSE_NODE.mostGeneralType()))
+			PARSE_PHRASE.mostGeneralType()))
 		{
 			throw new SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}

@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.functions;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,12 +44,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.BLOCK_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Answer a {@linkplain BlockNodeDescriptor
+ * <strong>Primitive:</strong> Answer a {@linkplain BlockPhraseDescriptor
  * phrase} that represents the decompiled {@linkplain FunctionDescriptor
  * function}.
  *
@@ -80,7 +80,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralFunctionType()),
-				BLOCK_NODE.mostGeneralType());
+			functionType(
+				tuple(
+					mostGeneralFunctionType()),
+				BLOCK_PHRASE.mostGeneralType());
 	}
 }

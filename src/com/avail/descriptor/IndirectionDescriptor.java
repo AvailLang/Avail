@@ -40,14 +40,14 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -1272,11 +1272,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return o_Traversed(object).isSupertypeOfParseNodeType(aParseNodeType);
+		return o_Traversed(object).isSupertypeOfPhraseType(aPhraseType);
 	}
 
 	@Override
@@ -1851,12 +1851,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return o_Traversed(object).typeIntersectionOfParseNodeType(
-			aParseNodeType);
+		return o_Traversed(object).typeIntersectionOfPhraseType(
+			aPhraseType);
 	}
 
 	@Override
@@ -1968,12 +1968,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return o_Traversed(object).typeUnionOfParseNodeType(
-			aParseNodeType);
+		return o_Traversed(object).typeUnionOfPhraseType(
+			aPhraseType);
 	}
 
 	@Override
@@ -2881,9 +2881,9 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
-		o_Traversed(object).childrenMap(aBlock);
+		o_Traversed(object).childrenMap(transformer);
 	}
 
 	@Override
@@ -2913,9 +2913,9 @@ extends AbstractDescriptor
 	@Override
 	A_Phrase o_CopyWith (
 		final AvailObject object,
-		final A_Phrase newParseNode)
+		final A_Phrase newPhrase)
 	{
-		return o_Traversed(object).copyWith(newParseNode);
+		return o_Traversed(object).copyWith(newPhrase);
 	}
 
 	@Override
@@ -2941,10 +2941,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_CopyMutableParseNode (
+	A_Phrase o_CopyMutablePhrase (
 		final AvailObject object)
 	{
-		return o_Traversed(object).copyMutableParseNode();
+		return o_Traversed(object).copyMutablePhrase();
 	}
 
 	@Override
@@ -2955,10 +2955,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_OutputParseNode (
+	A_Phrase o_OutputPhrase (
 		final AvailObject object)
 	{
-		return o_Traversed(object).outputParseNode();
+		return o_Traversed(object).outputPhrase();
 	}
 
 	@Override
@@ -3137,25 +3137,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNodeType (
+	boolean o_EqualsPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return o_Traversed(object).equalsParseNodeType(aParseNodeType);
+		return o_Traversed(object).equalsPhraseType(aPhraseType);
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return o_Traversed(object).parseNodeKind();
+		return o_Traversed(object).phraseKind();
 	}
 
 	@Override
-	boolean o_ParseNodeKindIsUnder (
+	boolean o_PhraseKindIsUnder (
 		final AvailObject object,
-		final ParseNodeKind expectedParseNodeKind)
+		final PhraseKind expectedPhraseKind)
 	{
-		return o_Traversed(object).parseNodeKindIsUnder(expectedParseNodeKind);
+		return o_Traversed(object).phraseKindIsUnder(expectedPhraseKind);
 	}
 
 	@Override
@@ -3977,11 +3977,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return o_Traversed(object).equalsParseNode(aParseNode);
+		return o_Traversed(object).equalsPhrase(aPhrase);
 	}
 
 	@Override

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.PermutedListNodeDescriptor;
+import com.avail.descriptor.PermutedListPhraseDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,14 +42,14 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive</strong>: Answer the {@linkplain TupleDescriptor
- * permutation tuple} of the specified {@linkplain PermutedListNodeDescriptor
+ * permutation tuple} of the specified {@linkplain PermutedListPhraseDescriptor
  * permuted list phrase}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -78,8 +78,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(PERMUTED_LIST_NODE.mostGeneralType()),
-				oneOrMoreOf(
-					naturalNumbers()));
+			functionType(
+				tuple(
+					PERMUTED_LIST_PHRASE.mostGeneralType()),
+				oneOrMoreOf(naturalNumbers()));
 	}
 }

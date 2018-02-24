@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
@@ -453,10 +453,10 @@ extends JSONFriendly
 	boolean equalsObjectTuple (A_Tuple anObjectTuple);
 
 	/**
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	boolean equalsParseNodeType (A_Type aParseNodeType);
+	boolean equalsPhraseType (A_Type aPhraseType);
 
 	/**
 	 * @param aPojo
@@ -1001,10 +1001,10 @@ extends JSONFriendly
 	SetIterator setBinIterator ();
 
 	/**
-	 * @param aParseNode
+	 * @param aPhrase
 	 * @return
 	 */
-	boolean equalsParseNode (A_Phrase aParseNode);
+	boolean equalsPhrase (A_Phrase aPhrase);
 
 	/**
 	 * @return
@@ -1095,7 +1095,7 @@ extends JSONFriendly
 
 	/**
 	 * Answer whether this value equals the given {@linkplain
-	 * ListNodeTypeDescriptor list phrase type}.
+	 * ListPhraseTypeDescriptor list phrase type}.
 	 *
 	 * @param listNodeType The list phrase type to compare against.
 	 * @return Whether the receiver equals the given list phrase type.

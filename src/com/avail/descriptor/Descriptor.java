@@ -39,14 +39,14 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -871,9 +871,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1420,9 +1420,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1522,9 +1522,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2351,9 +2351,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNodeType (
+	boolean o_EqualsPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return false;
 	}
@@ -2926,13 +2926,13 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		throw unsupportedOperationException();
 	}
 
 	/**
-	 * Visit my child parse nodes with aBlock.
+	 * Visit my child phrases with the action.
 	 */
 	@Override
 	void o_ChildrenDo (
@@ -2959,7 +2959,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newParseNode)
+	A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newPhrase)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2983,7 +2983,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_CopyMutableParseNode (final AvailObject object)
+	A_Phrase o_CopyMutablePhrase (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2996,7 +2996,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_OutputParseNode (final AvailObject object)
+	A_Phrase o_OutputPhrase (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3151,15 +3151,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	boolean o_ParseNodeKindIsUnder (
+	boolean o_PhraseKindIsUnder (
 		final AvailObject object,
-		final ParseNodeKind expectedParseNodeKind)
+		final PhraseKind expectedPhraseKind)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3902,9 +3902,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
 		return false;
 	}

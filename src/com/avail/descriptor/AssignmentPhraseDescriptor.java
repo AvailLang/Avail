@@ -34,8 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -45,8 +45,8 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.IS_INLINE;
-import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.IntegerSlots.IS_INLINE;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -57,8 +57,8 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class AssignmentNodeDescriptor
-extends ParseNodeDescriptor
+public final class AssignmentPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My integer slots.
@@ -67,12 +67,13 @@ extends ParseNodeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The {@linkplain AssignmentNodeDescriptor assignment node}'s flags.
+		 * The {@linkplain AssignmentPhraseDescriptor assignment phrase}'s
+		 * flags.
 		 */
 		FLAGS;
 
 		/**
-		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
+		 * Is this an inline {@linkplain AssignmentPhraseDescriptor assignment}?
 		 */
 		static final BitField IS_INLINE = bitField(FLAGS, 0, 1);
 	}
@@ -84,12 +85,12 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain VariableUseNodeDescriptor variable} being assigned.
+		 * The {@linkplain VariableUsePhraseDescriptor variable} being assigned.
 		 */
 		VARIABLE,
 
 		/**
-		 * The actual {@linkplain ParseNodeDescriptor expression} providing the
+		 * The actual {@linkplain PhraseDescriptor expression} providing the
 		 * value to assign.
 		 */
 		EXPRESSION,
@@ -160,14 +161,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(VARIABLE).equals(aParseNode.variable())
-			&& object.slot(EXPRESSION).equals(aParseNode.expression());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(VARIABLE).equals(aPhrase.variable())
+			&& object.slot(EXPRESSION).equals(aPhrase.expression());
 	}
 
 	@Override @AvailMethod
@@ -211,11 +212,11 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		object.setSlot(EXPRESSION,
-			aBlock.valueNotNull(object.slot(EXPRESSION)));
-		object.setSlot(VARIABLE, aBlock.valueNotNull(object.slot(VARIABLE)));
+			transformer.valueNotNull(object.slot(EXPRESSION)));
+		object.setSlot(VARIABLE, transformer.valueNotNull(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod
@@ -262,9 +263,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return ParseNodeKind.ASSIGNMENT_NODE;
+		return PhraseKind.ASSIGNMENT_PHRASE;
 	}
 
 	@Override
@@ -307,8 +308,8 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Create a new assignment phrase using the given {@linkplain
-	 * VariableUseNodeDescriptor variable use} and {@linkplain
-	 * ParseNodeDescriptor expression}.  Also indicate whether the assignment is
+	 * VariableUsePhraseDescriptor variable use} and {@linkplain
+	 * PhraseDescriptor expression}.  Also indicate whether the assignment is
 	 * inline (produces a value) or not (must be a statement).
 	 *
 	 * @param variableUse
@@ -320,7 +321,7 @@ extends ParseNodeDescriptor
 	 * @param isInline
 	 *        {@code true} to create an inline assignment, {@code false}
 	 *        otherwise.
-	 * @return The new assignment node.
+	 * @return The new assignment phrase.
 	 */
 	public static A_Phrase newAssignment (
 		final A_Phrase variableUse,
@@ -343,7 +344,7 @@ extends ParseNodeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private AssignmentNodeDescriptor (final Mutability mutability)
+	private AssignmentPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -352,22 +353,22 @@ extends ParseNodeDescriptor
 			IntegerSlots.class);
 	}
 
-	/** The mutable {@link AssignmentNodeDescriptor}. */
-	private static final AssignmentNodeDescriptor mutable =
-		new AssignmentNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link AssignmentPhraseDescriptor}. */
+	private static final AssignmentPhraseDescriptor mutable =
+		new AssignmentPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AssignmentNodeDescriptor mutable ()
+	AssignmentPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link AssignmentNodeDescriptor}. */
-	private static final AssignmentNodeDescriptor shared =
-		new AssignmentNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link AssignmentPhraseDescriptor}. */
+	private static final AssignmentPhraseDescriptor shared =
+		new AssignmentPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	AssignmentNodeDescriptor shared ()
+	AssignmentPhraseDescriptor shared ()
 	{
 		return shared;
 	}

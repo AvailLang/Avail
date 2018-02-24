@@ -35,22 +35,22 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.SuperCastNodeDescriptor;
+import com.avail.descriptor.SuperCastPhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapSuperCastMacro} primitive is used to create a
- * {@linkplain SuperCastNodeDescriptor super-cast phrase}.  This is used to
+ * {@linkplain SuperCastPhraseDescriptor super-cast phrase}.  This is used to
  * control method lookup, and is a generalization of the concept of {@code
  * super} found in some object-oriented languages.
  *
@@ -100,8 +100,8 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 	{
 		return functionType(
 			tuple(
-				EXPRESSION_NODE.create(ANY.o()),
-				LITERAL_NODE.create(anyMeta())),
-			SUPER_CAST_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o()),
+				LITERAL_PHRASE.create(anyMeta())),
+			SUPER_CAST_PHRASE.mostGeneralType());
 	}
 }

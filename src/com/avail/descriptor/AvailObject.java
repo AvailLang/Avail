@@ -38,14 +38,14 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -1793,10 +1793,10 @@ implements
 	}
 
 	@Override
-	public boolean equalsParseNodeType (
-		final A_Type aParseNodeType)
+	public boolean equalsPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_EqualsParseNodeType(this, aParseNodeType);
+		return descriptor.o_EqualsPhraseType(this, aPhraseType);
 	}
 
 	@Override
@@ -2431,10 +2431,10 @@ implements
 	}
 
 	@Override
-	public boolean isSupertypeOfParseNodeType (
-		final A_Type aParseNodeType)
+	public boolean isSupertypeOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_IsSupertypeOfParseNodeType(this, aParseNodeType);
+		return descriptor.o_IsSupertypeOfPhraseType(this, aPhraseType);
 	}
 
 	@Override
@@ -3583,12 +3583,12 @@ implements
 	}
 
 	@Override
-	public A_Type typeIntersectionOfParseNodeType (
-		final A_Type aParseNodeType)
+	public A_Type typeIntersectionOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeIntersectionOfParseNodeType(
+		return descriptor.o_TypeIntersectionOfPhraseType(
 			this,
-			aParseNodeType);
+			aPhraseType);
 	}
 
 	@Override
@@ -3695,12 +3695,12 @@ implements
 	}
 
 	@Override
-	public A_Type typeUnionOfParseNodeType (
-		final A_Type aParseNodeType)
+	public A_Type typeUnionOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeUnionOfParseNodeType(
+		return descriptor.o_TypeUnionOfPhraseType(
 			this,
-			aParseNodeType);
+			aPhraseType);
 	}
 
 	@Override
@@ -3786,8 +3786,8 @@ implements
 
 	/**
 	 * Extract the expression from the {@linkplain
-	 * ParseNodeKind#ASSIGNMENT_NODE assignment phrase} or {@linkplain
-	 * ParseNodeKind#EXPRESSION_AS_STATEMENT_NODE expression-as-statement
+	 * PhraseKind#ASSIGNMENT_PHRASE assignment phrase} or {@linkplain
+	 * PhraseKind#EXPRESSION_AS_STATEMENT_PHRASE expression-as-statement
 	 * phrase}.
 	 */
 	@Override
@@ -3946,9 +3946,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase copyWith (final A_Phrase newParseNode)
+	public A_Phrase copyWith (final A_Phrase newPhrase)
 	{
-		return descriptor.o_CopyWith(this, newParseNode);
+		return descriptor.o_CopyWith(this, newPhrase);
 	}
 
 	@Override
@@ -3970,9 +3970,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase copyMutableParseNode ()
+	public A_Phrase copyMutablePhrase ()
 	{
-		return descriptor.o_CopyMutableParseNode(this);
+		return descriptor.o_CopyMutablePhrase(this);
 	}
 
 	@Override
@@ -3982,9 +3982,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase outputParseNode ()
+	public A_Phrase outputPhrase ()
 	{
-		return descriptor.o_OutputParseNode(this);
+		return descriptor.o_OutputPhrase(this);
 	}
 
 	@Override
@@ -4180,16 +4180,16 @@ implements
 	}
 
 	@Override
-	public ParseNodeKind parseNodeKind ()
+	public PhraseKind phraseKind ()
 	{
-		return descriptor.o_ParseNodeKind(this);
+		return descriptor.o_PhraseKind(this);
 	}
 
 	@Override
-	public boolean parseNodeKindIsUnder (
-		final ParseNodeKind expectedParseNodeKind)
+	public boolean phraseKindIsUnder (
+		final PhraseKind expectedPhraseKind)
 	{
-		return descriptor.o_ParseNodeKindIsUnder(this, expectedParseNodeKind);
+		return descriptor.o_PhraseKindIsUnder(this, expectedPhraseKind);
 	}
 
 	@Override
@@ -4909,9 +4909,9 @@ implements
 	}
 
 	@Override
-	public boolean equalsParseNode (final A_Phrase aParseNode)
+	public boolean equalsPhrase (final A_Phrase aPhrase)
 	{
-		return descriptor.o_EqualsParseNode(this, aParseNode);
+		return descriptor.o_EqualsPhrase(this, aPhrase);
 	}
 
 	@Override

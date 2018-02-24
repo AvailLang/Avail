@@ -35,21 +35,21 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER_METHOD;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -59,7 +59,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 /**
  * The {@code P_ModuleHeaderPseudoMacro} primitive is used to parse module
  * headers.  When this primitive is invoked, it should yield a {@link
- * ParseNodeKind#STATEMENT_NODE}.  The method is private, and used to parse the
+ * PhraseKind#STATEMENT_PHRASE}.  The method is private, and used to parse the
  * headers of modules with the same machinery used for the bodies.
  *
  * <p>The name of the module header method is given in {@link
@@ -108,24 +108,24 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 
 	static A_Type zeroOrMoreList (final A_Type type)
 	{
-		return createListNodeType(LIST_NODE, zeroOrMoreOf(type));
+		return createListNodeType(LIST_PHRASE, zeroOrMoreOf(type));
 	}
 
 	static A_Type zeroOrOneList (final A_Type type)
 	{
-		return createListNodeType(LIST_NODE, zeroOrOneOf(type));
+		return createListNodeType(LIST_PHRASE, zeroOrOneOf(type));
 	}
 
 	static A_Type list (final A_Type... types)
 	{
-		return createListNodeType(LIST_NODE, tupleTypeForTypes(types));
+		return createListNodeType(LIST_PHRASE, tupleTypeForTypes(types));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		final A_Type stringTokenType =
-			LITERAL_NODE.create(
+			LITERAL_PHRASE.create(
 				literalTokenType(
 					stringType()));
 		return functionType(
@@ -137,7 +137,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 				/* All imports */
 				zeroOrMoreList(
 					list(
-						LITERAL_NODE.create(
+						LITERAL_PHRASE.create(
 							inclusive(1, 2)),
 						zeroOrMoreList(
 							list(
@@ -151,7 +151,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 										zeroOrMoreList(
 											list(
 												// Negated import
-												LITERAL_NODE.create(
+												LITERAL_PHRASE.create(
 													booleanType()),
 												// Name
 												stringTokenType,
@@ -159,7 +159,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 												zeroOrOneList(
 													stringTokenType))),
 										// Final ellipsis (import all the rest)
-										LITERAL_NODE.create(
+										LITERAL_PHRASE.create(
 											booleanType()))))))),
 				/* Optional names */
 				zeroOrOneList(zeroOrMoreList(stringTokenType)),
@@ -168,6 +168,6 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 				/* Optional pragma */
 				zeroOrOneList(zeroOrMoreList(stringTokenType))),
 			/* Shouldn't be invoked, so always fail. */
-			STATEMENT_NODE.mostGeneralType());
+			STATEMENT_PHRASE.mostGeneralType());
 	}
 }

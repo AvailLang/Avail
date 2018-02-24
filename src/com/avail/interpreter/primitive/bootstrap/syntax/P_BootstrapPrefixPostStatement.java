@@ -46,8 +46,8 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.STATEMENT_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -88,7 +88,7 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
-		// At this point the statements so far are a list node – not a sequence.
+		// At this point the statements so far are a list phrase – not a sequence.
 		final int statementCountSoFar = statementsPhrase.expressionsSize();
 		// The section marker is inside the repetition, so this primitive could
 		// only be invoked if there is at least one statement.
@@ -110,8 +110,8 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 						/* Optional arguments section. */
 					zeroOrOneOf(
 							/* Arguments are present. */
@@ -122,8 +122,8 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 								TOKEN.o(),
 									/* Argument type. */
 								anyMeta())))),
-					/* Macro argument is a parse node. */
-				LIST_NODE.create(
+					/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 						/* Optional primitive declaration. */
 					zeroOrOneOf(
 							/* Primitive declaration */
@@ -138,8 +138,8 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 									TOKEN.o(),
 										/* Primitive failure variable type */
 									anyMeta()))))),
-					/* Macro argument is a parse node. */
-				LIST_NODE.create(
+					/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 						/* Optional label declaration. */
 					zeroOrOneOf(
 							/* Label parts. */
@@ -150,15 +150,15 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 							zeroOrOneOf(
 									/* Label return type. */
 								topMeta())))),
-					/* Macro argument is a parse node. */
-				LIST_NODE.create(
+					/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 						/* Statements and declarations so far. */
 					zeroOrMoreOf(
 							/* The "_!" mechanism wrapped each statement or
 							 * declaration inside a literal phrase, so expect a
 							 * phrase here instead of TOP.o().
 							 */
-						STATEMENT_NODE.mostGeneralType()))),
+						STATEMENT_PHRASE.mostGeneralType()))),
 			TOP.o());
 	}
 }

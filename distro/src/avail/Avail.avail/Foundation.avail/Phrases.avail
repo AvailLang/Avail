@@ -271,8 +271,8 @@ Semantic restriction "send_with_:_" is
 	arguments : list phrase's type,
 	returnType : type's type
 |
-	/* Parse nodes have identity, so it isn't safe to strengthen more than
-	 * this.
+	/*
+	 * Phrases have identity, so it isn't safe to strengthen more than this.
 	 */
 	send phrase⇒cast returnType's instance into [t : type | t]
 ];

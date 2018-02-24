@@ -46,23 +46,23 @@ import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapVariableUseMacro} primitive is used to create
- * {@link VariableUseNodeDescriptor variable use} phrases.
+ * {@link VariableUsePhraseDescriptor variable use} phrases.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -88,7 +88,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -173,7 +173,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name */
-				LITERAL_NODE.create(TOKEN.o())),
-			VARIABLE_USE_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(TOKEN.o())),
+			VARIABLE_USE_PHRASE.mostGeneralType());
 	}
 }

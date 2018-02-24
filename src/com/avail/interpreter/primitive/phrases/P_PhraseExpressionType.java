@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -45,22 +45,22 @@ import java.util.List;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Extract the result {@linkplain
- * TypeDescriptor type} of a {@linkplain ParseNodeDescriptor parse node}.
+ * TypeDescriptor type} of a {@linkplain PhraseDescriptor phrase}.
  */
-public final class P_ParseNodeExpressionType extends Primitive
+public final class P_PhraseExpressionType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_ParseNodeExpressionType().init(
+		new P_PhraseExpressionType().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -68,15 +68,18 @@ public final class P_ParseNodeExpressionType extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Phrase parseNode = interpreter.argument(0);
-		return interpreter.primitiveSuccess(parseNode.expressionType());
+		final A_Phrase phrase = interpreter.argument(0);
+		return interpreter.primitiveSuccess(phrase.expressionType());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(PARSE_NODE.mostGeneralType()), topMeta());
+			functionType(
+				tuple(
+					PARSE_PHRASE.mostGeneralType()),
+				topMeta());
 	}
 
 	@Override

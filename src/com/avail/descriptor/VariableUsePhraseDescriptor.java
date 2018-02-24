@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -44,23 +44,23 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.FLAGS;
-import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.LAST_USE;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.DECLARATION;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.USE_TOKEN;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots.FLAGS;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots.LAST_USE;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN;
 
 /**
- * My instances represent the use of some {@linkplain DeclarationNodeDescriptor
+ * My instances represent the use of some {@linkplain DeclarationPhraseDescriptor
  * declared entity}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class VariableUseNodeDescriptor
-extends ParseNodeDescriptor
+public final class VariableUsePhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@linkplain Integer int}.
@@ -93,7 +93,7 @@ extends ParseNodeDescriptor
 		USE_TOKEN,
 
 		/**
-		 * The {@linkplain DeclarationNodeDescriptor declaration} of the entity
+		 * The {@linkplain DeclarationPhraseDescriptor declaration} of the entity
 		 * that is being mentioned.
 		 */
 		DECLARATION
@@ -116,10 +116,10 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		object.setSlot(
-			DECLARATION, aBlock.valueNotNull(object.slot(DECLARATION)));
+			DECLARATION, transformer.valueNotNull(object.slot(DECLARATION)));
 	}
 
 	@Override @AvailMethod
@@ -139,15 +139,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(USE_TOKEN).equals(aParseNode.token())
-			&& object.slot(DECLARATION).equals(aParseNode.declaration())
-			&& object.isLastUse() == aParseNode.isLastUse();
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(USE_TOKEN).equals(aPhrase.token())
+			&& object.slot(DECLARATION).equals(aPhrase.declaration())
+			&& object.isLastUse() == aPhrase.isLastUse();
 	}
 
 	@Override @AvailMethod
@@ -197,9 +197,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return VARIABLE_USE_NODE;
+		return VARIABLE_USE_PHRASE;
 	}
 
 	@Override
@@ -274,18 +274,18 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new variable use node.
+	 * Construct a new variable use phrase.
 	 *
 	 * @param theToken The token which is the use of the variable in the source.
 	 * @param declaration The declaration which is being used.
-	 * @return A new variable use node.
+	 * @return A new variable use phrase.
 	 */
 	public static AvailObject newUse (
 		final A_Token theToken,
 		final A_Phrase declaration)
 	{
 		assert theToken.isInstanceOfKind(TOKEN.o());
-		assert declaration.isInstanceOfKind(DECLARATION_NODE.mostGeneralType());
+		assert declaration.isInstanceOfKind(DECLARATION_PHRASE.mostGeneralType());
 		final AvailObject newUse = mutable.create();
 		newUse.setSlot(USE_TOKEN, theToken);
 		newUse.setSlot(DECLARATION, declaration);
@@ -295,12 +295,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@code VariableUseNodeDescriptor}.
+	 * Construct a new {@code VariableUsePhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private VariableUseNodeDescriptor (final Mutability mutability)
+	private VariableUsePhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -309,22 +309,22 @@ extends ParseNodeDescriptor
 			IntegerSlots.class);
 	}
 
-	/** The mutable {@link VariableUseNodeDescriptor}. */
-	private static final VariableUseNodeDescriptor mutable =
-		new VariableUseNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link VariableUsePhraseDescriptor}. */
+	private static final VariableUsePhraseDescriptor mutable =
+		new VariableUsePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	VariableUseNodeDescriptor mutable ()
+	VariableUsePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link VariableUseNodeDescriptor}. */
-	private static final VariableUseNodeDescriptor shared =
-		new VariableUseNodeDescriptor(Mutability.IMMUTABLE);
+	/** The shared {@link VariableUsePhraseDescriptor}. */
+	private static final VariableUsePhraseDescriptor shared =
+		new VariableUsePhraseDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	VariableUseNodeDescriptor shared ()
+	VariableUsePhraseDescriptor shared ()
 	{
 		return shared;
 	}

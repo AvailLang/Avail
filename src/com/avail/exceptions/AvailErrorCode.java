@@ -35,8 +35,8 @@ package com.avail.exceptions;
 import com.avail.AvailRuntime;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
@@ -259,7 +259,7 @@ public enum AvailErrorCode
 	/**
 	 * A {@linkplain MacroDefinitionDescriptor macro} {@linkplain
 	 * FunctionDescriptor body} must restrict each parameter to be at least as
-	 * specific as a {@linkplain ParseNodeDescriptor parse node}.
+	 * specific as a {@linkplain PhraseDescriptor phrase}.
 	 */
 	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE (34),
 
@@ -275,7 +275,7 @@ public enum AvailErrorCode
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT (36),
 
 	/**
-	 * Cannot take a {@linkplain ReferenceNodeDescriptor reference} to this
+	 * Cannot take a {@linkplain ReferencePhraseDescriptor reference} to this
 	 * {@linkplain DeclarationKind kind of declaration}.
 	 */
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37),
@@ -412,7 +412,7 @@ public enum AvailErrorCode
 
 	/**
 	 * A macro prefix function is invoked when a potential macro site reaches
-	 * certain checkpoints.  Only the macro body may return a parse node.  One
+	 * certain checkpoints.  Only the macro body may return a phrase.  One
 	 * of the prefix functions did not have return type ⊤.
 	 */
 	E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP (59),
@@ -453,14 +453,14 @@ public enum AvailErrorCode
 	/**
 	 * The {@linkplain FiberDescriptor#currentFiber() current fiber} attempted to
 	 * determine the {@linkplain P_CurrentMacroName current macro name}, the
-	 * name (atom) of a send node which was undergoing macro substitution, but
+	 * name (atom) of a send phrase which was undergoing macro substitution, but
 	 * this fiber is not performing a macro substitution.
 	 */
 	E_NOT_EVALUATING_MACRO (65),
 
 	/**
-	 * The yield type specified for a {@link ParseNodeKind} was not a subtype of
-	 * the {@linkplain ParseNodeKind#mostGeneralYieldType() most general yield
+	 * The yield type specified for a {@link PhraseKind} was not a subtype of
+	 * the {@linkplain PhraseKind#mostGeneralYieldType() most general yield
 	 * type}.
 	 */
 	E_BAD_YIELD_TYPE (66),
@@ -468,14 +468,14 @@ public enum AvailErrorCode
 	/**
 	 * A {@linkplain MacroDefinitionDescriptor macro}'s {@linkplain
 	 * FunctionDescriptor prefix function} must restrict each parameter to be at
-	 * least as specific as a {@linkplain ParseNodeDescriptor parse node}.
+	 * least as specific as a {@linkplain PhraseDescriptor phrase}.
 	 */
 	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE (67),
 
 	/**
 	 * A {@linkplain MacroDefinitionDescriptor macro} {@linkplain
-	 * FunctionDescriptor body} must produce a {@linkplain ParseNodeDescriptor
-	 * parse node}.
+	 * FunctionDescriptor body} must produce a {@linkplain PhraseDescriptor
+	 * phrase}.
 	 */
 	E_MACRO_MUST_RETURN_A_PARSE_NODE (68),
 
@@ -692,31 +692,31 @@ public enum AvailErrorCode
 	//	E_??? (99)
 
 	/**
-	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains
+	 * A proposed {@linkplain BlockPhraseDescriptor block expression} contains
 	 * one or more invalid statements.
 	 */
 	E_BLOCK_CONTAINS_INVALID_STATEMENTS (100),
 
 	/**
-	 * A {@linkplain BlockNodeDescriptor block expression} is invalid.
+	 * A {@linkplain BlockPhraseDescriptor block expression} is invalid.
 	 */
 	E_BLOCK_IS_INVALID (101),
 
 	/**
-	 * The {@linkplain BlockNodeDescriptor block expression} references outers,
+	 * The {@linkplain BlockPhraseDescriptor block expression} references outers,
 	 * but must not.
 	 */
 	E_BLOCK_MUST_NOT_CONTAIN_OUTERS (102),
 
 	/**
-	 * The {@linkplain BlockNodeDescriptor block expression} failed compilation.
+	 * The {@linkplain BlockPhraseDescriptor block expression} failed compilation.
 	 */
 	E_BLOCK_COMPILATION_FAILED (103),
 
 //	E_??? (104),
 
 	/**
-	 * A proposed {@linkplain SequenceNodeDescriptor sequence} contains one or
+	 * A proposed {@linkplain SequencePhraseDescriptor sequence} contains one or
 	 * more invalid statements.
 	 */
 	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),

@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;

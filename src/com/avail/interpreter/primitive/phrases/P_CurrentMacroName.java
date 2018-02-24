@@ -54,7 +54,7 @@ import static com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send node
+ * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send phrase
  * is being macro-evaluated in the current fiber.  Fail if macro evaluation is
  * not happening in this fiber.
  */

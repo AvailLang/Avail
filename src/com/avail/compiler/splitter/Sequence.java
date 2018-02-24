@@ -50,7 +50,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
 
@@ -314,7 +314,7 @@ extends Expression
 				? permutedArguments.get(typeIndex - 1)
 				: typeIndex;
 		final A_Type subexpressionType = typeIndex == 0
-			? emptyListNodeType()
+			? emptyListPhraseType()
 			: subexpressionsTupleType.typeAtIndex(realTypeIndex);
 		if (positionInRun == runSize - 1)
 		{
@@ -431,7 +431,7 @@ extends Expression
 			final A_Tuple permutationTuple =
 				tupleFromIntegerList(permutedArguments);
 			final int permutationIndex = indexForPermutation(permutationTuple);
-			// This sequence was already collected into a list node as the
+			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
@@ -576,7 +576,7 @@ extends Expression
 			}
 			else
 			{
-				if (!expression.mightBeEmpty(emptyListNodeType()))
+				if (!expression.mightBeEmpty(emptyListPhraseType()))
 				{
 					return false;
 				}

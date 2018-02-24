@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -44,8 +44,8 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor.ObjectSlots.EXPRESSION;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_AS_STATEMENT_NODE;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.ObjectSlots.EXPRESSION;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
 
 /**
  * My instances adapt expressions to be statements.  The two currently supported
@@ -53,8 +53,8 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESS
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ExpressionAsStatementNodeDescriptor
-extends ParseNodeDescriptor
+public final class ExpressionAsStatementPhraseDescriptor
+extends PhraseDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -92,11 +92,11 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		object.setSlot(
 			EXPRESSION,
-			aBlock.valueNotNull(object.slot(EXPRESSION)));
+			transformer.valueNotNull(object.slot(EXPRESSION)));
 	}
 
 	@Override @AvailMethod
@@ -118,13 +118,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.slot(EXPRESSION).equals(aParseNode.expression());
+		return !aPhrase.isMacroSubstitutionNode()
+			&& object.phraseKind().equals(aPhrase.phraseKind())
+			&& object.slot(EXPRESSION).equals(aPhrase.expression());
 	}
 
 	@Override @AvailMethod
@@ -147,9 +147,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
-		return EXPRESSION_AS_STATEMENT_NODE;
+		return EXPRESSION_AS_STATEMENT_PHRASE;
 	}
 
 	@Override
@@ -203,13 +203,13 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain ExpressionAsStatementNodeDescriptor
+	 * Create a new {@linkplain ExpressionAsStatementPhraseDescriptor
 	 * expression-as-statement phrase} from the given expression phrase.
 	 *
 	 * @param expression
-	 *        An expression (see {@link ParseNodeKind#EXPRESSION_NODE}).
+	 *        An expression (see {@link PhraseKind#EXPRESSION_PHRASE}).
 	 * @return The new expression-as-statement phrase (see {@link
-	 *         ParseNodeKind#EXPRESSION_AS_STATEMENT_NODE}).
+	 *         PhraseKind#EXPRESSION_AS_STATEMENT_PHRASE}).
 	 */
 	public static A_Phrase newExpressionAsStatement (final A_Phrase expression)
 	{
@@ -220,12 +220,12 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ExpressionAsStatementNodeDescriptor}.
+	 * Construct a new {@link ExpressionAsStatementPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ExpressionAsStatementNodeDescriptor (final Mutability mutability)
+	public ExpressionAsStatementPhraseDescriptor (final Mutability mutability)
 	{
 		super(
 			mutability,
@@ -234,22 +234,22 @@ extends ParseNodeDescriptor
 			null);
 	}
 
-	/** The mutable {@link ExpressionAsStatementNodeDescriptor}. */
-	private static final ExpressionAsStatementNodeDescriptor mutable =
-		new ExpressionAsStatementNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link ExpressionAsStatementPhraseDescriptor}. */
+	private static final ExpressionAsStatementPhraseDescriptor mutable =
+		new ExpressionAsStatementPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ExpressionAsStatementNodeDescriptor mutable ()
+	ExpressionAsStatementPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link ExpressionAsStatementNodeDescriptor}. */
-	private static final ExpressionAsStatementNodeDescriptor shared =
-		new ExpressionAsStatementNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link ExpressionAsStatementPhraseDescriptor}. */
+	private static final ExpressionAsStatementPhraseDescriptor shared =
+		new ExpressionAsStatementPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ExpressionAsStatementNodeDescriptor shared ()
+	ExpressionAsStatementPhraseDescriptor shared ()
 	{
 		return shared;
 	}

@@ -32,7 +32,6 @@
 package com.avail.compiler;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -75,7 +74,8 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.EXECUTION;
 import static com.avail.compiler.problems.ProblemType.INTERNAL;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
@@ -664,12 +664,12 @@ public class CompilationContext
 
 	/**
 	 * Generate a {@linkplain FunctionDescriptor function} from the specified
-	 * {@linkplain ParseNodeDescriptor phrase} and evaluate it in the module's
+	 * {@linkplain PhraseDescriptor phrase} and evaluate it in the module's
 	 * context; lexically enclosing variables are not considered in scope, but
 	 * module variables and constants are in scope.
 	 *
 	 * @param expressionNode
-	 *        A {@linkplain ParseNodeDescriptor parse node}.
+	 *        A {@linkplain PhraseDescriptor phrase}.
 	 * @param lineNumber
 	 *        The line number on which the expression starts.
 	 * @param shouldSerialize
@@ -699,8 +699,8 @@ public class CompilationContext
 	}
 
 	/**
-	 * Evaluate the given parse node.  Pass the result to the continuation,
-	 * or if it fails pass the exception to the failure continuation.
+	 * Evaluate the given phrase.  Pass the result to the continuation, or if it
+	 * fails pass the exception to the failure continuation.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} at which the phrase starts.

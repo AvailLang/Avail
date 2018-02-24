@@ -154,7 +154,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain A_Module module} that contains the {@linkplain
-	 * BlockNodeDescriptor block} that defines this raw function.
+	 * BlockPhraseDescriptor block} that defines this raw function.
 	 *
 	 * @return The module, or {@linkplain NilDescriptor#nil nil} for synthetic
 	 *         function implementations.
@@ -344,7 +344,7 @@ extends A_BasicObject
 	L2Chunk startingChunk ();
 
 	/**
-	 * Answer the starting line number for the {@linkplain BlockNodeDescriptor
+	 * Answer the starting line number for the {@linkplain BlockPhraseDescriptor
 	 * block} that defines this raw function.
 	 *
 	 * @return The starting line number, or zero ({@code 0}) for synthetic

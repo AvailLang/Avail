@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
 import com.avail.descriptor.LiteralTokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -42,14 +42,14 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain LiteralTokenDescriptor
- * literal token} from which the specified {@linkplain LiteralNodeDescriptor
- * literal expression} was built.
+ * literal token} from which the specified {@linkplain LiteralPhraseDescriptor
+ * literal phrase} was built.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,7 +77,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(LITERAL_NODE.mostGeneralType()),
+			functionType(
+				tuple(
+					LITERAL_PHRASE.mostGeneralType()),
 				mostGeneralLiteralTokenType());
 	}
 }
