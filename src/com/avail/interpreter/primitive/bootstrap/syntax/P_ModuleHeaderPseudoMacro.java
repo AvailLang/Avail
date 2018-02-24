@@ -96,8 +96,12 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 					emptyTuple(),
 					MODULE_HEADER_METHOD.bundle,
 					newListNode(
-						tuple(moduleNameLiteral, optionalVersions,
-							allImports, optionalNames, optionalEntries,
+						tuple(
+							moduleNameLiteral,
+							optionalVersions,
+							allImports,
+							optionalNames,
+							optionalEntries,
 							optionalPragmas)),
 					TOP.o())));
 	}

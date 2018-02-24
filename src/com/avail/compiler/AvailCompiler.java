@@ -4436,8 +4436,7 @@ public final class AvailCompiler
 					compilationContext.diagnostics.reportError(onFail);
 					return;
 				}
-				compilationContext.loader().createFilteredBundleTree();
-				compilationContext.loader().createLexicalScanner();
+				compilationContext.loader().prepareForCompilingModuleBody();
 				applyPragmasThen(
 					afterHeader,
 					() ->
@@ -4720,9 +4719,7 @@ public final class AvailCompiler
 		// what happens.
 		startModuleTransaction();
 		final AvailLoader loader = compilationContext.loader();
-		loader.createFilteredBundleTree();
-		loader.createLexicalScanner();
-		loader.lexicalScanner().freezeFromChanges();  // Safety
+		loader.prepareForCompilingModuleBody();
 		final A_Map clientData = mapFromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap(),

@@ -803,21 +803,23 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Create the {@link #rootBundleTree} now that the module's imports and new
-	 * public names have been declared.
+	 * Set up the {@link #rootBundleTree} and {@link #lexicalScanner} for
+	 * compiling the body of the module.
 	 */
-	public void createFilteredBundleTree ()
+	public void prepareForCompilingModuleBody ()
 	{
 		rootBundleTree = module.buildFilteredBundleTree();
+		lexicalScanner = module.createLexicalScanner();
 	}
 
 	/**
-	 * Create the {@link #lexicalScanner} now that the module's imports and new
-	 * public names have been declared.
+	 * Nil the {@link #rootBundleTree} and {@link #lexicalScanner} in
+	 * preparation for loading (not compiling) the body of the module.
 	 */
-	public void createLexicalScanner ()
+	public void prepareForLoadingModuleBody ()
 	{
-		lexicalScanner = module.createLexicalScanner();
+		rootBundleTree = nil;
+		lexicalScanner = null;
 	}
 
 	/** The unresolved forward method declarations. */
@@ -903,23 +905,27 @@ public final class AvailLoader
 				}
 			}
 		}
-		final A_Definition newForward = newForwardDefinition(
-			method, module, bodySignature);
-		method.methodAddDefinition(newForward);
-		recordEffect(new LoadingEffectToAddDefinition(newForward));
-		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
-		theModule.lock(() ->
+		// Only bother with adding and resolving forwards during compilation.
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			theModule.moduleAddDefinition(newForward);
-			pendingForwards = pendingForwards.setWithElementCanDestroy(
-				newForward, true);
-			final A_DefinitionParsingPlan plan =
-				bundle.definitionParsingPlans().mapAt(newForward);
-			final A_ParsingPlanInProgress planInProgress =
-				newPlanInProgress(plan, 1);
-			root.addPlanInProgress(planInProgress);
-		});
+			final A_Definition newForward = newForwardDefinition(
+				method, module, bodySignature);
+			method.methodAddDefinition(newForward);
+			recordEffect(new LoadingEffectToAddDefinition(newForward));
+			final A_Module theModule = module;
+			final A_BundleTree root = rootBundleTree();
+			theModule.lock(() ->
+			{
+				theModule.moduleAddDefinition(newForward);
+				pendingForwards = pendingForwards.setWithElementCanDestroy(
+					newForward, true);
+				final A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(newForward);
+				final A_ParsingPlanInProgress planInProgress =
+					newPlanInProgress(plan, 1);
+				root.addPlanInProgress(planInProgress);
+			});
+		}
 	}
 
 	/**
@@ -1059,30 +1065,61 @@ public final class AvailLoader
 				}
 			}
 		}
-		final @Nullable A_Definition finalForward = forward;
-		final A_Module theModule = module;
-		theModule.lock(() ->
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			final A_Set ancestorModules = theModule.allAncestors();
-			final A_BundleTree root = rootBundleTree();
-			if (finalForward != null)
+			final @Nullable A_Definition finalForward = forward;
+			final A_Module finalModule = module;
+			finalModule.lock(() ->
 			{
+				final A_Set ancestorModules = finalModule.allAncestors();
+				final A_BundleTree root = rootBundleTree();
+				if (finalForward != null)
+				{
+					for (final A_Bundle bundle : method.bundles())
+					{
+						if (ancestorModules.hasElement(
+							bundle.message().issuingModule()))
+						{
+							// Remove the appropriate forwarder plan from the
+							// bundle tree.
+							final A_DefinitionParsingPlan plan =
+								bundle.definitionParsingPlans()
+									.mapAt(finalForward);
+							final A_ParsingPlanInProgress planInProgress =
+								newPlanInProgress(plan, 1);
+							root.removePlanInProgress(planInProgress);
+						}
+					}
+					removeForward(finalForward);
+				}
+				try
+				{
+					method.methodAddDefinition(newDefinition);
+				}
+				catch (final SignatureException e)
+				{
+					assert false : "Signature was already vetted";
+					return;
+				}
+				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
 						bundle.message().issuingModule()))
 					{
-						// Remove the appropriate forwarder plan from the
-						// bundle tree.
 						final A_DefinitionParsingPlan plan =
-							bundle.definitionParsingPlans().mapAt(finalForward);
+							bundle.definitionParsingPlans()
+								.mapAt(newDefinition);
 						final A_ParsingPlanInProgress planInProgress =
 							newPlanInProgress(plan, 1);
-						root.removePlanInProgress(planInProgress);
+						root.addPlanInProgress(planInProgress);
 					}
 				}
-				removeForward(finalForward);
-			}
+				finalModule.moduleAddDefinition(newDefinition);
+			});
+		}
+		else
+		{
 			try
 			{
 				method.methodAddDefinition(newDefinition);
@@ -1092,21 +1129,8 @@ public final class AvailLoader
 				assert false : "Signature was already vetted";
 				return;
 			}
-			recordEffect(new LoadingEffectToAddDefinition(newDefinition));
-			for (final A_Bundle bundle : method.bundles())
-			{
-				if (ancestorModules.hasElement(
-					bundle.message().issuingModule()))
-				{
-					final A_DefinitionParsingPlan plan =
-						bundle.definitionParsingPlans().mapAt(newDefinition);
-					final A_ParsingPlanInProgress planInProgress =
-						newPlanInProgress(plan, 1);
-					root.addPlanInProgress(planInProgress);
-				}
-			}
-			theModule.moduleAddDefinition(newDefinition);
-		});
+			module.moduleAddDefinition(newDefinition);
+		}
 	}
 
 	/**
@@ -1172,16 +1196,19 @@ public final class AvailLoader
 			// relationship with their result types, since they're static.
 		}
 		method.methodAddDefinition(macroDefinition);
-		recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
-		final A_BundleTree root = rootBundleTree();
-		module.lock(() ->
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			final A_DefinitionParsingPlan plan =
-				bundle.definitionParsingPlans().mapAt(macroDefinition);
-			final A_ParsingPlanInProgress planInProgress =
-				newPlanInProgress(plan, 1);
-			root.addPlanInProgress(planInProgress);
-		});
+			recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
+			final A_BundleTree root = rootBundleTree();
+			module.lock(() ->
+			{
+				final A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(macroDefinition);
+				final A_ParsingPlanInProgress planInProgress =
+					newPlanInProgress(plan, 1);
+				root.addPlanInProgress(planInProgress);
+			});
+		}
 	}
 
 	/**
@@ -1355,8 +1382,7 @@ public final class AvailLoader
 		if (definition.isForwardDefinition())
 		{
 			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-				definition,
-				true);
+				definition, true);
 		}
 		runtime.removeDefinition(definition);
 	}

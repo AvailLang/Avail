@@ -879,7 +879,7 @@ extends Descriptor
 
 	/**
 	 * Create a {@link LexicalScanner} to have the {@link A_Lexer lexers} that
-	 * are isible in the current module.
+	 * are visible in the current module.
 	 *
 	 * <p>As a nicety, since the bundle name isn't actually used during lexing,
 	 * and since lexers can interfere with each other, de-duplicate lexers that

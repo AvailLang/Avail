@@ -1800,8 +1800,7 @@ public final class AvailBuilder
 				stringFrom(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
-//			availLoader.createFilteredBundleTree();
-			availLoader.createLexicalScanner();
+			availLoader.prepareForLoadingModuleBody();
 			final Continuation1NotNull<Throwable> fail =
 				e -> module.removeFrom(
 					availLoader,
