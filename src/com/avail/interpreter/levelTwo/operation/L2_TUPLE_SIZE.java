@@ -1,19 +1,19 @@
 /*
- * L2_CLEAR_VARIABLE.java
+ * L2_TUPLE_SIZE.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -29,71 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
- * Clear a variable; i.e., make it have no assigned value.
+ * Answer the {@linkplain A_Tuple#tupleSize() size} of the specified {@linkplain
+ * A_Tuple tuple}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CLEAR_VARIABLE
+public final class L2_TUPLE_SIZE
 extends L2Operation
 {
 	/**
-	 * Construct an {@code L2_CLEAR_VARIABLE}.
+	 * Construct an {@code L2_TUPLE_SIZE}.
 	 */
-	private L2_CLEAR_VARIABLE ()
+	private L2_TUPLE_SIZE ()
 	{
 		super(
-			READ_POINTER.is("variable"));
+			READ_POINTER.is("tuple"),
+			WRITE_INT.is("size of tuple"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_CLEAR_VARIABLE instance = new L2_CLEAR_VARIABLE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-		// If we haven't already guaranteed that this is a variable then we
-		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg.register());
-		final A_Type varType = registerSet.typeAt(variableReg.register());
-		assert varType.isSubtypeOf(mostGeneralVariableType());
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
+	public static final L2_TUPLE_SIZE instance = new L2_TUPLE_SIZE();
 
 	@Override
 	public void toString (
@@ -102,11 +79,16 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation;
-		final L2Operand variableReg = instruction.operands[0];
+		final L2ObjectRegister tupleReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2IntRegister sizeReg =
+			instruction.writeIntRegisterAt(1).register();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(variableReg);
+		builder.append(sizeReg);
+		builder.append(" ← ");
+		builder.append(tupleReg);
 	}
 
 	@Override
@@ -115,17 +97,19 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ObjectRegister tupleReg =
 			instruction.readObjectRegisterAt(0).register();
+		final L2IntRegister sizeReg =
+			instruction.writeIntRegisterAt(1).register();
 
-		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
-		// :: variable.clearValue();
-		translator.load(method, variableReg);
+		// :: size = tuple.tupleSize();
+		translator.load(method, tupleReg);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
-			getInternalName(A_Variable.class),
-			"clearValue",
-			getMethodDescriptor(VOID_TYPE),
+			getInternalName(A_Tuple.class),
+			"tupleSize",
+			getMethodDescriptor(INT_TYPE),
 			true);
+		translator.store(method, sizeReg);
 	}
 }

@@ -660,5 +660,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return The maximum valid 1-based index for this tuple.
 	 */
+	@ReferencedInGeneratedCode
 	int tupleSize ();
 }

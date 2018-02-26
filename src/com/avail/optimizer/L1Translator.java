@@ -1107,6 +1107,7 @@ implements L1OperationDispatcher
 				new ArrayList<>(currentManifest.registerToSemanticValues(
 					read.register())))
 			{
+				currentManifest.addBinding(semanticValue, read);
 				currentManifest.addBinding(semanticValue.boxed(), boxed);
 			}
 		}

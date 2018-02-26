@@ -31,27 +31,14 @@
  */
 package com.avail.optimizer;
 
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.emptySet;
@@ -171,7 +158,7 @@ public final class L2ValueManifest
 	/**
 	 * Record the fact that the given register now holds this given semantic
 	 * value, in addition to any it may have already held.  There must not be
-	 * a register already associated with this semantic value.
+	 * a different register already associated with this semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to associate with the register.
@@ -182,7 +169,8 @@ public final class L2ValueManifest
 		final L2SemanticValue semanticValue,
 		final L2ReadOperand<?, ?> registerRead)
 	{
-		assert !semanticValueToRegister.containsKey(semanticValue);
+		assert semanticValueToRegister.getOrDefault(
+			semanticValue, registerRead).equals(registerRead);
 		semanticValueToRegister.put(semanticValue, registerRead);
 		final Set<L2SemanticValue> semanticValues =
 			registerToSemanticValues.computeIfAbsent(

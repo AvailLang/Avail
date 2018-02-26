@@ -78,6 +78,7 @@ import static com.avail.utility.Nulls.stripNull;
  * <strong>Primitive:</strong> Add two {@linkplain
  * AbstractNumberDescriptor numbers}.
  */
+@SuppressWarnings("unused")
 public final class P_Addition
 extends Primitive
 {
@@ -90,8 +91,7 @@ extends Primitive
 			2, CanFold, CanInline);
 
 	@Override
-	public Result attempt (
-		final Interpreter interpreter)
+	public Result attempt (final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(2);
 		final A_Number a = interpreter.argument(0);
