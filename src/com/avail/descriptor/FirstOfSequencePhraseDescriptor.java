@@ -270,13 +270,11 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain FirstOfSequencePhraseDescriptor
-	 * first-of-sequence phrase} from the given {@linkplain TupleDescriptor
-	 * tuple} of statements.
+	 * Create a new first-of-sequence phrase from the given {@link A_Tuple} of
+	 * statements.
 	 *
 	 * @param statements
-	 *        The expressions to assemble into a {@linkplain
-	 *        FirstOfSequencePhraseDescriptor first-of-sequence phrase}, the
+	 *        The expressions to assemble into a first-of-sequence phrase, the
 	 *        <em>first</em> of which provides the value.
 	 * @return The resulting first-of-sequence phrase.
 	 */
@@ -290,7 +288,7 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Construct a new {@link FirstOfSequencePhraseDescriptor}.
+	 * Construct a new {@code FirstOfSequencePhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

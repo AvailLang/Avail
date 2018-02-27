@@ -46,8 +46,10 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PARSE_NODE;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.ObjectSlots.MACRO_ORIGINAL_SEND;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.ObjectSlots.OUTPUT_PARSE_NODE;
 
 /**
  * A {@code MacroSubstitutionPhraseDescriptor macro substitution phrase}

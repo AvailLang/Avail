@@ -203,8 +203,8 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain ExpressionAsStatementPhraseDescriptor
-	 * expression-as-statement phrase} from the given expression phrase.
+	 * Create a new expression-as-statement phrase from the given expression
+	 * phrase.
 	 *
 	 * @param expression
 	 *        An expression (see {@link PhraseKind#EXPRESSION_PHRASE}).
@@ -220,7 +220,7 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ExpressionAsStatementPhraseDescriptor}.
+	 * Construct a new {@code ExpressionAsStatementPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

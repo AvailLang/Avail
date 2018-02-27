@@ -214,9 +214,10 @@ extends PhraseDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
-		object.setSlot(EXPRESSION,
-			transformer.valueNotNull(object.slot(EXPRESSION)));
-		object.setSlot(VARIABLE, transformer.valueNotNull(object.slot(VARIABLE)));
+		object.setSlot(
+			EXPRESSION, transformer.valueNotNull(object.slot(EXPRESSION)));
+		object.setSlot(
+			VARIABLE, transformer.valueNotNull(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod

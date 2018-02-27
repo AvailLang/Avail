@@ -162,9 +162,7 @@ extends PhraseDescriptor
 		for (int i = 1; i <= expressions.tupleSize(); i++)
 		{
 			expressions = expressions.tupleAtPuttingCanDestroy(
-				i,
-				transformer.valueNotNull(expressions.tupleAt(i)),
-				true);
+				i, transformer.valueNotNull(expressions.tupleAt(i)), true);
 		}
 		object.setSlot(EXPRESSIONS_TUPLE, expressions);
 	}

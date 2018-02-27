@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
@@ -81,7 +82,7 @@ extends Descriptor
 	 * {@link Continuation1} with each.
 	 *
 	 * @param object
-	 *        The {@linkplain PhraseDescriptor phrase} to traverse.
+	 *        The {@linkplain A_Phrase phrase} to traverse.
 	 * @param action
 	 *        The {@linkplain Continuation1 action} to perform with each of
 	 */
@@ -92,12 +93,14 @@ extends Descriptor
 
 	/**
 	 * Visit and transform the direct descendants of this phrase.  Map this
-	 * phrase's children through the
-	 * (destructive) transformation specified by aBlock, assigning them back
-	 * into my slots.
-	 *  @param object The phrase to transform.
-	 * @param transformer The {@linkplain Transformer1 transformation} through which
+	 * phrase's children through the (destructive) transformation specified by
+	 * aBlock, assigning them back into my slots.
 	 *
+	 * @param object
+	 *        The phrase to transform.
+	 * @param transformer
+	 *        The {@linkplain Transformer1 transformation} through which
+	 *        to recursively map the phrase.
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenMap (
@@ -109,10 +112,9 @@ extends Descriptor
 	 * phrase.  Otherwise, answer the receiver itself.
 	 *
 	 * @param object
-	 *        The {@linkplain PhraseDescriptor phrase} of which to
-	 *        create a mutable copy.
-	 * @return A mutable {@linkplain PhraseDescriptor phrase} equivalent
-	 *         to the passed phrase, possibly the same object.
+	 *        The {@link A_Phrase} of which to create a mutable copy.
+	 * @return A mutable {@link A_Phrase} equivalent to the passed phrase,
+	 *         possibly the same object.
 	 */
 	@Override @AvailMethod
 	A_Phrase o_CopyMutablePhrase (final AvailObject object)
@@ -154,7 +156,7 @@ extends Descriptor
 		final AvailCodeGenerator codeGenerator);
 
 	/**
-	 * {@linkplain PhraseDescriptor phrases} must implement {@link
+	 * {@linkplain A_Phrase phrases} must implement {@link
 	 * PhraseDescriptor#o_EqualsPhrase(AvailObject, A_Phrase)}.
 	 */
 	@Override @AvailMethod
@@ -165,9 +167,6 @@ extends Descriptor
 		return another.equalsPhrase(object);
 	}
 
-	/**
-	 * Compare this phrase to the given phrase.
-	 */
 	@Override @AvailMethod
 	abstract boolean o_EqualsPhrase (
 		final AvailObject object,
@@ -178,7 +177,7 @@ extends Descriptor
 	 * will be produced by this phrase.
 	 *
 	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by this phrase.
+	 *         that will be produced by evaluating this phrase.
 	 */
 	@Override @AvailMethod
 	abstract A_Type o_ExpressionType (final AvailObject object);
@@ -192,8 +191,8 @@ extends Descriptor
 	}
 
 	/**
-	 * {@linkplain PhraseDescriptor phrases} must implement {@link
-	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 * {@linkplain A_Phrase phrases} must implement {@link
+	 * AbstractDescriptor#o_Hash(AvailObject)}.
 	 */
 	@Override @AvailMethod
 	abstract int o_Hash (final AvailObject object);
@@ -249,8 +248,8 @@ extends Descriptor
 	 * Return the {@linkplain PhraseKind phrase kind} that this phrase's type
 	 * implements.
 	 *
-	 * @return The {@linkplain PhraseKind kind} of phrase that the
-	 *         object's type would be.
+	 * @return The {@linkplain PhraseKind kind} of phrase that the object's type
+	 *         would be.
 	 */
 	@Override @AvailMethod
 	abstract PhraseKind o_PhraseKind (final AvailObject object);
@@ -262,6 +261,10 @@ extends Descriptor
 	{
 		return object.phraseKind().isSubkindOf(expectedPhraseKind);
 	}
+
+	@Override
+	abstract SerializerOperation o_SerializerOperation (
+		final AvailObject object);
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
@@ -293,10 +296,10 @@ extends Descriptor
 	 * Validate this phrase, throwing an exception if there is a problem.
 	 *
 	 * @param object
-	 *        The {@linkplain PhraseDescriptor phrase} to validate.
+	 *        The {@link A_Phrase} to validate.
 	 * @param parent
-	 *        The {@linkplain PhraseDescriptor phrase} which contains the
-	 *        phrase to validate.
+	 *        The {@link A_Phrase} which contains the phrase to validate as a
+	 *        subphrase.
 	 */
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
@@ -309,7 +312,7 @@ extends Descriptor
 	 * its parent, and the list of enclosing block phrases.
 	 *
 	 * @param object
-	 *        The current {@linkplain PhraseDescriptor phrase}.
+	 *        The current {@link A_Phrase}.
 	 * @param aBlock
 	 *        What to do with each descendant.
 	 * @param parentNode
@@ -320,13 +323,12 @@ extends Descriptor
 		final Continuation2<A_Phrase, A_Phrase> aBlock,
 		final @Nullable A_Phrase parentNode)
 	{
-		object.childrenDo(
-			child -> treeDoWithParent(child, aBlock, object));
+		object.childrenDo(child -> treeDoWithParent(child, aBlock, object));
 		aBlock.value(object, parentNode);
 	}
 
 	/**
-	 * Construct a new {@link PhraseDescriptor}.
+	 * Construct a new {@code PhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

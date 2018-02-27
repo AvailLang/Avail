@@ -797,7 +797,8 @@ extends PhraseDescriptor
 		if (!expression.equalsNil())
 		{
 			object.setSlot(
-				INITIALIZATION_EXPRESSION, transformer.valueNotNull(expression));
+				INITIALIZATION_EXPRESSION,
+				transformer.valueNotNull(expression));
 		}
 	}
 

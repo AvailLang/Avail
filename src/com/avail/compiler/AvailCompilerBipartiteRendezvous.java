@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An {@code AvailCompilerBipartiteRendezvous} comes at parsing from both sides
@@ -47,20 +48,17 @@ import java.util.List;
  * found it is run against all waiting actions and added to the list of
  * subexpressions.
  *
- * <p>
- * These two cases ensure each continuation runs with each subexpression –
+ * <p>These two cases ensure each continuation runs with each subexpression –
  * without requiring any particular order of execution of the continuations.
  * That allows us to reorder the continuations arbitrarily, including forcing
  * them to run basically in lock-step with the lexical scanner, avoiding
  * scanning too far ahead in the cases of dynamic scanning rules and power
- * strings.  It also allows parallel execution of the parser.
- * </p>
+ * strings.  It also allows parallel execution of the parser.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCompilerBipartiteRendezvous
 {
-
 	/**
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
@@ -72,12 +70,27 @@ public class AvailCompilerBipartiteRendezvous
 	 */
 	private final List<Con> actions = new ArrayList<>(3);
 
+	/** Whether we've started parsing at this position. */
+	private final AtomicBoolean hasStarted = new AtomicBoolean(false);
+
+	/**
+	 * Atomically read hasStartedParsing, make it true, then answer the value
+	 * that was read.
+	 *
+	 * @return {@code true} if parsing had already been started at this
+	 *         position, {@code false} otherwise.
+	 */
+	boolean getAndSetStartedParsing ()
+	{
+		return hasStarted.getAndSet(true);
+	}
+
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
 	 * @param solution The new solution to record.
 	 */
-	void addSolution (final CompilerSolution solution)
+	synchronized void addSolution (final CompilerSolution solution)
 	{
 		if (solutions.contains(solution))
 		{
@@ -106,7 +119,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	void addAction (final Con action)
+	synchronized void addAction (final Con action)
 	{
 		actions.add(action);
 		for (final CompilerSolution solution : solutions)

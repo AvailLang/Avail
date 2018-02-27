@@ -297,10 +297,10 @@ public enum ParsingOperation
 			final Con continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
+			final A_BundleTree successorTree = successorTrees.tupleAt(1);
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
 				firstArgOrNull == null
-					? continuation.superexpressions().advancedTo(
-						successorTrees.tupleAt(1))
+					? continuation.superexpressions().advancedTo(successorTree)
 					: continuation.superexpressions;
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
@@ -311,13 +311,13 @@ public enum ParsingOperation
 				false,
 				Con(
 					partialSubexpressionList,
-					(CompilerSolution solution) ->
+					solution ->
 					{
 						final List<A_Phrase> newArgsSoFar =
 							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
-							successorTrees.tupleAt(1),
+							successorTree,
 							null,
 							initialTokenPosition,
 							// The argument counts as something that was

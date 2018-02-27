@@ -1591,19 +1591,17 @@ public final class AvailCompiler
 		// Try to wrap it in a leading-argument message send.
 		final Con con = Con(
 			continuation.superexpressions,
-			solution2 ->
-				parseLeadingArgumentSendAfterThen(
-					solution2.endState(),
-					solution2.phrase(),
-					startOfLeadingArgument,
-					Con(
-						continuation.superexpressions,
-						solutionAfter ->
-							parseOptionalLeadingArgumentSendAfterThen(
-								startOfLeadingArgument,
-								solutionAfter.endState(),
-								solutionAfter.phrase(),
-								continuation))));
+			solution2 -> parseLeadingArgumentSendAfterThen(
+				solution2.endState(),
+				solution2.phrase(),
+				startOfLeadingArgument,
+				Con(
+					continuation.superexpressions,
+					solutionAfter -> parseOptionalLeadingArgumentSendAfterThen(
+						startOfLeadingArgument,
+						solutionAfter.endState(),
+						solutionAfter.phrase(),
+						continuation))));
 		afterLeadingArgument.workUnitDo(
 			con,
 			new CompilerSolution(afterLeadingArgument, phrase));
@@ -2954,7 +2952,7 @@ public final class AvailCompiler
 						c.value(
 							"[[[Internal problem - No visible implementations;"
 								+ " should have been excluded.]]]\n"
-								+ builder.toString());
+								+ builder);
 					}
 					else
 					{
@@ -3259,64 +3257,7 @@ public final class AvailCompiler
 		final boolean wrapInLiteral,
 		final Con continuation)
 	{
-		if (firstArgOrNull == null)
-		{
-			// There was no leading argument, or it has already been accounted
-			// for.  If we haven't actually consumed anything yet then don't
-			// allow a *leading* argument to be parsed here.  That would lead to
-			// ambiguous left-recursive parsing.
-			if (canReallyParse)
-			{
-				parseExpressionThen(
-					start,
-					Con(
-						continuation.superexpressions,
-						solution ->
-						{
-							// Only accept a ⊤-valued or ⊥-valued expression if
-							// wrapInLiteral is true.
-							final A_Phrase argument = solution.phrase();
-							final ParserState afterArgument =
-								solution.endState();
-							if (!wrapInLiteral)
-							{
-								final A_Type type = argument.expressionType();
-								final @Nullable String badTypeName =
-									type.isTop()
-										? "⊤"
-										: type.isBottom() ? "⊥" : null;
-								if (badTypeName != null)
-								{
-									final Describer describer = c ->
-									{
-										final StringBuilder b =
-											new StringBuilder(100);
-										b.append(kindOfArgument);
-										b.append(
-											" to have a type other than ");
-										b.append(badTypeName);
-										b.append(" in:");
-										describeOn(
-											continuation.superexpressions,
-											b);
-										c.value(b.toString());
-									};
-									afterArgument.expected(describer);
-									return;
-								}
-							}
-							final CompilerSolution argument1 = new CompilerSolution(
-								afterArgument,
-								wrapInLiteral
-									? wrapAsLiteral(argument)
-									: argument);
-							afterArgument.workUnitDo(
-								continuation,
-								argument1);
-						}));
-			}
-		}
-		else
+		if (firstArgOrNull != null)
 		{
 			// We're parsing a message send with a leading argument, and that
 			// argument was explicitly provided to the parser.  We should
@@ -3344,9 +3285,56 @@ public final class AvailCompiler
 				return;
 			}
 			start.workUnitDo(
-				continuation,
-				new CompilerSolution(start, firstArgOrNull));
+				continuation, new CompilerSolution(start, firstArgOrNull));
+			return;
 		}
+		// There was no leading argument, or it has already been accounted for.
+		// If we haven't actually consumed anything yet then don't allow a
+		// *leading* argument to be parsed here.  That would lead to ambiguous
+		// left-recursive parsing.
+		if (!canReallyParse)
+		{
+			return;
+		}
+		parseExpressionThen(
+			start,
+			Con(
+				continuation.superexpressions,
+				solution ->
+				{
+					// Only accept a ⊤-valued or ⊥-valued expression if
+					// wrapInLiteral is true.
+					final A_Phrase argument = solution.phrase();
+					final ParserState afterArgument = solution.endState();
+					if (!wrapInLiteral)
+					{
+						final A_Type type = argument.expressionType();
+						final @Nullable String badTypeName =
+							type.isTop()
+								? "⊤"
+								: type.isBottom() ? "⊥" : null;
+						if (badTypeName != null)
+						{
+							final Describer describer = c ->
+							{
+								final StringBuilder b = new StringBuilder(100);
+								b.append(kindOfArgument);
+								b.append(" to have a type other than ");
+								b.append(badTypeName);
+								b.append(" in:");
+								describeOn(continuation.superexpressions, b);
+								c.value(b.toString());
+							};
+							afterArgument.expected(describer);
+							return;
+						}
+					}
+					final CompilerSolution argument1 =
+						new CompilerSolution(
+							afterArgument,
+							wrapInLiteral ? wrapAsLiteral(argument) : argument);
+					afterArgument.workUnitDo(continuation, argument1);
+				}));
 	}
 
 	/**
@@ -5266,43 +5254,28 @@ public final class AvailCompiler
 		final ParserState start,
 		final Con originalContinuation)
 	{
-		synchronized (fragmentCache)
+		// The first time we parse at this position the fragmentCache will
+		// have no knowledge about it.
+		final AvailCompilerBipartiteRendezvous rendezvous =
+			fragmentCache.getRendezvous(start);
+		if (!rendezvous.getAndSetStartedParsing())
 		{
-			// The first time we parse at this position the fragmentCache will
-			// have no knowledge about it.
-			if (!fragmentCache.hasStartedParsingAt(start))
+			// We're the (only) cause of the transition from hasn't-started to
+			// has-started.
+			start.expected(withDescription ->
 			{
-				start.expected(withDescription ->
-				{
-					final StringBuilder builder = new StringBuilder();
-					builder.append("an expression for (at least) this reason:");
-					describeOn(originalContinuation.superexpressions, builder);
-					withDescription.value(builder.toString());
-				});
-				fragmentCache.indicateParsingHasStartedAt(start);
-				final Con action =
-					Con(
-						originalContinuation.superexpressions,
-						solution ->
-						{
-							synchronized (fragmentCache)
-							{
-								fragmentCache.addSolution(start, solution);
-							}
-						});
-				start.workUnitDo(
-					a -> parseExpressionUncachedThen(start, a), action);
-			}
+				final StringBuilder builder = new StringBuilder();
+				builder.append("an expression for (at least) this reason:");
+				describeOn(originalContinuation.superexpressions, builder);
+				withDescription.value(builder.toString());
+			});
 			start.workUnitDo(
-				originalCon ->
-				{
-					synchronized (fragmentCache)
-					{
-						fragmentCache.addAction(start, originalCon);
-					}
-				},
-				originalContinuation);
+				a -> parseExpressionUncachedThen(start, a),
+				Con(
+					originalContinuation.superexpressions,
+					rendezvous::addSolution));
 		}
+		start.workUnitDo(rendezvous::addAction, originalContinuation);
 	}
 
 	/**

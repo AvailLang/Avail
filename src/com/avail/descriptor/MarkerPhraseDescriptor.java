@@ -42,8 +42,10 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
+import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots
+	.MARKER_VALUE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.MARKER_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -172,8 +174,7 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain MarkerPhraseDescriptor marker phrase} wrapping the
-	 * given {@link A_BasicObject}.
+	 * Create a marker phrase wrapping the given {@link A_BasicObject}.
 	 *
 	 * @param markerValue The value to wrap.
 	 * @return A new immutable marker phrase.
@@ -187,7 +188,7 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Construct a new {@link MarkerPhraseDescriptor}.
+	 * Construct a new {@code MarkerPhraseDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

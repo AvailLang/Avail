@@ -391,8 +391,8 @@ extends PhraseDescriptor
 	}
 
 	/**
-	 * Answer an Avail compiled block compiled from the given block phrase, using
-	 * the given {@link AvailCodeGenerator}.
+	 * Answer an Avail compiled block compiled from the given block phrase,
+	 * using the given {@link AvailCodeGenerator}.
 	 *
 	 * @param object
 	 *        The block phrase.
@@ -414,13 +414,14 @@ extends PhraseDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		final @Nullable Primitive prim = object.primitive();
-		return
-			(((object.argumentsTuple().hash() * multiplier
-				   + object.statementsTuple().hash()) * multiplier
-				  + object.resultType().hash()) * multiplier
-				 + object.neededVariables().hash()) * multiplier
-				+ (prim == null ? 0 : prim.primitiveNumber) * multiplier
-				^ 0x05E6A04A;
+		int h = object.argumentsTuple().hash();
+		h = h * multiplier + object.argumentsTuple().hash();
+		h = h * multiplier + object.statementsTuple().hash();
+		h = h * multiplier + object.resultType().hash();
+		h = h * multiplier + object.neededVariables().hash();
+		h = h * multiplier + (prim == null ? 0 : prim.name().hashCode());
+		h = h * multiplier ^ 0x05E6A04A;
+		return h;
 	}
 
 	@Override @AvailMethod
