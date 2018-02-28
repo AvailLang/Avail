@@ -230,7 +230,8 @@ Private method "Debug tests" is
 		[
 			Print: format "“①”. “②”\n" with index, test;
 		];
-		Print: "Enter subtest number, 0 for parent/exit, \"run\", or \"run N\".\n";
+		Print: "Enter subtest number, 0 for parent/exit, "
+			++ "\"run\", or \"run N\" (N=repetitions).\n";
 		command := next line from standard input;
 		If command ∈ (enumeration of "0123456789"→set)+ then
 		[

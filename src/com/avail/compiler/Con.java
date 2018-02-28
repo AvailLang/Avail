@@ -31,7 +31,6 @@
  */
 
 package com.avail.compiler;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
@@ -43,8 +42,8 @@ import static com.avail.utility.Nulls.stripNull;
  * This is a subtype of {@link Continuation1NotNull}, but it also tracks the
  * {@link PartialSubexpressionList} that describes the nesting of parse
  * expressions that led to this particular continuation.  A {@link
- * Continuation1NotNull} is also supplied to the constructor.  It will only
- * be invoked with a non-null argument.
+ * Continuation1NotNull} is also supplied to the constructor.  It will only be
+ * invoked with a non-null argument.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -52,21 +51,19 @@ final class Con
 implements Continuation1NotNull<CompilerSolution>
 {
 	/**
-	 * A {@link PartialSubexpressionList} containing all enclosing
-	 * incomplete expressions currently being parsed along this history.
+	 * A {@link PartialSubexpressionList} containing all enclosing incomplete
+	 * expressions currently being parsed along this history.
 	 */
-	@InnerAccess
-	final @Nullable
-	PartialSubexpressionList superexpressions;
+	final @Nullable PartialSubexpressionList superexpressions;
 
 	/**
 	 * Ensure this is not a root {@link PartialSubexpressionList} (i.e., its
-	 * {@link #superexpressions} list is not {@code null}), then answer
-	 * the parent list.
+	 * {@link #superexpressions} list is not {@code null}), then answer the
+	 * parent list.
 	 *
 	 * @return The (non-null) parent superexpressions list.
 	 */
-	@InnerAccess PartialSubexpressionList superexpressions ()
+	PartialSubexpressionList superexpressions ()
 	{
 		return stripNull(superexpressions);
 	}
@@ -84,7 +81,6 @@ implements Continuation1NotNull<CompilerSolution>
 	 * @param innerContinuation
 	 *        A {@link Continuation1NotNull} that will be invoked.
 	 */
-	@InnerAccess
 	Con (
 		final @Nullable PartialSubexpressionList superexpressions,
 		final Continuation1NotNull<CompilerSolution> innerContinuation)
