@@ -37,7 +37,16 @@ Uses
 	"Avail",
 	"Dimensional Analysis" = ("__", "_≥_", "_'s⁇extent", "µs", "ms")
 Extends
-	"Avail" = ("<«_‡,»>", "∞"),
+	"Avail" =
+	(
+		"whitespace lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+		"…#",
+		"<«_‡,»>",
+		"∞"
+	),
 	"Dimensional Analysis" = ("__", "ms")
 Names
 	"___`|___`|___\
