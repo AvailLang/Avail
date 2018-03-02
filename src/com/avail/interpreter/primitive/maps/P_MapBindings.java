@@ -43,7 +43,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -78,16 +79,19 @@ public final class P_MapBindings extends Primitive
 			bindings[index++] =
 				tuple(entry.key(), entry.value());
 		}
-		return interpreter.primitiveSuccess(tuple(bindings));
+		return interpreter.primitiveSuccess(tupleFromArray(bindings));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralMapType()), zeroOrMoreOf(
-				tupleTypeForTypes(
-					ANY.o(),
-					ANY.o())));
+			functionType(
+				tuple(
+					mostGeneralMapType()),
+				zeroOrMoreOf(
+					tupleTypeForTypes(
+						ANY.o(),
+						ANY.o())));
 	}
 }

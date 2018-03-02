@@ -40,12 +40,14 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newPrimitiveFailureVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.PRIMITIVE_FAILURE_REASON_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;

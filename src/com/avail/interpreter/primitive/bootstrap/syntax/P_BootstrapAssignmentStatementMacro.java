@@ -33,7 +33,15 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -44,14 +52,17 @@ import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleVariable;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;

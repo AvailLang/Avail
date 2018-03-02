@@ -41,7 +41,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 

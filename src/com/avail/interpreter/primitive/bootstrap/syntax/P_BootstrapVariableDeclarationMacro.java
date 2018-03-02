@@ -50,9 +50,11 @@ import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 

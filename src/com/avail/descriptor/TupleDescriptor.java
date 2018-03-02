@@ -1313,46 +1313,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a tuple with the specified elements. The elements are not made
-	 * immutable first, nor is the new tuple.
-	 *
-	 * @param elements
-	 *        The array of Avail values from which to construct a tuple.
-	 * @return The new mutable tuple.
-	 */
-	@ReferencedInGeneratedCode
-	public static A_Tuple tuple (
-		final A_BasicObject... elements)
-	{
-		if (elements.length == 0)
-		{
-			return emptyTuple();
-		}
-		return generateObjectTupleFrom(elements.length, i -> elements[i - 1]);
-	}
-
-	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * passed in a list.  The elements are not made immutable first, nor is the
-	 * new tuple necessarily made immutable.
-	 *
-	 * @param list
-	 *        The list of {@linkplain AvailObject Avail objects} from which
-	 *        to construct a tuple.
-	 * @return The corresponding tuple of objects.
-	 */
-	public static <E extends A_BasicObject> A_Tuple tupleFromList (
-		final List<E> list)
-	{
-		final int size = list.size();
-		if (size == 0)
-		{
-			return emptyTuple();
-		}
-		return generateObjectTupleFrom(size, i -> list.get(i - 1));
-	}
-
-	/**
 	 * Construct a Java {@link List} from the specified {@linkplain
 	 * TupleDescriptor tuple}. The elements are not made immutable.
 	 *

@@ -37,6 +37,7 @@ import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Disassembler;
@@ -55,7 +56,13 @@ import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.CheckMethodAdapter;
 
 import javax.annotation.Nonnull;
@@ -78,7 +85,8 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
+import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor
+	.invalidIndex;
 import static com.avail.performance.StatisticReport.JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
@@ -442,7 +450,7 @@ public final class JVMTranslator
 		final L2ObjectRegister register)
 	{
 		final int local = stripNull(locals.get(register));
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+//		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		method.visitVarInsn(ASTORE, local);
 	}
 

@@ -47,11 +47,14 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE;
+import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots
+	.EXPRESSIONS_TUPLE;
 import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**

@@ -32,7 +32,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
@@ -54,10 +60,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;

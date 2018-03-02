@@ -46,11 +46,11 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**

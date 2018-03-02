@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -50,6 +51,7 @@ import java.util.Set;
 
 import static com.avail.AvailRuntime.unassignedVariableReadFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
 
@@ -129,6 +131,7 @@ extends L2Operation
 			"unassignedVariableReadFunction",
 			getMethodDescriptor(getType(A_Function.class)),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, destination);
 	}
 }

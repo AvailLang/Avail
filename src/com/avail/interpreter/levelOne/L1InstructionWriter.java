@@ -48,9 +48,10 @@ import java.util.Map;
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

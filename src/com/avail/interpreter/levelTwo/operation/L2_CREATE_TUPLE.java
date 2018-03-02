@@ -35,6 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -47,19 +48,24 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static jdk.internal.org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
@@ -175,6 +181,27 @@ extends L2Operation
 		builder.append(elements);
 	}
 
+	/**
+	 * Generated code uses:
+	 * <ul>
+	 *     <li>{@link ObjectTupleDescriptor#tupleFromArray(
+	 *         A_BasicObject...)}</li>
+	 *     <li>{@link TupleDescriptor#emptyTuple()}</li>
+	 *     <li>{@link ObjectTupleDescriptor#tuple(A_BasicObject)}</li>
+	 *     <li>{@link ObjectTupleDescriptor#tuple(
+	 *         A_BasicObject, A_BasicObject)}</li>
+	 *     <li>{@link ObjectTupleDescriptor#tuple(
+	 *         A_BasicObject, A_BasicObject, A_BasicObject)}</li>
+	 *     <li>{@link ObjectTupleDescriptor#tuple(
+	 *         A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}</li>
+	 *     <li>{@link ObjectTupleDescriptor#tuple(
+	 *         A_BasicObject,
+	 *         A_BasicObject,
+	 *         A_BasicObject,
+	 *         A_BasicObject,
+	 *         A_BasicObject)}</li>
+	 * </ul>
+	 */
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -186,16 +213,47 @@ extends L2Operation
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(1).register();
 
-		// :: destination = TupleDescriptor.tuple(elements);
+		final int size = elements.size();
+		if (size <= 5)
+		{
+			// Special cases for small tuples
+			if (size == 0)
+			{
+				// :: destination = theEmptyTupleLiteral;
+				translator.literal(method, emptyTuple());
+				translator.store(method, destinationReg);
+				return;
+			}
+			// :: destination = TupleDescriptor.tuple(element1...elementN);
+			for (int i = 0; i < size; i++)
+			{
+				translator.load(method, elements.get(i).register());
+			}
+			final Type[] callSignature = new Type[size];
+			Arrays.fill(callSignature, getType(A_BasicObject.class));
+			method.visitMethodInsn(
+				INVOKESTATIC,
+				getInternalName(ObjectTupleDescriptor.class),
+				"tuple",
+				getMethodDescriptor(
+					getType(A_Tuple.class),
+					callSignature),
+				false);
+			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+			translator.store(method, destinationReg);
+			return;
+		}
+		// :: destination = TupleDescriptor.tupleFromArray(elements);
 		translator.objectArray(method, elements, A_BasicObject.class);
 		method.visitMethodInsn(
 			INVOKESTATIC,
-			getInternalName(TupleDescriptor.class),
-			"tuple",
+			getInternalName(ObjectTupleDescriptor.class),
+			"tupleFromArray",
 			getMethodDescriptor(
 				getType(A_Tuple.class),
 				getType(A_BasicObject[].class)),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, destinationReg);
 	}
 }

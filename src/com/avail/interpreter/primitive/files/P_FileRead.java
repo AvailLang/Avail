@@ -49,7 +49,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -59,9 +60,12 @@ import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -365,7 +369,7 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
+			tupleFromArray(
 				naturalNumbers(),
 				inclusive(one(), positiveInfinity()),
 				ATOM.o(),

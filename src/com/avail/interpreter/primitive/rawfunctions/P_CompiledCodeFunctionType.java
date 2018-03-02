@@ -42,7 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**

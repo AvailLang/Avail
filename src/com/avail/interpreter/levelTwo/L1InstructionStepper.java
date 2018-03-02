@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
@@ -67,10 +68,8 @@ import static com.avail.descriptor.ContinuationDescriptor
 	.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor
 	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -92,7 +91,7 @@ public final class L1InstructionStepper
 	/**
 	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
-	private final Interpreter interpreter;
+	@InnerAccess final Interpreter interpreter;
 
 	/** The current one-based index into the nybblecodes. */
 	public final MutableInt pc = new MutableInt(-999);
@@ -860,7 +859,8 @@ public final class L1InstructionStepper
 				interpreter.runtime().implicitObserveFunction();
 			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
-			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
+			interpreter.argsBuffer.add((AvailObject)
+				tuple(variable, value));
 			final @Nullable StackReifier reifier =
 				interpreter.invokeFunction(implicitObserveFunction);
 			pointers = savedPointers;

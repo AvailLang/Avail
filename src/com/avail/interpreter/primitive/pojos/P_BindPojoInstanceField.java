@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.PojoFieldDescriptor;
+import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -39,16 +45,19 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.PojoFieldDescriptor.pojoFieldVariableForInnerType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PojoFieldDescriptor
+	.pojoFieldVariableForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
 import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;

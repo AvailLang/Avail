@@ -44,14 +44,20 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots.FLAGS;
-import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots.LAST_USE;
-import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION;
-import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots
+	.FLAGS;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.IntegerSlots
+	.LAST_USE;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots
+	.DECLARATION;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.ObjectSlots
+	.USE_TOKEN;
 
 /**
  * My instances represent the use of some {@linkplain DeclarationPhraseDescriptor

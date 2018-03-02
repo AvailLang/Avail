@@ -244,6 +244,7 @@ extends L2Operation
 				getType(A_RawFunction.class),
 				INT_TYPE),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		for (int i = 0; i < numOuters; i++)
 		{
 			// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);

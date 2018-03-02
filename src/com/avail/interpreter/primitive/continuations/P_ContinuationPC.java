@@ -45,7 +45,7 @@ import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinu
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**

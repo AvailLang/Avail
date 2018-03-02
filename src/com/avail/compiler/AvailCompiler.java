@@ -124,6 +124,8 @@ import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
@@ -132,7 +134,8 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -188,6 +191,7 @@ public final class AvailCompiler
 	 * name, the module size in bytes, and the current parse position within the
 	 * module.</p>
 	 */
+	@FunctionalInterface
 	public interface CompilerProgressReporter
 	extends Continuation3<ModuleName, Long, Long>
 	{
@@ -3783,7 +3787,8 @@ public final class AvailCompiler
 		final A_Phrase send = newSendNode(
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
-			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
+			newListNode(
+				tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state, state, send, new HashMap<>(), success, failure);

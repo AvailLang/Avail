@@ -43,8 +43,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
@@ -75,7 +76,8 @@ extends Primitive
 		final AvailObject array = interpreter.argument(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
 		array.lock(() ->
-			tuple.value = tuple(array.<AvailObject[]>javaObjectNotNull()));
+			tuple.value = tupleFromArray(
+				array.<AvailObject[]>javaObjectNotNull()));
 		return interpreter.primitiveSuccess(tuple.value());
 	}
 

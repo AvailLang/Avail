@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -111,6 +112,7 @@ extends L2Operation
 			getInternalName(Interpreter.class),
 			"reifiedContinuation",
 			getDescriptor(A_Continuation.class));
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		method.visitInsn(DUP);
 		// :: interpreter.reifiedContinuation = continuation.caller();
 		method.visitMethodInsn(

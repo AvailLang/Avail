@@ -41,17 +41,19 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER_METHOD;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
+	.MODULE_HEADER_METHOD;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -96,7 +98,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 					emptyTuple(),
 					MODULE_HEADER_METHOD.bundle,
 					newListNode(
-						tuple(
+						tupleFromArray(
 							moduleNameLiteral,
 							optionalVersions,
 							allImports,
@@ -129,7 +131,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 				literalTokenType(
 					stringType()));
 		return functionType(
-			tuple(
+			tupleFromArray(
 				/* Module name */
 				stringTokenType,
 				/* Optional versions */

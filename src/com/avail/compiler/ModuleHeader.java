@@ -51,16 +51,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor
+	.createAtomWithProperties;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

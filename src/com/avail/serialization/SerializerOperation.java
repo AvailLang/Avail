@@ -96,12 +96,15 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PermutedListPhraseDescriptor
 	.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.SelfPojoTypeDescriptor
 	.pojoFromSerializationProxy;
 import static com.avail.descriptor.SelfPojoTypeDescriptor
@@ -112,7 +115,7 @@ import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
@@ -1597,7 +1600,8 @@ public enum SerializerOperation
 				final A_Module module = atom.issuingModule();
 				if (!module.equalsNil())
 				{
-					pairs.add(tuple(module.moduleName(), atom.atomName()));
+					pairs.add(
+						tuple(module.moduleName(), atom.atomName()));
 				}
 				else
 				{

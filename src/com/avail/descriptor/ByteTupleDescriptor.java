@@ -47,6 +47,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
@@ -126,8 +127,7 @@ extends NumericTupleDescriptor
 				!= intValue)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
+			return object.concatenateWith(tuple(newElement), canDestroy);
 		}
 		final int newSize = originalSize + 1;
 		if (isMutable() && canDestroy && (originalSize & 7) != 0)
@@ -500,15 +500,9 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (bytes().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+		return bytes().isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -582,10 +576,9 @@ extends NumericTupleDescriptor
 		int i = 0;
 		for (final int excess : new int[] {0,7,6,5,4,3,2,1})
 		{
-			for (final Mutability mut : Mutability.values())
-			{
-				descriptors[i++] = new ByteTupleDescriptor(mut, excess);
-			}
+			descriptors[i++] = new ByteTupleDescriptor(MUTABLE, excess);
+			descriptors[i++] = new ByteTupleDescriptor(IMMUTABLE, excess);
+			descriptors[i++] = new ByteTupleDescriptor(SHARED, excess);
 		}
 	}
 

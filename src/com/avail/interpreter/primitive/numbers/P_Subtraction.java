@@ -46,10 +46,13 @@ import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operation.L2_NEGATE_INT_NO_CHECK;
-import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_CONSTANT_MINUS_INT;
+import com.avail.interpreter.levelTwo.operation
+	.L2_SUBTRACT_INT_CONSTANT_MINUS_INT;
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT;
-import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS;
+import com.avail.interpreter.levelTwo.operation
+	.L2_SUBTRACT_INT_MINUS_INT_CONSTANT;
+import com.avail.interpreter.levelTwo.operation
+	.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
@@ -57,19 +60,22 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.binaryNumericOperationTypeBound;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_SUBTRACT_LIKE_INFINITIES;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;

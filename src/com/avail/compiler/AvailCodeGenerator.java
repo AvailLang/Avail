@@ -65,6 +65,7 @@ import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 	.ASSIGNMENT_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;

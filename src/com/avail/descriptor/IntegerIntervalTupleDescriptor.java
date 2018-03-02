@@ -46,6 +46,8 @@ import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.H
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
 import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.isSmallIntervalCandidate;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;

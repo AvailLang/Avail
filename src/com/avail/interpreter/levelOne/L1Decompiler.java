@@ -46,26 +46,35 @@ import java.util.Map;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
+	.newFirstOfSequenceNode;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PermutedListPhraseDescriptor
+	.newPermutedListNode;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
@@ -247,7 +256,7 @@ public class L1Decompiler
 			assert b : "Local constant was not mentioned";
 		}
 		block = newBlockNode(
-			tuple(args),
+			tupleFromArray(args),
 			code.primitiveNumber(),
 			tupleFromList(statements),
 			code.functionType().returnType(),
@@ -955,7 +964,7 @@ public class L1Decompiler
 					element, superUnionType.typeAtIndex(i));
 			}
 			return newPermutedListNode(
-				newListNode(tuple(outputArray)), permutation);
+				newListNode(tupleFromArray(outputArray)), permutation);
 		}
 		else if (phrase.phraseKindIsUnder(LIST_PHRASE))
 		{
@@ -968,7 +977,7 @@ public class L1Decompiler
 				outputArray[i - 1] = adjustSuperCastsIn(
 					element, superUnionType.typeAtIndex(i));
 			}
-			return newListNode(tuple(outputArray));
+			return newListNode(tupleFromArray(outputArray));
 		}
 		else
 		{

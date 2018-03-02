@@ -34,18 +34,19 @@ package com.avail.compiler;
 
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.serialization.MalformedSerialStreamException;
 
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * Information that a {@link ModuleHeader} uses to keep track of a module
  * import, whether from an Extends clause or a Uses clause, as specified by the
- * {@link MethodDescriptor.SpecialMethodAtom#MODULE_HEADER_METHOD}.
+ * {@link SpecialMethodAtom#MODULE_HEADER_METHOD}.
  */
 public class ModuleImport
 {
@@ -64,7 +65,7 @@ public class ModuleImport
 	/**
 	 * Whether this {@link ModuleImport} is due to an Extends clause rather than
 	 * a Uses clause, as indicated by {@link
-	 * MethodDescriptor.SpecialMethodAtom#MODULE_HEADER_METHOD}.
+	 * SpecialMethodAtom#MODULE_HEADER_METHOD}.
 	 */
 	public final boolean isExtension;
 
@@ -154,7 +155,7 @@ public class ModuleImport
 	}
 
 	/**
-	 * Produce a {@link ModuleImport} that represents an extension of the
+	 * Produce a {@code ModuleImport} that represents an extension of the
 	 * provided {@link A_Module}.
 	 *
 	 * @param module
@@ -271,14 +272,19 @@ public class ModuleImport
 	 */
 	A_Tuple tupleForSerialization ()
 	{
-		return tuple(moduleName, acceptableVersions,
-			objectFromBoolean(isExtension), names, renames,
-			excludes, objectFromBoolean(wildcard));
+		return tupleFromArray(
+			moduleName,
+			acceptableVersions,
+			objectFromBoolean(isExtension),
+			names,
+			renames,
+			excludes,
+			objectFromBoolean(wildcard));
 	}
 
 	/**
 	 * Convert the provided {@linkplain TupleDescriptor tuple} into a
-	 * {@link ModuleImport}.  This is the reverse of the transformation
+	 * {@code ModuleImport}.  This is the reverse of the transformation
 	 * provided by {@link #tupleForSerialization()}.
 	 *
 	 * @param serializedTuple The tuple from which to build a ModuleImport.

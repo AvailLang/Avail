@@ -31,7 +31,6 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.CompilationContext;
@@ -57,16 +56,16 @@ import java.util.*;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 public class CompilerDiagnostics
 {
 	/**
-	 * Create a {@link CompilerDiagnostics} suitable for tracking the potential
+	 * Create a {@code CompilerDiagnostics} suitable for tracking the potential
 	 * problems encountered during compilation of a single module.
 	 *
 	 * @param source

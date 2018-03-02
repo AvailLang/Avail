@@ -54,9 +54,9 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
@@ -159,7 +159,7 @@ public final class MessageSplitterTest
 			: positiveInfinity();
 		return tupleTypeForSizesTypesDefaultType(
 			integerRangeType(lower, true, upperPlusOne, false),
-			tuple(values),
+			tupleFromArray(values),
 			values.length > 0
 				? values[values.length - 1]
 				: bottom());
@@ -192,7 +192,7 @@ public final class MessageSplitterTest
 		final A_Type subexpressionsTupleType =
 			tupleTypeForSizesTypesDefaultType(
 				integerRangeType(lower, true, upperPlusOne, false),
-				tuple(expressionPhraseTypes),
+				tupleFromArray(expressionPhraseTypes),
 				expressionPhraseTypes.length > 0
 					? expressionPhraseTypes[expressionPhraseTypes.length - 1]
 					: bottom());

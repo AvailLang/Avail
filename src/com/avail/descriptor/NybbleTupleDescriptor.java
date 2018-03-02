@@ -47,9 +47,13 @@ import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
+	.RAW_LONG_AT_;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;

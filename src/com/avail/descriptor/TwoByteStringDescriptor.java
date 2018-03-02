@@ -43,6 +43,7 @@ import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;

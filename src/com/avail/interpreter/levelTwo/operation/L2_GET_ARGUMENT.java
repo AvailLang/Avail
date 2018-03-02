@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -45,8 +46,7 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -123,6 +123,7 @@ extends L2Operation
 			"get",
 			getMethodDescriptor(getType(Object.class), INT_TYPE),
 			true);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, argumentReg);
 	}
 }

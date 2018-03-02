@@ -46,6 +46,7 @@ import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
@@ -579,12 +580,9 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (int32().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object, startIndex, endIndex, type);
+		return int32().isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod

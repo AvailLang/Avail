@@ -41,11 +41,20 @@ import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.OBJECT_TYPE_NAME_PROPERTY_KEY;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -53,14 +62,15 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots
+	.FIELD_TYPES_;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type

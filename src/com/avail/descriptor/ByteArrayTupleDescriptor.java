@@ -46,6 +46,7 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -136,8 +137,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = tuple(newElement);
-		return object.concatenateWith(singleton, canDestroy);
+		return object.concatenateWith(tuple(newElement), canDestroy);
 	}
 
 	@Override @AvailMethod

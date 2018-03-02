@@ -44,10 +44,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
+	.ObjectSlots.STATEMENTS;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.FIRST_OF_SEQUENCE_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * My instances represent a sequence of {@linkplain PhraseDescriptor phrases} to

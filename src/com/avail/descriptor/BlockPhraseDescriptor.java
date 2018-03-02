@@ -54,16 +54,19 @@ import java.util.Set;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;
-import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
+import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots
+	.STARTING_LINE_NUMBER;
 import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.DeclarationKind.MODULE_CONSTANT;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.DeclarationKind.MODULE_VARIABLE;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.

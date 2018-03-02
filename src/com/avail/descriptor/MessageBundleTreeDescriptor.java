@@ -49,7 +49,15 @@ import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
@@ -58,10 +66,13 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 
 /**

@@ -37,7 +37,15 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -66,13 +74,14 @@ import static com.avail.descriptor.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.utility.Nulls.stripNull;
-import static java.lang.Integer.MAX_VALUE;
-import static java.lang.Integer.MIN_VALUE;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -340,8 +349,8 @@ public final class SerializerTest
 		}
 		checkObject(
 			tuple(
-				fromLong(MIN_VALUE),
-				fromLong(MAX_VALUE)));
+				fromLong(Integer.MIN_VALUE),
+				fromLong(Integer.MAX_VALUE)));
 		checkObject(
 			tuple(
 				fromLong(Long.MIN_VALUE),

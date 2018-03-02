@@ -38,10 +38,15 @@ import com.avail.annotations.HideFieldInDebugger;
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AvailObject
+	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
+	.CUMULATIVE_SIZES_AREA_;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
 import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -576,7 +581,7 @@ extends TupleDescriptor
 		AvailObject result = object;
 		if (!(canDestroy && isMutable()))
 		{
-			result = AvailObjectRepresentation.newLike(mutable(), object, 0, 0);
+			result = newLike(mutable(), object, 0, 0);
 		}
 		final int subtupleSubscript = childSubscriptForIndex(object, index);
 		final A_Tuple oldSubtuple =
@@ -768,12 +773,17 @@ extends TupleDescriptor
 
 	/**
 	 * Concatenate the two tuples together.  At least one of them must be a
-	 * {@linkplain TreeTupleDescriptor tree tuple}.
+	 * tree tuple.
 	 *
 	 * @param tuple1
+	 *        The first tuple.
 	 * @param tuple2
+	 *        The second tuple.
 	 * @param canDestroy
-	 * @return
+	 *        Whether one of the tuples is allowed to be destroyed if it's also
+	 *        mutable.
+	 * @return The concatenated tuple, perhaps having destroyed or recycled one
+	 *         of the input tuples if permitted.
 	 */
 	static A_Tuple concatenateAtLeastOneTree (
 		final AvailObject tuple1,
@@ -1043,7 +1053,7 @@ extends TupleDescriptor
 	private final int level;
 
 	/**
-	 * Answer the appropriate {@link TreeTupleDescriptor} to use for the
+	 * Answer the appropriate {@code TreeTupleDescriptor} to use for the
 	 * given mutability and level.
 	 *
 	 * @param flag Whether the descriptor is to be used for a mutable object.
@@ -1059,7 +1069,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TreeTupleDescriptor}.
+	 * Construct a new {@code TreeTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -1085,11 +1095,9 @@ extends TupleDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			for (final Mutability mut : Mutability.values())
-			{
-				descriptors[target++] =
-					new TreeTupleDescriptor(mut, level);
-			}
+			descriptors[target++] = new TreeTupleDescriptor(MUTABLE, level);
+			descriptors[target++] = new TreeTupleDescriptor(IMMUTABLE, level);
+			descriptors[target++] = new TreeTupleDescriptor(SHARED, level);
 		}
 	}
 

@@ -37,9 +37,12 @@ import com.avail.annotations.HideFieldInDebugger;
 
 import java.nio.ByteBuffer;
 
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots.BASIS_TUPLE;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots
+	.BASIS_TUPLE;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**

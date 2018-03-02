@@ -55,13 +55,19 @@ import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.newMacroSubstitution;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PermutedListPhraseDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.utility.PrefixSharingList.*;
 import static com.avail.utility.StackPrinter.trace;
@@ -1591,7 +1597,8 @@ public enum ParsingOperation
 				argsSoFar.subList(0, totalSize - listSize);
 			final List<A_Phrase> popped =
 				argsSoFar.subList(totalSize - listSize, totalSize);
-			final A_Phrase newListNode = newListNode(tupleFromList(popped));
+			final A_Phrase newListNode = newListNode(
+				tupleFromList(popped));
 			final List<A_Phrase> newArgsSoFar =
 				append(unpopped, newListNode);
 			compiler.eventuallyParseRestOfSendNode(
@@ -1870,8 +1877,7 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Decode the specified instruction into an {@linkplain ParsingOperation
-	 * operation}.
+	 * Decode the specified instruction into a {@code ParsingOperation}.
 	 *
 	 * @param instruction A coded instruction.
 	 * @return The decoded operation.
@@ -1907,8 +1913,7 @@ public enum ParsingOperation
 	 * @param compiler
 	 *        The {@link AvailCompiler} which is parsing.
 	 * @param instruction
-	 *        An int encoding the {@linkplain ParsingOperation parsing
-	 *        instruction} to execute.
+	 *        An int encoding the {@code ParsingOperation} to execute.
 	 * @param successorTrees
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        MessageBundleTreeDescriptor bundle trees} at which to continue

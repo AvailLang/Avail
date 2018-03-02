@@ -94,13 +94,13 @@ import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.MethodDefinitionDescriptor
 	.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -417,11 +417,11 @@ public final class AvailLoader
 			final List<A_Character> argsList = Collections.singletonList(
 				fromCodePoint(codePoint));
 			final Object joinLock = new Object();
-			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			final CompilationContext compilationContext =
 				lexingState.compilationContext;
 			final AvailLoader loader = compilationContext.loader();
 			compilationContext.startWorkUnits(allVisibleLexers.size());
+			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = newLoaderFiber(

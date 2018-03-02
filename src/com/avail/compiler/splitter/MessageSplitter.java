@@ -52,10 +52,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.*;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
 
 /**

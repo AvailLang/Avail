@@ -191,6 +191,7 @@ extends L2Operation
 				getType(L2Chunk.class),
 				INT_TYPE),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		for (int i = 0, limit = slots.size(); i < limit; i++)
 		{
 			// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);

@@ -43,7 +43,15 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
@@ -57,10 +65,12 @@ import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
@@ -69,10 +79,7 @@ import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setMeta;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -242,7 +249,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMeta(NONTYPE.o());
+				return instanceMeta(Types.NONTYPE.o());
 			}
 		};
 
@@ -809,7 +816,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return variableReadWriteType(bottom(), TOP.o());
+				return variableReadWriteType(bottom(), Types.TOP.o());
 			}
 		};
 
@@ -2140,7 +2147,7 @@ public class TypeConsistencyTest
 			A_Type transform (final A_Type type)
 			{
 				return
-					functionType(tuple(type), TOP.o());
+					functionType(tuple(type), Types.TOP.o());
 			}
 		});
 	}

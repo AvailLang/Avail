@@ -47,12 +47,13 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.DeclarationKind.*;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**

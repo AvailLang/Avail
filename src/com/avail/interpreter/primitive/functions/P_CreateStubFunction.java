@@ -41,7 +41,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionDescriptor.createStubWithArgTypes;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
