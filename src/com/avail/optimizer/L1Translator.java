@@ -34,6 +34,7 @@ package com.avail.optimizer;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
@@ -159,10 +160,11 @@ implements L1OperationDispatcher
 	private final L2SemanticValue[] semanticSlots;
 
 	/**
-	 * The current level one nybblecode program counter during naive translation
-	 * to level two.
+	 * The current level one nybblecode position during naive translation to
+	 * level two.
 	 */
-	@InnerAccess final MutableInt pc = new MutableInt(1);
+	@InnerAccess final L1InstructionDecoder instructionDecoder =
+		new L1InstructionDecoder();
 
 	/**
 	 * The current stack depth during naive translation to level two.
@@ -266,7 +268,6 @@ implements L1OperationDispatcher
 		this.code = translator.code;
 		this.topFrame = new Frame(null, this.code, "top frame");
 		this.numSlots = code.numSlots();
-		assert pc.value == 1;
 		this.stackp = numSlots + 1;
 		this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
 		this.semanticSlots = new L2SemanticValue[numSlots];
@@ -274,6 +275,8 @@ implements L1OperationDispatcher
 		{
 			semanticSlots[i - 1] = topFrame.slot(i, 1);
 		}
+		code.setUpInstructionDecoder(instructionDecoder);
+		instructionDecoder.pc(1);
 	}
 
 	/**
@@ -431,7 +434,7 @@ implements L1OperationDispatcher
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
-		forceSlotRegister(slotIndex, pc.value, register);
+		forceSlotRegister(slotIndex, instructionDecoder.pc(), register);
 	}
 
 	/**
@@ -1275,7 +1278,7 @@ implements L1OperationDispatcher
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
 			constantRegister(nil),
-			new L2IntImmediateOperand(pc.value),
+			new L2IntImmediateOperand(instructionDecoder.pc()),
 			new L2IntImmediateOperand(stackp),
 			new L2ReadVectorOperand<>(readSlotsBefore),
 			newContinuationRegister,
@@ -1547,14 +1550,15 @@ implements L1OperationDispatcher
 			else if (answerType.isSubtypeOf(expectedType))
 			{
 				// Capture it as the checked value L2SemanticSlot.
-				forceSlotRegister(stackp, pc.value, answerReg);
+				forceSlotRegister(stackp, instructionDecoder.pc(), answerReg);
 				addInstruction(L2_JUMP.instance, edgeTo(afterCallNoCheck));
 			}
 			else
 			{
 				// Capture it as the unchecked return value SemanticSlot by
 				// using pc - 1.
-				forceSlotRegister(stackp, pc.value - 1, answerReg);
+				forceSlotRegister(
+					stackp, instructionDecoder.pc() - 1, answerReg);
 				addInstruction(L2_JUMP.instance, edgeTo(afterCallWithCheck));
 			}
 		}
@@ -1848,7 +1852,7 @@ implements L1OperationDispatcher
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
 				stackp,
-				pc.value - 1,
+				instructionDecoder.pc() - 1,
 				getLatestReturnValue(unionOfPossibleResults));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
@@ -1862,7 +1866,7 @@ implements L1OperationDispatcher
 			// Capture the value being returned into the on-ramp.
 			forceSlotRegister(
 				stackp,
-				pc.value,
+				instructionDecoder.pc(),
 				getLatestReturnValue(unionOfPossibleResults));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
@@ -1890,7 +1894,7 @@ implements L1OperationDispatcher
 			// L2SemanticSlot for the stackp and pc just after the call.
 			assert
 				currentManifest.semanticValueToRegister(
-						topFrame.slot(stackp, pc.value))
+						topFrame.slot(stackp, instructionDecoder.pc()))
 					!= null;
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
@@ -2469,7 +2473,11 @@ implements L1OperationDispatcher
 		{
 			addInstruction(
 				L2_GET_LATEST_RETURN_VALUE.instance,
-				writeSlot(stackp, pc.value, guaranteedResultType, null));
+				writeSlot(
+					stackp,
+					instructionDecoder.pc(),
+					guaranteedResultType,
+					null));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
 		}
@@ -2477,7 +2485,11 @@ implements L1OperationDispatcher
 		{
 			addInstruction(
 				L2_GET_LATEST_RETURN_VALUE.instance,
-				writeSlot(stackp, pc.value - 1, guaranteedResultType, null));
+				writeSlot(
+					stackp,
+					instructionDecoder.pc() - 1,
+					guaranteedResultType,
+					null));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
 		}
@@ -2505,7 +2517,7 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand uncheckedValueReg =
 			stripNull(
 				currentManifest.semanticValueToRegister(
-					topFrame.slot(stackp, pc.value - 1)));
+					topFrame.slot(stackp, instructionDecoder.pc() - 1)));
 		if (uncheckedValueReg.type().isBottom())
 		{
 			// Bottom has no instances, so we can't get here.  It would be wrong
@@ -3326,7 +3338,7 @@ implements L1OperationDispatcher
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final L2WritePointerOperand argReg = writeSlot(
-					i, pc.value, tupleType.typeAtIndex(i), null);
+					i, instructionDecoder.pc(), tupleType.typeAtIndex(i), null);
 				addInstruction(
 					L2_GET_ARGUMENT.instance,
 					new L2IntImmediateOperand(i),
@@ -3342,7 +3354,11 @@ implements L1OperationDispatcher
 			addInstruction(
 				L2_CREATE_VARIABLE.instance,
 				new L2ConstantOperand(localType),
-				writeSlot(numArgs + local, pc.value, localType, null));
+				writeSlot(
+					numArgs + local,
+					instructionDecoder.pc(),
+					localType,
+					null));
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
@@ -3379,11 +3395,10 @@ implements L1OperationDispatcher
 			captureNanos() - timeAtStartOfTranslation, interpreterIndex);
 
 		// Transliterate each level one nybblecode into L2Instructions.
-		final int numNybbles = code.numNybbles();
-		while (pc.value <= numNybbles)
+		while (!instructionDecoder.atEnd())
 		{
 			final long before = captureNanos();
-			final L1Operation operation = code.nextNybblecodeOperation(pc);
+			final L1Operation operation = instructionDecoder.getOperation();
 			operation.dispatch(this);
 			levelOneGenerationStats[operation.ordinal()].record(
 				captureNanos() - before, interpreterIndex);
@@ -3509,9 +3524,9 @@ implements L1OperationDispatcher
 	public void L1_doCall ()
 	{
 		final A_Bundle bundle =
-			code.literalAt(code.nextNybblecodeOperand(pc));
+			code.literalAt(instructionDecoder.getOperand());
 		final A_Type expectedType =
-			code.literalAt(code.nextNybblecodeOperand(pc));
+			code.literalAt(instructionDecoder.getOperand());
 		generateCall(bundle, expectedType, bottom());
 	}
 
@@ -3519,7 +3534,7 @@ implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		final AvailObject constant = code.literalAt(
-			code.nextNybblecodeOperand(pc));
+			instructionDecoder.getOperand());
 		stackp--;
 		moveConstantToSlot(constant, stackp);
 	}
@@ -3527,7 +3542,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastLocal ()
 	{
-		final int localIndex = code.nextNybblecodeOperand(pc);
+		final int localIndex = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadPointerOperand sourceRegister = readSlot(localIndex);
 		forceSlotRegister(stackp, sourceRegister);
@@ -3537,7 +3552,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLocal ()
 	{
-		final int localIndex = code.nextNybblecodeOperand(pc);
+		final int localIndex = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadPointerOperand sourceRegister =
 			makeImmutable(readSlot(localIndex));
@@ -3548,7 +3563,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		final int outerIndex = code.nextNybblecodeOperand(pc);
+		final int outerIndex = instructionDecoder.getOperand();
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		stackp--;
 		// For now, simplify the logic related to L1's nilling of mutable outers
@@ -3561,9 +3576,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doClose ()
 	{
-		final int count = code.nextNybblecodeOperand(pc);
+		final int count = instructionDecoder.getOperand();
 		final A_RawFunction codeLiteral = code.literalAt(
-			code.nextNybblecodeOperand(pc));
+			instructionDecoder.getOperand());
 		final List<L2ReadPointerOperand> outers = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
 		{
@@ -3575,7 +3590,11 @@ implements L1OperationDispatcher
 			L2_CREATE_FUNCTION.instance,
 			new L2ConstantOperand(codeLiteral),
 			new L2ReadVectorOperand<>(outers),
-			writeSlot(stackp, pc.value, codeLiteral.functionType(), null));
+			writeSlot(
+				stackp,
+				instructionDecoder.pc(),
+				codeLiteral.functionType(),
+				null));
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which
@@ -3589,7 +3608,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doSetLocal ()
 	{
-		final int localIndex = code.nextNybblecodeOperand(pc);
+		final int localIndex = instructionDecoder.getOperand();
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			readSlot(localIndex),
@@ -3604,19 +3623,19 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetLocalClearing ()
 	{
-		final int index = code.nextNybblecodeOperand(pc);
+		final int index = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadPointerOperand valueReg = emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			readSlot(index),
 			false);
-		forceSlotRegister(stackp, pc.value, valueReg);
+		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
 	}
 
 	@Override
 	public void L1_doPushOuter ()
 	{
-		final int outerIndex = code.nextNybblecodeOperand(pc);
+		final int outerIndex = instructionDecoder.getOperand();
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		stackp--;
 		forceSlotRegister(
@@ -3634,20 +3653,20 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		final int outerIndex = code.nextNybblecodeOperand(pc);
+		final int outerIndex = instructionDecoder.getOperand();
 		stackp--;
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		final L2ReadPointerOperand valueReg = emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			getOuterRegister(outerIndex, outerType),
 			false);
-		forceSlotRegister(stackp, pc.value, valueReg);
+		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
 	}
 
 	@Override
 	public void L1_doSetOuter ()
 	{
-		final int outerIndex = code.nextNybblecodeOperand(pc);
+		final int outerIndex = instructionDecoder.getOperand();
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		final L2ReadPointerOperand tempVarReg =
 			getOuterRegister(outerIndex, outerType);
@@ -3665,20 +3684,20 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetLocal ()
 	{
-		final int index = code.nextNybblecodeOperand(pc);
+		final int index = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadPointerOperand valueReg = emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
 			readSlot(index),
 			true);
-		forceSlotRegister(stackp, pc.value, valueReg);
+		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
 
 	}
 
 	@Override
 	public void L1_doMakeTuple ()
 	{
-		final int count = code.nextNybblecodeOperand(pc);
+		final int count = instructionDecoder.getOperand();
 		final List<L2ReadPointerOperand> vector = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
 		{
@@ -3714,21 +3733,21 @@ implements L1OperationDispatcher
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
 				new L2ReadVectorOperand<>(vector),
-				writeSlot(stackp, pc.value, tupleType, null));
+				writeSlot(stackp, instructionDecoder.pc(), tupleType, null));
 		}
 	}
 
 	@Override
 	public void L1_doGetOuter ()
 	{
-		final int outerIndex = code.nextNybblecodeOperand(pc);
+		final int outerIndex = instructionDecoder.getOperand();
 		stackp--;
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		final L2ReadPointerOperand valueReg = emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
 			getOuterRegister(outerIndex, outerType),
 			false);
-		forceSlotRegister(stackp, pc.value, valueReg);
+		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
 	}
 
 	@Override
@@ -3782,7 +3801,7 @@ implements L1OperationDispatcher
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
 		final L2WritePointerOperand destinationRegister =
-			writeSlot(stackp, pc.value, continuationType, null);
+			writeSlot(stackp, instructionDecoder.pc(), continuationType, null);
 		final L2BasicBlock afterCreation =
 			createBasicBlock("after creating label");
 		addInstruction(
@@ -3810,7 +3829,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doGetLiteral ()
 	{
 		final A_Variable literalVariable = code.literalAt(
-			code.nextNybblecodeOperand(pc));
+			instructionDecoder.getOperand());
 		stackp--;
 		if (literalVariable.isInitializedWriteOnceVariable()
 			&& literalVariable.valueWasStablyComputed())
@@ -3831,7 +3850,7 @@ implements L1OperationDispatcher
 				L2_GET_VARIABLE.instance,
 				constantRegister(literalVariable),
 				false);
-			forceSlotRegister(stackp, pc.value, valueReg);
+			forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
 		}
 	}
 
@@ -3839,7 +3858,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doSetLiteral ()
 	{
 		final A_Variable literalVariable = code.literalAt(
-			code.nextNybblecodeOperand(pc));
+			instructionDecoder.getOperand());
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			constantRegister(literalVariable),
@@ -3866,7 +3885,7 @@ implements L1OperationDispatcher
 		// responsibility for optimizing away extra moves (by coloring the
 		// registers) on the optimizer.
 		final A_Tuple permutation = code.literalAt(
-			code.nextNybblecodeOperand(pc));
+			instructionDecoder.getOperand());
 		final int size = permutation.tupleSize();
 		final L2WritePointerOperand[] temps = new L2WritePointerOperand[size];
 		for (int i = size; i >= 1; i--)
@@ -3884,7 +3903,7 @@ implements L1OperationDispatcher
 				temp,
 				writeSlot(
 					stackp + size - i,
-					pc.value,
+					instructionDecoder.pc(),
 					temp.type(),
 					temp.constantOrNull()));
 		}
@@ -3894,24 +3913,24 @@ implements L1OperationDispatcher
 	public void L1Ext_doSuperCall ()
 	{
 		final A_Bundle bundle =
-			code.literalAt(code.nextNybblecodeOperand(pc));
+			code.literalAt(instructionDecoder.getOperand());
 		final AvailObject expectedType =
-			code.literalAt(code.nextNybblecodeOperand(pc));
+			code.literalAt(instructionDecoder.getOperand());
 		final AvailObject superUnionType =
-			code.literalAt(code.nextNybblecodeOperand(pc));
+			code.literalAt(instructionDecoder.getOperand());
 		generateCall(bundle, expectedType, superUnionType);
 	}
 
 	@Override
 	public void L1Ext_doSetSlot ()
 	{
-		final int destinationIndex = code.nextNybblecodeOperand(pc);
+		final int destinationIndex = instructionDecoder.getOperand();
 		final L2ReadPointerOperand source = readSlot(stackp);
 		moveRegister(
 			source,
 			writeSlot(
 				destinationIndex,
-				pc.value,
+				instructionDecoder.pc(),
 				source.type(),
 				source.constantOrNull()));
 		nilSlot(stackp);

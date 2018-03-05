@@ -38,6 +38,7 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
@@ -52,11 +53,15 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -64,7 +69,6 @@ import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -373,6 +377,24 @@ implements
 		final A_Number another)
 	{
 		return numericCompare(another).isLessOrEqual();
+	}
+
+	/**
+	 * 	Helper method for transferring this object's longSlots into an
+	 * 	{@link L1InstructionDecoder}.  The receiver's descriptor must be a
+	 * 	{@link CompiledCodeDescriptor}.
+	 *
+	 * @param instructionDecoder The {@link L1InstructionDecoder} to populate.
+	 */
+	@Override
+	public void setUpInstructionDecoder (
+		final L1InstructionDecoder instructionDecoder)
+	{
+		super.setUpInstructionDecoder(instructionDecoder);
+		final int finalPc = numNybbles() + 1;
+		instructionDecoder.finalLongIndex =
+			L1InstructionDecoder.baseIndexInArray + (finalPc >> 4);
+		instructionDecoder.finalShift = (finalPc & 0xF) << 2;
 	}
 
 	/**
@@ -5972,19 +5994,6 @@ implements
 	public Statistic returneeCheckStat ()
 	{
 		return descriptor.o_ReturneeCheckStat(this);
-	}
-
-	@Override
-	public L1Operation nextNybblecodeOperation (
-		final MutableInt pc)
-	{
-		return descriptor.o_NextNybblecodeOperation(this, pc);
-	}
-
-	@Override
-	public int nextNybblecodeOperand (final MutableInt pc)
-	{
-		return descriptor.o_NextNybblecodeOperand(this, pc);
 	}
 
 	@Override

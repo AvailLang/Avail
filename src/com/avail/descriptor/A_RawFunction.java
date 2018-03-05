@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -39,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
-import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
@@ -160,31 +160,6 @@ extends A_BasicObject
 	 *         function implementations.
 	 */
 	A_Module module ();
-
-	/**
-	 * Extract the nybblecode operation at the given pc (program counter),
-	 * updating it to the start of the first operand, or just past the operation
-	 * if none.
-	 *
-	 * @param pc
-	 *        The {@link MutableInt} holding the index into the nybblecodes at
-	 *        which the operation is, and which will be updated to just after
-	 *        the operation, or the start of any operands.
-	 * @return The {@link L1Operation} found at the specified position.
-	 */
-	L1Operation nextNybblecodeOperation (final MutableInt pc);
-
-	/**
-	 * Extract the nybblecode operand at the given pc (program counter),
-	 * updating it to just past the operand.
-	 *
-	 * @param pc
-	 *        The {@link MutableInt} holding the index into the nybblecodes at
-	 *        which the operand is, and which will be updated to just after
-	 *        the operand.
-	 * @return The {@code int} operand at the specified position.
-	 */
-	int nextNybblecodeOperand (final MutableInt pc);
 
 	/**
 	 * Answer the arity of this raw function.
@@ -330,6 +305,16 @@ extends A_BasicObject
 	void setStartingChunkAndReoptimizationCountdown (
 		L2Chunk chunk,
 		long countdown);
+
+	/**
+	 * 	Helper method for transferring this object's longSlots into an
+	 * 	{@link L1InstructionDecoder}.  The receiver's descriptor must be a
+	 * 	{@link CompiledCodeDescriptor}.
+	 *
+	 * @param instructionDecoder The {@link L1InstructionDecoder} to populate.
+	 */
+	void setUpInstructionDecoder (
+		final L1InstructionDecoder instructionDecoder);
 
 	/**
 	 * Answer the {@linkplain L2Chunk chunk} that the {@linkplain Interpreter

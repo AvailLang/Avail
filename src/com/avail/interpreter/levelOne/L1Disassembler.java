@@ -35,8 +35,8 @@ package com.avail.interpreter.levelOne;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.NybbleTupleDescriptor;
-import com.avail.utility.MutableInt;
 
 import java.util.IdentityHashMap;
 
@@ -72,9 +72,9 @@ public final class L1Disassembler
 	final IdentityHashMap<A_BasicObject, Void> recursionMap;
 
 	/**
-	 * The current level one offset into the code.
+	 * The current position in the code.
 	 */
-	final MutableInt pc = new MutableInt(1);
+	final L1InstructionDecoder instructionDecoder = new L1InstructionDecoder();
 
 	/**
 	 * The level one {@linkplain NybbleTupleDescriptor nybblecodes tuple},
@@ -100,13 +100,13 @@ public final class L1Disassembler
 		@Override
 		public void doImmediate ()
 		{
-			builder.append("immediate=").append(code.nextNybblecodeOperand(pc));
+			builder.append("immediate=").append(instructionDecoder.getOperand());
 		}
 
 		@Override
 		public void doLiteral ()
 		{
-			final int index = code.nextNybblecodeOperand(pc);
+			final int index = instructionDecoder.getOperand();
 			builder.append("literal#").append(index).append("=");
 			code.literalAt(index).printOnAvoidingIndent(
 				builder,
@@ -117,7 +117,7 @@ public final class L1Disassembler
 		@Override
 		public void doLocal ()
 		{
-			final int index = code.nextNybblecodeOperand(pc);
+			final int index = instructionDecoder.getOperand();
 			if (index <= code.numArgs())
 			{
 				builder.append("arg#").append(index);
@@ -131,7 +131,7 @@ public final class L1Disassembler
 		@Override
 		public void doOuter ()
 		{
-			builder.append("outer#").append(code.nextNybblecodeOperand(pc));
+			builder.append("outer#").append(instructionDecoder.getOperand());
 		}
 
 		@Override
@@ -189,9 +189,10 @@ public final class L1Disassembler
 		this.recursionMap = recursionMap;
 		this.indent = indent;
 		this.numNybbles = code.numNybbles();
-		assert pc.value == 1;
+		code.setUpInstructionDecoder(instructionDecoder);
+		instructionDecoder.pc(1);
 		boolean first = true;
-		while (pc.value <= numNybbles)
+		while (!instructionDecoder.atEnd())
 		{
 			if (!first)
 			{
@@ -202,9 +203,9 @@ public final class L1Disassembler
 			{
 				builder.append("\t");
 			}
-			builder.append(pc.value).append(": ");
+			builder.append(instructionDecoder.pc()).append(": ");
 
-			final L1Operation operation = code.nextNybblecodeOperation(pc);
+			final L1Operation operation = instructionDecoder.getOperation();
 			final L1OperandType[] operandTypes = operation.operandTypes();
 			builder.append(operation.name());
 			if (operandTypes.length > 0)

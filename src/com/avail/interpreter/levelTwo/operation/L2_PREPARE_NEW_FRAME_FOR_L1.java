@@ -109,7 +109,7 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		// No real optimization should ever be done near this wordcode.
+		// No real optimization should ever be done near this L2 instruction.
 		// Do nothing.
 	}
 
@@ -162,7 +162,8 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(dest++, nil);
 		}
-		stepper.pc.value = 1;
+		code.setUpInstructionDecoder(stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(1);
 		stepper.stackp = numSlots + 1;
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)

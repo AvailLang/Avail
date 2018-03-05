@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
@@ -113,7 +114,8 @@ extends L2Operation
 				interpreter.debugModeString);
 		}
 
-		assert interpreter.function == continuation.function();
+		final A_Function function = stripNull(interpreter.function);
+		assert function == continuation.function();
 		final int numSlots = continuation.numSlots();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
@@ -123,7 +125,8 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(dest++, continuation.stackAt(i));
 		}
-		stepper.pc.value = continuation.pc();
+		function.code().setUpInstructionDecoder(stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(continuation.pc());
 		stepper.stackp = continuation.stackp();
 	}
 

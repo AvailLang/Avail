@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
@@ -67,6 +68,20 @@ implements A_BasicObject
 
 	/** An array of all my references to other {@link AvailObject}s. */
 	private AvailObject[] objectSlots;
+
+	/**
+	 * 	Helper method for transferring this object's longSlots into an
+	 * 	{@link L1InstructionDecoder}.  The receiver's descriptor must be a
+	 * 	{@link CompiledCodeDescriptor}.
+	 *
+	 * @param instructionDecoder The {@link L1InstructionDecoder} to populate.
+	 */
+	public void setUpInstructionDecoder (
+		final L1InstructionDecoder instructionDecoder)
+	{
+		// assert descriptor instanceof CompiledCodeDescriptor;
+		instructionDecoder.encodedInstructionsArray = longSlots;
+	}
 
 	/**
 	 * Turn the receiver into an {@linkplain IndirectionDescriptor indirection}

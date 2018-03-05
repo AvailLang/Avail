@@ -59,8 +59,8 @@ import com.avail.serialization.Serializer;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Generator;
 import com.avail.utility.Graph;
-import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
+import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -95,7 +95,8 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -1989,7 +1990,7 @@ public final class AvailBuilder
 			final byte[] digest = archive.digestForFile(moduleName);
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
-			final Mutable<Long> lastPosition = new Mutable<>(0L);
+			final MutableLong lastPosition = new MutableLong(0L);
 			final Continuation1NotNull<AvailCompiler> continuation =
 				compiler -> compiler.parseModule(
 					module ->

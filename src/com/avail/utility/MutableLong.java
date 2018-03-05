@@ -1,19 +1,19 @@
 /*
- * MutableInt.java
+ * MutableLong.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -34,27 +34,27 @@ package com.avail.utility;
 
 
 /**
- * Support explicit mutable wrapping of <em>int</em> variables.  This is used
+ * Support explicit mutable wrapping of <em>long</em> variables.  This is used
  * specifically for allowing non-final variables to be used by inner classes.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
-public class MutableInt
+public class MutableLong
 {
 	/**
 	 * Expose a public field for readability.  For instance, one could declare
-	 * something {@code "final MutableInt x = new MutableInt(9);"} and then have
-	 * code within inner classes like {@code "x.value = 5;"} or {@code
+	 * something {@code "final MutableLong x = new MutableInt(9L);"} and then
+	 * have code within inner classes like {@code "x.value = 5L;"} or {@code
 	 * "x.value++;"}.
 	 */
-	public int value;
+	public long value;
 
 	/**
 	 * Constructor that takes an initial value.
 	 *
 	 * @param value The initial value.
 	 */
-	public MutableInt (final int value)
+	public MutableLong (final long value)
 	{
 		this.value = value;
 	}
@@ -62,6 +62,6 @@ public class MutableInt
 	@Override
 	public String toString ()
 	{
-		return Integer.toString(value);
+		return Long.toString(value);
 	}
 }

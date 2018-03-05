@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
@@ -50,7 +51,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.IndexedGenerator;
-import com.avail.utility.MutableInt;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -93,8 +93,9 @@ public final class L1InstructionStepper
 	 */
 	@InnerAccess final Interpreter interpreter;
 
-	/** The current one-based index into the nybblecodes. */
-	public final MutableInt pc = new MutableInt(-999);
+	/** The current position in the nybblecodes. */
+	public final L1InstructionDecoder instructionDecoder =
+		new L1InstructionDecoder();
 
 	/** The current stack position as would be seen in a continuation. */
 	public int stackp;
@@ -208,8 +209,11 @@ public final class L1InstructionStepper
 	@ReferencedInGeneratedCode
 	public @Nullable StackReifier run ()
 	{
-		final A_Function function = stripNull(interpreter.function);
-		final A_RawFunction code = function.code();
+//		final A_Function function = stripNull(interpreter.function);
+		final AvailObject function =
+			(AvailObject) stripNull(interpreter.function);
+//		final A_RawFunction code = function.code();
+		final AvailObject code = (AvailObject) function.code();
 		if (debugL1)
 		{
 			Interpreter.log(
@@ -219,16 +223,16 @@ public final class L1InstructionStepper
 				interpreter.debugModeString,
 				whitespaces.matcher(function.toString()).replaceAll(" "));
 		}
-		final int nybbleCount = code.numNybbles();
-		while (pc.value <= nybbleCount)
+		code.setUpInstructionDecoder(instructionDecoder);
+		while (!instructionDecoder.atEnd())
 		{
-			final L1Operation operation = code.nextNybblecodeOperation(pc);
+			final L1Operation operation = instructionDecoder.getOperation();
 			if (debugL1)
 			{
-				final int savePc = pc.value;
+				final int savePc = instructionDecoder.pc();
 				final List<Integer> operands =
 					Arrays.stream(operation.operandTypes())
-						.map(x -> code.nextNybblecodeOperand(pc))
+						.map(x -> instructionDecoder.getOperand())
 						.collect(Collectors.toList());
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
@@ -238,16 +242,16 @@ public final class L1InstructionStepper
 					operands.isEmpty()
 						? operation
 						: operation + " " + operands);
-				pc.value = savePc;
+				instructionDecoder.pc(savePc);
 			}
 			switch (operation)
 			{
 				case L1_doCall:
 				{
 					final A_Bundle bundle =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final A_Type expectedReturnType =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
@@ -324,12 +328,12 @@ public final class L1InstructionStepper
 				}
 				case L1_doPushLiteral:
 				{
-					push(code.literalAt(code.nextNybblecodeOperand(pc)));
+					push(code.literalAt(instructionDecoder.getOperand()));
 					break;
 				}
 				case L1_doPushLastLocal:
 				{
-					final int localIndex = code.nextNybblecodeOperand(pc);
+					final int localIndex = instructionDecoder.getOperand();
 					final AvailObject local = pointerAt(localIndex);
 					assert !local.equalsNil();
 					pointerAtPut(localIndex, nil);
@@ -339,14 +343,14 @@ public final class L1InstructionStepper
 				case L1_doPushLocal:
 				{
 					final AvailObject local =
-						pointerAt(code.nextNybblecodeOperand(pc));
+						pointerAt(instructionDecoder.getOperand());
 					assert !local.equalsNil();
 					push(local.makeImmutable());
 					break;
 				}
 				case L1_doPushLastOuter:
 				{
-					final int outerIndex = code.nextNybblecodeOperand(pc);
+					final int outerIndex = instructionDecoder.getOperand();
 					final A_BasicObject outer = function.outerVarAt(outerIndex);
 					assert !outer.equalsNil();
 					if (function.optionallyNilOuterVar(outerIndex))
@@ -361,9 +365,9 @@ public final class L1InstructionStepper
 				}
 				case L1_doClose:
 				{
-					final int numCopiedVars = code.nextNybblecodeOperand(pc);
+					final int numCopiedVars = instructionDecoder.getOperand();
 					final AvailObject codeToClose =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final A_Function newFunction =
 						createExceptOuters(codeToClose, numCopiedVars);
 					for (int i = numCopiedVars; i >= 1; i--)
@@ -387,7 +391,7 @@ public final class L1InstructionStepper
 				{
 					final @Nullable StackReifier reifier =
 						setVariable(
-							pointerAt(code.nextNybblecodeOperand(pc)), pop());
+							pointerAt(instructionDecoder.getOperand()), pop());
 					if (reifier != null)
 					{
 						return reifier;
@@ -397,7 +401,7 @@ public final class L1InstructionStepper
 				case L1_doGetLocalClearing:
 				{
 					final A_Variable localVariable =
-						pointerAt(code.nextNybblecodeOperand(pc));
+						pointerAt(instructionDecoder.getOperand());
 					final Object valueOrReifier = getVariable(localVariable);
 					if (valueOrReifier instanceof StackReifier)
 					{
@@ -418,7 +422,7 @@ public final class L1InstructionStepper
 				case L1_doPushOuter:
 				{
 					final AvailObject outer =
-						function.outerVarAt(code.nextNybblecodeOperand(pc));
+						function.outerVarAt(instructionDecoder.getOperand());
 					assert !outer.equalsNil();
 					push(outer.makeImmutable());
 					break;
@@ -431,7 +435,7 @@ public final class L1InstructionStepper
 				case L1_doGetOuterClearing:
 				{
 					final A_Variable outerVariable =
-						function.outerVarAt(code.nextNybblecodeOperand(pc));
+						function.outerVarAt(instructionDecoder.getOperand());
 					final Object valueOrReifier = getVariable(outerVariable);
 					if (valueOrReifier instanceof StackReifier)
 					{
@@ -453,7 +457,7 @@ public final class L1InstructionStepper
 				{
 					final @Nullable StackReifier reifier =
 						setVariable(
-							function.outerVarAt(code.nextNybblecodeOperand(pc)),
+							function.outerVarAt(instructionDecoder.getOperand()),
 							pop());
 					if (reifier != null)
 					{
@@ -464,7 +468,7 @@ public final class L1InstructionStepper
 				case L1_doGetLocal:
 				{
 					final Object valueOrReifier =
-						getVariable(pointerAt(code.nextNybblecodeOperand(pc)));
+						getVariable(pointerAt(instructionDecoder.getOperand()));
 					if (valueOrReifier instanceof StackReifier)
 					{
 						return (StackReifier) valueOrReifier;
@@ -475,7 +479,7 @@ public final class L1InstructionStepper
 				}
 				case L1_doMakeTuple:
 				{
-					final int size = code.nextNybblecodeOperand(pc);
+					final int size = instructionDecoder.getOperand();
 					if (size == 0)
 					{
 						// Common case for varargs.
@@ -496,7 +500,7 @@ public final class L1InstructionStepper
 				{
 					final Object valueOrReifier =
 						getVariable(function.outerVarAt(
-							code.nextNybblecodeOperand(pc)));
+							instructionDecoder.getOperand()));
 					if (valueOrReifier instanceof StackReifier)
 					{
 						return (StackReifier) valueOrReifier;
@@ -526,7 +530,7 @@ public final class L1InstructionStepper
 					final A_Function savedFunction =
 						stripNull(interpreter.function);
 					final AvailObject[] savedPointers = pointers;
-					final int savedPc = pc.value;
+					final int savedPc = instructionDecoder.pc();
 					final int savedStackp = stackp;
 
 					return interpreter.reifyThen(
@@ -541,7 +545,9 @@ public final class L1InstructionStepper
 							interpreter.offset =
 								AFTER_REIFICATION.offsetInDefaultChunk;
 							pointers = savedPointers;
-							pc.value = savedPc;
+							savedFunction.code().setUpInstructionDecoder(
+								instructionDecoder);
+							instructionDecoder.pc(savedPc);
 							stackp = savedStackp;
 
 							// Note that the locals are not present in the new
@@ -576,7 +582,7 @@ public final class L1InstructionStepper
 				{
 					final Object valueOrReifier =
 						getVariable(
-							code.literalAt(code.nextNybblecodeOperand(pc)));
+							code.literalAt(instructionDecoder.getOperand()));
 					if (valueOrReifier instanceof StackReifier)
 					{
 						return (StackReifier) valueOrReifier;
@@ -588,7 +594,7 @@ public final class L1InstructionStepper
 				case L1Ext_doSetLiteral:
 				{
 					setVariable(
-						code.literalAt(code.nextNybblecodeOperand(pc)), pop());
+						code.literalAt(instructionDecoder.getOperand()), pop());
 					break;
 				}
 				case L1Ext_doDuplicate:
@@ -599,7 +605,7 @@ public final class L1InstructionStepper
 				case L1Ext_doPermute:
 				{
 					final A_Tuple permutation =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final int size = permutation.tupleSize();
 					final AvailObject[] values = new AvailObject[size];
 					for (int i = 1; i <= size; i++)
@@ -616,11 +622,11 @@ public final class L1InstructionStepper
 				case L1Ext_doSuperCall:
 				{
 					final A_Bundle bundle =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final A_Type expectedReturnType =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final A_Type superUnionType =
-						code.literalAt(code.nextNybblecodeOperand(pc));
+						code.literalAt(instructionDecoder.getOperand());
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
@@ -708,7 +714,7 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doSetLocalSlot:
 				{
-					pointerAtPut(code.nextNybblecodeOperand(pc), pop());
+					pointerAtPut(instructionDecoder.getOperand(), pop());
 					break;
 				}
 			}
@@ -753,7 +759,7 @@ public final class L1InstructionStepper
 			createContinuationExceptFrame(
 				function,
 				nil,
-				pc.value,   // Right after the set-variable.
+				instructionDecoder.pc(),   // Right after the set-variable.
 				stackp,
 				unoptimizedChunk,
 				entryPoint.offsetInDefaultChunk);
@@ -797,7 +803,7 @@ public final class L1InstructionStepper
 			final A_Function savedFunction = stripNull(interpreter.function);
 			final AvailObject[] savedPointers = pointers;
 			final int savedOffset = interpreter.offset;
-			final int savedPc = pc.value;
+			final int savedPc = instructionDecoder.pc();
 			final int savedStackp = stackp;
 
 			final A_Function implicitObserveFunction =
@@ -810,7 +816,8 @@ public final class L1InstructionStepper
 			interpreter.chunk = unoptimizedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
-			pc.value = savedPc;
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
+			instructionDecoder.pc(savedPc);
 			stackp = savedStackp;
 			if (reifier.actuallyReify())
 			{
@@ -852,22 +859,22 @@ public final class L1InstructionStepper
 			final A_Function savedFunction = stripNull(interpreter.function);
 			final AvailObject[] savedPointers = pointers;
 			final int savedOffset = interpreter.offset;
-			final int savedPc = pc.value;
+			final int savedPc = instructionDecoder.pc();
 			final int savedStackp = stackp;
 
 			final A_Function implicitObserveFunction =
 				interpreter.runtime().implicitObserveFunction();
 			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
-			interpreter.argsBuffer.add((AvailObject)
-				tuple(variable, value));
+			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
 			final @Nullable StackReifier reifier =
 				interpreter.invokeFunction(implicitObserveFunction);
 			pointers = savedPointers;
 			interpreter.chunk = unoptimizedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
-			pc.value = savedPc;
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
+			instructionDecoder.pc(savedPc);
 			stackp = savedStackp;
 			if (reifier != null)
 			{
@@ -916,7 +923,7 @@ public final class L1InstructionStepper
 		assert interpreter.chunk == unoptimizedChunk;
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = pointers;
-		final int savedPc = pc.value;
+		final int savedPc = instructionDecoder.pc();
 		final int savedStackp = stackp;
 
 		final A_Function functionToInvoke = matching.bodyBlock();
@@ -926,7 +933,8 @@ public final class L1InstructionStepper
 		interpreter.chunk = unoptimizedChunk;
 		interpreter.offset = savedOffset;
 		interpreter.function = savedFunction;
-		pc.value = savedPc;
+		savedFunction.code().setUpInstructionDecoder(instructionDecoder);
+		instructionDecoder.pc(savedPc);
 		stackp = savedStackp;
 		if (reifier != null)
 		{
@@ -994,7 +1002,7 @@ public final class L1InstructionStepper
 			assert interpreter.chunk == unoptimizedChunk;
 			final int savedOffset = interpreter.offset;
 			final AvailObject[] savedPointers = pointers;
-			final int savedPc = pc.value;
+			final int savedPc = instructionDecoder.pc();
 			final int savedStackp = stackp;
 
 			final A_Variable reportedResult =
@@ -1016,7 +1024,8 @@ public final class L1InstructionStepper
 			interpreter.chunk = unoptimizedChunk;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
-			pc.value = savedPc;
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
+			instructionDecoder.pc(savedPc);
 			stackp = savedStackp;
 			if (reifier.actuallyReify())
 			{

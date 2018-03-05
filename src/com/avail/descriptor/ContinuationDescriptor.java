@@ -37,6 +37,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -46,11 +47,11 @@ import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
@@ -62,9 +63,11 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**
@@ -235,11 +238,14 @@ extends Descriptor
 	{
 		final A_RawFunction code = object.function().code();
 		final A_Tuple encodedDeltas = code.lineNumberEncodedDeltas();
-		final MutableInt pc = new MutableInt(1);
-		final int continuationPc = object.pc();
+		final L1InstructionDecoder instructionDecoder =
+			new L1InstructionDecoder();
+		code.setUpInstructionDecoder(instructionDecoder);
+		instructionDecoder.pc(1);
 		int lineNumber = code.startingLineNumber();
 		int instructionCounter = 1;
-		while (pc.value < continuationPc)
+
+		while (!instructionDecoder.atEnd())
 		{
 			final int encodedDelta =
 				encodedDeltas.tupleIntAt(instructionCounter++);
@@ -248,10 +254,10 @@ extends Descriptor
 				: -(encodedDelta >> 1);
 			lineNumber += decodedDelta;
 			// Now skip one nybblecode instruction.
-			final L1Operation op = code.nextNybblecodeOperation(pc);
+			final L1Operation op = instructionDecoder.getOperation();
 			for (int i = op.operandTypes().length - 1; i >= 0; i--)
 			{
-				code.nextNybblecodeOperand(pc);
+				instructionDecoder.getOperand();
 			}
 		}
 		return lineNumber;

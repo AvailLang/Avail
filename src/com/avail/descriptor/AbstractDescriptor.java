@@ -55,11 +55,16 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.AvailUnsupportedOperationException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -67,7 +72,6 @@ import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -6773,24 +6777,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract Statistic o_ReturneeCheckStat (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @param pc
-	 * @return
-	 */
-	abstract L1Operation o_NextNybblecodeOperation (
-		final AvailObject object,
-		final MutableInt pc);
-
-	/**
-	 * @param object
-	 * @param pc
-	 * @return
-	 */
-	abstract int o_NextNybblecodeOperand (
-		final AvailObject object,
-		final MutableInt pc);
 
 	/**
 	 * @param object

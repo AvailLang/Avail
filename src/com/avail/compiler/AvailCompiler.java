@@ -61,6 +61,7 @@ import com.avail.performance.StatisticReport;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
+import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
@@ -122,10 +123,7 @@ import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
@@ -588,7 +586,7 @@ public final class AvailCompiler
 		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
 		final ByteBuffer input = ByteBuffer.allocateDirect(4096);
 		final CharBuffer output = CharBuffer.allocate(4096);
-		final Mutable<Long> filePosition = new Mutable<>(0L);
+		final MutableLong filePosition = new MutableLong(0L);
 		final AsynchronousFileChannel file;
 		try
 		{

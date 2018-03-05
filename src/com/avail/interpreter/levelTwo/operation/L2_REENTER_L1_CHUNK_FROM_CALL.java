@@ -131,7 +131,9 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(destination++, continuation.stackAt(i));
 		}
-		stepper.pc.value = continuation.pc();
+		returneeFunction.code().setUpInstructionDecoder(
+			stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(continuation.pc());
 		stepper.stackp = continuation.stackp();
 		stepper.pointerAtPut(stepper.stackp, returnValue);
 	}

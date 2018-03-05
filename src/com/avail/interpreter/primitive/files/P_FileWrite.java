@@ -39,6 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -242,8 +243,8 @@ extends Primitive
 				}
 			};
 		}
-		final Mutable<Long> nextPosition =
-			new Mutable<>(oneBasedPositionLong - 1);
+		final MutableLong nextPosition =
+			new MutableLong(oneBasedPositionLong - 1);
 		final Mutable<ByteBuffer> currentBuffer =
 			new Mutable<>(bufferIterator.next());
 		final MutableOrNull<Continuation0> continueWriting =
