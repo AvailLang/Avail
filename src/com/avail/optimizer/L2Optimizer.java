@@ -81,7 +81,7 @@ public final class L2Optimizer
 	public final List<L2BasicBlock> blocks;
 
 	/** Whether to sanity-check the graph between optimization steps. */
-	public static boolean shouldSanityCheck = true;
+	public static boolean shouldSanityCheck = false;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
