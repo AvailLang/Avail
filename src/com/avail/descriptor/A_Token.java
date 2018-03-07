@@ -32,12 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
-
-import javax.annotation.Nullable;
 
 
 /**
@@ -93,14 +90,14 @@ extends A_BasicObject
 	 *
 	 * @return The next {@link LexingState}.
 	 */
-	LexingState nextLexingStateIn (final CompilationContext compilationContext);
+	LexingState nextLexingState ();
 
 	/**
 	 * Set this token's next {@link LexingState}.
 	 *
-	 * @param lexingState The lexing state after this token.
+	 * @param priorLexingState The lexing state just prior to this token.
 	 */
-	void setNextLexingState (final @Nullable LexingState lexingState);
+	void setNextLexingStateFromPrior (final LexingState priorLexingState);
 
 	/**
 	 * Answer this token's initial character position in the source file.

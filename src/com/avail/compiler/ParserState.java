@@ -32,7 +32,11 @@
 package com.avail.compiler;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
@@ -68,34 +72,22 @@ public class ParserState
 	public final A_Map clientDataMap;
 
 	/**
-	 * The {@link CommentTokenDescriptor comment tokens} that have been captured
-	 * along the history of this parser state.
-	 */
-	public final List<A_Token> capturedCommentTokens;
-
-	/**
-	 * Construct a new immutable {@link ParserState}.
+	 * Construct a new immutable {@code ParserState}.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} at this parse position.
 	 * @param clientDataMap
 	 *        The {@link MapDescriptor map} of data used by macros while
 	 *        parsing Avail code.
-	 * @param capturedCommentTokens
-	 *        The immutable list of {@link CommentTokenDescriptor comment
-	 *        tokens} that were encountered so far along the history of this
-	 *        {@link ParserState}.
 	 */
 	ParserState (
 		final LexingState lexingState,
-		final A_Map clientDataMap,
-		final List<A_Token> capturedCommentTokens)
+		final A_Map clientDataMap)
 	{
 		this.lexingState = lexingState;
 		// Note that this map *must* be marked as shared, since parsing
 		// proceeds in parallel.
 		this.clientDataMap = clientDataMap.makeShared();
-		this.capturedCommentTokens = capturedCommentTokens;
 	}
 
 	@Override
@@ -112,6 +104,9 @@ public class ParserState
 		{
 			return false;
 		}
+		// Don't bother comparing allTokens, since there should never be a case
+		// where the lexingState and clientDataMap agree, but different lists of
+		// tokens were accumulated to get there.
 		final ParserState anotherState = (ParserState) another;
 		return lexingState == anotherState.lexingState
 			&& clientDataMap.equals(anotherState.clientDataMap);
@@ -156,17 +151,16 @@ public class ParserState
 	}
 
 	/**
-	 * Create a {@link ParserState} with a different {@link #clientDataMap}.
+	 * Create a {@code ParserState} with a different {@link #clientDataMap}.
 	 *
 	 * @param replacementMap
 	 *        The {@link A_Map} to replace this parser state's {@link
 	 *        #clientDataMap} in the new parser state.
-	 * @return The new {@link ParserState}.
+	 * @return The new {@code ParserState}.
 	 */
 	public ParserState withMap (final A_Map replacementMap)
 	{
-		return new ParserState(
-			lexingState, replacementMap, capturedCommentTokens);
+		return new ParserState(lexingState, replacementMap);
 	}
 
 	/**

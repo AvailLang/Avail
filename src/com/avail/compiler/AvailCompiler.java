@@ -157,6 +157,7 @@ import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparingInt;
 
 /**
  * The compiler for Avail code.
@@ -1397,12 +1398,9 @@ public final class AvailCompiler
 								: definitionEntry.value())
 							{
 								final A_ParsingPlanInProgress
-									previousPlan =
-										newPlanInProgress(
-												inProgress.parsingPlan(),
-												max(
-													inProgress.parsingPc() - 1,
-													1));
+									previousPlan = newPlanInProgress(
+										inProgress.parsingPlan(),
+										max(inProgress.parsingPc() - 1, 1));
 								final A_Module issuingModule =
 									bundle.message().issuingModule();
 								final String moduleName =
@@ -1494,21 +1492,16 @@ public final class AvailCompiler
 	 * afterward.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param continuation
-	 *            What to do after parsing a complete send phrase.
+	 *        What to do after parsing a complete send phrase.
 	 */
 	private void parseLeadingKeywordSendThen (
 		final ParserState start,
 		final Con continuation)
 	{
-		A_Map clientMap = start.clientDataMap;
-		// Start accumulating tokens related to this leading-keyword message
-		// send at its first token.
-		clientMap = clientMap.mapAtPuttingCanDestroy(
-			ALL_TOKENS_KEY.atom, emptyTuple(), false);
 		parseRestOfSendNode(
-			start.withMap(clientMap),
+			start,
 			compilationContext.loader().rootBundleTree(),
 			null,
 			start,
@@ -1542,13 +1535,8 @@ public final class AvailCompiler
 		final Con continuation)
 	{
 		assert start.lexingState != initialTokenPosition.lexingState;
-		A_Map clientMap = start.clientDataMap;
-		// Start accumulating tokens related to this leading-argument message
-		// send after the leading argument.
-		clientMap = clientMap.mapAtPuttingCanDestroy(
-			ALL_TOKENS_KEY.atom, emptyTuple(), false);
 		parseRestOfSendNode(
-			start.withMap(clientMap),
+			start,
 			compilationContext.loader().rootBundleTree(),
 			leadingArgument,
 			initialTokenPosition,
@@ -1646,7 +1634,10 @@ public final class AvailCompiler
 	 *        phrase.  That includes any leading argument.
 	 * @param consumedTokens
 	 *        The immutable {@link List} of {@link A_Token}s that have been
-	 *        consumed so far in this potential method/macro send.
+	 *        consumed so far in this potential method/macro send, only
+	 *        including tokens that correspond with literal message parts of
+	 *        this send (like the "+" of "_+_"), and raw tokens (like the "…" of
+	 *        "…:=_;").
 	 * @param argsSoFar
 	 *        The list of arguments parsed so far. I do not modify it. This is a
 	 *        stack of expressions that the parsing instructions will assemble
@@ -1902,7 +1893,7 @@ public final class AvailCompiler
 	 *        send phrase.
 	 * @param consumedTokens
 	 *        An immutable {@link PrefixSharingList} of {@link A_Token}s that
-	 *        have been consumed so far for te current potential send phrase.
+	 *        have been consumed so far for the current potential send phrase.
 	 *        The tokens are only those that match literal parts of the message
 	 *        name or explicit token arguments.
 	 * @param argsSoFar
@@ -1973,17 +1964,8 @@ public final class AvailCompiler
 							}
 							recognized = true;
 							// Record this token for the call site.
-							A_Map clientMap = start.clientDataMap;
-							clientMap = clientMap.mapAtPuttingCanDestroy(
-								ALL_TOKENS_KEY.atom,
-								clientMap
-									.mapAt(ALL_TOKENS_KEY.atom)
-									.appendCanDestroy(token, false),
-								false);
 							final ParserState afterToken = new ParserState(
-								token.nextLexingStateIn(compilationContext),
-								clientMap,
-								start.capturedCommentTokens);
+								token.nextLexingState(), start.clientDataMap);
 							eventuallyParseRestOfSendNode(
 								afterToken,
 								successor,
@@ -2136,9 +2118,8 @@ public final class AvailCompiler
 				final A_Token token = toSkip.get(0);
 				skipWhitespaceAndComments(
 					new ParserState(
-						token.nextLexingStateIn(compilationContext),
-						start.clientDataMap,
-						captureIfComment(start.capturedCommentTokens, token)),
+						token.nextLexingState(),
+						start.clientDataMap),
 					continuation,
 					ambiguousWhitespace);
 				return;
@@ -2156,9 +2137,8 @@ public final class AvailCompiler
 			{
 				// Common case of an unambiguous whitespace/comment token.
 				final ParserState after = new ParserState(
-					tokenToSkip.nextLexingStateIn(compilationContext),
-					start.clientDataMap,
-					captureIfComment(start.capturedCommentTokens, tokenToSkip));
+					tokenToSkip.nextLexingState(),
+					start.clientDataMap);
 				skipWhitespaceAndComments(
 					after,
 					partialList ->
@@ -2176,33 +2156,6 @@ public final class AvailCompiler
 					ambiguousWhitespace);
 			}
 		});
-	}
-
-	/**
-	 * Return a list with the given token appended to the comment tokens only if
-	 * the new token is also a comment token.
-	 *
-	 * @param commentTokens
-	 *        A {@link List} of comment {@link A_Token}s.
-	 * @param token
-	 *        An {@link A_Token} which might be a comment token.
-	 * @return Either a new {@link List} with the comment token appended, or the
-	 *         original, unmodified list.
-	 */
-	private static List<A_Token> captureIfComment (
-		final List<A_Token> commentTokens,
-		final A_Token token)
-	{
-		switch (token.tokenType())
-		{
-			case COMMENT:
-				return append(commentTokens, token);
-			case WHITESPACE:
-				return commentTokens;
-			default:
-				throw new RuntimeException(
-					"Expecting comment or whitespace token");
-		}
 	}
 
 	/**
@@ -2461,13 +2414,16 @@ public final class AvailCompiler
 						code.startingLineNumber());
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
-		final A_Map withTokens = start.clientDataMap.mapAtPuttingCanDestroy(
-			ALL_TOKENS_KEY.atom,
-			tupleFromList(consumedTokens),
-			false).makeImmutable();
+		final A_Map withTokens = start.clientDataMap
+			.mapAtPuttingCanDestroy(
+				ALL_TOKENS_KEY.atom,
+				tupleFromList(start.lexingState.allTokens),
+				false)
+			.mapAtPuttingCanDestroy(
+				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false);
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			CLIENT_DATA_GLOBAL_KEY.atom, withTokens, true);
+			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(compilationContext.getTextInterface());
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
@@ -3536,10 +3492,13 @@ public final class AvailCompiler
 			argumentsList.add(argument);
 		}
 		// Capture all of the tokens that comprised the entire macro send.
-		final A_Tuple constituentTokens = tupleFromList(consumedTokens);
 		final A_Map withTokensAndBundle = stateAfterCall.clientDataMap
 			.mapAtPuttingCanDestroy(
-				ALL_TOKENS_KEY.atom, constituentTokens, false)
+				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false)
+			.mapAtPuttingCanDestroy(
+				ALL_TOKENS_KEY.atom,
+				tupleFromList(stateAfterCall.lexingState.allTokens),
+				false)
 			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
 			.makeShared();
 		compilationContext.startWorkUnits(1);
@@ -3621,7 +3580,7 @@ public final class AvailCompiler
 					final ParserState stateAfter = stateAfterCall.withMap(
 						clientDataAfterRunning.value());
 					final A_Phrase original = newSendNode(
-						constituentTokens,
+						tupleFromList(consumedTokens),
 						bundle,
 						argumentsListNode,
 						macroDefinitionToInvoke.bodySignature().returnType());
@@ -3992,10 +3951,7 @@ public final class AvailCompiler
 					syntheticLiteralNodeFor(bodyFunction))),
 			TOP.o());
 		evaluateModuleStatementThen(
-			new ParserState(
-				token.nextLexingStateIn(compilationContext),
-				emptyMap(),
-				emptyList()),
+			new ParserState(token.nextLexingState(), emptyMap()),
 			state,
 			send,
 			new HashMap<>(),
@@ -4112,7 +4068,7 @@ public final class AvailCompiler
 			if (prim == null)
 			{
 				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingStateIn(compilationContext),
+					pragmaToken.nextLexingState(),
 					"Malformed pragma at %s on line %d:",
 					format(
 						"Expected macro pragma to reference "
@@ -4156,7 +4112,7 @@ public final class AvailCompiler
 		if (atoms.setSize() == 0)
 		{
 			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingStateIn(compilationContext),
+				pragmaToken.nextLexingState(),
 				"Problem in stringification macro at %s on line %d:",
 				format(
 					"stringification method \"%s\" should be introduced"
@@ -4168,7 +4124,7 @@ public final class AvailCompiler
 		if (atoms.setSize() > 1)
 		{
 			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingStateIn(compilationContext),
+				pragmaToken.nextLexingState(),
 				"Problem in stringification macro at %s on line %d:",
 				format(
 					"stringification method \"%s\" is ambiguous",
@@ -4256,7 +4212,7 @@ public final class AvailCompiler
 		if (atoms.setSize() == 0)
 		{
 			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingStateIn(compilationContext),
+				pragmaToken.nextLexingState(),
 				"Problem in lexer pragma at %s on line %d:",
 				format(
 					"lexer method %s should be introduced in this module",
@@ -4267,7 +4223,7 @@ public final class AvailCompiler
 		if (atoms.setSize() > 1)
 		{
 			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingStateIn(compilationContext),
+				pragmaToken.nextLexingState(),
 				"Problem in lexer pragma at %s on line %d:",
 				format("lexer name %s is ambiguous", availName),
 				failure);
@@ -4347,7 +4303,7 @@ public final class AvailCompiler
 			if (pragmaParts.length != 2)
 			{
 				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingStateIn(compilationContext),
+					pragmaToken.nextLexingState(),
 					"Malformed pragma at %s on line %d:",
 					"Pragma should have the form key=value",
 					failure);
@@ -4401,7 +4357,7 @@ public final class AvailCompiler
 					}
 					default:
 						compilationContext.diagnostics.reportError(
-							pragmaToken.nextLexingStateIn(compilationContext),
+							pragmaToken.nextLexingState(),
 							"Malformed pragma at %s on line %d:",
 							format(
 								"Pragma key should be one of "
@@ -4417,7 +4373,7 @@ public final class AvailCompiler
 			catch (final MalformedPragmaException e)
 			{
 				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingStateIn(compilationContext),
+					pragmaToken.nextLexingState(),
 					"Malformed pragma at %s on line %d:",
 					format(
 						"Malformed pragma: %s",
@@ -4442,7 +4398,6 @@ public final class AvailCompiler
 	private void parseModuleCompletely (
 		final Continuation0 onFail)
 	{
-		// TODO MvG - Some day load the header instead of parsing it again.
 		parseModuleHeader(
 			afterHeader ->
 			{
@@ -4519,15 +4474,24 @@ public final class AvailCompiler
 			{
 				final ParserState earliest = Collections.min(
 					afterWhitespace,
-					Comparator.comparingInt(ParserState::position));
+					comparingInt(ParserState::position));
 				earliest.expected(
 					"unambiguous lexical scan of whitespace and comments "
 						+ "between top-level statements");
 				afterFail.value();
 			}
 		});
+		// Forget any accumulated tokens from previous top-level statements.
+		final LexingState startLexingState = start.lexingState;
+		final ParserState startWithoutAnyTokens = new ParserState(
+			new LexingState(
+				startLexingState.compilationContext,
+				startLexingState.position,
+				startLexingState.lineNumber,
+				emptyList()),
+			start.clientDataMap);
 		skipWhitespaceAndComments(
-			start,
+			startWithoutAnyTokens,
 			positions -> afterWhitespaceHolder.value = positions,
 			new AtomicBoolean(false));
 	}
@@ -4592,7 +4556,6 @@ public final class AvailCompiler
 					// What to do after running all these simple statements.
 					final Continuation0 resumeParsing = () ->
 					{
-						compilationContext.clearLexingStates();
 						// Report progress.
 						compilationContext.getProgressReporter().value(
 							moduleName(),
@@ -4752,10 +4715,12 @@ public final class AvailCompiler
 		final A_Map clientData = mapFromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap(),
+			STATIC_TOKENS_KEY.atom,
+			emptyTuple(),
 			ALL_TOKENS_KEY.atom,
 			emptyTuple());
 		final ParserState start = new ParserState(
-			new LexingState(compilationContext, 1, 1), clientData, emptyList());
+			new LexingState(compilationContext, 1, 1, emptyList()), clientData);
 		final List<A_Phrase> solutions = new ArrayList<>();
 		compilationContext.setNoMoreWorkUnits(
 			() ->
@@ -4949,7 +4914,7 @@ public final class AvailCompiler
 		final A_String moduleName = stringFromToken(moduleNameToken);
 		if (!moduleName.asNativeString().equals(moduleName().localName()))
 		{
-			moduleNameToken.nextLexingStateIn(compilationContext).expected(
+			moduleNameToken.nextLexingState().expected(
 				"declared local module name to agree with "
 				+ "fully-qualified module name");
 			afterFail.value();
@@ -4966,7 +4931,7 @@ public final class AvailCompiler
 					versionStringToken);
 				if (header.versions.contains(versionString))
 				{
-					versionStringToken.nextLexingStateIn(compilationContext)
+					versionStringToken.nextLexingState()
 						.expected("version strings to be unique");
 					afterFail.value();
 					return;
@@ -5008,7 +4973,7 @@ public final class AvailCompiler
 						if (importVersions.hasElement(importVersionString))
 						{
 							importVersionToken
-								.nextLexingStateIn(compilationContext)
+								.nextLexingState()
 								.expected(
 									"module import versions to be unique");
 							afterFail.value();
@@ -5053,7 +5018,7 @@ public final class AvailCompiler
 							if (negation)
 							{
 								renameToken
-									.nextLexingStateIn(compilationContext)
+									.nextLexingState()
 									.expected(
 										"negated or renaming import, but "
 											+ "not both");
@@ -5065,7 +5030,7 @@ public final class AvailCompiler
 							if (importedRenames.hasKey(rename))
 							{
 								renameToken
-									.nextLexingStateIn(compilationContext)
+									.nextLexingState()
 									.expected(
 										"renames to specify distinct "
 											+ "target names");
@@ -5081,7 +5046,7 @@ public final class AvailCompiler
 							// Process an excluded import.
 							if (importedExcludes.hasElement(name))
 							{
-								nameToken.nextLexingStateIn(compilationContext)
+								nameToken.nextLexingState()
 									.expected("import exclusions to be unique");
 								afterFail.value();
 								return;
@@ -5096,7 +5061,7 @@ public final class AvailCompiler
 							// nor an exclusion).
 							if (importedNames.hasElement(name))
 							{
-								nameToken.nextLexingStateIn(compilationContext)
+								nameToken.nextLexingState()
 									.expected("import names to be unique");
 								afterFail.value();
 								return;
@@ -5130,7 +5095,7 @@ public final class AvailCompiler
 				}
 				catch (final ImportValidationException e)
 				{
-					importedModuleToken.nextLexingStateIn(compilationContext)
+					importedModuleToken.nextLexingState()
 						.expected(e.getMessage());
 					afterFail.value();
 					return;
@@ -5147,7 +5112,7 @@ public final class AvailCompiler
 				final A_String nameString = stringFromToken(nameToken);
 				if (header.exportedNames.contains(nameString))
 				{
-					nameToken.nextLexingStateIn(compilationContext).expected(
+					nameToken.nextLexingState().expected(
 						"declared names to be unique");
 					afterFail.value();
 					return;
@@ -5206,10 +5171,12 @@ public final class AvailCompiler
 		final A_Map clientData = mapFromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap(),
+			STATIC_TOKENS_KEY.atom,
+			emptyMap(),
 			ALL_TOKENS_KEY.atom,
 			emptyTuple());
 		final ParserState state = new ParserState(
-			new LexingState(compilationContext, 1, 1), clientData, emptyList());
+			new LexingState(compilationContext, 1, 1, emptyList()), clientData);
 
 		recordExpectationsRelativeTo(1);
 

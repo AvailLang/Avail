@@ -397,7 +397,7 @@ public class CompilerDiagnostics
 					groupedProblems.add(
 						new ProblemsAtPosition(
 							innerMap.keySet().iterator().next(),
-							longestToken.nextLexingStateIn(compilationContext),
+							longestToken.nextLexingState(),
 							indicatorGenerator.next(),
 							describers));
 					writeAnotherThen.value().value();

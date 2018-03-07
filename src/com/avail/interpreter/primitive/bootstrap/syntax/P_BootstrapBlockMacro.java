@@ -113,7 +113,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 	final A_Atom scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom;
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
+	final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
@@ -139,7 +139,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
-		if (!clientData.hasKey(allTokensKey))
+		if (!clientData.hasKey(staticTokensKey))
 		{
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
@@ -159,7 +159,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
 		final A_Map scopeMap = scopeStack.tupleAt(scopeStack.tupleSize());
-		final A_Tuple tokens = clientData.mapAt(allTokensKey);
+		final A_Tuple tokens = clientData.mapAt(staticTokensKey);
 
 		assert optionalArgumentDeclarations.expressionsSize() <= 1;
 		final A_Tuple argumentDeclarationPairs =

@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -5897,17 +5896,16 @@ implements
 	}
 
 	@Override
-	public LexingState nextLexingStateIn (
-		final CompilationContext compilationContext)
+	public LexingState nextLexingState ()
 	{
-		return descriptor.o_NextLexingStateIn(this, compilationContext);
+		return descriptor.o_NextLexingState(this);
 	}
 
 	@Override
-	public void setNextLexingState (
-		final @Nullable LexingState lexingState)
+	public void setNextLexingStateFromPrior (
+		final LexingState priorLexingState)
 	{
-		descriptor.o_SetNextLexingState(this, lexingState);
+		descriptor.o_SetNextLexingStateFromPrior(this, priorLexingState);
 	}
 
 	@Override

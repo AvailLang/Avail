@@ -1323,7 +1323,7 @@ Primitive "Assert:_(_)" is
  * Cause the Avail virtual machine to raise an
  * `org.availlang.exceptions.AvailBreakpointException` that a Java debugger
  * can trap upon raise.
- *
+ * 
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
  *
@@ -2797,43 +2797,6 @@ Primitive "_'s⁇value" is
 ] : any;
 
 /**
- * Answer the semantic type of the specified phrase. This is the type of value
- * produced when the content of the phrase is evaluated (by the compiler and/or
- * runtime).
- *
- * @category "Primitives" "Phrases" "Queries"
- * @method "_'s⁇semantic type"
- * @param "node" "phrase"
- *        A phrase.
- * @returns "(⊤)'s type"
- *    A type that describes all values producible by evaluations of the
- *    argument.
- */
-Primitive "_'s⁇semantic type" is
-[
-	node : phrase
-|
-	Primitive ParseNodeExpressionType;
-] : type;
-
-/**
- * Answer the semantic type of the specified phrase type.
- *
- * @category "Primitives" "Phrases" "Queries"
- * @method "_'s⁇semantic type"
- * @param "phraseType" "phrase meta"
- *        A phrase type.
- * @returns "(⊤)'s type"
- *    The requested semantic type.
- */
-Primitive "_'s⁇semantic type" is
-[
-	phraseType : phrase meta
-|
-	Primitive PhraseTypeExpressionType;
-] : type;
-
-/**
  * Answer the {@type "list phrase"} wrapped by the specified {@type
  * "permuted list phrase"}.
  *
@@ -2869,6 +2832,43 @@ Primitive "_'s⁇permutation" is
 |
 	Primitive PermutedListPermutation;
 ] : permutation tuple;
+
+/**
+ * Answer the semantic type of the specified phrase. This is the type of value
+ * produced when the content of the phrase is evaluated (by the compiler and/or
+ * runtime).
+ *
+ * @category "Primitives" "Phrases" "Queries"
+ * @method "_'s⁇semantic type"
+ * @param "phrase" "phrase"
+ *        A phrase.
+ * @returns "(⊤)'s type"
+ *    A type that describes all values producible by evaluations of the
+ *    argument.
+ */
+Primitive "_'s⁇semantic type" is
+[
+	phrase : phrase
+|
+	Primitive PhraseExpressionType;
+] : type;
+
+/**
+ * Answer the semantic type of the specified phrase type.
+ *
+ * @category "Primitives" "Phrases" "Queries"
+ * @method "_'s⁇semantic type"
+ * @param "phraseType" "phrase meta"
+ *        A phrase type.
+ * @returns "(⊤)'s type"
+ *    The requested semantic type.
+ */
+Primitive "_'s⁇semantic type" is
+[
+	phraseType : phrase meta
+|
+	Primitive PhraseTypeExpressionType;
+] : type;
 
 /**
  * Answer the specified variable reference's referent.
@@ -3370,7 +3370,7 @@ Primitive "_'s⁇implementation" is
 ] : function implementation;
 
 /**
- * Answer the name of the primitive linked to the specified function
+ * Answer the name of the primitive linked to the specified function 
  * implementation. If the function implementation does not have
  * primitive linkage, then answer the empty string.
  *

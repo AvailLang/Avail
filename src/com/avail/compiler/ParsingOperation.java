@@ -596,10 +596,8 @@ public enum ParsingOperation
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
 										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
+											token.nextLexingState(),
+											start.clientDataMap),
 										successorTrees.tupleAt(1),
 										null,
 										initialTokenPosition,
@@ -686,10 +684,8 @@ public enum ParsingOperation
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
 										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
+											token.nextLexingState(),
+											start.clientDataMap),
 										successorTrees.tupleAt(1),
 										null,
 										initialTokenPosition,
@@ -779,10 +775,8 @@ public enum ParsingOperation
 									append(argsSoFar, literalNode);
 								compiler.eventuallyParseRestOfSendNode(
 									new ParserState(
-										token.nextLexingStateIn(
-											compiler.compilationContext),
-										start.clientDataMap,
-										start.capturedCommentTokens),
+										token.nextLexingState(),
+										start.clientDataMap),
 									successorTrees.tupleAt(1),
 									null,
 									initialTokenPosition,
@@ -876,10 +870,8 @@ public enum ParsingOperation
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
 										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
+											token.nextLexingState(),
+											start.clientDataMap),
 										successorTrees.tupleAt(1),
 										null,
 										initialTokenPosition,

@@ -87,7 +87,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			2, CannotFail, CanInline, Bootstrap);
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
+	final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
@@ -102,7 +102,8 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(
+			LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -162,7 +163,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 						valueExpression.expressionType(),
 						declarationFinal.declaredType()));
 		}
-		final A_Tuple tokens = clientData.mapAt(allTokensKey);
+		final A_Tuple tokens = clientData.mapAt(staticTokensKey);
 		final A_Phrase assignment = newAssignment(
 			newUse(actualToken, declaration), valueExpression, tokens, false);
 		assignment.makeImmutable();

@@ -631,6 +631,14 @@ extends Descriptor
 		ALL_TOKENS_KEY("All tokens"),
 
 		/**
+		 * The atom used as a key in a {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap} to accumulate the tuple of tokens that
+		 * have been parsed so far for the current method/macro site and are
+		 * mentioned by name in the method name.
+		 */
+		STATIC_TOKENS_KEY("Static tokens"),
+
+		/**
 		 * The atom used to identify the entry in a {@linkplain ParserState}'s
 		 * {@linkplain ParserState#clientDataMap client data map} containing the
 		 * bundle of the macro send for which the current fiber is computing a

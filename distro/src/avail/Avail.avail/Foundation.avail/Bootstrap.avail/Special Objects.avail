@@ -163,6 +163,7 @@ Names
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
 	/* 148 */ "statement phrase",
+	/* 159 */ "static tokens key",
 	/*  28 */ "string",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -2109,8 +2110,19 @@ Special object "lexer filter function" is special object 157;
  * the initial position.
  *
  * @category "Primitives" "Types"
- * @type "[string, [1..∞), [1..∞)]→<token…|>"
+ * @type "[string, [1..∞), [1..∞)]→{<token…|1..∞>|}"
  * @alias "lexer body function"
  */
 Special object "lexer body function" is special object 158;
+
+/**
+ * The key within the client data fiber global that holds a tuple of tokens,
+ * corresponding to parts of the method name, that contributed to the current
+ * macro whose prefix function or body is running.
+ *
+ * @category "Primitives" "Constants"
+ * @method "static tokens key"
+ * @returns "static tokens key's type"
+ */
+Special object "static tokens key" is special object 159;
 

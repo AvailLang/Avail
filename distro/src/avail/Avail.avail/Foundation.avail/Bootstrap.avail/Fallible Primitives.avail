@@ -53,7 +53,6 @@ Uses
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
-		"Define lexer_filter_body_",
 		"Error:_",
 		"Exit_with_",
 		"Export_as a new name",
@@ -62,6 +61,7 @@ Uses
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
+		"Lexer_when_is_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -2139,7 +2139,7 @@ Primitive "semantic restrictions for_given_" is
  * to produce tokens in that circumstance.
  *
  * @category "Primitives"
- * @method "Define lexer_filter_body_"
+ * @method "Lexer_when_is_"
  * @param "lexerName" "atom"
  *        The atom that names the lexer.
  * @param "filterFunction" "lexer filter function"
@@ -2171,7 +2171,7 @@ Primitive "semantic restrictions for_given_" is
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
  */
-Primitive "Define lexer_filter_body_" is
+Primitive "Lexer_when_is_" is
 [
 	lexerName : atom,
 	filterFunction : lexer filter function,
@@ -3485,9 +3485,9 @@ Primitive "_[_]:=_" is
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired method.
  * @returns "(⊤)'s type"
- *    The Java methods return type.
- * @raises "{8}"
- * @raises "{9}"
+ *    The Java method's return type.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
  */
 Primitive "return type of_._«parameterized by»⁇_" is
 [

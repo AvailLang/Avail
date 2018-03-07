@@ -37,7 +37,6 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -6663,21 +6662,17 @@ public abstract class AbstractDescriptor
 	/**
 	 *
 	 * @param object
-	 * @param compilationContext
 	 * @return
 	 */
-	abstract LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext);
+	abstract LexingState o_NextLexingState (
+		final AvailObject object);
 
 	/**
-	 *
-	 * @param object
-	 * @param lexingState
-	 */
-	abstract void o_SetNextLexingState (
+	 *  @param object
+	 * @param priorLexingState*/
+	abstract void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
-		final @Nullable LexingState lexingState);
+		final LexingState priorLexingState);
 
 	/**
 	 *

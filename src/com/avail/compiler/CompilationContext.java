@@ -60,14 +60,10 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -268,20 +264,6 @@ public class CompilationContext
 	 * module during compilation.
 	 */
 	final Serializer serializer = new Serializer(serializerOutputStream);
-
-	/**
-	 * The map from position in the source to the {@link LexingState} associated
-	 * with that position.  Each {@link LexingState} handles its own
-	 * synchronization and laziness.  Because different lexers may have
-	 * different ideas about what line number they're at, the key is a long,
-	 * computed from (lineNumber << 32) + position.
-	 */
-	private final Map<Long, LexingState> lexingStates = new HashMap<>(100);
-
-	/**
-	 * The lock used to control access to the {@link #lexingStates}.
-	 */
-	private final ReadWriteLock lexingStatesLock = new ReentrantReadWriteLock();
 
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
@@ -523,73 +505,6 @@ public class CompilationContext
 					FiberDescriptor.compilerPriority,
 					() -> continuation.value(argument));
 			}
-		}
-	}
-
-	/**
-	 * Look up the {@link LexingState} at the specified source position (and
-	 * lineNumber), creating and recording a new one if necessary.
-	 *
-	 * <p>Note that a {@link A_Token token} can be created with a successor
-	 * {@link LexingState} which is not recorded in the {@link #lexingStates}
-	 * map.  This allows a {@link A_Lexer lexer} to produce a sequence of tokens
-	 * instead of just one.</p>
-	 *
-	 * @param position The position in the module's source code.
-	 * @return The {@link LexingState} for that position.
-	 */
-	public LexingState lexingStateAt (final int position, final int lineNumber)
-	{
-		// First try to read it inside a (shared) read lock.
-		final Long key = (((long) lineNumber) << 32) + position;
-		lexingStatesLock.readLock().lock();
-		LexingState state;
-		try
-		{
-			state = lexingStates.get(key);
-		}
-		finally
-		{
-			lexingStatesLock.readLock().unlock();
-		}
-
-		if (state == null)
-		{
-			lexingStatesLock.writeLock().lock();
-			try
-			{
-				// Someone else may have just added it while we held no lock.
-				state = lexingStates.computeIfAbsent(
-					key,
-					k -> new LexingState(this, position, lineNumber));
-			}
-			finally
-			{
-				lexingStatesLock.writeLock().unlock();
-			}
-		}
-
-		assert state.position == position;
-		assert state.lineNumber == lineNumber;
-		return state;
-	}
-
-	/**
-	 * Release all recorded information about the {@link LexingState}s at every
-	 * position.  This is done between top-level expressions (1) to ensure that
-	 * lexers defined by a top-level expression are able to run without caching
-	 * stale tokens, and (2) to reduce the memory load.
-	 */
-	void clearLexingStates ()
-	{
-		lexingStatesLock.writeLock().lock();
-		try
-		{
-			lexingStates.clear();
-		}
-		finally
-		{
-			lexingStatesLock.writeLock().unlock();
 		}
 	}
 

@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -5008,18 +5007,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext)
+	LexingState o_NextLexingState (
+		final AvailObject object)
 	{
-		return o_Traversed(object).nextLexingStateIn(compilationContext);
+		return o_Traversed(object).nextLexingState();
 	}
 
 	@Override
-	void o_SetNextLexingState (
-		final AvailObject object, final @Nullable LexingState lexingState)
+	void o_SetNextLexingStateFromPrior (
+		final AvailObject object, final LexingState priorLexingState)
 	{
-		o_Traversed(object).setNextLexingState(lexingState);
+		o_Traversed(object).setNextLexingStateFromPrior(priorLexingState);
 	}
 
 	@Override

@@ -37,12 +37,12 @@ import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -51,6 +51,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.utility.PrefixSharingList.append;
 
 
 /**
@@ -133,11 +134,6 @@ extends Descriptor
 		/**
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
-		 *
-		 * <p>The field is typically {@link NilDescriptor#nil nil}, to
-		 * indicate the {@link LexingState} should be looked up by position (and
-		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
-		 * </p>
 		 */
 		@HideFieldJustForPrinting
 		NEXT_LEXING_STATE_POJO;
@@ -306,45 +302,38 @@ extends Descriptor
 	}
 
 	@Override
-	LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext)
+	LexingState o_NextLexingState (final AvailObject object)
 	{
-		final AvailObject pojo = object.slot(NEXT_LEXING_STATE_POJO);
-		if (pojo.equalsNil())
-		{
-			// First, figure out where the token ends.
-			final A_Tuple string = object.slot(STRING);
-			final int stringSize = string.tupleSize();
-			final int positionAfter = object.slot(START) + stringSize;
-			int line = object.slot(LINE_NUMBER);
-			for (int i = 1; i <= stringSize; i++)
-			{
-				if (string.tupleCodePointAt(i) == '\n')
-				{
-					line++;
-				}
-			}
-			// Now lookup/capture the next state.
-			final LexingState state =
-				compilationContext.lexingStateAt(positionAfter, line);
-			// Cache it for faster access next time.
-			object.setSlot(
-				NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared());
-			return state;
-		}
-		return pojo.javaObjectNotNull();
+		return object.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull();
 	}
 
 	@Override
-	void o_SetNextLexingState (
+	void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
-		final @Nullable LexingState lexingState)
+		final LexingState priorLexingState)
 	{
-		final AvailObject pojo = lexingState == null
-			? nil
-			: identityPojo(lexingState).makeShared();
-		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
+		// First, figure out where the token ends.
+		final A_Tuple string = object.slot(STRING);
+		final int stringSize = string.tupleSize();
+		final int positionAfter = object.slot(START) + stringSize;
+		int line = object.slot(LINE_NUMBER);
+		for (int i = 1; i <= stringSize; i++)
+		{
+			if (string.tupleCodePointAt(i) == '\n')
+			{
+				line++;
+			}
+		}
+		// Now lookup/capture the next state.
+		final List<A_Token> allTokens =
+			append(priorLexingState.allTokens, object);
+		final LexingState state = new LexingState(
+			priorLexingState.compilationContext,
+			positionAfter,
+			line,
+			allTokens);
+		object.setSlot(
+			NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared());
 	}
 
 	@Override
@@ -408,12 +397,11 @@ extends Descriptor
 	/**
 	 * Create and initialize a new {@link A_Token}.  The {@link
 	 * ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
-	 * NilDescriptor#nil}.  This indicates that the next lexing state can be
-	 * found by examining the {@link CompilationContext#lexingStateAt(int,
-	 * int)}, adding the length of the string to {@link IntegerSlots#START} for
-	 * the next lexing position, and adding the number of line feeds ({@code
-	 * '\n'}) within the {@link ObjectSlots#STRING} to the initial {@link
-	 * IntegerSlots#LINE_NUMBER} to calculate the final line number.
+	 * NilDescriptor#nil}.  For a token constructed by a lexer body, this pojo
+	 * is updated automatically by the lexical scanning machinery to wrap a new
+	 * {@link LexingState}.  That machinery also sets up the new scanning
+	 * position, the new line number, and the list of {@link
+	 * LexingState#allTokens}.
 	 *
 	 * @param string
 	 *        The token text.

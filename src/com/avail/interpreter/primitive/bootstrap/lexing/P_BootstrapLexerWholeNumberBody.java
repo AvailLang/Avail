@@ -40,16 +40,13 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.*;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -105,17 +102,12 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 			LITERAL,
 			value);
 		token.makeShared();
-		return interpreter.primitiveSuccess(tuple(token));
+		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(
-				stringType(),
-				naturalNumbers(),
-				naturalNumbers()),
-			zeroOrMoreOf(TOKEN.o()));
+		return lexerBodyFunctionType();
 	}
 }

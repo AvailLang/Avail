@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -4865,17 +4864,16 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext)
+	LexingState o_NextLexingState (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	void o_SetNextLexingState (
+	void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
-		final @Nullable LexingState lexingState)
+		final LexingState priorLexingState)
 	{
 		throw unsupportedOperationException();
 	}

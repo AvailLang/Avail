@@ -36,6 +36,7 @@ import com.avail.compiler.CompilationContext;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
@@ -101,6 +102,14 @@ public class LexingState
 	public final int lineNumber;
 
 	/**
+	 * Every token, including whitespace, that has been parsed up to this point,
+	 * from the start of the current top-level statement.  This should also
+	 * include the initial leading whitespace, as we like to put related
+	 * comments before statements.
+	 */
+	public final List<A_Token> allTokens;
+
+	/**
 	 * The immutable {@link List} of {@link A_Token tokens} that may each be
 	 * next, starting at this lexing position.
 	 *
@@ -126,19 +135,28 @@ public class LexingState
 	 * and no actions have been queued to run against that eventual list of
 	 * tokens.
 	 *
+	 * @param compilationContext
+	 *        The {@link CompilationContext} in which compilation is occurring.
 	 * @param position
 	 *        The one-based position in the source.
 	 * @param lineNumber
 	 *        The one-based line number of this position in the source.
+	 * @param allTokens
+	 *        The immutable list of {@link A_Token}s that have been parsed up to
+	 *        this position, starting at the current top-level statement, but
+	 *        including any leading whitespace and comment tokens.
 	 */
 	public LexingState (
 		final CompilationContext compilationContext,
 		final int position,
-		final int lineNumber)
+		final int lineNumber,
+		final List<A_Token> allTokens)
 	{
 		this.compilationContext = compilationContext;
 		this.position = position;
 		this.lineNumber = lineNumber;
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
+		this.allTokens = allTokens;
 	}
 
 	/**
@@ -301,7 +319,7 @@ public class LexingState
 
 	/**
 	 * Run a lexer.  When it completes, decrement the countdown.  If it reaches
-	 * zero, run {@link #lexerBodyWasSuccessful(A_Tuple, AtomicInteger)} with
+	 * zero, run {@link #lexerBodyWasSuccessful(A_Set, AtomicInteger)} with
 	 * all the possible tokens at this position to indicate success (otherwise
 	 * indicate an expectation of a valid token).
 	 *
@@ -331,7 +349,7 @@ public class LexingState
 //		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(compilationContext.getTextInterface());
 		final Continuation1NotNull<AvailObject> onSuccess =
-			newTokens -> lexerBodyWasSuccessful(newTokens, countdown);
+			newTokenRuns -> lexerBodyWasSuccessful(newTokenRuns, countdown);
 		final Continuation1NotNull<Throwable> onFailure =
 			throwable ->
 			{
@@ -373,22 +391,29 @@ public class LexingState
 	 * A lexer body completed successfully with the given tuple of next tokens
 	 * (all tokens that the lexer indicates might be the very next token).
 	 *
-	 * @param newTokens
-	 *        All tokens that might be the very next one, according to the lexer
-	 *        that just completed.
+	 * @param newTokenRuns
+	 *        A set of sequences (tuples) of tokens that represent possible
+	 *        future non-empty lineages of tokens, as produced by lexers.
 	 * @param countdown
 	 *        The {@link AtomicInteger} which counts down to zero with each
 	 *        successful invocation (not each token), then runs all outstanding
 	 *        actions once.
 	 */
 	private synchronized void lexerBodyWasSuccessful (
-		final A_Tuple newTokens,
+		final A_Set newTokenRuns,
 		final AtomicInteger countdown)
 	{
 		final List<A_Token> theNextTokens = stripNull(nextTokens);
-		for (final A_Token token : newTokens)
+		for (final A_Tuple run : newTokenRuns)
 		{
-			theNextTokens.add(token);
+//			assert run.tupleSize() > 0;
+			theNextTokens.add(run.tupleAt(1));
+			LexingState state = this;
+			for (final A_Token token : run)
+			{
+				token.setNextLexingStateFromPrior(state);
+				state = token.nextLexingState();
+			}
 		}
 		if (countdown.decrementAndGet() == 0)
 		{

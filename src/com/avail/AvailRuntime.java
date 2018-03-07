@@ -1614,6 +1614,7 @@ public final class AvailRuntime
 		specials[156] = variableReadWriteType(mostGeneralMapType(), bottom());
 		specials[157] = lexerFilterFunctionType();
 		specials[158] = lexerBodyFunctionType();
+		specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom;
 
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
@@ -1633,6 +1634,7 @@ public final class AvailRuntime
 			SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom,
 			SpecialAtom.SERVER_SOCKET_KEY.atom,
 			SpecialAtom.SOCKET_KEY.atom,
+			SpecialAtom.STATIC_TOKENS_KEY.atom,
 			SpecialAtom.TRUE.atom,
 			CompiledCodeDescriptor.lineNumberKeyAtom(),
 			CompiledCodeDescriptor.methodNameKeyAtom(),
