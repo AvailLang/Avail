@@ -338,6 +338,8 @@ public final class ScannerTest
 		};
 	}
 
+	private static @Nullable Generator<A_Token> nullGenerator = null;
+
 	/**
 	 * The collection of test cases with which to test the {@link AvailScanner}.
 	 * The first item of each {@link Case} is the string to be scanned, and the
@@ -349,70 +351,70 @@ public final class ScannerTest
 	 * input string.
 	 */
 	private static final Case[] tests =
-	{
-		C(""),
+		{
+			C(""),
 
-		// integers
-		C("0", L(0,"0")),
-		C("1", L(1,"1")),
-		C("123", L(123,"123")),
-		C("1 2", L(1,"1"), L(2,"2", 3)),
-		C("-12", O("-"), L(12, "12", 2)),
+			// integers
+			C("0", L(0,"0")),
+			C("1", L(1,"1")),
+			C("123", L(123,"123")),
+			C("1 2", L(1,"1"), L(2,"2", 3)),
+			C("-12", O("-"), L(12, "12", 2)),
 
-		// Reals and such:
-		C(".", O(".")),
-		C("..", O("."), O(".",2)),
-		C(".f", O("."), K("f",2)),
-		C(".e5", O("."), K("e5",2)),
-		C("5.", L(5,"5"), O(".",2)),
-		C(".5", O("."), L(5,"5",2)),
-		C("3.14159", L(3,"3"), O(".", 2), L(14159, "14159", 3)),
-		C("123.056", L(123, "123"), O(".", 4), L(56, "056", 5)),
-		C("1d", L(1,"1"), K("d",2)),
-		C("5e", L(5,"5"), K("e",2)),
-		C("5e5", L(5, "5"), K("e5", 2)),
-		C("5e+5", L(5, "5"), K("e", 2), O("+", 3), L(5, "5", 4)),
-		C("5e-5", L(5, "5"), K("e", 2), O("-", 3), L(5, "5", 4)),
-		C("12.34e5f", L(12, "12"), O(".", 3), L(34, "34", 4), K("e5f", 6)),
+			// Reals and such:
+			C(".", O(".")),
+			C("..", O("."), O(".",2)),
+			C(".f", O("."), K("f",2)),
+			C(".e5", O("."), K("e5",2)),
+			C("5.", L(5,"5"), O(".",2)),
+			C(".5", O("."), L(5,"5",2)),
+			C("3.14159", L(3,"3"), O(".", 2), L(14159, "14159", 3)),
+			C("123.056", L(123, "123"), O(".", 4), L(56, "056", 5)),
+			C("1d", L(1,"1"), K("d",2)),
+			C("5e", L(5,"5"), K("e",2)),
+			C("5e5", L(5, "5"), K("e5", 2)),
+			C("5e+5", L(5, "5"), K("e", 2), O("+", 3), L(5, "5", 4)),
+			C("5e-5", L(5, "5"), K("e", 2), O("-", 3), L(5, "5", 4)),
+			C("12.34e5f", L(12, "12"), O(".", 3), L(34, "34", 4), K("e5f", 6)),
 
-		C("hello", K("hello")),
-		C("hello world", K("hello"), K("world",7)),
-		C("hello  world", K("hello"), K("world",8)),
-		C("   cat   dog   ", K("cat",4), K("dog",10)),
-		C("hello-world", K("hello"), O("-",6), K("world",7)),
-		C("𝄞", O("𝄞")),
-		C("𝄞𝄞", O("𝄞"), O("𝄞",3)),
-		C("𝄞𝄞cat", O("𝄞"), O("𝄞",3), K("cat",5)),
-		C("«cat»", O("«"), K("cat",2), O("»",5)),
-		C("\\", O("\\")),
-		C("/", O("/")),
-		C("\\(", O("\\"), O("(",2)),
-		C("`", O("`")),
-		C(";", O(";")),
+			C("hello", K("hello")),
+			C("hello world", K("hello"), K("world",7)),
+			C("hello  world", K("hello"), K("world",8)),
+			C("   cat   dog   ", K("cat",4), K("dog",10)),
+			C("hello-world", K("hello"), O("-",6), K("world",7)),
+			C("𝄞", O("𝄞")),
+			C("𝄞𝄞", O("𝄞"), O("𝄞",3)),
+			C("𝄞𝄞cat", O("𝄞"), O("𝄞",3), K("cat",5)),
+			C("«cat»", O("«"), K("cat",2), O("»",5)),
+			C("\\", O("\\")),
+			C("/", O("/")),
+			C("\\(", O("\\"), O("(",2)),
+			C("`", O("`")),
+			C(";", O(";")),
 
-		C("\"", (Generator<A_Token>)null),
-		C("\"cat", (Generator<A_Token>)null),
-		C("\"\\\"", (Generator<A_Token>)null),
-		C("\"\\\\\"", L("\\","\"\\\\\"")),
-		C("\"cat\"", L("cat","\"cat\"")),
+			C("\"", nullGenerator),
+			C("\"cat", nullGenerator),
+			C("\"\\\"", nullGenerator),
+			C("\"\\\\\"", L("\\","\"\\\\\"")),
+			C("\"cat\"", L("cat","\"cat\"")),
 
-		C("\"ab\\", (Generator<A_Token>)null),
-		C("\"ab\\(", (Generator<A_Token>)null),
-		C("\"ab\\(6", (Generator<A_Token>)null),
-		C("\"ab\\(,", (Generator<A_Token>)null),
-		C("\"ab\\()", (Generator<A_Token>)null),
-		C("\"ab\\(,)", (Generator<A_Token>)null),
-		C("\"ab\\(6,)", (Generator<A_Token>)null),
-		C("\"ab\\(,6)", (Generator<A_Token>)null),
-		C("\"ab\\(63,64)\"", L("abcd","\"ab\\(63,64)\"")),
-		C("\"ab\\(63)\"", L("abc","\"ab\\(63)\"")),
-		C("\"ab\\(063)\"", L("abc","\"ab\\(063)\"")),
-		C("\"ab\\(0063)\"", L("abc","\"ab\\(0063)\"")),
-		C("\"ab\\(00063)\"", L("abc","\"ab\\(00063)\"")),
-		C("\"ab\\(000063)\"", L("abc","\"ab\\(000063)\"")),
+			C("\"ab\\", nullGenerator),
+			C("\"ab\\(", nullGenerator),
+			C("\"ab\\(6", nullGenerator),
+			C("\"ab\\(,", nullGenerator),
+			C("\"ab\\()", nullGenerator),
+			C("\"ab\\(,)", nullGenerator),
+			C("\"ab\\(6,)", nullGenerator),
+			C("\"ab\\(,6)", nullGenerator),
+			C("\"ab\\(63,64)\"", L("abcd","\"ab\\(63,64)\"")),
+			C("\"ab\\(63)\"", L("abc","\"ab\\(63)\"")),
+			C("\"ab\\(063)\"", L("abc","\"ab\\(063)\"")),
+			C("\"ab\\(0063)\"", L("abc","\"ab\\(0063)\"")),
+			C("\"ab\\(00063)\"", L("abc","\"ab\\(00063)\"")),
+			C("\"ab\\(000063)\"", L("abc","\"ab\\(000063)\"")),
 
-		C("  \t  ")
-	};
+			C("  \t  ")
+		};
 
 	/**
 	 * Test: Test basic functionality of the {@link AvailScanner}.

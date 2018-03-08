@@ -4459,7 +4459,9 @@ public final class AvailCompiler
 				return;
 			}
 			final List<ParserState> afterWhitespace =
-				afterWhitespaceHolder.value();
+				afterWhitespaceHolder.value == null
+					? emptyList()
+					: afterWhitespaceHolder.value;
 			if (afterWhitespace.size() == 1)
 			{
 				parseOutermostStatementWithoutWhitespace(

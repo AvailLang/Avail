@@ -67,6 +67,7 @@ import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -245,14 +246,15 @@ public class LexingState
 		{
 			// The end of the source code.  Produce an end-of-file token.
 			assert position == source.tupleSize() + 1;
-			theNextTokens.add(
-				newToken(
-					emptyTuple(),
-					emptyTuple(),
-					emptyTuple(),
-					position,
-					lineNumber,
-					END_OF_FILE));
+			final A_Token endOfFileToken = newToken(
+				stringFrom("end-of-file"),
+				emptyTuple(),
+				emptyTuple(),
+				position,
+				lineNumber,
+				END_OF_FILE);
+			endOfFileToken.setNextLexingStateFromPrior(this);
+			theNextTokens.add(endOfFileToken);
 			for (final Continuation1NotNull<List<A_Token>> action : actions)
 			{
 				workUnitDo(action, theNextTokens);

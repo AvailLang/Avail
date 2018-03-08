@@ -94,7 +94,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 				// nesting of the comment (with "*/").  Reject the lexing with a
 				// suitable warning.
 				throw new AvailRejectedParseException(
-					"Missing '*/' to close (nestable) block comment");
+					"Subsequent '*/' to close this (nestable) block comment");
 			}
 
 			// At least two characters are available to examine.

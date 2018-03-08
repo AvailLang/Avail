@@ -33,7 +33,6 @@ package com.avail.compiler.problems;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
@@ -331,13 +330,13 @@ public class CompilerDiagnostics
 				state.position,
 				state.lineNumber,
 				WHITESPACE);
+			emptyToken.setNextLexingStateFromPrior(state);
 			continuation.value(emptyToken.makeShared());
 			return;
 		}
 		continuation.value(
 			candidates.stream()
-				.max(Comparator.comparing(
-					(A_Token t) -> t.string().tupleSize()))
+				.max(Comparator.comparing(t -> t.string().tupleSize()))
 				.get());
 	}
 
@@ -378,8 +377,6 @@ public class CompilerDiagnostics
 			final Map<LexingState, List<Describer>> innerMap =
 				expectations.get(sourcePosition);
 			assert !innerMap.isEmpty();
-			final CompilationContext compilationContext =
-				innerMap.keySet().iterator().next().compilationContext;
 			// Due to local lexer ambiguity, there may be multiple possible
 			// tokens at this position.  Choose the longest for the purpose
 			// of displaying the diagnostics.  We only care about the tokens
