@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.compiler.AvailCompiler.Con;
+import static com.avail.compiler.AvailCompiler.nextNonwhitespaceTokensDo;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
@@ -570,49 +571,39 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType == END_OF_FILE)
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingState(),
-											start.clientDataMap),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(
-											consumedStaticTokens,
-											syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						start.expected("any token, not end-of-file");
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -647,60 +638,48 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != KEYWORD)
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final TokenType tokenType = token.tokenType();
-									if (tokenType != KEYWORD)
-									{
-										if (consumedAnything)
-										{
-											start.expected(
-												"a keyword token, not "
-													+ token.string());
-										}
-										continue;
-									}
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingState(),
-											start.clientDataMap),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(
-											consumedStaticTokens,
-											syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						if (consumedAnything)
+						{
+							start.expected(
+								"a keyword token, not " +
+									(tokenType == END_OF_FILE
+										 ? "end-of-file"
+										 : tokenType == LITERAL
+											 ? token.literal()
+											 : token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -735,63 +714,49 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != LITERAL
+						|| !token.literal().isInstanceOf(stringType()))
 					{
-						state.lexingState.withTokensDo(nextTokens ->
+						if (consumedAnything)
 						{
-							for (final A_Token token : nextTokens)
-							{
-								final TokenType tokenType = token.tokenType();
-								if (tokenType != LITERAL
-									|| !token.literal().isInstanceOf(
-										stringType()))
-								{
-									if (consumedAnything)
-									{
-										start.expected(
-											"a string literal token, not "
-												+ (tokenType != LITERAL
-													   ? token.string()
-													   : token.literal()));
-									}
-									continue;
-								}
-								final A_Token syntheticToken =
-									literalToken(
-										token.string(),
-										token.leadingWhitespace(),
-										token.trailingWhitespace(),
-										token.start(),
-										token.lineNumber(),
-										SYNTHETIC_LITERAL,
-										token);
-								final A_Phrase literalNode =
-									literalNodeFromToken(syntheticToken);
-								final List<A_Phrase> newArgsSoFar =
-									append(argsSoFar, literalNode);
-								compiler.eventuallyParseRestOfSendNode(
-									new ParserState(
-										token.nextLexingState(),
-										start.clientDataMap),
-									successorTrees.tupleAt(1),
-									null,
-									initialTokenPosition,
-									true,
-									append(
-										consumedStaticTokens,
-										syntheticToken),
-									newArgsSoFar,
-									marksSoFar,
-									continuation);
-							}
-						});
+							start.expected(
+								"a string literal token, not " +
+									(tokenType == END_OF_FILE
+										 ? "end-of-file"
+										 : tokenType == LITERAL
+											 ? token.literal()
+											 : token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -826,67 +791,49 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != LITERAL
+						|| !token.literal().isInstanceOf(wholeNumbers()))
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final TokenType tokenType =
-										token.tokenType();
-									if (tokenType != LITERAL
-										|| !token.literal().isInstanceOf(
-											wholeNumbers()))
-									{
-										if (consumedAnything)
-										{
-											start.expected(
-												"a whole number literal token, "
-													+ "not "
-													+ (token.tokenType()
-														   != LITERAL
-													   ? token.string()
-													   : token.literal()));
-										}
-										continue;
-									}
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingState(),
-											start.clientDataMap),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(
-											consumedStaticTokens,
-											syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						if (consumedAnything)
+						{
+							start.expected(
+								"a whole number literal token, not " +
+									(tokenType == END_OF_FILE
+										? "end-of-file"
+										: tokenType == LITERAL
+									        ? token.literal()
+											: token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 

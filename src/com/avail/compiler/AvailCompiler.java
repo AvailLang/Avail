@@ -58,6 +58,7 @@ import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
@@ -88,7 +89,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.ExpectedToken.*;
@@ -157,7 +157,9 @@ import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * The compiler for Avail code.
@@ -167,15 +169,19 @@ import static java.util.Comparator.comparingInt;
  */
 public final class AvailCompiler
 {
+	/**
+	 * The {@link CompilationContext} for this compiler.  It tracks parsing and
+	 * lexing tasks, and handles serialization to a {@link
+	 * IndexedRepositoryManager repository} if necessary.
+	 */
 	public final CompilationContext compilationContext;
 
 	/**
-	 * The {@link AvailRuntime} for the compiler. Since a compiler cannot
-	 * migrate between two runtime environments, it is safe to cache it for
-	 * efficient access.
+	 * The Avail {@link A_String} containing the complete content of the module
+	 * being compiled.
+	 *
+	 * @return The module source string.
 	 */
-	private final AvailRuntime runtime = currentRuntime();
-
 	public A_String source ()
 	{
 		return compilationContext.source();
@@ -813,7 +819,7 @@ public final class AvailCompiler
 				final List<A_Phrase> phrases =
 					asList(phrase1.value, phrase2.value);
 				stringifyThen(
-					runtime,
+					compilationContext.runtime,
 					compilationContext.getTextInterface(),
 					phrases,
 					phraseStrings ->
@@ -960,7 +966,7 @@ public final class AvailCompiler
 	 */
 	private void commitModuleTransaction ()
 	{
-		runtime.addModule(compilationContext.module());
+		compilationContext.runtime.addModule(compilationContext.module());
 	}
 
 	/**
@@ -1001,7 +1007,7 @@ public final class AvailCompiler
 		fiber.textInterface(compilationContext.getTextInterface());
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
-		runOutermostFunction(runtime, fiber, function, args);
+		runOutermostFunction(compilationContext.runtime, fiber, function, args);
 	}
 
 	/**
@@ -1063,7 +1069,7 @@ public final class AvailCompiler
 			onSuccess.value(outputPhrase);
 		});
 		fiber.failureContinuation(onFailure);
-		runOutermostFunction(runtime, fiber, function, args);
+		runOutermostFunction(compilationContext.runtime, fiber, function, args);
 	}
 
 	/**
@@ -1474,7 +1480,7 @@ public final class AvailCompiler
 	 * containing one empty list phrase.
 	 */
 	private static final List<A_Phrase> initialParseStack =
-		Collections.singletonList(emptyListNode());
+		singletonList(emptyListNode());
 
 	/**
 	 * Pre-build the state of the initial mark stack.  This stack keeps track of
@@ -1821,7 +1827,7 @@ public final class AvailCompiler
 					final A_BundleTree finalBundleTree = bundleTree;
 					start.expected(
 						continueWithDescription -> stringifyThen(
-							runtime,
+							compilationContext.runtime,
 							compilationContext.getTextInterface(),
 							latestPhrase.expressionType(),
 							actualTypeString -> describeFailedTypeTestThen(
@@ -1917,7 +1923,6 @@ public final class AvailCompiler
 		final A_Map tokenMap,
 		final boolean caseInsensitive)
 	{
-		final AtomicBoolean ambiguousWhitespace = new AtomicBoolean(false);
 		skipWhitespaceAndComments(
 			start,
 			afterWhiteSpaceStates ->
@@ -1995,14 +2000,46 @@ public final class AvailCompiler
 										caseInsensitive
 											? A_Token::lowerCaseString
 											: A_Token::string)
-									.collect(Collectors.toSet());
+									.collect(toSet());
 							expectedKeywordsOf(
 								start, tokenMap, caseInsensitive, strings);
 						}
 					});
 				}
 			},
-			ambiguousWhitespace);
+			new AtomicBoolean(false));
+	}
+
+	/**
+	 * Skip whitespace and comments, and evaluate the given {@link
+	 * Continuation1NotNull} with each possible successive {@link A_Token}s.
+	 *
+	 * @param start
+	 *        Where to start scanning.
+	 * @param continuation
+	 *        What to do with each possible next non-whitespace token.
+	 */
+	static void nextNonwhitespaceTokensDo (
+		final ParserState start,
+		final Continuation1NotNull<A_Token> continuation)
+	{
+		skipWhitespaceAndComments(
+			start,
+			statesAfterWhitespace ->
+			{
+				for (final ParserState state : statesAfterWhitespace)
+				{
+					state.lexingState.withTokensDo(
+						tokens ->
+						{
+							for (final A_Token token : tokens)
+							{
+								continuation.value(token);
+							}
+						});
+				}
+			},
+			new AtomicBoolean(false));
 	}
 
 	/**
@@ -2022,9 +2059,13 @@ public final class AvailCompiler
 	 * @param continuation
 	 *        What to invoke with the collection of successor tokens.
 	 * @param ambiguousWhitespace
-	 *        A flag that is set if ambiguous whitespace is encountered.
+	 *        An {@link AtomicBoolean}, which should be set to {@code false} by
+	 *        the outermost caller, but will be set to {@code true} if any part
+	 *        of the sequence of whitespace tokens is determined to be
+	 *        ambiguously scanned.  The ambiguity will be reported in that case,
+	 *        so there's no need for the client to ever read the value.
 	 */
-	@InnerAccess void skipWhitespaceAndComments (
+	private static void skipWhitespaceAndComments (
 		final ParserState start,
 		final Continuation1NotNull<List<ParserState>> continuation,
 		final AtomicBoolean ambiguousWhitespace)
@@ -2076,7 +2117,7 @@ public final class AvailCompiler
 									start.expected(
 										"the comment or whitespace ("
 											+ token.string().tupleSize()
-											+ ") characters to be uniquely"
+											+ " characters) to be uniquely"
 											+ " lexically scanned.  There are"
 											+ " probably multiple conflicting"
 											+ " lexers visible in this"
@@ -2108,7 +2149,7 @@ public final class AvailCompiler
 					// The common case where no interpretation is
 					// whitespace/comment, but there's a non-whitespace token
 					// (or end of file).  Allow parsing to continue right here.
-					continuation.value(Collections.singletonList(start));
+					continuation.value(singletonList(start));
 				}
 				return;
 			}
@@ -2118,8 +2159,7 @@ public final class AvailCompiler
 				final A_Token token = toSkip.get(0);
 				skipWhitespaceAndComments(
 					new ParserState(
-						token.nextLexingState(),
-						start.clientDataMap),
+						token.nextLexingState(), start.clientDataMap),
 					continuation,
 					ambiguousWhitespace);
 				return;
@@ -2137,8 +2177,7 @@ public final class AvailCompiler
 			{
 				// Common case of an unambiguous whitespace/comment token.
 				final ParserState after = new ParserState(
-					tokenToSkip.nextLexingState(),
-					start.clientDataMap);
+					tokenToSkip.nextLexingState(), start.clientDataMap);
 				skipWhitespaceAndComments(
 					after,
 					partialList ->
@@ -2214,7 +2253,7 @@ public final class AvailCompiler
 		final List<A_Type> types = new ArrayList<>(definitionsByType.keySet());
 		// Generate the type names in parallel.
 		stringifyThen(
-			runtime,
+			compilationContext.runtime,
 			compilationContext.getTextInterface(),
 			types,
 			typeNames ->
@@ -2483,7 +2522,7 @@ public final class AvailCompiler
 				}
 			}));
 		runOutermostFunction(
-			runtime, fiber, prefixFunction, listOfArgs);
+			compilationContext.runtime, fiber, prefixFunction, listOfArgs);
 	}
 
 	/**
@@ -2542,7 +2581,7 @@ public final class AvailCompiler
 				if (finalType.isBottom() || finalType.isTop())
 				{
 					onFailure.value(c -> stringifyThen(
-						runtime,
+						compilationContext.runtime,
 						compilationContext.getTextInterface(),
 						argTypes.get(finalIndex - 1),
 						s -> c.value(format(
@@ -2561,7 +2600,7 @@ public final class AvailCompiler
 		final A_Set allAncestors = compilationContext.module().allAncestors();
 		final List<A_Definition> filteredByTypes = macroOrNil.equalsNil()
 			? method.filterByTypes(argTypes)
-			: Collections.singletonList(macroOrNil);
+			: singletonList(macroOrNil);
 		final List<A_Definition> satisfyingDefinitions = new ArrayList<>();
 		for (final A_Definition definition : filteredByTypes)
 		{
@@ -2858,7 +2897,7 @@ public final class AvailCompiler
 				}
 			}
 			stringifyThen(
-				runtime,
+				compilationContext.runtime,
 				compilationContext.getTextInterface(),
 				uniqueValues,
 				strings ->
@@ -3534,7 +3573,7 @@ public final class AvailCompiler
 						PARSE_PHRASE.mostGeneralType()))
 					{
 						stateAfterCall.expected(
-							Collections.singletonList(replacement),
+							singletonList(replacement),
 							list -> format(
 								"Macro body for %s to have "
 									+ "produced a phrase, not %s",
@@ -3633,29 +3672,19 @@ public final class AvailCompiler
 	/**
 	 * Check a property of the Avail virtual machine.
 	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
-	 * @param state
-	 *        The {@linkplain ParserState state} following a parse of the
-	 *        {@linkplain ModuleHeader module header}.
 	 * @param propertyName
 	 *        The name of the property that is being checked.
 	 * @param propertyValue
 	 *        A value that should be checked, somehow, for conformance.
 	 * @param success
 	 *        What to do after the check completes successfully.
-	 * @param failure
-	 *        What to do after the check completes unsuccessfully.
 	 * @throws MalformedPragmaException
 	 *         If there's a problem with this check pragma.
 	 */
 	private static void pragmaCheckThen (
-		final A_Token pragmaToken,
-		final ParserState state,
 		final String propertyName,
 		final String propertyValue,
-		final Continuation0 success,
-		final Continuation0 failure)
+		final Continuation0 success)
 	throws MalformedPragmaException
 	{
 		switch (propertyName)
@@ -3963,26 +3992,15 @@ public final class AvailCompiler
 	 * Apply a {@link ExpectedToken#PRAGMA_CHECK check} pragma that was detected
 	 * during parse of the {@linkplain ModuleHeader module header}.
 	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
 	 * @param pragmaValue
 	 *        The pragma {@link String} after {@code "check="}.
-	 * @param state
-	 *        The {@linkplain ParserState parse state} following a parse of the
-	 *        module header.
 	 * @param success
 	 *        What to do after the pragmas have been applied successfully.
-	 * @param failure
-	 *        What to do if a problem is found with one of the pragma
-	 *        definitions.
 	 * @throws MalformedPragmaException if the pragma is malformed.
 	 */
 	private static void applyCheckPragmaThen (
-		final A_Token pragmaToken,
 		final String pragmaValue,
-		final ParserState state,
-		final Continuation0 success,
-		final Continuation0 failure)
+		final Continuation0 success)
 	throws MalformedPragmaException
 	{
 		final String[] parts = pragmaValue.split("=", 2);
@@ -3993,8 +4011,7 @@ public final class AvailCompiler
 		}
 		final String propertyName = parts[0].trim();
 		final String propertyValue = parts[1].trim();
-		pragmaCheckThen(
-			pragmaToken, state, propertyName, propertyValue, success, failure);
+		pragmaCheckThen(propertyName, propertyValue, success);
 	}
 
 	/**
@@ -4319,8 +4336,7 @@ public final class AvailCompiler
 					{
 						assert pragmaKind.equals(
 							PRAGMA_CHECK.lexemeJavaString);
-						applyCheckPragmaThen(
-							pragmaToken, pragmaValue, state, next, failure);
+						applyCheckPragmaThen(pragmaValue, next);
 						break;
 					}
 					case "method":
@@ -4409,7 +4425,8 @@ public final class AvailCompiler
 				// the module.
 				final @Nullable String errorString =
 					moduleHeader().applyToModule(
-						compilationContext.module(), runtime);
+						compilationContext.module(),
+						compilationContext.runtime);
 				if (errorString != null)
 				{
 					compilationContext.getProgressReporter().value(

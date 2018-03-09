@@ -216,7 +216,7 @@ public final class Strings
 	}
 
 	/** A regex {@link Pattern} containing just a line break. */
-	private static final Pattern lineBreakPattern =
+	public static final Pattern lineBreakPattern =
 		Pattern.compile("\n", Pattern.LITERAL);
 
 	/**

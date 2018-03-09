@@ -390,7 +390,13 @@ Public macro "¢…!" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
-	‘tokenPhrase's token's lexeme[1]’
+	lexeme ::= tokenPhrase's token's lexeme;
+	If |lexeme| ≠ 1 then
+	[
+		Reject parse, expected:
+			"a single-character token or single-character literal string"
+	];
+	‘lexeme[1]’
 ];
 
 /**

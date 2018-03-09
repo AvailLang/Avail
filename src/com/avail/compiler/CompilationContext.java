@@ -103,7 +103,7 @@ public class CompilationContext
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
 	 */
-	private final AvailRuntime runtime = currentRuntime();
+	public final AvailRuntime runtime = currentRuntime();
 
 	/**
 	 * The header information for the current module being parsed.

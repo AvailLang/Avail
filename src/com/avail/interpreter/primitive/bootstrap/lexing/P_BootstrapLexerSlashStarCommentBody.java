@@ -87,7 +87,6 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		int depth = 1;
 		while (true)
 		{
-			final int c = source.tupleCodePointAt(position);
 			if (position >= sourceSize)
 			{
 				// There aren't two characters left, so it can't close the outer
@@ -98,6 +97,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 			}
 
 			// At least two characters are available to examine.
+			final int c = source.tupleCodePointAt(position);
 			if (c == '*' && source.tupleCodePointAt(position + 1) == '/')
 			{
 				// Close a nesting level.

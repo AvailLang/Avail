@@ -237,10 +237,7 @@ public class LexingState
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		final List<A_Token> theNextTokens = new ArrayList<>(2);
-		nextTokens = theNextTokens;
-		final LexicalScanner scanner =
-			compilationContext.loader().lexicalScanner();
+		nextTokens = new ArrayList<>(2);
 		final A_String source = compilationContext.source();
 		if (position > source.tupleSize())
 		{
@@ -253,20 +250,17 @@ public class LexingState
 				position,
 				lineNumber,
 				END_OF_FILE);
-			endOfFileToken.setNextLexingStateFromPrior(this);
-			theNextTokens.add(endOfFileToken);
+			nextTokens.add(endOfFileToken);
 			for (final Continuation1NotNull<List<A_Token>> action : actions)
 			{
-				workUnitDo(action, theNextTokens);
+				workUnitDo(action, nextTokens);
 			}
 			actions = null;
 			return;
 		}
-		final int codePoint =
-			compilationContext.source().tupleCodePointAt(position);
-		scanner.getLexersForCodePointThen(
+		compilationContext.loader().lexicalScanner().getLexersForCodePointThen(
 			this,
-			codePoint,
+			source.tupleCodePointAt(position),
 			this::evaluateLexers,
 			this::reportLexerFilterFailures);
 	}
