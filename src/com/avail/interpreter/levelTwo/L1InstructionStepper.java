@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
+	.createContinuationWithFrame;
 import static com.avail.descriptor.ContinuationDescriptor
 	.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
@@ -78,6 +78,7 @@ import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Arrays.asList;
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
@@ -756,17 +757,15 @@ public final class L1InstructionStepper
 	{
 		final A_Function function = stripNull(interpreter.function);
 		final A_Continuation continuation =
-			createContinuationExceptFrame(
+			createContinuationWithFrame(
 				function,
 				nil,
 				instructionDecoder.pc(),   // Right after the set-variable.
 				stackp,
 				unoptimizedChunk,
-				entryPoint.offsetInDefaultChunk);
-		for (int i = function.code().numSlots(); i > 0; i--)
-		{
-			continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
-		}
+				entryPoint.offsetInDefaultChunk,
+				asList(pointers),
+				1);
 		if (Interpreter.debugL2)
 		{
 			Interpreter.log(

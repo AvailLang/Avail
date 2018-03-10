@@ -163,7 +163,7 @@ extends Descriptor
 		 * A fake slot to present in the debugging view for each of the elements
 		 * of this set.
 		 */
-		ELEMENT_
+		ELEMENT_;
 	}
 
 	/**

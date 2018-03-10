@@ -286,7 +286,7 @@ extends Descriptor
 		 * in the {@linkplain IntegerSlots#NYBBLECODES_}.
 		 */
 		@HideFieldInDebugger
-		LITERAL_AT_
+		LITERAL_AT_;
 	}
 
 	/**
@@ -1385,10 +1385,9 @@ extends Descriptor
 		for (final A_Tuple tuple : asList(
 			literals, outerTypes, localVariableTypes, localConstantTypes))
 		{
-			for (final AvailObject literal : tuple)
-			{
-				code.setSlot(LITERAL_AT_, literalIndex++, literal);
-			}
+			code.setSlotsFromTuple(
+				LITERAL_AT_, literalIndex, tuple, 1, tuple.tupleSize());
+			literalIndex += tuple.tupleSize();
 		}
 
 		final A_Atom propertyAtom = createAtomWithProperties(

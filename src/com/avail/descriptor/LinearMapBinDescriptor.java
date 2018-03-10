@@ -33,11 +33,13 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
@@ -126,7 +128,7 @@ extends MapBinDescriptor
 		 * The elements of this bin. The elements are never sub-bins, since
 		 * this is a {@linkplain LinearMapBinDescriptor linear bin}, a leaf bin.
 		 */
-		BIN_SLOT_AT_
+		BIN_SLOT_AT_;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -193,7 +195,7 @@ extends MapBinDescriptor
 	 *        LinearMapBinDescriptor}.
 	 * @return The number of entries in the bin.
 	 */
-	private static int entryCount (final AvailObject object)
+	@InnerAccess static int entryCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount() >> 1;
 	}
@@ -202,6 +204,20 @@ extends MapBinDescriptor
 	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_SLOT_AT_, subscript);
+	}
+
+	@Override @AvailMethod
+	void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		final int limit = entryCount(object) << 1;
+		for (int i = 1; i <= limit; i += 2)
+		{
+			action.accept(
+				object.slot(BIN_SLOT_AT_, i),
+				object.slot(BIN_SLOT_AT_, i + 1));
+		}
 	}
 
 	@Override @AvailMethod
@@ -293,7 +309,7 @@ extends MapBinDescriptor
 				newBin.setSlot(BIN_SLOT_AT_, i << 1, value);
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
 				// The keys didn't change.
-//				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
 				newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 				check(newBin);
 				return newBin;

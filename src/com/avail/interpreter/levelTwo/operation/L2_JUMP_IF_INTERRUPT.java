@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -42,7 +41,8 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+	.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.IFNE;
@@ -58,7 +58,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_INTERRUPT
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_INTERRUPT}.

@@ -81,7 +81,7 @@ extends Descriptor
 		CODE,
 
 		/** The outer variables. */
-		OUTER_VAR_AT_
+		OUTER_VAR_AT_;
 	}
 
 	@Override
@@ -351,11 +351,13 @@ extends Descriptor
 		final A_BasicObject code,
 		final A_Tuple copiedTuple)
 	{
-		final AvailObject object = mutable.create(copiedTuple.tupleSize());
+		final int copiedSize = copiedTuple.tupleSize();
+		final AvailObject object = mutable.create(copiedSize);
 		object.setSlot(CODE, code);
-		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
+		if (copiedSize > 0)
 		{
-			object.setSlot(OUTER_VAR_AT_, i, copiedTuple.tupleAt(i));
+			object.setSlotsFromTuple(
+				OUTER_VAR_AT_, 1, copiedTuple, 1, copiedSize);
 		}
 		return object;
 	}

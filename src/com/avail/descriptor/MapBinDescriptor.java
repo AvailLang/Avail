@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
 import javax.annotation.Nullable;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.MapBinDescriptor.IntegerSlots.KEYS_HASH;
 
@@ -79,6 +80,11 @@ extends Descriptor
 	{
 		return object.slot(KEYS_HASH);
 	}
+
+	@Override @AvailMethod
+	abstract void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action);
 
 	@Override @AvailMethod
 	abstract int o_MapBinValuesHash (final AvailObject object);

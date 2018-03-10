@@ -32,12 +32,17 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -54,7 +59,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -75,7 +81,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_LOOKUP_BY_VALUES
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_LOOKUP_BY_VALUES}.

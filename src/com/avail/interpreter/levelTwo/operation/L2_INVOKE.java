@@ -37,7 +37,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -54,7 +53,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+	.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -78,7 +78,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_INVOKE
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_INVOKE}.

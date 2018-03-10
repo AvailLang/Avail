@@ -90,6 +90,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
@@ -2562,16 +2563,6 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_StackAt (
 		AvailObject object,
 		int slotIndex);
-
-	/**
-	 * @param object
-	 * @param slotIndex
-	 * @param anObject
-	 */
-	abstract void o_StackAtPut (
-		AvailObject object,
-		int slotIndex,
-		A_BasicObject anObject);
 
 	/**
 	 * @param object
@@ -6792,7 +6783,6 @@ public abstract class AbstractDescriptor
 	abstract int o_CurrentLineNumber (final AvailObject object);
 
 	/**
-	 *
 	 * @param object
 	 * @return
 	 */
@@ -6804,4 +6794,20 @@ public abstract class AbstractDescriptor
 	 */
 	abstract LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
 		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param action
+	 */
+	abstract void o_ForEach (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action);
+
+	/**
+	 * @param object
+	 * @param action
+	 */
+	abstract void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action);
 }

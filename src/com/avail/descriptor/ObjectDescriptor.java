@@ -581,14 +581,16 @@ extends Descriptor
 		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
 		final AvailObject result =
 			mutableDescriptor.create(variant.realSlotCount);
-		for (final Entry entry : map.mapIterable())
-		{
-			final int slotIndex = slotMap.get(entry.key());
-			if (slotIndex > 0)
+		map.forEach(
+			(key, value) ->
 			{
-				result.setSlot(FIELD_VALUES_, slotIndex, entry.value());
+				final int slotIndex = slotMap.get(key);
+				if (slotIndex > 0)
+				{
+					result.setSlot(FIELD_VALUES_, slotIndex, value);
+				}
 			}
-		}
+		);
 		result.setSlot(KIND, nil);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;

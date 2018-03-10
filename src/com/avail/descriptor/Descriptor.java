@@ -83,6 +83,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.LinearSetBinDescriptor
 	.createLinearSetBinPair;
@@ -146,7 +147,7 @@ extends AbstractDescriptor
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
 		 */
-		ALL_OBJECT_SLOTS_
+		ALL_OBJECT_SLOTS_;
 	}
 
 	@Override
@@ -1248,15 +1249,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_StackAt (final AvailObject object, final int slotIndex)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_StackAtPut (
-		final AvailObject object,
-		final int slotIndex,
-		final A_BasicObject anObject)
 	{
 		throw unsupportedOperationException();
 	}
@@ -5000,6 +4992,22 @@ extends AbstractDescriptor
 	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
 		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ForEach (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
 		throw unsupportedOperationException();
 	}

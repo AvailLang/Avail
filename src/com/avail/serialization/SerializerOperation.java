@@ -64,7 +64,7 @@ import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor
 	.compiledCodeTypeForFunctionType;
 import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
+	.createContinuationWithFrame;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newDeclaration;
@@ -94,10 +94,7 @@ import static com.avail.descriptor.MapTypeDescriptor
 	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PermutedListPhraseDescriptor
 	.newPermutedListNode;
@@ -116,6 +113,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
@@ -1555,9 +1553,8 @@ public enum SerializerOperation
 			final A_Tuple frameSlots = subobjects[2];
 			final A_Number pcInteger = subobjects[3];
 			final A_Number stackpInteger = subobjects[4];
-			final int frameSlotCount = frameSlots.tupleSize();
 			final A_Continuation continuation =
-				createContinuationExceptFrame(
+				createContinuationWithFrame(
 					function,
 					caller,
 					pcInteger.extractInt(),
@@ -1565,13 +1562,10 @@ public enum SerializerOperation
 					unoptimizedChunk,
 					pcInteger.equalsInt(0)
 						? TO_RESTART.offsetInDefaultChunk
-						: TO_RETURN_INTO.offsetInDefaultChunk);
-			for (int i = 1; i <= frameSlotCount; i++)
-			{
-				continuation.argOrLocalOrStackAtPut(i, frameSlots.tupleAt(i));
-			}
-			continuation.makeImmutable();
-			return continuation;
+						: TO_RETURN_INTO.offsetInDefaultChunk,
+					toList(frameSlots),
+					0);
+			return continuation.makeImmutable();
 		}
 	},
 

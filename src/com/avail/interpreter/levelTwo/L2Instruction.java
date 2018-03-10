@@ -217,7 +217,7 @@ public final class L2Instruction
 	 */
 	public boolean altersControlFlow ()
 	{
-		return operation.altersControlFlow;
+		return operation.altersControlFlow();
 	}
 
 	/**

@@ -43,6 +43,8 @@ import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.List;
+
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.*;
@@ -71,7 +73,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_INTERPRET_LEVEL_ONE
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_INTERPRET_LEVEL_ONE}.
@@ -90,15 +92,9 @@ extends L2Operation
 		new L2_INTERPRET_LEVEL_ONE();
 
 	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
-	}
-
-	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		// No real optimization should ever be done near this wordcode.

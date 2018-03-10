@@ -40,7 +40,7 @@ import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
-import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedBin;
+import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedHashSetBin;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
 import static com.avail.descriptor.Mutability.*;
@@ -97,7 +97,7 @@ extends SetBinDescriptor
 		 * The elements of this bin.  The elements are never sub-bins, since
 		 * this is a {@linkplain LinearSetBinDescriptor linear bin}, a leaf bin.
 		 */
-		BIN_ELEMENT_AT_
+		BIN_ELEMENT_AT_;
 	}
 
 	/**
@@ -184,27 +184,19 @@ extends SetBinDescriptor
 				bitVector |= 1L << bitPosition;
 			}
 			final int newLocalSize = bitCount(bitVector);
-			result = createInitializedBin(
+			result = createInitializedHashSetBin(
 				myLevel, newLocalSize, 0, 0, bitVector, nil);
-			for (int i = 0; i <= oldSize; i++)
+			result.setBinAddingElementHashLevelCanDestroy(
+				elementObject, elementObjectHash, myLevel, true);
+			for (int i = 1; i <= oldSize; i++)
 			{
-				final A_BasicObject eachElement;
-				final int eachHash;
-				if (i == 0)
-				{
-					eachElement = elementObject;
-					eachHash = elementObjectHash;
-				}
-				else
-				{
-					eachElement = object.slot(BIN_ELEMENT_AT_, i);
-					eachHash = eachElement.hash();
-				}
+				final A_BasicObject eachElement =
+					object.slot(BIN_ELEMENT_AT_, i);
 				final A_BasicObject localAddResult =
 					result.setBinAddingElementHashLevelCanDestroy(
-						eachElement, eachHash, myLevel, true);
+						eachElement, eachElement.hash(), myLevel, true);
 				assert localAddResult.sameAddressAs(result)
-				: "The element should have been added without reallocation";
+					: "The element should have been added without reallocation";
 			}
 			assert result.setBinSize() == oldSize + 1;
 			assert object.setBinHash() == oldHash;

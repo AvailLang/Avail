@@ -40,6 +40,8 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.List;
+
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
@@ -50,7 +52,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_JUMP}.
@@ -69,7 +71,7 @@ extends L2Operation
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		// No effect on registers; it just jumps unconditionally.
@@ -80,12 +82,6 @@ extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
 	}
 
 	/**

@@ -37,7 +37,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
@@ -64,7 +63,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_RETURN_FROM_REIFICATION_HANDLER
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_RETURN_FROM_REIFICATION_HANDLER}.
@@ -96,12 +95,6 @@ extends L2Operation
 	{
 		// Never remove this.
 		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
 	}
 
 	@Override

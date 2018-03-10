@@ -186,7 +186,7 @@ extends Descriptor
 		 * (growing downwards from the top).  At its deepest, the stack slots
 		 * will abut the last local.
 		 */
-		FRAME_AT_
+		FRAME_AT_;
 	}
 
 	@Override
@@ -458,19 +458,6 @@ extends Descriptor
 		return object.slot(FRAME_AT_, subscript);
 	}
 
-	/**
-	 * Write to the stack at the given subscript, which is one-relative and
-	 * based on just the stack area.
-	 */
-	@Override @AvailMethod
-	void o_StackAtPut (
-		final AvailObject object,
-		final int subscript,
-		final A_BasicObject anObject)
-	{
-		object.setSlot(FRAME_AT_, subscript, anObject);
-	}
-
 	@Override @AvailMethod
 	int o_Stackp (final AvailObject object)
 	{
@@ -491,7 +478,7 @@ extends Descriptor
 	 * @param startingOffset
 	 *        The offset into the chunk at which to resume.
 	 * @param args
-	 *        The {@link List} of arguments
+	 *        The {@link List} of arguments.
 	 * @return The new continuation.
 	 */
 	public static A_Continuation createLabelContinuation (
@@ -513,19 +500,14 @@ extends Descriptor
 		//  Set up arguments...
 		final int numArgs = args.size();
 		assert numArgs == code.numArgs();
-		int slotIndex = 1;
-		for (final AvailObject arg : args)
-		{
-			// Arguments area.  These are used by P_RestartContinuation, but
-			// they're replaced before resumption if using
-			// P_RestartContinuationWithArguments.
-			cont.argOrLocalOrStackAtPut(slotIndex++, arg);
-		}
-		while (slotIndex <= frameSize)
-		{
-			// All the remaining slots.  DO NOT capture or build locals.
-			cont.argOrLocalOrStackAtPut(slotIndex++, nil);
-		}
+
+		// Arguments area.  These are used by P_RestartContinuation, but they're
+		// replaced before resumption if using
+		// P_RestartContinuationWithArguments.
+		cont.setSlotsFromList(FRAME_AT_, 1, args, 0, numArgs);
+
+		// All the remaining slots.  DO NOT capture or build locals.
+		cont.fillSlots(FRAME_AT_, numArgs + 1, frameSize - numArgs, nil);
 		return cont;
 	}
 
@@ -565,6 +547,46 @@ extends Descriptor
 		continuation.setSlot(STACK_POINTER, stackp);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
 		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
+		return continuation;
+	}
+
+	/**
+	 * Create a mutable continuation with the specified fields.  Initialize the
+	 * stack slot from the list of fields.
+	 *
+	 * @param function
+	 *            The function being invoked/resumed.
+	 * @param caller
+	 *            The calling continuation of this continuation.
+	 * @param pc
+	 *            The level one program counter.
+	 * @param stackp
+	 *            The level one operand stack depth.
+	 * @param levelTwoChunk
+	 *            The {@linkplain L2Chunk level two chunk} to execute.
+	 * @param levelTwoOffset
+	 *            The level two chunk offset at which to resume.
+	 * @return A new mutable continuation.
+	 */
+	public static A_Continuation createContinuationWithFrame (
+		final A_Function function,
+		final A_Continuation caller,
+		final int pc,
+		final int stackp,
+		final L2Chunk levelTwoChunk,
+		final int levelTwoOffset,
+		final List <? extends A_BasicObject> frameValues,
+		final int zeroBasedStartIndex)
+	{
+		final AvailObject continuation =
+			(AvailObject) createContinuationExceptFrame(
+				function, caller, pc, stackp, levelTwoChunk, levelTwoOffset);
+		continuation.setSlotsFromList(
+			FRAME_AT_,
+			1,
+			frameValues,
+			zeroBasedStartIndex,
+			continuation.numSlots());
 		return continuation;
 	}
 

@@ -116,7 +116,7 @@ extends TypeDescriptor
 		 * object fields to these slots is determined by the descriptor's {@link
 		 * ObjectTypeDescriptor#variant}.
 		 */
-		FIELD_TYPES_
+		FIELD_TYPES_;
 	}
 
 	@Override

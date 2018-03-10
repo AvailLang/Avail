@@ -74,6 +74,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@linkplain MessageBundleTreeDescriptor message bundle tree} is used by the
@@ -421,27 +422,27 @@ extends Descriptor
 		if (bundleCount <= 15)
 		{
 			final Map<String, Integer> strings = new HashMap<>(bundleCount);
-			for (final Entry entry : allPlansInProgress.mapIterable())
-			{
-				for (final Entry entry2
-					: entry.value().mapIterable())
-				{
-					for (final A_ParsingPlanInProgress planInProgress
-						: entry2.value())
+			allPlansInProgress.forEach(
+				(A_Bundle bundle, A_Map value) -> value.forEach(
+					(A_Definition definition, A_Set plansInProgress) ->
 					{
-						final String string =
-							planInProgress.nameHighlightingPc();
-						if (strings.containsKey(string))
+						for (final A_ParsingPlanInProgress planInProgress
+							: plansInProgress)
 						{
-							strings.put(string, (strings.get(string) + 1));
-						}
-						else
-						{
-							strings.put(string, 1);
+							final String string =
+								planInProgress.nameHighlightingPc();
+							if (strings.containsKey(string))
+							{
+								strings.put(string, (strings.get(string) + 1));
+							}
+							else
+							{
+								strings.put(string, 1);
+							}
 						}
 					}
-				}
-			}
+					)
+			);
 			final List<String> sorted = new ArrayList<>();
 			for (final Map.Entry<String, Integer> entry : strings.entrySet())
 			{
@@ -580,42 +581,38 @@ extends Descriptor
 
 			// Figure out what the latestBackwardJump will be for any successor
 			// bundle trees that need to be created.
-			A_BundleTree latestBackwardJump;
+			final A_BundleTree latestBackwardJump;
 			if (object.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0)
 			{
 				// New descendants will point to me as a potential target.
-				latestBackwardJump = object;
-				if (object.slot(IS_SOURCE_OF_CYCLE) == 0)
-				{
-					// It's not already the source of a cycle.  See if we can
-					// find an equivalent ancestor to cycle back to.
-					A_BundleTree ancestor = object.slot(LATEST_BACKWARD_JUMP);
-					while (!ancestor.equalsNil())
-					{
-						if (ancestor.allParsingPlansInProgress().equals(
-							allPlansInProgress))
-						{
-							// This ancestor is equivalent to me, so mark me as
-							// a backward cyclic link and plug that exact
-							// ancestor into the LATEST_BACKWARD_JUMP slot.
-							object.setSlot(IS_SOURCE_OF_CYCLE, 1);
-							object.setSlot(LATEST_BACKWARD_JUMP, ancestor);
-							// The caller will deal with fully expanding the
-							// ancestor.
-							return;
-						}
-						ancestor = ancestor.latestBackwardJump();
-					}
-					// We didn't find a usable ancestor to cycle back to.
-					// New successors should link back to me.
-					latestBackwardJump = object;
-				}
-				else
+				if (object.slot(IS_SOURCE_OF_CYCLE) != 0)
 				{
 					// It was already the source of a backward link.  We don't
 					// need to create any more descendants here.
 					return;
 				}
+				// It's not already the source of a cycle.  See if we can
+				// find an equivalent ancestor to cycle back to.
+				A_BundleTree ancestor = object.slot(LATEST_BACKWARD_JUMP);
+				while (!ancestor.equalsNil())
+				{
+					if (ancestor.allParsingPlansInProgress().equals(
+						allPlansInProgress))
+					{
+						// This ancestor is equivalent to me, so mark me as
+						// a backward cyclic link and plug that exact
+						// ancestor into the LATEST_BACKWARD_JUMP slot.
+						object.setSlot(IS_SOURCE_OF_CYCLE, 1);
+						object.setSlot(LATEST_BACKWARD_JUMP, ancestor);
+						// The caller will deal with fully expanding the
+						// ancestor.
+						return;
+					}
+					ancestor = ancestor.latestBackwardJump();
+				}
+				// We didn't find a usable ancestor to cycle back to.
+				// New successors should link back to me.
+				latestBackwardJump = object;
 			}
 			else
 			{
@@ -625,6 +622,7 @@ extends Descriptor
 			}
 
 			// Update my components.
+			final AvailThread thread = (AvailThread) Thread.currentThread();
 			for (final Entry entry : unclassified.mapIterable())
 			{
 				for (final Entry entry2 : entry.value().mapIterable())
@@ -662,8 +660,6 @@ extends Descriptor
 								prefilterMap,
 								typeFilterPairs);
 							final long timeAfter = AvailRuntime.captureNanos();
-							final AvailThread thread =
-								(AvailThread) Thread.currentThread();
 							op.expandingStatisticInNanoseconds.record(
 								timeAfter - timeBefore,
 								thread.interpreter.interpreterIndex);
@@ -688,14 +684,13 @@ extends Descriptor
 				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						toList(typeFilterPairs.value),
-						Collections.singletonList(
+						singletonList(
 							PhraseKind.PARSE_PHRASE.mostGeneralType()),
 						latestBackwardJump);
 				final A_BasicObject pojo = identityPojo(tree);
 				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());
 			}
-			// Do this volatile write last, to minimize false double-checking in
-			// other threads that are also trying to expand this node.
+			// Do this volatile write last for correctness.
 			object.setVolatileSlot(UNCLASSIFIED, emptyMap());
 		}
 	}
@@ -1047,7 +1042,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Categorize a single message/bundle pair.
+	 * Categorize a single parsing plan in progress.
 	 *
 	 * @param bundleTree
 	 *        The {@link A_BundleTree} that we're updating.  The state is passed

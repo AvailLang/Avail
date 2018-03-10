@@ -85,6 +85,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.utility.Nulls.stripNull;
@@ -3287,17 +3288,6 @@ implements
 	}
 
 	@Override
-	public void stackAtPut (
-		final int slotIndex,
-		final A_BasicObject anObject)
-	{
-		descriptor.o_StackAtPut(
-			this,
-			slotIndex,
-			anObject);
-	}
-
-	@Override
 	public int stackp ()
 	{
 		return descriptor.o_Stackp(this);
@@ -6022,5 +6012,19 @@ implements
 	public LookupTree<A_Definition, A_Tuple, Void> testingTree ()
 	{
 		return descriptor.o_TestingTree(this);
+	}
+
+	@Override
+	public void forEach (
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		descriptor.o_ForEach(this, action);
+	}
+
+	@Override
+	public void forEachInMapBin (
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		descriptor.o_ForEachInMapBin(this, action);
 	}
 }

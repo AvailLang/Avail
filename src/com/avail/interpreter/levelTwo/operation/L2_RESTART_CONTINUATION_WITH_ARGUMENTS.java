@@ -39,11 +39,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -57,7 +57,8 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
+import static com.avail.interpreter.levelTwo.operation.L2_REIFY
+	.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
@@ -76,7 +77,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_RESTART_CONTINUATION_WITH_ARGUMENTS
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_RESTART_CONTINUATION_WITH_ARGUMENTS}.
@@ -111,12 +112,6 @@ extends L2Operation
 	{
 		// Never remove this.
 		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
 	}
 
 	/**

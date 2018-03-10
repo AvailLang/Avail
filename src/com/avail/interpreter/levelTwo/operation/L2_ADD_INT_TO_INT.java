@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -57,7 +56,7 @@ import static org.objectweb.asm.Type.INT_TYPE;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_ADD_INT_TO_INT
-extends L2Operation
+extends L2ControlFlowOperation
 {
 	/**
 	 * Construct an {@code L2_ADD_INT_TO_INT}.

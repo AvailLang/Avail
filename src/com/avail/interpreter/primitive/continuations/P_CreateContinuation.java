@@ -49,7 +49,7 @@ import javax.annotation.Nullable;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationExceptFrame;
+	.createContinuationWithFrame;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -59,6 +59,7 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode
@@ -109,17 +110,15 @@ public final class P_CreateContinuation extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_CONTINUATION_STACK_SIZE);
 		}
-		final A_Continuation cont = createContinuationExceptFrame(
+		final A_Continuation cont = createContinuationWithFrame(
 			function,
 			callerHolder.value(),
 			pc.extractInt(),
 			stackp.extractInt(),
 			unoptimizedChunk,
-			TO_RETURN_INTO.offsetInDefaultChunk);
-		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
-		{
-			cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));
-		}
+			TO_RETURN_INTO.offsetInDefaultChunk,
+			toList(stack),
+			0);
 		return interpreter.primitiveSuccess(cont);
 	}
 

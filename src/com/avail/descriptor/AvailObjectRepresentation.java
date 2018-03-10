@@ -34,13 +34,13 @@ package com.avail.descriptor;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 
@@ -631,11 +631,11 @@ implements A_BasicObject
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
 		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
 		checkSlot(field);
 		checkWriteForField(field);
-		// If the receiver is shared, then the new value must become shared
-		// before it can be stored.
 		objectSlots[field.ordinal()] = (AvailObject) anAvailObject;
 	}
 
@@ -653,11 +653,12 @@ implements A_BasicObject
 		final ObjectSlotsEnum field,
 		final A_Continuation aContinuation)
 	{
-		assert field == ObjectSlots.CONTINUATION;
-		checkSlot(field);
-		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
+		//noinspection UnnecessarilyQualifiedInnerClassAccess
+		assert field == FiberDescriptor.ObjectSlots.CONTINUATION;
+		checkSlot(field);
+		checkWriteForField(field);
 		objectSlots[field.ordinal()] = (AvailObject) aContinuation;
 	}
 
@@ -690,13 +691,224 @@ implements A_BasicObject
 		final int subscript,
 		final A_BasicObject anAvailObject)
 	{
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
 		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
+		checkSlot(field);
+		checkWriteForField(field);
+		objectSlots[field.ordinal() + subscript - 1] =
+			(AvailObject) anAvailObject;
+	}
+
+	/**
+	 * Answer {@code true} if all elements of the list are {@link
+	 * Mutability#SHARED shared}, otherwise {@code false}.
+	 *
+	 * @param list The list of Avail objects.
+	 * @return Whether they're all shared.
+	 */
+	private static boolean allShared (
+		final List<? extends A_BasicObject> list)
+	{
+		for (final A_BasicObject element : list)
+		{
+			if (!element.descriptor().isShared())
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Write elements from the given {@link List} into consecutively numbered
+	 * object slots.
+	 *
+	 * @param field
+	 *        The repeated object slot into which to write elements.
+	 * @param startSubscript
+	 *        The positive one-based subscript at which to start writing
+	 *        elements from the {@link List}.
+	 * @param sourceList
+	 *        The {@link List} of objects to write into the slots.
+	 * @param zeroBasedStartSourceSubscript
+	 *        The zero-based subscript into the sourceList from which to start
+	 *        reading.
+	 * @param count
+	 *        How many values to transfer.
+	 */
+	public final void setSlotsFromList (
+		final ObjectSlotsEnum field,
+		final int startSubscript,
+		final List<? extends A_BasicObject> sourceList,
+		final int zeroBasedStartSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared() || allShared(sourceList);
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		objectSlots[field.ordinal() + subscript - 1] =
-			(AvailObject) anAvailObject;
+		int slotIndex = field.ordinal() + startSubscript - 1;
+		int listIndex = zeroBasedStartSourceSubscript;
+		for (int i = 0; i < count; i++)
+		{
+			objectSlots[slotIndex++] =
+				(AvailObject) sourceList.get(listIndex++);
+		}
+	}
+
+	/**
+	 * Read elements from consecutive slots of an array, writing them to
+	 * consecutive slots of the receiver.  It's the client's responsibility to
+	 * ensure the values are suitably immutable or shared.
+	 *
+	 * @param targetField
+	 *        The field of the receiver into which to write values.
+	 * @param startTargetSubscript
+	 *        The positive one-based subscript into the target field at which to
+	 *        start writing.
+	 * @param sourceArray
+	 *        The object supplying values in consecutive slots.
+	 * @param zeroBasedStartSourceSubscript
+	 *        The zero-based subscript into the sourceArray from which to start
+	 *        reading.
+	 * @param count
+	 *        How many values to transfer.
+	 */
+	public final <T extends A_BasicObject> void setSlotsFromArray (
+		final ObjectSlotsEnum targetField,
+		final int startTargetSubscript,
+		final T[] sourceArray,
+		final int zeroBasedStartSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared()
+			: "Block-transfers into shared objects is not supported";
+		checkSlot(targetField);
+		checkWriteForField(targetField);
+		//noinspection SuspiciousSystemArraycopy
+		System.arraycopy(
+			sourceArray,
+			zeroBasedStartSourceSubscript,
+			objectSlots,
+			targetField.ordinal() + startTargetSubscript - 1,
+			count);
+	}
+
+	/**
+	 * Read elements from consecutive slots of a tuple, writing them to
+	 * consecutive slots of the receiver.  It's the client's responsibility to
+	 * ensure the values are suitably immutable or shared.
+	 *
+	 * @param targetField
+	 *        The field of the receiver into which to write values.
+	 * @param startTargetSubscript
+	 *        The positive one-based subscript into the target field at which to
+	 *        start writing.
+	 * @param sourceTuple
+	 *        The tuplesupplying values in consecutive slots.
+	 * @param startSourceSubscript
+	 *        The positive one-based subscript into the sourceTuple from which
+	 *        to start reading.
+	 * @param count
+	 *        How many values to transfer.
+	 */
+	public final void setSlotsFromTuple (
+		final ObjectSlotsEnum targetField,
+		final int startTargetSubscript,
+		final A_Tuple sourceTuple,
+		final int startSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared()
+			: "Block-transfers into shared objects is not supported";
+		checkSlot(targetField);
+		checkWriteForField(targetField);
+		int slotIndex = targetField.ordinal() + startTargetSubscript - 1;
+		int tupleIndex = startSourceSubscript;
+		for (int i = 0; i < count; i++)
+		{
+			objectSlots[slotIndex++] = sourceTuple.tupleAt(tupleIndex++);
+		}
+	}
+
+	/**
+	 * Read elements from consecutive slots of the sourceObject, writing them to
+	 * consecutive slots of the receiver.  It's the client's responsibility to
+	 * ensure the values are suitably immutable or shared.
+	 *
+	 * @param targetField
+	 *        The field of the receiver into which to write values.
+	 * @param startTargetSubscript
+	 *        The positive one-based subscript into the target field at which to
+	 *        start writing.
+	 * @param sourceObject
+	 *        The object supplying values in consecutive slots.
+	 * @param sourceField
+	 *        The repeating field of the sourceObject.
+	 * @param startSourceSubscript
+	 *        The positive one-based subscript into the sourceObject from which
+	 *        to start reading.
+	 * @param count
+	 *        How many values to transfer.
+	 */
+	public final void setSlotsFromObjectSlots (
+		final ObjectSlotsEnum targetField,
+		final int startTargetSubscript,
+		final A_BasicObject sourceObject,
+		final ObjectSlotsEnum sourceField,
+		final int startSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared()
+			: "Block-transfers into shared objects is not supported";
+		checkSlot(targetField);
+		checkWriteForField(targetField);
+		final AvailObjectRepresentation sourceRep =
+			(AvailObjectRepresentation) sourceObject;
+		sourceRep.checkSlot(sourceField);
+		System.arraycopy(
+			sourceRep.objectSlots,
+			sourceField.ordinal() + startSourceSubscript - 1,
+			objectSlots,
+			targetField.ordinal() + startTargetSubscript - 1,
+			count);
+	}
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slots of the
+	 * receiver.  The caller is responsible for ensuring the value has been
+	 * marked {@link Mutability#IMMUTABLE} if necessary.
+	 *
+	 * @param field
+	 *        An enumeration value that defines the field ordering.
+	 * @param startSubscript
+	 *        The positive one-based subscript to apply.
+	 * @param count
+	 *        The number of consecutive slots to write the value into.
+	 * @param anAvailObject
+	 *        The object to store in the specified slots.
+	 */
+	public final void fillSlots (
+		final ObjectSlotsEnum field,
+		final int startSubscript,
+		final int count,
+		final A_BasicObject anAvailObject)
+	{
+		if (count == 0)
+		{
+			return;
+		}
+		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
+		checkSlot(field);
+		checkWriteForField(field);
+		final int startSlotIndex = field.ordinal() + startSubscript - 1;
+		Arrays.fill(
+			objectSlots,
+			startSlotIndex,
+			startSlotIndex + count,
+			anAvailObject);
 	}
 
 	/**

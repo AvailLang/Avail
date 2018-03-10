@@ -138,15 +138,6 @@ extends A_BasicObject
 	AvailObject stackAt (int slotIndex);
 
 	/**
-	 * Replace the stack element at the given offset.  Do not adjust the
-	 * mutability of the assigned value.  The continuation must be mutable.
-	 *
-	 * @param slotIndex Which stack element to overwrite.
-	 * @param anObject The value to write to the stack.
-	 */
-	void stackAtPut (int slotIndex, A_BasicObject anObject);
-
-	/**
 	 * If this continuation is already mutable just answer it; otherwise answer
 	 * a mutable copy of it.
 	 *

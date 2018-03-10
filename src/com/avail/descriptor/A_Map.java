@@ -36,6 +36,8 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import java.util.function.BiConsumer;
+
 /**
  * {@code A_Map} is an interface that specifies the map-specific operations
  * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
@@ -139,4 +141,11 @@ extends A_BasicObject
 	 * @return An {@linkplain MapIterable iterable for maps}.
 	 */
 	MapIterable mapIterable ();
+
+	/**
+	 * Execute the given action with each key and value.
+	 *
+	 * @param action The action to perform for each key and value pair.
+	 */
+	void forEach(BiConsumer<? super AvailObject, ? super AvailObject> action);
 }

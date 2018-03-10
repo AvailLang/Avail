@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
 import javax.annotation.Nullable;
+import java.util.function.BiConsumer;
 
 /**
  * {@code A_MapBin} is a collection of keys and their associated values, which
@@ -83,4 +84,7 @@ extends A_BasicObject
 	int mapBinValuesHash ();
 
 	A_Type mapBinValueUnionKind ();
+
+	void forEachInMapBin (
+		final BiConsumer<? super AvailObject, ? super AvailObject> action);
 }

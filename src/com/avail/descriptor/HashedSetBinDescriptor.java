@@ -43,8 +43,10 @@ import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
-import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NIL;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
+	.BIN_ELEMENT_AT_;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
+	.BIN_UNION_TYPE_OR_NIL;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -93,7 +95,7 @@ extends SetBinDescriptor
 
 		/**
 		 * A bit vector indicating which (masked, shifted) hash values are
-		 * non-emptySet and represented by a slot.
+		 * non-empty and represented by a slot.
 		 */
 		BIT_VECTOR;
 
@@ -311,28 +313,28 @@ extends SetBinDescriptor
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
 		}
-		objectToModify = createUninitializedBin(
+		objectToModify = createUninitializedHashedSetBin(
 			level,
 			objectEntryCount + 1,
 			object.setBinSize() + 1,
 			object.setBinHash() + elementObjectHash,
 			vector | logicalBitValue,
 			typeUnion);
-		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
-		{
-			objectToModify.setSlot(
-				BIN_ELEMENT_AT_,
-				i,
-				object.slot(BIN_ELEMENT_AT_, i));
-		}
+		objectToModify.setSlotsFromObjectSlots(
+			BIN_ELEMENT_AT_,
+			1,
+			object,
+			BIN_ELEMENT_AT_,
+			1,
+			physicalIndex - 1);
 		objectToModify.setSlot(BIN_ELEMENT_AT_, physicalIndex, elementObject);
-		for (int i = physicalIndex; i <= objectEntryCount; i++)
-		{
-			objectToModify.setSlot(
-				BIN_ELEMENT_AT_,
-				i + 1,
-				object.slot(BIN_ELEMENT_AT_, i));
-		}
+		objectToModify.setSlotsFromObjectSlots(
+			BIN_ELEMENT_AT_,
+			physicalIndex + 1,
+			object,
+			BIN_ELEMENT_AT_,
+			physicalIndex,
+			objectEntryCount - physicalIndex + 1);
 		return objectToModify;
 	}
 
@@ -409,30 +411,31 @@ extends SetBinDescriptor
 				// That was the last entry that we just removed.
 				return emptyLinearSetBin(level);
 			}
-			result = createUninitializedBin(
+			result = createUninitializedHashedSetBin(
 				level,
 				objectEntryCount - 1,
 				oldTotalSize + deltaSize,
 				oldTotalHash + deltaHash,
 				vector ^ logicalBitValue,
 				nil);
-			int writeIndex = 1;
-			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
+			result.setSlotsFromObjectSlots(
+				BIN_ELEMENT_AT_,
+				1,
+				object,
+				BIN_ELEMENT_AT_,
+				1,
+				physicalIndex - 1);
+			result.setSlotsFromObjectSlots(
+				BIN_ELEMENT_AT_,
+				physicalIndex,
+				object,
+				BIN_ELEMENT_AT_,
+				physicalIndex + 1,
+				objectEntryCount - physicalIndex);
+			if (!canDestroy)
 			{
-				if (readIndex != physicalIndex)
-				{
-					final AvailObject eachBin =
-						object.slot(BIN_ELEMENT_AT_, readIndex);
-					if (!canDestroy)
-					{
-						eachBin.makeImmutable();
-					}
-					result.setSlot(BIN_ELEMENT_AT_, writeIndex, eachBin);
-					writeIndex++;
-				}
+				result.makeSubobjectsImmutable();
 			}
-			//  i.e., number of entries in result + 1...
-			assert writeIndex == objectEntryCount;
 		}
 		else
 		{
@@ -597,7 +600,7 @@ extends SetBinDescriptor
 	 *            union of the elements' types.
 	 * @return A new hashed set bin with uninitialized sub-bin slots.
 	 */
-	private static AvailObject createUninitializedBin (
+	private static AvailObject createUninitializedHashedSetBin (
 		final byte level,
 		final int localSize,
 		final int totalSize,
@@ -618,19 +621,24 @@ extends SetBinDescriptor
 	/**
 	 * Create a new hashed set bin with the given level, local size, total
 	 * recursive number of elements, hash, bit vector, and either the bin union
-	 * kind or null.  Initialize each sub-bin to the emptySet bin at level + 1.
+	 * kind or null.  Initialize each sub-bin to the empty bin at level + 1.
 	 *
-	 * @param level The tree level at which this hashed bin occurs.
-	 * @param localSize The number of slots to allocate.
-	 * @param totalSize The number of elements recursively within me.
-	 * @param hash The hash of this bin.
-	 * @param bitVector The bit vector indicating which hash values are present.
+	 * @param level
+	 *        The tree level at which this hashed bin occurs.
+	 * @param localSize
+	 *        The number of slots to allocate.
+	 * @param totalSize
+	 *        The number of elements recursively within me.
+	 * @param hash
+	 *        The hash of this bin.
+	 * @param bitVector
+	 *        The bit vector indicating which hash values are present.
 	 * @param unionKindOrNil
-	 *            Either nil or the kind that is nearest to the
-	 *            union of the elements' types.
-	 * @return A new hashed set bin with emptySet linear sub-bins.
+	 *        Either nil or the kind that is nearest to the union of the
+	 *        elements' types.
+	 * @return A new hashed set bin with empty linear sub-bins.
 	 */
-	static AvailObject createInitializedBin (
+	static AvailObject createInitializedHashSetBin (
 		final byte level,
 		final int localSize,
 		final int totalSize,
@@ -638,13 +646,13 @@ extends SetBinDescriptor
 		final long bitVector,
 		final A_Type unionKindOrNil)
 	{
-		final AvailObject instance = createUninitializedBin(
+		final AvailObject instance = createUninitializedHashedSetBin(
 			level, localSize, totalSize, hash, bitVector, unionKindOrNil);
-		final AvailObject subBin = emptyLinearSetBin((byte) (level + 1));
-		for (int i = 1; i <= localSize; i++)
-		{
-			instance.setSlot(BIN_ELEMENT_AT_, i, subBin);
-		}
+		instance.fillSlots(
+			BIN_ELEMENT_AT_,
+			1,
+			localSize,
+			emptyLinearSetBin((byte) (level + 1)));
 		return instance;
 	}
 
@@ -655,7 +663,7 @@ extends SetBinDescriptor
 	private static final byte numberOfLevels = 6;
 
 	/**
-	 * Answer the appropriate {@link HashedSetBinDescriptor} to use for the
+	 * Answer the appropriate {@code HashedSetBinDescriptor} to use for the
 	 * given mutability and level.
 	 *
 	 * @param flag Whether the descriptor is to be used for a mutable object.
@@ -678,7 +686,7 @@ extends SetBinDescriptor
 	final byte shift;
 
 	/**
-	 * Construct a new {@link HashedSetBinDescriptor}.
+	 * Construct a new {@code HashedSetBinDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

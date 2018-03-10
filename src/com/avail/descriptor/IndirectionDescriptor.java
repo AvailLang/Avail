@@ -81,6 +81,7 @@ import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots
 	.INDIRECTION_TARGET;
@@ -234,7 +235,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * Construct a new {@link IndirectionDescriptor}.
+	 * Construct a new {@code IndirectionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -1679,15 +1680,6 @@ extends AbstractDescriptor
 	AvailObject o_StackAt (final AvailObject object, final int slotIndex)
 	{
 		return o_Traversed(object).stackAt(slotIndex);
-	}
-
-	@Override
-	void o_StackAtPut (
-		final AvailObject object,
-		final int slotIndex,
-		final A_BasicObject anObject)
-	{
-		o_Traversed(object).stackAtPut(slotIndex, anObject);
 	}
 
 	@Override
@@ -3424,15 +3416,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).serializerOperation();
 	}
 
-	/**
-	 * @param object
-	 * @param key
-	 * @param keyHash
-	 * @param value
-	 * @param myLevel
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
@@ -3450,13 +3433,6 @@ extends AbstractDescriptor
 			canDestroy);
 	}
 
-	/**
-	 * @param object
-	 * @param key
-	 * @param keyHash
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
@@ -3476,10 +3452,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).mapBinSize();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Type o_MapBinKeyUnionKind (
 		final AvailObject object)
@@ -3487,10 +3459,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).mapBinKeyUnionKind();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Type o_MapBinValueUnionKind (
 		final AvailObject object)
@@ -3560,11 +3528,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).javaAncestors();
 	}
 
-	/**
-	 * @param object
-	 * @param aFusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
@@ -3574,11 +3537,6 @@ extends AbstractDescriptor
 			aFusedPojoType);
 	}
 
-	/**
-	 * @param object
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
@@ -3588,11 +3546,6 @@ extends AbstractDescriptor
 			anUnfusedPojoType);
 	}
 
-	/**
-	 * @param object
-	 * @param aFusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
@@ -3602,11 +3555,6 @@ extends AbstractDescriptor
 			aFusedPojoType);
 	}
 
-	/**
-	 * @param object
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
@@ -3645,51 +3593,30 @@ extends AbstractDescriptor
 		return o_Traversed(object).equalsPojoField(field, receiver);
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	boolean o_IsSignedByte (final AvailObject object)
 	{
 		return o_Traversed(object).isSignedByte();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	boolean o_IsSignedShort (final AvailObject object)
 	{
 		return o_Traversed(object).isSignedShort();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	byte o_ExtractSignedByte (final AvailObject object)
 	{
 		return o_Traversed(object).extractSignedByte();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	short o_ExtractSignedShort (final AvailObject object)
 	{
 		return o_Traversed(object).extractSignedShort();
 	}
 
-	/**
-	 * @param object
-	 * @param otherJavaObject
-	 * @return
-	 */
 	@Override
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
@@ -3699,10 +3626,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).equalsEqualityRawPojoFor(object, otherJavaObject);
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	@Nullable <T> T o_JavaObject (final AvailObject object)
 	{
@@ -5168,5 +5091,21 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
+	}
+
+	@Override
+	void o_ForEach (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		o_Traversed(object).forEach(action);
+	}
+
+	@Override
+	void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		o_Traversed(object).forEachInMapBin(action);
 	}
 }

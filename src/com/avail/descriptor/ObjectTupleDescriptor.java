@@ -100,7 +100,7 @@ extends TupleDescriptor
 		/**
 		 * The tuple elements themselves.
 		 */
-		TUPLE_AT_
+		TUPLE_AT_;
 	}
 
 	/**
@@ -235,15 +235,10 @@ extends TupleDescriptor
 		{
 			// Copy the objects.
 			final int deltaSlots = newSize - object.variableObjectSlotsCount();
-			final AvailObject result = newLike(mutable(),
-				object,
-				deltaSlots,
-				0);
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
-			{
-				result.setSlot(TUPLE_AT_, dest, otherTuple.tupleAt(src));
-			}
+			final AvailObject result =
+				newLike(mutable(), object, deltaSlots, 0);
+			result.setSlotsFromTuple(
+				TUPLE_AT_, size1 + 1, otherTuple, 1, size2);
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
 		}
@@ -293,11 +288,8 @@ extends TupleDescriptor
 			// Just copy the applicable entries out.  In theory we could use
 			// newLike() if start is 1.
 			final AvailObject result = createUninitialized(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				result.setSlot(TUPLE_AT_, dest, object.slot(TUPLE_AT_, src));
-			}
+			result.setSlotsFromObjectSlots(
+				TUPLE_AT_, 1, object, TUPLE_AT_, start, size);
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -558,12 +550,9 @@ extends TupleDescriptor
 		final IndexedGenerator<? extends A_BasicObject> generator)
 	{
 		final AvailObject result = createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, nil);
-		}
+		// Initialize it for safe GC within the loop below.  Might be
+		// unnecessary if the substrate already initialized it safely.
+		result.fillSlots(TUPLE_AT_, 1, size, nil);
 		for (int i = 1; i <= size; i++)
 		{
 			result.setSlot(TUPLE_AT_, i, generator.value(i));
@@ -586,12 +575,9 @@ extends TupleDescriptor
 		final IndexedGenerator<? extends A_BasicObject> generator)
 	{
 		final AvailObject result = createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, nil);
-		}
+		// Initialize it for safe GC within the loop below.  Might be
+		// unnecessary if the substrate already initialized it safely.
+		result.fillSlots(TUPLE_AT_, 1, size, nil);
 		for (int i = size; i >= 1; i--)
 		{
 			result.setSlot(TUPLE_AT_, i, generator.value(i));
@@ -617,10 +603,7 @@ extends TupleDescriptor
 			return emptyTuple();
 		}
 		final AvailObject result = createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			result.setSlot(TUPLE_AT_, i, elements[i - 1]);
-		}
+		result.setSlotsFromArray(TUPLE_AT_, 1, elements, 0, size);
 		return result;
 	}
 
@@ -768,10 +751,7 @@ extends TupleDescriptor
 			return emptyTuple();
 		}
 		final AvailObject result = createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			result.setSlot(TUPLE_AT_, i, list.get(i - 1));
-		}
+		result.setSlotsFromList(TUPLE_AT_, 1, list, 0, size);
 		return result;
 	}
 

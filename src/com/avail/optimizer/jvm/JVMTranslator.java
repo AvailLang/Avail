@@ -37,7 +37,6 @@ import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Disassembler;
@@ -56,6 +55,7 @@ import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -87,7 +87,7 @@ import java.util.stream.Collectors;
 
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor
 	.invalidIndex;
-import static com.avail.performance.StatisticReport.JVM_TRANSLATION_TIME;
+import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -105,10 +105,6 @@ import static org.objectweb.asm.Type.*;
  */
 public final class JVMTranslator
 {
-	/** Statistics about the naive L1 to L2 translation. */
-	private static final Statistic translateJVMStat = new Statistic(
-		"Total JVM translation time", JVM_TRANSLATION_TIME);
-
 	/**
 	 * The source {@link A_RawFunction L1 code}.
 	 */
@@ -143,6 +139,9 @@ public final class JVMTranslator
 	 * The internal name of the generated class.
 	 */
 	@InnerAccess final String classInternalName;
+
+	/** The class file bytes that are produced. */
+	private @Nullable byte[] classBytes = null;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -277,6 +276,7 @@ public final class JVMTranslator
 	 * @param object
 	 *        The literal.
 	 */
+	@SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
 	public void literal (final MethodVisitor method, final Object object)
 	{
 		stripNull(literals.get(object)).getter.accept(method);
@@ -293,7 +293,11 @@ public final class JVMTranslator
 	 * @param reg
 	 *        Unused.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({
+		"unused",
+		"MethodMayBeStatic",
+		"OverloadedMethodsWithSameNumberOfParameters"
+	})
 	@Deprecated
 	public void literal (final MethodVisitor method, final L2Register<?> reg)
 	{
@@ -450,7 +454,6 @@ public final class JVMTranslator
 		final L2ObjectRegister register)
 	{
 		final int local = stripNull(locals.get(register));
-//		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		method.visitVarInsn(ASTORE, local);
 	}
 
@@ -655,7 +658,7 @@ public final class JVMTranslator
 	 * Prepare for JVM translation by {@linkplain JVMTranslationPreparer
 	 * visiting} each of the {@link L2Instruction}s to be translated.
 	 */
-	private void prepare ()
+	@InnerAccess void prepare ()
 	{
 		final JVMTranslationPreparer preparer = new JVMTranslationPreparer();
 		for (final L2Instruction instruction : instructions)
@@ -762,7 +765,7 @@ public final class JVMTranslator
 	 * subclass's {@link JVMChunkClassLoader} into appropriate {@code
 	 * private static final} fields.
 	 */
-	private void generateStaticInitializer ()
+	@InnerAccess void generateStaticInitializer ()
 	{
 		MethodVisitor method = classWriter.visitMethod(
 			ACC_STATIC | ACC_PUBLIC,
@@ -1051,7 +1054,7 @@ public final class JVMTranslator
 	 * @param value
 	 *        The {@code double}.
 	 */
-	@SuppressWarnings({"FloatingPointEquality", "WeakerAccess"})
+	@SuppressWarnings("FloatingPointEquality")
 	public void doubleConstant (final MethodVisitor method, final double value)
 	{
 		if (value == 0.0d)
@@ -1327,7 +1330,7 @@ public final class JVMTranslator
 	 * Generate the default constructor [{@code ()V}] of the target {@link
 	 * JVMChunk}.
 	 */
-	private void generateConstructorV ()
+	@InnerAccess void generateConstructorV ()
 	{
 		final MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC | ACC_MANDATED,
@@ -1352,7 +1355,7 @@ public final class JVMTranslator
 	 * Generate the {@link JVMChunk#name()} method of the target {@link
 	 * JVMChunk}.
 	 */
-	private void generateName ()
+	@InnerAccess void generateName ()
 	{
 		final MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
@@ -1474,7 +1477,7 @@ public final class JVMTranslator
 	 * Generate the {@link JVMChunk#runChunk(Interpreter, int)} method of the
 	 * target {@link JVMChunk}.
 	 */
-	private void generateRunChunk ()
+	@InnerAccess void generateRunChunk ()
 	{
 		MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
@@ -1641,6 +1644,12 @@ public final class JVMTranslator
 		finishMethod(method);
 	}
 
+	/** The final phase of JVM code generation. */
+	@InnerAccess void visitEnd ()
+	{
+		classWriter.visitEnd();
+	}
+
 	/**
 	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be
 	 * constructed.
@@ -1660,11 +1669,8 @@ public final class JVMTranslator
 	/**
 	 * Dump the specified JVM class bytes to an appropriately named temporary
 	 * file.
-	 *
-	 * @param classBytes
-	 *        The class bytes.
 	 */
-	private void dumpClassBytesToFile (final byte[] classBytes)
+	private void dumpClassBytesToFile ()
 	{
 		try
 		{
@@ -1677,7 +1683,7 @@ public final class JVMTranslator
 			Files.createDirectories(dir);
 			final String base = classInternalName.substring(lastSlash + 1);
 			final Path classFile = dir.resolve(base + ".class");
-			Files.write(classFile, classBytes);
+			Files.write(classFile, stripNull(classBytes));
 		}
 		catch (final IOException e)
 		{
@@ -1690,40 +1696,19 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Translate the embedded {@link L2Chunk} into a {@link JVMChunk}.
+	 * Populate {@link #classBytes}, dumping to a file for debugging if indicated.
 	 */
-	public void translate ()
+	@InnerAccess void createClassBytes ()
 	{
-		final long beforeJVM = AvailRuntime.captureNanos();
-		classWriter.visit(
-			V1_8,
-			ACC_PUBLIC | ACC_FINAL,
-			classInternalName,
-			null,
-			JVMChunk.class.getName().replace('.', '/'),
-			null);
-		prepare();
-		generateStaticInitializer();
-		generateConstructorV();
-		generateName();
-		generateRunChunk();
-		classWriter.visitEnd();
-		final long afterJVM = AvailRuntime.captureNanos();
-		final Thread thread = Thread.currentThread();
-		final @Nullable Interpreter interpreter = thread instanceof AvailThread
-			? ((AvailThread) thread).interpreter
-			: null;
-		if (interpreter != null)
-		{
-			translateJVMStat.record(
-				afterJVM - beforeJVM,
-				interpreter.interpreterIndex);
-		}
-		final byte[] classBytes = classWriter.toByteArray();
+		classBytes = classWriter.toByteArray();
 		if (debugJVM)
 		{
-			dumpClassBytesToFile(classBytes);
+			dumpClassBytesToFile();
 		}
+	}
+
+	@InnerAccess void loadClass ()
+	{
 		final Object[] parameters = new Object[literals.size()];
 		for (final Entry<Object, LiteralAccessor> entry : literals.entrySet())
 		{
@@ -1737,7 +1722,72 @@ public final class JVMTranslator
 		jvmChunk = loader.newJVMChunkFrom(
 			chunkName,
 			className,
-			classBytes,
+			stripNull(classBytes),
 			parameters);
+	}
+
+	enum GenerationPhase {
+		PREPARE(JVMTranslator::prepare),
+		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
+		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
+		GENERATE_NAME(JVMTranslator::generateName),
+		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
+		VISIT_END(JVMTranslator::visitEnd),
+		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
+		LOAD_CLASS(JVMTranslator::loadClass);
+
+		/** The action to perform for this phase. */
+		private final Continuation1NotNull<JVMTranslator> action;
+
+		/** Statistic about this L2 -> JVM translation phase. */
+		private final Statistic statistic =
+			new Statistic(name(), FINAL_JVM_TRANSLATION_TIME);
+
+		GenerationPhase (final Continuation1NotNull<JVMTranslator> action)
+		{
+			this.action = action;
+		}
+
+		/** A private array of phases, since Enum.values() makes a copy. */
+		private static final GenerationPhase[] all = values();
+
+		/**
+		 * Execute all JVM generation phases.
+		 * @param jvmTranslator The {@link JVMTranslator} for which to execute.
+		 */
+		@InnerAccess static void executeAll (final JVMTranslator jvmTranslator)
+		{
+			final Thread thread = Thread.currentThread();
+			final @Nullable Interpreter interpreter =
+				thread instanceof AvailThread
+					? ((AvailThread) thread).interpreter
+					: null;
+			for (final GenerationPhase phase : GenerationPhase.all)
+			{
+				final long before = AvailRuntime.captureNanos();
+				phase.action.value(jvmTranslator);
+				if (interpreter != null)
+				{
+					phase.statistic.record(
+						AvailRuntime.captureNanos() - before,
+						interpreter.interpreterIndex);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Translate the embedded {@link L2Chunk} into a {@link JVMChunk}.
+	 */
+	public void translate ()
+	{
+		classWriter.visit(
+			V1_8,
+			ACC_PUBLIC | ACC_FINAL,
+			classInternalName,
+			null,
+			JVMChunk.class.getName().replace('.', '/'),
+			null);
+		GenerationPhase.executeAll(this);
 	}
 }

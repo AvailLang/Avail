@@ -44,6 +44,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -202,7 +203,7 @@ extends Descriptor
 		 * A fake slot to present in the debugging view for each value in the
 		 * map.  It is always preceded by its corresponding {@link #KEY_} slot.
 		 */
-		VALUE_
+		VALUE_;
 	}
 
 	/**
@@ -290,6 +291,14 @@ extends Descriptor
 			object.writeBackSlot(ROOT_BIN, 1, (AvailObject) rootBin(aMap));
 		}
 		return true;
+	}
+
+	@Override
+	void o_ForEach (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		rootBin(object).forEachInMapBin(action);
 	}
 
 	@Override @AvailMethod

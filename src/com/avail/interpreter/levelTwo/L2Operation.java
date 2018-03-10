@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
@@ -55,14 +56,13 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyList;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -74,7 +74,6 @@ import static java.util.stream.Collectors.toList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2Operation
 {
 	/**
@@ -95,19 +94,7 @@ public abstract class L2Operation
 	 * The {@linkplain L2NamedOperandType named operand types} that this
 	 * {@linkplain L2Operation operation} expects.
 	 */
-	protected @Nullable L2NamedOperandType[] namedOperandTypes;
-
-	/**
-	 * The array of operand indices which have type {@link L2PcOperand}.
-	 */
-	private int[] labelOperandIndices;
-
-	/**
-	 * Whether this operation can do something other than fall through to the
-	 * next instruction of its {@link L2BasicBlock}.  This includes branching or
-	 * returning.
-	 */
-	boolean altersControlFlow;
+	protected L2NamedOperandType[] namedOperandTypes;
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
@@ -137,9 +124,6 @@ public abstract class L2Operation
 		return stripNull(name);
 	}
 
-	/** An empty array of ints. */
-	static final int[] emptyIntArray = new int[0];
-
 	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
@@ -155,51 +139,39 @@ public abstract class L2Operation
 		final String className = this.getClass().getSimpleName();
 		name = className;
 		jvmTranslationTime = new Statistic(
-			className, StatisticReport.JVM_TRANSLATION_TIME);
+			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
 		namedOperandTypes = theNamedOperandTypes.clone();
 
 		// The number of targets won't be large, so don't worry about the
 		// quadratic cost.  An N-way dispatch would be a different story.
-		final List<Integer> labelIndicesList = new ArrayList<>(2);
-		for (int index = 0; index < namedOperandTypes.length; index++)
-		{
-			final L2NamedOperandType namedOperandType =
-				namedOperandTypes[index];
-			if (namedOperandType.operandType() == L2OperandType.PC)
-			{
-				labelIndicesList.add(index);
-			}
-		}
-		labelOperandIndices = labelIndicesList.isEmpty()
-			? emptyIntArray
-			: labelIndicesList.stream().mapToInt(Integer::intValue).toArray();
-		altersControlFlow = labelOperandIndices.length > 0
-			|| !reachesNextInstruction();
+		assert this instanceof L2ControlFlowOperation
+			|| Arrays.stream(namedOperandTypes).noneMatch(
+				x -> x.operandType() == L2OperandType.PC);
 	}
 
 	/**
 	 * Propagate type, value, alias, and source instruction information due to
-	 * the execution of this instruction.  The first {@link RegisterSet} is for
-	 * the fall-through situation (if the {@link
-	 * L2Operation#reachesNextInstruction()}), and represents the state in the
-	 * case that the instruction runs normally and advances to the next one
-	 * sequentially.  The remainder correspond to the {@link
-	 * L2Instruction#targetEdges()} ()}.
+	 * the execution of this instruction.  If the operation {@link
+	 * #altersControlFlow()}, expect a {@link RegisterSet} per outgoing edge,
+	 * in the same order.  Otherwise expect one {@link RegisterSet}.
 	 *
 	 * @param instruction
-	 *            The L2Instruction containing this L2Operation.
+	 *        The L2Instruction containing this L2Operation.
 	 * @param registerSets
-	 *            A list of RegisterSets to update with information that this
-	 *            operation provides.
+	 *        A list of RegisterSets to update with information that this
+	 *        operation provides.
 	 * @param translator
-	 *            The L2Translator for which to advance the type analysis.
+	 *        The L2Translator for which to advance the type analysis.
 	 */
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		assert false : "Please override multi-target L2Operation";
+		assert !(this instanceof L2ControlFlowOperation);
+		throw new UnsupportedOperationException(
+			"Multi-target propagateTypes is only applicable to an "
+				+ "L2ControlFlowOperation");
 	}
 
 	/**
@@ -222,7 +194,9 @@ public abstract class L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		assert false : "Please override single-target L2Operation";
+		// We're phasing this out, so don't make this an abstract method.
+		throw new UnsupportedOperationException(
+			"Single-target propagateTypes should be overridden.");
 	}
 
 	/**
@@ -275,16 +249,15 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Answer whether execution of this instruction can lead to the next
-	 * instruction in the sequence being reached.  Most instructions are of this
-	 * form, but some might not be (return, unconditional branches, continuation
-	 * resumption, etc).
+	 * Answer whether execution of this instruction can divert the flow of
+	 * control from the next instruction.  An L2Operation either always falls
+	 * through or always alters control.
 	 *
-	 * @return Whether the next instruction is potentially reachable from here.
+	 * @return Whether this operation alters the flow of control.
 	 */
-	public boolean reachesNextInstruction ()
+	public boolean altersControlFlow ()
 	{
-		return true;
+		return false;
 	}
 
 	/**
@@ -489,9 +462,7 @@ public abstract class L2Operation
 	 */
 	public List<L2PcOperand> targetEdges (final L2Instruction instruction)
 	{
-		return Arrays.stream(labelOperandIndices)
-			.mapToObj(instruction::pcAt)
-			.collect(toList());
+		return emptyList();
 	}
 
 	@Override

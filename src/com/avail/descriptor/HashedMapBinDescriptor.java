@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -183,7 +184,7 @@ extends MapBinDescriptor
 		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
 		 * bit in the bit vector, treating it as an unsigned vector of bits.
 		 */
-		SUB_BINS_
+		SUB_BINS_;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -197,7 +198,19 @@ extends MapBinDescriptor
 	@Override @AvailMethod
 	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
-		return object.slot(SUB_BINS_, subscript);/**/
+		return object.slot(SUB_BINS_, subscript);
+	}
+
+	@Override @AvailMethod
+	void o_ForEachInMapBin (
+		final AvailObject object,
+		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		final int limit = object.variableObjectSlotsCount();
+		for (int i = 1; i <= limit; i++)
+		{
+			object.slot(SUB_BINS_, i).forEachInMapBin(action);
+		}
 	}
 
 	@Override @AvailMethod
@@ -392,19 +405,24 @@ extends MapBinDescriptor
 			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
 			objectToModify.setSlot(BIT_VECTOR, vector | (1L << logicalIndex));
-			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
-			{
-				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
-			}
+			objectToModify.setSlotsFromObjectSlots(
+				SUB_BINS_,
+				1,
+				object,
+				SUB_BINS_,
+				1,
+				physicalIndex - 1);
 			final A_BasicObject newSingleBin =
 				createSingleLinearMapBin(
 					key, keyHash, value, (byte) (myLevel + 1));
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin);
-			for (int i = physicalIndex; i <= objectEntryCount; i++)
-			{
-				objectToModify.setSlot(
-					SUB_BINS_, i + 1, object.slot(SUB_BINS_, i));
-			}
+			objectToModify.setSlotsFromObjectSlots(
+				SUB_BINS_,
+				physicalIndex + 1,
+				object,
+				SUB_BINS_,
+				physicalIndex,
+				objectEntryCount - physicalIndex + 1);
 		}
 		assert objectToModify.descriptor.isMutable();
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
@@ -723,10 +741,7 @@ extends MapBinDescriptor
 		result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 		final AvailObject emptyLinearSubbin =
 			LinearMapBinDescriptor.emptyLinearMapBin((byte) (myLevel + 1));
-		for (int i = 1; i <= newSize; i++)
-		{
-			result.setSlot(SUB_BINS_, i, emptyLinearSubbin);
-		}
+		result.fillSlots(SUB_BINS_, 1, newSize, emptyLinearSubbin);
 		checkHashedMapBin(result);
 		return result;
 	}

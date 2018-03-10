@@ -55,12 +55,14 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationWithFrame;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Arrays.asList;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -184,21 +186,15 @@ extends L2Operation
 			// and push the continuation onto the reified stack.  Then process
 			// the interrupt, which may or may not suspend the fiber.
 			final A_Continuation continuation =
-				createContinuationExceptFrame(
+				createContinuationWithFrame(
 					function,
 					nil,
 					1,  // start of function
 					numSlots + 1,   // empty stack
 					unoptimizedChunk,
-					TO_RESUME.offsetInDefaultChunk);
-			for (
-				int i = function.code().numSlots();
-				i >= 1;
-				i--)
-			{
-				continuation.argOrLocalOrStackAtPut(
-					i, stepper.pointerAt(i));
-			}
+					TO_RESUME.offsetInDefaultChunk,
+					asList(stepper.pointers),
+					1);
 			return interpreter.reifyThen(
 				reificationForInterruptInL1Stat,
 				() ->
