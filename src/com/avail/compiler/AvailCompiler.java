@@ -445,7 +445,7 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * A simple static factory for constructing {@link Con}s.  Java is crummy at
+	 * A simple static factory for constructing {@link Con1}s.  Java is crummy at
 	 * deducing parameter types for constructors, so this static method can be
 	 * used to elide the CompilerSolution type.
 	 *
@@ -454,17 +454,17 @@ public final class AvailCompiler
 	 *        continuation exists.
 	 * @param continuation
 	 *        The {@link Continuation1NotNull} to invoke.
-	 * @return The new {@link Con}.
+	 * @return The new {@link Con1}.
 	 */
-	static Con Con (
+	static Con1 Con (
 		final @Nullable PartialSubexpressionList superexpressions,
 		final Continuation1NotNull<CompilerSolution> continuation)
 	{
-		return new Con(superexpressions, continuation);
+		return new Con1(superexpressions, continuation);
 	}
 
 	/**
-	 * Execute {@code #tryBlock}, passing a {@linkplain Con continuation} that
+	 * Execute {@code #tryBlock}, passing a {@linkplain Con1 continuation} that
 	 * it should run upon finding exactly one local {@linkplain CompilerSolution
 	 * solution}.  Report ambiguity as an error.
 	 *
@@ -481,8 +481,8 @@ public final class AvailCompiler
 	 */
 	private void tryIfUnambiguousThen (
 		final ParserState start,
-		final Continuation1NotNull<Con> tryBlock,
-		final Con supplyAnswer,
+		final Continuation1NotNull<Con1> tryBlock,
+		final Con1 supplyAnswer,
 		final Continuation0 afterFail)
 	{
 		assert compilationContext.getNoMoreWorkUnits() == null;
@@ -524,7 +524,7 @@ public final class AvailCompiler
 			// solution arrived (and subsequent solutions may have arrived
 			// and been ignored).  Do nothing.
 		});
-		final Con argument = Con(
+		final Con1 argument = Con(
 			supplyAnswer.superexpressions,
 			aSolution ->
 			{
@@ -1504,7 +1504,7 @@ public final class AvailCompiler
 	 */
 	private void parseLeadingKeywordSendThen (
 		final ParserState start,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		parseRestOfSendNode(
 			start,
@@ -1538,7 +1538,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final A_Phrase leadingArgument,
 		final ParserState initialTokenPosition,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		assert start.lexingState != initialTokenPosition.lexingState;
 		parseRestOfSendNode(
@@ -1576,7 +1576,7 @@ public final class AvailCompiler
 		final ParserState startOfLeadingArgument,
 		final ParserState afterLeadingArgument,
 		final A_Phrase phrase,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		// It's optional, so try it with no wrapping.  We have to try this even
 		// if it's a supercast, since we may be parsing an expression to be a
@@ -1585,7 +1585,7 @@ public final class AvailCompiler
 			continuation,
 			new CompilerSolution(afterLeadingArgument, phrase));
 		// Try to wrap it in a leading-argument message send.
-		final Con con = Con(
+		final Con1 con = Con(
 			continuation.superexpressions,
 			solution2 -> parseLeadingArgumentSendAfterThen(
 				solution2.endState(),
@@ -1664,7 +1664,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		A_BundleTree bundleTree = bundleTreeArg;
 		// If a bundle tree is marked as a source of a cycle, its latest
@@ -1919,7 +1919,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation,
+		final Con1 continuation,
 		final A_Map tokenMap,
 		final boolean caseInsensitive)
 	{
@@ -2343,7 +2343,7 @@ public final class AvailCompiler
 		final boolean consumedAnything,
 		final List<A_Token> consumedTokens,
 		final A_Tuple successorTrees,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final ParsingOperation op = decode(instruction);
 		if (AvailRuntime.debugCompilerSteps)
@@ -2434,7 +2434,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
@@ -2992,7 +2992,7 @@ public final class AvailCompiler
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final List<A_Token> consumedTokens,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<>(true);
 		final A_Method method = bundle.bundleMethod();
@@ -3252,7 +3252,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final boolean canReallyParse,
 		final boolean wrapInLiteral,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		if (firstArgOrNull != null)
 		{
@@ -3400,7 +3400,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final A_Tuple successorTrees,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		// Parse an argument in the outermost (module) scope and continue.
 		assert successorTrees.tupleSize() == 1;
@@ -3519,7 +3519,7 @@ public final class AvailCompiler
         final List<A_Token> consumedTokens,
 		final A_Definition macroDefinitionToInvoke,
 		final A_Type expectedYieldType,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
 		final int argCount = argumentsTuple.tupleSize();
@@ -5241,7 +5241,7 @@ public final class AvailCompiler
 	 */
 	private void parseExpressionThen (
 		final ParserState start,
-		final Con originalContinuation)
+		final Con1 originalContinuation)
 	{
 		// The first time we parse at this position the fragmentCache will
 		// have no knowledge about it.
@@ -5283,7 +5283,7 @@ public final class AvailCompiler
 	 */
 	private void parseOutermostStatement (
 		final ParserState start,
-		final Con continuation,
+		final Con1 continuation,
 		final Continuation0 afterFail)
 	{
 		// If a parsing error happens during parsing of this outermost
@@ -5327,7 +5327,7 @@ public final class AvailCompiler
 	 */
 	private void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		parseLeadingKeywordSendThen(
 			start,
@@ -5373,7 +5373,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		start.workUnitDo(
 			ignored -> parseRestOfSendNode(
