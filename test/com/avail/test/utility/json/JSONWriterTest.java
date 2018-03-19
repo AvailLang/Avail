@@ -44,6 +44,7 @@ import java.io.StringReader;
 import static com.avail.test.utility.json.TestJSONKeyValue.*;
 import static com.avail.test.utility.json.TestJSONKeyValue.OBJINT;
 import static com.avail.utility.Nulls.stripNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -105,14 +106,14 @@ public class JSONWriterTest
 
 	@Test
 	@DisplayName("Correctly built JSON")
-	void correctCompactJSONTest ()
+	void correctlyBuiltJSONTest ()
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		addToWriter(writer, IMASTRING, IMANINT, IMALONG, IMAFLOAT, IMATRUE,
 			IMAFALSE, IMANULL, IMACOMPACTARRAY);
 		IMASTRING.addValueToWriter(writer);
-		addIMANOBJECTFields(writer, OBJSTRING, OBJINT);
+		addObjectToWriter(IMANOBJECT.key, writer, OBJSTRING, OBJINT);
 		writer.endObject();
 		final JSONObject content = getJsonData(writer);
 		test(stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
@@ -121,4 +122,34 @@ public class JSONWriterTest
 		test(objContent, OBJSTRING, OBJINT);
 		displayTestPayload(writer);
 	}
+
+	@Test
+	@DisplayName("Test Failure: Close an array when not expected")
+	void inappropriateCloseArray ()
+	{
+		final JSONWriter writer = new JSONWriter();
+		writer.startObject();
+		assertThrows(IllegalStateException.class, writer::endArray);
+		displayTestPayload(writer);
+	}
+
+// TODO the following should fail but don't; need to investigate.
+//	@Test
+//	@DisplayName("Test Failure: Open an array as first write")
+//	void inappropriateOpenArray ()
+//	{
+//		final JSONWriter writer = new JSONWriter();
+//		assertThrows(IllegalStateException.class, writer::startArray);
+//		displayTestPayload(writer);
+//	}
+//
+//	@Test
+//	@DisplayName("Test Failure: Attempt to write data without starting object")
+//	void noInitialObjectStart ()
+//	{
+//		final JSONWriter writer = new JSONWriter();
+//		assertThrows(
+//			IllegalStateException.class, () -> writer.write("foo"));
+//		displayTestPayload(writer);
+//	}
 }

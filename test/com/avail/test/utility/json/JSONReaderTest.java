@@ -178,7 +178,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload missing comma")
+	@DisplayName("Test Failure: JSON payload missing comma")
 	void missingCommaJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder("{");
@@ -192,7 +192,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload missing ':' between key-value pair")
+	@DisplayName("Test Failure: JSON payload missing ':' between key-value pair")
 	void missingColonJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder("{");
@@ -228,7 +228,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload does not escape String internal newline")
+	@DisplayName("Test Failure: JSON payload does not escape String internal newline")
 	void missingEscapeWhitespaceJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder("{");
@@ -245,7 +245,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload missing opening '{'")
+	@DisplayName("Test Failure: JSON payload missing opening '{'")
 	void missingOpeningBraceJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder();
@@ -257,7 +257,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload missing closing '}'")
+	@DisplayName("Test Failure: JSON payload missing closing '}'")
 	void missingClosingBraceJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder("}");
@@ -285,7 +285,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload premature close of object")
+	@DisplayName("Test Failure: JSON payload premature close of object")
 	void prematureClosingBraceJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder();
@@ -297,7 +297,7 @@ public class JSONReaderTest
 	}
 
 	@Test
-	@DisplayName("JSON payload array comma (,) after last value")
+	@DisplayName("Test Failure: JSON payload array comma (,) after last value")
 	void malformedArrayJSONTest ()
 	{
 		final StringBuilder sb = new StringBuilder();

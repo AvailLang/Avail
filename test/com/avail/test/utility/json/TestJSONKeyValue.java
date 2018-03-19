@@ -388,12 +388,14 @@ public enum TestJSONKeyValue
 		void addValueToWriter (final JSONWriter writer)
 		{
 			throw new UnsupportedOperationException(
-				"Use TestJSONKeyValue.IMANOBJECT.addField(...) instead.");
+				"TestJSONKeyValue.IMANOBJECT must be built manually. Try"
+					+ " something like: \n\t addObjectToWriter(IMANOBJECT.key, "
+					+ "writer, OBJSTRING, OBJINT);\n");
 		}
 	};
 
 	/** The JSON pair key */
-	protected final String key;
+	public final String key;
 
 	/**
 	 * Add the {@code TestJSONKeyValue}'s value to the {@link StringBuilder}.
@@ -499,31 +501,24 @@ public enum TestJSONKeyValue
 	}
 
 	/**
-	 * Add the {@link TestJSONKeyValue#IMANOBJECT} to the {@link JSONWriter}
-	 * using the input {@link TestJSONKeyValue}s as input.
+	 * Add a {@code JSONObject} to a {@link JSONWriter}.
 	 *
-	 * <p>
-	 * <strong>NOTE:</strong> Cannot add {@link TestJSONKeyValue#IMANOBJECT}
-	 * go itself!
-	 * </p>
-	 *
+	 * @param keyName
+	 *        The name of the object field.
 	 * @param writer
-	 *        The {@code JSONWriter}.
-	 * @param testJSONKeyValues
-	 *        An array of {@code TestJSONKeyValue}s.
+	 *        The {@code JSONWriter} to add to.
+	 * @param keyValues
+	 *        An array of {@code TestJSONKeyValue}s to call {@code
+	 *        TestJSONKeyValue.test(JSONObject)} on.
 	 */
-	static void addIMANOBJECTFields (
+	static void addObjectToWriter (
+		final String keyName,
 		final JSONWriter writer,
-		final TestJSONKeyValue...testJSONKeyValues)
+		final TestJSONKeyValue... keyValues)
 	{
-		writer.write(IMANOBJECT.key);
+		writer.write(keyName);
 		writer.startObject();
-		for (final TestJSONKeyValue keyValue : testJSONKeyValues)
-		{
-			assert keyValue != IMANOBJECT :
-				"Does not support adding self to self!";
-			keyValue.addValueToWriter(writer);
-		}
+		addToWriter(writer, keyValues);
 		writer.endObject();
 	}
 
