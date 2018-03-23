@@ -266,8 +266,11 @@ public class LexingState
 	}
 
 	/**
-	 * The lexer filters
-	 * A lexer has just run and produced zero or more tokens at this position.
+	 * The lexer filter functions have produced a tuple of applicable {@link
+	 * A_Lexer}s, so run them.  When they have all completed, there will be no
+	 * outstanding tasks for the relevant {@link CompilationContext}, so it will
+	 * automatically invoke {@link CompilationContext#noMoreWorkUnits}, allowing
+	 * parsing to continue.
 	 *
 	 * @param applicableLexers
 	 *        The lexers that passed their filter functions.
@@ -297,9 +300,9 @@ public class LexingState
 			actions = null;
 			return;
 		}
-		// There's at least one applicable lexer.  Launch
-		// fibers which, when the last one completes, will
-		// capture the list of tokens and run the actions.
+		// There's at least one applicable lexer.  Launch fibers which, when the
+		// last one completes, will capture the list of tokens and run the
+		// actions.
 		final AtomicInteger countdown =
 			new AtomicInteger(applicableLexers.tupleSize());
 		final List<A_BasicObject> arguments =
@@ -354,21 +357,24 @@ public class LexingState
 					final AvailRejectedParseException rej =
 						(AvailRejectedParseException) throwable;
 					expected(rej.rejectionString().asNativeString());
-					return;
 				}
-				// Report the problem as an expectation, with a stack trace.
-				expected(
-					afterDescribing ->
-					{
-						final StringWriter writer = new StringWriter();
-						throwable.printStackTrace(new PrintWriter(writer));
-						final String text = format(
-							"%s not to have failed while "
-								+ "evaluating its body:\n%s",
-							lexer.toString(),
-							writer.toString());
-						afterDescribing.value(text);
-					});
+				else
+				{
+					// Report the problem as an expectation, with a stack trace.
+					expected(
+						afterDescribing ->
+						{
+							final StringWriter writer = new StringWriter();
+							throwable.printStackTrace(new PrintWriter(writer));
+							final String text = format(
+								"%s not to have failed while "
+									+ "evaluating its body:\n%s",
+								lexer.toString(),
+								writer.toString());
+							afterDescribing.value(text);
+						});
+				}
+				decrementAndRunActionsWhenZero(countdown);
 			};
 		assert compilationContext.getNoMoreWorkUnits() != null;
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
@@ -411,11 +417,30 @@ public class LexingState
 				state = token.nextLexingState();
 			}
 		}
+		decrementAndRunActionsWhenZero(countdown);
+	}
+
+	/**
+	 * Decrement the supplied {@link AtomicInteger}.  If it reaches zero, queue
+	 * the actions, transitioning to a state where new actions will simply run
+	 * with the {@link #nextTokens}.
+	 *
+	 * @param countdown
+	 *        The {@link AtomicInteger}.
+	 */
+	private void decrementAndRunActionsWhenZero (final AtomicInteger countdown)
+	{
 		if (countdown.decrementAndGet() == 0)
 		{
-			// We just heard from the last lexer.  Run the actions once.
-			workUnitsDo(stripNull(actions), theNextTokens);
-			actions = null;
+			// We just heard from the last lexer.  Run the actions once, and
+			// ensure any new actions start immediately with nextTokens.
+			final List<Continuation1NotNull<List<A_Token>>> queuedActions;
+			synchronized (this)
+			{
+				queuedActions = stripNull(actions);
+				actions = null;
+			}
+			workUnitsDo(queuedActions, stripNull(nextTokens));
 		}
 	}
 
