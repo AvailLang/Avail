@@ -57,7 +57,10 @@ Names
 
 	/* Special directives. */
 	"_(drop the⁇highest«_»?)",
-	"_(drop the⁇lowest«_»?)"
+	"_(drop the⁇lowest«_»?)",
+
+	/* Lexical support. */
+	"xDy lexer"
 Body
 
 "face count" is a field atom;
@@ -304,6 +307,59 @@ Semantic restriction "_d|D_" is
 	extend dice group with
 		members : <<>, dieType…|count>,
 		result type : [⎣count⎦..⎡count⎤×⎡n⎤ + 1)'s type
+];
+
+/**
+ * Upon encountering an Arabic numeral, attempt to scan {@type "token"}s for a
+ * {@type "send phrase" send} of {@method "_d|D_"}.
+ *
+ * @param "source"
+ *        The complete source text.
+ * @param "countPosition"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ */
+Lexer $"xDy lexer"
+when [c : character | c is an Arabic numeral]
+is
+[
+	source : string,
+	countPosition : natural number,
+	line : natural number
+|
+	$body : lexer body function's return type;
+	/* Skip the leading digits. */
+	i : natural number := countPosition;
+	size ::= |source|;
+	While [i ≤ size ∧ source[i] is an Arabic numeral] do [i++;];
+	If i > size ∨ ¬source[i] ∈ "dD"→set then
+	[
+		Exit body with ∅
+/*
+		Reject parse, expected:
+			"d or D followed by a positive integer (for an xDy dice expression)"
+*/
+	];
+	/* Note the location of the d|D. */
+	dPosition ::= (i++);
+	If i > size ∨ ¬source[i] is an Arabic numeral then
+	[
+		Reject parse, expected:
+			"a positive integer (for an xDy dice expression)"
+	];
+	/* Skip the trailing digits. */
+	facePosition ::= i;
+	While [i ≤ size ∧ source[i] is an Arabic numeral] do [i++;];
+	/* Assemble the tokens using the three recorded positions. */
+	countText ::= source[countPosition..dPosition-1];
+	dText ::= <source[dPosition]>;
+	faceText ::= source[facePosition..i-1];
+	{<
+		`countText (base 10)` (countText),
+		`dText` (dText),
+		`faceText (base 10)` (faceText)
+	>}
 ];
 
 /**
