@@ -54,13 +54,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.AvailUnsupportedOperationException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -5369,6 +5363,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aTokenType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType);
+
+	/**
+	 * @param object
 	 * @param aLiteralTokenType
 	 * @return
 	 */
@@ -5378,12 +5381,28 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aTokenType
+	 * @return
+	 */
+	abstract A_Type o_TypeUnionOfTokenType(
+		final AvailObject object,
+		final A_Type aTokenType);
+
+	/**
+	 * @param object
 	 * @param aLiteralTokenType
 	 * @return
 	 */
 	abstract A_Type o_TypeUnionOfLiteralTokenType(
 		 final AvailObject object,
 		 final A_Type aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsTokenType (
+		final AvailObject object);
 
 	/**
 	 * @param object
@@ -5401,12 +5420,30 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aTokenType
+	 * @return
+	 */
+	abstract boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType);
+
+	/**
+	 * @param object
 	 * @param aLiteralTokenType
 	 * @return
 	 */
 	abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @param aTokenType
+	 * @return
+	 */
+	abstract boolean o_EqualsTokenType (
+		final AvailObject object,
+		final A_Type aTokenType);
 
 	/**
 	 * @param object
@@ -6228,25 +6265,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_ExportedNames (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_String o_LeadingWhitespace (AvailObject object);
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_String o_TrailingWhitespace (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param trailingWhitespace
-	 */
-	abstract void o_TrailingWhitespace (
-		AvailObject object,
-		A_String trailingWhitespace);
 
 	/**
 	 * @param object

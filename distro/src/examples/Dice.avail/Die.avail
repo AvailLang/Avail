@@ -325,21 +325,18 @@ when [c : character | c is an Arabic numeral]
 is
 [
 	source : string,
-	countPosition : natural number,
-	line : natural number
+	countPosition : real source position,
+	line : real source line number
 |
 	$body : lexer body function's return type;
 	/* Skip the leading digits. */
-	i : natural number := countPosition;
+	i : real source position := countPosition;
 	size ::= |source|;
 	While [i ≤ size ∧ source[i] is an Arabic numeral] do [i++;];
 	If i > size ∨ ¬source[i] ∈ "dD"→set then
 	[
-		Exit body with ∅
-/*
 		Reject parse, expected:
 			"d or D followed by a positive integer (for an xDy dice expression)"
-*/
 	];
 	/* Note the location of the d|D. */
 	dPosition ::= (i++);
@@ -356,9 +353,9 @@ is
 	dText ::= <source[dPosition]>;
 	faceText ::= source[facePosition..i-1];
 	{<
-		`countText (base 10)` (countText),
-		`dText` (dText),
-		`faceText (base 10)` (faceText)
+		`countText (base 10)` (countText) @ countPosition:line,
+		keyword (dText) @ dPosition:line,
+		`faceText (base 10)` (faceText) @ facePosition:line
 	>}
 ];
 

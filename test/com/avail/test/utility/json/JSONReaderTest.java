@@ -123,7 +123,11 @@ public class JSONReaderTest
 	 */
 	private static void displayTestPayload (final StringBuilder sb)
 	{
-		System.out.println("Test Payload\n============\n" + sb + "\n");
+		//noinspection ConstantConditions
+		if (false)
+		{
+			System.out.println("Test Payload\n============\n" + sb + "\n");
+		}
 	}
 
 	@Test

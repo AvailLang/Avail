@@ -178,8 +178,6 @@ public final class ScannerTest
 		return () ->
 			newToken(
 				stringFrom(string),
-				emptyTuple(),
-				emptyTuple(),
 				start,
 				1,
 				tokenType);
@@ -329,11 +327,8 @@ public final class ScannerTest
 			}
 			return (A_Token) literalToken(
 				stringFrom(string),
-				emptyTuple(),
-				emptyTuple(),
 				start,
 				1,
-				LITERAL,
 				literal);
 		};
 	}
@@ -444,8 +439,6 @@ public final class ScannerTest
 					scannedTokens.get(scannedTokens.size() - 1),
 					newToken(
 						emptyTuple(),
-						emptyTuple(),
-						emptyTuple(),
 						input.length() + 1,
 						1,
 						END_OF_FILE),
@@ -493,35 +486,23 @@ public final class ScannerTest
 		final List<AvailObject> literals = new ArrayList<>(4);
 		literals.add(literalToken(
 			string,
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			LITERAL,
 			fromFloat(1.5f)));
 		literals.add(literalToken(
 			string,
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			LITERAL,
 			fromFloat(1.5f)));
 		literals.add(literalToken(
 			string,
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			LITERAL,
 			fromFloat(2.5f)));
 		literals.add(literalToken(
 			string,
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			LITERAL,
 			fromDouble(2.5)));
 		for (final A_Token lit_i : literals)
 		{

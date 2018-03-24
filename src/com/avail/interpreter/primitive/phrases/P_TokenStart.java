@@ -40,17 +40,19 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Get the specified {@linkplain
- * TokenDescriptor token}'s zero-based start position within the source
- * module that supplied it.
+ * <strong>Primitive:</strong> Get the specified {@linkplain TokenDescriptor
+ * token}'s one-based start position within the source module that supplied it.
+ * A result of {@code 0} means that the line number is unknown or meaningless.
  */
-public final class P_TokenStart extends Primitive
+@SuppressWarnings("unused")
+public final class P_TokenStart
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -74,6 +76,6 @@ public final class P_TokenStart extends Primitive
 	{
 		return functionType(
 			tuple(TOKEN.o()),
-			naturalNumbers());
+			wholeNumbers());
 	}
 }

@@ -42,14 +42,19 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
 import java.util.List;
 
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
+import static com.avail.descriptor.TokenDescriptor.ObjectSlots.STRING;
+import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.utility.PrefixSharingList.append;
 
@@ -117,26 +122,11 @@ extends Descriptor
 		STRING,
 
 		/**
-		 * The lower case {@linkplain StringDescriptor string}, cached as an
-		 * optimization for case insensitive parsing.
-		 */
-		@HideFieldInDebugger
-		LOWER_CASE_STRING,
-
-		/** The {@linkplain A_String leading whitespace}. */
-		@HideFieldInDebugger
-		LEADING_WHITESPACE,
-
-		/** The {@linkplain A_String trailing whitespace}. */
-		@HideFieldInDebugger
-		TRAILING_WHITESPACE,
-
-		/**
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
 		 */
 		@HideFieldJustForPrinting
-		NEXT_LEXING_STATE_POJO;
+		NEXT_LEXING_STATE_POJO
 	}
 
 	/**
@@ -161,9 +151,8 @@ extends Descriptor
 		KEYWORD,
 
 		/**
-		 * A literal token, detected at lexical scanning time. At the moment
-		 * this includes non-negative numeric tokens and strings. Only
-		 * applicable for a {@link LiteralTokenDescriptor}.
+		 * A literal token, detected at lexical scanning time. Only applicable
+		 * for a {@link LiteralTokenDescriptor}.
 		 */
 		LITERAL,
 
@@ -172,12 +161,6 @@ extends Descriptor
 		 * a keyword character, or an Avail reserved character.
 		 */
 		OPERATOR,
-
-		/**
-		 * A synthetic literal token. Such a token does not occur in the source
-		 * text. Only applicable for a {@link LiteralTokenDescriptor}.
-		 */
-		SYNTHETIC_LITERAL,
 
 		/**
 		 * A token that is the entirety of an Avail method/class comment.  This
@@ -197,11 +180,25 @@ extends Descriptor
 		/** An array of all {@link TokenType} enumeration values. */
 		private static final TokenType[] all = values();
 
+		/** The associated special atom. */
+		public final A_Atom atom;
+
+		/**
+		 * Construct a {@link TokenType} and its associated {@linkplain A_Atom
+		 * special atom}.
+		 */
+		TokenType ()
+		{
+			this.atom = createSpecialAtom(
+				name().toLowerCase().replace('_', ' '));
+		}
+
 		/**
 		 * Answer the {@code TokenType} enumeration value having the given
 		 * ordinal.
 		 *
-		 * @param ordinal The {@link #ordinal()} of the {@code TokenType}.
+		 * @param ordinal
+		 *        The {@link #ordinal()} of the {@code TokenType}.
 		 * @return The {@code TokenType}.
 		 */
 		public static TokenType lookup (final int ordinal)
@@ -213,9 +210,22 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == LOWER_CASE_STRING
-			|| e == TRAILING_WHITESPACE
-			|| e == NEXT_LEXING_STATE_POJO;
+		return e == NEXT_LEXING_STATE_POJO;
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder aStream,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		aStream.append(String.format(
+			"%s (%s) @ %d:%d",
+			object.tokenType().name().toLowerCase().replace('_', ' '),
+			object.slot(STRING),
+			object.slot(START),
+			object.slot(LINE_NUMBER)));
 	}
 
 	/**
@@ -228,19 +238,9 @@ extends Descriptor
 	 */
 	private A_String lowerCaseStringFrom (final AvailObject token)
 	{
-		A_String lowerCase = token.slot(LOWER_CASE_STRING);
-		if (lowerCase.equalsNil())
-		{
-			final String nativeOriginal = token.slot(STRING).asNativeString();
-			final String nativeLowerCase = nativeOriginal.toLowerCase();
-			lowerCase = stringFrom(nativeLowerCase);
-			if (isShared())
-			{
-				lowerCase = lowerCase.traversed().makeShared();
-			}
-			token.setSlot(LOWER_CASE_STRING, lowerCase);
-		}
-		return lowerCase;
+		final String nativeOriginal = token.slot(STRING).asNativeString();
+		final String nativeLowerCase = nativeOriginal.toLowerCase();
+		return stringFrom(nativeLowerCase);
 	}
 
 	@Override @AvailMethod
@@ -273,13 +273,18 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return TOKEN.o();
+		return tokenType(object.tokenType());
 	}
 
 	@Override @AvailMethod
-	A_String o_LeadingWhitespace (final AvailObject object)
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aTypeObject)
 	{
-		return object.slot(LEADING_WHITESPACE);
+		return aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN)
+			|| aTypeObject.isTokenType()
+			&& object.slot(TOKEN_TYPE_CODE) ==
+				((AvailObject) aTypeObject).slot(TOKEN_TYPE_CODE);
 	}
 
 	@Override @AvailMethod
@@ -291,13 +296,6 @@ extends Descriptor
 	@Override @AvailMethod
 	A_String o_LowerCaseString (final AvailObject object)
 	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return lowerCaseStringFrom(object);
-			}
-		}
 		return lowerCaseStringFrom(object);
 	}
 
@@ -355,24 +353,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_String o_TrailingWhitespace (final AvailObject object)
-	{
-		return object.slot(TRAILING_WHITESPACE);
-	}
-
-	@Override @AvailMethod
-	void o_TrailingWhitespace (
-		final AvailObject object,
-		final A_String trailingWhitespace)
-	{
-		object.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-	}
-
-	@Override @AvailMethod
 	TokenType o_TokenType (final AvailObject object)
 	{
-		final int index = object.slot(TOKEN_TYPE_CODE);
-		return TokenType.lookup(index);
+		return TokenType.lookup(object.slot(TOKEN_TYPE_CODE));
 	}
 
 	@Override
@@ -381,16 +364,15 @@ extends Descriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("token");
+		writer.write("token type");
+		writer.write(object.tokenType().name().toLowerCase().replace(
+			'_', ' '));
 		writer.write("start");
 		writer.write(object.slot(START));
 		writer.write("line number");
 		writer.write(object.slot(LINE_NUMBER));
 		writer.write("lexeme");
 		object.slot(STRING).writeTo(writer);
-		writer.write("leading whitespace");
-		object.slot(LEADING_WHITESPACE).writeTo(writer);
-		writer.write("trailing whitespace");
-		object.slot(TRAILING_WHITESPACE).writeTo(writer);
 		writer.endObject();
 	}
 
@@ -405,10 +387,6 @@ extends Descriptor
 	 *
 	 * @param string
 	 *        The token text.
-	 * @param leadingWhitespace
-	 *        The leading whitespace.
-	 * @param trailingWhitespace
-	 *        The trailing whitespace.
 	 * @param start
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
@@ -419,17 +397,16 @@ extends Descriptor
 	 */
 	public static A_Token newToken (
 		final A_String string,
-		final A_String leadingWhitespace,
-		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
 		final TokenType tokenType)
 	{
+		if (tokenType == TokenType.COMMENT)
+		{
+			return newCommentToken(string, start, lineNumber);
+		}
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
-		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
-		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, nil);
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());

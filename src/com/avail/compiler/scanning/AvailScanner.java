@@ -39,7 +39,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +47,7 @@ import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
@@ -108,12 +105,6 @@ public class AvailScanner
 	 * {@link #stopAfterBodyToken} is set.
 	 */
 	@InnerAccess boolean encounteredBodyToken;
-
-	/** The previously scanned whitespace. */
-	private A_String previousWhitespace = emptyTuple();
-
-	/** The previously added {@linkplain A_Token token}. */
-	private @Nullable A_Token previousToken;
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -178,15 +169,11 @@ public class AvailScanner
 	{
 		final A_Token token = newToken(
 			stringFrom(currentTokenString()),
-			previousWhitespace,
-			emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
 			tokenType);
 		token.makeShared();
 		outputTokens.add(token);
-		previousToken = token;
-		forgetWhitespace();
 		return token;
 	}
 
@@ -203,16 +190,11 @@ public class AvailScanner
 	{
 		final A_Token token = literalToken(
 			stringFrom(currentTokenString()),
-			previousWhitespace,
-			emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
-			LITERAL,
 			anAvailObject);
 		token.makeShared();
 		outputTokens.add(token);
-		previousToken = token;
-		forgetWhitespace();
 	}
 
 	/**
@@ -226,14 +208,10 @@ public class AvailScanner
 	{
 		final A_Token token = newCommentToken(
 			stringFrom(currentTokenString()),
-			previousWhitespace,
-			emptyTuple(),
 			startOfToken + 1,
 			startLine);
 		token.makeShared();
 		commentTokens.add(token);
-		previousToken = null;
-		forgetWhitespace();
 	}
 
 	/**
@@ -402,31 +380,6 @@ public class AvailScanner
 				assert whitespace != null;
 				return stringFrom(whitespace).makeShared();
 			});
-
-	/**
-	 * Note that whitespace was discovered.
-	 */
-	@InnerAccess void noteWhitespace ()
-	{
-		assert previousWhitespace.tupleSize() == 0;
-		previousWhitespace = whitespaceCache.getNotNull(
-			inputString.substring(startOfToken, position));
-		final A_Token previous = previousToken;
-		if (previous != null)
-		{
-			assert previous.tokenType() != TokenType.COMMENT;
-			previous.trailingWhitespace(previousWhitespace);
-			previousToken = null;
-		}
-	}
-
-	/**
-	 * Forget any saved whitespace.
-	 */
-	@InnerAccess void forgetWhitespace ()
-	{
-		previousWhitespace = emptyTuple();
-	}
 
 	/**
 	 * An enumeration of actions to be performed based on the next character
@@ -806,7 +759,6 @@ public class AvailScanner
 							else
 							{
 								scanner.logBasicCommentPosition();
-								scanner.forgetWhitespace();
 							}
 							break;
 						}
@@ -852,7 +804,6 @@ public class AvailScanner
 					}
 					scanner.next();
 				}
-				scanner.noteWhitespace();
 			}
 		},
 

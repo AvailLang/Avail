@@ -82,8 +82,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.TimerTask;
 
-import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots
-	.INDIRECTION_TARGET;
+import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET;
 
 /**
  * An {@link AvailObject} with an {@code IndirectionDescriptor} keeps track of
@@ -3775,6 +3774,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return o_Traversed(object).typeIntersectionOfTokenType(aTokenType);
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -3784,12 +3791,26 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeUnionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return o_Traversed(object).typeUnionOfTokenType(aTokenType);
+	}
+
+	@Override
 	A_Type o_TypeUnionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
 		return o_Traversed(object).typeUnionOfLiteralTokenType(
 			aLiteralTokenType);
+	}
+
+	@Override
+	boolean o_IsTokenType (final AvailObject object)
+	{
+		return o_Traversed(object).isTokenType();
 	}
 
 	@Override
@@ -3805,12 +3826,29 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return o_Traversed(object).isSupertypeOfTokenType(
+			aTokenType);
+	}
+
+	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
 		return o_Traversed(object).isSupertypeOfLiteralTokenType(
 			aLiteralTokenType);
+	}
+
+	@Override
+	boolean o_EqualsTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return o_Traversed(object).equalsTokenType(aTokenType);
 	}
 
 	@Override
@@ -4550,26 +4588,6 @@ extends AbstractDescriptor
 	A_Set o_ExportedNames (final AvailObject object)
 	{
 		return o_Traversed(object).exportedNames();
-	}
-
-	@Override
-	A_String o_LeadingWhitespace (final AvailObject object)
-	{
-		return o_Traversed(object).leadingWhitespace();
-	}
-
-	@Override
-	A_String o_TrailingWhitespace (final AvailObject object)
-	{
-		return o_Traversed(object).trailingWhitespace();
-	}
-
-	@Override
-	void o_TrailingWhitespace (
-		final AvailObject object,
-		final A_String trailingWhitespace)
-	{
-		o_Traversed(object).trailingWhitespace(trailingWhitespace);
 	}
 
 	@Override

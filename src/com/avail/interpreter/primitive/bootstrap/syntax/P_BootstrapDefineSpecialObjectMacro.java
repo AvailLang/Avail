@@ -47,20 +47,17 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.SEQUENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -77,6 +74,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("unused")
 public final class P_BootstrapDefineSpecialObjectMacro
 extends Primitive
 {
@@ -143,7 +141,11 @@ extends Primitive
 				tuple(
 					getValue,
 					syntheticLiteralNodeFor(
-						specialObjectLiteral.token().string()))),
+						specialObjectLiteral.token().string()),
+					syntheticLiteralNodeFor(
+						fromInt(0)),
+					syntheticLiteralNodeFor(
+						fromInt(0)))),
 			literalTokenType(specialObjectLiteral.expressionType()));
 		final A_Phrase createLiteralNode = newSendNode(
 			emptyTuple(),

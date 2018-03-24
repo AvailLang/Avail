@@ -52,12 +52,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -2429,6 +2424,15 @@ implements
 	}
 
 	@Override
+	public boolean isSupertypeOfTokenType (
+		final A_Type aTokenType)
+	{
+		return descriptor.o_IsSupertypeOfTokenType(
+			this,
+			aTokenType);
+	}
+
+	@Override
 	public boolean isSupertypeOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
@@ -4757,12 +4761,30 @@ implements
 	}
 
 	@Override
+	public A_Type typeIntersectionOfTokenType (
+		final A_Type aTokenType)
+	{
+		return descriptor.o_TypeIntersectionOfTokenType(
+			this,
+			aTokenType);
+	}
+
+	@Override
 	public A_Type typeIntersectionOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
 		return descriptor.o_TypeIntersectionOfLiteralTokenType(
 			this,
 			aLiteralTokenType);
+	}
+
+	@Override
+	public A_Type typeUnionOfTokenType (
+		final A_Type aTokenType)
+	{
+		return descriptor.o_TypeUnionOfTokenType(
+			this,
+			aTokenType);
 	}
 
 	@Override
@@ -4775,6 +4797,12 @@ implements
 	}
 
 	@Override
+	public boolean isTokenType ()
+	{
+		return descriptor.o_IsTokenType(this);
+	}
+
+	@Override
 	public boolean isLiteralTokenType ()
 	{
 		return descriptor.o_IsLiteralTokenType(this);
@@ -4784,6 +4812,13 @@ implements
 	public boolean isLiteralToken ()
 	{
 		return descriptor.o_IsLiteralToken(this);
+	}
+
+	@Override
+	public boolean equalsTokenType (
+		final A_Type aTokenType)
+	{
+		return descriptor.o_EqualsTokenType(this, aTokenType);
 	}
 
 	@Override
@@ -5496,24 +5531,6 @@ implements
 	public A_Set exportedNames ()
 	{
 		return descriptor.o_ExportedNames(this);
-	}
-
-	@Override
-	public A_String leadingWhitespace ()
-	{
-		return descriptor.o_LeadingWhitespace(this);
-	}
-
-	@Override
-	public A_String trailingWhitespace ()
-	{
-		return descriptor.o_TrailingWhitespace(this);
-	}
-
-	@Override
-	public void trailingWhitespace (final A_String trailingWhitespace)
-	{
-		descriptor.o_TrailingWhitespace(this, trailingWhitespace);
 	}
 
 	@Override

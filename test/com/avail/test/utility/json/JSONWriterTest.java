@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import static com.avail.test.utility.json.TestJSONKeyValue.*;
-import static com.avail.test.utility.json.TestJSONKeyValue.OBJINT;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -52,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
+@SuppressWarnings("WeakerAccess")
 public class JSONWriterTest
 {
 	/**
@@ -76,18 +76,11 @@ public class JSONWriterTest
 				"The following test JSON could not be parsed:\n%s",
 				writer.contents()));
 		}
-		catch (final IllegalStateException e)
+		catch (final IllegalStateException|IOException e)
 		{
 			fail(String.format(
 				"The following test JSON could not be created due to an "
-					+ "IOException:\n%s",
-				writer.contents()));
-		}
-		catch (final IOException e)
-		{
-			fail(String.format(
-				"The following test JSON could not be created due to an "
-					+ "IOException:\n%s",
+					+ "exception:\n%s",
 				writer.contents()));
 		}
 		return null; // Shouldn't get here
@@ -101,7 +94,11 @@ public class JSONWriterTest
 	 */
 	private static void displayTestPayload (final JSONWriter writer)
 	{
-		System.out.println("Test Payload\n============\n" + writer + "\n");
+		//noinspection ConstantConditions,ConstantIfStatement
+		if (false)
+		{
+			System.out.println("Test Payload\n============\n" + writer + "\n");
+		}
 	}
 
 	@Test

@@ -61,6 +61,7 @@ Names
 	/* 129 */ "byte",
 	/*   3 */ "character",
 	/*  38 */ "code point",
+	/* 164 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
 	/*  92 */ "continuation variable",
@@ -70,6 +71,7 @@ Names
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
+	/* 160 */ "end of file",
 	/*  24 */ "exception",
 	/* 155 */ "explicit subclassing key",
 	/* 150 */ "expression as statement phrase",
@@ -94,10 +96,12 @@ Names
 	/* 147 */ "int64",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
+	/* 161 */ "keyword",
 	/*  63 */ "label phrase",
 	/* 158 */ "lexer body function",
 	/* 157 */ "lexer filter function",
 	/*  59 */ "list phrase",
+	/* 162 */ "literal",
 	/*  55 */ "literal phrase",
 	/* 116 */ "literal token",
 	/*  58 */ "literal token meta",
@@ -132,6 +136,7 @@ Names
 	/* 101 */ "nybble",
 	/*  22 */ "object",
 	/*  23 */ "object meta",
+	/* 163 */ "operator",
 	/* 143 */ "parse map key",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
@@ -162,6 +167,8 @@ Names
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
+	/* 167 */ "source line number",
+	/* 166 */ "source position",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
@@ -195,6 +202,7 @@ Names
 	/*   8 */ "variable meta",
 	/*  56 */ "variable reference phrase",
 	/*  60 */ "variable use phrase",
+	/* 165 */ "whitespace",
 	/*  36 */ "whole number",
 	/*  98 */ "whole number meta",
 	/* 124 */ "write-only variable",
@@ -2125,4 +2133,76 @@ Special object "lexer body function" is special object 158;
  * @returns "static tokens key's type"
  */
 Special object "static tokens key" is special object 159;
+
+/**
+ * An atom that designates the end-of-file token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "end of file"
+ * @returns "end of file's type"
+ */
+Special object "end of file" is special object 160;
+
+/**
+ * An atom that designates the keyword token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "keyword"
+ * @returns "keyword's type"
+ */
+Special object "keyword" is special object 161;
+
+/**
+ * An atom that designates the literal token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "literal"
+ * @returns "literal's type"
+ */
+Special object "literal" is special object 162;
+
+/**
+ * An atom that designates the operator token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "operator"
+ * @returns "operator's type"
+ */
+Special object "operator" is special object 163;
+
+/**
+ * An atom that designates the comment token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "comment"
+ * @returns "comment's type"
+ */
+Special object "comment" is special object 164;
+
+/**
+ * An atom that designates the whitespace token type.
+ *
+ * @category "Primitives" "Constants"
+ * @method "whitespace"
+ * @returns "whitespace's type"
+ */
+Special object "whitespace" is special object 165;
+
+/**
+ * The type of the character position within an Avail source module.
+ *
+ * @category "Primitives" "Types"
+ * @type "[0..4294967295]"
+ * @alias "source position"
+ */
+Special object "source position" is special object 166;
+
+/**
+ * The type of the line number within an Avail source module.
+ *
+ * @category "Primitives" "Types"
+ * @type "[0..268435455]"
+ * @alias "source line number"
+ */
+Special object "source line number" is special object 167;
 

@@ -175,6 +175,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	final A_Type o_TypeIntersectionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return computeIntersectionWith(object, aTokenType);
+	}
+
+	@Override @AvailMethod
 	final A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -276,6 +284,14 @@ extends AbstractTypeDescriptor
 		final A_Type aCompiledCodeType)
 	{
 		return computeUnionWith(object, aCompiledCodeType);
+	}
+
+	@Override @AvailMethod
+	final A_Type o_TypeUnionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return computeUnionWith(object, aTokenType);
 	}
 
 	@Override @AvailMethod
@@ -570,6 +586,14 @@ extends AbstractTypeDescriptor
 	boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
 	{
 		return false;
 	}

@@ -43,17 +43,13 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.LiteralPhraseDescriptor.ObjectSlots.TOKEN;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -73,7 +69,7 @@ extends PhraseDescriptor
 		/**
 		 * The token that was transformed into this literal.
 		 */
-		TOKEN;
+		TOKEN
 	}
 
 	@Override
@@ -133,8 +129,7 @@ extends PhraseDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		final A_Token token = object.slot(TOKEN);
-		assert token.tokenType() == LITERAL
-			|| token.tokenType() == SYNTHETIC_LITERAL;
+		assert token.tokenType() == LITERAL;
 		final AvailObject literal = token.literal();
 		return instanceTypeOrMetaOn(literal).makeImmutable();
 	}
@@ -248,11 +243,8 @@ extends PhraseDescriptor
 			literalValue.isString()
 				? (A_String) literalValue
 				: stringFrom(literalValue.toString()),
-			emptyTuple(),
-			emptyTuple(),
 			0,
-			-1,
-			SYNTHETIC_LITERAL,
+			0,
 			literalValue);
 		return literalNodeFromToken(token);
 	}

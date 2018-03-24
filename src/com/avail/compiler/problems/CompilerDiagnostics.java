@@ -331,8 +331,6 @@ public class CompilerDiagnostics
 			final LexingState state = startLexingStates.iterator().next();
 			final A_Token emptyToken = newToken(
 				emptyTuple(),
-				emptyTuple(),
-				emptyTuple(),
 				state.position,
 				state.lineNumber,
 				WHITESPACE);

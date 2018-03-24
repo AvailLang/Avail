@@ -56,18 +56,13 @@ import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PermutedListPhraseDescriptor
-	.newPermutedListNode;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.VARIABLE_USE_PHRASE;
-import static com.avail.descriptor.ReferencePhraseDescriptor
-	.referenceNodeFromUse;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.utility.PrefixSharingList.*;
@@ -584,11 +579,8 @@ public enum ParsingOperation
 					final A_Token syntheticToken =
 						literalToken(
 							token.string(),
-							token.leadingWhitespace(),
-							token.trailingWhitespace(),
 							token.start(),
 							token.lineNumber(),
-							SYNTHETIC_LITERAL,
 							token);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
@@ -660,11 +652,8 @@ public enum ParsingOperation
 					final A_Token syntheticToken =
 						literalToken(
 							token.string(),
-							token.leadingWhitespace(),
-							token.trailingWhitespace(),
 							token.start(),
 							token.lineNumber(),
-							SYNTHETIC_LITERAL,
 							token);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
@@ -737,11 +726,8 @@ public enum ParsingOperation
 					final A_Token syntheticToken =
 						literalToken(
 							token.string(),
-							token.leadingWhitespace(),
-							token.trailingWhitespace(),
 							token.start(),
 							token.lineNumber(),
-							SYNTHETIC_LITERAL,
 							token);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
@@ -814,11 +800,8 @@ public enum ParsingOperation
 					final A_Token syntheticToken =
 						literalToken(
 							token.string(),
-							token.leadingWhitespace(),
-							token.trailingWhitespace(),
 							token.start(),
 							token.lineNumber(),
-							SYNTHETIC_LITERAL,
 							token);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
@@ -1578,11 +1561,8 @@ public enum ParsingOperation
 				operand(instruction));
 			final A_Token token = literalToken(
 				stringFrom(constant.toString()),
-				emptyTuple(),
-				emptyTuple(),
 				initialTokenPosition.position(),
 				initialTokenPosition.lineNumber(),
-				LITERAL,
 				constant);
 			final A_Phrase literalNode = literalNodeFromToken(token);
 			compiler.eventuallyParseRestOfSendNode(

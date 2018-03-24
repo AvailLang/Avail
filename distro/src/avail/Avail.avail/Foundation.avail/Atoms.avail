@@ -41,7 +41,8 @@ Uses
 	"Early Enumeration Support",
 	"Early Literals",
 	"Early Logic",
-	"Early Variables"
+	"Early Variables",
+	"Phrases"
 Extends
 	"Collections" = ("_[_]else_")
 Names

@@ -94,8 +94,6 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 		final A_Token token = newToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, startPosition, false),
-			emptyTuple(),
-			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
 			OPERATOR);

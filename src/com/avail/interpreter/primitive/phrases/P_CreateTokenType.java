@@ -1,5 +1,5 @@
 /*
- * P_TokenLeadingWhitespace.java
+ * P_CreateTokenType.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,25 +32,37 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TokenTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.primitive.phrases.P_CreateToken.tokenTypeOrdinalKey;
 
 /**
- * <strong>Primitive:</strong> Answer the leading whitespace for the
- * specified {@linkplain A_Token token} as it appeared in the source text.
+ * <strong>Primitive:</strong> Construct a {@linkplain TokenTypeDescriptor token
+ * type} with the given parameterization.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_TokenLeadingWhitespace
+@SuppressWarnings("unused")
+public final class P_CreateTokenType
 extends Primitive
 {
 	/**
@@ -58,22 +70,48 @@ extends Primitive
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_TokenLeadingWhitespace().init(
+		new P_CreateTokenType().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
-	public Result attempt (
-		final Interpreter interpreter)
+	public Result attempt (final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Token token = interpreter.argument(0);
-		return interpreter.primitiveSuccess(token.leadingWhitespace());
+		final A_Atom type = interpreter.argument(0);
+		return interpreter.primitiveSuccess(
+			tokenType(TokenType.lookup(
+				type.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type atomType = argumentTypes.get(0);
+
+		if (atomType.instanceCount().equalsInt(1))
+		{
+			final A_Atom atom = atomType.instance();
+			return instanceType(tokenType(TokenType.lookup(
+				atom.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
+
+		}
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return
-			functionType(tuple(TOKEN.o()), stringType());
+		return functionType(
+			tuple(
+				enumerationWith(
+					set(
+						END_OF_FILE.atom,
+						KEYWORD.atom,
+						OPERATOR.atom,
+						COMMENT.atom,
+						WHITESPACE.atom))),
+			instanceMeta(mostGeneralLiteralTokenType()));
 	}
 }

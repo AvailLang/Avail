@@ -188,6 +188,11 @@ extends Descriptor
 		final A_Type aListNodeType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType);
+
+	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType);
@@ -328,6 +333,11 @@ extends Descriptor
 		final A_Type aListNodeType);
 
 	@Override @AvailMethod
+	abstract A_Type o_TypeIntersectionOfTokenType (
+		AvailObject object,
+		A_Type aTokenType);
+
+	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfLiteralTokenType (
 		AvailObject object,
 		A_Type aLiteralTokenType);
@@ -409,6 +419,11 @@ extends Descriptor
 	abstract A_Type o_TypeUnionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfLiteralTokenType (

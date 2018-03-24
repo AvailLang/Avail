@@ -33,14 +33,7 @@ package com.avail.compiler.scanning;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Lexer;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
@@ -70,7 +63,6 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
@@ -245,8 +237,6 @@ public class LexingState
 			assert position == source.tupleSize() + 1;
 			final A_Token endOfFileToken = newToken(
 				stringFrom("end-of-file"),
-				emptyTuple(),
-				emptyTuple(),
 				position,
 				lineNumber,
 				END_OF_FILE);

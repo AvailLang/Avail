@@ -33,15 +33,17 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
+import java.util.IdentityHashMap;
+
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.LINE_NUMBER;
+import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.START;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -68,23 +70,14 @@ extends TokenDescriptor
 		 * {@link BitField}s for the token type code, the starting byte
 		 * position, and the line number.
 		 */
-		TOKEN_TYPE_AND_START_AND_LINE;
-
-		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.  Currently four bits are
-		 * reserved for this purpose.
-		 */
-		@EnumField(describedBy = TokenType.class)
-		static final BitField TOKEN_TYPE_CODE =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
+		START_AND_LINE;
 
 		/**
 		 * The line number in the source file. Currently signed 28 bits, which
 		 * should be plenty.
 		 */
 		static final BitField LINE_NUMBER =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
+			bitField(START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -94,15 +87,13 @@ extends TokenDescriptor
 		 */
 		@HideFieldInDebugger
 		static final BitField START =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
+			bitField(START_AND_LINE, 32, 32);
 
 		static
 		{
 			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START_AND_LINE
 					.ordinal()
-				== TOKEN_TYPE_AND_START_AND_LINE.ordinal();
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.isSamePlaceAs(
-				TOKEN_TYPE_CODE);
+				== START_AND_LINE.ordinal();
 			assert TokenDescriptor.IntegerSlots.START.isSamePlaceAs(
 				START);
 			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.isSamePlaceAs(
@@ -124,21 +115,6 @@ extends TokenDescriptor
 		STRING,
 
 		/**
-		 * The lower case {@linkplain StringDescriptor string}, cached as an
-		 * optimization for case insensitive parsing.
-		 */
-		@HideFieldInDebugger
-		LOWER_CASE_STRING,
-
-		/** The {@linkplain A_String leading whitespace}. */
-		@HideFieldInDebugger
-		LEADING_WHITESPACE,
-
-		/** The {@linkplain A_String trailing whitespace}. */
-		@HideFieldInDebugger
-		TRAILING_WHITESPACE,
-
-		/**
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
 		 */
@@ -152,12 +128,6 @@ extends TokenDescriptor
 		{
 			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
 				== STRING.ordinal();
-			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
-				== LOWER_CASE_STRING.ordinal();
-			assert TokenDescriptor.ObjectSlots.LEADING_WHITESPACE.ordinal()
-				== LEADING_WHITESPACE.ordinal();
-			assert TokenDescriptor.ObjectSlots.TRAILING_WHITESPACE.ordinal()
-				== TRAILING_WHITESPACE.ordinal();
 			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
 				== NEXT_LEXING_STATE_POJO.ordinal();
 		}
@@ -166,10 +136,35 @@ extends TokenDescriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == LOWER_CASE_STRING
-			|| e == TRAILING_WHITESPACE
-			|| e == NEXT_LEXING_STATE_POJO
+		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder aStream,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		aStream.append(String.format(
+			"%s ",
+			object.tokenType().name().toLowerCase().replace('_', ' ')));
+		object.slot(LITERAL).printOnAvoidingIndent(
+			aStream,
+			recursionMap,
+			indent + 1);
+		aStream.append(String.format(
+			" (%s) @ %d:%d",
+			object.slot(STRING),
+			object.slot(START),
+			object.slot(LINE_NUMBER)));
+	}
+
+	@Override @AvailMethod
+	TokenType o_TokenType (final AvailObject object)
+	{
+		return TokenType.LITERAL;
 	}
 
 	@Override @AvailMethod
@@ -212,16 +207,15 @@ extends TokenDescriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("token");
+		writer.write("token type");
+		writer.write(object.tokenType().name().toLowerCase().replace(
+			'_', ' '));
 		writer.write("start");
 		writer.write(object.slot(START));
 		writer.write("line number");
 		writer.write(object.slot(LINE_NUMBER));
 		writer.write("lexeme");
 		object.slot(STRING).writeTo(writer);
-		writer.write("leading whitespace");
-		object.slot(LEADING_WHITESPACE).writeTo(writer);
-		writer.write("trailing whitespace");
-		object.slot(TRAILING_WHITESPACE).writeTo(writer);
 		writer.write("literal");
 		object.slot(LITERAL).writeTo(writer);
 		writer.endObject();
@@ -239,10 +233,6 @@ extends TokenDescriptor
 		writer.write(object.slot(LINE_NUMBER));
 		writer.write("lexeme");
 		object.slot(STRING).writeTo(writer);
-		writer.write("leading whitespace");
-		object.slot(LEADING_WHITESPACE).writeTo(writer);
-		writer.write("trailing whitespace");
-		object.slot(TRAILING_WHITESPACE).writeTo(writer);
 		writer.write("literal");
 		object.slot(LITERAL).writeSummaryTo(writer);
 		writer.endObject();
@@ -253,36 +243,23 @@ extends TokenDescriptor
 	 *
 	 * @param string
 	 *        The token text.
-	 * @param leadingWhitespace
-	 *        The leading whitespace.
-	 * @param trailingWhitespace
-	 *        The trailing whitespace.
 	 * @param start
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
-	 * @param tokenType
-	 *        The type of token to create.
 	 * @param literal The literal value.
 	 * @return The new literal token.
 	 */
 	public static AvailObject literalToken (
 		final A_String string,
-		final A_String leadingWhitespace,
-		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
-		final TokenType tokenType,
 		final A_BasicObject literal)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
-		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
-		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, nil);
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
-		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(LITERAL, literal);
 		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
 		return instance;

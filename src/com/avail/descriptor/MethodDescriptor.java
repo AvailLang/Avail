@@ -47,8 +47,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax
-	.P_ModuleHeaderPseudoMacro;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -69,27 +68,17 @@ import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor
-	.newParsingPlan;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
-import static com.avail.descriptor.MethodDefinitionDescriptor
-	.newMethodDefinition;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
-	.CREATE_MACRO;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
-	.CREATE_METHOD;
+import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_MACRO;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_METHOD;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
@@ -98,8 +87,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
 
@@ -1039,9 +1027,12 @@ extends Descriptor
 		return shared;
 	}
 
-	// An enumeration of special atoms that the VM is aware of which name
-	// methods for invoking specific primitives.  Multiple primitives may be
-	// provided to make the method polymorphic.
+	/**
+	 * {@code SpecialMethodAtom} enumerates {@linkplain A_Atom atoms} that are
+	 * known to the virtual machine and that correspond to specific primitive
+	 * invocations. Multiple {@linkplain Primitive primitives} may be provided
+	 * to make the associated {@linkplain A_Method method} polymorphic.
+	 */
 	public enum SpecialMethodAtom
 	{
 		/** The special atom for failing during bootstrap.  Must be first. */
@@ -1106,7 +1097,7 @@ extends Descriptor
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
-			"vm create literal token_,_",
+			"vm create literal token_,_,_,_",
 			CREATE_METHOD,
 			P_CreateLiteralToken.instance),
 

@@ -59,21 +59,8 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Generator;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableInt;
-import com.avail.utility.MutableLong;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.Pair;
-import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation3;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.SimpleDescriber;
-import com.avail.utility.evaluation.Transformer3;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,15 +83,12 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
@@ -113,19 +97,16 @@ import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -498,7 +479,7 @@ public final class AvailCompiler
 			assert completed == compilationContext.getWorkUnitsQueued();
 			if (compilationContext.diagnostics.pollForAbort.value())
 			{
-				// We may have been asked to abort subtasks by a failure in
+				// We may have been asked to abort sub-tasks by a failure in
 				// another module, so we can't trust the count of solutions.
 				afterFail.value();
 				return;
@@ -1784,7 +1765,7 @@ public final class AvailCompiler
 							continuation);
 						// Don't allow any check-argument actions to be
 						// processed normally, as it would ignore the
-						// restriction which we'vembeen so careful to prefilter.
+						// restriction which we've been so careful to prefilter.
 						skipCheckArgumentAction = true;
 					}
 					// The argument name was not in the prefilter map, so fall
@@ -3818,11 +3799,8 @@ public final class AvailCompiler
 		final A_String availName = stringFrom(macroName);
 		final AvailObject token1 = literalToken(
 			stringFrom(availName.toString()),
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			SYNTHETIC_LITERAL,
 			availName);
 		final A_Phrase nameLiteral = literalNodeFromToken(token1);
 		final List<A_Phrase> functionLiterals = new ArrayList<>();
