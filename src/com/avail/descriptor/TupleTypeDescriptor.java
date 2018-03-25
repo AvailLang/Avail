@@ -37,11 +37,11 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
-import com.avail.utility.evaluation.Transformer1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
+import java.util.function.Function;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
@@ -734,16 +734,16 @@ extends TypeDescriptor
 	 */
 	public static A_Type tupleTypeFromTupleOfTypes (
 		final A_Type aTupleType,
-		final Transformer1NotNull<A_Type, A_Type> elementTransformer)
+		final Function<A_Type, A_Type> elementTransformer)
 	{
 		final A_Type sizeRange = aTupleType.sizeRange();
 		final A_Tuple typeTuple = aTupleType.typeTuple();
 		final A_Type defaultType = aTupleType.defaultType();
 		final int limit = typeTuple.tupleSize();
 		final A_Tuple transformedTypeTuple = generateObjectTupleFrom(
-			limit, index -> elementTransformer.value(typeTuple.tupleAt(index)));
-		final A_Type transformedDefaultType = elementTransformer.value(
-			defaultType);
+			limit, index -> elementTransformer.apply(typeTuple.tupleAt(index)));
+		final A_Type transformedDefaultType =
+			elementTransformer.apply(defaultType);
 		return tupleTypeForSizesTypesDefaultType(
 			sizeRange, transformedTypeTuple, transformedDefaultType);
 	}

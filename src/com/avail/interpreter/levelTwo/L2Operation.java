@@ -60,6 +60,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.emptyList;
@@ -402,7 +404,7 @@ public abstract class L2Operation
 	{
 		assert instruction.operation == this;
 		final L2WritePointerOperand writer =
-			translator.newObjectRegisterWriter(outerType, null);
+			translator.newObjectRegisterWriter(restriction(outerType));
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),

@@ -34,9 +34,9 @@ import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * An abstract representation of an invocation.  Note that this is not itself an
@@ -170,10 +170,10 @@ public final class Frame
 	}
 
 	/**
-	 * Transform the receiver via the given {@link Transformer1NotNull}.
+	 * Transform the receiver via the given {@link Function}.
 	 *
 	 * @param topFrameReplacement
-	 *        The {@code Frame} to substituted for the top frame of the code
+	 *        The {@code Frame} to substitute for the top frame of the code
 	 *        being inlined.
 	 * @param frameTransformer
 	 *        How to transform {@code Frame} parts of the receiver.
@@ -182,13 +182,13 @@ public final class Frame
 	 */
 	public Frame transform (
 		final Frame topFrameReplacement,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
 		if (outerFrame == null)
 		{
 			return topFrameReplacement;
 		}
-		final Frame newOuterFrame = frameTransformer.value(outerFrame);
+		final Frame newOuterFrame = frameTransformer.apply(outerFrame);
 		if (newOuterFrame.equals(outerFrame))
 		{
 			return this;

@@ -1,19 +1,19 @@
 /*
- * Transformer1NotNull.java
+ * Casts.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,26 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
+package com.avail.utility;
+
+import org.jetbrains.annotations.Contract;
+
+import javax.annotation.Nullable;
 
 /**
- * Implementors of {@code Transformer1NotNull} provide a single arbitrary
- * operation that accepts one argument and produces a result.  Nulls are not
- * allowed as input or output.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <X> The type of the sole argument to the operation.
- * @param <Y> The type of value produced by the operation.
+ * Static utility methods related to Java type-casting.
  */
-@FunctionalInterface
-public interface Transformer1NotNull<X,Y>
+public final class Casts
 {
+	/** Prevent instantiation. */
+	private Casts () {};
+
 	/**
-	 * Perform the operation.
+	 * When you know better, this bypasses static type-safety, while leaving
+	 * dynamic type-safety intact, other than generics and nulls.
 	 *
-	 * @param arg The argument to the operation.
-	 * @return The result of performing the operation.
+	 * Note that it also uses IntelliJ's contract mechanism for null
+	 * propagation and purity.
 	 */
-	Y value (X arg);
+	@Contract(value = "null -> null; !null -> !null", pure = true)
+	@SuppressWarnings("unchecked")
+	public static @Nullable <I, O> O cast (final @Nullable I value)
+	{
+		return (O) value;
+	}
 }

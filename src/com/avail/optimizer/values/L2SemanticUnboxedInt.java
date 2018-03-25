@@ -32,7 +32,7 @@
 
 package com.avail.optimizer.values;
 
-import com.avail.utility.evaluation.Transformer1NotNull;
+import java.util.function.Function;
 
 /**
  * {@link L2SemanticUnboxedInt} represents the unboxing of an {@code int}-valued
@@ -97,13 +97,13 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticValue transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame>
+		final Function<Frame, Frame>
 			frameTransformer)
 	{
 		final L2SemanticValue newInner =
-			semanticValueTransformer.value(innerSemanticValue);
+			semanticValueTransformer.apply(innerSemanticValue);
 		return (newInner.equals(innerSemanticValue))
 			? this
 			: new L2SemanticUnboxedInt(newInner);

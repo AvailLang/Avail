@@ -309,7 +309,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *        The {@link TypeRestriction}.
 	 * @return The new {@code L2Register}.
 	 */
-	public abstract L2Register<T> copyForTranslator (
+	public abstract <R extends L2Register<T>> R copyForTranslator (
 		L1Translator translator,
 		TypeRestriction<T> typeRestriction);
 

@@ -84,12 +84,15 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -109,6 +112,7 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction
 	.restriction;
+import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
 import static com.avail.optimizer.L2Translator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -150,7 +154,7 @@ implements L1OperationDispatcher
 	 * The topmost Frame for translation, which corresponds with the provided
 	 * {@link A_RawFunction} in {@link #code}.
 	 */
-	private final Frame topFrame;
+	public final Frame topFrame;
 
 	/**
 	 * The {@link L2SemanticValue}s corresponding with to slots of the virtual
@@ -188,11 +192,11 @@ implements L1OperationDispatcher
 
 	/**
 	 * Primitive {@link A_RawFunction}s will start with a {@link
-	 * L2_TRY_OPTIONAL_PRIMITIVE} instruction.  If we have just optimized such code, we
-	 * must have already tried and failed the primitive (because we try the
-	 * primitive prior to {@link L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}).
-	 * In either case, this block is where to continue in the new chunk right
-	 * after optimizing.
+	 * L2_TRY_OPTIONAL_PRIMITIVE} instruction.  If we have just optimized such
+	 * code, we must have already tried and failed the primitive (because we try
+	 * the primitive prior to {@link
+	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}). In either case, this block
+	 * is where to continue in the new chunk right after optimizing.
 	 *
 	 * <p>In addition, this block is published so that a caller that inlines
 	 * a fallible primitive can safely attempt the primitive, then if it fails
@@ -379,8 +383,11 @@ implements L1OperationDispatcher
 	 */
 	private L2ReadPointerOperand readSlot (final int slotIndex)
 	{
-		return stripNull(
-			currentManifest.semanticValueToRegister(semanticSlot(slotIndex)));
+		final L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			stripNull(
+				currentManifest.semanticValueToSynonym(
+					semanticSlot(slotIndex)));
+		return synonym.defaultRegisterRead();
 	}
 
 	/**
@@ -394,73 +401,81 @@ implements L1OperationDispatcher
 	 * @param effectivePc
 	 *        The Level One pc at which this write should be considered
 	 *        effective.
-	 * @param type
-	 *        The bounding type for the new register.
-	 * @param constantOrNull
-	 *        The constant value that will be written, if known, otherwise
-	 *        {@code null}.
+	 * @param restriction
+	 *        The bounding {@link TypeRestriction} for the new register.
 	 * @return A register write representing that continuation slot.
 	 */
 	private L2WritePointerOperand writeSlot (
 		final int slotIndex,
 		final int effectivePc,
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final TypeRestriction<A_BasicObject> restriction)
 	{
-		// Create a new L2SemanticSlot at the current pc, representing this
+		// Create a new semantic slot at the current pc, representing this
 		// newly written value.
 		final L2SemanticValue semanticValue =
 			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
 		final L2WritePointerOperand writer =
-			newObjectRegisterWriter(type, constantOrNull);
-		currentManifest.addBinding(
-			semanticValue, new L2ReadPointerOperand(writer.register(), null));
+			newObjectRegisterWriter(restriction);
+		currentManifest.addBinding(semanticValue, writer.register());
 		return writer;
 	}
 
 	/**
-	 * Set the specified slot register to the provided register.  This is a low
-	 * level operation, used when {@link #startBlock(L2BasicBlock) starting
-	 * generation} of basic blocks.
-	 *
-	 * @param slotIndex
-	 *        The slot index to replace.
-	 * @param register
-	 *        The {@link L2ReadPointerOperand} that should now be considered the
-	 *        current register representing that slot.
-	 */
-	private void forceSlotRegister (
-		final int slotIndex,
-		final L2ReadPointerOperand register)
-	{
-		forceSlotRegister(slotIndex, instructionDecoder.pc(), register);
-	}
-
-	/**
-	 * Set the specified slot register to the provided register.  This is a low
-	 * level operation, used when {@link #startBlock(L2BasicBlock) starting
-	 * generation} of basic blocks.
+	 * Associate the specified {@link L2ReadPointerOperand} with the semantic
+	 * slot having the given index and effective pc.  Restrict the type based on
+	 * the register-read's {@link TypeRestriction}.
 	 *
 	 * @param slotIndex
 	 *        The slot index to replace.
 	 * @param effectivePc
 	 *        The effective pc.
-	 * @param register
+	 * @param registerRead
 	 *        The {@link L2ReadPointerOperand} that should now be considered the
 	 *        current register representing that slot.
 	 */
 	@InnerAccess void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
-		final L2ReadPointerOperand register)
+		final L2ReadPointerOperand registerRead)
 	{
-		// Create a new L2SemanticSlot at the current pc, representing this
+		forceSlotRegister(
+			slotIndex,
+			effectivePc,
+			registerRead.register(),
+			registerRead.restriction());
+	}
+
+	/**
+	 * Associate the specified register with the slot semantic value having the
+	 * given index and effective pc.
+	 *
+	 * @param slotIndex
+	 *        The slot index to replace.
+	 * @param effectivePc
+	 *        The effective pc.
+	 * @param register
+	 *        The {@link L2Register} that should now be considered the current
+	 *        register representing that slot.
+	 * @param <T>
+	 *        The {@link A_BasicObject} that constrains the register's type.
+	 */
+	@InnerAccess <T extends A_BasicObject> void forceSlotRegister (
+		final int slotIndex,
+		final int effectivePc,
+		final L2Register<T> register,
+		final TypeRestriction<T> restriction)
+	{
+		// Create a new L2SemanticSlot at the effective pc, representing this
 		// newly written value.
 		final L2SemanticValue semanticValue =
 			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
 		currentManifest.addBinding(semanticValue, register);
+		final @Nullable L2Synonym<L2Register<T>, T> synonym =
+			currentManifest.registerToSynonym(register);
+		assert synonym != null;
+		synonym.setRestriction(restriction);
 	}
 
 	/**
@@ -473,7 +488,8 @@ implements L1OperationDispatcher
 	 */
 	private void nilSlot (final int slotIndex)
 	{
-		forceSlotRegister(slotIndex, constantRegister(nil));
+		forceSlotRegister(
+			slotIndex, instructionDecoder.pc(), constantRegister(nil));
 	}
 
 	/**
@@ -488,22 +504,18 @@ implements L1OperationDispatcher
 
 	/**
 	 * Allocate a new {@link L2ObjectRegister}.  Answer an {@link
-	 * L2WritePointerOperand} that writes to it, using the given type and
-	 * optional constant value information.
+	 * L2WritePointerOperand} that writes to it, using the given {@link
+	 * TypeRestriction}.
 	 *
-	 * @param type
-	 *        The type of value that the register can hold.
-	 * @param constantOrNull
-	 *        The exact value in the register, or {@code null} if not known
-	 *        statically.
+	 * @param restriction
+	 *        The initial {@link TypeRestriction} for the new register.
 	 * @return The new register write operand.
 	 */
 	public L2WritePointerOperand newObjectRegisterWriter (
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final TypeRestriction<A_BasicObject> restriction)
 	{
-		return new L2WritePointerOperand(new L2ObjectRegister(
-			nextUnique(), restriction(type, constantOrNull)));
+		return new L2WritePointerOperand(
+			new L2ObjectRegister(nextUnique(), restriction));
 	}
 
 	/**
@@ -522,8 +534,8 @@ implements L1OperationDispatcher
 		final A_Type type,
 		final @Nullable A_Number constantOrNull)
 	{
-		return new L2WriteIntOperand(new L2IntRegister(
-			nextUnique(), restriction(type, constantOrNull)));
+		return new L2WriteIntOperand(
+			new L2IntRegister(nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -542,8 +554,9 @@ implements L1OperationDispatcher
 		final A_Type type,
 		final @Nullable A_Number constantOrNull)
 	{
-		return new L2WriteFloatOperand(new L2FloatRegister(
-			nextUnique(), restriction(type, constantOrNull)));
+		return new L2WriteFloatOperand(
+			new L2FloatRegister(
+				nextUnique(), restriction(type, constantOrNull)));
 	}
 
 	/**
@@ -569,32 +582,25 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand getCurrentFunction ()
 	{
 		final L2SemanticValue semanticFunction = topFrame.function();
-		final @Nullable L2ReadPointerOperand existingRead =
-			currentManifest.semanticValueToRegister(semanticFunction);
-		if (existingRead != null)
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			currentManifest.semanticValueToSynonym(semanticFunction);
+		if (synonym != null)
 		{
-			return existingRead;
+			return synonym.defaultRegisterRead();
 		}
 		// We have to get it into a register.
-		final L2ReadPointerOperand functionRead;
 		if (exactFunctionOrNull != null)
 		{
 			// The exact function is known.
-			functionRead = constantRegister(exactFunctionOrNull);
+			return constantRegister(exactFunctionOrNull);
 		}
-		else
-		{
-			// The exact function isn't known, but we know the raw function, so
-			// we statically know the function type.
-			final L2WritePointerOperand functionWrite =
-				newObjectRegisterWriter(code.functionType(), null);
-			addInstruction(
-				L2_GET_CURRENT_FUNCTION.instance,
-				functionWrite);
-			functionRead = functionWrite.read();
-		}
-		currentManifest.addBinding(semanticFunction, functionRead);
-		return functionRead;
+		// The exact function isn't known, but we know the raw function, so we
+		// statically know the function type.
+		final L2WritePointerOperand functionWrite =
+			newObjectRegisterWriter(restriction(code.functionType()));
+		addInstruction(L2_GET_CURRENT_FUNCTION.instance, functionWrite);
+		currentManifest.addBinding(semanticFunction, functionWrite.register());
+		return functionWrite.read();
 	}
 
 	/**
@@ -607,11 +613,11 @@ implements L1OperationDispatcher
 		final A_Type outerType)
 	{
 		final L2SemanticValue semanticOuter = topFrame.outer(outerIndex);
-		@Nullable L2ReadPointerOperand outerRead =
-			currentManifest.semanticValueToRegister(semanticOuter);
-		if (outerRead != null)
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			currentManifest.semanticValueToSynonym(semanticOuter);
+		if (synonym != null)
 		{
-			return outerRead;
+			return synonym.defaultRegisterRead();
 		}
 		if (outerType.instanceCount().equalsInt(1)
 			&& !outerType.isInstanceMeta())
@@ -621,15 +627,14 @@ implements L1OperationDispatcher
 		}
 		final L2ReadPointerOperand functionRead = getCurrentFunction();
 		final L2WritePointerOperand outerWrite =
-			newObjectRegisterWriter(outerType, null);
+			newObjectRegisterWriter(restriction(outerType));
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),
 			functionRead,
 			outerWrite);
-		outerRead = outerWrite.read();
-		currentManifest.addBinding(semanticOuter, outerRead);
-		return outerRead;
+		currentManifest.addBinding(semanticOuter, outerWrite.register());
+		return outerWrite.read();
 	}
 
 	/**
@@ -640,7 +645,7 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand getCurrentContinuation ()
 	{
 		final L2WritePointerOperand continuationTempReg =
-			newObjectRegisterWriter(mostGeneralContinuationType(), null);
+			newObjectRegisterWriter(restriction(mostGeneralContinuationType()));
 		addInstruction(
 			L2_GET_CURRENT_CONTINUATION.instance,
 			continuationTempReg);
@@ -656,7 +661,7 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand popCurrentContinuation ()
 	{
 		final L2WritePointerOperand continuationTempReg =
-			newObjectRegisterWriter(mostGeneralContinuationType(), null);
+			newObjectRegisterWriter(restriction(mostGeneralContinuationType()));
 		addInstruction(
 			L2_POP_CURRENT_CONTINUATION.instance,
 			continuationTempReg);
@@ -675,8 +680,8 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand getLatestReturnValue (
 		final A_Type guaranteedType)
 	{
-		final L2WritePointerOperand writer = newObjectRegisterWriter(
-			guaranteedType, null);
+		final L2WritePointerOperand writer =
+			newObjectRegisterWriter(restriction(guaranteedType));
 		addInstruction(
 			L2_GET_LATEST_RETURN_VALUE.instance,
 			writer);
@@ -692,8 +697,8 @@ implements L1OperationDispatcher
 	 */
 	private L2ReadPointerOperand getReturningFunctionRegister ()
 	{
-		final L2WritePointerOperand writer = newObjectRegisterWriter(
-			mostGeneralFunctionType(), null);
+		final L2WritePointerOperand writer =
+			newObjectRegisterWriter(restriction(mostGeneralFunctionType()));
 		addInstruction(
 			L2_GET_RETURNING_FUNCTION.instance,
 			writer);
@@ -737,7 +742,8 @@ implements L1OperationDispatcher
 
 	/**
 	 * Generate instruction(s) to move the given {@link AvailObject} into a
-	 * fresh writable slot {@link L2Register} with the given index.
+	 * fresh writable slot {@link L2Register} with the given slot index.  The
+	 * slot it occupies is tagged with the current pc.
 	 *
 	 * @param value
 	 *        The value to move.
@@ -748,7 +754,8 @@ implements L1OperationDispatcher
 		final A_BasicObject value,
 		final int slotIndex)
 	{
-		forceSlotRegister(slotIndex, constantRegister(value));
+		final L2ReadPointerOperand constantRegister = constantRegister(value);
+		forceSlotRegister(slotIndex, instructionDecoder.pc(), constantRegister);
 	}
 
 	/**
@@ -764,29 +771,28 @@ implements L1OperationDispatcher
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
 		final L2SemanticValue constant = L2SemanticValue.constant(value);
-		final @Nullable L2ReadPointerOperand existingConstant =
-			currentManifest.semanticValueToRegister(constant);
-		if (existingConstant != null)
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			currentManifest.semanticValueToSynonym(constant);
+		if (synonym != null)
 		{
-			return existingConstant;
+			return synonym.defaultRegisterRead();
 		}
 		final A_Type type = value.equalsNil()
 			? TOP.o()
 			: instanceTypeOrMetaOn(value);
 		final L2WritePointerOperand registerWrite =
-			newObjectRegisterWriter(type, value);
+			newObjectRegisterWriter(restriction(type, value));
 		addInstruction(
 			L2_MOVE_CONSTANT.instance,
 			new L2ConstantOperand(value),
 			registerWrite);
-		final L2ReadPointerOperand read = registerWrite.read();
-		currentManifest.addBinding(constant, read);
-		return read;
+		currentManifest.addBinding(constant, registerWrite.register());
+		return registerWrite.read();
 	}
 
 	/**
 	 * Write a constant value into a new int register.  Answer an {@link
-	 * L2ReadIntOperand} for that register. If another register has already
+	 * L2ReadIntOperand} for that register.  If another register has already
 	 * been assigned the same value within the same {@link L2BasicBlock}, just
 	 * use that instead of emitting another constant-move.
 	 *
@@ -796,26 +802,25 @@ implements L1OperationDispatcher
 	 */
 	public L2ReadIntOperand constantIntRegister (final int value)
 	{
-		final A_Number boxed = IntegerDescriptor.fromInt(value);
-		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
-		final @Nullable L2ReadOperand<?, A_Number>
-			existingConstant = currentManifest.semanticValueToRegister(
-				constant);
-		if (existingConstant instanceof L2ReadIntOperand)
+		final A_Number boxed = fromInt(value);
+		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
+		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsInt();
+		final @Nullable L2Synonym<L2IntRegister, A_Number> unboxedSynonym =
+			currentManifest.semanticValueToSynonym(unboxedConstant);
+		if (unboxedSynonym != null)
 		{
-			return (L2ReadIntOperand) existingConstant;
+			// It already exists unboxed.
+			return unboxedSynonym.defaultRegisterRead();
 		}
+		// Create an int register and move the constant int into it.
 		final L2WriteIntOperand registerWrite =
-			newIntRegisterWriter(
-				InstanceTypeDescriptor.instanceType(boxed),
-				boxed);
+			newIntRegisterWriter(instanceType(boxed), boxed);
 		addInstruction(
 			L2_MOVE_INT_CONSTANT.instance,
 			new L2IntImmediateOperand(value),
 			registerWrite);
-		final L2ReadIntOperand read = registerWrite.read();
-		currentManifest.addBinding(constant.unboxedAsInt(), read);
-		return read;
+		currentManifest.addBinding(unboxedConstant, registerWrite.register());
+		return registerWrite.read();
 	}
 
 	/**
@@ -830,26 +835,25 @@ implements L1OperationDispatcher
 	 */
 	public L2ReadFloatOperand constantFloatRegister (final double value)
 	{
-		final A_Number boxed = DoubleDescriptor.fromDouble(value);
-		final L2SemanticValue constant = L2SemanticValue.constant(boxed);
-		final @Nullable L2ReadOperand<?, A_Number>
-			existingConstant = currentManifest.semanticValueToRegister(
-				constant);
-		if (existingConstant instanceof L2ReadFloatOperand)
+		final A_Number boxed = fromDouble(value);
+		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
+		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsFloat();
+		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
+			currentManifest.semanticValueToSynonym(unboxedConstant);
+		if (unboxedSynonym != null)
 		{
-			return (L2ReadFloatOperand) existingConstant;
+			// It already exists unboxed.
+			return unboxedSynonym.defaultRegisterRead();
 		}
+		// Create a float register and move the constant into it.
 		final L2WriteFloatOperand registerWrite =
-			newFloatRegisterWriter(
-				InstanceTypeDescriptor.instanceType(boxed),
-				boxed);
+			newFloatRegisterWriter(instanceType(boxed), boxed);
 		addInstruction(
 			L2_MOVE_FLOAT_CONSTANT.instance,
 			new L2FloatImmediateOperand(value),
 			registerWrite);
-		final L2ReadFloatOperand read = registerWrite.read();
-		currentManifest.addBinding(constant.unboxedAsFloat(), read);
-		return read;
+		currentManifest.addBinding(unboxedConstant, registerWrite.register());
+		return registerWrite.read();
 	}
 
 	/**
@@ -881,65 +885,61 @@ implements L1OperationDispatcher
 		final A_Type restrictedType,
 		final L2BasicBlock onSuccess,
 		final L2BasicBlock onFailure)
-	{
-		assert !restrictedType.typeIntersection(int32()).isBottom();
-		@Nullable L2ReadIntOperand unboxed =
-			currentManifest.alreadyUnboxedInt(read);
-		if (unboxed == null)
 		{
-			if (read.constantOrNull() != null)
-			{
-				// The reader is a constant.
-				final A_Number value =
-					(A_Number) stripNull(read.constantOrNull());
-				final L2WriteIntOperand unboxedWriter =
-					newIntRegisterWriter(
-						InstanceTypeDescriptor.instanceType(value),
-						value);
-				addInstruction(
-					L2_MOVE_INT_CONSTANT.instance,
-					new L2IntImmediateOperand(value.extractInt()),
-					unboxedWriter);
-				unboxed = unboxedWriter.read();
-			}
-			else if (restrictedType.isSubtypeOf(int32()))
-			{
-				// The reader is guaranteed to be unboxable. Create unboxed
-				// variants for each relevant semantic value.
-				final L2WriteIntOperand unboxedWriter =
-					newIntRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_UNBOX_INT.instance,
-					read,
-					unboxedWriter);
-				unboxed = unboxedWriter.read();
-			}
-			else
-			{
-				// The reader may be unboxable. Copy the manifest for the
-				// success case, adding unboxed variants for the unboxed
-				// reader. Do not add these bindings to the failure case.
-				final L2WriteIntOperand unboxedWriter =
-					newIntRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_JUMP_IF_UNBOX_INT.instance,
-					read,
-					unboxedWriter,
-					new L2PcOperand(onSuccess, currentManifest),
-					new L2PcOperand(onFailure, currentManifest));
-				unboxed = unboxedWriter.read();
-				startBlock(onSuccess);
-			}
-			// Now create unboxed variants for each relevant semantic value.
-			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(currentManifest.registerToSemanticValues(
-					read.register())))
+		assert !restrictedType.typeIntersection(int32()).isBottom();
+		final @Nullable L2ReadIntOperand unboxed =
+			currentManifest.alreadyUnboxedInt(read);
+		if (unboxed != null)
+		{
+			return unboxed;
+		}
+		final L2WriteIntOperand unboxedWriter;
+		if (read.constantOrNull() != null)
+		{
+			// The reader is a constant.
+			final A_Number value = (A_Number) stripNull(read.constantOrNull());
+			unboxedWriter = newIntRegisterWriter(instanceType(value), value);
+			addInstruction(
+				L2_MOVE_INT_CONSTANT.instance,
+				new L2IntImmediateOperand(value.extractInt()),
+				unboxedWriter);
+		}
+		else if (restrictedType.isSubtypeOf(int32()))
+		{
+			// The reader is guaranteed to be unboxable.
+			unboxedWriter = newIntRegisterWriter(restrictedType, null);
+			addInstruction(L2_UNBOX_INT.instance, read, unboxedWriter);
+		}
+		else
+		{
+			// The reader may be unboxable. Copy the manifest for the
+			// success case, adding unboxed variants for the unboxed
+			// reader. Do not add these bindings to the failure case.
+			unboxedWriter = newIntRegisterWriter(restrictedType, null);
+			addInstruction(
+				L2_JUMP_IF_UNBOX_INT.instance,
+				read,
+				unboxedWriter,
+				new L2PcOperand(onSuccess, currentManifest),
+				new L2PcOperand(onFailure, currentManifest));
+			startBlock(onSuccess);
+		}
+		final L2Register<?> unboxedRegister = unboxedWriter.register();
+		// For each semantic value that the boxed register was bound to, bind
+		// the new register to a corresponding unboxed semantic value.
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
+			boxedSynonym = currentManifest.registerToSynonym(read.register());
+		if (boxedSynonym != null)
+		{
+			final Iterator<L2SemanticValue> iterator =
+				boxedSynonym.semanticValuesIterator();
+			while (iterator.hasNext())
 			{
 				currentManifest.addBinding(
-					semanticValue.unboxedAsInt(), unboxed);
+					iterator.next().unboxedAsInt(), unboxedRegister);
 			}
 		}
-		return stripNull(unboxed);
+		return stripNull(unboxedWriter.read());
 	}
 
 	/**
@@ -971,63 +971,65 @@ implements L1OperationDispatcher
 		final L2BasicBlock onFailure)
 	{
 		assert !restrictedType.typeIntersection(DOUBLE.o()).isBottom();
-		@Nullable L2ReadFloatOperand unboxed =
+		final @Nullable L2ReadFloatOperand unboxed =
 			currentManifest.alreadyUnboxedFloat(read);
-		if (unboxed == null)
+		if (unboxed != null)
 		{
-			if (read.constantOrNull() != null)
-			{
-				// The reader is a constant.
-				final A_Number value =
-					(A_Number) stripNull(read.constantOrNull());
-				final L2WriteFloatOperand unboxedWriter =
-					newFloatRegisterWriter(
-						InstanceTypeDescriptor.instanceType(value),
-						value);
-				addInstruction(
-					L2_MOVE_FLOAT_CONSTANT.instance,
-					new L2FloatImmediateOperand(value.extractDouble()),
-					unboxedWriter);
-				unboxed = unboxedWriter.read();
-			}
-			else if (restrictedType.isSubtypeOf(DOUBLE.o()))
-			{
-				// The reader is guaranteed to be unboxable. Create unboxed
-				// variants for each relevant semantic value.
-				final L2WriteFloatOperand unboxedWriter =
-					newFloatRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_UNBOX_FLOAT.instance,
-					read,
-					unboxedWriter);
-				unboxed = unboxedWriter.read();
-			}
-			else
-			{
-				// The reader may be unboxable. Copy the manifest for the
-				// success case, adding unboxed variants for the unboxed
-				// reader. Do not add these bindings to the failure case.
-				final L2WriteFloatOperand unboxedWriter =
-					newFloatRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_JUMP_IF_UNBOX_FLOAT.instance,
-					read,
-					unboxedWriter,
-					new L2PcOperand(onSuccess, currentManifest),
-					new L2PcOperand(onFailure, currentManifest));
-				unboxed = unboxedWriter.read();
-				startBlock(onSuccess);
-			}
-			// Now create unboxed variants for each relevant semantic value.
-			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(currentManifest.registerToSemanticValues(
-					read.register())))
+			return unboxed;
+		}
+		final L2WriteFloatOperand unboxedWriter;
+		if (read.constantOrNull() != null)
+		{
+			// The reader is a constant.
+			final A_Number value =
+				(A_Number) stripNull(read.constantOrNull());
+			unboxedWriter =
+				newFloatRegisterWriter(instanceType(value), value);
+			addInstruction(
+				L2_MOVE_FLOAT_CONSTANT.instance,
+				new L2FloatImmediateOperand(value.extractDouble()),
+				unboxedWriter);
+		}
+		else if (restrictedType.isSubtypeOf(DOUBLE.o()))
+		{
+			// The reader is guaranteed to be unboxable. Create unboxed
+			// variants for each relevant semantic value.
+			unboxedWriter = newFloatRegisterWriter(restrictedType, null);
+			addInstruction(
+				L2_UNBOX_FLOAT.instance,
+				read,
+				unboxedWriter);
+		}
+		else
+		{
+			// The reader may be unboxable. Copy the manifest for the
+			// success case, adding unboxed variants for the unboxed
+			// reader. Do not add these bindings to the failure case.
+			unboxedWriter = newFloatRegisterWriter(restrictedType, null);
+			addInstruction(
+				L2_JUMP_IF_UNBOX_FLOAT.instance,
+				read,
+				unboxedWriter,
+				new L2PcOperand(onSuccess, currentManifest),
+				new L2PcOperand(onFailure, currentManifest));
+			startBlock(onSuccess);
+		}
+		final L2Register<?> unboxedRegister = unboxedWriter.register();
+		// For each semantic value that the boxed register was bound to, bind
+		// the new register to a corresponding unboxed semantic value.
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
+			boxedSynonym = currentManifest.registerToSynonym(read.register());
+		if (boxedSynonym != null)
+		{
+			final Iterator<L2SemanticValue> iterator =
+				boxedSynonym.semanticValuesIterator();
+			while (iterator.hasNext())
 			{
 				currentManifest.addBinding(
-					semanticValue.unboxedAsFloat(), unboxed);
+					iterator.next().unboxedAsFloat(), unboxedRegister);
 			}
 		}
-		return stripNull(unboxed);
+		return stripNull(unboxedWriter.read());
 	}
 
 	/**
@@ -1045,36 +1047,42 @@ implements L1OperationDispatcher
 		final L2ReadIntOperand read,
 		final A_Type restrictedType)
 	{
-		@Nullable L2ReadPointerOperand boxed =
+		@Nullable L2ReadPointerOperand boxedRead =
 			currentManifest.alreadyBoxed(read);
-		if (boxed == null)
+		if (boxedRead != null)
 		{
-			if (read.constantOrNull() != null)
+			return boxedRead;
+		}
+		if (read.constantOrNull() != null)
+		{
+			// The reader is a constant.
+			boxedRead = constantRegister(stripNull(read.constantOrNull()));
+		}
+		else
+		{
+			// The read must be boxed.
+			final L2WritePointerOperand boxedWriter =
+				newObjectRegisterWriter(restriction(restrictedType));
+			addInstruction(L2_BOX_INT.instance, read, boxedWriter);
+			boxedRead = boxedWriter.read();
+		}
+
+		final L2Register<?> boxedRegister = boxedRead.register();
+		// For each semantic value that the unboxed register was bound to, bind
+		// the new register to a corresponding boxed semantic value.
+		final @Nullable L2Synonym<L2IntRegister, A_Number>
+			unboxedSynonym = currentManifest.registerToSynonym(read.register());
+		if (unboxedSynonym != null)
+		{
+			final Iterator<L2SemanticValue> iterator =
+				unboxedSynonym.semanticValuesIterator();
+			while (iterator.hasNext())
 			{
-				// The reader is a constant.
-				boxed = constantRegister(stripNull(read.constantOrNull()));
-			}
-			else
-			{
-				// The read must be boxed.
-				final L2WritePointerOperand boxedWriter =
-					newObjectRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_BOX_INT.instance,
-					read,
-					boxedWriter);
-				boxed = boxedWriter.read();
-			}
-			// Now create boxed variants for each relevant semantic value.
-			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(currentManifest.registerToSemanticValues(
-					read.register())))
-			{
-				currentManifest.addBinding(semanticValue, read);
-				currentManifest.addBinding(semanticValue.boxed(), boxed);
+				currentManifest.addBinding(
+					iterator.next().boxed(), boxedRegister);
 			}
 		}
-		return boxed;
+		return boxedRead;
 	}
 
 	/**
@@ -1092,73 +1100,94 @@ implements L1OperationDispatcher
 		final L2ReadFloatOperand read,
 		final A_Type restrictedType)
 	{
-		@Nullable L2ReadPointerOperand boxed =
+		@Nullable L2ReadPointerOperand boxedRead =
 			currentManifest.alreadyBoxed(read);
-		if (boxed == null)
+		if (boxedRead != null)
 		{
-			if (read.constantOrNull() != null)
+			return boxedRead;
+		}
+		if (read.constantOrNull() != null)
+		{
+			// The reader is a constant.
+			boxedRead = constantRegister(stripNull(read.constantOrNull()));
+		}
+		else
+		{
+			// The read must be boxed.
+			final L2WritePointerOperand boxedWriter =
+				newObjectRegisterWriter(restriction(restrictedType));
+			addInstruction(L2_BOX_FLOAT.instance, read, boxedWriter);
+			boxedRead = boxedWriter.read();
+		}
+
+		final L2Register<?> boxedRegister = boxedRead.register();
+		// For each semantic value that the unboxed register was bound to, bind
+		// the new register to a corresponding boxed semantic value.
+		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
+			currentManifest.registerToSynonym(read.register());
+		if (unboxedSynonym != null)
+		{
+			final Iterator<L2SemanticValue> iterator =
+				unboxedSynonym.semanticValuesIterator();
+			while (iterator.hasNext())
 			{
-				// The reader is a constant.
-				boxed = constantRegister(stripNull(read.constantOrNull()));
-			}
-			else
-			{
-				// The read must be boxed.
-				final L2WritePointerOperand boxedWriter =
-					newObjectRegisterWriter(restrictedType, null);
-				addInstruction(
-					L2_BOX_FLOAT.instance,
-					read,
-					boxedWriter);
-				boxed = boxedWriter.read();
-			}
-			// Now create boxed variants for each relevant semantic value.
-			for (final L2SemanticValue semanticValue :
-				new ArrayList<>(currentManifest.registerToSemanticValues(
-					read.register())))
-			{
-				currentManifest.addBinding(semanticValue, read);
-				currentManifest.addBinding(semanticValue.boxed(), boxed);
+				currentManifest.addBinding(
+					iterator.next().boxed(), boxedRegister);
 			}
 		}
-		return boxed;
+		return boxedRead;
 	}
 
 	/**
-	 * Generate instruction(s) to move from one register to another.  Remove the
-	 * associations between the source register and its {@link
-	 * L2SemanticValue}s, and replace them with associations to the destination
-	 * register.
+	 * Generate instruction(s) to move from one register to another.
 	 *
-	 * @param sourceRegister
-	 *        Where to read the AvailObject.
-	 * @param destinationRegister
-	 *        Where to write the AvailObject.
+	 * @param sourceRead
+	 *        Which object register to read.
+	 * @param destinationWrite
+	 *        Which object register to write.
 	 */
 	private void moveRegister (
-		final L2ReadPointerOperand sourceRegister,
-		final L2WritePointerOperand destinationRegister)
+		final L2ReadPointerOperand sourceRead,
+		final L2WritePointerOperand destinationWrite)
 	{
-		addInstruction(L2_MOVE.instance, sourceRegister, destinationRegister);
-		final boolean sourceIsImmutable =
-			currentManifest.isAlreadyImmutable(sourceRegister);
-		currentManifest.replaceRegister(sourceRegister, destinationRegister);
-		// The source of the move was immutable, so ensure the destination is
-		// also recognized as being immutable.
-		if (sourceIsImmutable)
+		addInstruction(L2_MOVE.instance, sourceRead, destinationWrite);
+		final @Nullable L2Synonym<?, ?> synonym =
+			currentManifest.registerToSynonym(sourceRead.register());
+		if (synonym != null)
 		{
-			currentManifest.semanticValuesKnownToBeImmutable.addAll(
-				currentManifest.registerToSemanticValues(
-					destinationRegister.register()));
+			final Iterator<L2SemanticValue> iterator =
+				synonym.semanticValuesIterator();
+			if (iterator.hasNext())
+			{
+				// Ensure both registers end up in the same synonym.
+				currentManifest.addBinding(
+					iterator.next(), destinationWrite.register());
+			}
+		}
+		else
+		{
+			// Source didn't have a synonym, but perhaps destination does.
+			final @Nullable L2Synonym<?, ?> destinationSynonym =
+				currentManifest.registerToSynonym(destinationWrite.register());
+			if (destinationSynonym != null)
+			{
+				final Iterator<L2SemanticValue> iterator =
+					destinationSynonym.semanticValuesIterator();
+				if (iterator.hasNext())
+				{
+					// Ensure both registers end up in the same synonym.
+					currentManifest.addBinding(
+						iterator.next(), sourceRead.register());
+				}
+			}
 		}
 	}
 
 	/**
 	 * Generate code to ensure an immutable version of the given register is
 	 * written to the returned register.  Update the {@link #currentManifest} to
-	 * indicate the returned register should be used for all of given register's
-	 * semantic values, as well as the immutable forms of each of the semantic
-	 * values.
+	 * indicate the returned register should be used for all of the given
+	 * register's semantic values after this point.
 	 *
 	 * @param sourceRegister
 	 *        The register that was given.
@@ -1168,30 +1197,18 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand makeImmutable (
 		final L2ReadPointerOperand sourceRegister)
 	{
-		if (currentManifest.isAlreadyImmutable(sourceRegister))
+		if (currentManifest.isAlreadyImmutable(sourceRegister.register()))
 		{
 			return sourceRegister;
 		}
 		final L2WritePointerOperand destinationWrite =
-			newObjectRegisterWriter(
-				sourceRegister.type(), sourceRegister.constantOrNull());
+			newObjectRegisterWriter(sourceRegister.restriction());
 		addInstruction(
 			L2_MAKE_IMMUTABLE.instance,
 			sourceRegister,
 			destinationWrite);
-		final L2ReadPointerOperand destinationRead = destinationWrite.read();
-
-		// Ensure attempts to look up semantic values that were bound to the
-		// sourceRegister now produce the destination register.  Also ensure
-		// attempts to look up the immutable-wrapped versions of the semantic
-		// values that were bound to the sourceRegister will produce the
-		// destination register.
-		currentManifest.replaceRegister(sourceRegister, destinationWrite);
-		final Set<L2SemanticValue> semanticValues =
-			currentManifest.registerToSemanticValues(
-				destinationRead.register());
-		currentManifest.semanticValuesKnownToBeImmutable.addAll(semanticValues);
-		return destinationRead;
+		currentManifest.introduceImmutable(sourceRegister, destinationWrite);
+		return destinationWrite.read();
 	}
 
 	/**
@@ -1223,14 +1240,18 @@ implements L1OperationDispatcher
 		final ChunkEntryPoint typeOfEntryPoint)
 	{
 		final L2WritePointerOperand newContinuationRegister =
-			newObjectRegisterWriter(mostGeneralContinuationType(), null);
+			newObjectRegisterWriter(restriction(mostGeneralContinuationType()));
 		final L2BasicBlock onReturnIntoReified = createBasicBlock(
 			"return into reified continuation");
 		final L2BasicBlock afterCreation = createBasicBlock(
 			"after creation of reified continuation");
 		// Create write-slots for when it returns into the reified continuation
-		// and explodes the slots into registers.  Also create undefinedSlots
-		// to indicate the registers hold nothing until after the explosion.
+		// and explodes the slots into registers.  Also create undefinedSlots to
+		// indicate the registers hold nothing until after the explosion. Also
+		// capture which semantic values are known to be immutable prior to the
+		// reification, because they'll still be immutable (even if not held in
+		// any register) after reaching the on-ramp.
+		final Set<L2SemanticValue> knownImmutables = new HashSet<>();
 		final List<L2ReadPointerOperand> readSlotsBefore =
 			new ArrayList<>(numSlots);
 		final List<L2WritePointerOperand> writeSlotsAfter =
@@ -1245,30 +1266,25 @@ implements L1OperationDispatcher
 			}
 			else
 			{
-				final L2ReadPointerOperand read = stripNull(
-					currentManifest.semanticValueToRegister(semanticValue));
+				final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
+					synonym = stripNull(
+						currentManifest.semanticValueToSynonym(semanticValue));
+				final L2ReadPointerOperand read = synonym.defaultRegisterRead();
 				readSlotsBefore.add(read);
-				final TypeRestriction<?> originalRestriction =
+				final TypeRestriction<A_BasicObject> originalRestriction =
 					read.restriction();
 				final L2WritePointerOperand slotWriter =
-					newObjectRegisterWriter(
-						originalRestriction.type,
-						originalRestriction.constantOrNull);
+					newObjectRegisterWriter(originalRestriction);
 				writeSlotsAfter.add(slotWriter);
-			}
-		}
-		// Capture which semantic values are known to be immutable prior to the
-		// reification, because they'll still be immutable (even if not held in
-		// any register) after reaching the on-ramp.  But only preserve the
-		// immutability for semantic values that indicate they're consistent
-		// this way, rather than regenerating a new mutable value if needed.
-		final Set<L2SemanticValue> knownImmutables = new HashSet<>();
-		for (final L2SemanticValue semanticValue :
-			currentManifest.semanticValuesKnownToBeImmutable)
-		{
-			if (semanticValue.immutabilityTranscendsReification())
-			{
-				knownImmutables.add(semanticValue);
+				if (synonym.hasFlag(KNOWN_IMMUTABLE))
+				{
+					final Iterator<L2SemanticValue> iterator =
+						synonym.semanticValuesIterator();
+					while (iterator.hasNext())
+					{
+						knownImmutables.add(iterator.next());
+					}
+				}
 			}
 		}
 		// Now generate the reification instructions, ensuring that when
@@ -1296,8 +1312,6 @@ implements L1OperationDispatcher
 		// Here it's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
 		currentManifest.clear();
-		currentManifest.semanticValuesKnownToBeImmutable.addAll(
-			knownImmutables);
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
@@ -1307,23 +1321,18 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand popped = popCurrentContinuation();
 		for (int i = 1; i <= numSlots; i++)
 		{
-			final L2WritePointerOperand writeSlot =
-				writeSlotsAfter.get(i - 1);
+			final L2WritePointerOperand writeSlot = writeSlotsAfter.get(i - 1);
 			if (writeSlot != null)
 			{
-				final TypeRestriction<?> restriction =
-					writeSlot.register().restriction();
-				// If the restriction is known to be a constant, don't take it
-				// from the continuation.
 				final @Nullable A_BasicObject constant =
-					restriction.constantOrNull;
+					writeSlot.register().restriction().constantOrNull;
 				if (constant != null)
 				{
 					// We know the slot contains a particular constant, so don't
 					// read it from the continuation.
 					currentManifest.addBinding(
 						semanticSlot(i),
-						constantRegister(constant));
+						constantRegister(constant).register());
 				}
 				else
 				{
@@ -1334,8 +1343,17 @@ implements L1OperationDispatcher
 						writeSlot);
 					currentManifest.addBinding(
 						semanticSlot(i),
-						writeSlot.read());
+						writeSlot.register());
 				}
+			}
+		}
+		for (final L2SemanticValue immutableSemanticValue : knownImmutables)
+		{
+			final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+				currentManifest.semanticValueToSynonym(immutableSemanticValue);
+			if (synonym != null)
+			{
+				synonym.setFlag(KNOWN_IMMUTABLE);
 			}
 		}
 	}
@@ -1376,13 +1394,13 @@ implements L1OperationDispatcher
 	{
 		final L2WritePointerOperand invalidResultFunction =
 			newObjectRegisterWriter(
-				functionType(
-					tuple(
-						mostGeneralFunctionType(),
-						topMeta(),
-						variableTypeFor(ANY.o())),
-					bottom()),
-				null);
+				restriction(
+					functionType(
+						tuple(
+							mostGeneralFunctionType(),
+							topMeta(),
+							variableTypeFor(ANY.o())),
+						bottom())));
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
 			invalidResultFunction);
@@ -1892,10 +1910,9 @@ implements L1OperationDispatcher
 		{
 			// The value will have been put into a register bound to the
 			// L2SemanticSlot for the stackp and pc just after the call.
-			assert
-				currentManifest.semanticValueToRegister(
-						topFrame.slot(stackp, instructionDecoder.pc()))
-					!= null;
+			assert currentManifest.semanticValueToSynonym(
+					topFrame.slot(stackp, instructionDecoder.pc()))
+				!= null;
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
 		}
@@ -2152,13 +2169,13 @@ implements L1OperationDispatcher
 		// a pretty rare case.
 		final A_Type argMeta = instanceMeta(argType);
 		final L2WritePointerOperand argTypeWrite =
-			newObjectRegisterWriter(argMeta, null);
+			newObjectRegisterWriter(restriction(argMeta));
 		addInstruction(L2_GET_TYPE.instance, arg, argTypeWrite);
 		final L2ReadPointerOperand superUnionReg =
 			constantRegister(superUnionElementType);
 		final L2WritePointerOperand unionReg =
 			newObjectRegisterWriter(
-				argMeta.typeUnion(superUnionReg.type()), null);
+				restriction(argMeta.typeUnion(superUnionReg.type())));
 		addInstruction(
 			L2_TYPE_UNION.instance,
 			argTypeWrite.read(),
@@ -2411,9 +2428,9 @@ implements L1OperationDispatcher
 						// register with as strong a type as possible.
 						final L2WritePointerOperand writer =
 							newObjectRegisterWriter(
-								primitive.returnTypeGuaranteedByVM(
-									rawFunction, argumentTypes),
-								null);
+								restriction(
+									primitive.returnTypeGuaranteedByVM(
+										rawFunction, argumentTypes)));
 						addInstruction(
 							L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 							new L2ConstantOperand(rawFunction),
@@ -2476,8 +2493,7 @@ implements L1OperationDispatcher
 				writeSlot(
 					stackp,
 					instructionDecoder.pc(),
-					guaranteedResultType,
-					null));
+					restriction(guaranteedResultType)));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallNoCheck));
 		}
@@ -2488,8 +2504,7 @@ implements L1OperationDispatcher
 				writeSlot(
 					stackp,
 					instructionDecoder.pc() - 1,
-					guaranteedResultType,
-					null));
+					restriction(guaranteedResultType)));
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
 		}
@@ -2514,10 +2529,11 @@ implements L1OperationDispatcher
 	 */
 	private void generateReturnTypeCheck (final A_Type expectedType)
 	{
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			currentManifest.semanticValueToSynonym(
+				topFrame.slot(stackp, instructionDecoder.pc() - 1));
 		final L2ReadPointerOperand uncheckedValueReg =
-			stripNull(
-				currentManifest.semanticValueToRegister(
-					topFrame.slot(stackp, instructionDecoder.pc() - 1)));
+			stripNull(synonym).defaultRegisterRead();
 		if (uncheckedValueReg.type().isBottom())
 		{
 			// Bottom has no instances, so we can't get here.  It would be wrong
@@ -2564,7 +2580,7 @@ implements L1OperationDispatcher
 		// The type check failed, so report it.
 		startBlock(failedCheck);
 		final L2WritePointerOperand variableToHoldValueWrite =
-			newObjectRegisterWriter(variableTypeFor(ANY.o()), null);
+			newObjectRegisterWriter(restriction(variableTypeFor(ANY.o())));
 		addInstruction(
 			L2_CREATE_VARIABLE.instance,
 			new L2ConstantOperand(variableTypeFor(ANY.o())),
@@ -2608,10 +2624,10 @@ implements L1OperationDispatcher
 		{
 			forceSlotRegister(
 				stackp,
-				new L2ReadPointerOperand(
-					uncheckedValueReg.register(),
-					uncheckedValueReg.restriction().intersection(
-						restriction(expectedType, null))));
+				instructionDecoder.pc(),
+				uncheckedValueReg.register(),
+				uncheckedValueReg.restriction().intersection(
+					restriction(expectedType)));
 		}
 	}
 
@@ -2725,7 +2741,7 @@ implements L1OperationDispatcher
 				new L2ReadPointerOperand(
 					argument.register(),
 					argument.restriction().intersection(
-						restriction(narrowedType, null))));
+						restriction(narrowedType))));
 		}
 		final boolean generated =
 			primitive.tryToGenerateSpecialPrimitiveInvocation(
@@ -2851,7 +2867,7 @@ implements L1OperationDispatcher
 		{
 			final A_Type elementType = tupleType.typeAtIndex(i);
 			final L2WritePointerOperand elementWriter =
-				newObjectRegisterWriter(elementType, null);
+				newObjectRegisterWriter(restriction(elementType));
 			addInstruction(
 				L2_TUPLE_AT_CONSTANT.instance,
 				tupleReg,
@@ -2890,7 +2906,7 @@ implements L1OperationDispatcher
 			"reify in method lookup failure handler for "
 				+ callSiteHelper.quotedBundleName);
 		final L2WritePointerOperand errorCodeReg =
-			newObjectRegisterWriter(TOP.o(), null);
+			newObjectRegisterWriter(restriction(TOP.o()));
 
 		final List<A_Type> argumentTypes = new ArrayList<>();
 		for (int i = 1; i <= nArgs; i++)
@@ -2912,7 +2928,7 @@ implements L1OperationDispatcher
 		final A_Type functionTypeUnion = enumerationWith(
 			setFromCollection(possibleFunctions));
 		final L2WritePointerOperand functionReg =
-			newObjectRegisterWriter(functionTypeUnion, null);
+			newObjectRegisterWriter(restriction(functionTypeUnion));
 
 		if (!callSiteHelper.isSuper)
 		{
@@ -2955,7 +2971,8 @@ implements L1OperationDispatcher
 					final A_Type typeBound =
 						argStaticType.typeUnion(superUnionElementType);
 					final L2WritePointerOperand argTypeWrite =
-						newObjectRegisterWriter(instanceMeta(typeBound), null);
+						newObjectRegisterWriter(
+							restriction(instanceMeta(typeBound)));
 					if (superUnionElementType.isBottom())
 					{
 						// Only this argument's actual type matters.
@@ -2970,7 +2987,7 @@ implements L1OperationDispatcher
 						// arguments that individually specify supercasts.
 						final L2WritePointerOperand originalArgTypeWrite =
 							newObjectRegisterWriter(
-								instanceMeta(typeBound), null);
+								restriction(instanceMeta(typeBound)));
 						addInstruction(
 							L2_GET_TYPE.instance, argReg, originalArgTypeWrite);
 						addInstruction(
@@ -3005,7 +3022,8 @@ implements L1OperationDispatcher
 		// Emit the lookup failure case.
 		startBlock(lookupFailed);
 		final L2WritePointerOperand invalidSendReg =
-			newObjectRegisterWriter(invalidMessageSendFunctionType, null);
+			newObjectRegisterWriter(
+				restriction(invalidMessageSendFunctionType));
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 			invalidSendReg);
@@ -3017,11 +3035,9 @@ implements L1OperationDispatcher
 		}
 		final L2WritePointerOperand argumentsTupleWrite =
 			newObjectRegisterWriter(
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(nArgs),
-					tupleFromList(argTypes),
-					bottom()),
-				null);
+				restriction(
+					tupleTypeForSizesTypesDefaultType(
+						singleInt(nArgs), tupleFromList(argTypes), bottom())));
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
 			new L2ReadVectorOperand<>(arguments),
@@ -3136,7 +3152,7 @@ implements L1OperationDispatcher
 
 		// Emit the specified get-variable instruction variant.
 		final L2WritePointerOperand valueWrite =
-			newObjectRegisterWriter(variable.type().readType(), null);
+			newObjectRegisterWriter(restriction(variable.type().readType()));
 		addInstruction(
 			getOperation,
 			variable,
@@ -3149,7 +3165,8 @@ implements L1OperationDispatcher
 		// otherwise we wouldn't have failed).
 		startBlock(failure);
 		final L2WritePointerOperand unassignedReadFunction =
-			newObjectRegisterWriter(unassignedVariableReadFunctionType, null);
+			newObjectRegisterWriter(
+				restriction(unassignedVariableReadFunctionType));
 		addInstruction(
 			L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
 			unassignedReadFunction);
@@ -3209,14 +3226,14 @@ implements L1OperationDispatcher
 		// Emit the failure path.
 		startBlock(failure);
 		final L2WritePointerOperand observeFunction =
-			newObjectRegisterWriter(implicitObserveFunctionType, null);
+			newObjectRegisterWriter(restriction(implicitObserveFunctionType));
 		addInstruction(
 			L2_GET_IMPLICIT_OBSERVE_FUNCTION.instance,
 			observeFunction);
 		final L2WritePointerOperand variableAndValueTupleReg =
 			newObjectRegisterWriter(
-				tupleTypeForTypes(variable.type(), newValue.type()),
-				null);
+				restriction(
+					tupleTypeForTypes(variable.type(), newValue.type())));
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
 			new L2ReadVectorOperand<>(asList(variable, newValue)),
@@ -3338,7 +3355,9 @@ implements L1OperationDispatcher
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final L2WritePointerOperand argReg = writeSlot(
-					i, instructionDecoder.pc(), tupleType.typeAtIndex(i), null);
+					i,
+					instructionDecoder.pc(),
+					restriction(tupleType.typeAtIndex(i)));
 				addInstruction(
 					L2_GET_ARGUMENT.instance,
 					new L2IntImmediateOperand(i),
@@ -3357,8 +3376,7 @@ implements L1OperationDispatcher
 				writeSlot(
 					numArgs + local,
 					instructionDecoder.pc(),
-					localType,
-					null));
+					restriction(localType)));
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
@@ -3406,10 +3424,8 @@ implements L1OperationDispatcher
 
 		// Generate the implicit return after the instruction sequence.
 		final L2ReadPointerOperand readResult = readSlot(stackp);
-		addInstruction(
-			L2_RETURN.instance,
-			readResult);
-		currentManifest.addBinding(topFrame.result(), readResult);
+		addInstruction(L2_RETURN.instance, readResult);
+		currentManifest.addBinding(topFrame.result(), readResult.register());
 		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
 
@@ -3545,7 +3561,7 @@ implements L1OperationDispatcher
 		final int localIndex = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadPointerOperand sourceRegister = readSlot(localIndex);
-		forceSlotRegister(stackp, sourceRegister);
+		forceSlotRegister(stackp, instructionDecoder.pc(), sourceRegister);
 		nilSlot(localIndex);
 	}
 
@@ -3556,8 +3572,8 @@ implements L1OperationDispatcher
 		stackp--;
 		final L2ReadPointerOperand sourceRegister =
 			makeImmutable(readSlot(localIndex));
-		forceSlotRegister(stackp, sourceRegister);
-		forceSlotRegister(localIndex, sourceRegister);
+		forceSlotRegister(stackp, instructionDecoder.pc(), sourceRegister);
+		forceSlotRegister(localIndex, instructionDecoder.pc(), sourceRegister);
 	}
 
 	@Override
@@ -3570,6 +3586,7 @@ implements L1OperationDispatcher
 		// upon their final use.  Just make it immutable instead.
 		forceSlotRegister(
 			stackp,
+			instructionDecoder.pc(),
 			makeImmutable(getOuterRegister(outerIndex, outerType)));
 	}
 
@@ -3593,8 +3610,7 @@ implements L1OperationDispatcher
 			writeSlot(
 				stackp,
 				instructionDecoder.pc(),
-				codeLiteral.functionType(),
-				null));
+				restriction(codeLiteral.functionType())));
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which
@@ -3616,7 +3632,8 @@ implements L1OperationDispatcher
 		// Now we have to nil the stack slot which held the value that we
 		// assigned.  This same slot potentially captured the expectedType in a
 		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(stackp, constantRegister(nil));
+		forceSlotRegister(
+			stackp, instructionDecoder.pc(), constantRegister(nil));
 		stackp++;
 	}
 
@@ -3640,6 +3657,7 @@ implements L1OperationDispatcher
 		stackp--;
 		forceSlotRegister(
 			stackp,
+			instructionDecoder.pc(),
 			makeImmutable(getOuterRegister(outerIndex, outerType)));
 	}
 
@@ -3677,7 +3695,8 @@ implements L1OperationDispatcher
 		// Now we have to nil the stack slot which held the value that we
 		// assigned.  This same slot potentially captured the expectedType in a
 		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(stackp, constantRegister(nil));
+		forceSlotRegister(
+			stackp, instructionDecoder.pc(), constantRegister(nil));
 		stackp++;
 	}
 
@@ -3733,7 +3752,8 @@ implements L1OperationDispatcher
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
 				new L2ReadVectorOperand<>(vector),
-				writeSlot(stackp, instructionDecoder.pc(), tupleType, null));
+				writeSlot(
+					stackp, instructionDecoder.pc(), restriction(tupleType)));
 		}
 	}
 
@@ -3801,7 +3821,10 @@ implements L1OperationDispatcher
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
 		final L2WritePointerOperand destinationRegister =
-			writeSlot(stackp, instructionDecoder.pc(), continuationType, null);
+			writeSlot(
+				stackp,
+				instructionDecoder.pc(),
+				restriction(continuationType, null));
 		final L2BasicBlock afterCreation =
 			createBasicBlock("after creating label");
 		addInstruction(
@@ -3866,7 +3889,8 @@ implements L1OperationDispatcher
 		// Now we have to nil the stack slot which held the value that we
 		// assigned.  This same slot potentially captured the expectedType in a
 		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(stackp, constantRegister(nil));
+		forceSlotRegister(
+			stackp, instructionDecoder.pc(), constantRegister(nil));
 		stackp++;
 	}
 
@@ -3875,7 +3899,9 @@ implements L1OperationDispatcher
 	{
 		final L2ReadPointerOperand source = readSlot(stackp);
 		stackp--;
-		forceSlotRegister(stackp, makeImmutable(source));
+		final L2ReadPointerOperand immutableRead = makeImmutable(source);
+		forceSlotRegister(stackp + 1, instructionDecoder.pc(), immutableRead);
+		forceSlotRegister(stackp, instructionDecoder.pc(), immutableRead);
 	}
 
 	@Override
@@ -3891,8 +3917,8 @@ implements L1OperationDispatcher
 		for (int i = size; i >= 1; i--)
 		{
 			final L2ReadPointerOperand source = readSlot(stackp + size - i);
-			final L2WritePointerOperand temp = newObjectRegisterWriter(
-				source.type(), source.constantOrNull());
+			final L2WritePointerOperand temp =
+				newObjectRegisterWriter(source.restriction());
 			moveRegister(source, temp);
 			temps[permutation.tupleIntAt(i) - 1] = temp;
 		}
@@ -3904,8 +3930,7 @@ implements L1OperationDispatcher
 				writeSlot(
 					stackp + size - i,
 					instructionDecoder.pc(),
-					temp.type(),
-					temp.constantOrNull()));
+					temp.restriction()));
 		}
 	}
 
@@ -3926,13 +3951,7 @@ implements L1OperationDispatcher
 	{
 		final int destinationIndex = instructionDecoder.getOperand();
 		final L2ReadPointerOperand source = readSlot(stackp);
-		moveRegister(
-			source,
-			writeSlot(
-				destinationIndex,
-				instructionDecoder.pc(),
-				source.type(),
-				source.constantOrNull()));
+		forceSlotRegister(destinationIndex, instructionDecoder.pc(), source);
 		nilSlot(stackp);
 		stackp++;
 	}

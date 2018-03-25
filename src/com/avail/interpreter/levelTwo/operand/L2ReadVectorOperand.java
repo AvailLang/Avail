@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
 
 /**
@@ -79,14 +80,14 @@ extends L2Operand
 		this.elements = unmodifiableList(elements);
 	}
 
-	@SuppressWarnings({"MethodDoesntCallSuperMethod", "unchecked"})
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
 	public L2ReadVectorOperand<RR, R, T> clone ()
 	{
 		final List<RR> clonedElements = new ArrayList<>(elements.size());
 		for (final RR element : elements)
 		{
-			clonedElements.add((RR) element.clone());
+			clonedElements.add(cast(element.clone()));
 		}
 		return new L2ReadVectorOperand<>(clonedElements);
 	}

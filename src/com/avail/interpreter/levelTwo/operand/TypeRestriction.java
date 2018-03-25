@@ -54,6 +54,7 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.SetDescriptor.toSet;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.TypeDescriptor.isProperSubtype;
+import static java.util.Collections.emptySet;
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -135,7 +136,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 		final int typesSize = excludedTypes.size();
 		this.excludedTypes =
 			typesSize == 0
-				? Collections.emptySet()
+				? emptySet()
 				: typesSize == 1
 					? Collections.singleton(excludedTypes.iterator().next())
 					: Collections.unmodifiableSet(
@@ -144,7 +145,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 		final int constantsSize = excludedTypes.size();
 		this.excludedValues =
 			constantsSize == 0
-				? Collections.emptySet()
+				? emptySet()
 				: constantsSize == 1
 					? Collections.singleton(excludedValues.iterator().next())
 					: Collections.unmodifiableSet(
@@ -157,7 +158,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 */
 	private static final TypeRestriction<A_BasicObject> nilRestriction =
 		new TypeRestriction<>(
-			TOP.o(), nil, Collections.emptySet(), Collections.emptySet());
+			TOP.o(), nil, emptySet(), emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that has any value whatsoever,
@@ -167,8 +168,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 		new TypeRestriction<>(
 			TOP.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet());
+			emptySet(),
+			emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that cannot hold any value.
@@ -178,8 +179,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 		new TypeRestriction<>(
 			bottom(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet());
+			emptySet(),
+			emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that can only hold the value
@@ -191,8 +192,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 		new TypeRestriction<>(
 			instanceMeta(bottom()),
 			bottom(),
-			Collections.emptySet(),
-			Collections.emptySet());
+			emptySet(),
+			emptySet());
 
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction} from the already
@@ -236,8 +237,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 			return new TypeRestriction<>(
 				instanceTypeOrMetaOn(givenConstantOrNull),
 				givenConstantOrNull,
-				Collections.emptySet(),
-				Collections.emptySet());
+				emptySet(),
+				emptySet());
 		}
 
 		// Not a known constant.
@@ -260,8 +261,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 		return new TypeRestriction<>(
 			givenType,
 			null,
-			Collections.emptySet(),
-			Collections.emptySet());
+			emptySet(),
+			emptySet());
 	}
 
 	/**
@@ -313,8 +314,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 					return fromCanonical(
 						instanceTypeOrMetaOn(instance),
 						instance,
-						Collections.emptySet(),
-						Collections.emptySet());
+						emptySet(),
+						emptySet());
 				}
 				default:
 				{
@@ -323,8 +324,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 					return new TypeRestriction<>(
 						enumerationWith(setFromCollection(instances)),
 						null,
-						Collections.emptySet(),
-						Collections.emptySet());
+						emptySet(),
+						emptySet());
 				}
 			}
 		}
@@ -354,8 +355,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 			return new TypeRestriction<>(
 				instanceTypeOrMetaOn(constantOrNull),
 				constantOrNull,
-				Collections.emptySet(),
-				Collections.emptySet());
+				emptySet(),
+				emptySet());
 		}
 
 		// Are we excluding the base type?
@@ -419,16 +420,27 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        must equal.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
 		final A_Type type,
 		final @Nullable T constantOrNull)
 	{
-		return restriction(
-			type,
-			constantOrNull,
-			Collections.emptySet(),
-			Collections.emptySet());
+		return restriction(type, constantOrNull, emptySet(), emptySet());
+	}
+
+	/**
+	 * Create or reuse an immutable {@code TypeRestriction}, for which no
+	 * constant information is provided (but might be deduced from the type).
+	 *
+	 * @param <T>
+	 *        The best type for exact values.
+	 * @param type
+	 *        The Avail type that constrains some value somewhere.
+	 * @return The new or existing canonical TypeRestriction.
+	 */
+	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
+		final A_Type type)
+	{
+		return restriction(type, null, emptySet(), emptySet());
 	}
 
 	/**

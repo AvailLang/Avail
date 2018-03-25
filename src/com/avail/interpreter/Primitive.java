@@ -33,7 +33,15 @@
 package com.avail.interpreter;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -68,6 +76,8 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -359,7 +369,6 @@ implements IntegerEnumSlotDescriptionEnum
 	 * the given argument types.  Don't include semantic restrictions defined
 	 * in the Avail code, but if convenient answer something stronger than the
 	 * return type in the primitive's basic function type.
-	 *
 	 *
 	 * @param rawFunction
 	 *        The {@link A_RawFunction} being invoked.
@@ -1027,8 +1036,8 @@ implements IntegerEnumSlotDescriptionEnum
 		// type as possible.
 		final L2WritePointerOperand writer =
 			translator.newObjectRegisterWriter(
-				returnTypeGuaranteedByVM(rawFunction, argumentTypes),
-				null);
+				restriction(
+					returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
 		translator.addInstruction(
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			new L2ConstantOperand(rawFunction),

@@ -36,13 +36,13 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
@@ -143,7 +143,7 @@ public class L1Decompiler
 	/**
 	 * Something to generate unique variable names from a prefix.
 	 */
-	@InnerAccess final Transformer1NotNull<String, String> tempGenerator;
+	@InnerAccess final Function<String, String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
@@ -177,13 +177,13 @@ public class L1Decompiler
 	 * @param outerDeclarations
 	 *        The array of outer variable declarations and literal phrases.
 	 * @param tempBlock
-	 *        A {@linkplain Transformer1NotNull transformer} that takes a prefix
+	 *        A {@linkplain Function transformer} that takes a prefix
 	 *        and generates a suitably unique temporary variable name.
 	 */
 	public L1Decompiler (
 		final A_RawFunction aCodeObject,
 		final A_Phrase[] outerDeclarations,
-		final Transformer1NotNull<String, String> tempBlock)
+		final Function<String, String> tempBlock)
 	{
 		code = aCodeObject;
 		numNybbles = aCodeObject.numNybbles();
@@ -196,7 +196,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("arg")),
+				stringFrom(tempGenerator.apply("arg")),
 				emptyTuple(),
 				emptyTuple(),
 				0,
@@ -209,7 +209,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("local")),
+				stringFrom(tempGenerator.apply("local")),
 				emptyTuple(),
 				emptyTuple(),
 				0,
@@ -743,7 +743,7 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = newToken(
-					stringFrom(tempGenerator.value("label")),
+					stringFrom(tempGenerator.apply("label")),
 					emptyTuple(),
 					emptyTuple(),
 					0,
@@ -869,7 +869,7 @@ public class L1Decompiler
 				instructionDecoder.getOperand()
 					- code.numArgs() - code.numLocals() - 1;
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("const")),
+				stringFrom(tempGenerator.apply("const")),
 				emptyTuple(),
 				emptyTuple(),
 				0,
@@ -988,7 +988,7 @@ public class L1Decompiler
 	public static A_Phrase parse (final A_Function aFunction)
 	{
 		final Map<String, Integer> counts = new HashMap<>();
-		final Transformer1NotNull<String, String> generator =
+		final Function<String, String> generator =
 			prefix ->
 			{
 				Integer newCount = counts.get(prefix);
@@ -1030,7 +1030,7 @@ public class L1Decompiler
 	public static A_Phrase parse (final A_RawFunction aRawFunction)
 	{
 		final Map<String, Integer> counts = new HashMap<>();
-		final Transformer1NotNull<String, String> generator =
+		final Function<String, String> generator =
 			prefix ->
 			{
 				Integer newCount = counts.get(prefix);

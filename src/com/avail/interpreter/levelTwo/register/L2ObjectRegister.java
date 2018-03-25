@@ -43,6 +43,7 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
@@ -90,19 +91,20 @@ extends L2Register<A_BasicObject>
 	}
 
 	@Override
-	public L2Register<A_BasicObject> copyForTranslator (
+	public <R extends L2Register<A_BasicObject>>
+	R copyForTranslator (
 		final L1Translator translator,
 		final TypeRestriction<A_BasicObject> typeRestriction)
 	{
-		return new L2ObjectRegister(translator.nextUnique(), typeRestriction);
+		return cast(
+			new L2ObjectRegister(translator.nextUnique(), typeRestriction));
 	}
 
 	@Override
 	public L2ObjectRegister copyAfterColoring ()
 	{
 		final L2ObjectRegister result = new L2ObjectRegister(
-			finalIndex(),
-			TypeRestriction.restriction(TOP.o(), null));
+			finalIndex(), TypeRestriction.restriction(TOP.o()));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}

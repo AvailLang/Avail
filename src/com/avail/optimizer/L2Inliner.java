@@ -50,7 +50,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import static com.avail.utility.Casts.cast;
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -74,7 +75,7 @@ public final class L2Inliner
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
 	 * the enclosing {@link L2Inliner}.
 	 */
-	private class OperandTransformer
+	private class OperandInlineTransformer
 	implements L2OperandDispatcher
 	{
 		/**
@@ -139,7 +140,6 @@ public final class L2Inliner
 				mapRegister(operand.register()), operand.restriction());
 		}
 
-		@SuppressWarnings("rawtypes")
 		@Override
 		public <
 			RR extends L2ReadOperand<R, T>,
@@ -147,7 +147,6 @@ public final class L2Inliner
 			T extends A_BasicObject>
 		void doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			@SuppressWarnings("unchecked")
 			final List<RR> oldElements =
 				operand.<L2ReadPointerOperand>elements();
 			final List<RR> newElements = new ArrayList<>(oldElements.size());
@@ -203,8 +202,7 @@ public final class L2Inliner
 			final TypeRestriction<A_BasicObject> restriction =
 				oldRegister.restriction();
 			final L2WritePointerOperand writer =
-				targetTranslator.newObjectRegisterWriter(
-					restriction.type, restriction.constantOrNull);
+				targetTranslator.newObjectRegisterWriter(restriction);
 			final L2ObjectRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -217,9 +215,10 @@ public final class L2Inliner
 			// Writes should always be encountered before reads, and only once.
 			final R oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			@SuppressWarnings("unchecked")
-			final R copiedRegister = (R) oldRegister.copyForTranslator(
-				targetTranslator, oldRegister.restriction());
+			final R copiedRegister =
+				cast(
+					oldRegister.copyForTranslator(
+						targetTranslator, oldRegister.restriction()));
 			final L2WritePhiOperand<R, T> writer =
 				targetTranslator.newPhiRegisterWriter(copiedRegister);
 			final R newRegister = writer.register();
@@ -228,9 +227,9 @@ public final class L2Inliner
 		}
 	}
 
-	/** This inliner's reusable {@link OperandTransformer}. */
-	private final OperandTransformer operandTransformer =
-		new OperandTransformer();
+	/** This inliner's reusable {@link OperandInlineTransformer}. */
+	private final OperandInlineTransformer operandInlineTransformer =
+		new OperandInlineTransformer();
 
 	/**
 	 * Produce a transformed copy of the given {@link L2Operand}, strengthened
@@ -243,12 +242,11 @@ public final class L2Inliner
 	 *        The {@link L2Operand} subtype.
 	 * @return The transformed {@link L2Operand}, also of type {@link O}.
 	 */
-	@SuppressWarnings("unchecked")
 	public <O extends L2Operand> O transformOperand (final O operand)
 	{
-		operandTransformer.currentOperand = operand;
-		operand.dispatchOperand(operandTransformer);
-		return (O) operandTransformer.currentOperand;
+		operandInlineTransformer.currentOperand = operand;
+		operand.dispatchOperand(operandInlineTransformer);
+		return cast(operandInlineTransformer.currentOperand);
 		// Don't bother clearing the currentOperand field afterward.
 	}
 
@@ -310,6 +308,8 @@ public final class L2Inliner
 		this.targetTranslator = targetTranslator;
 		this.inlineFrame = inlineFrame;
 		this.arguments = new ArrayList<>(arguments);
+		// Seed the frameMap.
+		this.frameMap.put(targetTranslator.topFrame, inlineFrame);
 	}
 
 	/**
@@ -350,14 +350,7 @@ public final class L2Inliner
 	 */
 	public L2ValueManifest mapManifest (final L2ValueManifest oldManifest)
 	{
-		final L2ValueManifest newManifest = new L2ValueManifest();
-		for (final Entry<L2SemanticValue, L2ReadOperand<?, ?>> entry :
-			oldManifest.bindings().entrySet())
-		{
-			newManifest.addBinding(
-				mapSemanticValue(entry.getKey()), entry.getValue());
-		}
-		return newManifest;
+		return oldManifest.transform(this::mapSemanticValue, this::mapFrame);
 	}
 
 	/**
@@ -387,7 +380,17 @@ public final class L2Inliner
 	 */
 	public Frame mapFrame (final Frame frame)
 	{
-		return frameMap.computeIfAbsent(frame, this::mapFrame);
+		final Frame mapped = frameMap.get(frame);
+		if (mapped != null)
+		{
+			return mapped;
+		}
+		assert frame.outerFrame != null
+			: "The frameMap should have been seeded with the outer frame.";
+		final Frame mappedOuter = mapFrame(frame.outerFrame);
+		final Frame newFrame = new Frame(mappedOuter, frame.code, "Inlined");
+		frameMap.put(frame, newFrame);
+		return newFrame;
 	}
 
 	/**

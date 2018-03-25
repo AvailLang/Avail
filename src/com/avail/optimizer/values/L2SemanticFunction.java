@@ -30,7 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.utility.evaluation.Transformer1NotNull;
+
+import java.util.function.Function;
 
 /**
  * A semantic value which represents the current function while running code for
@@ -70,11 +71,11 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticFunction transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.value(frame);
+		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame) ? this : new L2SemanticFunction(newFrame);
 	}
 
@@ -82,13 +83,5 @@ extends L2SemanticValue
 	public String toString ()
 	{
 		return "Function of " + frame;
-	}
-
-	@Override
-	public boolean immutabilityTranscendsReification ()
-	{
-		// A function, once made immutable, continues to be immutable even after
-		// we follow an off-ramp/on-ramp pair.
-		return true;
 	}
 }

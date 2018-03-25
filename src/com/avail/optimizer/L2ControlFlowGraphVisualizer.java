@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -51,13 +50,22 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
 import static com.avail.utility.dot.DotWriter.node;
+import static java.util.Comparator.comparing;
 
 /**
  * An {@code L2ControlFlowGraphVisualizer} generates a {@code dot} source file
@@ -470,33 +478,40 @@ public class L2ControlFlowGraphVisualizer
 			if (visualizeManifest)
 			{
 				final L2ValueManifest manifest = edge.manifest();
-				final Map<L2SemanticValue, L2ReadOperand<?, ?>> bindings =
-					manifest.bindings();
-				if (!bindings.isEmpty())
+				final List<L2Synonym<?, ?>> synonyms =
+					new ArrayList<>(manifest.synonyms());
+				if (!synonyms.isEmpty())
 				{
 					builder.append(
 						"<font face=\"Helvetica\"><i>manifest:</i></font>");
-					bindings.entrySet().stream()
-						.sorted((a, b) ->
-						{
-							final int classCmp =
-								a.getKey().getClass().getSimpleName()
-									.compareTo(
-										b.getKey().getClass().getSimpleName());
-							if (classCmp != 0)
-							{
-								return classCmp;
-							}
-							return a.getKey().toString().compareTo(
-								b.getKey().toString());
-						})
-						.forEach(binding ->
+					synonyms.sort(
+						comparing(a -> a.getClass().getSimpleName())
+							.thenComparing(Object::toString));
+					synonyms.forEach(
+						synonym ->
 						{
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							builder.append(escape(binding.getKey().toString()));
-							builder.append(" → ");
-							builder.append(escape(
-								binding.getValue().toString()));
+							final Iterator<? extends L2Register<?>> registers =
+								synonym.registersIterator();
+							while (registers.hasNext())
+							{
+								builder.append(registers.next());
+								if (registers.hasNext())
+								{
+									builder. append(" & ");
+								}
+							}
+							builder.append("  →  ");
+							final Iterator<L2SemanticValue> values =
+								synonym.semanticValuesIterator();
+							while (values.hasNext())
+							{
+								builder.append(values.next());
+								if (values.hasNext())
+								{
+									builder. append(" & ");
+								}
+							}
 						});
 				}
 			}

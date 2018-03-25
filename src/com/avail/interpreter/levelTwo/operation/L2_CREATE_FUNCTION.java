@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -45,11 +46,13 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -150,21 +153,22 @@ extends L2Operation
 		intersection = intersection.typeIntersection(originalRegister.type());
 		assert !intersection.isBottom();
 
-		if (!translator.currentManifest().registerToSemanticValues(
-			originalRegister.register()).isEmpty())
+		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			translator.currentManifest().registerToSynonym(
+				originalRegister.register());
+		if (synonym != null)
 		{
 			// The register that supplied the outer value is still live.  Use it
 			// directly, which may allow the function creation to be elided.
-			return new L2ReadPointerOperand(
-				originalRegister.register(),
-				restriction(intersection, null));
+			return synonym.defaultRegisterRead().register().read(
+				restriction(intersection));
 		}
 
 		// The register that supplied the value is no longer live.  Extract the
 		// value from the actual function.  Note that it's still guaranteed to
 		// have the strengthened type.
 		final L2WritePointerOperand tempReg =
-			translator.newObjectRegisterWriter(intersection, null);
+			translator.newObjectRegisterWriter(restriction(intersection));
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),

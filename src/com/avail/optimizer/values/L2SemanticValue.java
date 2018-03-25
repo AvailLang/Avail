@@ -32,7 +32,11 @@
 package com.avail.optimizer.values;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.utility.evaluation.Transformer1NotNull;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L2Synonym;
+
+import java.util.function.Function;
 
 /**
  * An {@code L2SemanticValue} represents a value stably computed from constants,
@@ -53,19 +57,6 @@ public abstract class L2SemanticValue
 	public static L2SemanticValue constant (final A_BasicObject value)
 	{
 		return new L2SemanticConstant(value);
-	}
-
-	/**
-	 * For some semantic values, reification doesn't affect whether the actual
-	 * value is still immutable, but for others, new objects have to be created
-	 * which might be mutable.
-	 *
-	 * @return Whether to consider immutability before reification to still hold
-	 *         upon return into the corresponding on-ramp.
-	 */
-	public boolean immutabilityTranscendsReification ()
-	{
-		return false;
 	}
 
 	/**
@@ -91,18 +82,20 @@ public abstract class L2SemanticValue
 	}
 
 	/**
-	 * Answer the semantic value like the receiver, but unboxed.
+	 * Answer the semantic value like the receiver, but boxed.  Subclasses
+	 * should override if they represent unboxed values.
 	 *
-	 * @return The {@link L2SemanticValue}.
+	 * @return The {@code L2SemanticValue}.
 	 */
 	public L2SemanticValue boxed ()
 	{
-		return this;
+		throw new UnsupportedOperationException(
+			"Semantic value is already boxed.");
 	}
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
-	 * the supplied {@link Transformer1NotNull}s.
+	 * the supplied {@link Function}s.
 	 *
 	 * @param semanticValueTransformer
 	 *        How to transform {@code L2SemanticValue} parts of the receiver,
@@ -113,9 +106,34 @@ public abstract class L2SemanticValue
 	 *         the result of the transformation would have been an equal value.
 	 */
 	public abstract L2SemanticValue transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer);
+		final Function<Frame, Frame> frameTransformer);
+
+	/**
+	 * Transform the receiver by rewriting any internal reference to the given
+	 * original {@link L2Synonym} to refer instead to the replacement synonym.
+	 * Answer the receiver if no changes were actually needed.
+	 *
+	 * @param original
+	 *        The {@link L2Synonym} to look for recursively.
+	 * @param replacement
+	 *        The {@link L2Synonym} to replace each occurrence of the original.
+	 * @param <R>
+	 *        The {@link L2Register} subclass for registers of either synonym.
+	 * @param <T>
+	 *        The {@link A_BasicObject} subclass for {@link TypeRestriction}s of
+	 *        the registers.
+	 * @return Either the receiver if no transformation was needed, or semantic
+	 *         value to replace the receiver.
+	 */
+	public <R extends L2Register<T>, T extends A_BasicObject>
+	L2SemanticValue transformInnerSynonym (
+		final L2Synonym<R, T> original,
+		final L2Synonym<R, T> replacement)
+	{
+		return this;
+	}
 
 	/**
 	 * Is the receiver an unboxed {@code int}?

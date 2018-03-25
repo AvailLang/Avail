@@ -31,7 +31,8 @@
  */
 package com.avail.optimizer.values;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.utility.evaluation.Transformer1NotNull;
+
+import java.util.function.Function;
 
 /**
  * A semantic value which is a particular actual constant value.
@@ -68,9 +69,9 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticConstant transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
 		// Semantic constants need no transformation when inlining.
 		return this;
@@ -89,12 +90,5 @@ extends L2SemanticValue
 			.replace("\n", "\\n")
 			.replace("\t", "\\t");
 		return "Constant(" + valueString + ')';
-	}
-
-	@Override
-	public boolean immutabilityTranscendsReification ()
-	{
-		// In fact, constants are *always* immutable (and shared).
-		return true;
 	}
 }

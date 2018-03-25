@@ -42,10 +42,10 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
-import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Function;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static java.lang.Math.max;
@@ -229,13 +229,13 @@ public class ParserState
 	 */
 	void expected (
 		final List<? extends A_BasicObject> values,
-		final Transformer1NotNull<List<String>, String> transformer)
+		final Function<List<String>, String> transformer)
 	{
 		expected(continuation -> Interpreter.stringifyThen(
 			currentRuntime(),
 			lexingState.compilationContext.getTextInterface(),
 			values,
-			list -> continuation.value(transformer.value(list))));
+			list -> continuation.value(transformer.apply(list))));
 	}
 
 	/**

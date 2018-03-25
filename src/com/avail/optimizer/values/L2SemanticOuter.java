@@ -30,7 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.utility.evaluation.Transformer1NotNull;
+
+import java.util.function.Function;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 
@@ -81,11 +82,11 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticOuter transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.value(frame);
+		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame)
 			? this
 			: new L2SemanticOuter(newFrame, outerIndex);
@@ -95,17 +96,5 @@ extends L2SemanticValue
 	public String toString ()
 	{
 		return "Outer #" + outerIndex + " of " + frame;
-	}
-
-	@Override
-	public boolean immutabilityTranscendsReification ()
-	{
-		// An outer value, once made immutable, continues to be immutable even
-		// after we follow an off-ramp/on-ramp pair.  That's because the
-		// function itself is constructed exactly once in each history – and
-		// even if it weren't, then it would have had to make the *source* of
-		// the outer immutable for safety (because it was supplied to two
-		// functions).
-		return true;
 	}
 }

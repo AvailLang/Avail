@@ -36,7 +36,6 @@ import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -63,20 +62,11 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
 /**
- * // TODO: [MvG] The comment is entirely wrong. Fix!
- * Throw a {@link StackReifier}, which unwinds the Java stack to the
- * outer {@link Interpreter} loop.  Any {@link L2Chunk}s that are active on the
- * stack will catch this throwable, reify an {@link A_Continuation} representing
- * the chunk's suspended state, add this to a list inside the throwable, then
- * re-throw for the next level.  Execution then continues within this
- * instruction, allowing the subsequent instructions to reify the current frame
- * as well.
- *
- * <p>If the top frame is reified this way, {@link L2_GET_CURRENT_CONTINUATION}
- * can be used to create label continuations.</p>
- *
- * <p>The "capture frames" operand is a flag that indicates whether to actually
- * capture the frames (1) or just discard them (0).</p>
+ * Create a StackReifier and jump to the "on reification" label.  This will
+ * reify the entire Java stack (or discard it if "capture frames" is false).
+ * If "process interrupt" is true, then process an interrupt as soon as the
+ * reification is complete.  Otherwise continue running at "on reification" with
+ * the reified state captured in the {@link Interpreter#reifiedContinuation}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

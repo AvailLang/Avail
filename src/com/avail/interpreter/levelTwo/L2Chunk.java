@@ -295,7 +295,7 @@ implements ExecutableChunk
 		{
 			final Generation theNewest = newest;
 			final @Nullable Generation oldGen = chunk.generation;
-			if (chunk.generation == theNewest)
+			if (oldGen == theNewest)
 			{
 				// The chunk is already in the newest generation, which should
 				// be the most common case by far.  Do nothing.

@@ -64,6 +64,8 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction
+	.restriction;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -271,7 +273,7 @@ public final class P_CastIntoElse extends Primitive
 			// the valueReg along the branches, since we don't statically know
 			// the type that it was compared to.
 			final L2WritePointerOperand parameterTypeWrite =
-				translator.newObjectRegisterWriter(anyMeta(), null);
+				translator.newObjectRegisterWriter(restriction(anyMeta()));
 			translator.addInstruction(
 				L2_FUNCTION_PARAMETER_TYPE.instance,
 				castFunctionReg,

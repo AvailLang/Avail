@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.A_Number;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
@@ -41,6 +40,9 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
+
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2IntRegister} models the conceptual usage of a register that can
@@ -87,21 +89,19 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public L2IntRegister copyForTranslator (
+	public <R extends L2Register<A_Number>> R copyForTranslator (
 		final L1Translator translator,
 		final TypeRestriction<A_Number> typeRestriction)
 	{
-		return new L2IntRegister(translator.nextUnique(), typeRestriction);
+		return
+			cast(new L2IntRegister(translator.nextUnique(), typeRestriction));
 	}
 
 	@Override
 	public L2IntRegister copyAfterColoring ()
 	{
 		final L2IntRegister result = new L2IntRegister(
-			finalIndex(),
-			TypeRestriction.restriction(
-				IntegerRangeTypeDescriptor.int32(),
-			null));
+			finalIndex(), TypeRestriction.restriction(int32()));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}

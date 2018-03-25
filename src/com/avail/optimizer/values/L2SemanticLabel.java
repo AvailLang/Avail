@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
-import com.avail.utility.evaluation.Transformer1NotNull;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
+
+import java.util.function.Function;
 
 /**
  * A semantic value which represents a label continuation created for the
@@ -76,11 +78,11 @@ final class L2SemanticLabel extends L2SemanticValue
 
 	@Override
 	public L2SemanticLabel transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.value(frame);
+		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame) ? this : new L2SemanticLabel(newFrame);
 	}
 
@@ -88,13 +90,5 @@ final class L2SemanticLabel extends L2SemanticValue
 	public String toString ()
 	{
 		return "Label for " + frame;
-	}
-
-	@Override
-	public boolean immutabilityTranscendsReification ()
-	{
-		// A label, once made immutable, continues to be immutable even after we
-		// follow an off-ramp/on-ramp pair.
-		return true;
 	}
 }

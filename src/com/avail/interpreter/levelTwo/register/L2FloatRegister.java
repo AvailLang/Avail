@@ -42,6 +42,7 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2FloatRegister} models the conceptual usage of a register that can
@@ -88,19 +89,19 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public L2Register<A_Number> copyForTranslator (
+	public <R extends L2Register<A_Number>> R copyForTranslator (
 		final L1Translator translator,
 		final TypeRestriction<A_Number> typeRestriction)
 	{
-		return new L2FloatRegister(translator.nextUnique(), typeRestriction);
+		return
+			cast(new L2FloatRegister(translator.nextUnique(), typeRestriction));
 	}
 
 	@Override
 	public L2FloatRegister copyAfterColoring ()
 	{
 		final L2FloatRegister result = new L2FloatRegister(
-			finalIndex(),
-			TypeRestriction.restriction(DOUBLE.o(), null));
+			finalIndex(), TypeRestriction.restriction(DOUBLE.o()));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}

@@ -30,7 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.utility.evaluation.Transformer1NotNull;
+
+import java.util.function.Function;
 
 /**
  * A semantic value which represents the return value produced by the invocation
@@ -70,11 +71,11 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticResult transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.value(frame);
+		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
 	}
 

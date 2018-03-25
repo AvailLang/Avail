@@ -31,7 +31,8 @@
  */
 package com.avail.optimizer.values;
 import com.avail.descriptor.A_Continuation;
-import com.avail.utility.evaluation.Transformer1NotNull;
+
+import java.util.function.Function;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 
@@ -106,11 +107,11 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticSlot transform (
-		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
+		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Transformer1NotNull<Frame, Frame> frameTransformer)
+		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.value(frame);
+		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame)
 			? this
 			: new L2SemanticSlot(newFrame, slotIndex, pcAfter);
@@ -120,15 +121,5 @@ extends L2SemanticValue
 	public String toString ()
 	{
 		return "Slot #" + slotIndex + " of " + frame + " as of pc=" + pcAfter;
-	}
-
-	@Override
-	public boolean immutabilityTranscendsReification ()
-	{
-		// A virtual slot of a continuation, once made immutable, continues to
-		// be immutable even after we follow an off-ramp/on-ramp pair.  That's
-		// because the value that was written to the reified continuation will
-		// be immutable, and will be read back into a register as immutable.
-		return true;
 	}
 }
