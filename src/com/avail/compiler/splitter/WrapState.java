@@ -55,8 +55,7 @@ enum WrapState
 	},
 
 	/**
-	 * A list has not yet been pushed for the current sequence, but it will
-	 * be.
+	 * A list has not yet been pushed for the current sequence, but it will be.
 	 */
 	NEEDS_TO_PUSH_LIST
 	{
@@ -72,9 +71,8 @@ enum WrapState
 	},
 
 	/**
-	 * A list collecting the arguments for the current sequence should not
-	 * be constructed.  Instead, the arguments should be individually
-	 * pushed.
+	 * A list collecting the arguments for the current sequence should not be
+	 * constructed.  Instead, the arguments should be individually pushed.
 	 */
 	SHOULD_NOT_PUSH_LIST
 	{
@@ -104,8 +102,7 @@ enum WrapState
 	};
 
 	/**
-	 * An argument has just been pushed.  Do any necessary stack adjustments
-	 * and
+	 * An argument has just been pushed.  Do any necessary stack adjustments.
 	 *
 	 * @return The new state of the stack.
 	 */

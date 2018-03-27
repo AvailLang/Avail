@@ -33,7 +33,14 @@ package com.avail.compiler.scanning;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
@@ -50,6 +57,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -401,13 +409,38 @@ public class LexingState
 //			assert run.tupleSize() > 0;
 			theNextTokens.add(run.tupleAt(1));
 			LexingState state = this;
-			for (final A_Token token : run)
+			final Iterator<AvailObject> iterator = run.iterator();
+			A_Token token = iterator.next();
+			token.setNextLexingStateFromPrior(state);
+			while (iterator.hasNext())
 			{
-				token.setNextLexingStateFromPrior(state);
 				state = token.nextLexingState();
+				token = iterator.next();
+				state.forceNextToken(token);
+				token.setNextLexingStateFromPrior(state);
 			}
 		}
 		decrementAndRunActionsWhenZero(countdown);
+	}
+
+	/**
+	 * Force this lexing state to have exactly the one specified token following
+	 * it.  This is used to string together the runs of tokens produced by some
+	 * kinds of lexers.  The state must not yet have had any actions run on it,
+	 * nor may it have had its {@link #nextTokens} {@link List} set yet.
+	 *
+	 * <p>No synchronization is performed, because this should take while wiring
+	 * an explicit run of tokens together, prior to making them available for
+	 * parsing.</p>
+	 *
+	 * @param token The sole token that follows this state.
+	 */
+	private void forceNextToken (final A_Token token)
+	{
+		assert nextTokens == null;
+		assert actions != null && actions.isEmpty();
+		nextTokens = singletonList(token);
+		actions = null;
 	}
 
 	/**
