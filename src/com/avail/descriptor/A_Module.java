@@ -244,7 +244,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void removeFrom (AvailLoader aLoader, Continuation0 afterRemoval);
+	void removeFrom (AvailLoader loader, Continuation0 afterRemoval);
 
 	/**
 	 * Dispatch to the descriptor.

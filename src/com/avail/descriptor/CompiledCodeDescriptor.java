@@ -49,7 +49,6 @@ import com.avail.interpreter.levelTwo.L2Chunk.Generation;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.IndexedIntGenerator;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -65,6 +64,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
@@ -837,19 +837,19 @@ extends Descriptor
 		final int nybbleCount = (longCount << 4) - unusedNybbles - 1;
 		return generateNybbleTupleFrom(
 			nybbleCount,
-			new IndexedIntGenerator()
+			new IntUnaryOperator()
 			{
 				long currentLong = firstLong;
 
 				@Override
-				public int value (final int i)
+				public int applyAsInt (final int i)
 				{
-					final int subindex = i & 15;
-					if (subindex == 0)
+					final int subIndex = i & 15;
+					if (subIndex == 0)
 					{
 						currentLong = object.slot(NYBBLECODES_, (i >> 4) + 1);
 					}
-					return (int) (currentLong >> (subindex << 2)) & 15;
+					return (int) (currentLong >> (subIndex << 2)) & 15;
 				}
 			});
 	}
@@ -1367,14 +1367,14 @@ extends Descriptor
 			long currentLong = (15 - nybbleCount) & 15;
 			for (int i = 1; i <= nybbleCount; i++)
 			{
-				final int subindex = i & 15;
-				if (subindex == 0)
+				final int subIndex = i & 15;
+				if (subIndex == 0)
 				{
 					code.setSlot(NYBBLECODES_, longIndex++, currentLong);
 					currentLong = 0;
 				}
 				final long nybble = nybbles.tupleIntAt(i);
-				currentLong |= nybble << (long) (subindex << 2);
+				currentLong |= nybble << (long) (subIndex << 2);
 			}
 			// There's always a final write, either partial or full.
 			code.setSlot(NYBBLECODES_, longIndex, currentLong);

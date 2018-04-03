@@ -36,9 +36,9 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.PrimitiveThrownException;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
-import com.avail.utility.Generator;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.utility.Nulls.stripNull;
@@ -67,9 +67,9 @@ extends PrimitiveThrownException
 	@Nullable A_String rejectionString;
 
 	/**
-	 * A {@link Generator} that will produce the rejectionString if needed.
+	 * A {@link Supplier} that will produce the rejectionString if needed.
 	 */
-	final Generator<A_String> rejectionGenerator;
+	final Supplier<A_String> rejectionSupplier;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} indicating why
@@ -81,8 +81,8 @@ extends PrimitiveThrownException
 	{
 		if (rejectionString == null)
 		{
-			final Generator<A_String> generator = stripNull(rejectionGenerator);
-			rejectionString = generator.value();
+			final Supplier<A_String> generator = stripNull(rejectionSupplier);
+			rejectionString = generator.get();
 		}
 		return stripNull(rejectionString);
 	}
@@ -98,7 +98,7 @@ extends PrimitiveThrownException
 	public AvailRejectedParseException (
 		final A_String rejectionString)
 	{
-		this.rejectionGenerator = () -> rejectionString;
+		this.rejectionSupplier = () -> rejectionString;
 		this.rejectionString = rejectionString;
 	}
 
@@ -119,25 +119,25 @@ extends PrimitiveThrownException
 		final String rejectionPattern,
 		final Object... rejectionArguments)
 	{
-		this.rejectionGenerator = () ->
+		this.rejectionSupplier = () ->
 			stringFrom(format(rejectionPattern, rejectionArguments));
 		this.rejectionString = null;
 	}
 
 	/**
-	 * Construct a new instance the most general way, with a {@link Generator}
+	 * Construct a new instance the most general way, with a {@link Supplier}
 	 * to produce an {@link A_String Avail string} as needed.  If this
 	 * diagnostic is deemed relevant, the string will be presented after the
 	 * word "Expected...".
 	 *
-	 * @param generator
-	 *        The {@link Generator} that produces a diagnostic {@link A_String
+	 * @param supplier
+	 *        The {@link Supplier} that produces a diagnostic {@link A_String
 	 *        Avail string} upon first request.
 	 */
 	public AvailRejectedParseException (
-		final Generator<A_String> generator)
+		final Supplier<A_String> supplier)
 	{
-		this.rejectionGenerator = generator;
+		this.rejectionSupplier = supplier;
 		this.rejectionString = null;
 	}
 }

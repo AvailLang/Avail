@@ -90,7 +90,7 @@ extends AbstractWorkbenchAction
 					assert commands != null;
 					assert proceed != null;
 					final CompiledCommand[] array =
-						commands.toArray(new CompiledCommand[0]);
+						commands.toArray(new CompiledCommand[commands.size()]);
 					Arrays.sort(
 						array,
 						(o1, o2) ->
@@ -171,7 +171,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link SubmitInputAction}.
+	 * Construct a new {@code SubmitInputAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

@@ -53,7 +53,6 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.Serializer;
-import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
@@ -64,6 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -270,7 +270,7 @@ public class CompilationContext
 		final A_Module module,
 		final A_String source,
 		final TextInterface textInterface,
-		final Generator<Boolean> pollForAbort,
+		final BooleanSupplier pollForAbort,
 		final CompilerProgressReporter progressReporter,
 		final ProblemHandler problemHandler)
 	{
@@ -390,7 +390,7 @@ public class CompilationContext
 				// Don't actually run tasks if canceling.
 				if (!diagnostics.isShuttingDown)
 				{
-					if (diagnostics.pollForAbort.value())
+					if (diagnostics.pollForAbort.getAsBoolean())
 					{
 						diagnostics.isShuttingDown = true;
 					}

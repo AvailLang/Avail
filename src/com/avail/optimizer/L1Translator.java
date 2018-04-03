@@ -297,15 +297,15 @@ implements L1OperationDispatcher
 	{
 		if (!block.isIrremovable())
 		{
-			if (!block.hasPredecessors())
+			if (block.predecessorEdgesCount() == 0)
 			{
 				currentBlock = null;
 				return;
 			}
-			final List<L2PcOperand> predecessorEdges = block.predecessorEdges();
-			if (predecessorEdges.size() == 1)
+			if (block.predecessorEdgesCount() == 1)
 			{
-				final L2PcOperand predecessorEdge = predecessorEdges.get(0);
+				final L2PcOperand predecessorEdge =
+					block.predecessorEdgesIterator().next();
 				final L2BasicBlock predecessorBlock =
 					predecessorEdge.sourceBlock();
 				final L2Instruction jump = predecessorBlock.finalInstruction();
@@ -3429,7 +3429,8 @@ implements L1OperationDispatcher
 		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
 
-		if (unreachableBlock != null && unreachableBlock.hasPredecessors())
+		if (unreachableBlock != null
+			&& unreachableBlock.predecessorEdgesCount() > 0)
 		{
 			// Generate the unreachable block.
 			startBlock(unreachableBlock);

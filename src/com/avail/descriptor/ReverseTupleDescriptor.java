@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.IndexedGenerator;
+
+import java.util.function.IntFunction;
 
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
@@ -219,14 +220,14 @@ extends TupleDescriptor
 			// Copy the objects.
 			return generateObjectTupleFrom(
 				newSize,
-				new IndexedGenerator<A_BasicObject>()
+				new IntFunction<A_BasicObject>()
 				{
 					private A_Tuple currentTuple = object.slot(ORIGIN_TUPLE);
 					private int sourceIndex = size1;
 					private int direction = -1;
 
 					@Override
-					public A_BasicObject value (final int ignored)
+					public A_BasicObject apply (final int ignored)
 					{
 						if (sourceIndex == 0)
 						{
@@ -479,7 +480,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ReverseTupleDescriptor}.
+	 * Construct a new {@code ReverseTupleDescriptor}.
 	 *
 	 * @param mutability The mutability of the descriptor.
 	 */
@@ -490,8 +491,8 @@ extends TupleDescriptor
 
 	/**
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
-	 * AvailObject} tuple and provides it with a
-	 * {@linkplain ReverseTupleDescriptor} descriptor.
+	 * AvailObject} tuple and provides it with a {@code ReverseTupleDescriptor}
+	 * descriptor.
 	 *
 	 * <p>The original tuple may be destroyed by this operation.  If you need
 	 * the original after this call, use {@link A_BasicObject#makeImmutable()}

@@ -34,20 +34,24 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.IndexedIntGenerator;
 
 import javax.annotation.Nullable;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
+import static com.avail.descriptor.CharacterDescriptor
+	.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
+	.RAW_LONGS_;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
@@ -618,7 +622,7 @@ extends StringDescriptor
 	 */
 	public static AvailObject generateTwoByteString (
 		final int size,
-		final IndexedIntGenerator generator)
+		final IntUnaryOperator generator)
 	{
 		final AvailObject result = mutableTwoByteStringOfSize(size);
 		int counter = 1;
@@ -631,7 +635,7 @@ extends StringDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 16)
 			{
-				final long c = generator.value(counter++);
+				final long c = generator.applyAsInt(counter++);
 				assert (c & 0xFFFF) == c;
 				combined += c << shift;
 			}
@@ -640,7 +644,7 @@ extends StringDescriptor
 		// Do the last 0-3 writes the slow way.
 		for (int index = (size & ~3) + 1; index <= size; index++)
 		{
-			final long c = generator.value(counter++);
+			final long c = generator.applyAsInt(counter++);
 			assert (c & 0xFFFF) == c;
 			result.setShortSlot(RAW_LONGS_, index, (int) c);
 		}

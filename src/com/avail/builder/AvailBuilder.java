@@ -57,7 +57,6 @@ import com.avail.serialization.Deserializer;
 import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
 import com.avail.stacks.StacksGenerator;
-import com.avail.utility.Generator;
 import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
@@ -89,6 +88,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
@@ -305,7 +305,6 @@ public final class AvailBuilder
 		final ResolvedModuleName resolvedModuleName,
 		final LoadedModule loadedModule)
 	{
-		assert loadedModule != null;
 		allLoadedModules.put(resolvedModuleName, loadedModule);
 		for (final Continuation2<LoadedModule, Boolean> subscription
 			: subscriptions)
@@ -420,8 +419,8 @@ public final class AvailBuilder
 		stopBuildReason = null;
 	}
 
-	/** Create a Generator<Boolean> for polling for abort requests. */
-	public final Generator<Boolean> pollForAbort = this::shouldStopBuild;
+	/** Create a {@link BooleanSupplier} for polling for abort requests. */
+	public final BooleanSupplier pollForAbort = this::shouldStopBuild;
 
 	/**
 	 * Cancel the build at the next convenient stopping point for each module.
@@ -526,13 +525,13 @@ public final class AvailBuilder
 		final String pattern;
 
 		/**
-		 * Construct a new {@link BuilderProblemHandler}.  The supplied pattern
+		 * Construct a new {@code BuilderProblemHandler}.  The supplied pattern
 		 * is used to format the problem text as specified {@linkplain #pattern
 		 * here}.
 		 *
 		 * @param pattern The {@link String} with which to report the problem.
 		 */
-		public BuilderProblemHandler (final String pattern)
+		BuilderProblemHandler (final String pattern)
 		{
 			this.pattern = pattern;
 		}
@@ -546,16 +545,14 @@ public final class AvailBuilder
 			{
 				stopBuildReason("Build failed");
 			}
-			@SuppressWarnings("resource")
-			final Formatter formatter = new Formatter();
-			formatter.format(
+			final String formatted = format(
 				pattern,
 				problem.type,
 				problem.moduleName,
 				problem.lineNumber,
 				problem.toString());
 			textInterface.errorChannel().write(
-				formatter.toString(),
+				formatted,
 				null,
 				new CompletionHandler<Integer, Void>()
 				{
@@ -645,7 +642,7 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Construct a new {@link LoadedModule} to represent
+		 * Construct a new {@code LoadedModule} to represent
 		 * information about an Avail module that has been loaded.
 		 *
 		 * @param name The {@linkplain ResolvedModuleName name} of the module.
@@ -680,12 +677,12 @@ public final class AvailBuilder
 		/**
 		 * The number of trace requests that have been scheduled.
 		 */
-		@InnerAccess int traceRequests;
+		private int traceRequests = 0;
 
 		/**
 		 * The number of trace requests that have been completed.
 		 */
-		@InnerAccess int traceCompletions;
+		private int traceCompletions = 0;
 
 		/**
 		 * Schedule a hierarchical tracing of all module files in all visible
@@ -711,8 +708,6 @@ public final class AvailBuilder
 		@InnerAccess void traceAllModuleHeaders (
 			final Continuation2<ResolvedModuleName, ModuleVersion> moduleAction)
 		{
-			traceRequests = 0;
-			traceCompletions = 0;
 			final ModuleRoots moduleRoots = runtime.moduleRoots();
 			for (final ModuleRoot moduleRoot : moduleRoots)
 			{
@@ -753,10 +748,7 @@ public final class AvailBuilder
 							return CONTINUE;
 						}
 						// It's a module file.
-						synchronized (BuildDirectoryTracer.this)
-						{
-							traceRequests++;
-						}
+						incrementTraceRequests();
 						runtime.execute(
 							0,
 							() ->
@@ -820,21 +812,7 @@ public final class AvailBuilder
 					// Ignore it.
 				}
 			}
-			boolean interrupted = false;
-			synchronized (BuildDirectoryTracer.this)
-			{
-				while (traceRequests != traceCompletions)
-				{
-					try
-					{
-						wait();
-					}
-					catch (final InterruptedException e)
-					{
-						interrupted = true;
-					}
-				}
-			}
+			final boolean interrupted = waitAndCheckInterrupts();
 			// Force each repository to commit, since we may have changed the
 			// access order of some of the caches.
 			for (final ModuleRoot root : moduleRoots.roots())
@@ -845,6 +823,38 @@ public final class AvailBuilder
 			{
 				Thread.currentThread().interrupt();
 			}
+		}
+
+		/**
+		 * Add one to the traceRequests variable while holding the monitor.
+		 */
+		@InnerAccess synchronized void incrementTraceRequests ()
+		{
+			traceRequests++;
+		}
+
+		/**
+		 * While traceCompletions is still less than traceRequests, suspend the
+		 * current {@link Thread}, honoring any {@link InterruptedException}.
+		 *
+		 * @return Whether the thread was interrupted.
+		 */
+		private synchronized boolean waitAndCheckInterrupts ()
+		{
+			boolean interrupted = false;
+			while (traceRequests != traceCompletions)
+			{
+				try
+				{
+					//noinspection SynchronizeOnThis
+					wait();
+				}
+				catch (final InterruptedException e)
+				{
+					interrupted = true;
+				}
+			}
+			return interrupted;
 		}
 
 		/**
@@ -946,6 +956,7 @@ public final class AvailBuilder
 			// Avoid spurious wake-ups.
 			if (traceRequests == traceCompletions)
 			{
+				//noinspection SynchronizeOnThis
 				notifyAll();
 			}
 		}
@@ -974,7 +985,7 @@ public final class AvailBuilder
 		 *        What to do after testing for dirtiness (and possibly setting
 		 *        the deletionRequest) of the given module.
 		 */
-		private final void determineDirtyModules (
+		private void determineDirtyModules (
 			final @Nullable ResolvedModuleName moduleName,
 			final @Nullable Continuation0 completionAction)
 		{
@@ -1032,7 +1043,7 @@ public final class AvailBuilder
 		 * Graph#parallelVisit(Continuation2)} on the {@linkplain
 		 * Graph#reverse() reverse} of the module graph.
 		 */
-		private final void unloadModules (
+		private void unloadModules (
 			final @Nullable ResolvedModuleName moduleName,
 			final @Nullable Continuation0 completionAction)
 		{
@@ -1056,7 +1067,6 @@ public final class AvailBuilder
 						"Beginning unload of: %s",
 						moduleName);
 					final A_Module module = loadedModule.module;
-					assert module != null;
 					// It's legal to just create a loader
 					// here, since it won't have any pending
 					// forwards to remove.
@@ -1155,7 +1165,8 @@ public final class AvailBuilder
 			}
 			else
 			{
-				final LoadedModule target = getLoadedModule(targetName);
+				final @Nullable LoadedModule target =
+					getLoadedModule(targetName);
 				if (target != null)
 				{
 					target.deletionRequest = true;
@@ -1207,7 +1218,7 @@ public final class AvailBuilder
 		 * the last trace has completed.
 		 *
 		 * <p>When traceCompletions finally does reach traceRequests, a
-		 * {@link #notifyAll()} will be sent to the {@link BuildTracer}.</p>
+		 * {@link #notifyAll()} will be sent to the {@code BuildTracer}.</p>
 		 *
 		 * @param qualifiedName
 		 *        A fully-qualified {@linkplain ModuleName module name}.
@@ -1560,7 +1571,7 @@ public final class AvailBuilder
 		@InnerAccess final Continuation2<Long, Long> globalTracker;
 
 		/**
-		 * Construct a new {@link BuildLoader}.
+		 * Construct a new {@code BuildLoader}.
 		 *
 		 * @param localTracker
 		 *        A {@linkplain CompilerProgressReporter continuation} that
@@ -1581,12 +1592,16 @@ public final class AvailBuilder
 		 *        built.</li>
 		 *        </ol>
 		 */
-		public BuildLoader (
+		@InnerAccess BuildLoader (
 			final CompilerProgressReporter localTracker,
 			final Continuation2<Long, Long> globalTracker)
 		{
 			this.localTracker = localTracker;
 			this.globalTracker = globalTracker;
+			for (final ResolvedModuleName mod : moduleGraph.vertices())
+			{
+				globalCodeSize += mod.moduleSize();
+			}
 		}
 
 		/** The size, in bytes, of all source files that will be built. */
@@ -2090,11 +2105,6 @@ public final class AvailBuilder
 		 */
 		@InnerAccess void load ()
 		{
-			globalCodeSize = 0L;
-			for (final ResolvedModuleName mod : moduleGraph.vertices())
-			{
-				globalCodeSize += mod.moduleSize();
-			}
 			bytesCompiled.set(0L);
 			final int vertexCountBefore = moduleGraph.vertexCount();
 			moduleGraph.parallelVisit(
@@ -2128,7 +2138,7 @@ public final class AvailBuilder
 		private final StacksGenerator generator;
 
 		/**
-		 * Construct a new {@link DocumentationTracer}.
+		 * Construct a new {@code DocumentationTracer}.
 		 *
 		 * @param documentationPath
 		 *        The {@linkplain Path path} to the output {@linkplain
@@ -2381,7 +2391,7 @@ public final class AvailBuilder
 		/**
 		 * Add a child to this node.
 		 *
-		 * @param child The {@link ModuleTree} to add as a child.
+		 * @param child The {@code ModuleTree} to add as a child.
 		 */
 		void addChild (final ModuleTree child)
 		{
@@ -2390,7 +2400,7 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Answer the parent {@link ModuleTree}, or null if this is a root.
+		 * Answer the parent {@code ModuleTree}, or null if this is a root.
 		 *
 		 * @return The parent {@code ModuleTree} or null.
 		 */
@@ -2409,6 +2419,10 @@ public final class AvailBuilder
 		 *
 		 * @return A {@link String} suitable for use as a label.
 		 */
+		@SuppressWarnings({
+			"DynamicRegexReplaceableByCompiledPattern",
+			"StringConcatenationMissingWhitespace"
+		})
 		String safeLabel ()
 		{
 			final String addendum = label.charAt(label.length() - 1) == '\\'
@@ -2423,13 +2437,13 @@ public final class AvailBuilder
 		@InnerAccess final @Nullable ResolvedModuleName resolvedModuleName;
 
 		/**
-		 * Construct a new {@link ModuleTree}.
+		 * Construct a new {@code ModuleTree}.
 		 *
 		 * @param node The node name.
 		 * @param label The label to present.
 		 * @param resolvedModuleName The represented {@link ResolvedModuleName}.
 		 */
-		public ModuleTree (
+		@InnerAccess ModuleTree (
 			final String node,
 			final String label,
 			final @Nullable ResolvedModuleName resolvedModuleName)
@@ -2481,7 +2495,7 @@ public final class AvailBuilder
 		private final File outputFile;
 
 		/**
-		 * Construct a new {@link GraphTracer}.
+		 * Construct a new {@code GraphTracer}.
 		 *
 		 * @param targetModule
 		 *        The module whose ancestors are to be graphed.
@@ -2594,6 +2608,7 @@ public final class AvailBuilder
 			int sequence = 2;
 			while (true)
 			{
+				@SuppressWarnings("StringConcatenationMissingWhitespace")
 				final String outputString =
 					leadingPart + Integer.toString(sequence);
 				if (!allocatedNames.contains(outputString))
@@ -2782,7 +2797,7 @@ public final class AvailBuilder
 						final @Nullable Integer result,
 						final @Nullable Void unused)
 					{
-						position.value += result;
+						position.value += stripNull(result);
 						if (buffer.hasRemaining())
 						{
 							channel.write(

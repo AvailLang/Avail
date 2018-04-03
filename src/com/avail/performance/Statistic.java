@@ -34,27 +34,52 @@ package com.avail.performance;
 
 import com.avail.AvailRuntime;
 
+import java.util.function.Supplier;
+
 /** An immutable collection of related statistics. */
 public class Statistic
 {
 	/** The name of this {@link Statistic}. */
-	public final String name;
+	public final Supplier<String> nameSupplier;
 
 	/** The array of {@link PerInterpreterStatistic}s. */
 	public final PerInterpreterStatistic[] statistics;
 
 	/**
-	 * Answer the name of this {@link Statistic}.
+	 * Answer the name of this {@code Statistic}.  Note that the {@link
+	 * #nameSupplier} may produce different {@link String}s at different times.
 	 *
-	 * @return The statistic's name.
+	 * @return The statistic's current name.
 	 */
 	public String name ()
 	{
-		return name;
+		return nameSupplier.get();
 	}
 
 	/**
-	 * Construct a new {@link Statistic} with the given name.
+	 * Construct a new {@code Statistic} with the given name.
+	 *
+	 * @param nameSupplier
+	 *        A {@link Supplier} of the name for this statistic.
+	 * @param report
+	 *        The report under which this statistic is classified.
+	 */
+	public Statistic (
+		final Supplier<String> nameSupplier,
+		final StatisticReport report)
+	{
+		this.nameSupplier = nameSupplier;
+		statistics = new PerInterpreterStatistic[AvailRuntime.maxInterpreters];
+		for (int i = 0; i < statistics.length; i++)
+		{
+			statistics[i] = new PerInterpreterStatistic();
+		}
+		//noinspection ThisEscapedInObjectConstruction
+		report.registerStatistic(this);
+	}
+
+	/**
+	 * Construct a new {@code Statistic} with the given fixed name.
 	 *
 	 * @param name
 	 *        The name to give this statistic.
@@ -63,13 +88,7 @@ public class Statistic
 	 */
 	public Statistic (final String name, final StatisticReport report)
 	{
-		this.name = name;
-		statistics = new PerInterpreterStatistic[AvailRuntime.maxInterpreters];
-		for (int i = 0; i < statistics.length; i++)
-		{
-			statistics[i] = new PerInterpreterStatistic();
-		}
-		report.registerStatistic(this);
+		this(() -> name, report);
 	}
 
 	/**

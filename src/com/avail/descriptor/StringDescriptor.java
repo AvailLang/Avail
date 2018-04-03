@@ -36,15 +36,18 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.IndexedGenerator;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
+import java.util.function.IntFunction;
 
-import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
+import static com.avail.descriptor.ByteStringDescriptor
+	.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.mutableObjectFromNativeTwoByteString;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
@@ -147,12 +150,12 @@ extends TupleDescriptor
 		// character objects.
 		return generateObjectTupleFrom(
 			count,
-			new IndexedGenerator<A_BasicObject>()
+			new IntFunction<A_BasicObject>()
 			{
 				private int charIndex = 0;
 
 				@Override
-				public A_BasicObject value (final int ignored)
+				public A_BasicObject apply (final int ignored)
 				{
 					final int codePoint = aNativeString.codePointAt(charIndex);
 					charIndex += Character.charCount(codePoint);

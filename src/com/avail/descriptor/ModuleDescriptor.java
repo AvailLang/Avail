@@ -685,74 +685,82 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_RemoveFrom (
 		final AvailObject object,
-		final AvailLoader aLoader,
+		final AvailLoader loader,
 		final Continuation0 afterRemoval)
 	{
 		synchronized (object)
 		{
-			final AvailRuntime runtime = aLoader.runtime();
 			final A_Tuple unloadFunctions =
 				object.slot(UNLOAD_FUNCTIONS).tupleReverse();
 			object.setSlot(UNLOAD_FUNCTIONS, nil);
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
-			aLoader.runUnloadFunctions(
+			loader.runUnloadFunctions(
 				unloadFunctions,
 				() ->
 				{
-					synchronized (object)
-					{
-						// Remove method definitions.
-						for (final A_Definition definition
-							: object.methodDefinitions())
-						{
-							aLoader.removeDefinition(definition);
-						}
-						// Remove semantic restrictions.
-						for (final A_SemanticRestriction restriction :
-							object.moduleSemanticRestrictions())
-						{
-							runtime.removeTypeRestriction(restriction);
-						}
-						for (final A_GrammaticalRestriction restriction :
-							object.moduleGrammaticalRestrictions())
-						{
-							runtime.removeGrammaticalRestriction(
-								restriction);
-						}
-						// Remove seals.
-						final A_Map seals = object.slot(SEALS);
-						for (final Entry entry :
-							seals.mapIterable())
-						{
-							final A_Atom methodName = entry.key();
-							for (final A_Tuple seal : entry.value())
-							{
-								try
-								{
-									runtime.removeSeal(methodName, seal);
-								}
-								catch (final MalformedMessageException e)
-								{
-									assert false
-										: "This should not happen!";
-									throw new AvailRuntimeException(
-										e.errorCode());
-								}
-							}
-						}
-						// Remove lexers.  Don't bother adjusting the
-						// loader, since it's not going to parse anything
-						// again.  Don't even bother removing it from the
-						// module, since that's being unloaded.
-						for (final A_Lexer lexer : object.slot(LEXERS))
-						{
-							lexer.lexerMethod().setLexer(
-								nil);
-						}
-					}
+					finishUnloading(object, loader);
 					afterRemoval.value();
 				});
+		}
+	}
+
+	/**
+	 * Now that the unload functions have completed, perform any other unloading
+	 * actions necessary for this module.
+	 *
+	 * @param object
+	 *        The module being unloaded.
+	 * @param loader
+	 *        The {@link AvailLoader} through which the module is being
+	 *        unloaded.
+	 */
+	private synchronized void finishUnloading (
+		final AvailObject object,
+		final AvailLoader loader)
+	{
+		final AvailRuntime runtime = loader.runtime();
+		// Remove method definitions.
+		for (final A_Definition definition : object.methodDefinitions())
+		{
+			loader.removeDefinition(definition);
+		}
+		// Remove semantic restrictions.
+		for (final A_SemanticRestriction restriction :
+			object.moduleSemanticRestrictions())
+		{
+			runtime.removeTypeRestriction(restriction);
+		}
+		for (final A_GrammaticalRestriction restriction :
+			object.moduleGrammaticalRestrictions())
+		{
+			runtime.removeGrammaticalRestriction(restriction);
+		}
+		// Remove seals.
+		final A_Map seals = object.slot(SEALS);
+		for (final Entry entry : seals.mapIterable())
+		{
+			final A_Atom methodName = entry.key();
+			for (final A_Tuple seal : entry.value())
+			{
+				try
+				{
+					runtime.removeSeal(methodName, seal);
+				}
+				catch (final MalformedMessageException e)
+				{
+					assert false : "This should not happen!";
+					throw new AvailRuntimeException(e.errorCode());
+				}
+			}
+		}
+		// Remove lexers.  Don't bother adjusting the
+		// loader, since it's not going to parse anything
+		// again.  Don't even bother removing it from the
+		// module, since that's being unloaded.
+		for (final A_Lexer lexer : object.slot(LEXERS))
+		{
+			lexer.lexerMethod().setLexer(nil);
 		}
 	}
 

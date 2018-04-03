@@ -105,6 +105,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 /**
@@ -634,7 +635,7 @@ public final class AvailLoader
 
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
-	 * code for this {@link AvailLoader}.
+	 * code for this {@code AvailLoader}.
 	 */
 	public LexicalScanner lexicalScanner ()
 	{
@@ -1414,8 +1415,7 @@ public final class AvailLoader
 		final Continuation0 afterRunning)
 	{
 		final int size = unloadFunctions.tupleSize();
-		final MutableOrNull<Continuation0> onExit = new MutableOrNull<>();
-		onExit.value = new Continuation0()
+		final Continuation0 onExit = new Continuation0()
 		{
 			/** The index into the tuple of unload functions. */
 			@InnerAccess int index = 1;
@@ -1425,33 +1425,21 @@ public final class AvailLoader
 			{
 				if (index <= size)
 				{
+					final int currentIndex = index++;
 					final A_Function unloadFunction =
-						unloadFunctions.tupleAt(index);
+						unloadFunctions.tupleAt(currentIndex);
 					final A_Fiber fiber = newFiber(
 						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
 						() -> formatString(
 							"Unload function #%d for module %s",
-							index,
+							currentIndex,
 							module().moduleName()));
 					fiber.textInterface(textInterface);
-					fiber.resultContinuation(
-						unused ->
-						{
-							index++;
-							onExit.value().value();
-						});
-					fiber.failureContinuation(
-						unused ->
-						{
-							index++;
-							onExit.value().value();
-						});
+					fiber.resultContinuation(unused -> value());
+					fiber.failureContinuation(unused -> value());
 					Interpreter.runOutermostFunction(
-						runtime(),
-						fiber,
-						unloadFunction,
-						Collections.emptyList());
+						runtime(), fiber, unloadFunction, emptyList());
 				}
 				else
 				{
@@ -1459,7 +1447,7 @@ public final class AvailLoader
 				}
 			}
 		};
-		onExit.value().value();
+		onExit.value();
 	}
 
 	/**

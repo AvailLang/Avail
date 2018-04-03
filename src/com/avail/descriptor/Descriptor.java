@@ -64,7 +64,6 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
@@ -84,6 +83,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.LinearSetBinDescriptor
 	.createLinearSetBinPair;
@@ -1126,7 +1126,7 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveFrom (
 		final AvailObject object,
-		final AvailLoader aLoader,
+		final AvailLoader loader,
 		final Continuation0 afterRemoval)
 	{
 		throw unsupportedOperationException();
@@ -1590,9 +1590,9 @@ extends AbstractDescriptor
 
 	@Override
 	void o_AtomicAddToMap (
-		AvailObject object,
-		A_BasicObject key,
-		A_BasicObject value)
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject value)
 	throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
@@ -1600,8 +1600,8 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_VariableMapHasKey (
-		AvailObject object,
-		A_BasicObject key)
+		final AvailObject object,
+		final A_BasicObject key)
 	throws VariableGetException
 	{
 		throw unsupportedOperationException();
@@ -2655,10 +2655,16 @@ extends AbstractDescriptor
 	 * answer must be either the object or nil (to indicate a size zero bin).
 	 *
 	 * @param object
+	 *        The set bin from which to remove the element.
 	 * @param elementObject
+	 *        The element to remove.
 	 * @param elementObjectHash
+	 *        The already-computed hash of the element to remove
 	 * @param canDestroy
-	 * @return
+	 *        Whether this set bin can be destroyed or reused by this operation
+	 *        if it's also mutable.
+	 * @return A set bin like the given object, but without the given
+	 *         elementObject, if it was present.
 	 */
 	@Override
 	AvailObject o_BinRemoveElementHashLevelCanDestroy (
@@ -2668,7 +2674,6 @@ extends AbstractDescriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-
 		if (object.equals(elementObject))
 		{
 			return emptyLinearSetBin(myLevel);
@@ -2685,8 +2690,11 @@ extends AbstractDescriptor
 	 * element itself. This works because a bin can't be an element of a set.
 	 *
 	 * @param object
+	 *        The set bin, or single value in this case, to test for being
+	 *        within the given set.
 	 * @param potentialSuperset
-	 * @return
+	 *        The set inside which to look for the given object.
+	 * @return Whether the object (acting as a singleton bin) was in the set.
 	 */
 	@Override
 	boolean o_IsBinSubsetOf (
@@ -3356,15 +3364,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param key
-	 * @param keyHash
-	 * @param value
-	 * @param myLevel
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
@@ -3377,13 +3376,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param key
-	 * @param keyHash
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
@@ -3394,20 +3386,12 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
@@ -3479,11 +3463,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param aFusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
@@ -3492,11 +3471,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
@@ -3505,11 +3479,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param aFusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
@@ -3518,11 +3487,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
 	@Override
 	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
@@ -3562,40 +3526,23 @@ extends AbstractDescriptor
 		return false;
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	boolean o_IsSignedByte (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	boolean o_IsSignedShort (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	byte o_ExtractSignedByte (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
 
 	@Override
 	short o_ExtractSignedShort (final AvailObject object)
@@ -3603,11 +3550,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param otherJavaObject
-	 * @return
-	 */
 	@Override
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
@@ -3617,10 +3559,6 @@ extends AbstractDescriptor
 		return false;
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	@Nullable <T> T o_JavaObject (final AvailObject object)
 	{
@@ -4180,62 +4118,38 @@ extends AbstractDescriptor
 		return false;
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_String o_FiberName (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param generator
-	 */
 	@Override
-	void o_FiberNameGenerator (
+	void o_FiberNameSupplier (
 		final AvailObject object,
-		final Generator<A_String> generator)
+		final Supplier<A_String> supplier)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Set o_Bundles (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @param bundle
-	 */
 	@Override
 	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_Module o_DefinitionModule (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	A_String o_DefinitionModuleName (final AvailObject object)
 	{

@@ -34,10 +34,10 @@ package com.avail.test;
 
 
 import com.avail.descriptor.*;
-import com.avail.utility.IndexedIntGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
 import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
@@ -45,8 +45,10 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.ByteTupleDescriptor.mutableObjectOfSize;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.createInterval;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
+	.createSmallInterval;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
@@ -240,12 +242,12 @@ public class TreeTupleTest
 		final AvailObject myByteTupleSmallReversed =
 			generateByteTupleFrom(
 				3,
-				new IndexedIntGenerator()
+				new IntUnaryOperator()
 				{
 					private short counter = 3;
 
 					@Override
-					public int value (final int ignored)
+					public int applyAsInt (final int ignored)
 					{
 						return counter--;
 					}

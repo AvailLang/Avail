@@ -133,9 +133,11 @@ public final class L2Optimizer
 			if (!reachableBlocks.contains(block))
 			{
 				reachableBlocks.add(block);
-				for (final L2PcOperand edge : block.successorEdges())
+				final Iterator<L2PcOperand> iterator =
+					block.successorEdgesIterator();
+				while (iterator.hasNext())
 				{
-					blocksToVisit.add(edge.targetBlock());
+					blocksToVisit.add(iterator.next().targetBlock());
 				}
 			}
 		}
@@ -238,17 +240,14 @@ public final class L2Optimizer
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
-		for (final L2BasicBlock sourceBlock : new ArrayList<>(
-			blocks))
+		for (final L2BasicBlock sourceBlock : new ArrayList<>(blocks))
 		{
-			final List<L2PcOperand> successorEdges =
-				sourceBlock.successorEdges();
-			if (successorEdges.size() > 1)
+			if (sourceBlock.successorEdgesCount() > 1)
 			{
-				for (final L2PcOperand edge : new ArrayList<>(successorEdges))
+				for (final L2PcOperand edge : sourceBlock.successorEdgesCopy())
 				{
 					final L2BasicBlock targetBlock = edge.targetBlock();
-					if (targetBlock.predecessorEdges().size() > 1)
+					if (targetBlock.predecessorEdgesCount() > 1)
 					{
 						final L2BasicBlock newBlock =
 							edge.splitEdgeWith(controlFlowGraph);
@@ -271,8 +270,11 @@ public final class L2Optimizer
 	{
 		for (final L2BasicBlock block : blocks)
 		{
-			for (final L2PcOperand predecessor : block.predecessorEdges())
+			final Iterator<L2PcOperand> iterator =
+				block.predecessorEdgesIterator();
+			while (iterator.hasNext())
 			{
+				final L2PcOperand predecessor = iterator.next();
 				predecessor.alwaysLiveInRegisters.clear();
 				predecessor.sometimesLiveInRegisters.clear();
 			}
@@ -288,19 +290,22 @@ public final class L2Optimizer
 			// Take the union of the outbound edges' sometimes-live registers.
 			// Also find the intersection of those edges' always-live registers.
 			final Set<L2Register<?>> alwaysLive = new HashSet<>();
-			final List<L2PcOperand> successorEdges = block.successorEdges();
-			if (!successorEdges.isEmpty())
+			if (block.successorEdgesCount() > 0)
 			{
 				// Before processing instructions in reverse order, the
 				// always-live-in set will be the intersection of the successor
 				// edges' always-live-in sets.  Pick any edge's always-live-in
 				// set as the starting case, to be intersected with each edge's
 				// set in the loop below.
-				alwaysLive.addAll(successorEdges.get(0).alwaysLiveInRegisters);
+				alwaysLive.addAll(
+					block.successorEdgeAt(0).alwaysLiveInRegisters);
 			}
 			final Set<L2Register<?>> sometimesLive = new HashSet<>();
-			for (final L2PcOperand edge : successorEdges)
+			final Iterator<L2PcOperand> successorsIterator =
+				block.successorEdgesIterator();
+			while (successorsIterator.hasNext())
 			{
+				final L2PcOperand edge = successorsIterator.next();
 				sometimesLive.addAll(edge.sometimesLiveInRegisters);
 				alwaysLive.retainAll(edge.alwaysLiveInRegisters);
 			}
@@ -325,13 +330,12 @@ public final class L2Optimizer
 
 			// Add in the predecessor-specific live-in information for each edge
 			// based on the corresponding positions inside phi instructions.
-			final List<L2PcOperand> predecessorEdges = block.predecessorEdges();
-			for (
-				int edgeIndex = predecessorEdges.size() - 1;
-				edgeIndex >= 0;
-				edgeIndex--)
+			final Iterator<L2PcOperand> iterator =
+				block.predecessorEdgesIterator();
+			int edgeIndex = 0;
+			while (iterator.hasNext())
 			{
-				final L2PcOperand edge = predecessorEdges.get(edgeIndex);
+				final L2PcOperand edge = iterator.next();
 				final Set<L2Register<?>> edgeAlwaysLiveIn =
 					new HashSet<>(alwaysLive);
 				final Set<L2Register<?>> edgeSometimesLiveIn =
@@ -354,7 +358,7 @@ public final class L2Optimizer
 					edgeAlwaysLiveIn.add(source);
 				}
 				final L2PcOperand predecessorEdge =
-					block.predecessorEdges().get(edgeIndex);
+					block.predecessorEdgeAt(edgeIndex);
 				boolean changed =
 					predecessorEdge.sometimesLiveInRegisters.addAll(
 						edgeSometimesLiveIn);
@@ -371,6 +375,7 @@ public final class L2Optimizer
 						workSet.add(predecessor);
 					}
 				}
+				edgeIndex++;
 			}
 		}
 	}
@@ -495,8 +500,7 @@ public final class L2Optimizer
 			return null;
 		}
 		final L2BasicBlock block = instruction.basicBlock;
-		final List<L2PcOperand> successorEdges = block.successorEdges();
-		if (successorEdges.size() == 1)
+		if (block.successorEdgesCount() == 1)
 		{
 			// There's only one successor edge.  Since the CFG is in edge-split
 			// form, the successor might have multiple predecessors.  Don't move
@@ -504,18 +508,21 @@ public final class L2Optimizer
 			// to run in situations that it doesn't need to.  When code
 			// splitting is eventually implemented, it should clean up this case
 			// by duplicating the successor block just for this edge.
-			final L2BasicBlock successor = successorEdges.get(0).targetBlock();
-			if (successor.predecessorEdges().size() > 1)
+			final L2BasicBlock successor =
+				block.successorEdgeAt(0).targetBlock();
+			if (successor.predecessorEdgesCount() > 1)
 			{
 				return null;
 			}
 		}
 		final List<L2PcOperand> destinations = new ArrayList<>();
 		boolean shouldMoveInstruction = false;
-		for (final L2PcOperand edge : successorEdges)
+		final Iterator<L2PcOperand> iterator = block.successorEdgesIterator();
+		while (iterator.hasNext())
 		{
+			final L2PcOperand edge = iterator.next();
 			final L2BasicBlock targetBlock = edge.targetBlock();
-			assert targetBlock.predecessorEdges().size() == 1
+			assert targetBlock.predecessorEdgesCount() == 1
 				: "CFG is not in edge-split form";
 			if (!edge.alwaysLiveInRegisters.containsAll(written))
 			{
@@ -562,17 +569,16 @@ public final class L2Optimizer
 				final L2WritePhiOperand<?, ?> targetWriter =
 					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
 						instruction);
-				final List<L2PcOperand> predecessors = block.predecessorEdges();
 				final List<L2Register<?>> phiSources =
 					instruction.sourceRegisters();
-				final int fanIn = predecessors.size();
+				final int fanIn = block.predecessorEdgesCount();
 				assert fanIn == phiSources.size();
 
 				// Insert a non-SSA move in each predecessor block.
 				for (int i = 0; i < fanIn; i++)
 				{
 					final L2BasicBlock predecessor =
-						predecessors.get(i).sourceBlock();
+						block.predecessorEdgeAt(i).sourceBlock();
 					final List<L2Instruction> instructions =
 						predecessor.instructions();
 					assert predecessor.finalInstruction().operation
@@ -726,17 +732,17 @@ public final class L2Optimizer
 						block.finalInstruction().targetEdges().get(0);
 					final L2BasicBlock jumpTarget = jumpEdge.targetBlock();
 					for (final L2PcOperand inEdge
-						: new ArrayList<>(block.predecessorEdges()))
+						: block.predecessorEdgesCopy())
 					{
 						changed = true;
 						inEdge.switchTargetBlockNonSSA(jumpTarget);
 					}
 					// Eliminate the block, unless it has to be there for
 					// external reasons (i.e., it's an L2 entry point).
-					assert block.predecessorEdges().isEmpty();
+					assert block.predecessorEdgesCount() == 0;
 					if (!block.isIrremovable())
 					{
-						jumpTarget.predecessorEdges().remove(jumpEdge);
+						jumpTarget.removePredecessorEdge(jumpEdge);
 						blockIterator.remove();
 					}
 				}
@@ -763,15 +769,15 @@ public final class L2Optimizer
 		for (final L2BasicBlock block : blocks)
 		{
 			countdowns.put(
-				block, new MutableInt(block.predecessorEdges().size()));
+				block, new MutableInt(block.predecessorEdgesCount()));
 		}
 		final List<L2BasicBlock> order =
 			new ArrayList<>(blocks.size());
-		assert blocks.get(0).predecessorEdges().isEmpty();
+		assert blocks.get(0).predecessorEdgesCount() == 0;
 		final Deque<L2BasicBlock> zeroed = new ArrayDeque<>();
 		for (int i = blocks.size() - 1; i >= 0; i--)
 		{
-			if (blocks.get(i).predecessorEdges().isEmpty())
+			if (blocks.get(i).predecessorEdgesCount() == 0)
 			{
 				zeroed.add(blocks.get(i));
 			}
@@ -783,19 +789,21 @@ public final class L2Optimizer
 			{
 				final L2BasicBlock block = zeroed.removeLast();
 				order.add(block);
-				block.successorEdges().forEach(
-					edge ->
+				final Iterator<L2PcOperand> iterator =
+					block.successorEdgesIterator();
+				while (iterator.hasNext())
+				{
+					final L2PcOperand edge = iterator.next();
+					final @Nullable MutableInt countdown =
+						countdowns.get(edge.targetBlock());
+					// Note that the entry may have been removed to break a
+					// cycle.  See below.
+					if (countdown != null && --countdown.value == 0)
 					{
-						final @Nullable MutableInt countdown =
-							countdowns.get(edge.targetBlock());
-						// Note that the entry may have been removed to break a
-						// cycle.  See below.
-						if (countdown != null && --countdown.value == 0)
-						{
-							countdowns.remove(edge.targetBlock());
-							zeroed.add(edge.targetBlock());
-						}
-					});
+						countdowns.remove(edge.targetBlock());
+						zeroed.add(edge.targetBlock());
+					}
+				}
 			}
 			else
 			{
@@ -807,7 +815,7 @@ public final class L2Optimizer
 					: countdowns.entrySet())
 				{
 					if (entry.getValue().value
-						< entry.getKey().predecessorEdges().size())
+						< entry.getKey().predecessorEdgesCount())
 					{
 						victim = entry.getKey();
 						break;
@@ -992,25 +1000,26 @@ public final class L2Optimizer
 			{
 				assert !instruction.operation.isPhi()
 					|| instruction.sourceRegisters().size()
-					== block.predecessorEdges().size();
+					== block.predecessorEdgesCount();
 			}
 			// Check edges going forward.
 			final L2Instruction lastInstruction = block.finalInstruction();
-			assert lastInstruction.targetEdges().equals(block.successorEdges());
-			for (final L2PcOperand edge : block.successorEdges())
+			assert lastInstruction.targetEdges().equals(
+				block.successorEdgesCopy());
+			for (final L2PcOperand edge : block.successorEdgesCopy())
 			{
 				assert edge.sourceBlock() == block;
 				final L2BasicBlock targetBlock = edge.targetBlock();
 				assert blocks.contains(targetBlock);
-				assert targetBlock.predecessorEdges().contains(edge);
+				assert targetBlock.predecessorEdgesCopy().contains(edge);
 			}
 			// Also check edges going backward.
-			for (final L2PcOperand backEdge : block.predecessorEdges())
+			for (final L2PcOperand backEdge : block.predecessorEdgesCopy())
 			{
 				assert backEdge.targetBlock() == block;
 				final L2BasicBlock predecessorBlock = backEdge.sourceBlock();
 				assert blocks.contains(predecessorBlock);
-				assert predecessorBlock.successorEdges().contains(backEdge);
+				assert predecessorBlock.successorEdgesCopy().contains(backEdge);
 			}
 		}
 	}
@@ -1078,14 +1087,17 @@ public final class L2Optimizer
 					}
 				}
 			}
-			for (final L2PcOperand edge : block.successorEdges())
+			final Iterator<L2PcOperand> iterator =
+				block.successorEdgesIterator();
+			while (iterator.hasNext())
 			{
 				// Handle the phi instructions of the target here.  Create a
 				// workingCopy for each edge.
+				final L2PcOperand edge = iterator.next();
 				final UsedRegisters workingCopy = new UsedRegisters(workingSet);
 				final L2BasicBlock targetBlock = edge.targetBlock();
 				final int predecessorIndex =
-					targetBlock.predecessorEdges().indexOf(edge);
+					targetBlock.predecessorEdgesCopy().indexOf(edge);
 				if (predecessorIndex == -1)
 				{
 					System.out.println("Phi predecessor not found");
@@ -1106,7 +1118,7 @@ public final class L2Optimizer
 						phiInTarget.destinationRegisters().get(0),
 						registerIdFunction);
 				}
-				blocksToCheck.add(new Pair<>(edge.targetBlock(), workingCopy));
+				blocksToCheck.add(new Pair<>(targetBlock, workingCopy));
 			}
 		}
 	}

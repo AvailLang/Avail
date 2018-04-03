@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.IndexedIntGenerator;
 
 import java.nio.ByteBuffer;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
@@ -689,7 +689,7 @@ extends NumericTupleDescriptor
 	 */
 	public static AvailObject generateNybbleTupleFrom (
 		final int size,
-		final IndexedIntGenerator generator)
+		final IntUnaryOperator generator)
 	{
 		final AvailObject result = mutableObjectOfSize(size);
 		int tupleIndex = 1;
@@ -702,7 +702,7 @@ extends NumericTupleDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 4)
 			{
-				final byte nybble = (byte) generator.value(tupleIndex++);
+				final byte nybble = (byte) generator.applyAsInt(tupleIndex++);
 				assert (nybble & 15) == nybble;
 				combined |= ((long) nybble) << shift;
 			}
@@ -711,7 +711,7 @@ extends NumericTupleDescriptor
 		// Do the last 0-15 writes the slow way.
 		for (int index = (size & ~15) + 1; index <= size; index++)
 		{
-			final byte nybble = (byte) generator.value(tupleIndex++);
+			final byte nybble = (byte) generator.applyAsInt(tupleIndex++);
 			assert (nybble & 15) == nybble;
 			setNybble(result, index, nybble);
 		}

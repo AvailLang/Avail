@@ -34,21 +34,24 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.IndexedIntGenerator;
 import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
+	.RAW_LONG_AT_;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
@@ -120,11 +123,13 @@ extends NumericTupleDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 255)
-				!= intValue)
+		if (originalSize >= maximumCopySize || !newElement.isInt())
+		{
+			// Transition to a tree tuple.
+			return object.concatenateWith(tuple(newElement), canDestroy);
+		}
+		final int intValue = ((A_Number) newElement).extractInt();
+		if ((intValue & ~255) != 0)
 		{
 			// Transition to a tree tuple.
 			return object.concatenateWith(tuple(newElement), canDestroy);
@@ -259,13 +264,13 @@ extends NumericTupleDescriptor
 				result = newLike(
 					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
 			}
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
+			int destination = size1 + 1;
+			for (int source = 1; source <= size2; source++, destination++)
 			{
 				result.setByteSlot(
 					RAW_LONG_AT_,
-					dest,
-					(short) otherTuple.tupleIntAt(src));
+					destination,
+					(short) otherTuple.tupleIntAt(source));
 			}
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
@@ -300,12 +305,12 @@ extends NumericTupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			final AvailObject result = mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
+			int destination = 1;
+			for (int src = start; src <= end; src++, destination++)
 			{
 				result.setByteSlot(
 					RAW_LONG_AT_,
-					dest,
+					destination,
 					object.byteSlot(RAW_LONG_AT_, src));
 			}
 			if (canDestroy)
@@ -522,15 +527,18 @@ extends NumericTupleDescriptor
 		if (tupleSize > 0 && tupleSize < maximumCopySize)
 		{
 			// It's not empty and it's reasonably small.
-			final AvailObject result = mutableObjectOfSize(tupleSize);
-			for (int dest = 1, src = tupleSize; src > 0; dest++, src--)
-			{
-				result.setByteSlot(
-					RAW_LONG_AT_,
-					dest,
-					object.byteSlot(RAW_LONG_AT_, src));
-			}
-			return result;
+			return generateByteTupleFrom(
+				tupleSize,
+				new IntUnaryOperator()
+				{
+					int sourceIndex = tupleSize;
+
+					@Override
+					public int applyAsInt (final int operand)
+					{
+						return object.byteSlot(RAW_LONG_AT_, sourceIndex--);
+					}
+				});
 		}
 		return super.o_TupleReverse(object);
 	}
@@ -538,11 +546,12 @@ extends NumericTupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return object.variableIntegerSlotsCount() * 8 - unusedBytesOfLastLong;
+		return
+			(object.variableIntegerSlotsCount() << 3) - unusedBytesOfLastLong;
 	}
 
 	@Override
-	final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startArray();
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
@@ -553,7 +562,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ByteTupleDescriptor}.
+	 * Construct a new {@code ByteTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -604,7 +613,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain ByteTupleDescriptor descriptor} to
+	 * Answer the appropriate {@code ByteTupleDescriptor descriptor} to
 	 * represent an {@linkplain AvailObject object} of the specified mutability
 	 * and size.
 	 *
@@ -612,7 +621,7 @@ extends NumericTupleDescriptor
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@linkplain ByteTupleDescriptor descriptor}.
+	 * @return A {@code ByteTupleDescriptor descriptor}.
 	 */
 	private static ByteTupleDescriptor descriptorFor (
 		final Mutability flag,
@@ -647,7 +656,7 @@ extends NumericTupleDescriptor
 	 */
 	public static AvailObject generateByteTupleFrom (
 		final int size,
-		final IndexedIntGenerator generator)
+		final IntUnaryOperator generator)
 	{
 		final AvailObject result = mutableObjectOfSize(size);
 		int tupleIndex = 1;
@@ -660,7 +669,7 @@ extends NumericTupleDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 8)
 			{
-				final long c = generator.value(tupleIndex++);
+				final long c = generator.applyAsInt(tupleIndex++);
 				assert (c & 255) == c;
 				combined += c << shift;
 			}
@@ -669,7 +678,7 @@ extends NumericTupleDescriptor
 		// Do the last 0-7 writes the slow way.
 		for (int index = (size & ~7) + 1; index <= size; index++)
 		{
-			final long c = generator.value(tupleIndex++);
+			final long c = generator.applyAsInt(tupleIndex++);
 			assert (c & 255) == c;
 			result.setByteSlot(RAW_LONG_AT_, index, (short) c);
 		}

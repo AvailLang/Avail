@@ -50,12 +50,12 @@ import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.IndexedGenerator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -481,19 +481,24 @@ public final class L1InstructionStepper
 				case L1_doMakeTuple:
 				{
 					final int size = instructionDecoder.getOperand();
-					if (size == 0)
+					switch (size)
 					{
-						// Common case for varargs.
-						push(emptyTuple());
-					}
-					else if (size == 1)
-					{
-						// Common case for varargs.
-						push(tuple(pop()));
-					}
-					else
-					{
-						push(generateReversedFrom(size, ignored -> pop()));
+						case 0:
+						{
+							push(emptyTuple());
+							break;
+						}
+						case 1:
+						{
+							push(tuple(pop()));
+							break;
+						}
+						default:
+						{
+							// Less common case.
+							push(generateReversedFrom(size, ignored -> pop()));
+							break;
+						}
 					}
 					break;
 				}
@@ -642,12 +647,12 @@ public final class L1InstructionStepper
 					final A_Tuple typesTuple =
 						generateObjectTupleFrom(
 							numArgs,
-							new IndexedGenerator<A_BasicObject>()
+							new IntFunction<A_BasicObject>()
 							{
 								int reversedStackp = stackp + numArgs;
 
 								@Override
-								public A_BasicObject value (final int index)
+								public A_BasicObject apply (final int index)
 								{
 									final AvailObject arg =
 										pointerAt(--reversedStackp);

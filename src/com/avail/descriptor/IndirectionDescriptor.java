@@ -65,7 +65,6 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
@@ -82,6 +81,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots
 	.INDIRECTION_TARGET;
@@ -1577,10 +1577,10 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveFrom (
 		final AvailObject object,
-		final AvailLoader aLoader,
+		final AvailLoader loader,
 		final Continuation0 afterRemoval)
 	{
-		o_Traversed(object).removeFrom(aLoader, afterRemoval);
+		o_Traversed(object).removeFrom(loader, afterRemoval);
 	}
 
 	@Override
@@ -4192,11 +4192,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FiberNameGenerator (
+	void o_FiberNameSupplier (
 		final AvailObject object,
-		final Generator<A_String> generator)
+		final Supplier<A_String> supplier)
 	{
-		o_Traversed(object).fiberNameGenerator(generator);
+		o_Traversed(object).fiberNameSupplier(supplier);
 	}
 
 	@Override

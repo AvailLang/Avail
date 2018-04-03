@@ -34,10 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.IndexedGenerator;
-import com.avail.utility.IndexedIntGenerator;
 
 import java.util.IdentityHashMap;
+import java.util.function.IntFunction;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
@@ -172,12 +172,12 @@ extends NumericTupleDescriptor
 			{
 				return generateIntTupleFrom(
 					originalSize + 1,
-					new IndexedIntGenerator()
+					new IntUnaryOperator()
 					{
 						int value = object.slot(START);
 
 						@Override
-						public int value (final int counter)
+						public int applyAsInt (final int counter)
 						{
 							if (counter == originalSize)
 							{
@@ -483,12 +483,12 @@ extends NumericTupleDescriptor
 			// Everything will be bytes.  Synthesize a byte tuple.
 			result = generateByteTupleFrom(
 				object.slot(SIZE),
-				new IndexedIntGenerator()
+				new IntUnaryOperator()
 				{
 					private int currentValue = start;
 
 					@Override
-					public int value (final int counter)
+					public int applyAsInt (final int counter)
 					{
 						final int element = counter == index
 							? ((A_Number)newValueObject).extractUnsignedByte()
@@ -503,12 +503,12 @@ extends NumericTupleDescriptor
 			// Synthesize a general object tuple instead.
 			result = generateObjectTupleFrom(
 				object.slot(SIZE),
-				new IndexedGenerator<A_BasicObject>()
+				new IntFunction<A_BasicObject>()
 				{
 					private long currentValue = start;
 
 					@Override
-					public A_BasicObject value (final int counter)
+					public A_BasicObject apply (final int counter)
 					{
 						final A_BasicObject element = counter == index
 							? newValueObject

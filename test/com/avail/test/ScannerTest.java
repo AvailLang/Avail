@@ -42,12 +42,12 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.LiteralTokenDescriptor;
 import com.avail.descriptor.TokenDescriptor;
-import com.avail.utility.Generator;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
@@ -82,53 +82,53 @@ public final class ScannerTest
 		final String inputString;
 
 		/**
-		 * An array of {@linkplain Generator generators} of {@linkplain
-		 * TokenDescriptor tokens}.  They're generators because the array of
+		 * An array of {@linkplain Supplier suppliers} of {@linkplain
+		 * TokenDescriptor tokens}.  They're suppliers because the array of
 		 * {@linkplain Case cases} may need to be created statically, before
 		 * initialization of the {@link AvailRuntime}.
 		 */
-		final Generator<A_Token>[] tokenGenerators;
+		final Supplier<A_Token>[] tokenSuppliers;
 
 		/**
-		 * Construct a new {@link Case}.
+		 * Construct a new {@code Case}.
 		 *
 		 * @param inputString
-		 *            The string to be lexically scanned into tokens.
-		 * @param tokenGenerators
-		 *            The {@linkplain Generator generators} that produce the
-		 *            reference tokens with which to check the result of the
-		 *            lexical scanning.
+		 *        The string to be lexically scanned into tokens.
+		 * @param tokenSuppliers
+		 *        The {@linkplain Supplier suppliers} that produce the reference
+		 *        tokens with which to check the result of the lexical scanning.
 		 */
 		@SafeVarargs
 		private Case (
 			final String inputString,
-			final Generator<A_Token>... tokenGenerators)
+			final Supplier<A_Token>... tokenSuppliers)
 		{
 			this.inputString = inputString;
-			this.tokenGenerators = tokenGenerators;
+			this.tokenSuppliers = tokenSuppliers;
 		}
 
 		/**
 		 * This static method allows a concise notation for specifying a case.
 		 *
 		 * @param inputString
-		 *            The string to scan into tokens.
-		 * @param tokenGenerators
-		 *            The {@linkplain Generator generators} of the tokens
-		 *            that are expected from the lexical scanning.
-		 * @return The new {@link Case}.
+		 *        The string to scan into tokens.
+		 * @param tokenSuppliers
+		 *        The {@linkplain Supplier suppliers} of the tokens that are
+		 *        expected from the lexical scanning.
+		 * @return The new {@code Case}.
 		 */
 		@SafeVarargs
 		static Case C (
 			final String inputString,
-			final Generator<A_Token>... tokenGenerators)
+			final Supplier<A_Token>... tokenSuppliers)
 		{
-			return new Case(inputString, tokenGenerators);
+			return new Case(inputString, tokenSuppliers);
 		}
 
 		@Override
 		public String toString ()
 		{
+			//noinspection DynamicRegexReplaceableByCompiledPattern
 			return "Case \""
 				+ inputString.replace("\\","\\\\").replace("\"", "\\\"")
 				+ "\"";
@@ -136,19 +136,19 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenDescriptor token} with the specified string and {@linkplain
 	 * TokenType token type}.  Its one-based start position in the entire input
 	 * string is set to one.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.
 	 * @param tokenType
-	 *            The type of token to construct.
+	 *        The type of token to construct.
 	 * @return The new token.
 	 */
-	static Generator<A_Token> T (
+	static Supplier<A_Token> T (
 		final String string,
 		final TokenType tokenType)
 	{
@@ -156,21 +156,21 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenDescriptor token} with the specified string, {@linkplain TokenType
 	 * token type}, and start offset.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.
 	 * @param tokenType
-	 *            The type of token to construct.
+	 *        The type of token to construct.
 	 * @param start
-	 *            The one-based offset of the first character of this token
-	 *            within the entire input string.
+	 *        The one-based offset of the first character of this token within
+	 *        the entire input string.
 	 * @return The new token.
 	 */
-	static Generator<A_Token> T (
+	static Supplier<A_Token> T (
 		final String string,
 		final TokenType tokenType,
 		final int start)
@@ -186,7 +186,7 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenType#KEYWORD keyword} {@linkplain TokenDescriptor token} with the
 	 * specified string.
 	 *
@@ -195,25 +195,25 @@ public final class ScannerTest
 	 *        constructed.
 	 * @return The new keyword token.
 	 */
-	static Generator<A_Token> K (final String string)
+	static Supplier<A_Token> K (final String string)
 	{
 		return T(string, KEYWORD);
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenType#KEYWORD keyword} {@linkplain TokenDescriptor token} with the
 	 * specified string and start offset.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.
 	 * @param start
-	 *            The one-based offset of the first character of this token
-	 *            within the entire input string.
+	 *        The one-based offset of the first character of this token within
+	 *        the entire input string.
 	 * @return The new keyword token.
 	 */
-	static Generator<A_Token> K (
+	static Supplier<A_Token> K (
 		final String string,
 		final int start)
 	{
@@ -221,16 +221,16 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenType#OPERATOR operator} {@linkplain TokenDescriptor token} with the
 	 * specified string.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.  An operator token is always a single character.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.  An operator token is always a single character.
 	 * @return The new operator token.
 	 */
-	static Generator<A_Token> O (
+	static Supplier<A_Token> O (
 		final String string)
 	{
 		assert string.codePointCount(0, string.length()) == 1;
@@ -238,19 +238,19 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * TokenType#OPERATOR operator} {@linkplain TokenDescriptor token} with the
 	 * specified string and start offset.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.  An operator token is always a single character.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.  An operator token is always a single character.
 	 * @param start
-	 *            The one-based offset of the first character of this token
-	 *            within the entire input string.
+	 *        The one-based offset of the first character of this token within
+	 *        the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<A_Token> O (
+	static Supplier<A_Token> O (
 		final String string,
 		final int start)
 	{
@@ -258,41 +258,41 @@ public final class ScannerTest
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * LiteralTokenDescriptor literal token} with the specified value and
 	 * string.  The start position will be one, indicating that the token is at
 	 * the beginning of the entire input string.
 	 *
 	 * @param object
-	 *            The value of the literal.
+	 *        The value of the literal.
 	 * @param string
-	 *            The characters from which the literal token will ostensibly
-	 *            have been constructed.
+	 *        The characters from which the literal token will ostensibly have
+	 *        been constructed.
 	 * @return The new operator token.
 	 */
-	static Generator<A_Token> L (
+	static Supplier<A_Token> L (
 		final Object object,
 		final String string)
 	{
-		return L (object, string, 1);
+		return L(object, string, 1);
 	}
 
 	/**
-	 * A concise static method for building a {@link Generator} of {@linkplain
+	 * A concise static method for building a {@link Supplier} of {@linkplain
 	 * LiteralTokenDescriptor literal token} with the specified value, string,
 	 * and start offset.
 	 *
 	 * @param object
-	 *            The value of the literal.
+	 *        The value of the literal.
 	 * @param string
-	 *            The characters from which the literal token will ostensibly
-	 *            have been constructed.
+	 *        The characters from which the literal token will ostensibly have
+	 *        been constructed.
 	 * @param start
-	 *            The one-based offset of the first character of this literal
-	 *            token within the entire input string.
+	 *        The one-based offset of the first character of this literal token
+	 *        within the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<A_Token> L (
+	static Supplier<A_Token> L (
 		final Object object,
 		final String string,
 		final int start)
@@ -338,15 +338,19 @@ public final class ScannerTest
 		};
 	}
 
-	private static @Nullable Generator<A_Token> nullGenerator = null;
+	/**
+	 * The {@code null} value, typed as a {@link Supplier} of {@link A_Token}
+	 * for convenience.
+	 */
+	private static final @Nullable Supplier<A_Token> nullSupplier = null;
 
 	/**
 	 * The collection of test cases with which to test the {@link AvailScanner}.
 	 * The first item of each {@link Case} is the string to be scanned, and the
 	 * remaining values represent the tokens that the scanner should produce
-	 * from the input string.  The tokens are actually {@link Generator
-	 * generators} of {@linkplain TokenDescriptor token} to allow this list to
-	 * be constructed statically.  If a case has a single token generator and it
+	 * from the input string.  The tokens are actually {@link Supplier
+	 * suppliers} of {@linkplain TokenDescriptor token} to allow this list to be
+	 * constructed statically.  If a case has a single token generator and it
 	 * produces null, then the lexical scanner is supposed to fail to parse that
 	 * input string.
 	 */
@@ -392,20 +396,20 @@ public final class ScannerTest
 			C("`", O("`")),
 			C(";", O(";")),
 
-			C("\"", nullGenerator),
-			C("\"cat", nullGenerator),
-			C("\"\\\"", nullGenerator),
+			C("\"", nullSupplier),
+			C("\"cat", nullSupplier),
+			C("\"\\\"", nullSupplier),
 			C("\"\\\\\"", L("\\","\"\\\\\"")),
 			C("\"cat\"", L("cat","\"cat\"")),
 
-			C("\"ab\\", nullGenerator),
-			C("\"ab\\(", nullGenerator),
-			C("\"ab\\(6", nullGenerator),
-			C("\"ab\\(,", nullGenerator),
-			C("\"ab\\()", nullGenerator),
-			C("\"ab\\(,)", nullGenerator),
-			C("\"ab\\(6,)", nullGenerator),
-			C("\"ab\\(,6)", nullGenerator),
+			C("\"ab\\", nullSupplier),
+			C("\"ab\\(", nullSupplier),
+			C("\"ab\\(6", nullSupplier),
+			C("\"ab\\(,", nullSupplier),
+			C("\"ab\\()", nullSupplier),
+			C("\"ab\\(,)", nullSupplier),
+			C("\"ab\\(6,)", nullSupplier),
+			C("\"ab\\(,6)", nullSupplier),
 			C("\"ab\\(63,64)\"", L("abcd","\"ab\\(63,64)\"")),
 			C("\"ab\\(63)\"", L("abc","\"ab\\(63)\"")),
 			C("\"ab\\(063)\"", L("abc","\"ab\\(063)\"")),
@@ -432,8 +436,8 @@ public final class ScannerTest
 					"A module synthesized in ScannerTest.testScanner()",
 					false);
 				List<A_Token> scannedTokens = result.outputTokens();
-				if (c.tokenGenerators.length == 1
-					&& c.tokenGenerators[0] == null)
+				if (c.tokenSuppliers.length == 1
+					&& c.tokenSuppliers[0] == null)
 				{
 					fail(
 						c + ": Expected scanner to fail, not produce "
@@ -455,12 +459,12 @@ public final class ScannerTest
 					0,
 					scannedTokens.size() - 1);
 				assertEquals(
-					c.tokenGenerators.length,
+					c.tokenSuppliers.length,
 					scannedTokens.size(),
 					c + ": Scanner produced the wrong number of tokens.");
-				for (int i = 0; i < c.tokenGenerators.length; i++)
+				for (int i = 0; i < c.tokenSuppliers.length; i++)
 				{
-					final A_BasicObject expected = c.tokenGenerators[i].value();
+					final A_BasicObject expected = c.tokenSuppliers[i].get();
 					final A_BasicObject actual = scannedTokens.get(i);
 					assertEquals(
 						expected,
@@ -470,12 +474,12 @@ public final class ScannerTest
 			}
 			catch (final AvailScannerException e)
 			{
-				if (c.tokenGenerators.length != 1
-					|| c.tokenGenerators[0] != null)
+				if (c.tokenSuppliers.length != 1
+					|| c.tokenSuppliers[0] != null)
 				{
 					fail(
 						c + ": Expected scanner to produce "
-						+ c.tokenGenerators.length
+						+ c.tokenSuppliers.length
 						+ " tokens, not fail with: "
 						+ e);
 				}

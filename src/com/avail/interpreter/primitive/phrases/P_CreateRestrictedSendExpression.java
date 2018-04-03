@@ -43,7 +43,6 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -297,18 +296,11 @@ extends Primitive
 			final A_Fiber forkedFiber = newFiber(
 				topMeta(),
 				originalFiber.priority(),
-				new Generator<A_String>()
-				{
-					@Override
-					public A_String value ()
-					{
-						return stringFrom(
-							"Semantic restriction checker (#"
-								+ finalCount
-								+ ") for primitive "
-								+ this.getClass().getSimpleName());
-					}
-				});
+				() -> stringFrom(
+					"Semantic restriction checker (#"
+						+ finalCount
+						+ ") for primitive "
+						+ this.getClass().getSimpleName()));
 			forkedFiber.availLoader(originalFiber.availLoader());
 			forkedFiber.heritableFiberGlobals(
 				originalFiber.heritableFiberGlobals());

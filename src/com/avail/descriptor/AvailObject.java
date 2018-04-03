@@ -66,7 +66,6 @@ import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
@@ -86,6 +85,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.utility.Nulls.stripNull;
@@ -5240,9 +5240,9 @@ implements
 	}
 
 	@Override
-	public void fiberNameGenerator (final Generator<A_String> generator)
+	public void fiberNameSupplier (final Supplier<A_String> supplier)
 	{
-		descriptor.o_FiberNameGenerator(this, generator);
+		descriptor.o_FiberNameSupplier(this, supplier);
 	}
 
 	@Override

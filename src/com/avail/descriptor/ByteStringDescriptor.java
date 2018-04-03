@@ -36,21 +36,25 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.IndexedIntGenerator;
 
 import javax.annotation.Nullable;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
-import static com.avail.descriptor.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
+import static com.avail.descriptor.CharacterDescriptor
+	.hashOfByteCharacterWithCodePoint;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TwoByteStringDescriptor.mutableTwoByteStringOfSize;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.mutableTwoByteStringOfSize;
 
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
@@ -118,10 +122,14 @@ extends StringDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character)newElement).codePoint()) & ~255) != 0)
+		if (originalSize >= maximumCopySize || !newElement.isCharacter())
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = tuple(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int intValue = ((A_Character) newElement).codePoint();
+		if ((intValue & ~255) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = tuple(newElement);
@@ -226,16 +234,10 @@ extends StringDescriptor
 			return true;
 		}
 		final int tupleSize = object.tupleSize();
-		if (tupleSize != aByteString.tupleSize())
-		{
-			return false;
-		}
-		if (object.hash() != aByteString.hash())
-		{
-			return false;
-		}
-		return object.compareFromToWithByteStringStartingAt(
-			1, tupleSize, aByteString, 1);
+		return tupleSize == aByteString.tupleSize()
+			&& object.hash() == aByteString.hash()
+			&& object.compareFromToWithByteStringStartingAt(
+				1, tupleSize, aByteString, 1);
 	}
 
 	@Override @AvailMethod
@@ -505,7 +507,7 @@ extends StringDescriptor
 	 */
 	public static AvailObject generateByteString(
 		final int size,
-		final IndexedIntGenerator generator)
+		final IntUnaryOperator generator)
 	{
 		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result = descriptor.mutableObjectOfSize(size);
@@ -519,7 +521,7 @@ extends StringDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 8)
 			{
-				final long c = generator.value(counter++);
+				final long c = generator.applyAsInt(counter++);
 				assert (c & 255) == c;
 				combined += c << shift;
 			}
@@ -528,7 +530,7 @@ extends StringDescriptor
 		// Do the last 0-7 writes the slow way.
 		for (int index = (size & ~7) + 1; index <= size; index++)
 		{
-			final long c = generator.value(counter++);
+			final long c = generator.applyAsInt(counter++);
 			assert (c & 255) == c;
 			result.setByteSlot(RAW_LONGS_, index, (short) c);
 		}

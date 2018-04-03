@@ -35,7 +35,13 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -51,6 +57,7 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_PHI;
+import static com.avail.utility.Casts.cast;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link
@@ -122,7 +129,7 @@ extends L2Operation
 	}
 
 	@Override
-	public final boolean isPhi ()
+	public boolean isPhi ()
 	{
 		return true;
 	}
@@ -190,7 +197,7 @@ extends L2Operation
 
 	/**
 	 * Examine the instruction and answer the predecessor {@link L2BasicBlock}s
-	 * that reach this phi instruction and
+	 * that supply a value from the specified register.
 	 *
 	 * @param instruction
 	 *        The phi-instruction to examine.
@@ -205,22 +212,21 @@ extends L2Operation
 		final L2Register<?> usedRegister)
 	{
 		assert instruction.operation == instance;
-//		final List<L2ReadOperand<?, ?>> inputRegs =
-//			instruction.readVectorRegisterAt(0);
-//		final L2WritePhiOperand<?, ?> destinationReg =
-//			instruction.writePhiRegisterAt(1);
 
-		final List<L2PcOperand> predecessorEdges =
-			instruction.basicBlock.predecessorEdges();
 		final List<? extends L2ReadOperand<?, ?>> sources =
 			instruction.readVectorRegisterAt(0);
+		assert sources.size() == instruction.basicBlock.predecessorEdgesCount();
+		final Iterator<L2PcOperand> predecessorEdgesIterator =
+			instruction.basicBlock.predecessorEdgesIterator();
 		final List<L2BasicBlock> list = new ArrayList<>();
-		for (int bound = sources.size(), i = 0; i < bound; i++)
+		int i = 0;
+		while(predecessorEdgesIterator.hasNext())
 		{
 			if (sources.get(i).register() == usedRegister)
 			{
-				list.add(predecessorEdges.get(i).sourceBlock());
+				list.add(predecessorEdgesIterator.next().sourceBlock());
 			}
+			i++;
 		}
 		return list;
 	}
@@ -236,12 +242,11 @@ extends L2Operation
 	 *        The instruction to examine.  It must be a phi operation.
 	 * @return The instruction's destination {@link L2WritePhiOperand}.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <U extends L2WritePhiOperand<?, ?>>
 	U destinationRegisterWrite (final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
-		return (U) instruction.writePhiRegisterAt(1);
+		return cast(instruction.writePhiRegisterAt(1));
 	}
 
 	/**

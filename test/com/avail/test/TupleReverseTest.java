@@ -33,10 +33,10 @@
 package com.avail.test;
 
 import com.avail.descriptor.*;
-import com.avail.utility.IndexedIntGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
 import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
@@ -44,8 +44,10 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.ByteTupleDescriptor.mutableObjectOfSize;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.createInterval;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
+	.createSmallInterval;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
@@ -240,12 +242,12 @@ public class TupleReverseTest
 		final AvailObject myByteTupleSmallReversed =
 			generateByteTupleFrom(
 				3,
-				new IndexedIntGenerator()
+				new IntUnaryOperator()
 				{
 					private short counter = 3;
 
 					@Override
-					public int value (final int i)
+					public int applyAsInt (final int i)
 					{
 						return counter--;
 					}
@@ -324,10 +326,8 @@ public class TupleReverseTest
 			aByteArray[i] = (byte) (2 + i);
 		}
 
-		final A_Tuple myByteArrayTuple;
-		myByteArrayTuple =
-			tupleForByteArray(aByteArray)
-			.makeImmutable();
+		final A_Tuple myByteArrayTuple =
+			tupleForByteArray(aByteArray).makeImmutable();
 
 		final byte[] aByteArrayReversed = new byte[36];
 
@@ -448,8 +448,7 @@ public class TupleReverseTest
 	@Test
 	public void testNybbleTupleDescriptorReverse ()
 	{
-		A_Tuple nybbleTuple;
-		nybbleTuple = mutableObjectOfSize(17);
+		A_Tuple nybbleTuple = mutableObjectOfSize(17);
 		nybbleTuple = nybbleTuple
 			.tupleAtPuttingCanDestroy(1, fromInt(1), true)
 			.tupleAtPuttingCanDestroy(2, fromInt(7), true)

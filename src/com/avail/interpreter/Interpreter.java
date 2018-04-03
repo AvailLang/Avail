@@ -2038,7 +2038,7 @@ public final class Interpreter
 		final List<? extends A_BasicObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
-		aFiber.fiberNameGenerator(
+		aFiber.fiberNameSupplier(
 			() ->
 			{
 				final A_RawFunction code = function.code();

@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -152,6 +153,48 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Answer the number of predecessor edges that this block has.
+	 *
+	 * @return The number of predecessors.
+	 */
+	public int predecessorEdgesCount ()
+	{
+		return predecessorEdges.size();
+	}
+
+	/**
+	 * Answer an {@link Iterator} over the predecessor edges.  Don't change them
+	 * during iteration.
+	 *
+	 * @return The iterator over predecessors.
+	 */
+	public Iterator<L2PcOperand> predecessorEdgesIterator ()
+	{
+		return predecessorEdges.iterator();
+	}
+
+	/**
+	 * Answer a copy of the list of predecessor edges.
+	 *
+	 * @return The predecessor edges, copied to a new list.
+	 */
+	public List<L2PcOperand> predecessorEdgesCopy ()
+	{
+		return new ArrayList<>(predecessorEdges);
+	}
+
+	/**
+	 * Answer the predecessor {@linkplain L2PcOperand edge} with the given index
+	 * in my list of predecessors.
+	 *
+	 * @return The indicated predecessor
+	 */
+	public L2PcOperand predecessorEdgeAt (final int index)
+	{
+		return predecessorEdges.get(index);
+	}
+
+	/**
 	 * Add a predecessor, due to an earlier basic block adding an instruction
 	 * that reaches this basic block.
 	 *
@@ -198,36 +241,87 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Determine if this basic block has any predecessor basic blocks.
+	 * Answer the number of successor edges that this block has.
 	 *
-	 * @return The value {@code true} if this basic block has one or more
-	 *         predecessor basic blocks, otherwise {@code false}.
+	 * @return The number of successors.
 	 */
-	public boolean hasPredecessors ()
+	public int successorEdgesCount ()
 	{
-		return !predecessorEdges.isEmpty();
+		return successorEdges.size();
 	}
 
 	/**
-	 * Answer all {@link L2PcOperand}s that lead to this block.
+	 * Answer an {@link Iterator} over the successor edges.  Don't change them
+	 * during iteration.
 	 *
-	 * @return The {@link List} of {@link L2PcOperand}s leading here.
+	 * @return The iterator over successors.
 	 */
-	public List<L2PcOperand> predecessorEdges ()
+	public Iterator<L2PcOperand> successorEdgesIterator ()
 	{
-		return predecessorEdges;
+		return successorEdges.iterator();
 	}
 
 	/**
-	 * Answer the {@link L2PcOperand}s taken in order from the last {@link
-	 * L2Instruction} of this basic block.  These operands lead to the successor
-	 * blocks of this one.
+	 * Answer a copy of the list of successor edges.
 	 *
-	 * @return a {@link List} of {@link L2PcOperand}s.
+	 * @return The successor edges, copied to a new list.
 	 */
-	public List<L2PcOperand> successorEdges ()
+	public List<L2PcOperand> successorEdgesCopy ()
 	{
-		return successorEdges;
+		return new ArrayList<>(successorEdges);
+	}
+
+	/**
+	 * Answer the successor {@linkplain L2PcOperand edge} with the given index
+	 * in my list of successors.
+	 *
+	 * @return The indicated successor
+	 */
+	public L2PcOperand successorEdgeAt (final int index)
+	{
+		return successorEdges.get(index);
+	}
+
+	/**
+	 * Add a successor edge.
+	 *
+	 * @param successorEdge
+	 *        The {@link L2PcOperand} leaving this block.
+	 */
+	public void addSuccessorEdge (
+		final L2PcOperand successorEdge)
+	{
+		successorEdges.add(successorEdge);
+	}
+
+	/**
+	 * Remove a successor edge.
+	 *
+	 * @param successorEdge
+	 *        The {@link L2PcOperand} that no longer leaves this block.
+	 */
+	public void removeSuccessorEdge (
+		final L2PcOperand successorEdge)
+	{
+		final boolean success = successorEdges.remove(successorEdge);
+		assert success;
+	}
+
+	/**
+	 * Replace a successor edge with a replacement edge.
+	 *
+	 * @param oldSuccessorEdge
+	 *        The {@link L2PcOperand} to remove.
+	 * @param newSuccessorEdge
+	 *        The {@link L2PcOperand} to add in its place.
+	 */
+	public void replaceSuccessorEdge (
+		final L2PcOperand oldSuccessorEdge,
+		final L2PcOperand newSuccessorEdge)
+	{
+		assert newSuccessorEdge.sourceBlock() == this;
+		final int index = successorEdges.indexOf(oldSuccessorEdge);
+		successorEdges.set(index, newSuccessorEdge);
 	}
 
 	/**
@@ -277,7 +371,7 @@ public final class L2BasicBlock
 	 */
 	public void addInstruction (final L2Instruction instruction)
 	{
-		assert isIrremovable() || hasPredecessors();
+		assert isIrremovable() || predecessorEdgesCount() > 0;
 		justAddInstruction(instruction);
 		instruction.justAdded();
 	}
@@ -318,7 +412,7 @@ public final class L2BasicBlock
 		final int index,
 		final L2Instruction instruction)
 	{
-		assert isIrremovable() || hasPredecessors();
+		assert isIrremovable() || predecessorEdgesCount() > 0;
 		assert instruction.basicBlock == this;
 		instructions.add(index, instruction);
 		hasStartedCodeGeneration = true;

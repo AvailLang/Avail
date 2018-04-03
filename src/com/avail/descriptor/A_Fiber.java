@@ -39,12 +39,12 @@ import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
-import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 import java.util.TimerTask;
+import java.util.function.Supplier;
 
 /**
  * {@code A_Fiber} is an interface that specifies the fiber-specific operations
@@ -140,9 +140,9 @@ extends A_BasicObject
 	A_String fiberName ();
 
 	/**
-	 * @param generator
+	 * @param supplier
 	 */
-	void fiberNameGenerator (Generator<A_String> generator);
+	void fiberNameSupplier (Supplier<A_String> supplier);
 
 	/**
 	 * @return

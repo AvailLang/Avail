@@ -34,10 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.IndexedIntGenerator;
 import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -47,7 +47,8 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
@@ -285,11 +286,11 @@ extends NumericTupleDescriptor
 				result = newLike(
 					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
 			}
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
+			int destination = size1 + 1;
+			for (int source = 1; source <= size2; source++, destination++)
 			{
 				result.setIntSlot(
-					RAW_LONG_AT_, dest, otherTuple.tupleIntAt(src));
+					RAW_LONG_AT_, destination, otherTuple.tupleIntAt(source));
 			}
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
@@ -324,11 +325,13 @@ extends NumericTupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last long in that
 			// case.
 			final AvailObject result = mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
+			int destination = 1;
+			for (int source = start; source <= end; source++, destination++)
 			{
 				result.setIntSlot(
-					RAW_LONG_AT_, dest, object.intSlot(RAW_LONG_AT_, src));
+					RAW_LONG_AT_,
+					destination,
+					object.intSlot(RAW_LONG_AT_, source));
 			}
 			if (canDestroy)
 			{
@@ -607,10 +610,15 @@ extends NumericTupleDescriptor
 		{
 			// It's not empty or singular, but it's reasonably small.
 			final AvailObject result = mutableObjectOfSize(tupleSize);
-			for (int dest = 1, src = tupleSize; src > 0; dest++, src--)
+			for (
+				int destination = 1, src = tupleSize;
+				src > 0;
+				destination++, src--)
 			{
 				result.setIntSlot(
-					RAW_LONG_AT_, dest, object.intSlot(RAW_LONG_AT_, src));
+					RAW_LONG_AT_,
+					destination,
+					object.intSlot(RAW_LONG_AT_, src));
 			}
 			return result;
 		}
@@ -624,7 +632,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startArray();
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
@@ -635,7 +643,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link IntTupleDescriptor}.
+	 * Construct a new {@code IntTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -687,15 +695,14 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain IntTupleDescriptor descriptor} to
-	 * represent an {@linkplain AvailObject object} of the specified mutability
-	 * and size.
+	 * Answer the appropriate {@code IntTupleDescriptor descriptor} to represent
+	 * an {@linkplain AvailObject object} of the specified mutability and size.
 	 *
 	 * @param flag
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@linkplain IntTupleDescriptor descriptor}.
+	 * @return An {@code IntTupleDescriptor}.
 	 */
 	private static IntTupleDescriptor descriptorFor (
 		final Mutability flag,
@@ -738,7 +745,7 @@ extends NumericTupleDescriptor
 	 */
 	public static AvailObject generateIntTupleFrom (
 		final int size,
-		final IndexedIntGenerator generator)
+		final IntUnaryOperator generator)
 	{
 		final IntTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result =
@@ -750,8 +757,8 @@ extends NumericTupleDescriptor
 			slotIndex <= limit;
 			slotIndex++)
 		{
-			long combined = generator.value(tupleIndex++) & 0xFFFF_FFFFL;
-			combined += ((long) generator.value(tupleIndex++)) << 32L;
+			long combined = generator.applyAsInt(tupleIndex++) & 0xFFFF_FFFFL;
+			combined += ((long) generator.applyAsInt(tupleIndex++)) << 32L;
 			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
 		}
 		if ((size & 1) == 1)
@@ -759,7 +766,7 @@ extends NumericTupleDescriptor
 			// Do the last (odd) write the slow way.  Assume the upper int was
 			// zeroed.
 			result.setIntSlot(
-				RAW_LONG_AT_, size, generator.value(tupleIndex++));
+				RAW_LONG_AT_, size, generator.applyAsInt(tupleIndex++));
 		}
 		assert tupleIndex == size + 1;
 		return result;

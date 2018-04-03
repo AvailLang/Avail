@@ -396,10 +396,11 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/**
-	 * Emit all incoming control edges for the specified {@link L2BasicBlock}.
+	 * Emit all incoming control flow edges for the specified {@link
+	 * L2BasicBlock}.
 	 *
 	 * @param targetBlock
-	 *        A {@code L2BasicBlock}.
+	 *        An {@code L2BasicBlock}.
 	 * @param writer
 	 *        The {@link GraphWriter} for emission.
 	 */
@@ -407,8 +408,11 @@ public class L2ControlFlowGraphVisualizer
 		final L2BasicBlock targetBlock,
 		final GraphWriter writer)
 	{
-		for (final L2PcOperand edge : targetBlock.predecessorEdges())
+		final Iterator<L2PcOperand> iterator =
+			targetBlock.predecessorEdgesIterator();
+		while (iterator.hasNext())
 		{
+			final L2PcOperand edge = iterator.next();
 			final StringBuilder builder = new StringBuilder();
 			final L2BasicBlock sourceBlock = edge.sourceBlock();
 			final L2Instruction last = sourceBlock.finalInstruction();

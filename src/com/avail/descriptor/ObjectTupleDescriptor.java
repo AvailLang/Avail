@@ -36,19 +36,21 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.IndexedGenerator;
 import com.avail.utility.IteratorNotNull;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**
@@ -547,7 +549,7 @@ extends TupleDescriptor
 	 */
 	public static AvailObject generateObjectTupleFrom (
 		final int size,
-		final IndexedGenerator<? extends A_BasicObject> generator)
+		final IntFunction<? extends A_BasicObject> generator)
 	{
 		final AvailObject result = createUninitialized(size);
 		// Initialize it for safe GC within the loop below.  Might be
@@ -555,7 +557,7 @@ extends TupleDescriptor
 		result.fillSlots(TUPLE_AT_, 1, size, nil);
 		for (int i = 1; i <= size; i++)
 		{
-			result.setSlot(TUPLE_AT_, i, generator.value(i));
+			result.setSlot(TUPLE_AT_, i, generator.apply(i));
 		}
 		return result;
 	}
@@ -572,7 +574,7 @@ extends TupleDescriptor
 	 */
 	public static AvailObject generateReversedFrom (
 		final int size,
-		final IndexedGenerator<? extends A_BasicObject> generator)
+		final IntFunction<? extends A_BasicObject> generator)
 	{
 		final AvailObject result = createUninitialized(size);
 		// Initialize it for safe GC within the loop below.  Might be
@@ -580,7 +582,7 @@ extends TupleDescriptor
 		result.fillSlots(TUPLE_AT_, 1, size, nil);
 		for (int i = size; i >= 1; i--)
 		{
-			result.setSlot(TUPLE_AT_, i, generator.value(i));
+			result.setSlot(TUPLE_AT_, i, generator.apply(i));
 		}
 		return result;
 	}

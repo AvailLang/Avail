@@ -33,7 +33,8 @@
 package com.avail.exceptions;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.utility.Generator;
+
+import java.util.function.Supplier;
 
 /**
  * A {@code MalformedMessageException} is thrown when a method name is malformed
@@ -50,29 +51,29 @@ extends AvailException
 	private static final long serialVersionUID = -1566262280388678301L;
 
 	/**
-	 * A {@link Generator} that can produce a description of what the problem
+	 * A {@link Supplier} that can produce a description of what the problem
 	 * is with the message name.
 	 */
-	private final Generator<String> describer;
+	private final Supplier<String> descriptionSupplier;
 
 	/**
-	 * Construct a new {@link MalformedMessageException} with the specified
-	 * {@linkplain AvailErrorCode error code} and the specified {@link
-	 * Generator} that describes the problem.
+	 * Construct a new {@code MalformedMessageException} with the specified
+	 * {@linkplain AvailErrorCode error code} and the specified {@link Supplier}
+	 * that describes the problem.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
-	 * @param describer
-	 *        A {@link Generator} that produces a {@link String} describing what
+	 * @param descriptionSupplier
+	 *        A {@link Supplier} that produces a {@link String} describing what
 	 *        was malformed about the signature that failed to be parsed by a
 	 *        {@link MessageSplitter}.
 	 */
 	public MalformedMessageException (
 		final AvailErrorCode errorCode,
-		final Generator<String> describer)
+		final Supplier<String> descriptionSupplier)
 	{
 		super(errorCode);
-		this.describer = describer;
+		this.descriptionSupplier = descriptionSupplier;
 	}
 
 	/**
@@ -82,6 +83,6 @@ extends AvailException
 	 */
 	public String describeProblem ()
 	{
-		return describer.value();
+		return descriptionSupplier.get();
 	}
 }

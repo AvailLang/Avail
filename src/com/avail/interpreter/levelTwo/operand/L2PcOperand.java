@@ -155,7 +155,7 @@ extends L2Operand
 	{
 		assert this.instruction == null;
 		this.instruction = theInstruction;
-		instruction.basicBlock.successorEdges().add(this);
+		instruction.basicBlock.addSuccessorEdge(this);
 		targetBlock.addPredecessorEdge(this);
 		super.instructionWasAdded(theInstruction);
 	}
@@ -165,7 +165,7 @@ extends L2Operand
 		final L2Instruction theInstruction)
 	{
 		final L2BasicBlock sourceBlock = stripNull(instruction).basicBlock;
-		sourceBlock.successorEdges().remove(this);
+		sourceBlock.removeSuccessorEdge(this);
 		targetBlock.removePredecessorEdge(this);
 		this.instruction = null;
 		sourceBlock.removedControlFlowInstruction();
@@ -245,21 +245,19 @@ extends L2Operand
 		jump.operands[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
-		assert newBlock.successorEdges().isEmpty();
-		newBlock.successorEdges().add(this);
+		assert newBlock.successorEdgesCount() == 0;
+		newBlock.addSuccessorEdge(this);
 
 		// Create a new edge from the original source to the new block.
 		final L2PcOperand newEdge = new L2PcOperand(
 			newBlock, manifest, phiRestrictions);
 		newEdge.instruction = originalSource;
-		newBlock.predecessorEdges().add(newEdge);
+		newBlock.addPredecessorEdge(newEdge);
 
 		// Wire in the new edge.
 		asList(originalSource.operands).replaceAll(
 			x -> x == this ? newEdge : x);
-		originalSource.basicBlock.successorEdges().replaceAll(
-			x -> x == this ? newEdge : x);
-
+		originalSource.basicBlock.replaceSuccessorEdge(this, newEdge);
 		return newBlock;
 	}
 
@@ -273,7 +271,7 @@ extends L2Operand
 	{
 		final L2BasicBlock oldTarget = targetBlock;
 		targetBlock = newTarget;
-		oldTarget.predecessorEdges().remove(this);
-		newTarget.predecessorEdges().add(this);
+		oldTarget.removePredecessorEdge(this);
+		newTarget.addPredecessorEdge(this);
 	}
 }

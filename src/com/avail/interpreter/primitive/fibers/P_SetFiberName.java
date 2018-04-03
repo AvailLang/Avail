@@ -72,7 +72,7 @@ extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_Fiber fiber = interpreter.argument(0);
 		final A_String name = interpreter.argument(1);
-		fiber.fiberNameGenerator(() -> name);
+		fiber.fiberNameSupplier(() -> name);
 		return interpreter.primitiveSuccess(nil);
 	}
 

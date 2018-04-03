@@ -59,7 +59,6 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
@@ -89,6 +88,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.ExpectedToken.*;
@@ -241,7 +241,7 @@ public final class AvailCompiler
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by the new compiler.
 	 * @param pollForAbort
-	 *        A zero-argument continuation to invoke.
+	 *        A {@link BooleanSupplier} that indicates whether to abort.
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
@@ -254,7 +254,7 @@ public final class AvailCompiler
 	public static void create (
 		final ResolvedModuleName resolvedName,
 		final TextInterface textInterface,
-		final Generator<Boolean> pollForAbort,
+		final BooleanSupplier pollForAbort,
 		final CompilerProgressReporter reporter,
 		final Continuation1NotNull<AvailCompiler> succeed,
 		final Continuation0 afterFail,
@@ -308,7 +308,7 @@ public final class AvailCompiler
 		final A_Module module,
 		final A_String source,
 		final TextInterface textInterface,
-		final Generator<Boolean> pollForAbort,
+		final BooleanSupplier pollForAbort,
 		final CompilerProgressReporter progressReporter,
 		final ProblemHandler problemHandler)
 	{
@@ -488,81 +488,70 @@ public final class AvailCompiler
 		assert compilationContext.getNoMoreWorkUnits() == null;
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
-		final MutableInt count = new MutableInt(0);
-		final MutableOrNull<A_Phrase> solution = new MutableOrNull<>();
-		final MutableOrNull<ParserState> afterStatement = new MutableOrNull<>();
+		final List<CompilerSolution> solutions = new ArrayList<>(1);
 		compilationContext.setNoMoreWorkUnits(() ->
 		{
-			// The counters must be read in this order for correctness.
-			final long completed = compilationContext.getWorkUnitsCompleted();
-			assert completed == compilationContext.getWorkUnitsQueued();
-			if (compilationContext.diagnostics.pollForAbort.value())
+			if (compilationContext.diagnostics.pollForAbort.getAsBoolean())
 			{
 				// We may have been asked to abort subtasks by a failure in
 				// another module, so we can't trust the count of solutions.
 				afterFail.value();
 				return;
 			}
-			// Ambiguity is detected and reported during the parse, and
-			// should never be identified here.
-			if (count.value == 0)
+			final int count = solutions.size();
+			switch (count)
 			{
-				// No solutions were found.  Report the problems.
-				compilationContext.diagnostics.reportError(afterFail);
-				return;
-			}
-			// If a simple unambiguous solution was found, then answer
-			// it forward to the continuation.
-			if (count.value == 1)
-			{
-				assert solution.value != null;
-				supplyAnswer.value(
-					new CompilerSolution(
-						stripNull(afterStatement.value), solution.value));
-			}
-			// Otherwise an ambiguity was already reported when the second
-			// solution arrived (and subsequent solutions may have arrived
-			// and been ignored).  Do nothing.
-		});
-		final Con argument = Con(
-			supplyAnswer.superexpressions,
-			aSolution ->
-			{
-				synchronized (AvailCompiler.this)
+				case 0:
 				{
-					// It may look like we could hoist all but the increment
-					// and capture of the count out of the synchronized
-					// section, but then there wouldn't be a write fence
-					// after recording the first solution.
-					count.value++;
-					final int myCount = count.value;
-					if (myCount == 1)
-					{
-						// Save the first solution to arrive.
-						afterStatement.value = aSolution.endState();
-						solution.value = aSolution.phrase();
-						return;
-					}
-					if (myCount == 2)
-					{
-						// We are exactly the second solution to arrive and
-						// to increment count.value.  Report the ambiguity
-						// between the previously recorded solution and this
-						// one.
-						reportAmbiguousInterpretations(
-							aSolution.endState(),
-							solution.value(),
-							aSolution.phrase(),
-							afterFail);
-						return;
-					}
-					// We're at a third or subsequent solution.  Ignore it
-					// since we reported the ambiguity when the second
-					// solution was reached.
-					assert myCount > 2;
+					// No solutions were found.  Report the problems.
+					compilationContext.diagnostics.reportError(afterFail);
+					break;
 				}
-			});
-		start.workUnitDo(tryBlock, argument);
+				case 1:
+				{
+					// A unique solution was found.
+					supplyAnswer.value(solutions.get(0));
+					break;
+				}
+				default:
+				{
+					final CompilerSolution solution1 = solutions.get(0);
+					final CompilerSolution solution2 = solutions.get(1);
+					reportAmbiguousInterpretations(
+						solution1.endState(),
+						solution1.phrase(),
+						solution2.phrase(),
+						afterFail);
+					break;
+				}
+			}
+		});
+		start.workUnitDo(
+			tryBlock,
+			Con(
+				supplyAnswer.superexpressions,
+				newSolution -> captureOneMoreSolution(newSolution, solutions)));
+	}
+
+	/**
+	 * As part of determining an unambiguous interpretation of some top-level
+	 * expression, deal with one (more) solution having been found.
+	 *
+	 * @param newSolution
+	 *        The new {@link CompilerSolution}.
+	 * @param solutions
+	 *        The mutable {@link List} that collects {@link CompilerSolution}s,
+	 *        at least up to the second solution to arrive.
+	 */
+	private synchronized void captureOneMoreSolution (
+		final CompilerSolution newSolution,
+		final List<CompilerSolution> solutions)
+	{
+		// Ignore any solutions discovered after the first two.
+		if (solutions.size() < 2)
+		{
+			solutions.add(newSolution);
+		}
 	}
 
 	/**
@@ -5452,9 +5441,18 @@ public final class AvailCompiler
 		final A_Function function = createFunctionForPhrase(
 			send, compilationContext.module(), 0);
 		function.makeImmutable();
-		synchronized (this)
-		{
-			compilationContext.serializer.serialize(function);
-		}
+		privateSerializeFunction(function);
+	}
+
+	/**
+	 * Hold the monitor and serialize the given function.
+	 *
+	 * @param function
+	 *        The {@link A_Function} to serialize.
+	 */
+	private synchronized void privateSerializeFunction (
+		final A_Function function)
+	{
+		compilationContext.serializer.serialize(function);
 	}
 }

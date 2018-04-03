@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,7 +88,7 @@ public final class L2ControlFlowGraph
 	{
 		assert block.instructions().isEmpty();
 		assert !basicBlockOrder.contains(block);
-		if (block.isIrremovable() || block.hasPredecessors())
+		if (block.isIrremovable() || block.predecessorEdgesCount() > 0)
 		{
 			basicBlockOrder.add(block);
 		}
@@ -120,8 +121,11 @@ public final class L2ControlFlowGraph
 		{
 			builder.append(block.name());
 			builder.append(":\n");
-			for (final L2PcOperand edge : block.predecessorEdges())
+			final Iterator<L2PcOperand> iterator =
+				block.predecessorEdgesIterator();
+			while (iterator.hasNext())
 			{
+				final L2PcOperand edge = iterator.next();
 				builder
 					.append("\t\tFrom: ")
 					.append(edge.sourceBlock().name())

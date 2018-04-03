@@ -41,11 +41,11 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.utility.IndexedIntGenerator;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
@@ -572,12 +572,12 @@ enum SerializerOperandEncoding
 			}
 			return generateNybbleTupleFrom(
 				tupleSize,
-				new IndexedIntGenerator()
+				new IntUnaryOperator()
 				{
 					int twoNybbles;
 
 					@Override
-					public int value (final int index)
+					public int applyAsInt (final int index)
 					{
 						if ((index & 1) != 0)
 						{

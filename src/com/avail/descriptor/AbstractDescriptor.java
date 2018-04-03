@@ -69,7 +69,6 @@ import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
@@ -91,6 +90,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
@@ -736,11 +736,9 @@ public abstract class AbstractDescriptor
 				Strings.newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
 				final List<BitField> bitFields = bitFieldsFor(slot);
-				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - intSlots.length + 1;
-					value = object.slot(slot, subscript);
 					builder.append(slotName, 0, slotName.length() - 1);
 					builder.append('[');
 					builder.append(subscript);
@@ -748,7 +746,7 @@ public abstract class AbstractDescriptor
 				}
 				else
 				{
-					value = object.slot(slot);
+					final long value = object.slot(slot);
 					if (bitFields.isEmpty())
 					{
 						builder.append(slotName);
@@ -2450,12 +2448,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aLoader
+	 * @param loader
 	 * @param afterRemoval
 	 */
 	abstract void o_RemoveFrom (
 		AvailObject object,
-		AvailLoader aLoader,
+		AvailLoader loader,
 		Continuation0 afterRemoval);
 
 	/**
@@ -5909,11 +5907,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param generator
+	 * @param supplier
 	 */
-	abstract void o_FiberNameGenerator (
+	abstract void o_FiberNameSupplier (
 		AvailObject object,
-		Generator<A_String> generator);
+		Supplier<A_String> supplier);
 
 	/**
 	 * @param object

@@ -278,9 +278,10 @@ public final class L2RegisterColorer
 		}
 		// We reached the start of the block without hitting the defining phi.
 		// Continue tracing in each predecessor block.
-		for (final L2PcOperand predecessor : block.predecessorEdges())
+		final Iterator<L2PcOperand> iterator = block.predecessorEdgesIterator();
+		while (iterator.hasNext())
 		{
-			final L2BasicBlock sourceBlock = predecessor.sourceBlock();
+			final L2BasicBlock sourceBlock = iterator.next().sourceBlock();
 			if (reachedBlocks.add(sourceBlock))
 			{
 				blocksToTrace.add(sourceBlock);

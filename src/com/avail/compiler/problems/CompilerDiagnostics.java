@@ -39,7 +39,6 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
@@ -50,6 +49,7 @@ import com.avail.utility.evaluation.SimpleDescriber;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 
 import static com.avail.AvailRuntime.currentRuntime;
@@ -75,11 +75,18 @@ public class CompilerDiagnostics
 	 *
 	 * @param source
 	 *        The source code of the module.
+	 * @param moduleName
+	 *        The {@link ModuleName} of the module being compiled.
+	 * @param pollForAbort
+	 *        A {@link BooleanSupplier} to indicate whether to abort.
+	 * @param problemHandler
+	 *        A {@link ProblemHandler} for, well, handling problems during
+	 *        compilation.
 	 */
 	public CompilerDiagnostics (
 		final A_String source,
 		final ModuleName moduleName,
-		final Generator<Boolean> pollForAbort,
+		final BooleanSupplier pollForAbort,
 		final ProblemHandler problemHandler)
 	{
 		this.source = source;
@@ -169,7 +176,7 @@ public class CompilerDiagnostics
 	public volatile boolean isShuttingDown = false;
 
 	/** A way to quickly test if the client wishes to shut down prematurely. */
-	public final Generator<Boolean> pollForAbort;
+	public final BooleanSupplier pollForAbort;
 
 	/**
 	 * This {@code boolean} is set when the {@link #problemHandler} decides that
@@ -594,7 +601,7 @@ public class CompilerDiagnostics
 		final String headerMessagePattern,
 		final Continuation0 afterFail)
 	{
-		if (pollForAbort.value())
+		if (pollForAbort.getAsBoolean())
 		{
 			// Never report errors during a client-initiated abort.
 			afterFail.value();
@@ -739,7 +746,7 @@ public class CompilerDiagnostics
 					// from getting too deep.
 					currentRuntime().execute(
 						FiberDescriptor.compilerPriority,
-						() -> continueReport.value().value());
+						continueReport.value());
 				});
 		};
 		// Initiate all the grouped error printing.

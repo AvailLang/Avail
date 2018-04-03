@@ -43,7 +43,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
-import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -58,14 +57,18 @@ import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -447,16 +450,16 @@ extends Descriptor
 		TEXT_INTERFACE,
 
 		/**
-		 * A {@link RawPojoDescriptor raw pojo} holding a {@link Generator} of
-		 * {@link A_String}.  The generator should avoid execution of Avail
-		 * code, as that could easily lead to deadlocks.
+		 * A {@link RawPojoDescriptor raw pojo} holding a {@link Supplier} of
+		 * {@link A_String}.  The supplier should avoid execution of Avail code,
+		 * as that could easily lead to deadlocks.
 		 */
-		NAME_GENERATOR,
+		NAME_SUPPLIER,
 
 		/**
 		 * The name of this fiber.  It's either an Avail {@linkplain A_String
 		 * string} or {@code nil}.  If nil, asking for the name should cause the
-		 * {@link #NAME_GENERATOR} to run, and the resulting string to be cached
+		 * {@link #NAME_SUPPLIER} to run, and the resulting string to be cached
 		 * here.
 		 */
 		NAME_OR_NIL,
@@ -871,9 +874,9 @@ extends Descriptor
 		if (name.equalsNil())
 		{
 			// Compute it from the generator.
-			final AvailObject pojo = object.mutableSlot(NAME_GENERATOR);
-			final Generator<A_String> generator = pojo.javaObjectNotNull();
-			name = generator.value();
+			final AvailObject pojo = object.mutableSlot(NAME_SUPPLIER);
+			final Supplier<A_String> supplier = pojo.javaObjectNotNull();
+			name = supplier.get();
 			// Save it for next time.
 			object.setMutableSlot(NAME_OR_NIL, name);
 		}
@@ -881,13 +884,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_FiberNameGenerator (
+	void o_FiberNameSupplier (
 		final AvailObject object,
-		final Generator<A_String> generator)
+		final Supplier<A_String> supplier)
 	{
 		object.setMutableSlot(
-			NAME_GENERATOR,
-			identityPojo(generator));
+			NAME_SUPPLIER,
+			identityPojo(supplier));
 		// And clear the cached name.
 		object.setMutableSlot(NAME_OR_NIL, nil);
 	}
@@ -1472,8 +1475,8 @@ extends Descriptor
 	 *        The expected result type.
 	 * @param priority
 	 *        The initial priority.
-	 * @param nameGenerator
-	 *        A {@link Generator} that produces an Avail {@link A_String string}
+	 * @param nameSupplier
+	 *        A {@link Supplier} that produces an Avail {@link A_String string}
 	 *        to name this fiber on demand.  Please don't run Avail code to do
 	 *        so, since if this is evaluated during fiber execution it will
 	 *        cause the current {@link Thread}'s execution to block, potentially
@@ -1483,12 +1486,12 @@ extends Descriptor
 	public static A_Fiber newFiber (
 		final A_Type resultType,
 		final int priority,
-		final Generator<A_String> nameGenerator)
+		final Supplier<A_String> nameSupplier)
 	{
 		assert (priority & ~255) == 0 : "Priority must be [0..255]";
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
+		fiber.setSlot(NAME_SUPPLIER, identityPojo(nameSupplier));
 		fiber.setSlot(NAME_OR_NIL, nil);
 		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, nil);
@@ -1525,8 +1528,8 @@ extends Descriptor
 	 *        The expected result type.
 	 * @param loader
 	 *        An Avail loader.
-	 * @param nameGenerator
-	 *        A {@link Generator} that produces an Avail {@link A_String string}
+	 * @param nameSupplier
+	 *        A {@link Supplier} that produces an Avail {@link A_String string}
 	 *        to name this fiber on demand.  Please don't run Avail code to do
 	 *        so, since if this is evaluated during fiber execution it will
 	 *        cause the current {@link Thread}'s execution to block, potentially
@@ -1536,11 +1539,11 @@ extends Descriptor
 	public static A_Fiber newLoaderFiber (
 		final A_Type resultType,
 		final AvailLoader loader,
-		final Generator<A_String> nameGenerator)
+		final Supplier<A_String> nameSupplier)
 	{
 		final AvailObject fiber = mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
+		fiber.setSlot(NAME_SUPPLIER, identityPojo(nameSupplier));
 		fiber.setSlot(PRIORITY, loaderPriority);
 		fiber.setSlot(CONTINUATION, nil);
 		fiber.setSlot(SUSPENDING_FUNCTION, nil);
