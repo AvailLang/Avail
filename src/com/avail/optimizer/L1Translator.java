@@ -2111,8 +2111,7 @@ implements L1OperationDispatcher
 					final L2BasicBlock nextCheckOrFail =
 						last
 							? memento.failCheckBasicBlock
-							: createBasicBlock(
-								"test next case of enumeration");
+							: createBasicBlock("test next case of enumeration");
 					generateJumpIfEqualsConstant(
 						arg,
 						instance,
@@ -2600,7 +2599,7 @@ implements L1OperationDispatcher
 		// Recurse to generate the call to the failure handler.  Since it's
 		// bottom-valued, and can therefore skip the result check, the recursive
 		// call won't exceed two levels deep.
-		final L2BasicBlock onReificationInHandler = new L2BasicBlock(
+		final L2BasicBlock onReificationInHandler = createBasicBlock(
 			"reification in failed return check handler");
 		addInstruction(
 			L2_INVOKE.instance,
@@ -3100,8 +3099,7 @@ implements L1OperationDispatcher
 		// interrupt.
 
 		// Reify everybody else, starting at the caller.
-		final L2BasicBlock onReification =
-			createBasicBlock("on reification");
+		final L2BasicBlock onReification = createBasicBlock("on reification");
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
@@ -3209,10 +3207,8 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand newValue)
 	{
 		assert setOperation.isVariableSet();
-		final L2BasicBlock success =
-			createBasicBlock("set local success");
-		final L2BasicBlock failure =
-			createBasicBlock("set local failure");
+		final L2BasicBlock success = createBasicBlock("set local success");
+		final L2BasicBlock failure = createBasicBlock("set local failure");
 		final L2BasicBlock onReificationDuringFailure =
 			createBasicBlock("reify during set local failure");
 		// Emit the set-variable instruction.

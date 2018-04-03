@@ -227,11 +227,11 @@ extends Primitive
 
 		// Attempt to unbox the arguments.
 		final L2BasicBlock unboxedArg1Block =
-			new L2BasicBlock("unboxed arg#1");
+			translator.createBasicBlock("unboxed arg#1");
 		final L2BasicBlock unboxedAddition =
-			new L2BasicBlock("unboxed addition");
+			translator.createBasicBlock("unboxed addition");
 		final L2BasicBlock boxedAddition =
-			new L2BasicBlock("fall back to boxed addition");
+			translator.createBasicBlock("fall back to boxed addition");
 		final L2ReadIntOperand a = translator.unboxIntoIntRegister(
 			arguments.get(0),
 			aType,
@@ -319,7 +319,8 @@ extends Primitive
 			// We need two successors, the happy one that has successfully
 			// performed the unboxed arithmetic and the sad one that needs to
 			// fall back to the full primitive invocation mechanism.
-			final L2BasicBlock boxUpSum = new L2BasicBlock("box sum");
+			final L2BasicBlock boxUpSum =
+				translator.createBasicBlock("box sum");
 			translator.addInstruction(
 				operation,
 				op1,

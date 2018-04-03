@@ -321,7 +321,8 @@ public final class L2Inliner
 	 */
 	public L2BasicBlock mapBlock (final L2BasicBlock block)
 	{
-		return blockMap.computeIfAbsent(block, b -> new L2BasicBlock(b.name()));
+		return blockMap.computeIfAbsent(
+			block, b -> targetTranslator.createBasicBlock(b.name()));
 	}
 
 	/**
