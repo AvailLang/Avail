@@ -190,7 +190,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("arg")),
+				stringFrom(tempGenerator.apply("arg")),
 				0,
 				0,
 				KEYWORD);
@@ -201,7 +201,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("local")),
+				stringFrom(tempGenerator.apply("local")),
 				0,
 				0,
 				KEYWORD);
@@ -727,7 +727,7 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = newToken(
-					stringFrom(tempGenerator.value("label")),
+					stringFrom(tempGenerator.apply("label")),
 					0,
 					0,
 					KEYWORD);
@@ -847,7 +847,7 @@ public class L1Decompiler
 				instructionDecoder.getOperand()
 					- code.numArgs() - code.numLocals() - 1;
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.value("const")),
+				stringFrom(tempGenerator.apply("const")),
 				0,
 				0,
 				KEYWORD);
