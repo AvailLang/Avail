@@ -126,8 +126,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 				startPosition, position - 1, false),
 			startPosition,
 			startingLineNumber.extractInt());
-		token.makeShared();
-		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
+		return interpreter.primitiveSuccess(set(tuple(token)));
 	}
 
 	@Override

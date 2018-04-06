@@ -313,11 +313,12 @@ Semantic restriction "_d|D_" is
  * Upon encountering an Arabic numeral, attempt to scan {@type "token"}s for a
  * {@type "send phrase" send} of {@method "_d|D_"}.
  *
- * @param "source"
+ * @lexer "xDy lexer"
+ * @param "source" "string"
  *        The complete source text.
- * @param "countPosition"
+ * @param "countPosition" "real source position"
  *        The position of the leading Arabic numeral of the count of dice.
- * @param "line"
+ * @param "line" "real source line number"
  *        The line number of the leading Arabic numeral of the count of dice.
  */
 Lexer $"xDy lexer"
@@ -328,11 +329,10 @@ is
 	countPosition : real source position,
 	line : real source line number
 |
-	$body : lexer body function's return type;
 	/* Skip the leading digits. */
 	i : real source position := countPosition;
 	size ::= |source|;
-	While [i ≤ size ∧ source[i] is an Arabic numeral] do [i++;];
+	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 	If i > size ∨ ¬source[i] ∈ "dD"→set then
 	[
 		Reject parse, expected:
@@ -347,7 +347,7 @@ is
 	];
 	/* Skip the trailing digits. */
 	facePosition ::= i;
-	While [i ≤ size ∧ source[i] is an Arabic numeral] do [i++;];
+	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 	/* Assemble the tokens using the three recorded positions. */
 	countText ::= source[countPosition..dPosition-1];
 	dText ::= <source[dPosition]>;

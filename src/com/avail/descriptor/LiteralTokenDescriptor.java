@@ -262,7 +262,7 @@ extends TokenDescriptor
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(LITERAL, literal);
 		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
-		return instance;
+		return instance.makeShared();
 	}
 
 	/**

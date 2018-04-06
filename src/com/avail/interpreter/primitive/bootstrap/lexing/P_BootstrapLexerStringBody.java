@@ -96,7 +96,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 						startLineNumber,
 						stringFrom(builder.toString()));
 					return interpreter.primitiveSuccess(
-						set(tuple(token.makeShared())));
+						set(tuple(token)));
 				case '\\':
 					if (!scanner.hasNext())
 					{
@@ -130,7 +130,14 @@ public final class P_BootstrapLexerStringBody extends Primitive
 							}
 							canErase = true;
 							break;
+						case '\f':
 						case '\n':
+						// NEL (Next Line)
+						case '\u0085':
+						// LS (Line Separator)
+						case '\u2028':
+						// PS (Paragraph Separator)
+						case '\u2029':
 							// A backslash ending a line.  Emit nothing.
 							// Allow '\|' to back up to here as long as only
 							// whitespace follows.

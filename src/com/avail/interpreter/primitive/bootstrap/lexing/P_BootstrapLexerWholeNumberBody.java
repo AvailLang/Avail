@@ -98,8 +98,7 @@ extends Primitive
 			startPosition,
 			lineNumberInteger.extractInt(),
 			value);
-		token.makeShared();
-		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
+		return interpreter.primitiveSuccess(set(tuple(token)));
 	}
 
 	@Override

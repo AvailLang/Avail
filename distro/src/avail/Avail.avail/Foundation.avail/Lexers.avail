@@ -1,0 +1,100 @@
+/*
+ * Comments.avail
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Lexers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Bootstrap",
+	"Characters",
+	"Control Structures",
+	"Early Conditionals",
+	"Literals",
+	"Logic",
+	"Math",
+	"Phrases",
+	"Sets",
+	"Tuples",
+	"Variables"
+Names
+	"end of line comment lexer"
+Body
+
+/**
+ * Upon encountering a solidus, attempt to scan an end-of-line {@type "comment"}
+ * {@type "token"}. This is // following by arbitrary characters and terminated
+ * by the first {@method "_is line terminator" Unicode line terminator} or
+ * end-of-file.
+ *
+ * @lexer "end of line comment lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ */
+Lexer $"end of line comment lexer"
+when [c : character | c = ¢/]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	if source[countPosition + 1] = ¢/ then
+	[
+		i : real source position;
+		i ?= countPosition + 2;
+		size ::= |source|;
+		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
+		commentText ::= source[countPosition..i min size];
+Print: "commentText=";
+Print: “commentText”;
+Print: "\n";
+		{<comment (commentText) @ countPosition:line>}
+	]
+	else [∅]
+];
+
+// And here's the first end of line comment!
+
+
+
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// And here's the second, without a line terminator!
+// Gimpy McGimpyFace!

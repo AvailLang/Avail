@@ -93,7 +93,7 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 			startPosition,
 			lineNumberInteger.extractInt(),
 			WHITESPACE);
-		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
+		return interpreter.primitiveSuccess(set(tuple(token)));
 	}
 
 	@Override

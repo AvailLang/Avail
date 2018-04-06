@@ -60,18 +60,14 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationWithFrame;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createLabelContinuation;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
+import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
@@ -1002,6 +998,7 @@ public final class L1InstructionStepper
 		}
 		if (!checkOk)
 		{
+			result.isInstanceOf(expectedReturnType); // TODO delete
 			final A_Function savedFunction = stripNull(interpreter.function);
 			assert interpreter.chunk == unoptimizedChunk;
 			final int savedOffset = interpreter.offset;

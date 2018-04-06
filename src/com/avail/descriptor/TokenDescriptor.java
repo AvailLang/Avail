@@ -283,8 +283,7 @@ extends Descriptor
 	{
 		return aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN)
 			|| aTypeObject.isTokenType()
-			&& object.slot(TOKEN_TYPE_CODE) ==
-				((AvailObject) aTypeObject).slot(TOKEN_TYPE_CODE);
+			&& object.tokenType() == aTypeObject.tokenType();
 	}
 
 	@Override @AvailMethod
@@ -411,7 +410,7 @@ extends Descriptor
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
-		return instance;
+		return instance.makeShared();
 	}
 
 	/**

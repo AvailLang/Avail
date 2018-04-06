@@ -63,6 +63,7 @@ Names
 	"_is lowercase",
 	"_is titlecase",
 	"_is whitespace",
+	"_is line terminator",
 
 	/* Character conversions. */
 	"capitalize_",
@@ -926,6 +927,11 @@ whitespaceCharacter ::=
 	8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288
 };
 
+lineTerminatorCharacters ::=
+{
+	10, 11, 12, 13, 133, 8232, 8233
+};
+
 /**
  * Return true if the supplied character is identified as an Arabic numeral
  * according to the Unicode character description, false otherwise.
@@ -1055,6 +1061,22 @@ Public stable method "_is whitespace" is
 |
 	(c's code point) ∈ whitespaceCharacter
 ] : boolean;
+
+/**
+ * Return true if the supplied character is identified as a line terminator
+ * character according to the Unicode character description, false otherwise.
+ *
+ * @method "_is line terminator"
+ * @param "c" "character"
+ * @returns "boolean"
+ * @category "Unicode"
+ */
+Public stable method "_is line terminator" is
+[
+	c : character
+|
+	(c's code point) ∈ lineTerminatorCharacters
+];
 
 Private method "recase restriction for elements∈_using_" is
 [

@@ -96,7 +96,7 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 			startPosition,
 			lineNumberInteger.extractInt(),
 			OPERATOR);
-		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
+		return interpreter.primitiveSuccess(set(tuple(token)));
 	}
 
 	@Override

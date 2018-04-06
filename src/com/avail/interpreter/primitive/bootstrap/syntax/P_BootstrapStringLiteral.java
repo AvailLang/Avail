@@ -42,8 +42,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -53,7 +52,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
  * bootstrapped macro because not all subsets of the core Avail syntax should
  * allow literal string phrases.
  */
-public final class P_BootstrapStringLiteral extends Primitive
+public final class P_BootstrapStringLiteral
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -535,7 +535,8 @@ Extends
 		"_is uppercase",
 		"_is lowercase",
 		"_is titlecase",
-		"_is whitespace"
+		"_is whitespace",
+		"_is line terminator"
 	),
 	"Collections" =
 	(
@@ -935,6 +936,10 @@ Extends
 	),
 	"Late Restrictions" =
 	(
+	),
+	"Lexers" =
+	(
+		"end of line comment lexer"
 	),
 	"Literals" =
 	(
