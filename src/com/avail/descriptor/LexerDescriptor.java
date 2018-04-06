@@ -42,7 +42,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
@@ -141,8 +141,8 @@ extends Descriptor
 		functionType(
 			tuple(
 				stringType(),
-				naturalNumbers(),
-				naturalNumbers()),
+				inclusive(1, (1L << 32) - 1),
+				inclusive(1, (1L << 28) - 1)),
 			setTypeForSizesContentType(
 				wholeNumbers(),
 				oneOrMoreOf(TOKEN.o()))

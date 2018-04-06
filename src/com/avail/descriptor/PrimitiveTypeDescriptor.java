@@ -252,6 +252,16 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		// This primitive type is a supertype of aTokenType if and only if this
+		// primitive type is a supertype of TOKEN.
+		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
+	}
+
+	@Override @AvailMethod
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)

@@ -46,13 +46,10 @@ import java.util.function.Function;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
-	.newFirstOfSequenceNode;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.*;
@@ -60,20 +57,17 @@ import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.PermutedListPhraseDescriptor
-	.newPermutedListNode;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.ReferencePhraseDescriptor
-	.referenceNodeFromUse;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
@@ -196,9 +190,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.apply("arg")),
-				emptyTuple(),
-				emptyTuple(),
+				stringFrom(tempGenerator.value("arg")),
 				0,
 				0,
 				KEYWORD);
@@ -209,9 +201,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.apply("local")),
-				emptyTuple(),
-				emptyTuple(),
+				stringFrom(tempGenerator.value("local")),
 				0,
 				0,
 				KEYWORD);
@@ -430,11 +420,8 @@ public class L1Decompiler
 									+ " (with value "
 									+ varObject
 									+ ")"),
-							emptyTuple(),
-							emptyTuple(),
 							0,
 							0,
-							LITERAL,
 							varObject);
 					functionOuters[i - 1] = literalNodeFromToken(token);
 				}
@@ -459,11 +446,8 @@ public class L1Decompiler
 					final A_Token token =
 						literalToken(
 							stringFrom(value.toString()),
-							emptyTuple(),
-							emptyTuple(),
 							0,
 							0,
-							LITERAL,
 							value);
 					pushExpression(literalNodeFromToken(token));
 				}
@@ -743,9 +727,7 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = newToken(
-					stringFrom(tempGenerator.apply("label")),
-					emptyTuple(),
-					emptyTuple(),
+					stringFrom(tempGenerator.value("label")),
 					0,
 					0,
 					KEYWORD);
@@ -763,8 +745,6 @@ public class L1Decompiler
 		{
 			final A_Token globalToken = newToken(
 				stringFrom("SomeGlobal"),
-				emptyTuple(),
-				emptyTuple(),
 				0,
 				0,
 				KEYWORD);
@@ -780,8 +760,6 @@ public class L1Decompiler
 		{
 			final A_Token globalToken = newToken(
 				stringFrom("SomeGlobal"),
-				emptyTuple(),
-				emptyTuple(),
 				0,
 				0,
 				KEYWORD);
@@ -869,9 +847,7 @@ public class L1Decompiler
 				instructionDecoder.getOperand()
 					- code.numArgs() - code.numLocals() - 1;
 			final A_Token token = newToken(
-				stringFrom(tempGenerator.apply("const")),
-				emptyTuple(),
-				emptyTuple(),
+				stringFrom(tempGenerator.value("const")),
 				0,
 				0,
 				KEYWORD);
@@ -1004,11 +980,8 @@ public class L1Decompiler
 		{
 			final A_Token token = literalToken(
 				stringFrom("Outer#" + i),
-				emptyTuple(),
-				emptyTuple(),
 				0,
 				0,
-				SYNTHETIC_LITERAL,
 				aFunction.outerVarAt(i));
 			functionOuters[i - 1] = fromTokenForDecompiler(token);
 		}
@@ -1048,11 +1021,8 @@ public class L1Decompiler
 				newVariableWithOuterType(mostGeneralVariableType());
 			final A_Token token = literalToken(
 				stringFrom("Outer#" + i),
-				emptyTuple(),
-				emptyTuple(),
 				0,
 				0,
-				SYNTHETIC_LITERAL,
 				var);
 			functionOuters[i - 1] = fromTokenForDecompiler(token);
 		}

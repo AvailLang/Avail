@@ -63,6 +63,16 @@ implements AutoCloseable
 	private final Writer writer;
 
 	/**
+	 * Answer the accumulated String contents of the {@link JSONWriter}.
+	 *
+	 * @return A String.
+	 */
+	public String contents ()
+	{
+		return writer.toString();
+	}
+
+	/**
 	 * Construct a new {@link JSONWriter}.
 	 */
 	public JSONWriter ()
@@ -471,6 +481,16 @@ implements AutoCloseable
 	}
 
 	/**
+	 * Answer the current {@link JSONState} of this {@link JSONWriter}.
+	 *
+	 * @return A {@code JSONState}.
+	 */
+	public JSONState currentState ()
+	{
+		return stack.peekFirst();
+	}
+
+	/**
 	 * Write a JSON {@code null} to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
@@ -634,6 +654,9 @@ implements AutoCloseable
 	 * Writer writer} as a JSON number. Use JSON 5 extensions (and an additional
 	 * NaN extension).
 	 *
+	 * <p>
+	 * <strong>NOTE:</strong> The number is only written to 10^-6 precision.
+	 * </p>
 	 * @param value
 	 *        A {@code double} value.
 	 * @throws JSONIOException

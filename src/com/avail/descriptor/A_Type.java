@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
@@ -215,6 +216,12 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	boolean isSupertypeOfTokenType (
+		A_Type aTokenType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	boolean isSupertypeOfLiteralTokenType (
 		A_Type aLiteralTokenType);
 
@@ -387,11 +394,25 @@ extends A_BasicObject
 		A_Type anUnfusedPojoType);
 
 	/**
+	 * @param aTokenType
+	 * @return
+	 */
+	A_Type typeIntersectionOfTokenType (
+		A_Type aTokenType);
+
+	/**
 	 * @param aLiteralTokenType
 	 * @return
 	 */
 	A_Type typeIntersectionOfLiteralTokenType (
 		A_Type aLiteralTokenType);
+
+	/**
+	 * @param aTokenType
+	 * @return
+	 */
+	A_Type typeUnionOfTokenType (
+		A_Type aTokenType);
 
 	/**
 	 * @param aLiteralTokenType
@@ -644,6 +665,11 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Set instances ();
+
+	/**
+	 * @return
+	 */
+	TokenType tokenType ();
 
 	/**
 	 * @return

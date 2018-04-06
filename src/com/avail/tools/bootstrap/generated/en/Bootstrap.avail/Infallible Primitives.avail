@@ -86,7 +86,6 @@ Uses
 		"_'s⁇key type",
 		"_'s⁇keys",
 		"_'s⁇leading types",
-		"_'s⁇leading whitespace",
 		"_'s⁇lexeme",
 		"_'s⁇line number",
 		"_'s⁇list",
@@ -118,7 +117,6 @@ Uses
 		"_'s⁇statements",
 		"_'s⁇target",
 		"_'s⁇token",
-		"_'s⁇trailing whitespace",
 		"_'s⁇type",
 		"_'s⁇value",
 		"_'s⁇value type",
@@ -168,7 +166,7 @@ Uses
 		"_⊆_",
 		"_⨉_^_",
 		"`$_",
-		"``_``(_)",
+		"``_``(_)@_:_",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
 		"`|_'s⁇parameters`|",
@@ -2496,21 +2494,29 @@ Primitive "_→literal phrase" is
 ] : literal phrase;
 
 /**
- * Construct and answer a (synthetic) literal token.
+ * Construct and answer a literal token.
  *
  * @category "Primitives" "Tokens" "Constructors"
- * @method "``_``(_)"
+ * @method "``_``(_)@_:_"
  * @param "value" "any"
  *        The value of the literal.
- * @param "fakeText" "string"
- *        The "source" text of the literal.
+ * @param "lexeme" "string"
+ *        The source text of the literal.
+ * @param "start" "source position"
+ *        The one-based starting character position of the literal. A {@code 0}
+ *        indicates that the character position is unknown or meaningless.
+ * @param "line" "source line number"
+ *        The one-based line number of the literal. A {@code 0}
+ *        indicates that the line number is unknown or meaningless.
  * @returns "literal token⇒any"
  *    The requested literal token.
  */
-Primitive "``_``(_)" is
+Primitive "``_``(_)@_:_" is
 [
 	value : any,
-	fakeText : string
+	lexeme : string,
+	start : source position,
+	line : source line number
 |
 	Primitive CreateLiteralToken;
 ] : literal token;
@@ -2991,24 +2997,6 @@ Primitive "_'s⁇lookup type" is
 ] : any meta;
 
 /**
- * Answer the whitespace that appeared immediately before this token in the
- * source text. Comments are not reckoned as whitespace.
- *
- * @category "Primitives" "Tokens" "Queries"
- * @method "_'s⁇leading whitespace"
- * @param "aToken" "token"
- *        A token.
- * @returns "string"
- *    The whitespace that appeared before this token in the source text.
- */
-Primitive "_'s⁇leading whitespace" is
-[
-	aToken : token
-|
-	Primitive TokenLeadingWhitespace;
-] : string;
-
-/**
  * Answer the lexeme of the specified token. This is the source text that
  * produced the token.
  *
@@ -3034,7 +3022,7 @@ Primitive "_'s⁇lexeme" is
  * @method "_'s⁇line number"
  * @param "aToken" "token"
  *        A token.
- * @returns "[1..∞)"
+ * @returns "[0..∞)"
  *    The one-based line number of {@param "aToken"}.
  */
 Primitive "_'s⁇line number" is
@@ -3042,7 +3030,7 @@ Primitive "_'s⁇line number" is
 	aToken : token
 |
 	Primitive TokenLineNumber;
-] : natural number;
+] : whole number;
 
 /**
  * Answer the zero-based starting position of the specified token within the
@@ -3052,7 +3040,7 @@ Primitive "_'s⁇line number" is
  * @method "_'s⁇starting position"
  * @param "aToken" "token"
  *        A token.
- * @returns "[1..∞)"
+ * @returns "[0..∞)"
  *    The zero-based starting position of {@param "aToken"}.
  */
 Primitive "_'s⁇starting position" is
@@ -3060,25 +3048,7 @@ Primitive "_'s⁇starting position" is
 	aToken : token
 |
 	Primitive TokenStart;
-] : natural number;
-
-/**
- * Answer the whitespace that appeared immediately after this token in the
- * source text. Comments are not reckoned as whitespace.
- *
- * @category "Primitives" "Tokens" "Queries"
- * @method "_'s⁇trailing whitespace"
- * @param "aToken" "token"
- *        A token.
- * @returns "string"
- *    The whitespace that appeared after this token in the source text.
- */
-Primitive "_'s⁇trailing whitespace" is
-[
-	aToken : token
-|
-	Primitive TokenTrailingWhitespace;
-] : string;
+] : whole number;
 
 /**
  * Answer the declaration that introduced the entity referenced by the specified

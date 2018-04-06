@@ -85,8 +85,7 @@ import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static com.avail.descriptor.LinearSetBinDescriptor
-	.createLinearSetBinPair;
+import static com.avail.descriptor.LinearSetBinDescriptor.createLinearSetBinPair;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static java.lang.String.format;
 
@@ -3614,9 +3613,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeUnionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3627,6 +3642,12 @@ extends AbstractDescriptor
 		final A_Type aLiteralTokenType)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsTokenType (final AvailObject object)
+	{
+		return false;
 	}
 
 	@Override
@@ -3642,11 +3663,27 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return false;
 	}
 
 	@Override
@@ -4353,26 +4390,6 @@ extends AbstractDescriptor
 
 	@Override
 	A_Set o_ExportedNames (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_String o_LeadingWhitespace (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_String o_TrailingWhitespace (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_TrailingWhitespace (
-		final AvailObject object,
-		final A_String trailingWhitespace)
 	{
 		throw unsupportedOperationException();
 	}

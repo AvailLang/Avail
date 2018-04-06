@@ -59,20 +59,8 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableInt;
-import com.avail.utility.MutableLong;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.Pair;
-import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation3;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.SimpleDescriber;
-import com.avail.utility.evaluation.Transformer3;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,15 +84,12 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
@@ -113,19 +98,16 @@ import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -445,7 +427,7 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * A simple static factory for constructing {@link Con}s.  Java is crummy at
+	 * A simple static factory for constructing {@link Con1}s.  Java is crummy at
 	 * deducing parameter types for constructors, so this static method can be
 	 * used to elide the CompilerSolution type.
 	 *
@@ -454,17 +436,17 @@ public final class AvailCompiler
 	 *        continuation exists.
 	 * @param continuation
 	 *        The {@link Continuation1NotNull} to invoke.
-	 * @return The new {@link Con}.
+	 * @return The new {@link Con1}.
 	 */
-	static Con Con (
+	static Con1 Con (
 		final @Nullable PartialSubexpressionList superexpressions,
 		final Continuation1NotNull<CompilerSolution> continuation)
 	{
-		return new Con(superexpressions, continuation);
+		return new Con1(superexpressions, continuation);
 	}
 
 	/**
-	 * Execute {@code #tryBlock}, passing a {@linkplain Con continuation} that
+	 * Execute {@code #tryBlock}, passing a {@linkplain Con1 continuation} that
 	 * it should run upon finding exactly one local {@linkplain CompilerSolution
 	 * solution}.  Report ambiguity as an error.
 	 *
@@ -481,8 +463,8 @@ public final class AvailCompiler
 	 */
 	private void tryIfUnambiguousThen (
 		final ParserState start,
-		final Continuation1NotNull<Con> tryBlock,
-		final Con supplyAnswer,
+		final Continuation1NotNull<Con1> tryBlock,
+		final Con1 supplyAnswer,
 		final Continuation0 afterFail)
 	{
 		assert compilationContext.getNoMoreWorkUnits() == null;
@@ -493,7 +475,7 @@ public final class AvailCompiler
 		{
 			if (compilationContext.diagnostics.pollForAbort.getAsBoolean())
 			{
-				// We may have been asked to abort subtasks by a failure in
+				// We may have been asked to abort sub-tasks by a failure in
 				// another module, so we can't trust the count of solutions.
 				afterFail.value();
 				return;
@@ -1493,7 +1475,7 @@ public final class AvailCompiler
 	 */
 	private void parseLeadingKeywordSendThen (
 		final ParserState start,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		parseRestOfSendNode(
 			start,
@@ -1527,7 +1509,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final A_Phrase leadingArgument,
 		final ParserState initialTokenPosition,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		assert start.lexingState != initialTokenPosition.lexingState;
 		parseRestOfSendNode(
@@ -1565,7 +1547,7 @@ public final class AvailCompiler
 		final ParserState startOfLeadingArgument,
 		final ParserState afterLeadingArgument,
 		final A_Phrase phrase,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		// It's optional, so try it with no wrapping.  We have to try this even
 		// if it's a supercast, since we may be parsing an expression to be a
@@ -1574,7 +1556,7 @@ public final class AvailCompiler
 			continuation,
 			new CompilerSolution(afterLeadingArgument, phrase));
 		// Try to wrap it in a leading-argument message send.
-		final Con con = Con(
+		final Con1 con = Con(
 			continuation.superexpressions,
 			solution2 -> parseLeadingArgumentSendAfterThen(
 				solution2.endState(),
@@ -1653,7 +1635,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		A_BundleTree bundleTree = bundleTreeArg;
 		// If a bundle tree is marked as a source of a cycle, its latest
@@ -1773,7 +1755,7 @@ public final class AvailCompiler
 							continuation);
 						// Don't allow any check-argument actions to be
 						// processed normally, as it would ignore the
-						// restriction which we'vembeen so careful to prefilter.
+						// restriction which we've been so careful to prefilter.
 						skipCheckArgumentAction = true;
 					}
 					// The argument name was not in the prefilter map, so fall
@@ -1908,7 +1890,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation,
+		final Con1 continuation,
 		final A_Map tokenMap,
 		final boolean caseInsensitive)
 	{
@@ -2332,7 +2314,7 @@ public final class AvailCompiler
 		final boolean consumedAnything,
 		final List<A_Token> consumedTokens,
 		final A_Tuple successorTrees,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final ParsingOperation op = decode(instruction);
 		if (AvailRuntime.debugCompilerSteps)
@@ -2423,7 +2405,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
@@ -2981,7 +2963,7 @@ public final class AvailCompiler
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final List<A_Token> consumedTokens,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<>(true);
 		final A_Method method = bundle.bundleMethod();
@@ -3241,7 +3223,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final boolean canReallyParse,
 		final boolean wrapInLiteral,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		if (firstArgOrNull != null)
 		{
@@ -3389,7 +3371,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final A_Tuple successorTrees,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		// Parse an argument in the outermost (module) scope and continue.
 		assert successorTrees.tupleSize() == 1;
@@ -3508,7 +3490,7 @@ public final class AvailCompiler
         final List<A_Token> consumedTokens,
 		final A_Definition macroDefinitionToInvoke,
 		final A_Type expectedYieldType,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
 		final int argCount = argumentsTuple.tupleSize();
@@ -3807,11 +3789,8 @@ public final class AvailCompiler
 		final A_String availName = stringFrom(macroName);
 		final AvailObject token1 = literalToken(
 			stringFrom(availName.toString()),
-			emptyTuple(),
-			emptyTuple(),
 			0,
 			0,
-			SYNTHETIC_LITERAL,
 			availName);
 		final A_Phrase nameLiteral = literalNodeFromToken(token1);
 		final List<A_Phrase> functionLiterals = new ArrayList<>();
@@ -5230,7 +5209,7 @@ public final class AvailCompiler
 	 */
 	private void parseExpressionThen (
 		final ParserState start,
-		final Con originalContinuation)
+		final Con1 originalContinuation)
 	{
 		// The first time we parse at this position the fragmentCache will
 		// have no knowledge about it.
@@ -5272,7 +5251,7 @@ public final class AvailCompiler
 	 */
 	private void parseOutermostStatement (
 		final ParserState start,
-		final Con continuation,
+		final Con1 continuation,
 		final Continuation0 afterFail)
 	{
 		// If a parsing error happens during parsing of this outermost
@@ -5316,7 +5295,7 @@ public final class AvailCompiler
 	 */
 	private void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		parseLeadingKeywordSendThen(
 			start,
@@ -5362,7 +5341,7 @@ public final class AvailCompiler
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con continuation)
+		final Con1 continuation)
 	{
 		start.workUnitDo(
 			ignored -> parseRestOfSendNode(

@@ -47,7 +47,7 @@ import static com.avail.utility.Nulls.stripNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class Con
+final class Con1
 implements Continuation1NotNull<CompilerSolution>
 {
 	/**
@@ -74,14 +74,14 @@ implements Continuation1NotNull<CompilerSolution>
 	private final Continuation1NotNull<CompilerSolution> innerContinuation;
 
 	/**
-	 * Construct a new {@code Con}.
+	 * Construct a new {@code Con1}.
 	 *
 	 * @param superexpressions
 	 *        The enclosing partially-parsed expressions.
 	 * @param innerContinuation
 	 *        A {@link Continuation1NotNull} that will be invoked.
 	 */
-	Con (
+	Con1 (
 		final @Nullable PartialSubexpressionList superexpressions,
 		final Continuation1NotNull<CompilerSolution> innerContinuation)
 	{

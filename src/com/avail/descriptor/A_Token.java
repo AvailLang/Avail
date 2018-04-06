@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.AvailLoader.LexicalScanner;
 
 
 /**
@@ -55,14 +54,6 @@ extends A_BasicObject
 	 * @return Whether the token is a literal.
 	 */
 	boolean isLiteralToken ();
-
-	/**
-	 * Answer this token's exact leading whitespace as it appeared in the source
-	 * code.
-	 *
-	 * @return The token's leading whitespace.
-	 */
-	A_String leadingWhitespace ();
 
 	/**
 	 * The line number of this token in the source file.
@@ -120,21 +111,4 @@ extends A_BasicObject
 	 * @return A TokenType.
 	 */
 	TokenType tokenType ();
-
-	/**
-	 * Answer this token's exact trailing whitespace as it appeared in the
-	 * source code.
-	 *
-	 * @return The token's trailing whitespace.
-	 */
-	A_String trailingWhitespace ();
-
-	/**
-	 * Set this token's exact trailing whitespace as it appeared in the source
-	 * code. This capability makes the {@linkplain LexicalScanner scanner} much
-	 * easier to build and maintain.
-	 *
-	 * @param trailingWhitespace A string.
-	 */
-	void trailingWhitespace (A_String trailingWhitespace);
 }

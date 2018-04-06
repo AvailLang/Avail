@@ -234,8 +234,7 @@ extends Expression
 	 * @return The runs of expressions within which to perform code splitting,
 	 *         expressed as a list of lists of &lt;expression, typeIndex> pairs.
 	 */
-	private List<List<Pair<Expression, Integer>>>
-	runsForCodeSplitting ()
+	private List<List<Pair<Expression, Integer>>> runsForCodeSplitting ()
 	{
 		if (cachedRunsForCodeSplitting != null)
 		{

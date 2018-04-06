@@ -45,8 +45,6 @@ import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -55,7 +53,9 @@ import static com.avail.interpreter.Primitive.Flag.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapLexerWholeNumberBody extends Primitive
+@SuppressWarnings("unused")
+public final class P_BootstrapLexerWholeNumberBody
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -95,11 +95,8 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 		final A_Token token = literalToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			emptyTuple(),
-			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
-			LITERAL,
 			value);
 		token.makeShared();
 		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));

@@ -46,16 +46,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.isInline;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
@@ -69,15 +66,12 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
-	.newFirstOfSequenceNode;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
@@ -87,31 +81,26 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PermutedListPhraseDescriptor
-	.newPermutedListNode;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.ReferencePhraseDescriptor
-	.referenceNodeFromUse;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoFromSerializationProxy;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoSerializationProxy;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoFromSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoSerializationProxy;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor
@@ -122,8 +111,7 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -1353,8 +1341,6 @@ public enum SerializerOperation
 	 */
 	TOKEN (42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
 		BYTE.as("token type code"))
@@ -1366,8 +1352,6 @@ public enum SerializerOperation
 		{
 			return array(
 				object.string(),
-				object.leadingWhitespace(),
-				object.trailingWhitespace(),
 				fromInt(object.start()),
 				fromInt(object.lineNumber()),
 				fromInt(object.tokenType().ordinal()));
@@ -1379,15 +1363,11 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_String string = subobjects[0];
-			final A_String leadingWhitespace = subobjects[1];
-			final A_String trailingWhitespace = subobjects[2];
-			final int start = subobjects[3].extractInt();
-			final int lineNumber = subobjects[4].extractInt();
-			final int tokenTypeOrdinal = subobjects[5].extractInt();
+			final int start = subobjects[1].extractInt();
+			final int lineNumber = subobjects[2].extractInt();
+			final int tokenTypeOrdinal = subobjects[3].extractInt();
 			return newToken(
 				string,
-				leadingWhitespace,
-				trailingWhitespace,
 				start,
 				lineNumber,
 				TokenType.lookup(tokenTypeOrdinal));
@@ -1399,58 +1379,7 @@ public enum SerializerOperation
 	 */
 	LITERAL_TOKEN (43,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		OBJECT_REFERENCE.as("literal value"),
-		SIGNED_INT.as("start position"),
-		SIGNED_INT.as("line number"),
-		BYTE.as("token type code"))
-	{
-		@Override
-		A_BasicObject[] decompose (
-			final AvailObject object,
-			final Serializer serializer)
-		{
-			return array(
-				object.string(),
-				object.leadingWhitespace(),
-				object.trailingWhitespace(),
-				object.literal(),
-				fromInt(object.start()),
-				fromInt(object.lineNumber()),
-				fromInt(object.tokenType().ordinal()));
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			final A_String string = subobjects[0];
-			final A_String leadingWhitespace = subobjects[1];
-			final A_String trailingWhitespace = subobjects[2];
-			final AvailObject literal = subobjects[3];
-			final int start = subobjects[4].extractInt();
-			final int lineNumber = subobjects[5].extractInt();
-			final int tokenTypeOrdinal = subobjects[6].extractInt();
-			return literalToken(
-				string,
-				leadingWhitespace,
-				trailingWhitespace,
-				start,
-				lineNumber,
-				TokenType.lookup(tokenTypeOrdinal),
-				literal);
-		}
-	},
-
-	/**
-	 * A {@linkplain TokenDescriptor token}.
-	 */
-	COMMENT_TOKEN (44,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"))
 	{
@@ -1461,8 +1390,7 @@ public enum SerializerOperation
 		{
 			return array(
 				object.string(),
-				object.leadingWhitespace(),
-				object.trailingWhitespace(),
+				object.literal(),
 				fromInt(object.start()),
 				fromInt(object.lineNumber()));
 		}
@@ -1473,12 +1401,45 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_String string = subobjects[0];
-			final A_String leading = subobjects[1];
-			final A_String trailing = subobjects[2];
-			final int start = subobjects[3].extractInt();
-			final int lineNumber = subobjects[4].extractInt();
-			return newCommentToken(
-				string, leading, trailing, start, lineNumber);
+			final AvailObject literal = subobjects[1];
+			final int start = subobjects[2].extractInt();
+			final int lineNumber = subobjects[3].extractInt();
+			return literalToken(
+				string,
+				start,
+				lineNumber,
+				literal);
+		}
+	},
+
+	/**
+	 * A {@linkplain TokenDescriptor token}.
+	 */
+	COMMENT_TOKEN (44,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		SIGNED_INT.as("start position"),
+		SIGNED_INT.as("line number"))
+	{
+		@Override
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
+		{
+			return array(
+				object.string(),
+				fromInt(object.start()),
+				fromInt(object.lineNumber()));
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_String string = subobjects[0];
+			final int start = subobjects[1].extractInt();
+			final int lineNumber = subobjects[2].extractInt();
+			return newCommentToken(string, start, lineNumber);
 		}
 	},
 
@@ -3202,9 +3163,33 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * A {@linkplain TokenTypeDescriptor token type}.
+	 */
+	TOKEN_TYPE (96,
+		OBJECT_REFERENCE.as("literal type"))
+	{
+		@Override
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
+		{
+			return array(
+				fromInt(object.tokenType().ordinal()));
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return tokenType(TokenType.lookup(subobjects[0].extractInt()));
+		}
+	},
+
+	/**
 	 * A {@linkplain LiteralTokenTypeDescriptor literal token type}.
 	 */
-	LITERAL_TOKEN_TYPE (96,
+	LITERAL_TOKEN_TYPE (97,
 		OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
@@ -3228,7 +3213,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain PhraseTypeDescriptor parse phrase type}.
 	 */
-	PARSE_NODE_TYPE (97,
+	PARSE_NODE_TYPE (98,
 		BYTE.as("kind"),
 		OBJECT_REFERENCE.as("expression type"))
 	{
@@ -3258,7 +3243,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain ListPhraseTypeDescriptor list phrase type}.
 	 */
-	LIST_NODE_TYPE (98,
+	LIST_NODE_TYPE (99,
 		BYTE.as("list phrase kind"),
 		OBJECT_REFERENCE.as("expression type"),
 		OBJECT_REFERENCE.as("subexpressions tuple type"))
@@ -3293,7 +3278,7 @@ public enum SerializerOperation
 	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
 	 * type and write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE (99,
+	SIMPLE_VARIABLE_TYPE (100,
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
@@ -3320,7 +3305,7 @@ public enum SerializerOperation
 	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
 	 * the read type and write type are (actually) unequal.
 	 */
-	READ_WRITE_VARIABLE_TYPE (100,
+	READ_WRITE_VARIABLE_TYPE (101,
 		OBJECT_REFERENCE.as("read type"),
 		OBJECT_REFERENCE.as("write type"))
 	{
@@ -3352,7 +3337,7 @@ public enum SerializerOperation
 	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
 	 * other types.
 	 */
-	BOTTOM_TYPE (101)
+	BOTTOM_TYPE (102)
 	{
 		@Override
 		A_BasicObject[] decompose (

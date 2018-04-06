@@ -51,38 +51,9 @@ Uses
 	"Early Math"
 Names
 	"Declare loop variable_as_",
-	"Require:macro send has no internal whitespace(_)",
 	"strengthen_for call of_using_",
-	"Undeclare_",
-	"_has|have internal whitespace"
+	"Undeclare_"
 Body
-
-/**
- * Does the {@type "tuple"} of {@type "token"}s contain internal whitespace?
- *
- * @method "_has|have internal whitespace"
- * @param "tokens" "token*"
- * @returns "boolean"
- *         {@method "true"} if {@param "tokens"} have internal whitespace,
- *         {@method "false"} otherwise.
- * @category "Macros"
- */
-Public method "_has|have internal whitespace" is
-[
-	tokens : <<>, token… | whole number>
-|
-	$body : boolean;
-	limit ::= 0 max (|tokens| - 1);
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		aToken ::= cast tokens[index] into [t : token | t];
-		If aToken's trailing whitespace ≠ "" then [Exit body with true];
-		true
-	];
-	false
-] : boolean;
 
 /*
  * This is a bootstrap function invoker, needed by "Declare loop variable_as_"
@@ -105,38 +76,8 @@ Semantic restriction "private invoke_with_" is
 	functionType's return type
 ];
 
-Private method "Require:macro send has no internal whitespace_" is
-[
-	message : function accepting <> and returning string
-|
-	If constituent tokens has internal whitespace then
-	[
-		Reject parse, expected: private invoke message with <>
-	];
-] : ⊤;
-
-noWhitespace ::= atom for "Require:macro send has no internal whitespace_";
-
 /**
- * Reject the current parse if the enclosing macro send contains internal
- * whitespace.
- *
- * @macro "Require:macro send has no internal whitespace(_)"
- * @param "message" "expression phrase ⇒ string"
- *        The message to report as the parse rejection. It is only evaluated
- *        if the parse is rejected.
- * @returns "send phrase ⇒ string"
- * @category "Macros"
- */
-Public macro "Require:macro send has no internal whitespace(_)" is
-[
-	message : expression phrase ⇒ string
-|
-	restricted send noWhitespace with «<«[<> | <message>] : string»>» : ⊤
-];
-
-/**
- * Create a local variable in a macro and add to the scope.
+ * Create a local variable in a macro and place it in scope.
  *
  * @method "Declare loop variable_as_"
  * @category "Macros"
@@ -160,7 +101,7 @@ Public method "Declare loop variable_as_" is
 ];
 
 /**
- * Remove a declaration from the scope.
+ * Remove a declaration from scope.
  *
  * @method "Undeclare_"
  * @category "Macros"
@@ -179,7 +120,7 @@ Public method "Undeclare_" is
 /**
  * A return type strengthening method that accepts a base return type, an
  * atom representing the method to lookup, and a tuple of input types for the
- *  method.  It returns the strengthened type.
+ * method.  It returns the strengthened type.
  *
  * @method "strengthen_for call of_using_"
  * @category "Macros"

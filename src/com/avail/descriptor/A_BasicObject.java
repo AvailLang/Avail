@@ -963,7 +963,19 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
+	boolean isTokenType ();
+
+	/**
+	 * @return
+	 */
 	boolean isLiteralTokenType ();
+
+	/**
+	 * @param aTokenType
+	 * @return
+	 */
+	boolean equalsTokenType (
+		A_Type aTokenType);
 
 	/**
 	 * @param aLiteralTokenType

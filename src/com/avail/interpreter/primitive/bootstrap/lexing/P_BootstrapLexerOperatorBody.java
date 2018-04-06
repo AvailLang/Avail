@@ -42,10 +42,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -87,15 +87,12 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 				&& source.tupleCodePointAt(startPosition + 1) == '*')
 			{
 				// No solution in this case, but don't complain.
-				return interpreter.primitiveSuccess(
-					emptyTuple());
+				return interpreter.primitiveSuccess(emptySet());
 			}
 		}
 		final A_Token token = newToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, startPosition, false),
-			emptyTuple(),
-			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
 			OPERATOR);

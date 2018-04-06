@@ -582,9 +582,10 @@ extends Descriptor
 		return FALSE.atom;
 	}
 
-	// An enumeration of special atoms that the VM is aware of which name
-	// methods for invoking specific primitives.  Multiple primitives may be
-	// provided to make the method multimorphic.
+	/**
+	 * {@code SpecialAtom} enumerates {@linkplain A_Atom atoms} that are known
+	 * to the virtual machine.
+	 */
 	public enum SpecialAtom
 	{
 		/**

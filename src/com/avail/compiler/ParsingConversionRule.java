@@ -43,8 +43,6 @@ import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeF
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the
@@ -93,11 +91,8 @@ public enum ParsingConversionRule
 			final A_Token token =
 				literalToken(
 					stringFrom(count.toString()),
-					emptyTuple(),
-					emptyTuple(),
 					lexingState.position,
 					lexingState.lineNumber,
-					LITERAL,
 					count);
 			continuation.value(literalNodeFromToken(token));
 		}

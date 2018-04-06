@@ -45,7 +45,6 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -86,8 +85,6 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 		final A_Token token = newToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			emptyTuple(),
-			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
 			KEYWORD);

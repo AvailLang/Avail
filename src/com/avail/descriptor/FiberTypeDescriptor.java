@@ -87,11 +87,8 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsFiberType (final AvailObject object, final A_Type aType)
 	{
-		if (object.sameAddressAs(aType))
-		{
-			return true;
-		}
-		return aType.resultType().equals(object.slot(RESULT_TYPE));
+		return object.sameAddressAs(aType)
+			|| aType.resultType().equals(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod

@@ -469,6 +469,7 @@ implements Closeable
 		final Map<String, JSONData> map = new HashMap<>();
 		do
 		{
+			skipWhitespace();
 			final String key = readString();
 			skipWhitespace();
 			if (!peekFor(':', null))

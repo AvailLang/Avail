@@ -48,8 +48,6 @@ import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -94,11 +92,8 @@ public final class P_BootstrapLexerStringBody extends Primitive
 					final A_Token token = literalToken(
 						(A_String) source.copyTupleFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
-						emptyTuple(),
-						emptyTuple(),
 						startPosition,
 						startLineNumber,
-						LITERAL,
 						stringFrom(builder.toString()));
 					return interpreter.primitiveSuccess(
 						set(tuple(token.makeShared())));
@@ -245,7 +240,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			}
 			return c;
 		}
-	};
+	}
 
 
 	/**

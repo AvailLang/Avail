@@ -33,16 +33,8 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -52,21 +44,15 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleVariable;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -80,7 +66,9 @@ import static com.avail.interpreter.Primitive.Flag.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapVariableUseMacro extends Primitive
+@SuppressWarnings("unused")
+public final class P_BootstrapVariableUseMacro
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -104,7 +92,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		}
 		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
-		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
+		assert literalToken.tokenType() == TokenType.LITERAL;
 		final A_Token actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
 		final A_String variableNameString = actualToken.string();

@@ -42,11 +42,13 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.phrases.P_CreateToken;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
@@ -86,11 +88,9 @@ import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
@@ -105,8 +105,7 @@ import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -129,6 +128,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.util.Arrays.asList;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -1369,7 +1369,7 @@ public final class AvailRuntime
 	 * special objects.
 	 */
 	private static final List<AvailObject> specialObjectsList =
-		Collections.unmodifiableList(Arrays.asList(specialObjects));
+		Collections.unmodifiableList(asList(specialObjects));
 
 	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
@@ -1615,12 +1615,19 @@ public final class AvailRuntime
 		specials[157] = lexerFilterFunctionType();
 		specials[158] = lexerBodyFunctionType();
 		specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom;
-
+		specials[160] = TokenType.END_OF_FILE.atom;
+		specials[161] = TokenType.KEYWORD.atom;
+		specials[162] = TokenType.LITERAL.atom;
+		specials[163] = TokenType.OPERATOR.atom;
+		specials[164] = TokenType.COMMENT.atom;
+		specials[165] = TokenType.WHITESPACE.atom;
+		specials[166] = inclusive(0, (1L << 32) - 1);
+		specials[167] = inclusive(0, (1L << 28) - 1);
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
 		assert specialAtomsList.isEmpty();
-		specialAtomsList.addAll(Arrays.asList(
+		specialAtomsList.addAll(asList(
 			SpecialAtom.ALL_TOKENS_KEY.atom,
 			SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom,
 			SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom,
@@ -1663,7 +1670,14 @@ public final class AvailRuntime
 			SpecialMethodAtom.LEXER_DEFINER.atom,
 			exceptionAtom(),
 			stackDumpAtom(),
-			pojoSelfTypeAtom()));
+			pojoSelfTypeAtom(),
+			TokenType.END_OF_FILE.atom,
+			TokenType.KEYWORD.atom,
+			TokenType.LITERAL.atom,
+			TokenType.OPERATOR.atom,
+			TokenType.COMMENT.atom,
+			TokenType.WHITESPACE.atom,
+			P_CreateToken.tokenTypeOrdinalKey));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

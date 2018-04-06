@@ -975,8 +975,6 @@ Public macro "…#.…#«f»?" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
-	Require: macro send has no internal whitespace
-		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	isFloat ::= isFloatPhrase's token's value;
@@ -1004,8 +1002,6 @@ Public macro "…#.…#…" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	exponentPart : literal phrase ⇒ token
 |
-	Require: macro send has no internal whitespace
-		("floating-point literal not to contain whitespace");
 	rejectMessage ::=
 		"exponent to comprise e or E followed by one or more digits";
 	integerToken ::= integerPart's token's value;
@@ -1083,8 +1079,6 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 	exponentPart : literal phrase ⇒ (literal token ⇒ integer),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
-	Require: macro send has no internal whitespace
-		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	exponentToken ::= exponentPart's token;

@@ -68,7 +68,7 @@ public class AvailCompilerBipartiteRendezvous
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private final List<Con> actions = new ArrayList<>(3);
+	private final List<Con1> actions = new ArrayList<>(3);
 
 	/** Whether we've started parsing at this position. */
 	private final AtomicBoolean hasStarted = new AtomicBoolean(false);
@@ -108,7 +108,7 @@ public class AvailCompilerBipartiteRendezvous
 			// throw new DuplicateSolutionException();
 		}
 		solutions.add(solution);
-		for (final Con action : actions)
+		for (final Con1 action : actions)
 		{
 			action.value(solution);
 		}
@@ -119,7 +119,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	synchronized void addAction (final Con action)
+	synchronized void addAction (final Con1 action)
 	{
 		actions.add(action);
 		for (final CompilerSolution solution : solutions)

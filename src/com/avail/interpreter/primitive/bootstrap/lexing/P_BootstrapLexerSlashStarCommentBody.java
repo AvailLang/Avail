@@ -44,8 +44,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -80,7 +80,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(emptyTuple());
+			return interpreter.primitiveSuccess(emptySet());
 		}
 		position++;
 
@@ -124,8 +124,6 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		final A_Token token = newCommentToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			emptyTuple(),
-			emptyTuple(),
 			startPosition,
 			startingLineNumber.extractInt());
 		token.makeShared();

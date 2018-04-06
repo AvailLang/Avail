@@ -670,6 +670,16 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		// By default, nothing is a supertype of a token type unless it states
+		// otherwise.
+		return false;
+	}
+
+	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -896,6 +906,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return bottom();
+	}
+
+	@Override @AvailMethod
 	A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -1022,6 +1040,14 @@ extends AbstractTypeDescriptor
 		final A_Type aListNodeType)
 	{
 		return object.typeUnion(NONTYPE.o());
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfTokenType (
+		final AvailObject object,
+		final A_Type aTokenType)
+	{
+		return object.typeUnion(TOKEN.o());
 	}
 
 	@Override @AvailMethod

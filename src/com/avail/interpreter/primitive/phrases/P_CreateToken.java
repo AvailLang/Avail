@@ -1,5 +1,5 @@
 /*
- * P_CreateLiteralToken.java
+ * P_CreateToken.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,55 +33,78 @@
 package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain LiteralTokenDescriptor
- * literal token} with the specified literal value, {@linkplain A_Token#string()
- * lexeme}, {@linkplain A_Token#start() starting character position}, and
- * {@linkplain A_Token#lineNumber() line number}.
+ * <strong>Primitive:</strong> Create a {@linkplain TokenDescriptor token} with
+ * the specified {@link TokenType}, {@linkplain A_Token#string() lexeme},
+ * {@linkplain A_Token#start() starting character position}, and {@linkplain
+ * A_Token#lineNumber() line number}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
-public final class P_CreateLiteralToken
+@SuppressWarnings("unused")
+public class P_CreateToken
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_CreateLiteralToken().init(
+		new P_CreateToken().init(
 			4, CannotFail, CanFold, CanInline);
+
+	/**
+	 * An internal {@linkplain A_Atom atom} for the other atoms of this
+	 * enumeration. It is keyed to the {@linkplain TokenType#ordinal() ordinal}
+	 * of a {@link TokenType}.
+	 */
+	public static A_Atom tokenTypeOrdinalKey = createSpecialAtom(
+		"token type ordinal key");
+
+	static
+	{
+		for (final TokenType tokenType : TokenType.values())
+		{
+			tokenType.atom.setAtomProperty(
+				tokenTypeOrdinalKey, fromInt(tokenType.ordinal()));
+		}
+	}
 
 	@Override
 	public Result attempt (final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(4);
-		final A_BasicObject value = interpreter.argument(0);
+		final A_Atom type = interpreter.argument(0);
 		final A_String lexeme = interpreter.argument(1);
 		final A_Number start = interpreter.argument(2);
 		final A_Number line = interpreter.argument(3);
 		return interpreter.primitiveSuccess(
-			literalToken(
+			newToken(
 				lexeme,
 				start.extractInt(),
 				line.extractInt(),
-				value));
+				TokenType.lookup(
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
 	}
 
 	@Override
@@ -89,23 +112,36 @@ extends Primitive
 		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		final A_Type valueType = argumentTypes.get(0);
+		final A_Type atomType = argumentTypes.get(0);
 //		final A_Type lexemeType = argumentTypes.get(1);
 //		final A_Type startType = argumentTypes.get(2);
 //		final A_Type lineType = argumentTypes.get(3);
 
-		return literalTokenType(valueType);
+		if (atomType.instanceCount().equalsInt(1))
+		{
+			final A_Atom atom = atomType.instance();
+			return tokenType(TokenType.lookup(
+				atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()));
+
+		}
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
+		return FunctionTypeDescriptor.functionType(
 			tuple(
-				ANY.o(),
+				enumerationWith(
+					set(
+						END_OF_FILE.atom,
+						KEYWORD.atom,
+						OPERATOR.atom,
+						COMMENT.atom,
+						WHITESPACE.atom)),
 				stringType(),
 				inclusive(0, (1L << 32) - 1),
 				inclusive(0, (1L << 28) - 1)),
-			mostGeneralLiteralTokenType());
+			TOKEN.o());
 	}
 }

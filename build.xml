@@ -42,6 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property
 		name="path.asm"
 		value="${path.avail.libraries}/asm-6.0.jar:${path.avail.libraries}/asm-util-6.0.jar:${path.avail.libraries}/asm-tree-6.0.jar:${path.avail.libraries}/asm-analysis-6.0.jar"/>
+	<property
+		name="path.annotations"
+		value="${path.avail.libraries}/jsr305.jar:${path.avail.libraries}/annotations-java8.jar"/>
 
 	<property name="jar.avail" value="Avail.jar"/>
 	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
@@ -210,7 +213,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}"
+				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
 				classname="com.avail.tools.bootstrap.ErrorCodeNamesGenerator"/>
 	</target>
 
@@ -222,7 +225,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate SpecialObjectNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}"
+				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
 				classname="com.avail.tools.bootstrap.SpecialObjectNamesGenerator"/>
 	</target>
 
@@ -234,7 +237,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}"
+				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
 				classname="com.avail.tools.bootstrap.PrimitiveNamesGenerator"/>
 	</target>
 
@@ -261,7 +264,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate the bootstrap Avail library.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}"
+				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
 				classname="com.avail.tools.bootstrap.BootstrapGenerator"/>
 		<copy todir="${path.distro.bootstrap}">
 			<fileset

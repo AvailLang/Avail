@@ -35,6 +35,7 @@ package com.avail.test;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Primitive.Result;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,15 +44,7 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
@@ -65,8 +58,7 @@ import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -78,6 +70,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setMeta;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.VariableTypeDescriptor.*;
@@ -471,6 +464,7 @@ public class TypeConsistencyTest
 		/**
 		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
 		 */
+		@SuppressWarnings("unused")
 		static final Node NON_ROOT_OBJECT_TYPE_WITH_INTEGERS = new Node(
 			"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
 			NON_ROOT_OBJECT_TYPE)
@@ -488,6 +482,7 @@ public class TypeConsistencyTest
 		/**
 		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
 		 */
+		@SuppressWarnings("unused")
 		static final Node NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY = new Node(
 			"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
 			OBJECT_TYPE)
@@ -684,6 +679,7 @@ public class TypeConsistencyTest
 		/**
 		 * {@linkplain PojoTypeDescriptor Pojo bottom}.
 		 */
+		@SuppressWarnings("unused")
 		static final Node POJO_BOTTOM = new Node(
 			"POJO_BOTTOM",
 			JAVA_INTEGER_POJO,
@@ -821,6 +817,86 @@ public class TypeConsistencyTest
 		};
 
 		/**
+		 * The {@linkplain TokenTypeDescriptor token type} whose {@link
+		 * TokenType} is {@link TokenType#END_OF_FILE}.
+		 */
+		@SuppressWarnings("unused")
+		static final Node END_OF_FILE_TOKEN = new Node(
+			"END_OF_FILE_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override
+			A_Type get ()
+			{
+				return tokenType(TokenType.END_OF_FILE);
+			}
+		};
+
+		/**
+		 * The {@linkplain TokenTypeDescriptor token type} whose {@link
+		 * TokenType} is {@link TokenType#KEYWORD}.
+		 */
+		@SuppressWarnings("unused")
+		static final Node KEYWORD_TOKEN = new Node(
+			"KEYWORD_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override
+			A_Type get ()
+			{
+				return tokenType(TokenType.KEYWORD);
+			}
+		};
+
+		/**
+		 * The {@linkplain TokenTypeDescriptor token type} whose {@link
+		 * TokenType} is {@link TokenType#OPERATOR}.
+		 */
+		@SuppressWarnings("unused")
+		static final Node OPERATOR_TOKEN = new Node(
+			"OPERATOR_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override
+			A_Type get ()
+			{
+				return tokenType(TokenType.OPERATOR);
+			}
+		};
+
+		/**
+		 * The {@linkplain TokenTypeDescriptor token type} whose {@link
+		 * TokenType} is {@link TokenType#COMMENT}.
+		 */
+		@SuppressWarnings("unused")
+		static final Node COMMENT_TOKEN = new Node(
+			"COMMENT_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override
+			A_Type get ()
+			{
+				return tokenType(TokenType.COMMENT);
+			}
+		};
+
+		/**
+		 * The {@linkplain TokenTypeDescriptor token type} whose {@link
+		 * TokenType} is {@link TokenType#WHITESPACE}.
+		 */
+		@SuppressWarnings("unused")
+		static final Node WHITESPACE_TOKEN = new Node(
+			"WHITESPACE_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override
+			A_Type get ()
+			{
+				return tokenType(TokenType.WHITESPACE);
+			}
+		};
+
+		/**
 		 * The {@linkplain LiteralTokenTypeDescriptor literal token type} whose
 		 * literal type is {@link Types#ANY}.
 		 */
@@ -866,6 +942,7 @@ public class TypeConsistencyTest
 		 * The most specific {@linkplain LiteralTokenTypeDescriptor literal
 		 * token type}, other than {@linkplain BottomTypeDescriptor bottom}.
 		 */
+		@SuppressWarnings("unused")
 		static final Node BOTTOM_LITERAL_TOKEN = new Node(
 			"BOTTOM_LITERAL_TOKEN",
 			INT_LITERAL_TOKEN,
@@ -930,6 +1007,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The type of {@code bottom}.  This is the most specific meta. */
+		@SuppressWarnings("unused")
 		static final Node BOTTOM_TYPE = new Node(
 			"BOTTOM_TYPE",
 			FIBER_META,
@@ -1061,7 +1139,7 @@ public class TypeConsistencyTest
 			final PhraseKind kind,
 			final Node... innerNodes)
 		{
-			for (final Node node : innerNodes)
+			for (final @Nullable Node node : innerNodes)
 			{
 				final List<Node> ancestors = new ArrayList<>();
 				if (node == null)
@@ -1071,7 +1149,7 @@ public class TypeConsistencyTest
 				}
 				else
 				{
-					for (final Node possibleAncestor : innerNodes)
+					for (final @Nullable Node possibleAncestor : innerNodes)
 					{
 						if (possibleAncestor != null
 							&& node.allAncestors.contains(possibleAncestor))
@@ -1232,6 +1310,7 @@ public class TypeConsistencyTest
 		}
 
 		/** The type {@code bottom} */
+		@SuppressWarnings("unused")
 		static final Node BOTTOM = new Node(
 			"BOTTOM",
 			nonBottomTypes.toArray(new Node[0]))
@@ -1241,9 +1320,6 @@ public class TypeConsistencyTest
 				return bottom();
 			}
 		};
-
-
-
 
 		/** The name of this type node, used for error diagnostics. */
 		final String name;
@@ -1490,6 +1566,7 @@ public class TypeConsistencyTest
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime, then set up the graph of types.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@BeforeAll
 	public static void initializeAllWellKnownObjects ()
 	{
@@ -1498,9 +1575,12 @@ public class TypeConsistencyTest
 		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialAtoms();
 		Node.createTypes();
-		System.out.format("Checking %d types%n", Node.values.size());
-
-		// dumpGraphTo(System.out);
+		//noinspection ConstantConditions,ConstantIfStatement
+		if (false)
+		{
+			System.out.format("Checking %d types%n", Node.values.size());
+			dumpGraphTo(System.out);
+		}
 	}
 
 	/**
@@ -1522,7 +1602,7 @@ public class TypeConsistencyTest
 	 *            A PrintStream on which to dump a representation of the current
 	 *            type graph.
 	 */
-	public static void dumpGraphTo (final PrintStream out)
+	private static void dumpGraphTo (final PrintStream out)
 	{
 		final Set<A_Type> allTypes = new HashSet<>();
 		for (final Node node : Node.values)
@@ -1585,6 +1665,7 @@ public class TypeConsistencyTest
 	/**
 	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@AfterAll
 	public static void clearAllWellKnownObjects ()
 	{
@@ -1605,7 +1686,7 @@ public class TypeConsistencyTest
 	 *            A variable number of objects to describe via the
 	 *            messagePattern.
 	 */
-	static void assertEQ (
+	private static void assertEQ (
 		final Object a,
 		final Object b,
 		final String messagePattern,
@@ -1631,7 +1712,7 @@ public class TypeConsistencyTest
 	 *            A variable number of objects to describe via the
 	 *            messagePattern.
 	 */
-	static void assertT (
+	private static void assertT (
 		final boolean bool,
 		final String messagePattern,
 		final Object... messageArguments)
@@ -1646,6 +1727,7 @@ public class TypeConsistencyTest
 	 * Test that the {@linkplain Node#supernodes declared} subtype relations
 	 * actually hold the way the graph says they should.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testGraphModel ()
 	{
@@ -1675,6 +1757,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;x&sube;x
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testSubtypeReflexivity ()
 	{
@@ -1700,6 +1783,7 @@ public class TypeConsistencyTest
 	 *     &rarr; x&sube;z)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testSubtypeTransitivity ()
 	{
@@ -1728,6 +1812,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sub;y &rarr; &not;y&sub;x)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testSubtypeAsymmetry ()
 	{
@@ -1751,6 +1836,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testUnionClosure ()
 	{
@@ -1773,6 +1859,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cup;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testUnionReflexivity ()
 	{
@@ -1792,6 +1879,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y = y&cup;x)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testUnionCommutativity ()
 	{
@@ -1821,6 +1909,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testUnionAssociativity ()
 	{
@@ -1861,6 +1950,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testIntersectionClosure ()
 	{
@@ -1884,6 +1974,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cap;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testIntersectionReflexivity ()
 	{
@@ -1903,6 +1994,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y = y&cap;x)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testIntersectionCommutativity ()
 	{
@@ -1934,6 +2026,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cap;y)&cap;z = x&cap;(y&cap;z)
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testIntersectionAssociativity ()
 	{
@@ -1974,7 +2067,7 @@ public class TypeConsistencyTest
 	 * either covary or contravary with respect to it, depending on the specific
 	 * {@code TypeRelation}.
 	 */
-	public abstract static class TypeRelation
+	abstract static class TypeRelation
 	{
 		/**
 		 * Transform any {@linkplain TypeDescriptor type} into another type (in
@@ -2010,8 +2103,7 @@ public class TypeConsistencyTest
 	 *
 	 * @param relation The covariant {@linkplain TypeRelation} to check.
 	 */
-	public static void checkCovariance (
-		final TypeRelation relation)
+	private static void checkCovariance (final TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{
@@ -2038,8 +2130,7 @@ public class TypeConsistencyTest
 	 *
 	 * @param relation The contravariant {@linkplain TypeRelation} to check.
 	 */
-	public static void checkContravariance (
-		final TypeRelation relation)
+	private static void checkContravariance (final TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{
@@ -2062,6 +2153,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testFiberResultCovariance ()
 	{
@@ -2080,6 +2172,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testFunctionResultCovariance ()
 	{
@@ -2099,6 +2192,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testTupleEntryCovariance ()
 	{
@@ -2117,6 +2211,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testAbstractPojoTypeParametersCovariance ()
 	{
@@ -2138,6 +2233,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testFunctionArgumentContravariance ()
 	{
@@ -2160,6 +2256,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testMetacovariance ()
 	{
@@ -2180,6 +2277,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testTypeUnionMetainvariance ()
 	{
@@ -2213,6 +2311,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))
 	 * </span>
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Test
 	public void testTypeIntersectionMetainvariance ()
 	{
