@@ -52,7 +52,8 @@ Names
 	"explicit radix integer lexer",
 	"binary integer lexer",
 	"octal integer lexer",
-	"hexadecimal integer lexer"
+	"hexadecimal integer lexer",
+	"raw string lexer"
 Body
 
 /**
@@ -342,6 +343,68 @@ is
 			valueText ::= source[valuePosition..end];
 			value ::= valueText (base 16);
 			{<`value` (source[countPosition..end]) @ countPosition:line>}
+		]
+	]
+];
+
+/**
+ * Upon encountering three (3) or more quotation marks {@code "\""}, attempt to
+ * scan arbitrary text followed by an equivalent delimiter. The arbitrary text
+ * is understood as the content of a {@type "string"}. No escape sequences are
+ * processed.
+ *
+ * @lexer "hexadecimal integer lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "string"} {@type
+ *          "literal token"}.
+ */
+Lexer $"raw string lexer"
+when [c : character | c = ¢"\""]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	/* Count subsequent ¢" characters. */
+	i : real source position;
+	i ?= countPosition + 1;
+	size ::= |source|;
+	While i ≤ size ∧ source[i] = ¢"\"" do [i++;];
+	if i > size ∨ i - countPosition < 3 then [∅]
+	else
+	[
+		delimiter ::= source[countPosition..i-1];
+		valuePosition ::= i;
+		/* Scan ahead for the close delimiter. */
+		limit ::= size - |delimiter| + 1;
+		While
+			i ≤ limit
+				∧ source[i] ≠ "\""
+				∧ source[i..i + |delimiter| - 1] ≠ delimiter
+		do [i++;];
+		if i > limit then
+		[
+			Reject parse, expected:
+				format
+					"raw string to terminate with ‘①’ before end-of-file"
+				with
+					delimiter
+		]
+		else
+		[
+			value ::= source[valuePosition..i-1];
+			{<
+				`value` (source[countPosition..i + |delimiter| - 1])
+					@ countPosition:line
+			>}
 		]
 	]
 ];

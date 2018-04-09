@@ -943,7 +943,8 @@ Extends
 		"explicit radix integer lexer",
 		"binary integer lexer",
 		"octal integer lexer",
-		"hexadecimal integer lexer"
+		"hexadecimal integer lexer",
+		"raw string lexer"
 	),
 	"Literals" =
 	(
