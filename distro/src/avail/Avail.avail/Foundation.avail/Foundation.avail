@@ -939,7 +939,11 @@ Extends
 	),
 	"Lexers" =
 	(
-		"end of line comment lexer"
+		"end of line comment lexer",
+		"explicit radix integer lexer",
+		"binary integer lexer",
+		"octal integer lexer",
+		"hexadecimal integer lexer"
 	),
 	"Literals" =
 	(

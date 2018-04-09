@@ -320,6 +320,9 @@ Semantic restriction "_d|D_" is
  *        The position of the leading Arabic numeral of the count of dice.
  * @param "line" "real source line number"
  *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a {@type "send"} of {@method "_d|D_"}.
  */
 Lexer $"xDy lexer"
 when [c : character | c is an Arabic numeral]

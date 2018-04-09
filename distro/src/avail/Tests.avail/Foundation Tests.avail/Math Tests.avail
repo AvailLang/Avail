@@ -484,9 +484,9 @@ Test "bit∧" in math test suite is
 	Require: -4 bit∧ -15 = -16;
 	Require: (1<<100) bit∧ (1<<120) = 0;
 	Require: (1<<100) bit∧ (1<<120-1) = 1<<100;
-	Require: "0101010101001010101010000110101101010101101010100101010" (base 2)
-		bit∧ "1001010101010101110010101010101010010100101001010110101" (base 2)
-		   = "0001010101000000100010000010101000010100101000000100000" (base 2);
+	Require: 0b0101010101001010101010000110101101010101101010100101010
+		bit∧ 0b1001010101010101110010101010101010010100101001010110101
+		   = 0b0001010101000000100010000010101000010100101000000100000;
 	/* Some power-of-two boundary conditions. */
 	For each i from 1 to 100 do
 	[
@@ -548,12 +548,12 @@ Test "float representation reinterpretation" in math test suite is
 		f2 : float := i reinterpreted as float;
 		Require: f = f2;
 	];
-	Require: 0.0f reinterpreted as bits = "00000000"(base 16);
-	Require: (-0.0f) reinterpreted as bits = "80000000"(base 16) - 2^32;
-	Require: 2.0f reinterpreted as bits = "40000000"(base 16);
-	Require: (-2.0f) reinterpreted as bits = "C0000000"(base 16) - 2^32;
-	Require: 1.0f reinterpreted as bits = "3F800000"(base 16);
-	Require: (-1.0f) reinterpreted as bits = "BF800000"(base 16) - 2^32;
+	Require: 0.0f reinterpreted as bits = 0x00000000;
+	Require: (-0.0f) reinterpreted as bits = 0x80000000 - 2^32;
+	Require: 2.0f reinterpreted as bits = 0x40000000;
+	Require: (-2.0f) reinterpreted as bits = 0xC0000000 - 2^32;
+	Require: 1.0f reinterpreted as bits = 0x3F800000;
+	Require: (-1.0f) reinterpreted as bits = 0xBF800000 - 2^32;
 ];
 
 Test "double representation reinterpretation" in math test suite is
@@ -571,11 +571,11 @@ Test "double representation reinterpretation" in math test suite is
 		d2 : double := i reinterpreted as double;
 		Require: d = d2;
 	];
-	Require: 0.0 reinterpreted as bits = "0000000000000000"(base 16);
-	Require: (-0.0) reinterpreted as bits = "8000000000000000"(base 16) - 2^64;
-	Require: 2.0 reinterpreted as bits = "4000000000000000"(base 16);
-	Require: (-2.0) reinterpreted as bits = "C000000000000000"(base 16) - 2^64;
-	Require: 1.0 reinterpreted as bits = "3FF0000000000000"(base 16);
-	Require: (-1.0) reinterpreted as bits = "BFF0000000000000"(base 16) - 2^64;
+	Require: 0.0 reinterpreted as bits = 0x0000000000000000;
+	Require: (-0.0) reinterpreted as bits = 0x8000000000000000 - 2^64;
+	Require: 2.0 reinterpreted as bits = 0x4000000000000000;
+	Require: (-2.0) reinterpreted as bits = 0xC000000000000000 - 2^64;
+	Require: 1.0 reinterpreted as bits = 0x3FF0000000000000;
+	Require: (-1.0) reinterpreted as bits = 0xBFF0000000000000 - 2^64;
 ];
 

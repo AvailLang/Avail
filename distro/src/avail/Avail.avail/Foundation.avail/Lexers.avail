@@ -1,5 +1,5 @@
 /*
- * Comments.avail
+ * Lexers.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,15 +38,21 @@ Uses
 	"Characters",
 	"Control Structures",
 	"Early Conditionals",
+	"Exceptions",
 	"Literals",
 	"Logic",
 	"Math",
 	"Phrases",
 	"Sets",
+	"Strings",
 	"Tuples",
 	"Variables"
 Names
-	"end of line comment lexer"
+	"end of line comment lexer",
+	"explicit radix integer lexer",
+	"binary integer lexer",
+	"octal integer lexer",
+	"hexadecimal integer lexer"
 Body
 
 /**
@@ -62,7 +68,12 @@ Body
  *        The position of the leading Arabic numeral of the count of dice.
  * @param "line" "real source line number"
  *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "comment"} {@type
+ *          "token"}.
  */
+/*
 Lexer $"end of line comment lexer"
 when [c : character | c = ¢/]
 is
@@ -86,15 +97,251 @@ Print: "\n";
 	else [∅]
 ];
 
-// And here's the first end of line comment!
+// Here's the first end of line comment!
+// And here's the second, without a line terminator!
+*/
 
+radixIntegerAlphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
 
+/**
+ * Upon encountering an Arabic numeral or Roman letter, attempt to scan an
+ * {@type "integer"} {@type "literal token" token} specified in an explicit
+ * base. The format is:
+ *
+ *    literal ::= value "r" base (:base ≥ 2:) ;
+ *    value ::= [0-9A-Z]+ ;
+ *    base ::= [0-9]+ ;
+ *
+ * e.g., 22r10 (= 22), A0r16 (= 160), ZZr36 (= 1295).
+ *
+ * @lexer "explicit radix integer lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "integer"} {@type
+ *          "literal token"}.
+ */
+Lexer $"explicit radix integer lexer"
+when [c : character | c ∈ radixIntegerAlphabet]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	/* Scan ahead looking for the radix indicator, ¢r. */
+	i : real source position;
+	i ?= countPosition + 1;
+	size ::= |source|;
+	While i ≤ size ∧ source[i] ∈ radixIntegerAlphabetSet do [i++;];
+	if i > size ∨ source[i] ≠ ¢r then [∅]
+	else
+	[
+		integerText ::= source[countPosition..i-1];
+		basePosition ::= (++i);
+		/* Scan for the end of the radix specifier token. */
+		While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
+		if i ≤ size ∧ source[i] is a letter then [∅]
+		else
+		[
+			end ::= (i-1) min size;
+			baseText ::= source[basePosition..end];
+			base ::= baseText→whole number;
+			cast base into
+			[
+				validBase : [2..36]
+			|
+				value ::=
+					try [integerText (base validBase)]
+					else
+					[
+						Reject parse, expected:
+							format
+								"base-‘①’ integer literal to use only \
+								\|characters in “②” to denote its value"
+							with
+								baseText,
+								(radixIntegerAlphabet[1..validBase])
+					];
+				{<`value` (source[countPosition..end]) @ countPosition:line>}
+			]
+			else
+			[
+				Reject parse, expected:
+					format
+						"base for integer literal to be ≥ 2 (but the specified \
+						\|base was ‘①’)"
+					with
+						baseText
+			]
+		]
+	]
+];
 
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// And here's the second, without a line terminator!
-// Gimpy McGimpyFace!
+binaryAlphabet ::= radixIntegerAlphabet[1..2]→set;
+
+/**
+ * Upon encountering a {@code "0"}, attempt to scan a subsequent {@code "b"}
+ * followed by a sequence of binary digits, i.e., {@type "character"}s in
+ * {@code "01"}.
+ *
+ * @lexer "octal integer lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "integer"} {@type
+ *          "literal token"}.
+ */
+Lexer $"binary integer lexer"
+when [c : character | c = ¢0]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	/* Look ahead for a subsequent ¢b. */
+	i : real source position;
+	i ?= countPosition + 1;
+	size ::= |source|;
+	if i > size ∨ source[i] ≠ ¢b then [∅]
+	else
+	[
+		valuePosition ::= (++i);
+		/* Scan for the boundary. */
+		While i ≤ size ∧ source[i] ∈ binaryAlphabet do [i++;];
+		if
+			i ≤ size ∧
+				(source[i] is a letter ∨ source[i] is an Arabic numeral)
+		then
+		[
+			Reject parse, expected:
+				"a valid binary digit (0-1)"
+		]
+		else
+		[
+			end ::= (i-1) min size;
+			valueText ::= source[valuePosition..end];
+			value ::= valueText (base 2);
+			{<`value` (source[countPosition..end]) @ countPosition:line>}
+		]
+	]
+];
+
+octalAlphabet ::= radixIntegerAlphabet[1..8]→set;
+
+/**
+ * Upon encountering a {@code "0"}, attempt to scan a subsequent {@code "o"}
+ * followed by a sequence of octal digits, i.e., {@type "character"}s in
+ * {@code "01234567"}.
+ *
+ * @lexer "octal integer lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "integer"} {@type
+ *          "literal token"}.
+ */
+Lexer $"octal integer lexer"
+when [c : character | c = ¢0]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	/* Look ahead for a subsequent ¢o. */
+	i : real source position;
+	i ?= countPosition + 1;
+	size ::= |source|;
+	if i > size ∨ source[i] ≠ ¢o then [∅]
+	else
+	[
+		valuePosition ::= (++i);
+		/* Scan for the boundary. */
+		While i ≤ size ∧ source[i] ∈ octalAlphabet do [i++;];
+		if
+			i ≤ size ∧
+				(source[i] is a letter ∨ source[i] is an Arabic numeral)
+		then
+		[
+			Reject parse, expected:
+				"a valid octal digit (0-7)"
+		]
+		else
+		[
+			end ::= (i-1) min size;
+			valueText ::= source[valuePosition..end];
+			value ::= valueText (base 8);
+			{<`value` (source[countPosition..end]) @ countPosition:line>}
+		]
+	]
+];
+
+hexadecimalAlphabet ::= (radixIntegerAlphabet[1..16] ++ "abcdef")→set;
+
+/**
+ * Upon encountering a {@code "0"}, attempt to scan a subsequent {@code "x"}
+ * followed by a sequence of hexadecimal digits, i.e., {@type "character"}s in
+ * {@code "01234567ABCDEFabcdef"}.
+ *
+ * @lexer "hexadecimal integer lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "countPosition" "real source position"
+ *        The position of the leading Arabic numeral of the count of dice.
+ * @param "line" "real source line number"
+ *        The line number of the leading Arabic numeral of the count of dice.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "countPosition"},
+ *          potentially conforming to a single {@type "integer"} {@type
+ *          "literal token"}.
+ */
+Lexer $"hexadecimal integer lexer"
+when [c : character | c = ¢0]
+is
+[
+	source : string,
+	countPosition : real source position,
+	line : real source line number
+|
+	/* Look ahead for a subsequent ¢x. */
+	i : real source position;
+	i ?= countPosition + 1;
+	size ::= |source|;
+	if i > size ∨ source[i] ≠ ¢x then [∅]
+	else
+	[
+		valuePosition ::= (++i);
+		/* Scan for the boundary. */
+		While i ≤ size ∧ source[i] ∈ hexadecimalAlphabet do [i++;];
+		if i ≤ size ∧ source[i] is a letter then
+		[
+			Reject parse, expected:
+				"a valid hexadecimal digit (0-9, A-F, a-f)"
+		]
+		else
+		[
+			end ::= (i-1) min size;
+			valueText ::= source[valuePosition..end];
+			value ::= valueText (base 16);
+			{<`value` (source[countPosition..end]) @ countPosition:line>}
+		]
+	]
+];
