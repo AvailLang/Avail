@@ -536,7 +536,11 @@ Extends
 		"_is lowercase",
 		"_is titlecase",
 		"_is whitespace",
-		"_is line terminator"
+		"_is line terminator",
+		"_is punctuation start",
+		"_is punctuation end",
+		"punctuation end for_",
+		"punctuation start for_"
 	),
 	"Collections" =
 	(

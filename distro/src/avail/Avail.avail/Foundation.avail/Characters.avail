@@ -7,15 +7,15 @@
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  may be used to endorse or promote products derived from this software
+ *  without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -64,6 +64,10 @@ Names
 	"_is titlecase",
 	"_is whitespace",
 	"_is line terminator",
+	"_is punctuation start",
+	"_is punctuation end",
+	"punctuation end for_",
+	"punctuation start for_",
 
 	/* Character conversions. */
 	"capitalize_",
@@ -932,6 +936,48 @@ lineTerminatorCharacters ::=
 	10, 11, 12, 13, 133, 8232, 8233
 };
 
+punctuationStartToEndCharacters ::=
+{
+	40 → 41, 91 → 93, 123 → 125, 171 → 187, 3898 → 3899, 3900 → 3901,
+	5787 → 5788, 8216 → 8217, 8218 → 8219, 8220 → 8221, 8222 → 8223,
+	8249 → 8250, 8261 → 8262, 8317 → 8318, 8333 → 8334, 8968 → 8969,
+	8970 → 8971, 9001 → 9002, 10088 → 10089, 10090 → 10091, 10092 → 10093,
+	10094 → 10095, 10096 → 10097, 10098 → 10099, 10100 → 10101, 10181 → 10182,
+	10214 → 10215, 10216 → 10217, 10218 → 10219, 10220 → 10221, 10222 → 10223,
+	10627 → 10628, 10629 → 10630, 10631 → 10632, 10633 → 10634, 10635 → 10636,
+	10637 → 10638, 10639 → 10640, 10641 → 10642, 10643 → 10644, 10645 → 10646,
+	10647 → 10648, 10712 → 10713, 10714 → 10715, 10748 → 10749, 11778 → 11779,
+	11780 → 11781, 11785 → 11786, 11788 → 11789, 11804 → 11805, 11808 → 11809,
+	11810 → 11811, 11812 → 11813, 11814 → 11815, 11816 → 11817, 11842 → 12296,
+	12297 → 12298, 12299 → 12300, 12301 → 12302, 12303 → 12304, 12305 → 12308,
+	12309 → 12310, 12311 → 12312, 12313 → 12314, 12315 → 12317, 12318 → 12319,
+	64830 → 64831, 65047 → 65048, 65077 → 65078, 65079 → 65080, 65081 → 65082,
+	65083 → 65084, 65085 → 65086, 65087 → 65088, 65089 → 65090, 65091 → 65092,
+	65095 → 65096, 65113 → 65114, 65115 → 65116, 65117 → 65118, 65288 → 65289,
+	65339 → 65341, 65371 → 65373, 65375 → 65376, 65378 → 65379
+};
+
+punctuationEndToStartCharacters ::=
+{
+	41 → 40, 93 → 91, 125 → 123, 187 → 171, 3899 → 3898, 3901 → 3900,
+	5788 → 5787, 8217 → 8216, 8219 → 8218, 8221 → 8220, 8223 → 8222,
+	8250 → 8249, 8262 → 8261, 8318 → 8317, 8334 → 8333, 8969 → 8968,
+	8971 → 8970, 9002 → 9001, 10089 → 10088, 10091 → 10090, 10093 → 10092,
+	10095 → 10094, 10097 → 10096, 10099 → 10098, 10101 → 10100, 10182 → 10181,
+	10215 → 10214, 10217 → 10216, 10219 → 10218, 10221 → 10220, 10223 → 10222,
+	10628 → 10627, 10630 → 10629, 10632 → 10631, 10634 → 10633, 10636 → 10635,
+	10638 → 10637, 10640 → 10639, 10642 → 10641, 10644 → 10643, 10646 → 10645,
+	10648 → 10647, 10713 → 10712, 10715 → 10714, 10749 → 10748, 11779 → 11778,
+	11781 → 11780, 11786 → 11785, 11789 → 11788, 11805 → 11804, 11809 → 11808,
+	11811 → 11810, 11813 → 11812, 11815 → 11814, 11817 → 11816, 12296 → 11842,
+	12298 → 12297, 12300 → 12299, 12302 → 12301, 12304 → 12303, 12308 → 12305,
+	12310 → 12309, 12312 → 12311, 12314 → 12313, 12317 → 12315, 12319 → 12318,
+	64831 → 64830, 65048 → 65047, 65078 → 65077, 65080 → 65079, 65082 → 65081,
+	65084 → 65083, 65086 → 65085, 65088 → 65087, 65090 → 65089, 65092 → 65091,
+	65096 → 65095, 65114 → 65113, 65116 → 65115, 65118 → 65117, 65289 → 65288,
+	65341 → 65339, 65373 → 65371, 65376 → 65375, 65379 → 65378
+};
+
 /**
  * Return true if the supplied character is identified as an Arabic numeral
  * according to the Unicode character description, false otherwise.
@@ -1076,6 +1122,76 @@ Public stable method "_is line terminator" is
 	c : character
 |
 	(c's code point) ∈ lineTerminatorCharacters
+];
+
+/**
+ * Return true if the supplied character is identified as a punctuation start
+ * (Ps) or initial punctuation (Pi) character according to the Unicode character
+ * description, false otherwise.
+ *
+ * @method "_is punctuation start"
+ * @param "c" "character"
+ * @returns "boolean"
+ * @category "Unicode"
+ */
+Public stable method "_is punctuation start" is
+[
+	c : character
+|
+	(c's code point) ∈ punctuationStartToEndCharacters
+];
+
+/**
+ * Return true if the supplied character is identified as a punctuation end
+ * (Pe) or final punctuation (Pf) character according to the Unicode character
+ * description, false otherwise.
+ *
+ * @method "_is punctuation end"
+ * @param "c" "character"
+ * @returns "boolean"
+ * @category "Unicode"
+ */
+Public stable method "_is punctuation end" is
+[
+	c : character
+|
+	(c's code point) ∈ punctuationEndToStartCharacters
+];
+
+/**
+ * If a corresponding punctuation end (Pe) or final punctuation (Pf) character
+ * is available, that character is returned. Otherwise, the original character
+ * is returned.
+ *
+ * @method "punctuation end for_"
+ * @param "c" "character"
+ * @returns "string"
+ * @category "Unicode"
+ */
+Public stable method "punctuation end for_" is
+[
+	c : character
+|
+	(punctuationStartToEndCharacters[c's code point]
+		else [c's code point])→character
+];
+
+/**
+ * If a corresponding punctuation start (Ps) or initial punctuation (Pi)
+ * character is available, that character is returned. Otherwise, the original
+ * character is returned.
+ *
+ * @method "punctuation start for_"
+ * @param "c" "character"
+ * @returns "string"
+ * @category "Unicode"
+ */
+Public stable method "punctuation start for_" is
+[
+	c : character
+|
+	(punctuationEndToStartCharacters[c's code point]
+		else [c's code point])→character
 ];
 
 Private method "recase restriction for elements∈_using_" is
@@ -1249,12 +1365,12 @@ Semantic restriction "titlecase_" is recase restriction
  *
  * @method "_>_"
  * @param "a" "character"
- *        A character.
+ *    A character.
  * @param "b" "character"
- *        A character.
+ *    A character.
  * @returns "boolean"
- *          {@method "true"} if {@param "a"}'s code point is greater than
- *          {@param "b"}'s code point, {@method "false"} otherwise.
+ *     {@method "true"} if {@param "a"}'s code point is greater than
+ *     {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_>_" is
@@ -1270,12 +1386,12 @@ Stable method "_>_" is
  *
  * @method "_<_"
  * @param "a" "character"
- *        A character.
+ *    A character.
  * @param "b" "character"
- *        A character.
+ *    A character.
  * @returns "boolean"
- *          {@method "true"} if {@param "a"}'s code point is lesser than
- *          {@param "b"}'s code point, {@method "false"} otherwise.
+ *     {@method "true"} if {@param "a"}'s code point is lesser than
+ *     {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_<_" is
@@ -1292,12 +1408,12 @@ Stable method "_<_" is
  *
  * @method "_≥_"
  * @param "a" "character"
- *        A character.
+ *    A character.
  * @param "b" "character"
- *        A character.
+ *    A character.
  * @returns "boolean"
- *          {@method "true"} if {@param "a"}'s code point is greater than or
- *          equal to {@param "b"}'s code point, {@method "false"} otherwise.
+ *     {@method "true"} if {@param "a"}'s code point is greater than or
+ *     equal to {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_≥_" is
@@ -1314,12 +1430,12 @@ Stable method "_≥_" is
  *
  * @method "_≤_"
  * @param "a" "character"
- *        A character.
+ *    A character.
  * @param "b" "character"
- *        A character.
+ *    A character.
  * @returns "boolean"
- *          {@method "true"} if {@param "a"}'s code point is lesser than or
- *          equal to {@param "b"}'s code point, {@method "false"} otherwise.
+ *     {@method "true"} if {@param "a"}'s code point is lesser than or
+ *     equal to {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_≤_" is
@@ -1356,8 +1472,8 @@ Public method "Avail message⁇metacharacter" is [metacharactersEnum];
  * @method "_is an Avail message⁇metacharacter"
  * @param "c" "character"
  * @returns "boolean"
- *          {@method "true"} if {@param "c"} is an Avail metacharacter, {@method
- *          "false"} otherwise.
+ *     {@method "true"} if {@param "c"} is an Avail metacharacter, {@method
+ *     "false"} otherwise.
  * @category "Characters"
  */
 Public method "_is an Avail message⁇metacharacter" is

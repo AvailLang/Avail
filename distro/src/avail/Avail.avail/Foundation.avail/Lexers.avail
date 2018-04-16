@@ -65,14 +65,13 @@ Body
  * @lexer "end of line comment lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "comment"} {@type
- *          "token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "comment"} {@type "token"}.
  */
 /*
 Lexer $"end of line comment lexer"
@@ -80,20 +79,20 @@ when [c : character | c = ¢/]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
-	if source[countPosition + 1] = ¢/ then
+	if source[position + 1] = ¢/ then
 	[
 		i : real source position;
-		i ?= countPosition + 2;
+		i ?= position + 2;
 		size ::= |source|;
 		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
-		commentText ::= source[countPosition..i min size];
+		commentText ::= source[position..i min size];
 Print: "commentText=";
 Print: “commentText”;
 Print: "\n";
-		{<comment (commentText) @ countPosition:line>}
+		{<comment (commentText) @ position:line>}
 	]
 	else [∅]
 ];
@@ -119,32 +118,31 @@ radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
  * @lexer "explicit radix integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "integer"} {@type
- *          "literal token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "integer"} {@type "literal token"}.
  */
 Lexer $"explicit radix integer lexer"
 when [c : character | c ∈ radixIntegerAlphabet]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
 	/* Scan ahead looking for the radix indicator, ¢r. */
 	i : real source position;
-	i ?= countPosition + 1;
+	i ?= position + 1;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] ∈ radixIntegerAlphabetSet do [i++;];
 	if i > size ∨ source[i] ≠ ¢r then [∅]
 	else
 	[
-		integerText ::= source[countPosition..i-1];
+		integerText ::= source[position..i-1];
 		basePosition ::= (++i);
 		/* Scan for the end of the radix specifier token. */
 		While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
@@ -170,7 +168,7 @@ is
 								baseText,
 								(radixIntegerAlphabet[1..validBase])
 					];
-				{<`value` (source[countPosition..end]) @ countPosition:line>}
+				{<`value` (source[position..end]) @ position:line>}
 			]
 			else
 			[
@@ -195,26 +193,25 @@ binaryAlphabet ::= radixIntegerAlphabet[1..2]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "integer"} {@type
- *          "literal token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "integer"} {@type "literal token"}.
  */
 Lexer $"binary integer lexer"
 when [c : character | c = ¢0]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
 	/* Look ahead for a subsequent ¢b. */
 	i : real source position;
-	i ?= countPosition + 1;
+	i ?= position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢b then [∅]
 	else
@@ -235,7 +232,7 @@ is
 			end ::= (i-1) min size;
 			valueText ::= source[valuePosition..end];
 			value ::= valueText (base 2);
-			{<`value` (source[countPosition..end]) @ countPosition:line>}
+			{<`value` (source[position..end]) @ position:line>}
 		]
 	]
 ];
@@ -250,26 +247,25 @@ octalAlphabet ::= radixIntegerAlphabet[1..8]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "integer"} {@type
- *          "literal token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "integer"} {@type "literal token"}.
  */
 Lexer $"octal integer lexer"
 when [c : character | c = ¢0]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
 	/* Look ahead for a subsequent ¢o. */
 	i : real source position;
-	i ?= countPosition + 1;
+	i ?= position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢o then [∅]
 	else
@@ -290,7 +286,7 @@ is
 			end ::= (i-1) min size;
 			valueText ::= source[valuePosition..end];
 			value ::= valueText (base 8);
-			{<`value` (source[countPosition..end]) @ countPosition:line>}
+			{<`value` (source[position..end]) @ position:line>}
 		]
 	]
 ];
@@ -305,26 +301,25 @@ hexadecimalAlphabet ::= (radixIntegerAlphabet[1..16] ++ "abcdef")→set;
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "integer"} {@type
- *          "literal token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "integer"} {@type "literal token"}.
  */
 Lexer $"hexadecimal integer lexer"
 when [c : character | c = ¢0]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
 	/* Look ahead for a subsequent ¢x. */
 	i : real source position;
-	i ?= countPosition + 1;
+	i ?= position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢x then [∅]
 	else
@@ -342,69 +337,101 @@ is
 			end ::= (i-1) min size;
 			valueText ::= source[valuePosition..end];
 			value ::= valueText (base 16);
-			{<`value` (source[countPosition..end]) @ countPosition:line>}
+			{<`value` (source[position..end]) @ position:line>}
 		]
 	]
 ];
 
 /**
- * Upon encountering three (3) or more quotation marks {@code "\""}, attempt to
- * scan arbitrary text followed by an equivalent delimiter. The arbitrary text
- * is understood as the content of a {@type "string"}. No escape sequences are
- * processed.
+ * Upon encountering {@code "r"} followed by three (3) or more identical {@type
+ * "character"}s, attempt to scan arbitrary text followed by a corresponding end
+ * delimiter of the same length. The arbitrary text is understood as the content
+ * of a {@type "string"}. No escape sequences are processed.
  *
+ * If the {@type "character"}s comprising the start delimiter are {@method "_is
+ * punctuation start" punctuation start (Ps) or initial punctuation (Pi} {@type
+ * "character"}s, then the end delimiter must comprise the corresponding
+ * punctuation end (Pe) or final punctuation (Pf) {@type "character"}s.
+ *
+ * If the {@type "character"}s comprising the start delimiter are {@method "_is
+ * punctuation end" punctuation end (Pe) or final punctuation (Pf)} {@type
+ * "character"}s, then the end delimiter must comprise the corresponding
+ * punctuation start (Ps) or initial punctuation (Pi) {@type "character"}s.
+ *
+ * If the {@type "character"}s comprising the start delimiter are any other
+ * {@type "character"}s, then the end delimiter must comprise those same {@type
+ * "character"}s.
+ * 
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
- *        The position of the leading Arabic numeral of the count of dice.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
  * @param "line" "real source line number"
- *        The line number of the leading Arabic numeral of the count of dice.
+ *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *          The possible lexes discovered at {@code "countPosition"},
- *          potentially conforming to a single {@type "string"} {@type
- *          "literal token"}.
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "string"} {@type "literal token"}.
  */
 Lexer $"raw string lexer"
-when [c : character | c = ¢"\""]
+when [c : character | c = ¢r]
 is
 [
 	source : string,
-	countPosition : real source position,
+	position : real source position,
 	line : real source line number
 |
 	/* Count subsequent ¢" characters. */
 	i : real source position;
-	i ?= countPosition + 1;
+	i ?= position + 1;
 	size ::= |source|;
-	While i ≤ size ∧ source[i] = ¢"\"" do [i++;];
-	if i > size ∨ i - countPosition < 3 then [∅]
+	if i > size then [∅]
 	else
 	[
-		delimiter ::= source[countPosition..i-1];
-		valuePosition ::= i;
-		/* Scan ahead for the close delimiter. */
-		limit ::= size - |delimiter| + 1;
-		While
-			i ≤ limit
-				∧ source[i] ≠ "\""
-				∧ source[i..i + |delimiter| - 1] ≠ delimiter
-		do [i++;];
-		if i > limit then
+		startChar ::= source[i];
+		i++;
+		While i ≤ size ∧ source[i] = startChar do [i++;];
+		startDelimiter ::= source[position+1..i-1];
+		delimiterSize ::= |startDelimiter|;
+		if delimiterSize < 3 then
 		[
 			Reject parse, expected:
 				format
-					"raw string to terminate with ‘①’ before end-of-file"
+					"raw string to begin with three (3) or more “①” \
+					\|characters"
 				with
-					delimiter
+					startChar
 		]
 		else
 		[
-			value ::= source[valuePosition..i-1];
-			{<
-				`value` (source[countPosition..i + |delimiter| - 1])
-					@ countPosition:line
-			>}
+			endChar ::=
+				if startChar is punctuation start
+				then [punctuation end for startChar]
+				else [punctuation start for startChar];
+			endDelimiter ::= delimiterSize of endChar;
+			valuePosition ::= i;
+			/* Scan ahead for the close delimiter. */
+			limit ::= size - delimiterSize + 1;
+			While
+				i ≤ limit
+					∧ source[i..i + delimiterSize - 1] ≠ endDelimiter
+			do [i++;];
+			if i > limit then
+			[
+				Reject parse, expected:
+					format
+						"raw string to terminate with ‘①’ before end of file"
+					with
+						endDelimiter
+			]
+			else
+			[
+				value ::= source[valuePosition..i-1];
+				{<
+					`value` (source[position..i + delimiterSize - 1])
+						@ position:line
+				>}
+			]
 		]
 	]
 ];
