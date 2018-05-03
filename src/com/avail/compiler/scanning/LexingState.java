@@ -207,6 +207,10 @@ public class LexingState
 			this, singletonList(continuation), argument);
 	}
 
+	/** An Avail string for use as the lexeme in end-of-file tokens. */
+	private static final A_String endOfFileLexeme =
+		stringFrom("end-of-file").makeShared();
+
 	/**
 	 * Eventually invoke the given {@link Continuation1NotNull} with the {@link
 	 * List} of {@link A_Token tokens} at this position.  If necessary, launch
@@ -244,10 +248,7 @@ public class LexingState
 			// The end of the source code.  Produce an end-of-file token.
 			assert position == source.tupleSize() + 1;
 			final A_Token endOfFileToken = newToken(
-				stringFrom("end-of-file"),
-				position,
-				lineNumber,
-				END_OF_FILE);
+				endOfFileLexeme, position, lineNumber, END_OF_FILE);
 			nextTokens.add(endOfFileToken);
 			for (final Continuation1NotNull<List<A_Token>> action : actions)
 			{
@@ -374,17 +375,41 @@ public class LexingState
 				}
 				decrementAndRunActionsWhenZero(countdown);
 			};
+		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
+		setFiberContinuationsTrackingWork(fiber, onSuccess, onFailure);
+		Interpreter.runOutermostFunction(
+			loader.runtime(), fiber, lexer.lexerBodyFunction(), arguments);
+	}
+
+	/**
+	 * Set up the given fiber to eventually invoke either the onSuccess or the
+	 * onFailure continuation, but not both.  However, immediately record the
+	 * fact that we're expecting one of these to be eventually invoked, and wrap
+	 * the continuations with code that will invoke {@link
+	 * CompilationContext#noMoreWorkUnits} when the number of outstanding tasks
+	 * reaches zero.
+	 *
+	 * @param fiber
+	 *        The {@link A_Fiber} to set up.
+	 * @param onSuccess
+	 *        The {@link Continuation1NotNull} to invoke in the event of a
+	 *        successful completion of the fiber.
+	 * @param onFailure
+	 *        The {@link Continuation1NotNull} to invoke in the event that the
+	 *        fiber raises a {@link Throwable} during its execution.
+	 */
+	public void setFiberContinuationsTrackingWork (
+		final A_Fiber fiber,
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
+	{
 		assert compilationContext.getNoMoreWorkUnits() != null;
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
 		compilationContext.startWorkUnits(1);
 		final AtomicBoolean oneWay = new AtomicBoolean();
-		fiber.resultContinuation(
-			compilationContext.workUnitCompletion(this, oneWay, onSuccess));
-		fiber.failureContinuation(
+		fiber.setSuccessAndFailureContinuations(
+			compilationContext.workUnitCompletion(this, oneWay, onSuccess),
 			compilationContext.workUnitCompletion(this, oneWay, onFailure));
-		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
-		Interpreter.runOutermostFunction(
-			loader.runtime(), fiber, lexer.lexerBodyFunction(), arguments);
 	}
 
 	/**
@@ -406,7 +431,7 @@ public class LexingState
 		final List<A_Token> theNextTokens = stripNull(nextTokens);
 		for (final A_Tuple run : newTokenRuns)
 		{
-//			assert run.tupleSize() > 0;
+			assert run.tupleSize() > 0;
 			theNextTokens.add(run.tupleAt(1));
 			LexingState state = this;
 			final Iterator<AvailObject> iterator = run.iterator();
@@ -453,18 +478,30 @@ public class LexingState
 	 */
 	private void decrementAndRunActionsWhenZero (final AtomicInteger countdown)
 	{
-		if (countdown.decrementAndGet() == 0)
+		final int newCount = countdown.decrementAndGet();
+		assert newCount >= 0;
+		if (newCount == 0)
 		{
 			// We just heard from the last lexer.  Run the actions once, and
 			// ensure any new actions start immediately with nextTokens.
-			final List<Continuation1NotNull<List<A_Token>>> queuedActions;
-			synchronized (this)
-			{
-				queuedActions = stripNull(actions);
-				actions = null;
-			}
-			workUnitsDo(queuedActions, stripNull(nextTokens));
+			workUnitsDo(consumeActions(), stripNull(nextTokens));
 		}
+	}
+
+	/**
+	 * Return the list of actions, writing null in its place to indicate new
+	 * actions should run immediately rather than be queued.  This is
+	 * synchronized.
+	 *
+	 * @return The list of actions prior to nulling the field.
+	 */
+	private synchronized List<Continuation1NotNull<List<A_Token>>>
+		consumeActions ()
+	{
+		final List<Continuation1NotNull<List<A_Token>>> queuedActions =
+			stripNull(actions);
+		actions = null;
+		return queuedActions;
 	}
 
 	/**

@@ -45,7 +45,6 @@ import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
 import com.avail.performance.StatisticReport;
-import com.avail.persistence.IndexedFileException;
 import com.avail.tools.compiler.configuration.CommandLineConfigurator;
 import com.avail.tools.compiler.configuration.CompilerConfiguration;
 import com.avail.tools.compiler.configuration.EnvironmentConfigurator;
@@ -54,9 +53,9 @@ import com.avail.utility.NullOutputStream;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.Continuation2;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintStream;
 
 /**
@@ -143,8 +142,8 @@ import java.io.PrintStream;
 public final class Compiler
 {
 	/**
-	 * Configure the {@linkplain Compiler compiler} to build the target
-	 * {@linkplain ModuleDescriptor module}.
+	 * Configure the {@code Compiler} to build the target {@linkplain
+	 * ModuleDescriptor module}.
 	 *
 	 * @param args
 	 *        The command-line arguments.
@@ -242,25 +241,20 @@ public final class Compiler
 	 * Clear all repositories for which a valid source directory has been
 	 * specified.
 	 *
-	 * @param resolver The ModuleNameResolver which contains the locations of
-	 *                 all of the Avail source directories and repositories.
+	 * @param resolver
+	 *        The ModuleNameResolver which contains the locations of all of the
+	 *        Avail source directories and repositories.
 	 */
-	private static void doClearRepositories(final ModuleNameResolver resolver)
+	private static void doClearRepositories (
+		final ModuleNameResolver resolver)
 	{
-		try
+		for (final ModuleRoot root : resolver.moduleRoots().roots())
 		{
-			for (final ModuleRoot root : resolver.moduleRoots().roots())
+			final @Nullable File dir = root.sourceDirectory();
+			if (dir != null && dir.isDirectory())
 			{
-				final File dir = root.sourceDirectory();
-				if (dir != null && dir.isDirectory())
-				{
-					root.repository().clear();
-				}
+				root.repository().clear();
 			}
-		}
-		catch (final IOException e)
-		{
-			throw new IndexedFileException(e);
 		}
 	}
 
@@ -312,7 +306,7 @@ public final class Compiler
 
 		try
 		{
-			final AvailBuilder builder;
+			final @Nullable AvailBuilder builder;
 			if (configuration.compileModules()
 				|| configuration.generateDocumentation())
 			{

@@ -4067,24 +4067,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ResultContinuation (
-		final AvailObject object,
-		final Continuation1NotNull<AvailObject> continuation)
-	{
-		o_Traversed(object).resultContinuation(continuation);
-	}
-
-	@Override
-	void o_FailureContinuation (
-		final AvailObject object,
-		final Continuation1NotNull<Throwable> continuation)
-	{
-		o_Traversed(object).failureContinuation(continuation);
-	}
-
-	@Override
-	@Nullable
-	AvailLoader o_AvailLoader (final AvailObject object)
+	@Nullable AvailLoader o_AvailLoader (final AvailObject object)
 	{
 		return o_Traversed(object).availLoader();
 	}
@@ -5125,5 +5108,15 @@ extends AbstractDescriptor
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
 		o_Traversed(object).forEachInMapBin(action);
+	}
+
+	@Override
+	void o_SetSuccessAndFailureContinuations (
+		final AvailObject object,
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
+	{
+		o_Traversed(object).setSuccessAndFailureContinuations(
+			onSuccess, onFailure);
 	}
 }

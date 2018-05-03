@@ -48,7 +48,7 @@ public final class UnloadTask
 extends AbstractWorkbenchTask
 {
 	@Override
-	protected void executeTask () throws Exception
+	protected void executeTask ()
 	{
 		workbench.availBuilder.unloadTarget(targetModuleName);
 	}
@@ -64,7 +64,7 @@ extends AbstractWorkbenchTask
 	}
 
 	/**
-	 * Construct a new {@link UnloadTask}.
+	 * Construct a new {@code UnloadTask}.
 	 *
 	 * @param workbench The owning {@link AvailWorkbench}.
 	 * @param targetModuleName

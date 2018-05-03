@@ -160,7 +160,6 @@ public final class AvailRuntime
 				try (final Scanner scanner = new Scanner(resourceStream))
 				{
 					version = scanner.nextLine();
-					scanner.close();
 				}
 			}
 		}
@@ -908,12 +907,10 @@ public final class AvailRuntime
 			}
 			for (final A_Method method : methods)
 			{
-				final Set<A_Definition> bundleDefinitions = new HashSet<>(
-					TupleDescriptor.<A_Definition>toList(
-						method.definitionsTuple()));
+				final Set<A_Definition> bundleDefinitions =
+					new HashSet<>(toList(method.definitionsTuple()));
 				bundleDefinitions.addAll(
-					toList(
-						method.macroDefinitionsTuple()));
+					toList(method.macroDefinitionsTuple()));
 				for (final A_Bundle bundle : method.bundles())
 				{
 					final A_Map bundlePlans = bundle.definitionParsingPlans();

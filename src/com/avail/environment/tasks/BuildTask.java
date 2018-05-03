@@ -50,7 +50,7 @@ public final class BuildTask
 extends AbstractWorkbenchTask
 {
 	/**
-	 * Construct a new {@link BuildTask}.
+	 * Construct a new {@code BuildTask}.
 	 *
 	 * @param workbench The owning {@link AvailWorkbench}.
 	 * @param targetModuleName
@@ -74,6 +74,7 @@ extends AbstractWorkbenchTask
 	{
 		return (moduleName, moduleSize, position) ->
 		{
+			assert moduleName != null;
 			assert moduleSize != null;
 			assert position != null;
 			workbench.eventuallyUpdatePerModuleProgress(
@@ -98,7 +99,7 @@ extends AbstractWorkbenchTask
 	}
 
 	@Override
-	protected void executeTask () throws Exception
+	protected void executeTask ()
 	{
 		assert targetModuleName != null;
 		workbench.availBuilder.buildTarget(

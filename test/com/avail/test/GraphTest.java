@@ -235,8 +235,6 @@ public class GraphTest
 		tinyGraph.parallelVisit(
 			(vertex, completion) ->
 			{
-				assert vertex != null;
-				assert completion != null;
 				assertEquals(mainThread, Thread.currentThread());
 				for (final Integer previousVertex : visitedVertices)
 				{

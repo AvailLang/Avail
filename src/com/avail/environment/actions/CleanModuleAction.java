@@ -40,7 +40,6 @@ import com.avail.persistence.IndexedRepositoryManager;
 
 import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 import static com.avail.utility.Nulls.stripNull;
@@ -60,7 +59,7 @@ extends AbstractWorkbenchAction
 	{
 		assert workbench.backgroundTask == null;
 
-		final ModuleRoot root = workbench.selectedModuleRoot();
+		final @Nullable ModuleRoot root = workbench.selectedModuleRoot();
 		if (root != null)
 		{
 			// Delete an entire repository.
@@ -68,7 +67,7 @@ extends AbstractWorkbenchAction
 			{
 				root.repository().clear();
 			}
-			catch (IOException | IndexedFileException e)
+			catch (final IndexedFileException e)
 			{
 				// Ignore problem for now.
 			}
@@ -93,7 +92,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link CleanModuleAction}.
+	 * Construct a new {@code CleanModuleAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

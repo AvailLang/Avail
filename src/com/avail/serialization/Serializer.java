@@ -35,12 +35,14 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.utility.evaluation.Continuation0;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
@@ -115,6 +117,33 @@ public class Serializer
 	 * The {@link OutputStream} on which to write the serialized objects.
 	 */
 	private final OutputStream output;
+
+	/**
+	 * The module within which serialization is occurring.  If non-null, it is
+	 * used to detect capture of atoms that are not defined in ancestor modules.
+	 */
+	public final @Nullable A_Module module;
+
+	/**
+	 * Check that the atom is defined in the ancestry of the current module, if
+	 * any.  Fail if it isn't.
+	 *
+	 * @param atom
+	 *        The {@link A_Atom} to check.
+	 */
+	void checkAtom (final A_Atom atom)
+	{
+		if (module == null)
+		{
+			return;
+		}
+		final A_Module atomModule = atom.issuingModule();
+		if (atomModule.equalsNil())
+		{
+			return;
+		}
+		assert module.allAncestors().hasElement(atomModule);
+	}
 
 	/**
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
@@ -300,10 +329,8 @@ public class Serializer
 			// Note that we have to add these actions even if we've already
 			// stacked equivalent actions, since it's the last one we push that
 			// will cause the instruction to be emitted.
-			workStack.addLast(new Continuation0()
-			{
-				@Override
-				public void value ()
+			workStack.addLast(
+				() ->
 				{
 					if (!instruction.hasBeenWritten())
 					{
@@ -311,42 +338,18 @@ public class Serializer
 						instruction.writeTo(Serializer.this);
 						assert instruction.hasBeenWritten();
 					}
-				}
-
-				@Override
-				public String toString ()
-				{
-					return "Assemble " + instruction.operation()
-						+ '(' + object + ')';
-				}
-			});
+				});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
 			final SerializerOperand[] operands =
 				instruction.operation().operands();
-			final A_BasicObject[] subobjects = instruction.subobjects();
-			assert subobjects.length == operands.length;
-			for (int i = subobjects.length - 1; i >= 0; i--)
+			assert instruction.subobjectsCount() == operands.length;
+			for (int i = instruction.subobjectsCount() - 1; i >= 0; i--)
 			{
 				final SerializerOperand operand = operands[i];
-				final A_BasicObject operandValue = subobjects[i];
-				workStack.addLast(new Continuation0()
-				{
-
-					@Override
-					public void value ()
-					{
-						operand.trace(
-							(AvailObject) operandValue,
-							Serializer.this);
-					}
-
-					@Override
-					public String toString ()
-					{
-						return "Trace(" + operandValue + ')';
-					}
-				});
+				final A_BasicObject operandValue = instruction.getSubobject(i);
+				workStack.addLast(
+					() -> operand.trace((AvailObject) operandValue, this));
 			}
 			if (instruction.operation().isVariableCreation()
 				&& !object.value().equalsNil())
@@ -356,20 +359,7 @@ public class Serializer
 				// variable's value.  This prevents recursion, but ensures that
 				// everything reachable, including through variables, will be
 				// traced.
-				workStack.addFirst(new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						traceOne(object.value());
-					}
-
-					@Override
-					public String toString ()
-					{
-						return "TraceVariable(" + object.kind() + ')';
-					}
-				});
+				workStack.addFirst(() -> traceOne(object.value()));
 			}
 		}
 	}
@@ -400,13 +390,27 @@ public class Serializer
 	}
 
 	/**
-	 * Construct a new {@link Serializer}.
+	 * Construct a new {@code Serializer}.
+	 *
+	 * @param output An {@link OutputStream} on which to write the module.
+	 */
+	public Serializer (
+		final OutputStream output,
+		final A_Module module)
+	{
+		this.output = output;
+		this.module = module;
+	}
+
+	/**
+	 * Construct a new {@code Serializer}.
 	 *
 	 * @param output An {@link OutputStream} on which to write the module.
 	 */
 	public Serializer (final OutputStream output)
 	{
 		this.output = output;
+		this.module = null;
 	}
 
 	/**

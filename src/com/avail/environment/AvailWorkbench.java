@@ -34,7 +34,14 @@ package com.avail.environment;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
@@ -51,13 +58,28 @@ import com.avail.performance.Statistic;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableInt;
+import com.avail.utility.MutableLong;
 import com.avail.utility.Pair;
 import com.sun.javafx.application.PlatformImpl;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.tree.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.TabSet;
+import javax.swing.text.TabStop;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -67,7 +89,13 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
@@ -75,6 +103,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.prefs.BackingStoreException;
@@ -82,11 +111,13 @@ import java.util.prefs.Preferences;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
+import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
 import static java.lang.System.currentTimeMillis;
+import static java.util.Comparator.comparing;
 import static javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 import static javax.swing.SwingUtilities.invokeLater;
@@ -306,7 +337,7 @@ extends JFrame
 	}
 
 	/** Truncate the start of the document any time it exceeds this. */
-	private final int maxDocumentSize = 10_000_000;
+	private static final int maxDocumentSize = 10_000_000;
 
 	/**
 	 * A singular write to an output stream.  This write is considered atomic
@@ -327,7 +358,7 @@ extends JFrame
 	}
 
 	/** The last moment (ms) that a UI update of the transcript completed. */
-	private volatile long lastTranscriptUpdateCompleted = 0L;
+	private final AtomicLong lastTranscriptUpdateCompleted = new AtomicLong(0L);
 
 	/**
 	 * A {@link List} of {@link BuildOutputStreamEntry}(s), each of which holds
@@ -335,7 +366,7 @@ extends JFrame
 	 * updated after an add to this queue, or before a remove from this queue.
 	 * This ensures that the queue contains at least as many characters as the
 	 * counter indicates, although it can be more.  Additionally, to allow each
-	 * enqueuer to also dequeue surplus entries, the {@link #dequeueLock} must
+	 * enqueuer to also deque surplus entries, the {@link #dequeLock} must
 	 * be held whenever removing entries from the queue.
 	 */
 	@InnerAccess
@@ -352,7 +383,7 @@ extends JFrame
 	/**
 	 * A lock that's held when removing things from the {@link #updateQueue}.
 	 */
-	final WriteLock dequeueLock = new ReentrantReadWriteLock(false).writeLock();
+	final WriteLock dequeLock = new ReentrantReadWriteLock(false).writeLock();
 
 	/**
 	 * Update the {@linkplain #transcript} by appending the (non-empty) queued
@@ -366,7 +397,7 @@ extends JFrame
 	{
 		assert totalQueuedTextSize.get() > 0;
 		final long now = currentTimeMillis();
-		if (now - lastTranscriptUpdateCompleted > 200)
+		if (now - lastTranscriptUpdateCompleted.get() > 200)
 		{
 			// It's been more than 200ms since the last UI update completed, so
 			// process the update immediately.
@@ -381,10 +412,12 @@ extends JFrame
 					@Override
 					public void run ()
 					{
-						invokeLater(() -> privateUpdateTranscriptInUIThread());
+						invokeLater(
+							AvailWorkbench.this
+								::privateUpdateTranscriptInUIThread);
 					}
 				},
-				max(0, now - lastTranscriptUpdateCompleted));
+				max(0, now - lastTranscriptUpdateCompleted.get()));
 		}
 	}
 
@@ -401,9 +434,9 @@ extends JFrame
 	/**
 	 * Discard entries from the {@link #updateQueue} without updating the {@link
 	 * #totalQueuedTextSize} until no more can be discarded.  The {@link
-	 * #dequeueLock} must be acquired before calling this.  The caller should
+	 * #dequeLock} must be acquired before calling this.  The caller should
 	 * decrease the {@link #totalQueuedTextSize} by the returned amount before
-	 * releasing the {@link #dequeueLock}.
+	 * releasing the {@link #dequeLock}.
 	 *
 	 * <p>Assume the {@link #totalQueuedTextSize} is accurate prior to the call.
 	 * </p>
@@ -415,7 +448,7 @@ extends JFrame
 		final long before = System.nanoTime();
 		try
 		{
-			assert dequeueLock.isHeldByCurrentThread();
+			assert dequeLock.isHeldByCurrentThread();
 			long excessSize = totalQueuedTextSize.get() - maxDocumentSize;
 			int removed = 0;
 			while (true)
@@ -450,69 +483,65 @@ extends JFrame
 	void privateUpdateTranscriptInUIThread ()
 	{
 		assert EventQueue.isDispatchThread();
-		// Hold the dequeueLock just long enough to extract all entries, only
+		// Hold the dequeLock just long enough to extract all entries, only
 		// decreasing totalQueuedTextSize just before unlocking.
-		@SuppressWarnings("TooBroadScope") int lengthToInsert = 0;
-		@SuppressWarnings("TooBroadScope") final boolean wentToZero;
-		//noinspection TooBroadScope
+		final MutableInt lengthToInsert = new MutableInt(0);
 		final List<BuildOutputStreamEntry> aggregatedEntries =
 			new ArrayList<>();
-		dequeueLock.lock();
-		try
-		{
-			int removedSize = privateDiscardExcessLeadingQueuedUpdates();
-			@Nullable StreamStyle currentStyle = null;
-			final StringBuilder builder = new StringBuilder();
-			while (true)
+		final boolean wentToZero = lockWhile(
+			dequeLock,
+			() ->
 			{
-				final @Nullable BuildOutputStreamEntry entry =
-					removedSize < totalQueuedTextSize.get()
-						? stripNull(updateQueue.poll())
-						: null;
-				if (entry == null || entry.style != currentStyle)
+				int removedSize = privateDiscardExcessLeadingQueuedUpdates();
+				@Nullable StreamStyle currentStyle = null;
+				final StringBuilder builder = new StringBuilder();
+				while (true)
 				{
-					// Either the final entry or a style change.
-					if (currentStyle != null)
+					final @Nullable BuildOutputStreamEntry entry =
+						removedSize < totalQueuedTextSize.get()
+							? stripNull(updateQueue.poll())
+							: null;
+					if (entry == null || entry.style != currentStyle)
 					{
-						final String string = builder.toString();
-						aggregatedEntries.add(
-							new BuildOutputStreamEntry(currentStyle, string));
-						lengthToInsert += string.length();
-						builder.setLength(0);
+						// Either the final entry or a style change.
+						if (currentStyle != null)
+						{
+							final String string = builder.toString();
+							aggregatedEntries.add(
+								new BuildOutputStreamEntry(
+									currentStyle, string));
+							lengthToInsert.value += string.length();
+							builder.setLength(0);
+						}
+						if (entry == null)
+						{
+							// The queue has been emptied.
+							break;
+						}
+						currentStyle = entry.style;
 					}
-					if (entry == null)
-					{
-						// The queue has been emptied.
-						break;
-					}
-					currentStyle = entry.style;
+					builder.append(entry.string);
+					removedSize += entry.string.length();
 				}
-				builder.append(entry.string);
-				removedSize += entry.string.length();
-			}
-			// Only now should we decrease the counter, otherwise writers could
-			// have kept adding things unboundedly while we were removing them.
-			// Adding things "boundedly" is fine, however (i.e., blocking on the
-			// dequeueLock if too much is added).
-			final long afterRemove =
-				totalQueuedTextSize.addAndGet(-removedSize);
-			assert afterRemove >= 0;
-			wentToZero = afterRemove == 0;
-		}
-		finally
-		{
-			dequeueLock.unlock();
-		}
+				// Only now should we decrease the counter, otherwise writers could
+				// have kept adding things unboundedly while we were removing them.
+				// Adding things "boundedly" is fine, however (i.e., blocking on the
+				// dequeLock if too much is added).
+				final long afterRemove =
+					totalQueuedTextSize.addAndGet(-removedSize);
+				assert afterRemove >= 0;
+				return afterRemove == 0;
+			});
 
 		assert !aggregatedEntries.isEmpty();
-		assert lengthToInsert > 0;
+		assert lengthToInsert.value > 0;
 		final StyledDocument doc = document();
 		try
 		{
 			final int statusSize = perModuleStatusTextSize;
 			final int length = doc.getLength();
 			final int amountToRemove =
-				length - statusSize + lengthToInsert - maxDocumentSize;
+				length - statusSize + lengthToInsert.value - maxDocumentSize;
 			if (amountToRemove > 0)
 			{
 				// We need to trim off some of the document, right after the
@@ -538,7 +567,7 @@ extends JFrame
 		{
 			// Ignore the failed append, which should be impossible.
 		}
-		lastTranscriptUpdateCompleted = currentTimeMillis();
+		lastTranscriptUpdateCompleted.set(currentTimeMillis());
 		transcript.repaint();
 		if (!wentToZero)
 		{
@@ -630,7 +659,7 @@ extends JFrame
 		 */
 		private void queueForTranscript ()
 		{
-//			assert Thread.holdsLock(this);
+			assert Thread.holdsLock(this);
 			final String text;
 			try
 			{
@@ -940,13 +969,6 @@ extends JFrame
 	public final AvailBuilder availBuilder;
 
 	/**
-	 * A {@link Map} from a {@link ResolvedModuleName} to the open {@link
-	 * JFrame} displaying the corresponding source module.
-	 */
-	public final Map<ResolvedModuleName, JFrame> openedSourceModules =
-		new HashMap<>();
-
-	/**
 	 * The {@linkplain JProgressBar progress bar} that displays the overall
 	 * build progress.
 	 */
@@ -1095,6 +1117,12 @@ extends JFrame
 	 */
 	@InnerAccess final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
 		new ToggleDebugInterpreterPrimitives(this);
+
+	/**
+	 * The {@linkplain ToggleDebugWorkUnits toggle work-units debug action}.
+	 */
+	@InnerAccess final ToggleDebugWorkUnits toggleDebugWorkUnits =
+		new ToggleDebugWorkUnits(this);
 
 	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
 	@InnerAccess
@@ -1354,9 +1382,9 @@ extends JFrame
 
 			@Override
 			public FileVisitResult visitFile (
-					final @Nullable Path file,
-					final @Nullable BasicFileAttributes attrs)
-				throws IOException
+				final @Nullable Path file,
+				final @Nullable BasicFileAttributes attributes)
+			throws IOException
 			{
 				assert file != null;
 				final DefaultMutableTreeNode parentNode = stack.peekFirst();
@@ -1479,7 +1507,7 @@ extends JFrame
 	 */
 	public TreeNode newEntryPointsTree ()
 	{
-		final Object mutex = new Object();
+		final ReadWriteLock mutex = new ReentrantReadWriteLock();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
 		availBuilder.traceDirectories(
 			(resolvedName, moduleVersion) ->
@@ -1499,15 +1527,13 @@ extends JFrame
 								availBuilder, resolvedName, entryPoint);
 						moduleNode.add(entryPointNode);
 					}
-					synchronized (mutex)
-					{
-						moduleNodes.put(
-							resolvedName.qualifiedName(), moduleNode);
-					}
+					lockWhile(
+						mutex.writeLock(),
+						() -> moduleNodes.put(
+							resolvedName.qualifiedName(), moduleNode));
 				}
 			});
-		final String [] mapKeys = moduleNodes.keySet().toArray(
-			new String [moduleNodes.size()]);
+		final String [] mapKeys = moduleNodes.keySet().toArray(new String[0]);
 		Arrays.sort(mapKeys);
 		final DefaultMutableTreeNode entryPointsTreeRoot =
 			new DefaultMutableTreeNode("(entry points hidden root)");
@@ -1705,25 +1731,29 @@ extends JFrame
 	/**
 	 * A monitor to serialize access to the current build status information.
 	 */
-	private final Object buildGlobalUpdateMonitor = new Object();
+	private final ReadWriteLock buildGlobalUpdateLock =
+		new ReentrantReadWriteLock();
 
 	/**
 	 * The position up to which the current build has completed.  Protected by
-	 * {@link #buildGlobalUpdateMonitor}.
-	 *//**/
+	 * {@link #buildGlobalUpdateLock}.
+	 */
+	//@GuardedBy("buildGlobalUpdateLock")
 	private long latestGlobalBuildPosition = -1;
 
 	/**
 	 * The total number of bytes of code to be loaded.  Protected by {@link
-	 * #buildGlobalUpdateMonitor}.
+	 * #buildGlobalUpdateLock}.
 	 */
+	//@GuardedBy("buildGlobalUpdateLock")
 	private long globalBuildLimit = -1;
 
 	/**
 	 * Whether a user interface task for updating the visible build progress has
 	 * been queued but not yet completed.  Protected by {@link
-	 * #buildGlobalUpdateMonitor}.
+	 * #buildGlobalUpdateLock}.
 	 */
+	//@GuardedBy("buildGlobalUpdateLock")
 	private boolean hasQueuedGlobalBuildUpdate = false;
 
 	/**
@@ -1739,25 +1769,27 @@ extends JFrame
 		final long position,
 		final long globalCodeSize)
 	{
-		synchronized (buildGlobalUpdateMonitor)
-		{
-			latestGlobalBuildPosition = position;
-			globalBuildLimit = globalCodeSize;
-			if (!hasQueuedGlobalBuildUpdate)
+		lockWhile(
+			buildGlobalUpdateLock.writeLock(),
+			() ->
 			{
-				hasQueuedGlobalBuildUpdate = true;
-				availBuilder.runtime.timer.schedule(
-					new TimerTask()
-					{
-						@Override
-						public void run ()
+				latestGlobalBuildPosition = position;
+				globalBuildLimit = globalCodeSize;
+				if (!hasQueuedGlobalBuildUpdate)
+				{
+					hasQueuedGlobalBuildUpdate = true;
+					availBuilder.runtime.timer.schedule(
+						new TimerTask()
 						{
-							invokeLater(() -> updateBuildProgress());
-						}
-					},
-					100);
-			}
-		}
+							@Override
+							public void run ()
+							{
+								invokeLater(() -> updateBuildProgress());
+							}
+						},
+						100);
+				}
+			});
 	}
 
 	/**
@@ -1765,48 +1797,53 @@ extends JFrame
 	 */
 	@InnerAccess void updateBuildProgress ()
 	{
-		final long position;
-		final long max;
-		synchronized (buildGlobalUpdateMonitor)
-		{
-			assert hasQueuedGlobalBuildUpdate;
-			position = latestGlobalBuildPosition;
-			max = globalBuildLimit;
-			hasQueuedGlobalBuildUpdate = false;
-		}
-		final int perThousand = (int) ((position * 1000) / max);
+		final MutableLong position = new MutableLong(0L);
+		final MutableLong max = new MutableLong(0L);
+		lockWhile(
+			buildGlobalUpdateLock.writeLock(),
+			() ->
+			{
+				assert hasQueuedGlobalBuildUpdate;
+				position.value = latestGlobalBuildPosition;
+				max.value = globalBuildLimit;
+				hasQueuedGlobalBuildUpdate = false;
+			});
+		final int perThousand = (int) ((position.value * 1000) / max.value);
 		buildProgress.setValue(perThousand);
 		final float percent = perThousand / 10.0f;
 		buildProgress.setString(String.format(
 			"Build Progress: %,d / %,d bytes (%3.1f%%)",
-			position,
-			max,
+			position.value,
+			max.value,
 			percent));
 	}
 
 	/** A monitor to protect updates to the per module progress. */
-	private final Object perModuleProgressMonitor = new Object();
+	private final ReadWriteLock perModuleProgressLock =
+		new ReentrantReadWriteLock();
 
 	/**
 	 * The progress map per module.  Protected by {@link
-	 * #perModuleProgressMonitor}.
+	 * #perModuleProgressLock}.
 	 */
+	//@GuardedBy("perModuleProgressLock")
 	private final Map<ModuleName, Pair<Long, Long>> perModuleProgress =
 		new HashMap<>();
 
 	/**
-	 * The number of characters of text at the start of the transcript which is
-	 * currently displaying per-module progress information.  Protected by
-	 * {@link #perModuleProgressMonitor}
-	 */
-	private int perModuleStatusTextSize = 0;
-
-	/**
 	 * Whether a user interface task for updating the visible per-module
 	 * information has been queued but not yet completed.  Protected by {@link
-	 * #perModuleProgressMonitor}.
+	 * #perModuleProgressLock}.
 	 */
+	//@GuardedBy("perModuleProgressLock")
 	private boolean hasQueuedPerModuleBuildUpdate = false;
+
+	/**
+	 * The number of characters of text at the start of the transcript which is
+	 * currently displaying per-module progress information.  Only accessible in
+	 * the event thread.
+	 */
+	private int perModuleStatusTextSize = 0;
 
 	/**
 	 * Progress has been made at loading a module.
@@ -1816,46 +1853,51 @@ extends JFrame
 		final long moduleSize,
 		final long position)
 	{
-		synchronized (perModuleProgressMonitor)
-		{
-			if (position == moduleSize)
+		lockWhile(
+			perModuleProgressLock.writeLock(),
+			() ->
 			{
-				perModuleProgress.remove(moduleName);
-			}
-			else
-			{
-				perModuleProgress.put(
-					moduleName, new Pair<>(position, moduleSize));
-			}
-			if (!hasQueuedPerModuleBuildUpdate)
-			{
-				hasQueuedPerModuleBuildUpdate = true;
-				availBuilder.runtime.timer.schedule(
-					new TimerTask()
-					{
-						@Override
-						public void run ()
+				if (position == moduleSize)
+				{
+					perModuleProgress.remove(moduleName);
+				}
+				else
+				{
+					perModuleProgress.put(
+						moduleName, new Pair<>(position, moduleSize));
+				}
+				if (!hasQueuedPerModuleBuildUpdate)
+				{
+					hasQueuedPerModuleBuildUpdate = true;
+					availBuilder.runtime.timer.schedule(
+						new TimerTask()
 						{
-							invokeLater(() -> updatePerModuleProgress());
-						}
-					},
-					100);
-			}
-		}
+							@Override
+							public void run ()
+							{
+								invokeLater(
+									() -> updatePerModuleProgressInUIThread());
+							}
+						},
+						100);
+				}
+			});
 	}
 
-	@InnerAccess void updatePerModuleProgress ()
+	@InnerAccess void updatePerModuleProgressInUIThread ()
 	{
-		final List<Entry<ModuleName, Pair<Long, Long>>> progress;
-		synchronized (perModuleProgressMonitor)
-		{
-			assert hasQueuedPerModuleBuildUpdate;
-			progress = new ArrayList<>(perModuleProgress.entrySet());
-			hasQueuedPerModuleBuildUpdate = false;
-		}
-		progress.sort(Comparator.comparing(entry -> entry
-			.getKey()
-			.qualifiedName()));
+		assert EventQueue.isDispatchThread();
+		final List<Entry<ModuleName, Pair<Long, Long>>> progress =
+			new ArrayList<>();
+		lockWhile(
+			perModuleProgressLock.writeLock(),
+			() ->
+			{
+				assert hasQueuedPerModuleBuildUpdate;
+				progress.addAll(perModuleProgress.entrySet());
+				hasQueuedPerModuleBuildUpdate = false;
+			});
+		progress.sort(comparing(entry -> entry.getKey().qualifiedName()));
 		final StringBuilder builder = new StringBuilder(100);
 		for (final Entry<ModuleName, Pair<Long, Long>> entry : progress)
 		{
@@ -1889,10 +1931,9 @@ extends JFrame
 			// Shouldn't happen.
 			assert false;
 		}
-		synchronized (perModuleProgressMonitor)
-		{
-			perModuleStatusTextSize = string.length();
-		}
+		lockWhile(
+			perModuleProgressLock.writeLock(),
+			() -> perModuleStatusTextSize = string.length());
 	}
 
 	/** The user-specific {@link Preferences} for this application to use. */
@@ -1905,13 +1946,6 @@ extends JFrame
 
 	/** The leaf key under which to store a single window placement. */
 	public static final String placementLeafKeyString = "placement";
-
-	/** The key under which to organize all templates */
-	private static final String templatePreferenceString =
-		"templates";
-
-	/** The leaf key under which to store the module template string. */
-	public static final String moduleLeafKeyString = "module";
 
 	/** The key under which to store the {@link ModuleRoots}. */
 	public static final String moduleRootsKeyString = "module roots";
@@ -2111,17 +2145,6 @@ extends JFrame
 			System.err.println(
 				"Unable to write Avail roots/renames preferences.");
 		}
-	}
-
-	/**
-	 * Answer the {@link Preferences} node responsible for holding templates.
-	 *
-	 * @return The {@code Preferences} node in which template information can be
-	 *         stored and retrieved.
-	 */
-	public static Preferences templatePreferences ()
-	{
-		return basePreferences.node(templatePreferenceString);
 	}
 
 	/**
@@ -2335,7 +2358,7 @@ extends JFrame
 	}
 
 	/** Statistic for waiting for updateQueue's monitor. */
-	static final Statistic waitForDequeueLock = new Statistic(
+	static final Statistic waitForDequeLockStat = new Statistic(
 		"Wait for lock to trim old entries",
 		WORKBENCH_TRANSCRIPT);
 
@@ -2373,13 +2396,13 @@ extends JFrame
 		{
 			// We're more than 125% capacity.  Discard old stuff that won't be
 			// displayed because it would be rolled off anyhow.  Since this has
-			// to happen within the dequeueLock, it nicely blocks this writer
+			// to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
 			final long beforeLock = System.nanoTime();
-			dequeueLock.lock();
+			dequeLock.lock();
 			try
 			{
-				waitForDequeueLock.record(System.nanoTime() - beforeLock, 0);
+				waitForDequeLockStat.record(System.nanoTime() - beforeLock, 0);
 				totalQueuedTextSize.getAndAdd(
 					-privateDiscardExcessLeadingQueuedUpdates());
 			}
@@ -2388,7 +2411,7 @@ extends JFrame
 				// Record the stat just before unlocking, to avoid the need for
 				// a lock for the statistic itself.
 				writeTextStat.record(System.nanoTime() - before, 0);
-				dequeueLock.unlock();
+				dequeLock.unlock();
 			}
 		}
 	}
@@ -2461,7 +2484,6 @@ extends JFrame
 		rootPane.setDoubleBuffered(true);
 
 		// Create the menu bar and its menus.
-		final JMenuBar menuBar = new JMenuBar();
 		final JMenu buildMenu = menu("Build");
 		if (!runningOnMac)
 		{
@@ -2474,6 +2496,7 @@ extends JFrame
 //	    		cleanModuleAction,  //TODO MvG Fix implementation and enable.
 				null,
 			refreshAction);
+		final JMenuBar menuBar = new JMenuBar();
 		menuBar.add(buildMenu);
 		if (!runningOnMac)
 		{
@@ -2511,6 +2534,7 @@ extends JFrame
 						new JCheckBoxMenuItem(toggleDebugL2),
 						new JCheckBoxMenuItem(toggleL2SanityCheck),
 						new JCheckBoxMenuItem(toggleDebugPrimitives),
+						new JCheckBoxMenuItem(toggleDebugWorkUnits),
 						null,
 						new JCheckBoxMenuItem(toggleDebugJVM),
 						null,
@@ -2644,7 +2668,6 @@ extends JFrame
 		buildProgress.setValue(0);
 
 		// Create the transcript.
-		final JLabel outputLabel = new JLabel("Transcript:");
 
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
@@ -2691,7 +2714,6 @@ extends JFrame
 
 		// Set up styles for the transcript.
 		final StyledDocument doc = transcript.getStyledDocument();
-		final SimpleAttributeSet attributes = new SimpleAttributeSet();
 		final TabStop[] tabStops = new TabStop[500];
 		for (int i = 0; i < tabStops.length; i++)
 		{
@@ -2701,6 +2723,7 @@ extends JFrame
 				TabStop.LEAD_NONE);
 		}
 		final TabSet tabSet = new TabSet(tabStops);
+		final SimpleAttributeSet attributes = new SimpleAttributeSet();
 		StyleConstants.setTabSet(attributes, tabSet);
 		doc.setParagraphAttributes(0, doc.getLength(), attributes, false);
 		final Style defaultStyle =
@@ -2748,6 +2771,7 @@ extends JFrame
 		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);
 		rightPane.setLayout(rightPaneLayout);
 		rightPaneLayout.setAutoCreateGaps(true);
+		final JLabel outputLabel = new JLabel("Transcript:");
 		rightPaneLayout.setHorizontalGroup(
 			rightPaneLayout.createParallelGroup()
 				.addComponent(buildProgress)
@@ -2818,9 +2842,6 @@ extends JFrame
 				preferences.put(
 					placementLeafKeyString,
 					saveConfiguration.stringToStore());
-//				templatePreferences().put(
-//					textLeafKeyString,
-//					replaceTextTemplate.stringToStore());
 				super.windowClosing(e);
 			}
 		});

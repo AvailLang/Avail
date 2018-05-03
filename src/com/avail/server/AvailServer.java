@@ -34,7 +34,14 @@ package com.avail.server;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
@@ -1090,7 +1097,7 @@ public final class AvailServer
 			}
 			message = newSimpleSuccessMessage(command);
 		}
-		catch (final IOException|IndexedFileException e)
+		catch (final IndexedFileException e)
 		{
 			message = newErrorMessage(command, e.getLocalizedMessage());
 		}

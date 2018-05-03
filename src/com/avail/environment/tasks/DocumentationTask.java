@@ -49,7 +49,7 @@ public final class DocumentationTask
 extends AbstractWorkbenchTask
 {
 	@Override
-	protected void executeTask () throws Exception
+	protected void executeTask ()
 	{
 		try
 		{
@@ -76,7 +76,7 @@ extends AbstractWorkbenchTask
 	}
 
 	/**
-	 * Construct a new {@link DocumentationTask}.
+	 * Construct a new {@code DocumentationTask}.
 	 *
 	 * @param workbench The owning {@link AvailWorkbench}.
 	 * @param targetModuleName

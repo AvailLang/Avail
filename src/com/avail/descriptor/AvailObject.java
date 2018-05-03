@@ -52,7 +52,12 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -5076,20 +5081,6 @@ implements
 	}
 
 	/**
-	 * Set the {@linkplain Continuation1NotNull continuation} that accepts the
-	 * result produced by the {@linkplain FiberDescriptor receiver}'s successful
-	 * completion.
-	 *
-	 * @param continuation The result.
-	 */
-	@Override
-	public void resultContinuation (
-		final Continuation1NotNull<AvailObject> continuation)
-	{
-		descriptor.o_ResultContinuation(this, continuation);
-	}
-
-	/**
 	 * Answer the {@linkplain Continuation1NotNull continuation} that accepts
 	 * the {@linkplain Throwable throwable} responsible for abnormal termination
 	 * of the {@linkplain FiberDescriptor receiver}.
@@ -5102,19 +5093,13 @@ implements
 		return descriptor.o_FailureContinuation(this);
 	}
 
-	/**
-	 * Set the {@linkplain Continuation1NotNull continuation} that accepts the
-	 * {@linkplain Throwable throwable} responsible for abnormal termination of
-	 * the {@linkplain FiberDescriptor receiver}.
-	 *
-	 * @param onFailure
-	 *        The continuation to invoke with the responsible throwable.
-	 */
 	@Override
-	public void failureContinuation (
+	public void setSuccessAndFailureContinuations (
+		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
-		descriptor.o_FailureContinuation(this, onFailure);
+		descriptor.o_SetSuccessAndFailureContinuations(
+			this, onSuccess, onFailure);
 	}
 
 	/**

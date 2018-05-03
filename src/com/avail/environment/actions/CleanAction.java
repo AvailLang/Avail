@@ -34,11 +34,9 @@ package com.avail.environment.actions;
 
 import com.avail.builder.ModuleRoot;
 import com.avail.environment.AvailWorkbench;
-import com.avail.persistence.IndexedFileException;
 
 import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 import static java.lang.String.format;
@@ -55,18 +53,10 @@ extends AbstractWorkbenchAction
 	{
 		workbench.availBuilder.unloadTarget(null);
 		assert workbench.backgroundTask == null;
-		try
+		// Clear all repositories.
+		for (final ModuleRoot root : workbench.resolver.moduleRoots().roots())
 		{
-			// Clear all repositories.
-			for (final ModuleRoot root :
-				workbench.resolver.moduleRoots().roots())
-			{
-				root.repository().clear();
-			}
-		}
-		catch (final IOException e)
-		{
-			throw new IndexedFileException(e);
+			root.repository().clear();
 		}
 		workbench.writeText(
 			format("Repository has been cleared.%n"),
@@ -74,7 +64,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link CleanAction}.
+	 * Construct a new {@code CleanAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

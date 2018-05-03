@@ -58,6 +58,8 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 
 import static com.avail.persistence.IndexedRepositoryManager.log;
+import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -181,6 +183,7 @@ public abstract class IndexedFile
 		 *
 		 * @return The backing byte array.
 		 */
+		@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 		public byte[] unsafeBytes ()
 		{
 			return buf;
@@ -555,7 +558,7 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private FileLock acquireLockForWriting (final boolean wait)
-		throws IOException
+	throws IOException
 	{
 		return wait
 			? channel().lock(0x7FFFFFFFFFFFFFFEL, 1, false)
@@ -573,9 +576,9 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void addOrphan (
-			final RecordCoordinates orphanLocation,
-			final int level)
-		throws IOException
+		final RecordCoordinates orphanLocation,
+		final int level)
+	throws IOException
 	{
 		final MasterNode m = master();
 		if (level >= m.orphansByLevel.size())
@@ -609,7 +612,7 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void appendRawBytes (final byte[] bytes)
-		throws IOException
+	throws IOException
 	{
 		int bufferPos = (int) master().fileLimit % pageSize;
 		int start = 0;
@@ -649,7 +652,7 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void appendSizedBytes (final byte[] compressedBytes)
-		throws IOException
+	throws IOException
 	{
 		final byte[] sizePrefix = new byte[4];
 		sizePrefix[0] = (byte)   (compressedBytes.length  >> 24);
@@ -684,15 +687,17 @@ public abstract class IndexedFile
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	private void compressAndFlushIfFull () throws IOException
+	private void compressAndFlushIfFull ()
+	throws IOException
 	{
 		if (master().rawBytes.size() >= compressionBlockSize)
 		{
 			final ByteArrayOutputStream compressedStream =
 				new ByteArrayOutputStream(compressionBlockSize);
-			final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 			try (final DeflaterOutputStream stream =
-				     new DeflaterOutputStream(compressedStream, deflater))
+				new DeflaterOutputStream(
+				    compressedStream,
+					new Deflater(Deflater.BEST_COMPRESSION)))
 			{
 				stream.write(
 					master().rawBytes.unsafeBytes(),
@@ -729,7 +734,7 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void createFile (final @Nullable Continuation0 action)
-		throws IOException
+	throws IOException
 	{
 		// Write the header.
 		final byte[] headerBytes = headerBytes();
@@ -830,7 +835,7 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private @Nullable MasterNode decodeMasterNode (final long nodePosition)
-		throws IOException
+	throws IOException
 	{
 		// Verify the CRC32.
 		channel().position(nodePosition);
@@ -894,8 +899,8 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	@InnerAccess byte[] fetchSizedFromFile (
-			final long startFilePosition)
-		throws IOException
+		final long startFilePosition)
+	throws IOException
 	{
 		final byte[] sizePrefix = new byte[4];
 		fillBuffer(sizePrefix, startFilePosition);
@@ -920,9 +925,9 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void fillBuffer (
-			final byte[] bytes,
-			final long startFilePosition)
-		throws IOException
+		final byte[] bytes,
+		final long startFilePosition)
+	throws IOException
 	{
 		final long writtenLimit = (master().fileLimit / pageSize) * pageSize;
 		final long endFilePosition = startFilePosition + bytes.length;
@@ -1093,24 +1098,24 @@ public abstract class IndexedFile
 		final int length)
 	throws IndexOutOfBoundsException, IndexedFileException
 	{
-		lock.writeLock().lock();
-		try
-		{
-			final RecordCoordinates coordinates = new RecordCoordinates(
-				master().fileLimit, master().rawBytes.size());
-			master().uncompressedData.writeInt(length);
-			master().uncompressedData.write(record, start, length);
-			compressAndFlushIfFull();
-			addOrphan(coordinates, 0);
-		}
-		catch (final IOException e)
-		{
-			throw new IndexedFileException(e);
-		}
-		finally
-		{
-			lock.writeLock().unlock();
-		}
+		lockWhile(
+			lock.writeLock(),
+			() ->
+			{
+				try
+				{
+					final RecordCoordinates coordinates = new RecordCoordinates(
+						master().fileLimit, master().rawBytes.size());
+					master().uncompressedData.writeInt(length);
+					master().uncompressedData.write(record, start, length);
+					compressAndFlushIfFull();
+					addOrphan(coordinates, 0);
+				}
+				catch (final IOException e)
+				{
+					throw new IndexedFileException(e);
+				}
+			});
 	}
 
 	/**
@@ -1123,7 +1128,7 @@ public abstract class IndexedFile
 	 *         If something else goes wrong.
 	 */
 	public boolean add (final byte[] record)
-		throws IndexedFileException
+	throws IndexedFileException
 	{
 		add(record, 0, record.length);
 		return true;
@@ -1135,70 +1140,67 @@ public abstract class IndexedFile
 	public void close ()
 	{
 		log(Level.INFO, "Close: %s", fileReference);
-		lock.writeLock().lock();
-		try
-		{
-			if (longTermLock != null)
+		lockWhile(
+			lock.writeLock(),
+			() ->
 			{
+				if (longTermLock != null)
+				{
+					try
+					{
+						longTermLock.release();
+					}
+					catch (final IOException e)
+					{
+						// Ignore.
+					}
+					finally
+					{
+						longTermLock = null;
+					}
+				}
+
+				if (channel != null)
+				{
+					try
+					{
+						channel.close();
+					}
+					catch (final IOException e)
+					{
+						// Ignore.
+					}
+					finally
+					{
+						channel = null;
+					}
+				}
+
+				if (file != null)
+				{
+					try
+					{
+						file.close();
+					}
+					catch (final IOException e)
+					{
+						// Ignore.
+					}
+					finally
+					{
+						file = null;
+					}
+				}
+
 				try
 				{
-					longTermLock().release();
+					blockCache.clear();
 				}
-				catch (final IOException e)
+				catch (final InterruptedException e)
 				{
-					// Ignore.
+					// Do nothing.
 				}
-				finally
-				{
-					longTermLock = null;
-				}
-			}
-
-			if (channel != null)
-			{
-				try
-				{
-					channel().close();
-				}
-				catch (final IOException e)
-				{
-					// Ignore.
-				}
-				finally
-				{
-					channel = null;
-				}
-			}
-
-			if (file != null)
-			{
-				try
-				{
-					file().close();
-				}
-				catch (final IOException e)
-				{
-					// Ignore.
-				}
-				finally
-				{
-					file = null;
-				}
-			}
-
-			try
-			{
-				blockCache.clear();
-			}
-			catch (final InterruptedException e)
-			{
-				// Do nothing.
-			}
-		}
-		finally
-		{
-			lock.writeLock().unlock();
-		}
+			});
 	}
 
 	/**
@@ -1209,7 +1211,8 @@ public abstract class IndexedFile
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public void commit () throws IOException
+	public void commit ()
+	throws IOException
 	{
 		lock.writeLock().lock();
 		try
@@ -1293,7 +1296,7 @@ public abstract class IndexedFile
 	 *         If something else goes wrong.
 	 */
 	public byte[] get (final long index)
-		throws IndexOutOfBoundsException, IndexedFileException
+	throws IndexOutOfBoundsException, IndexedFileException
 	{
 		lock.readLock().lock();
 		try
@@ -1384,6 +1387,7 @@ public abstract class IndexedFile
 				metaData = new byte[size];
 				buffer.get(metaData);
 			}
+			//noinspection AssignmentOrReturnOfFieldWithMutableType
 			return metaData;
 		}
 		finally
@@ -1402,13 +1406,12 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public void metaData (final byte[] newMetaData)
-		throws IOException
+	throws IOException
 	{
-		assert newMetaData != null;
 		lock.writeLock().lock();
 		try
 		{
-			metaData = newMetaData;
+			metaData = newMetaData.clone();
 			master().metaDataLocation = new RecordCoordinates(
 				master().fileLimit, master().rawBytes.size());
 			master().uncompressedData.writeInt(newMetaData.length);
@@ -1422,12 +1425,12 @@ public abstract class IndexedFile
 	}
 
 	/**
-	 * Answer the page size of the {@linkplain IndexedFile indexed file}. This
-	 * should be a multiple of the disk page size for good performance; for
-	 * best performance, it should be a common multiple of the disk page size
-	 * and the memory page size.
+	 * Answer the page size of the {@code IndexedFile}. This should be a
+	 * multiple of the disk page size for good performance; for best
+	 * performance, it should be a common multiple of the disk page size and the
+	 * memory page size.
 	 *
-	 * @return The page size of the {@linkplain IndexedFile indexed file}.
+	 * @return The page size of the {@code IndexedFile}.
 	 */
 	public int pageSize ()
 	{
@@ -1435,15 +1438,16 @@ public abstract class IndexedFile
 	}
 
 	/**
-	 * Update the state of the {@linkplain IndexedFile indexed file driver} from
-	 * the physical contents of the indexed file.
+	 * Update the state of the {@code IndexedFile} driver from the physical
+	 * contents of the indexed file.
 	 *
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	public void refresh () throws IOException, IndexedFileException
+	public void refresh ()
+	throws IOException, IndexedFileException
 	{
 		lock.writeLock().lock();
 		try
@@ -1453,16 +1457,16 @@ public abstract class IndexedFile
 			try
 			{
 				// Determine the newest valid master node.
-				final MasterNode previous =
+				final @Nullable MasterNode previous =
 					decodeMasterNode(previousMasterPosition);
-				MasterNode current = decodeMasterNode(masterPosition);
+				@Nullable MasterNode current = decodeMasterNode(masterPosition);
 				if (previous == null && current == null)
 				{
 					throw new IndexedFileException(
 						"Invalid indexed file -- "
 						+ "both master nodes are corrupt.");
 				}
-				Integer delta = null;
+				@Nullable Integer delta = null;
 				if (previous != null && current != null)
 				{
 					delta = current.serialNumber - previous.serialNumber;
@@ -1526,9 +1530,9 @@ public abstract class IndexedFile
 	}
 
 	/**
-	 * Answer the version of the {@linkplain IndexedFile indexed file}.
+	 * Answer the version number of this {@code IndexedFile}.
 	 *
-	 * @return The version of the {@linkplain IndexedFile indexed file}.
+	 * @return The version of this {@code IndexedFile}.
 	 */
 	public int version ()
 	{
@@ -1536,8 +1540,8 @@ public abstract class IndexedFile
 	}
 
 	/**
-	 * Create a new {@linkplain IndexedFile indexed file}. The resultant object
-	 * is backed by a physical (i.e., disk-based) indexed file.
+	 * Create a new {@code IndexedFile}. The resultant object is backed by a
+	 * physical (i.e., disk-based) indexed file.
 	 *
 	 * @param subclass
 	 *        The subclass of {@code IndexedFile} that should be created. This
@@ -1559,21 +1563,22 @@ public abstract class IndexedFile
 	 */
 	@SuppressWarnings("unchecked")
 	public static <F extends IndexedFile> F newFile (
-			final Class<F> subclass,
-			final File fileReference,
-			final int pageSize,
-			final int compressionThreshold,
-			final @Nullable byte[] initialMetaData)
-		throws IOException
+		final Class<F> subclass,
+		final File fileReference,
+		final int pageSize,
+		final int compressionThreshold,
+		final @Nullable byte[] initialMetaData)
+	throws IOException
 	{
 		log(Level.INFO, "New: %s", fileReference);
 		assert compressionThreshold % pageSize == 0;
 		final IndexedFile indexedFile;
 		try
 		{
+			//noinspection ClassNewInstance
 			indexedFile = subclass.newInstance();
 		}
-		catch (InstantiationException | IllegalAccessException e)
+		catch (final InstantiationException | IllegalAccessException e)
 		{
 			assert false : "This should never happen!";
 			throw new RuntimeException(e);
@@ -1600,12 +1605,12 @@ public abstract class IndexedFile
 				}
 			}
 		});
-		return (F) indexedFile;
+		return cast(indexedFile);
 	}
 
 	/**
-	 * Create a new {@linkplain IndexedFile indexed file}, using reasonable
-	 * defaults for {@linkplain #DEFAULT_PAGE_SIZE page size} and {@linkplain
+	 * Create a new {@code IndexedFile}, using reasonable defaults for
+	 * {@linkplain #DEFAULT_PAGE_SIZE page size} and {@linkplain
 	 * #DEFAULT_COMPRESSION_THRESHOLD compression threshold}. The resultant
 	 * object is backed by a physical (i.e., disk-based) indexed file.
 	 *
@@ -1622,10 +1627,10 @@ public abstract class IndexedFile
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public static <F extends IndexedFile> F newFile (
-			final Class<F> subclass,
-			final File fileReference,
-			final @Nullable byte[] initialMetaData)
-		throws IOException
+		final Class<F> subclass,
+		final File fileReference,
+		final @Nullable byte[] initialMetaData)
+	throws IOException
 	{
 		return newFile(
 			subclass,
@@ -1636,7 +1641,7 @@ public abstract class IndexedFile
 	}
 
 	/**
-	 * Open the specified {@linkplain IndexedFile indexed file}.
+	 * Open the specified {@code IndexedFile}.
 	 *
 	 * <p>Note that there may be any number of readers <em>and</em> up to one
 	 * writer accessing the file safely simultaneously.  Only the master blocks
@@ -1662,22 +1667,20 @@ public abstract class IndexedFile
 	 * @return The indexed file.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
-	 * @throws IndexedFileException
 	 */
 	public static <F extends IndexedFile> F openFile (
-			final Class<F> subclass,
-			final File fileReference,
-			final boolean forWriting,
-			final Transformer2<Integer, Integer, Boolean> versionCheck)
-	throws
-		IOException,
-		IndexedFileException
+		final Class<F> subclass,
+		final File fileReference,
+		final boolean forWriting,
+		final Transformer2<Integer, Integer, Boolean> versionCheck)
+	throws IOException
 	{
 		log(Level.INFO, "Open: {0}", fileReference);
 		final F strongIndexedFile;
 		final IndexedFile indexedFile;
 		try
 		{
+			//noinspection ClassNewInstance
 			strongIndexedFile = subclass.newInstance();
 			indexedFile = strongIndexedFile;
 		}

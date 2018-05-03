@@ -106,17 +106,24 @@ final class SerializerInstruction
 	}
 
 	/**
-	 * Answer an array of {@link AvailObject}s that correspond with my
-	 * operation's {@link SerializerOperand operands}.  These may contain
-	 * subobjects that must be serialized before me, but it's up to each operand
-	 * to determine that, as well as the encoding mechanism.
+	 * Answer the number of subobjects that this instruction has.
 	 *
-	 * @return The array of {@code AvailObject}s for my operation's operands to
-	 *         interpret.
+	 * @return The number of subobjects.
 	 */
-	A_BasicObject[] subobjects ()
+	int subobjectsCount ()
 	{
-		return subobjects;
+		return subobjects.length;
+	}
+
+	/**
+	 * Answer the subobject at the given zero-based subscript.
+	 *
+	 * @param subscript The zero-based subobject subscript.
+	 * @return The {@link A_BasicObject} at the given subscript.
+	 */
+	A_BasicObject getSubobject (final int subscript)
+	{
+		return subobjects[subscript];
 	}
 
 	/**
@@ -131,7 +138,7 @@ final class SerializerInstruction
 	}
 
 	/**
-	 * Construct a new {@link SerializerInstruction}.
+	 * Construct a new {@code SerializerInstruction}.
 	 *
 	 * @param operation
 	 *        The {@link SerializerOperation} that will decompose the object for

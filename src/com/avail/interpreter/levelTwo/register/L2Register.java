@@ -310,8 +310,8 @@ public abstract class L2Register<T extends A_BasicObject>
 	 * @return The new {@code L2Register}.
 	 */
 	public abstract <R extends L2Register<T>> R copyForTranslator (
-		L1Translator translator,
-		TypeRestriction<T> typeRestriction);
+		final L1Translator translator,
+		final TypeRestriction<T> typeRestriction);
 
 	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
@@ -329,7 +329,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *        The {@link L2Inliner} for which copying is requested.
 	 * @return A copy of the receiver.
 	 */
-	public abstract L2Register<T> copyForInliner (L2Inliner inliner);
+	public abstract L2Register<T> copyForInliner (final L2Inliner inliner);
 
 	/**
 	 * Answer an {@link L2Operation} that implements a phi move for the
@@ -351,7 +351,8 @@ public abstract class L2Register<T extends A_BasicObject>
 	public final String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(restriction.constantOrNull == null ? namePrefix(): "c");
+		//noinspection VariableNotUsedInsideIf
+		builder.append(restriction.constantOrNull == null ? namePrefix() : "c");
 		if (finalIndex() != -1)
 		{
 			builder.append(finalIndex());

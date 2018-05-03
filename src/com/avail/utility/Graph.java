@@ -34,15 +34,20 @@ package com.avail.utility;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.unmodifiableSet;
 
@@ -50,7 +55,7 @@ import static java.util.Collections.unmodifiableSet;
  * A {@code Graph} is an unordered collection of vertices, along with the
  * successor-predecessor relationships between them.  From the Graph's
  * viewpoint, the vertices are merely mementos that support {@link
- * #equals(Object)} and {@link #hashCode()}.  Edges are not explicit
+ * #equals(Object)} and {@link #hashCode()}.  Edges are not explicitly
  * represented, but instead are a consequence of how the {@link #outEdges} and
  * {@linkplain #inEdges} are populated.
  *
@@ -63,15 +68,8 @@ import static java.util.Collections.unmodifiableSet;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
+public class Graph<Vertex>
 {
-	/** The {@linkplain Logger logger}. */
-	@InnerAccess static final Logger logger = Logger.getLogger(
-		Graph.class.getName());
-
-	/** Whether to log visit information. */
-	private static final boolean debugGraph = false;
-
 	/** Construct a new graph with no vertices or edges. */
 	public Graph ()
 	{
@@ -90,60 +88,6 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		inEdges = new HashMap<>();
 		graph.outEdges.forEach((k, v) -> outEdges.put(k, new HashSet<>(v)));
 		graph.inEdges.forEach((k, v) -> inEdges.put(k, new HashSet<>(v)));
-	}
-
-	/**
-	 * Log the specified message if {@linkplain #debugGraph debugging} is
-	 * enabled.
-	 *
-	 * @param level
-	 *        The {@linkplain Level severity level}.
-	 * @param format
-	 *        The format string.
-	 * @param args
-	 *        The format arguments.
-	 */
-	@InnerAccess static void log (
-		final Level level,
-		final String format,
-		final Object... args)
-	{
-		if (debugGraph)
-		{
-			if (logger.isLoggable(level))
-			{
-				logger.log(level, String.format(format, args));
-			}
-		}
-	}
-
-	/**
-	 * Log the specified message if {@linkplain #debugGraph debugging} is
-	 * enabled.
-	 *
-	 * @param level
-	 *        The {@linkplain Level severity level}.
-	 * @param exception
-	 *        The {@linkplain Throwable exception} that motivated this log
-	 *        entry.
-	 * @param format
-	 *        The format string.
-	 * @param args
-	 *        The format arguments.
-	 */
-	@InnerAccess static void log (
-		final Level level,
-		final Throwable exception,
-		final String format,
-		final Object... args)
-	{
-		if (debugGraph)
-		{
-			if (logger.isLoggable(level))
-			{
-				logger.log(level, String.format(format, args), exception);
-			}
-		}
 	}
 
 	/**
@@ -616,21 +560,29 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 	 * Visit the vertices in DAG order.  The action is invoked for each vertex,
 	 * also passing a completion action (a {@link Continuation0}) to invoke when
 	 * that vertex visit is considered complete, allowing successors for which
-	 * all predecessors have completed to be visited.  Block until traversal is
-	 * complete.
+	 * all predecessors have completed to be visited.
 	 *
-	 * <p>The visitAction may cause the actual vertex visiting activity to occur
-	 * in some other {@link Thread}, as long as the completion action is invoked
-	 * at some time after the visit.</p>
+	 * <p>The afterTraversal action runs at the end of the last completed
+	 * vertex's completion action (passed as the second argument to the
+	 * visitAction).  Thus, if the completion actions always run in the same
+	 * {@link Thread} as the visitAction, the graph is effectively traversed
+	 * serially, running the afterTraversal action at the end, just before
+	 * returning from this method.</p>
 	 *
 	 * <p>The receiver must not be {@link #isCyclic() cyclic}.</p>
 	 *
-	 * @param visitAction What to do for each vertex.
+	 * @param visitAction
+	 *        What to do for each vertex.  The action takes the vertex and a
+	 *        zero-argument action to run when processing the vertex is
+	 *        considered finished (with regard to ordering the traversal).
+	 * @param afterTraversal
+	 *        What to do after traversing the entire graph.
 	 */
-	public void parallelVisit (
-		final Continuation2<Vertex, Continuation0> visitAction)
+	public void parallelVisitThen (
+		final Continuation2NotNull<Vertex, Continuation0> visitAction,
+		final Continuation0 afterTraversal)
 	{
-		new ParallelVisitor(visitAction).execute();
+		new ParallelVisitor(visitAction, afterTraversal).execute();
 	}
 
 	/**
@@ -639,22 +591,26 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 	 * that vertex visit is considered complete, allowing successors for which
 	 * all predecessors have completed to be visited.
 	 *
-	 * <p>The visitAction may cause the actual vertex visiting activity to occur
-	 * in some other {@link Thread}, as long as the completion action is invoked
-	 * at some time after the visit.</p>
+	 * <p>Block this {@link Thread} until traversal is complete.</p>
 	 *
 	 * <p>The receiver must not be {@link #isCyclic() cyclic}.</p>
 	 *
-	 * @param scheduleAction How to schedule a visitation.
 	 * @param visitAction What to do for each vertex.
-	 * @param doneAction What to do when traversal completes.
 	 */
 	public void parallelVisit (
-		final Continuation1NotNull<Continuation0> scheduleAction,
-		final Continuation2<Vertex, Continuation0> visitAction,
-		final Continuation0 doneAction)
+		final Continuation2NotNull<Vertex, Continuation0> visitAction)
 	{
-		new ParallelVisitor(visitAction).execute(scheduleAction, doneAction);
+		final Semaphore semaphore = new Semaphore(0);
+		final AtomicBoolean safetyCheck = new AtomicBoolean(false);
+		parallelVisitThen(
+			visitAction,
+			() ->
+			{
+				final boolean old = safetyCheck.getAndSet(true);
+				assert !old : "Reached end of graph traversal twice";
+				semaphore.release();
+			});
+		semaphore.acquireUninterruptibly();
 	}
 
 	/**
@@ -680,20 +636,35 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		 * invoke on a cyclic graph.  Do not invoke any completion action more
 		 * than once.</p>
 		 */
-		@InnerAccess final Continuation2<Vertex, Continuation0> visitAction;
+		private final Continuation2NotNull<Vertex, Continuation0> visitAction;
+
+		/**
+		 * This action runs after a complete traversal of the graph.  This runs
+		 * as part of the last completed vertex's {@link #visitAction}, so if
+		 * the {@link #visitAction} always runs its completion action (its
+		 * second argument) within the same {@link Thread}, this final action
+		 * will also run in that thread.
+		 */
+		private final Continuation0 afterTraversal;
 
 		/**
 		 * A {@link Map} keeping track of how many predecessors of each vertex
 		 * have not yet been completed.
 		 */
-		@InnerAccess final Map<Vertex, Integer> predecessorCountdowns =
+		private final Map<Vertex, MutableInt> predecessorCountdowns =
 			new HashMap<>();
 
 		/**
-		 * A stack of all outstanding vertices which have had a predecessor
+		 * A collection of all outstanding vertices which have had a predecessor
 		 * complete.
 		 */
-		@InnerAccess final Deque<Vertex> stack = new ArrayDeque<>();
+		final Deque<Vertex> queue = new ArrayDeque<>();
+
+		/**
+		 * Counts down to zero to determine when the last vertex has completed
+		 * its visit.
+		 */
+		final AtomicInteger completionCountdown = new AtomicInteger(-1);
 
 		/**
 		 * Construct a new {@code ParallelVisitor}.
@@ -701,9 +672,11 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		 * @param visitAction What to perform for each vertex being visited.
 		 */
 		@InnerAccess ParallelVisitor (
-			final Continuation2<Vertex, Continuation0> visitAction)
+			final Continuation2NotNull<Vertex, Continuation0> visitAction,
+			final Continuation0 afterTraversal)
 		{
 			this.visitAction = visitAction;
+			this.afterTraversal = afterTraversal;
 		}
 
 		/**
@@ -713,168 +686,120 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		private synchronized void computePredecessorCountdowns ()
 		{
 			assert predecessorCountdowns.isEmpty();
-			assert stack.isEmpty();
-			for (final Entry<Vertex, Set<Vertex>> entry
-				: inEdges.entrySet())
+			assert queue.isEmpty();
+			completionCountdown.set(vertexCount());
+			for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
 			{
 				final Vertex vertex = entry.getKey();
 				final int predecessorsSize = entry.getValue().size();
 				if (predecessorsSize == 0)
 				{
 					// Seed it with 1, as though each root has an incoming edge.
-					// Also stack the root as though that edge has been visited.
-					predecessorCountdowns.put(vertex, 1);
-					stack.add(vertex);
+					// Also queue the root as though that edge has been visited.
+					predecessorCountdowns.put(vertex, new MutableInt(1));
+					queue.addLast(vertex);
 				}
 				else
 				{
-					predecessorCountdowns.put(vertex, predecessorsSize);
+					predecessorCountdowns.put(
+						vertex, new MutableInt(predecessorsSize));
 				}
 			}
 		}
 
 		/**
-		 * Exhaust the stack.
-		 *
-		 * @param process
-		 *        The {@link Continuation1NotNull} to invoke to schedule
-		 *        visitation of a vertex. Its argument is a {@link
-		 *        Continuation0} that actually visits the appropriate vertex,
-		 *        using the supplied {@link #visitAction}.
-		 * @param done
-		 *        A {@link Continuation0} to invoke when the traversal has
-		 *        completed.
-		 */
-		@InnerAccess void exhaustStack (
-			final Continuation1NotNull<Continuation0> process,
-			final Continuation0 done)
-		{
-			assert Thread.holdsLock(this);
-			while (!stack.isEmpty())
-			{
-				final Vertex vertex = stack.removeLast();
-				final int countdown = predecessorCountdowns.get(vertex);
-				if (countdown == 1)
-				{
-					log(Level.FINE, "Visiting %s%n", vertex);
-					process.value(() -> visitAction.value(
-						vertex,
-						new Continuation0()
-						{
-							/** Whether this completion action has run. */
-							private boolean alreadyRan;
-
-							@Override
-							public void value ()
-							{
-								// At this point the client code is
-								// finished with this vertex and is
-								// explicitly allowing any successors to
-								// run if they have no unfinished
-								// predecessors.
-								synchronized (ParallelVisitor.this)
-								{
-									ensure(
-										!alreadyRan,
-										"Invoked completion action "
-										+ "twice for vertex");
-									alreadyRan = true;
-									predecessorCountdowns.remove(vertex);
-									final Set<Vertex> successors =
-										successorsOf(vertex);
-									stack.addAll(successors);
-									log(
-										Level.FINE,
-										"Completed %s%n",
-										vertex);
-									visitRemainingVertices(process, done);
-								}
-							}
-						}));
-				}
-				else
-				{
-					assert countdown > 1;
-					predecessorCountdowns.put(vertex, countdown - 1);
-				}
-			}
-		}
-
-		/**
-		 * Process the stack until it's exhausted <em>and</em> there are no more
+		 * Process the queue until it's exhausted <em>and</em> there are no more
 		 * unvisited vertices.  This mechanism completely avoids recursion,
 		 * while working correctly regardless of whether the {@link
 		 * #visitAction} invokes its completion action in the same {@link
 		 * Thread} or in another.
-		 *
-		 * @param process
-		 *        The {@link Continuation1} to invoke to execute another step of
-		 *        the parallel visitation. The argument {@link Continuation0}
-		 *        processes the next step.  For a single-threaded visitor, the
-		 *        invoked continuation can immediately execute the passed
-		 *        continuation. A concurrent visitor may wish to schedule the
-		 *        next step for execution by another {@link Thread}.
-		 * @param done
-		 *        A {@link Continuation0} to invoke when the traversal has
-		 *        completed.
 		 */
-		@InnerAccess void visitRemainingVertices (
-			final Continuation1NotNull<Continuation0> process,
-			final Continuation0 done)
+		private synchronized void visitRemainingVertices ()
 		{
-			process.value(() ->
+			// If all vertices have already been visited, just exit.  The last
+			// one to complete will have already executed the afterTraversal
+			// action.
+			if (predecessorCountdowns.isEmpty())
 			{
-				synchronized (ParallelVisitor.this)
+				assert queue.isEmpty();
+				return;
+			}
+			// Otherwise, visit vertices until none are immediately available.
+			// Running out does not signify completion of the graph traversal,
+			// since vertex completion might happen in other threads, but the
+			// vertex completion action also invokes this method.
+			while (!queue.isEmpty())
+			{
+				final Vertex vertex = queue.removeFirst();
+				final MutableInt countdown = predecessorCountdowns.get(vertex);
+				countdown.value--;
+				assert countdown.value >= 0;
+				if (countdown.value == 0)
 				{
-					// If all vertices have been visited, then invoke the
-					// appropriate continuation and abort the algorithm.
-					if (predecessorCountdowns.isEmpty())
-					{
-						done.value();
-					}
-					// Otherwise, visit another vertex.
-					else
-					{
-						exhaustStack(process, done);
-					}
+					predecessorCountdowns.remove(vertex);
+					final AtomicBoolean alreadyRan = new AtomicBoolean(false);
+					visitAction.value(
+						vertex,
+						() ->
+						{
+							// At this point the client code is finished with
+							// this vertex and is explicitly allowing any
+							// successors to run if they have no unfinished
+							// predecessors.
+							final boolean old = alreadyRan.getAndSet(true);
+							assert !old
+								: "Ran completion action twice for vertex";
+							queueSuccessors(successorsOf(vertex));
+							if (completionCountdown.decrementAndGet() == 0)
+							{
+								assert queue.isEmpty();
+								assert predecessorCountdowns.isEmpty();
+								afterTraversal.value();
+							}
+							else
+							{
+								visitRemainingVertices();
+							}
+						});
 				}
-			});
+			}
+		}
+
+		/**
+		 * Queue the given set of vertices, each of which has just had a
+		 * predecessor complete its visit.
+		 *
+		 * @param vertices
+		 *        The vertices to queue.
+		 */
+		private synchronized void queueSuccessors (final Set<Vertex> vertices)
+		{
+			queue.addAll(vertices);
 		}
 
 		/**
 		 * Perform a traversal of the graph in such an order that a vertex can
 		 * only be processed after its predecessors have all completed.
 		 *
-		 * @param process
-		 *        The {@link Continuation1} to invoke to schedule visitation of
-		 *        a vertex. Its argument is a {@link Continuation0} that
-		 *        actually visits the appropriate vertex, using the supplied
-		 *        {@link #visitAction}.
-		 * @param done
-		 *        A {@link Continuation0} to invoke when the traversal has
-		 *        completed.
-		 */
-		@InnerAccess void execute (
-			final Continuation1NotNull<Continuation0> process,
-			final Continuation0 done)
-		{
-			computePredecessorCountdowns();
-			visitRemainingVertices(process, done);
-		}
-
-		/**
-		 * Perform a traversal of the graph in such an order that a vertex can
-		 * only be processed after its predecessors have all completed.  Block
-		 * until all vertices have been processed.
+		 * <p>This operation blocks until completion only if the {@link
+		 * #visitAction} runs its passed completion action in the same
+		 * thread.</p>
+		 *
+		 * <p>Whichever thread runs the last completion action will also execute
+		 * the {@link #afterTraversal} action immediately afterward.</p>
 		 */
 		@InnerAccess void execute ()
 		{
 			computePredecessorCountdowns();
-			final Semaphore semaphore = new Semaphore(0);
-			visitRemainingVertices(
-				Continuation0::value,
-				semaphore::release);
-			semaphore.acquireUninterruptibly();
+			if (predecessorCountdowns.isEmpty())
+			{
+				// There are no vertices, so run the afterTraversal action now.
+				afterTraversal.value();
+				return;
+			}
+			// Otherwise, the last completion action to run will invoke the
+			// afterTraversal action.
+			visitRemainingVertices();
 		}
 	}
 
@@ -892,8 +817,6 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		reverse().parallelVisit(
 			(vertex, completionAction) ->
 			{
-				assert vertex != null;
-				assert completionAction != null;
 				for (final Vertex successor : successorsOf(vertex))
 				{
 					if (ancestry.includesVertex(successor))
@@ -919,8 +842,6 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 		final Map<Vertex, Set<Vertex>> ancestorSets = new HashMap<>();
 		parallelVisit((vertex, completionAction) ->
 		{
-			assert vertex != null;
-			assert completionAction != null;
 			final Set<Vertex> ancestorSet;
 			final Set<Vertex> predecessors = predecessorsOf(vertex);
 			if (predecessors.size() == 0)
@@ -978,11 +899,5 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 			}
 		}
 		return result;
-	}
-
-	@Override
-	public Graph<Vertex> clone ()
-	{
-		return super.clone();
 	}
 }

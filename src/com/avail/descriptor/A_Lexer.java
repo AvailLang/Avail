@@ -66,7 +66,7 @@ extends A_BasicObject
 	 * tokens from the source string and position.  The function should produce
 	 * a tuple of potential next tokens, which may or may not have additional
 	 * tokens explicitly chained onto them via {@link
-	 * A_Token#setNextLexingState(LexingState)}.
+	 * A_Token#setNextLexingStateFromPrior(LexingState)}.
 	 *
 	 * @return The lexer's body function.
 	 */

@@ -44,17 +44,32 @@ import com.avail.utility.evaluation.Transformer2;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.DatatypeConverter;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.utility.Locks.lockWhile;
+import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code IndexedRepositoryManager} manages a persistent {@linkplain
@@ -149,17 +164,6 @@ public class IndexedRepositoryManager
 	 * {@linkplain IndexedRepository indexed repository}.
 	 */
 	private final String rootName;
-
-	/**
-	 * Answer the name of the {@linkplain ModuleRoot Avail root} represented by
-	 * this {@linkplain IndexedRepository indexed repository}.
-	 *
-	 * @return The root name.
-	 */
-	public String rootName ()
-	{
-		return rootName;
-	}
 
 	/**
 	 * The {@linkplain File filename} of the {@linkplain IndexedRepository
@@ -330,7 +334,7 @@ public class IndexedRepositoryManager
 				// it's not likely that maintenance on the build mechanism would
 				// *ever* cause it to do that anyhow.
 				final MessageDigest hasher;
-				try (RandomAccessFile reader =
+				try (final RandomAccessFile reader =
 					new RandomAccessFile(sourceFile, "r"))
 				{
 					hasher = MessageDigest.getInstance(DIGEST_ALGORITHM);
@@ -349,18 +353,16 @@ public class IndexedRepositoryManager
 				{
 					throw new RuntimeException(e);
 				}
-				digest = hasher.digest();
-				assert digest.length == DIGEST_SIZE;
-				lock.lock();
-				try
-				{
-					digestCache.put(lastModification, digest);
-					markDirty();
-				}
-				finally
-				{
-					lock.unlock();
-				}
+				final byte[] newDigest = hasher.digest();
+				assert newDigest.length == DIGEST_SIZE;
+				digest = newDigest;
+				lockWhile(
+					lock,
+					() ->
+					{
+						digestCache.put(lastModification, newDigest);
+						markDirty();
+					});
 			}
 			return digest;
 		}
@@ -448,15 +450,7 @@ public class IndexedRepositoryManager
 		public @Nullable ModuleVersion getVersion (
 			final ModuleVersionKey versionKey)
 		{
-			lock.lock();
-			try
-			{
-				return versions.get(versionKey);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			return lockWhileNullable(lock, () -> versions.get(versionKey));
 		}
 
 		/**
@@ -477,17 +471,14 @@ public class IndexedRepositoryManager
 			final ModuleVersionKey versionKey,
 			final ModuleVersion version)
 		{
-			lock.lock();
-			try
-			{
-				assert !versions.containsKey(versionKey);
-				versions.put(versionKey, version);
-				markDirty();
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			lockWhile(
+				lock,
+				() ->
+				{
+					assert !versions.containsKey(versionKey);
+					versions.put(versionKey, version);
+					markDirty();
+				});
 		}
 
 		/**
@@ -511,18 +502,16 @@ public class IndexedRepositoryManager
 			final ModuleCompilationKey compilationKey,
 			final ModuleCompilation compilation)
 		{
-			lock.lock();
-			try
-			{
-				final ModuleVersion version = stripNull(versions.get(versionKey));
-				assert version.getCompilation(compilationKey) == null;
-				version.compilations.put(compilationKey, compilation);
-				markDirty();
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			lockWhile(
+				lock,
+				() ->
+				{
+					final ModuleVersion version =
+						stripNull(versions.get(versionKey));
+					assert version.getCompilation(compilationKey) == null;
+					version.compilations.put(compilationKey, compilation);
+					markDirty();
+				});
 		}
 
 		/**
@@ -654,7 +643,7 @@ public class IndexedRepositoryManager
 			final byte [] sourceDigest)
 		{
 			assert sourceDigest.length == DIGEST_SIZE;
-			this.sourceDigest = sourceDigest;
+			this.sourceDigest = sourceDigest.clone();
 			this.isPackage = moduleName.isPackage();
 			this.hash = computeHash();
 		}
@@ -767,7 +756,8 @@ public class IndexedRepositoryManager
 		public ModuleCompilationKey (
 			final long [] predecessorCompilationTimes)
 		{
-			this.predecessorCompilationTimes = predecessorCompilationTimes;
+			this.predecessorCompilationTimes =
+				predecessorCompilationTimes.clone();
 			hash = computeHash();
 		}
 	}
@@ -824,15 +814,8 @@ public class IndexedRepositoryManager
 		public @Nullable ModuleCompilation getCompilation (
 			final ModuleCompilationKey compilationKey)
 		{
-			lock.lock();
-			try
-			{
-				return compilations.get(compilationKey);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			return lockWhileNullable(
+				lock, () -> compilations.get(compilationKey));
 		}
 
 		/**
@@ -843,7 +826,7 @@ public class IndexedRepositoryManager
 		 */
 		public List<String> getImports ()
 		{
-			return localImportNames;
+			return unmodifiableList(localImportNames);
 		}
 
 		/**
@@ -854,7 +837,7 @@ public class IndexedRepositoryManager
 		 */
 		public List<String> getEntryPoints ()
 		{
-			return entryPoints;
+			return unmodifiableList(entryPoints);
 		}
 
 		/**
@@ -875,17 +858,14 @@ public class IndexedRepositoryManager
 		{
 			// Write the serialized data to the end of the repository.
 			final IndexedRepository repo = repository();
-			lock.lock();
-			try
-			{
-				moduleHeaderRecordNumber = repo.size();
-				repo.add(bytes);
-				markDirty();
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			lockWhile(
+				lock,
+				() ->
+				{
+					moduleHeaderRecordNumber = repo.size();
+					repo.add(bytes);
+					markDirty();
+				});
 		}
 
 		/**
@@ -898,15 +878,8 @@ public class IndexedRepositoryManager
 		public byte[] getModuleHeader ()
 		{
 			assert moduleHeaderRecordNumber != -1;
-			lock.lock();
-			try
-			{
-				return repository().get(moduleHeaderRecordNumber);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			return lockWhile(
+				lock, () -> repository().get(moduleHeaderRecordNumber));
 		}
 
 		/**
@@ -929,17 +902,14 @@ public class IndexedRepositoryManager
 		{
 			// Write the comment tuple to the end of the repository.
 			final IndexedRepository repo = repository();
-			lock.lock();
-			try
-			{
-				stacksRecordNumber = repo.size();
-				repo.add(bytes);
-				markDirty();
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			lockWhile(
+				lock,
+				() ->
+				{
+					stacksRecordNumber = repo.size();
+					repo.add(bytes);
+					markDirty();
+				});
 		}
 
 		/**
@@ -957,15 +927,8 @@ public class IndexedRepositoryManager
 			{
 				return null;
 			}
-			lock.lock();
-			try
-			{
-				return repository().get(stacksRecordNumber);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			return lockWhileNullable(
+				lock, () -> repository().get(stacksRecordNumber));
 		}
 
 		/**
@@ -1097,22 +1060,14 @@ public class IndexedRepositoryManager
 		 */
 		public @Nullable byte [] getBytes ()
 		{
-			lock.lock();
-			try
-			{
-				return repository().get(recordNumber);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			return lockWhileNullable(
+				lock, () -> repository().get(recordNumber));
 		}
 
 		/**
 		 * Output this module compilation to the provided {@link
 		 * DataOutputStream}.  It can later be reconstructed via the constructor
-		 * taking a {@link DataInputStream}.  Note that the {@link
-		 * ModuleCompilation} is output with the module compilation.
+		 * taking a {@link DataInputStream}.
 		 *
 		 * @param binaryStream
 		 *        A DataOutputStream on which to write this module compilation.
@@ -1163,16 +1118,8 @@ public class IndexedRepositoryManager
 		{
 			this.compilationTime = compilationTime;
 			final IndexedRepository repo = repository();
-			lock.lock();
-			try
-			{
-				this.recordNumber = repo.size();
-				repo.add(bytes);
-			}
-			finally
-			{
-				lock.unlock();
-			}
+			this.recordNumber = repo.size();
+			repo.add(bytes);
 		}
 	}
 
@@ -1193,56 +1140,46 @@ public class IndexedRepositoryManager
 	 */
 	public ModuleArchive getArchive (final String rootRelativeName)
 	{
-		lock.lock();
-		try
-		{
-			return moduleMap.computeIfAbsent(
-				rootRelativeName, ModuleArchive::new);
-		}
-		finally
-		{
-			lock.unlock();
-		}
+		return lockWhile(
+			lock,
+			() -> moduleMap.computeIfAbsent(
+				rootRelativeName, ModuleArchive::new));
 	}
 
 	/**
 	 * Clear the underlying {@linkplain IndexedRepository repository} and
 	 * discard any cached data. Set up the repository for subsequent usage.
 	 *
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 * @throws IndexedFileException
 	 *         If any other {@linkplain Exception exception} occurs.
 	 */
-	public void clear () throws IOException, IndexedFileException
+	public void clear ()
+	throws IndexedFileException
 	{
-		lock.lock();
-		try
-		{
-			log(Level.INFO, "Clear: %s%n", rootName);
-			moduleMap.clear();
-			final IndexedRepository repo = repository();
-			repo.close();
-			repository = null;
-			try
+		lockWhile(
+			lock,
+			() ->
 			{
-				//noinspection ResultOfMethodCallIgnored
-				fileName.delete();
-				repository = IndexedFile.newFile(
-					IndexedRepository.class,
-					fileName,
-					null);
-				isOpen = true;
-			}
-			catch (final Exception e)
-			{
-				throw new IndexedFileException(e);
-			}
-		}
-		finally
-		{
-			lock.unlock();
-		}
+				log(Level.INFO, "Clear: %s%n", rootName);
+				moduleMap.clear();
+				final IndexedRepository repo = repository();
+				repo.close();
+				repository = null;
+				try
+				{
+					//noinspection ResultOfMethodCallIgnored
+					fileName.delete();
+					repository = IndexedFile.newFile(
+						IndexedRepository.class,
+						fileName,
+						null);
+					isOpen = true;
+				}
+				catch (final Exception e)
+				{
+					throw new IndexedFileException(e);
+				}
+			});
 	}
 
 	/**
@@ -1253,25 +1190,22 @@ public class IndexedRepositoryManager
 	 */
 	public void cleanModulesUnder (final String rootRelativePath)
 	{
-		lock.lock();
-		try
-		{
-			for (final Entry<String, ModuleArchive> entry
-				: moduleMap.entrySet())
+		lockWhile(
+			lock,
+			() ->
 			{
-				final String moduleKey = entry.getKey();
-				if (moduleKey.equals(rootRelativePath)
-					|| moduleKey.startsWith(rootRelativePath + "/"))
+				for (final Entry<String, ModuleArchive> entry
+					: moduleMap.entrySet())
 				{
-					final ModuleArchive archive = entry.getValue();
-					archive.cleanCompilations();
+					final String moduleKey = entry.getKey();
+					if (moduleKey.equals(rootRelativePath)
+						|| moduleKey.startsWith(rootRelativePath + "/"))
+					{
+						final ModuleArchive archive = entry.getValue();
+						archive.cleanCompilations();
+					}
 				}
-			}
-		}
-		finally
-		{
-			lock.unlock();
-		}
+			});
 	}
 
 	/**
@@ -1294,43 +1228,47 @@ public class IndexedRepositoryManager
 	 */
 	public void commit () throws IndexedFileException
 	{
-		lock.lock();
-		try
-		{
-			if (dirtySince != 0L)
+		lockWhile(
+			lock,
+			() ->
 			{
-				log(Level.FINER, "Commit: %s%n", rootName);
-				final ByteArrayOutputStream byteStream =
-					new ByteArrayOutputStream(131072);
-				try (final DataOutputStream binaryStream =
-					new DataOutputStream(byteStream))
+				try
 				{
-					binaryStream.writeInt(moduleMap.size());
-					for (final ModuleArchive moduleArchive : moduleMap.values())
+					if (dirtySince != 0L)
 					{
-						moduleArchive.write(binaryStream);
+						log(Level.FINER, "Commit: %s%n", rootName);
+						final ByteArrayOutputStream byteStream =
+							new ByteArrayOutputStream(131072);
+						try (
+							final DataOutputStream binaryStream =
+								new DataOutputStream(byteStream))
+						{
+							binaryStream.writeInt(moduleMap.size());
+							for (final ModuleArchive moduleArchive :
+								moduleMap .values())
+							{
+								moduleArchive.write(binaryStream);
+							}
+							log(
+								Level.FINEST, "Commit size = %d%n",
+								byteStream.size());
+						}
+						reopenIfNecessary();
+						final IndexedRepository repo = repository();
+						repo.metaData(byteStream.toByteArray());
+						repo.commit();
+						dirtySince = 0L;
 					}
-					log(Level.FINEST, "Commit size = %d%n", byteStream.size());
 				}
-				reopenIfNecessary();
-				final IndexedRepository repo = repository();
-				repo.metaData(byteStream.toByteArray());
-				repo.commit();
-				dirtySince = 0L;
-			}
-		}
-		catch (final IndexedFileException e)
-		{
-			throw e;
-		}
-		catch (final Exception e)
-		{
-			throw new IndexedFileException(e);
-		}
-		finally
-		{
-			lock.unlock();
-		}
+				catch (final IndexedFileException e)
+				{
+					throw e;
+				}
+				catch (final Exception e)
+				{
+					throw new IndexedFileException(e);
+				}
+			});
 	}
 
 	/**
@@ -1343,19 +1281,17 @@ public class IndexedRepositoryManager
 	 */
 	public void commitIfStaleChanges (final long maximumChangeAgeMs)
 	{
-		lock.lock();
-		try
-		{
-			if (dirtySince != 0L
-				&& System.currentTimeMillis() - dirtySince > maximumChangeAgeMs)
+		lockWhile(
+			lock,
+			() ->
 			{
-				commit();
-			}
-		}
-		finally
-		{
-			lock.unlock();
-		}
+				if (dirtySince != 0L
+					&& System.currentTimeMillis() - dirtySince
+						> maximumChangeAgeMs)
+				{
+					commit();
+				}
+			});
 	}
 
 	/**
@@ -1363,22 +1299,19 @@ public class IndexedRepositoryManager
 	 */
 	public void close ()
 	{
-		lock.lock();
-		try
-		{
-			log(Level.FINE, "Close: %s%n", rootName);
-			isOpen = false;
-			final @Nullable IndexedRepository repo = repository;
-			if (repo != null)
+		lockWhile(
+			lock,
+			() ->
 			{
-				repo.close();
-			}
-			moduleMap.clear();
-		}
-		finally
-		{
-			lock.unlock();
-		}
+				log(Level.FINE, "Close: %s%n", rootName);
+				isOpen = false;
+				final @Nullable IndexedRepository repo = repository;
+				if (repo != null)
+				{
+					repo.close();
+				}
+				moduleMap.clear();
+			});
 	}
 
 	/**
@@ -1450,23 +1383,20 @@ public class IndexedRepositoryManager
 	 */
 	public void reopenIfNecessary ()
 	{
-		lock.lock();
-		try
-		{
-			log(
-				Level.FINE,
-				"Reopen if necessary %s (was open = %s)%n",
-				rootName,
-				isOpen);
-			if (!isOpen)
+		lockWhile(
+			lock,
+			() ->
 			{
-				openOrCreate();
-			}
-		}
-		finally
-		{
-			lock.unlock();
-		}
+				log(
+					Level.FINE,
+					"Reopen if necessary %s (was open = %s)%n",
+					rootName,
+					isOpen);
+				if (!isOpen)
+				{
+					openOrCreate();
+				}
+			});
 	}
 
 	/**

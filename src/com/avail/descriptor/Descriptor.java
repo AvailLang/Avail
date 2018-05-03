@@ -111,7 +111,7 @@ public abstract class Descriptor
 extends AbstractDescriptor
 {
 	/**
-	 * Construct a new {@link Descriptor}.
+	 * Construct a new {@code Descriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -4007,24 +4007,6 @@ extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	void o_ResultContinuation (
-		final AvailObject object,
-		final Continuation1NotNull<AvailObject> continuation)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	void o_FailureContinuation (
-		final AvailObject object,
-		final Continuation1NotNull<Throwable> continuation)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
 	boolean o_InterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
@@ -4939,6 +4921,15 @@ extends AbstractDescriptor
 	void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetSuccessAndFailureContinuations (
+		final AvailObject object,
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		throw unsupportedOperationException();
 	}

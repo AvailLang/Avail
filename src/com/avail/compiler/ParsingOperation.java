@@ -38,35 +38,44 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Describer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.compiler.AvailCompiler.Con;
-import static com.avail.compiler.AvailCompiler.nextNonwhitespaceTokensDo;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
+import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
+import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.newMacroSubstitution;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
-import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.PermutedListPhraseDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.performance.StatisticReport
+	.EXPANDING_PARSING_INSTRUCTIONS;
+import static com.avail.performance.StatisticReport
+	.RUNNING_PARSING_INSTRUCTIONS;
 import static com.avail.utility.PrefixSharingList.*;
 import static com.avail.utility.StackPrinter.trace;
+import static java.util.Arrays.asList;
+import static java.util.Collections.reverse;
+import static java.util.Collections.singletonList;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -560,13 +569,13 @@ public enum ParsingOperation
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
-				// token than like parseArgument.  Thus, if a firstArgument
-				// has been provided (i.e., we're attempting to parse a
-				// leading-argument message to wrap a leading expression),
-				// then reject the parse.
+				// token than like parseArgument.  Thus, if a firstArgument has
+				// been provided (i.e., we're attempting to parse a
+				// leading-argument message to wrap a leading expression), then
+				// reject the parse.
 				return;
 			}
-			nextNonwhitespaceTokensDo(
+			compiler.nextNonwhitespaceTokensDo(
 				start,
 				token ->
 				{
@@ -630,7 +639,7 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			nextNonwhitespaceTokensDo(
+			compiler.nextNonwhitespaceTokensDo(
 				start,
 				token ->
 				{
@@ -640,12 +649,13 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
-								"a keyword token, not " +
-									(tokenType == END_OF_FILE
-										 ? "end-of-file"
-										 : tokenType == LITERAL
-											 ? token.literal()
-											 : token.string()));
+								c -> c.value(
+									"a keyword token, not " +
+										(tokenType == END_OF_FILE
+											 ? "end-of-file"
+											 : tokenType == LITERAL
+												 ? token.literal()
+												 : token.string())));
 						}
 						return;
 					}
@@ -703,7 +713,7 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			nextNonwhitespaceTokensDo(
+			compiler.nextNonwhitespaceTokensDo(
 				start,
 				token ->
 				{
@@ -714,12 +724,13 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
-								"a string literal token, not " +
-									(tokenType == END_OF_FILE
-										 ? "end-of-file"
-										 : tokenType == LITERAL
-											 ? token.literal()
-											 : token.string()));
+								c -> c.value(
+									"a string literal token, not " +
+										(tokenType == END_OF_FILE
+											 ? "end-of-file"
+											 : tokenType == LITERAL
+												 ? token.literal()
+												 : token.string())));
 						}
 						return;
 					}
@@ -777,7 +788,7 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			nextNonwhitespaceTokensDo(
+			compiler.nextNonwhitespaceTokensDo(
 				start,
 				token ->
 				{
@@ -788,12 +799,13 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
-								"a whole number literal token, not " +
-									(tokenType == END_OF_FILE
-										? "end-of-file"
-										: tokenType == LITERAL
-									        ? token.literal()
-											: token.string()));
+								c -> c.value(
+									"a whole number literal token, not " +
+										(tokenType == END_OF_FILE
+											? "end-of-file"
+											: tokenType == LITERAL
+										        ? token.literal()
+												: token.string())));
 						}
 						return;
 					}
@@ -924,7 +936,7 @@ public enum ParsingOperation
 			final int instruction,
 			final int currentPc)
 		{
-			return Arrays.asList(operand(instruction), currentPc + 1);
+			return asList(operand(instruction), currentPc + 1);
 		}
 
 		@Override
@@ -968,7 +980,7 @@ public enum ParsingOperation
 			final int instruction,
 			final int currentPc)
 		{
-			return Collections.singletonList(operand(instruction));
+			return singletonList(operand(instruction));
 		}
 
 		@Override
@@ -1010,7 +1022,7 @@ public enum ParsingOperation
 				final int instruction,
 				final int currentPc)
 			{
-				return Collections.singletonList(operand(instruction));
+				return singletonList(operand(instruction));
 			}
 
 			@Override
@@ -1197,10 +1209,11 @@ public enum ParsingOperation
 					// this can only happen during an expression
 					// evaluation.
 					assert sanityFlag.compareAndSet(false, true);
-					start.expected(withString -> withString.value(
-						"evaluation of expression not to have "
-							+ "thrown Java exception:\n"
-							+ trace(e)));
+					start.expected(
+						c -> c.value(
+							"evaluation of expression not to have "
+								+ "thrown Java exception:\n"
+								+ trace(e)));
 				});
 		}
 	},
@@ -1350,8 +1363,7 @@ public enum ParsingOperation
 			final Con1 continuation)
 		{
 			final int permutationIndex = operand(instruction);
-			final A_Tuple permutation =
-				MessageSplitter.permutationAtIndex(permutationIndex);
+			final A_Tuple permutation = permutationAtIndex(permutationIndex);
 			final A_Phrase poppedList = last(argsSoFar);
 			List<A_Phrase> stack = withoutLast(argsSoFar);
 			stack = append(stack, newPermutedListNode(poppedList, permutation));
@@ -1557,8 +1569,7 @@ public enum ParsingOperation
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
-			final AvailObject constant = MessageSplitter.constantForIndex(
-				operand(instruction));
+			final AvailObject constant = constantForIndex(operand(instruction));
 			final A_Token token = literalToken(
 				stringFrom(constant.toString()),
 				initialTokenPosition.position(),
@@ -1606,7 +1617,7 @@ public enum ParsingOperation
 			final List<A_Phrase> popped =
 				new ArrayList<>(
 					argsSoFar.subList(totalSize - depthToReverse, totalSize));
-			Collections.reverse(popped);
+			reverse(popped);
 			final List<A_Phrase> newArgsSoFar = new ArrayList<>(unpopped);
 			newArgsSoFar.addAll(popped);
 			compiler.eventuallyParseRestOfSendNode(
@@ -1657,14 +1668,14 @@ public enum ParsingOperation
 	 * executing occurrences of this {@link ParsingOperation}.
 	 */
 	public final Statistic parsingStatisticInNanoseconds = new Statistic(
-		name(), StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+		name(), RUNNING_PARSING_INSTRUCTIONS);
 
 	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * expanding occurrences of this {@link ParsingOperation}.
 	 */
 	public final Statistic expandingStatisticInNanoseconds = new Statistic(
-		name(), StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
+		name(), EXPANDING_PARSING_INSTRUCTIONS);
 
 	/**
 	 * Construct a new {@code ParsingOperation} for this enum.
@@ -1766,7 +1777,7 @@ public enum ParsingOperation
 		final int instruction,
 		final int currentPc)
 	{
-		return Collections.singletonList(currentPc + 1);
+		return singletonList(currentPc + 1);
 	}
 
 	/**
