@@ -86,7 +86,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link BuildAction}.
+	 * Construct a new {@code BuildAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

@@ -75,7 +75,7 @@ extends AbstractWorkbenchTask
 	}
 
 	/**
-	 * Construct a new {@link GraphTask}.
+	 * Construct a new {@code GraphTask}.
 	 *
 	 * @param workbench The owning {@link AvailWorkbench}.
 	 * @param targetModuleName

@@ -996,15 +996,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_ResultContinuation (
+	void o_SetSuccessAndFailureContinuations (
 		final AvailObject object,
-		final Continuation1NotNull<AvailObject> continuation)
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		synchronized (object)
 		{
-			final AvailObject oldPojo = object.slot(RESULT_CONTINUATION);
-			assert oldPojo == defaultResultContinuation;
-			object.setSlot(RESULT_CONTINUATION, identityPojo(continuation));
+			final AvailObject oldSuccess = object.slot(RESULT_CONTINUATION);
+			assert oldSuccess == defaultResultContinuation;
+			object.setSlot(RESULT_CONTINUATION, identityPojo(onSuccess));
+
+			final AvailObject oldFailure = object.slot(FAILURE_CONTINUATION);
+			assert oldFailure == defaultFailureContinuation;
+			object.setSlot(FAILURE_CONTINUATION, identityPojo(onFailure));
 		}
 	}
 
@@ -1032,21 +1037,6 @@ extends Descriptor
 			object.setSlot(RESULT_CONTINUATION, nil);
 		}
 		return pojo.javaObjectNotNull();
-	}
-
-	@Override @AvailMethod
-	void o_FailureContinuation (
-		final AvailObject object,
-		final Continuation1NotNull<Throwable> continuation)
-	{
-		synchronized (object)
-		{
-			final AvailObject oldPojo = object.slot(FAILURE_CONTINUATION);
-			assert oldPojo == defaultFailureContinuation;
-			object.setSlot(
-				FAILURE_CONTINUATION,
-				identityPojo(continuation));
-		}
 	}
 
 	@Override @AvailMethod

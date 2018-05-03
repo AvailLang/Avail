@@ -54,7 +54,13 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.AvailUnsupportedOperationException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -842,7 +848,9 @@ public abstract class AbstractDescriptor
 					{
 						builder.append(f.get(this));
 					}
-					catch (IllegalArgumentException | IllegalAccessException e)
+					catch (
+						final IllegalArgumentException
+							| IllegalAccessException e)
 					{
 						builder.append("(inaccessible)");
 					}
@@ -5774,22 +5782,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param continuation
-	 */
-	abstract void o_ResultContinuation (
-		AvailObject object,
-		Continuation1NotNull<AvailObject> continuation);
-
-	/**
-	 * @param object
-	 * @param continuation
-	 */
-	abstract void o_FailureContinuation (
-		AvailObject object,
-		Continuation1NotNull<Throwable> continuation);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract @Nullable AvailLoader o_AvailLoader (AvailObject object);
@@ -6826,4 +6818,14 @@ public abstract class AbstractDescriptor
 	abstract void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action);
+
+	/**
+	 * @param object
+	 * @param onSuccess
+	 * @param onFailure
+	 */
+	abstract void o_SetSuccessAndFailureContinuations (
+		final AvailObject object,
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure);
 }

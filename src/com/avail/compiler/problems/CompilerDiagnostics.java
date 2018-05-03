@@ -61,6 +61,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.addLineNumbers;
 import static com.avail.utility.Strings.lineBreakPattern;
 import static java.lang.String.format;
@@ -187,6 +188,44 @@ public class CompilerDiagnostics
 	public volatile boolean compilationIsInvalid = false;
 
 
+	/**
+	 * The {@linkplain Continuation0 continuation} that reports success of
+	 * compilation.
+	 */
+	@InnerAccess volatile @Nullable Continuation0 successReporter;
+
+	/**
+	 * Get the success reporter.
+	 *
+	 * @return What to do when the module compilation completes successfully.
+	 */
+	public Continuation0 getSuccessReporter ()
+	{
+		return stripNull(successReporter);
+	}
+
+	/**
+	 * The {@linkplain Continuation0 continuation} that runs after compilation
+	 * fails.
+	 */
+	@InnerAccess volatile @Nullable Continuation0 failureReporter;
+
+	/**
+	 * Set the success reporter and failure reporter.
+	 *
+	 * @param theSuccessReporter
+	 *        What to do when the module compilation completes successfully.
+	 * @param theFailureReporter
+	 *        What to do when the module compilation completes unsuccessfully.
+	 */
+	public void setSuccessAndFailureReporters (
+		final Continuation0 theSuccessReporter,
+		final Continuation0 theFailureReporter)
+	{
+		this.successReporter = theSuccessReporter;
+		this.failureReporter = theFailureReporter;
+	}
+
 	/** A bunch of dash characters, wide enough to catch the eye. */
 	public static final String rowOfDashes =
 		"---------------------------------------------------------------------";
@@ -228,6 +267,7 @@ public class CompilerDiagnostics
 		Map<LexingState, List<Describer>> innerMap = expectations.get(position);
 		if (innerMap == null)
 		{
+			//noinspection ConstantConditions
 			if (expectationsIndexHeap.size() == expectationsCountToTrack
 				&& position < expectationsIndexHeap.peek())
 			{
@@ -248,18 +288,6 @@ public class CompilerDiagnostics
 			lexingState,
 			k -> new ArrayList<>());
 		innerList.add(describer);
-	}
-
-	/**
-	 * Report the rightmost accumulated errors, then invoke {@code afterFail}.
-	 *
-	 * @param afterFail
-	 *        What to do after actually reporting the error.
-	 */
-	public void reportError (
-		final Continuation0 afterFail)
-	{
-		reportError("Expected at %s, line %d...", afterFail);
 	}
 
 	/**
@@ -352,18 +380,25 @@ public class CompilerDiagnostics
 	}
 
 	/**
-	 * Report the rightmost accumulated errors, then invoke {@code afterFail}.
+	 * Report the rightmost accumulated errors, then invoke the {@link
+	 * #failureReporter}.
+	 */
+	public void reportError ()
+	{
+		reportError("Expected at %s, line %d...");
+	}
+
+	/**
+	 * Report the rightmost accumulated errors, then invoke the {@link
+	 * #failureReporter}.
 	 *
 	 * @param headerMessagePattern
 	 *        The message pattern that introduces each group of problems.  The
 	 *        first argument is where the indicator string goes, and the second
 	 *        is for the line number.
-	 * @param afterFail
-	 *        What to do after actually reporting the error.
 	 */
 	private synchronized void reportError (
-		final String headerMessagePattern,
-		final Continuation0 afterFail)
+		final String headerMessagePattern)
 	{
 		final List<Integer> descendingIndices =
 			new ArrayList<>(expectationsIndexHeap);
@@ -372,8 +407,7 @@ public class CompilerDiagnostics
 			descendingIndices.iterator(),
 			new IndicatorGenerator(),
 			new ArrayList<>(),
-			groups -> reportGroupedErrors(
-				groups, headerMessagePattern, afterFail));
+			groups -> reportGroupedErrors(groups, headerMessagePattern));
 	}
 
 	/**
@@ -454,14 +488,11 @@ public class CompilerDiagnostics
 	 *        argument is the line number.
 	 * @param message
 	 *        The message text for this problem.
-	 * @param failure
-	 *        What to do after displaying the error message.
 	 */
 	public synchronized void reportError (
 		final LexingState lexingState,
 		final String headerMessagePattern,
-		final String message,
-		final Continuation0 failure)
+		final String message)
 	{
 		final int startPosition = lexingState.position;
 		expectations.clear();
@@ -472,7 +503,7 @@ public class CompilerDiagnostics
 			Collections.singletonList(new SimpleDescriber(message)));
 		expectations.put(startPosition, innerMap);
 		expectationsIndexHeap.add(startPosition);
-		reportError(headerMessagePattern, failure);
+		reportError(headerMessagePattern);
 	}
 
 	/**
@@ -580,7 +611,8 @@ public class CompilerDiagnostics
 	}
 
 	/**
-	 * Report a parsing problem; after reporting it, execute afterFail.
+	 * Report a parsing problem.  After reporting it, execute the {@link
+	 * #failureReporter}.
 	 *
 	 * @param groupedProblems
 	 *        The {@link List} of {@link ProblemsAtPosition} to report.  Each
@@ -591,18 +623,15 @@ public class CompilerDiagnostics
 	 *        of problems.  Its arguments are the group's {@linkplain
 	 *        ProblemsAtPosition#indicator} and the problematic token's line
 	 *        number.
-	 * @param afterFail
-	 *        What to do after the problems have actually been reported.
 	 */
 	public void reportGroupedErrors (
 		final List<ProblemsAtPosition> groupedProblems,
-		final String headerMessagePattern,
-		final Continuation0 afterFail)
+		final String headerMessagePattern)
 	{
 		if (pollForAbort.getAsBoolean())
 		{
 			// Never report errors during a client-initiated abort.
-			afterFail.value();
+			stripNull(failureReporter).value();
 			return;
 		}
 		final List<ProblemsAtPosition> ascending =
@@ -709,7 +738,7 @@ public class CompilerDiagnostics
 						public void abortCompilation ()
 						{
 							isShuttingDown = true;
-							afterFail.value();
+							stripNull(failureReporter).value();
 						}
 					});
 					// Generate the footer that indicates the module and

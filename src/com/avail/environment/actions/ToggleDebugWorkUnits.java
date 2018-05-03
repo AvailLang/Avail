@@ -1,19 +1,19 @@
 /*
- * ToggleFastLoaderAction.java
+ * ToggleDebugWorkUnits.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,40 +33,39 @@
 package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
-import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
 
 import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 
 /**
- * A {@code ToggleFastLoaderAction} toggles the flag that indicates whether to
- * attempt to rewrite some top-level statements into a faster form during module
- * compilation.
+ * A {@code ToggleDebugWorkUnits} toggles the flag that indicates whether to
+ * write debug information about queued and executed work units to the
+ * transcript.
  */
 @SuppressWarnings("serial")
-public final class ToggleFastLoaderAction
+public final class ToggleDebugWorkUnits
 extends AbstractWorkbenchAction
 {
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		AvailLoader.enableFastLoader ^= true;
+		Interpreter.debugWorkUnits ^= true;
 	}
 
 	/**
-	 * Construct a new {@code ToggleFastLoaderAction}.
+	 * Construct a new {@code ToggleDebugWorkUnits}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public ToggleFastLoaderAction (final AvailWorkbench workbench)
+	public ToggleDebugWorkUnits (final AvailWorkbench workbench)
 	{
-		super(workbench, "Use fast-loading");
+		super(workbench, "Debug work units");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Toggle fast-loading, which rewrites some top-level statements"
-				+ " during compilation for performance.");
+			"Toggle queued / executed work units.");
 		putValue(
-			SELECTED_KEY, AvailLoader.enableFastLoader);
+			SELECTED_KEY, Interpreter.debugWorkUnits);
 	}
 }

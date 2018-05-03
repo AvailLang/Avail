@@ -57,7 +57,7 @@ final class SerializerOperand
 	private final String roleName;
 
 	/**
-	 * Construct a new {@link SerializerOperand}.
+	 * Construct a new {@code SerializerOperand}.
 	 *
 	 * @param operandEncoding
 	 *            The {@linkplain SerializerOperandEncoding encoding} to use.
@@ -99,8 +99,10 @@ final class SerializerOperand
 	 * object may be synthetic, produced solely for pre-processing information
 	 * for serialization of a single operand.
 	 *
-	 * @param object The object to deconstruct and write.
-	 * @param serializer The serializer to which to write the object.
+	 * @param object
+	 *        The object to deconstruct and write.
+	 * @param serializer
+	 *        The serializer to which to write the object.
 	 */
 	public void write (final AvailObject object, final Serializer serializer)
 	{
@@ -108,15 +110,31 @@ final class SerializerOperand
 	}
 
 	/**
-	 * Read an {@link AvailObject} from the {@link Deserializer} using the
-	 * receiver's {@link #operandEncoding}.
+	 * Read an {@link AvailObject} from the {@link AbstractDeserializer} using
+	 * the receiver's {@link #operandEncoding}.
 	 *
-	 * @param deserializer The deserializer from which to read an object.
+	 * @param deserializer
+	 *        The deserializer from which to read an object.
 	 * @return The newly decoded object.
 	 */
-	public AvailObject read (final Deserializer deserializer)
+	public AvailObject read (final AbstractDeserializer deserializer)
 	{
 		return operandEncoding.read(deserializer);
+	}
+
+	/**
+	 * Describe the operand that would be deserialized, using the receiver's
+	 * {@link #operandEncoding}.
+	 *
+	 * @param describer
+	 *        The {@link DeserializerDescriber} from which to construct an
+	 *        object description.
+	 */
+	public void describe (final DeserializerDescriber describer)
+	{
+		describer.append(roleName);
+		describer.append(" = ");
+		operandEncoding.describe(describer);
 	}
 
 	@Override

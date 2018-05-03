@@ -46,13 +46,17 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.AvailRuntime.specialObject;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.isInline;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor
+	.createAtomWithProperties;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
@@ -66,12 +70,15 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
+	.newExpressionAsStatement;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
+	.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
@@ -81,19 +88,25 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PermutedListPhraseDescriptor
+	.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
-import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoFromSerializationProxy;
-import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoSerializationProxy;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
+import static com.avail.descriptor.SelfPojoTypeDescriptor
+	.pojoFromSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor
+	.pojoSerializationProxy;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
@@ -111,7 +124,8 @@ import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+	.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -409,6 +423,15 @@ public enum SerializerOperation
 		{
 			return subobjects[0];
 		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			describer.append(operands[0].read(describer).toString());
+		}
 	},
 
 	/**
@@ -433,6 +456,15 @@ public enum SerializerOperation
 		{
 			return subobjects[0];
 		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			describer.append(operands[0].read(describer).toString());
+		}
 	},
 
 	/**
@@ -456,6 +488,15 @@ public enum SerializerOperation
 		{
 			return subobjects[0];
 		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			describer.append(operands[0].read(describer).toString());
+		}
 	},
 
 	/**
@@ -477,6 +518,15 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			return subobjects[0];
+		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			describer.append(operands[0].read(describer).toString());
 		}
 	},
 
@@ -549,7 +599,20 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return Deserializer.specialObject(subobjects[0].extractInt());
+			return specialObject(subobjects[0].extractInt());
+		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			final A_Number specialNumber = operands[0].read(describer);
+			final int specialIndex = specialNumber.extractInt();
+			describer.append(" (");
+			describer.append(Integer.toString(specialIndex));
+			describer.append(") = ");
+			describer.append(specialObject(specialIndex).toString());
 		}
 	},
 
@@ -573,6 +636,19 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			return Deserializer.specialAtom(subobjects[0].extractInt());
+		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			final A_Number specialNumber = operands[0].read(describer);
+			final int specialIndex = specialNumber.extractInt();
+			describer.append(" (");
+			describer.append(Integer.toString(specialIndex));
+			describer.append(") = ");
+			describer.append(Deserializer.specialAtom(specialIndex).toString());
 		}
 	},
 
@@ -686,6 +762,17 @@ public enum SerializerOperation
 			final float floatValue = intBitsToFloat(floatBits);
 			return fromFloat(floatValue);
 		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			final A_Number floatAsIntNumber = operands[0].read(describer);
+			final int floatBits = floatAsIntNumber.extractInt();
+			describer.append(Float.toString(intBitsToFloat(floatBits)));
+		}
 	},
 
 	/**
@@ -716,10 +803,25 @@ public enum SerializerOperation
 			final int highBits = subobjects[0].extractInt();
 			final int lowBits = subobjects[1].extractInt();
 			final long doubleBits =
-				(((long) highBits) << 32)
-				+ (lowBits & 0xFFFFFFFFL);
+				(((long) highBits) << 32) + (lowBits & 0xFFFFFFFFL);
 			final double doubleValue = longBitsToDouble(doubleBits);
 			return fromDouble(doubleValue);
+		}
+
+		@Override
+		void describe (
+			final DeserializerDescriber describer)
+		{
+			describer.append(this.name());
+			describer.append(" = ");
+			final A_Number highBitsAsNumber = operands[0].read(describer);
+			final A_Number lowBitsAsNumber = operands[1].read(describer);
+			final int highBits = highBitsAsNumber.extractInt();
+			final int lowBits = lowBitsAsNumber.extractInt();
+			final long doubleBits =
+				(((long) highBits) << 32) + (lowBits & 0xFFFFFFFFL);
+			final double theDouble = longBitsToDouble(doubleBits);
+			describer.append(Double.toString(theDouble));
 		}
 	},
 
@@ -977,6 +1079,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
+			serializer.checkAtom(object);
 			assert object.getAtomProperty(HERITABLE_KEY.atom).equalsNil();
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
@@ -1013,6 +1116,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
+			serializer.checkAtom(object);
 			assert object.getAtomProperty(HERITABLE_KEY.atom).equals(
 				trueObject());
 			final A_Module module = object.issuingModule();
@@ -1870,6 +1974,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
+			serializer.checkAtom(object);
 			assert object.getAtomProperty(HERITABLE_KEY.atom)
 				.equalsNil();
 			assert object.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
@@ -3357,9 +3462,37 @@ public enum SerializerOperation
 	};
 
 	/**
+	 * The array of enumeration values.  Don't change it.
+	 */
+	private static final SerializerOperation[] all = values();
+
+	/**
+	 * Answer the enum value having the given ordinal.
+	 *
+	 * @param ordinal The ordinal to look up.
+	 */
+	static SerializerOperation byOrdinal (final int ordinal)
+	{
+		return all[ordinal];
+	}
+
+	/** The maximum number of operands of any SerializerOperation. */
+	static final int maxSubobjects;
+
+	static
+	{
+		int max = 0;
+		for (final SerializerOperation operation : all)
+		{
+			max = Math.max(max, operation.operands().length);
+		}
+		maxSubobjects = max;
+	}
+
+	/**
 	 * The operands that this operation expects to see encoded after the tag.
 	 */
-	private final SerializerOperand[] operands;
+	protected final SerializerOperand[] operands;
 
 	/**
 	 * Answer my {@linkplain SerializerOperand operands}.
@@ -3453,6 +3586,23 @@ public enum SerializerOperation
 		for (int i = 0; i < operandValues.length; i++)
 		{
 			operands[i].write((AvailObject) operandValues[i], serializer);
+		}
+	}
+
+	/**
+	 * Describe this operation and its operands.
+	 *
+	 * @param describer
+	 *        The {@link DeserializerDescriber} on which to describe this.
+	 */
+	void describe (
+		final DeserializerDescriber describer)
+	{
+		describer.append(this.name());
+		for (final SerializerOperand operand : operands)
+		{
+			describer.append("\n\t");
+			operand.describe(describer);
 		}
 	}
 

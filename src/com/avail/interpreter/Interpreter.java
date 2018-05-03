@@ -2273,9 +2273,8 @@ public final class Interpreter
 			stringificationPriority,
 			() -> stringFrom("Stringification"));
 		fiber.textInterface(textInterface);
-		fiber.resultContinuation(
-			string -> continuation.value(string.asNativeString()));
-		fiber.failureContinuation(
+		fiber.setSuccessAndFailureContinuations(
+			string -> continuation.value(string.asNativeString()),
 			e -> continuation.value(format(
 				"(stringification failed [%s]) %s",
 				e.getClass().getSimpleName(),

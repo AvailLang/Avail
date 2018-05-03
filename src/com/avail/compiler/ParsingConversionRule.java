@@ -33,15 +33,25 @@
 package com.avail.compiler;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor
+	.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
+	.newMacroSubstitution;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 
 /**
@@ -140,7 +150,8 @@ public enum ParsingConversionRule
 	/**
 	 * Convert an input {@link AvailObject} into an output AvailObject, using
 	 * the specific conversion rule's implementation.
-	 *  @param compilationContext
+	 *
+	 * @param compilationContext
 	 *        The {@link CompilationContext} to use during conversion, if
 	 *        needed.
 	 * @param lexingState
@@ -160,7 +171,7 @@ public enum ParsingConversionRule
 		final Continuation1NotNull<Throwable> onProblem);
 
 	/**
-	 * Construct a new {@link ParsingConversionRule}.
+	 * Construct a new {@code ParsingConversionRule}.
 	 *
 	 * @param number The rule number.
 	 */
@@ -173,8 +184,8 @@ public enum ParsingConversionRule
 	private static final ParsingConversionRule[] all = values();
 
 	/**
-	 * Lookup the specified {@linkplain ParsingConversionRule conversion rule}
-	 * by number.
+	 * Lookup the specified {@code ParsingConversionRule conversion rule} by
+	 * number.
 	 *
 	 * @param number The rule number.
 	 * @return The appropriate parsing conversion rule.

@@ -55,20 +55,18 @@ import com.avail.utility.MutableInt;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
@@ -103,10 +101,11 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
+import static com.avail.utility.Locks.lockWhile;
+import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import static java.util.Collections.*;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level
@@ -126,9 +125,10 @@ public final class AvailLoader
 		 */
 		public final List<A_Lexer> allVisibleLexers = new ArrayList<>();
 
-		boolean frozen = false;
+		/** When set, fail on attempts to change the lexical scanner. */
+		volatile boolean frozen = false;
 
-		@InnerAccess synchronized void freezeFromChanges()
+		@InnerAccess void freezeFromChanges()
 		{
 			assert !frozen;
 			frozen = true;
@@ -219,8 +219,8 @@ public final class AvailLoader
 		}
 
 		/**
-		 * Collect the lexers should run when we encounter a character with the
-		 * given (int) code point, then pass this tuple of lexers to the
+		 * Collect the lexers that should run when we encounter a character with
+		 * the given (int) code point, then pass this tuple of lexers to the
 		 * supplied {@link Continuation1NotNull}.
 		 *
 		 * <p>We pass it forward rather than return it, since sometimes this
@@ -247,16 +247,9 @@ public final class AvailLoader
 		{
 			if ((codePoint & ~255) == 0)
 			{
-				latin1Lock.readLock().lock();
-				final A_Tuple tuple;
-				try
-				{
-					tuple = latin1ApplicableLexers[codePoint];
-				}
-				finally
-				{
-					latin1Lock.readLock().unlock();
-				}
+				final @Nullable A_Tuple tuple = lockWhileNullable(
+					latin1Lock.readLock(),
+					() -> latin1ApplicableLexers[codePoint]);
 				if (tuple != null)
 				{
 					continuation.value(tuple);
@@ -271,8 +264,6 @@ public final class AvailLoader
 					codePoint,
 					(applicableLexers, failures) ->
 					{
-						assert applicableLexers != null;
-						assert failures != null;
 						if (!failures.isEmpty())
 						{
 							onFailure.value(failures);
@@ -336,8 +327,6 @@ public final class AvailLoader
 					codePoint,
 					(applicableLexers, failures) ->
 					{
-						assert applicableLexers != null;
-						assert failures != null;
 						if (!failures.isEmpty())
 						{
 							onFailure.value(failures);
@@ -381,7 +370,7 @@ public final class AvailLoader
 		/**
 		 * Collect the lexers that should run when we encounter a character with
 		 * the given (int) code point, then pass this set of lexers to the
-		 * supplied {@link Continuation1}.
+		 * supplied {@link Continuation2NotNull}.
 		 *
 		 * <p>We pass it forward rather than return it, since sometimes this
 		 * requires lexer filter functions to run, which we must not do
@@ -402,7 +391,8 @@ public final class AvailLoader
 		private void selectLexersPassingFilterThen (
 			final LexingState lexingState,
 			final int codePoint,
-			final Continuation2<A_Set, Map<A_Lexer, Throwable>> continuation)
+			final Continuation2NotNull<A_Set, Map<A_Lexer, Throwable>>
+				continuation)
 		{
 			final MutableInt countdown =
 				new MutableInt(allVisibleLexers.size());
@@ -413,16 +403,17 @@ public final class AvailLoader
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
 			// replace it if/when the first error happens.
-			final Mutable<Map<A_Lexer, Throwable>> failureMap =
-				new Mutable<>(emptyMap());
-			final List<A_Character> argsList = Collections.singletonList(
-				fromCodePoint(codePoint));
-			final Object joinLock = new Object();
+			final List<A_Character> argsList =
+				singletonList(fromCodePoint(codePoint));
 			final CompilationContext compilationContext =
 				lexingState.compilationContext;
 			final AvailLoader loader = compilationContext.loader();
-			compilationContext.startWorkUnits(allVisibleLexers.size());
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
+			final ReadWriteLock joinLock = new ReentrantReadWriteLock();
+			final Mutable<Map<A_Lexer, Throwable>> failureMap =
+				new Mutable<>(emptyMap());
+			final List<A_Fiber> fibers =
+				new ArrayList<>(allVisibleLexers.size());
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = newLoaderFiber(
@@ -433,66 +424,71 @@ public final class AvailLoader
 						lexer.lexerMethod().chooseBundle(loader.module())
 							.message().atomName(),
 						codePoint));
-				Continuation1NotNull<AvailObject> fiberSuccess = boolValue ->
-				{
-					assert boolValue.isBoolean();
-					final boolean countdownHitZero;
-					synchronized (joinLock)
-					{
-						if (boolValue.extractBoolean())
-						{
-							applicableLexers.add(lexer);
-						}
-						countdown.value--;
-						assert countdown.value >= 0;
-						countdownHitZero = countdown.value == 0;
-					}
-					if (countdownHitZero)
-					{
-						// This was the fiber reporting the last result.
-						continuation.value(
-							setFromCollection(applicableLexers),
-							failureMap.value);
-					}
-				};
-				Continuation1NotNull<Throwable> fiberFailure = throwable ->
-				{
-					final boolean countdownHitZero;
-					synchronized (joinLock)
-					{
-						if (failureMap.value.isEmpty())
-						{
-							failureMap.value = new HashMap<>();
-						}
-						failureMap.value.put(lexer, throwable);
-						countdown.value--;
-						assert countdown.value >= 0;
-						countdownHitZero = countdown.value == 0;
-					}
-					if (countdownHitZero)
-					{
-						// This was the fiber reporting the last
-						// result (a fiber failure).
-						continuation.value(
-							setFromCollection(applicableLexers),
-							failureMap.value);
-					}
-				};
 				fiber.textInterface(loader.textInterface);
-
-				assert (compilationContext.getNoMoreWorkUnits() != null);
-				// Trace it as a work unit.
-				final AtomicBoolean oneWay = new AtomicBoolean();
-				fiberSuccess = compilationContext.workUnitCompletion(
-					lexingState, oneWay, fiberSuccess);
-				fiberFailure = compilationContext.workUnitCompletion(
-					lexingState, oneWay, fiberFailure);
-				fiber.resultContinuation(fiberSuccess);
-				fiber.failureContinuation(fiberFailure);
+				lexingState.setFiberContinuationsTrackingWork(
+					fiber,
+					boolValue ->
+					{
+						assert boolValue.isBoolean();
+						final boolean countdownHitZero = lockWhile(
+							joinLock.writeLock(),
+							() ->
+							{
+								if (boolValue.extractBoolean())
+								{
+									applicableLexers.add(lexer);
+								}
+								countdown.value--;
+								assert countdown.value >= 0;
+								return countdown.value == 0;
+							});
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last result.
+							continuation.value(
+								setFromCollection(applicableLexers),
+								failureMap.value);
+						}
+					},
+					throwable ->
+					{
+						final boolean countdownHitZero = lockWhile(
+							joinLock.writeLock(),
+							() ->
+							{
+								if (failureMap.value.isEmpty())
+								{
+									failureMap.value = new HashMap<>();
+								}
+								failureMap.value.put(lexer, throwable);
+								countdown.value--;
+								assert countdown.value >= 0;
+								return countdown.value == 0;
+							});
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last
+							// result (a fiber failure).
+							continuation.value(
+								setFromCollection(applicableLexers),
+								failureMap.value);
+						}
+					});
+				fibers.add(fiber);
+			}
+			// Launch the fibers only after they've all been created.  That's
+			// because we increment the queued count while setting the fibers'
+			// success/failure continuations, with the corresponding increments
+			// of the completed counts dealt with by wrapping the continuations.
+			// If a fiber ran to completion before we could create them all, the
+			// counters could collide, running the noMoreWorkUnits action before
+			// all fibers got a chance to run.
+			for (int i = 0; i < fibers.size(); i++)
+			{
 				Interpreter.runOutermostFunction(
 					loader.runtime(),
-					fiber,
-					lexer.lexerFilterFunction(),
+					fibers.get(i),
+					allVisibleLexers.get(i).lexerFilterFunction(),
 					argsList);
 			}
 		}
@@ -574,9 +570,8 @@ public final class AvailLoader
 
 	/**
 	 * The {@link AvailRuntime} for the loader. Since a {@linkplain AvailLoader
-	 * loader} cannot migrate between two
-	 * {@linkplain AvailRuntime runtimes}, it
-	 * is safe to cache it for efficient access.
+	 * loader} cannot migrate between two {@link AvailRuntime}s, it is safe to
+	 * cache it for efficient access.
 	 */
 	private final AvailRuntime runtime = currentRuntime();
 
@@ -605,29 +600,6 @@ public final class AvailLoader
 	public A_Module module ()
 	{
 		return module;
-	}
-
-	private @Nullable CompilationContext compilationContext;
-
-	/**
-	 * Set the current {@link CompilationContext} for this loader.
-	 *
-	 * @param context A {@link CompilationContext}.
-	 */
-	public void compilationContext (final CompilationContext context)
-	{
-		compilationContext = context;
-	}
-
-	/**
-	 * Answer the current {@link CompilationContext}, failing if there is none
-	 * for this loader.
-	 *
-	 * @return A {@link CompilationContext}.
-	 */
-	public CompilationContext compilationContext ()
-	{
-		return stripNull(compilationContext);
 	}
 
 	/** Used for extracting tokens from the source text. */
@@ -1290,24 +1262,22 @@ public final class AvailLoader
 	}
 
 	/**
-	 * The modularity scheme should prevent all intermodular method conflicts.
+	 * The modularity scheme should prevent all inter-modular method conflicts.
 	 * Precedence is specified as an array of message sets that are not allowed
 	 * to be messages generating the arguments of this message.  For example,
 	 * &lt;&#123;'_+_'&#125; , &#123;'_+_' , '_*_'&#125;&gt; for the '_*_'
 	 * operator makes * bind tighter than + and also groups multiple *'s
 	 * left-to-right.
 	 *
-	 * Note that we don't have to prevent L2 code from running, since the
+	 * <p>Note that we don't have to prevent L2 code from running, since the
 	 * grammatical restrictions only affect parsing.  We still have to latch
-	 * access to the grammatical restrictions to avoid read/write conflicts.
+	 * access to the grammatical restrictions to avoid read/write conflicts.</p>
 	 *
 	 * @param parentAtoms
-	 *        A {@linkplain A_Set set} of {@linkplain AtomDescriptor atom}s that
-	 *        name the message bundles that are to have their arguments
-	 *        constrained.
-	 * @param illegalArgMsgs
-	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *        SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that name
+	 *        An {@link A_Set} of {@linkplain A_Atom}s that name the message
+	 *        bundles that are to have their arguments constrained.
+	 * @param illegalArgumentMessages
+	 *        The {@link A_Tuple} of {@link A_Set}s of {@link A_Atom}s that name
 	 *        methods.
 	 * @throws MalformedMessageException
 	 *         If one of the specified names is inappropriate as a method name.
@@ -1316,14 +1286,14 @@ public final class AvailLoader
 	 */
 	public void addGrammaticalRestrictions (
 		final A_Set parentAtoms,
-		final A_Tuple illegalArgMsgs)
+		final A_Tuple illegalArgumentMessages)
 	throws MalformedMessageException, SignatureException
 	{
 		parentAtoms.makeShared();
-		illegalArgMsgs.makeShared();
+		illegalArgumentMessages.makeShared();
 		final List<A_Set> bundleSetList =
-			new ArrayList<>(illegalArgMsgs.tupleSize());
-		for (final A_Set atomsSet : illegalArgMsgs)
+			new ArrayList<>(illegalArgumentMessages.tupleSize());
+		for (final A_Set atomsSet : illegalArgumentMessages)
 		{
 			A_Set bundleSet = emptySet();
 			for (final A_Atom atom : atomsSet)
@@ -1339,7 +1309,7 @@ public final class AvailLoader
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
 			final MessageSplitter splitter = bundle.messageSplitter();
 			final int numArgs = splitter.numberOfLeafArguments();
-			if (illegalArgMsgs.tupleSize() != numArgs)
+			if (illegalArgumentMessages.tupleSize() != numArgs)
 			{
 				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
@@ -1382,7 +1352,7 @@ public final class AvailLoader
 			new LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.bundle,
 				parentAtoms,
-				illegalArgMsgs));
+				illegalArgumentMessages));
 	}
 
 	/**
@@ -1403,7 +1373,7 @@ public final class AvailLoader
 
 	/**
 	 * Run the specified {@linkplain A_Tuple tuple} of {@linkplain A_Function
-	 * functions} in parallel.
+	 * functions} sequentially.
 	 *
 	 * @param unloadFunctions
 	 *        A tuple of unload functions.
@@ -1436,8 +1406,9 @@ public final class AvailLoader
 							currentIndex,
 							module().moduleName()));
 					fiber.textInterface(textInterface);
-					fiber.resultContinuation(unused -> value());
-					fiber.failureContinuation(unused -> value());
+					fiber.setSuccessAndFailureContinuations(
+						ignored -> value(),
+						ignored -> value());
 					Interpreter.runOutermostFunction(
 						runtime(), fiber, unloadFunction, emptyList());
 				}
@@ -1544,19 +1515,19 @@ public final class AvailLoader
 				final A_Set newNames =
 					module.newNames().hasKey(stringName)
 						? emptySet().setWithElementCanDestroy(
-						module.newNames().mapAt(stringName), true)
+							module.newNames().mapAt(stringName), true)
 						: emptySet();
-				final A_Set publics =
+				final A_Set publicNames =
 					module.importedNames().hasKey(stringName)
 						? module.importedNames().mapAt(stringName)
 						: emptySet();
-				final A_Set privates =
+				final A_Set privateNames =
 					module.privateNames().hasKey(stringName)
 						? module.privateNames().mapAt(stringName)
 						: emptySet();
 				who.value = newNames
-					.setUnionCanDestroy(publics, true)
-					.setUnionCanDestroy(privates, true);
+					.setUnionCanDestroy(publicNames, true)
+					.setUnionCanDestroy(privateNames, true);
 			});
 		return who.value();
 	}

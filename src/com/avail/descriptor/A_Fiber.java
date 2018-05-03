@@ -120,11 +120,6 @@ extends A_BasicObject
 	Continuation1NotNull<Throwable> failureContinuation ();
 
 	/**
-	 * @param onFailure
-	 */
-	void failureContinuation (Continuation1NotNull<Throwable> onFailure);
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Map fiberGlobals ();
@@ -240,14 +235,24 @@ extends A_BasicObject
 	Continuation1NotNull<AvailObject> resultContinuation ();
 
 	/**
-	 * @param onSuccess
-	 */
-	void resultContinuation (Continuation1NotNull<AvailObject> onSuccess);
-
-	/**
 	 * @param flag
 	 */
 	void setGeneralFlag (GeneralFlag flag);
+
+	/**
+	 * Set the success and failure continuations of this fiber.  The former runs
+	 * if the fiber succeeds, passing the resulting {@link AvailObject}, and
+	 * also stashing it in the fiber.  The latter runs if the fiber fails,
+	 * passing the {@link Throwable} that caused the failure.
+	 *
+	 * @param onSuccess
+	 *        The continuation to invoke with the fiber's result value.
+	 * @param onFailure
+	 *        The continuation to invoke with the responsible throwable.
+	 */
+	void setSuccessAndFailureContinuations (
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure);
 
 	/**
 	 * @param flag

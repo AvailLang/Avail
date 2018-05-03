@@ -305,32 +305,33 @@ extends Primitive
 			forkedFiber.heritableFiberGlobals(
 				originalFiber.heritableFiberGlobals());
 			forkedFiber.textInterface(originalFiber.textInterface());
-			forkedFiber.resultContinuation(success);
-			forkedFiber.failureContinuation(throwable ->
-			{
-				if (throwable instanceof AvailRejectedParseException)
+			forkedFiber.setSuccessAndFailureContinuations(
+				success,
+				throwable ->
 				{
-					final AvailRejectedParseException rejected =
-						(AvailRejectedParseException) throwable;
-					final A_String string = rejected.rejectionString();
-					synchronized (problems)
+					if (throwable instanceof AvailRejectedParseException)
 					{
-						problems.add(string);
+						final AvailRejectedParseException rejected =
+							(AvailRejectedParseException) throwable;
+						final A_String string = rejected.rejectionString();
+						synchronized (problems)
+						{
+							problems.add(string);
+						}
 					}
-				}
-				else if (!(throwable instanceof AvailAcceptedParseException))
-				{
-					synchronized (problems)
+					else if (!(throwable instanceof AvailAcceptedParseException))
 					{
-						problems.add(stringFrom(
-							"evaluation of macro body not to raise an "
-								+ "unhandled exception:\n\t"
-								+ throwable));
+						synchronized (problems)
+						{
+							problems.add(stringFrom(
+								"evaluation of macro body not to raise an "
+									+ "unhandled exception:\n\t"
+									+ throwable));
+						}
 					}
-				}
-				// Success without type narrowing – do nothing.
-				// Now that we've fully dealt with it,
-			});
+					// Success without type narrowing – do nothing.
+					// Now that we've fully dealt with it,
+				});
 			runOutermostFunction(
 				runtime, forkedFiber, restriction.function(), argTypesList);
 		}

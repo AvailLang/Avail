@@ -5,6 +5,7 @@
       <w>availuator</w>
       <w>backquote</w>
       <w>backquoted</w>
+      <w>boundedly</w>
       <w>bytecode</w>
       <w>bytecodes</w>
       <w>callees</w>
@@ -25,14 +26,18 @@
       <w>denormalized</w>
       <w>disassembly</w>
       <w>dominator</w>
+      <w>enablements</w>
       <w>endian</w>
       <w>endianness</w>
+      <w>enqueuer</w>
       <w>fanout</w>
       <w>fixup</w>
       <w>foldable</w>
+      <w>graphviz</w>
       <w>guillemet</w>
       <w>guillemets</w>
       <w>gulik</w>
+      <w>hasher</w>
       <w>homogenous</w>
       <w>idempotently</w>
       <w>immutables</w>
@@ -70,6 +75,7 @@
       <w>nontype</w>
       <w>nonwhitespace</w>
       <w>nullary</w>
+      <w>nulling</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
       <w>offramp</w>
@@ -79,6 +85,7 @@
       <w>parameterize</w>
       <w>parameterized</w>
       <w>pojo</w>
+      <w>pojos</w>
       <w>postamble</w>
       <w>pragmas</w>
       <w>prefilter</w>
@@ -88,6 +95,7 @@
       <w>reconstructor</w>
       <w>reconstructors</w>
       <w>recursing</w>
+      <w>reentrant</w>
       <w>reifier</w>
       <w>reimplement</w>
       <w>reoptimization</w>
@@ -95,14 +103,17 @@
       <w>reoptimized</w>
       <w>reoptimizes</w>
       <w>reoptimizing</w>
+      <w>schedulable</w>
       <w>shareds</w>
       <w>stackp</w>
       <w>stringified</w>
       <w>stringifier</w>
       <w>stringifiers</w>
+      <w>stringifying</w>
       <w>subclassing</w>
       <w>subcomponents</w>
       <w>subentry</w>
+      <w>subkey</w>
       <w>submap</w>
       <w>subobject</w>
       <w>subobjects</w>
@@ -127,11 +138,13 @@
       <w>transactionally</w>
       <w>tuples</w>
       <w>unbackquoted</w>
+      <w>unboundedly</w>
       <w>unbox</w>
       <w>unboxed</w>
       <w>uncached</w>
       <w>underflows</w>
       <w>uninstantiable</w>
+      <w>unloader</w>
       <w>unparseable</w>
       <w>unpopped</w>
       <w>unregister</w>

@@ -58,7 +58,6 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,6 +80,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 
 /**
  * A {@code CompilationContext} lasts for a module's entire compilation
@@ -210,18 +210,44 @@ public class CompilationContext
 	}
 
 	public void setNoMoreWorkUnits (
-		final @Nullable Continuation0 noMoreWorkUnits)
+		final @Nullable Continuation0 newNoMoreWorkUnits)
 	{
+		assert (newNoMoreWorkUnits == null)
+				!= (this.noMoreWorkUnits == null)
+			: "noMoreWorkUnits must transition to or from null";
+
 		if (Interpreter.debugWorkUnits)
 		{
 			final boolean wasNull = this.noMoreWorkUnits == null;
-			final boolean isNull = noMoreWorkUnits == null;
+			final boolean isNull = newNoMoreWorkUnits == null;
 			System.out.println(
-				(isNull ? "Clear" : "Set")
+				(isNull ? "\nClear" : "\nSet")
 					+ " noMoreWorkUnits (was "
 					+ (wasNull ? "null)" : "non-null)"));
+
+			final StringBuilder builder = new StringBuilder();
+			final Throwable e = new Throwable().fillInStackTrace();
+			builder.append(trace(e));
+			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
+			final String trace = builder.toString().replaceAll(
+				"\\A.*\\R((.*\\R){6})(.|\\R)*\\z", "$1");
+			System.out.println(
+				hashCode() + " SetNoMoreWorkUnits:\n\t" + trace.trim());
 		}
-		this.noMoreWorkUnits = noMoreWorkUnits;
+		final AtomicBoolean ran = new AtomicBoolean(false);
+		//noinspection NonAtomicOperationOnVolatileField
+		this.noMoreWorkUnits = newNoMoreWorkUnits == null
+			? null
+			: () ->
+			{
+				assert !ran.getAndSet(true)
+					: "Attempting to invoke the same noMoreWorkUnits twice";
+				if (Interpreter.debugWorkUnits)
+				{
+					System.out.println("Running noMoreWorkUnits");
+				}
+				stripNull(newNoMoreWorkUnits).value();
+			};
 	}
 
 	/**
@@ -239,22 +265,6 @@ public class CompilationContext
 		return progressReporter;
 	}
 
-	/**
-	 * The {@linkplain Continuation0 continuation} that reports success of
-	 * compilation.
-	 */
-	@InnerAccess volatile @Nullable Continuation0 successReporter;
-
-	public Continuation0 getSuccessReporter ()
-	{
-		return stripNull(successReporter);
-	}
-
-	public void setSuccessReporter (final Continuation0 theSuccessReporter)
-	{
-		this.successReporter = theSuccessReporter;
-	}
-
 	/** The output stream on which the serializer writes. */
 	public final ByteArrayOutputStream serializerOutputStream =
 		new ByteArrayOutputStream(1000);
@@ -263,7 +273,7 @@ public class CompilationContext
 	 * The serializer that captures the sequence of bytes representing the
 	 * module during compilation.
 	 */
-	final Serializer serializer = new Serializer(serializerOutputStream);
+	final Serializer serializer;
 
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
@@ -282,6 +292,7 @@ public class CompilationContext
 		this.progressReporter = progressReporter;
 		this.diagnostics = new CompilerDiagnostics(
 			source, moduleName(), pollForAbort, problemHandler);
+		this.serializer = new Serializer(serializerOutputStream, module);
 	}
 
 	/**
@@ -324,6 +335,7 @@ public class CompilationContext
 	public void startWorkUnits (final int countToBeQueued)
 	{
 		assert getNoMoreWorkUnits() != null;
+		assert countToBeQueued > 0;
 		final long queued = workUnitsQueued.addAndGet(countToBeQueued);
 		if (Interpreter.debugWorkUnits)
 		{
@@ -344,7 +356,7 @@ public class CompilationContext
 					+ (queued - completed)
 					+ ')'
 					+ (countToBeQueued > 1
-						   ? " (bulk=" + countToBeQueued + ')'
+						   ? " (bulk = +" + countToBeQueued + ')'
 						   : "")
 					+ "\n\t" + trace.trim());
 		}
@@ -381,6 +393,11 @@ public class CompilationContext
 		final AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
 			? optionalSafetyCheck
 			: new AtomicBoolean(false);
+		if (Interpreter.debugWorkUnits)
+		{
+			System.out.println(
+				"Creating unit for continuation @" + continuation.hashCode());
+		}
 		return value ->
 		{
 			final boolean hadRun = hasRunSafetyCheck.getAndSet(true);
@@ -473,38 +490,22 @@ public class CompilationContext
 		final ArgType argument)
 	{
 		assert !continuations.isEmpty();
-		//TODO MvG - Make this permanently be an assert?
-		assert (getNoMoreWorkUnits() != null);
-		if (getNoMoreWorkUnits() != null)
+		assert getNoMoreWorkUnits() != null;
+
+		// Start by increasing the queued counter by the number of actions we're
+		// adding.
+		startWorkUnits(continuations.size());
+		// We're tracking work units, so we have to make sure to account for the
+		// new unit being queued, to increment the completed count when it
+		// completes, and to run the noMoreWorkUnits action as soon the counters
+		// coincide (indicating the last work unit just completed).
+		for (final Continuation1NotNull<ArgType> continuation : continuations)
 		{
-			// Start by increasing the queued counter by the number of actions
-			// we're adding.
-			startWorkUnits(continuations.size());
-			// We're tracking work units, so we have to make sure to account for
-			// the new unit being queued, increment the completed count when it
-			// completes, and run the noMoreWorkUnits action as soon the
-			// counters collide (indicating the last work unit just completed).
-			for (final Continuation1NotNull<ArgType> continuation
-				: continuations)
-			{
-				final Continuation1NotNull<ArgType> workUnit =
-					workUnitCompletion(lexingState, null, continuation);
-				runtime.execute(
-					FiberDescriptor.compilerPriority,
-					() -> workUnit.value(argument));
-			}
-		}
-		else
-		{
-			// We're not tracking work units, so just queue it without fiddling
-			// with the queued/completed counts.
-			for (final Continuation1NotNull<ArgType> continuation
-				: continuations)
-			{
-				runtime.execute(
-					FiberDescriptor.compilerPriority,
-					() -> continuation.value(argument));
-			}
+			final Continuation1NotNull<ArgType> workUnit =
+				workUnitCompletion(lexingState, null, continuation);
+			runtime.execute(
+				FiberDescriptor.compilerPriority,
+				() -> workUnit.value(argument));
 		}
 	}
 
@@ -515,8 +516,8 @@ public class CompilationContext
 	 *
 	 * @param function
 	 *        A function.
-	 * @param lineNumber
-	 *        The line number at which this function occurs in the module.
+	 * @param lexingState
+	 *        The position at which this function occurs in the module.
 	 * @param args
 	 *        The arguments to the function.
 	 * @param clientParseData
@@ -525,6 +526,9 @@ public class CompilationContext
 	 * @param shouldSerialize
 	 *        {@code true} if the generated function should be serialized,
 	 *        {@code false} otherwise.
+	 * @param trackTasks
+	 *        Whether to track that this fiber is running, and when done, to
+	 *        run {@link #noMoreWorkUnits} if the queued/completed counts agree.
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
@@ -532,10 +536,11 @@ public class CompilationContext
 	 */
 	private void evaluateFunctionThen (
 		final A_Function function,
-		final int lineNumber,
+		final LexingState lexingState,
 		final List<? extends A_BasicObject> args,
 		final A_Map clientParseData,
 		final boolean shouldSerialize,
+		final boolean trackTasks,
 		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
@@ -544,9 +549,11 @@ public class CompilationContext
 		final A_Fiber fiber = newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			() ->
-				formatString("Eval fn=%s, in %s:%d", code.methodName(),
-					code.module().moduleName(), code.startingLineNumber()));
+			() -> formatString(
+				"Eval fn=%s, in %s:%d",
+				code.methodName(),
+				code.module().moduleName(),
+				code.startingLineNumber()));
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
@@ -564,16 +571,21 @@ public class CompilationContext
 			{
 				final long after = AvailRuntime.captureNanos();
 				Interpreter.current().recordTopStatementEvaluation(
-					after - before,
-					module,
-					lineNumber);
+					after - before, module, lexingState.lineNumber);
 				loader().stopRecordingEffects();
 				serializeAfterRunning(function);
 				onSuccess.value(successValue);
 			};
 		}
-		fiber.resultContinuation(adjustedSuccess);
-		fiber.failureContinuation(onFailure);
+		if (trackTasks)
+		{
+			lexingState.setFiberContinuationsTrackingWork(
+				fiber, adjustedSuccess, onFailure);
+		}
+		else
+		{
+			fiber.setSuccessAndFailureContinuations(adjustedSuccess, onFailure);
+		}
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
 
@@ -585,11 +597,14 @@ public class CompilationContext
 	 *
 	 * @param expressionNode
 	 *        A {@linkplain PhraseDescriptor phrase}.
-	 * @param lineNumber
-	 *        The line number on which the expression starts.
+	 * @param lexingState
+	 *        The position at which the expression starts.
 	 * @param shouldSerialize
 	 *        {@code true} if the generated function should be serialized,
 	 *        {@code false} otherwise.
+	 * @param trackTasks
+	 *        Whether to track that this fiber is running, and when done, to
+	 *        run {@link #noMoreWorkUnits} if the queued/completed counts agree.
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
@@ -597,18 +612,20 @@ public class CompilationContext
 	 */
 	public void evaluatePhraseThen (
 		final A_Phrase expressionNode,
-		final int lineNumber,
+		final LexingState lexingState,
 		final boolean shouldSerialize,
+		final boolean trackTasks,
 		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
 		evaluateFunctionThen(
 			createFunctionForPhrase(
-				expressionNode, module(), lineNumber),
-			lineNumber,
-			Collections.<AvailObject>emptyList(),
+				expressionNode, module(), lexingState.lineNumber),
+			lexingState,
+			emptyList(),
 			emptyMap(),
 			shouldSerialize,
+			trackTasks,
 			onSuccess,
 			onFailure);
 	}
@@ -632,14 +649,8 @@ public class CompilationContext
 		final Continuation1NotNull<AvailObject> continuation,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
-		startWorkUnits(1);
-		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 		evaluatePhraseThen(
-			expression,
-			lexingState.lineNumber,
-			false,
-			workUnitCompletion(lexingState, hasRunEither, continuation),
-			workUnitCompletion(lexingState, hasRunEither, onFailure));
+			expression, lexingState, false, true, continuation, onFailure);
 	}
 
 	/**
