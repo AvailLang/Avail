@@ -644,7 +644,7 @@ implements AutoCloseable
 		}
 		else
 		{
-			privateWrite(String.format("%g", value));
+			privateWrite(Float.toString(value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
@@ -682,7 +682,7 @@ implements AutoCloseable
 		}
 		else
 		{
-			privateWrite(String.format("%g", value));
+			privateWrite(Double.toString(value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
