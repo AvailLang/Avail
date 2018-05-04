@@ -4654,7 +4654,6 @@ public final class AvailCompiler
 		compilationContext.diagnostics.setSuccessAndFailureReporters(
 			() ->
 			{
-				System.out.println("Completing module " + moduleName());
 				final boolean old = ran.getAndSet(true);
 				assert !old : "Attempting to succeed twice.";
 				serializePublicationFunction(true);

@@ -50,6 +50,7 @@ Names
 
 	/* IPv4 address construction. */
 	"IPv4 lexer",
+	"…!",
 
 	/* IPv6 address construction. */
 	"IPv6««…#§»?«…§»?‡:»",
@@ -169,68 +170,67 @@ is
 	firstOctetPosition : real source position,
 	line : real source line number
 |
+	$body : {token+|};
 	i : real source position := firstOctetPosition;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
-	if i > size ∨ source[i] ≠ ¢. then [∅]
+	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	firstOctetText ::= source[firstOctetPosition..i-1];
+
+	secondOctetPosition ::= i + 1;
+	Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
+	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	secondOctetText ::= source[secondOctetPosition..i-1];
+
+	thirdOctetPosition ::= i + 1;
+	Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
+	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	thirdOctetText ::= source[thirdOctetPosition..i-1];
+
+	fourthOctetPosition ::= i + 1;
+	Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
+	If i = fourthOctetPosition then
+	[
+		/* It's worth reporting this expectation if we saw three numbers.
+		 * Less would more likely be floating point numbers. */
+		Reject parse, expected:
+			"an IPv4 address to comprise four (4) octets (but only \
+			\|three (3) were specified)"
+	];
+	fourthOctetText ::= source[fourthOctetPosition..i-1];
+
+	cast
+		map each x of
+			<
+				firstOctetText,
+				secondOctetText,
+				thirdOctetText,
+				fourthOctetText
+			>
+		through [x (base 10)]
+	into
+	[
+		octets : <byte…|4>
+	|
+		{<
+			`an IPv4 address with octets ::= octets`
+				(source[firstOctetPosition..i-1])
+				@ firstOctetPosition:line
+		>}
+	]
 	else
 	[
-		firstOctetText ::= source[firstOctetPosition..i-1];
-		secondOctetPosition ::= i + 1;
-		Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
-		if i > size ∨ source[i] ≠ ¢. then [∅]
-		else
-		[
-			secondOctetText ::= source[secondOctetPosition..i-1];
-			thirdOctetPosition ::= i + 1;
-			Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
-			if i > size ∨ source[i] ≠ ¢. then [∅]
-			else
-			[
-				thirdOctetText ::= source[thirdOctetPosition..i-1];
-				fourthOctetPosition ::= i + 1;
-				Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
-				if i > size ∨ source[i] is a letter then
-				[
-					Reject parse, expected:
-						"an IPv4 address to comprise four (4) octets (but only \
-						\|three (3) were specified)"
-				]
-				else
-				[
-					fourthOctetText ::= source[fourthOctetPosition..i-1];
-					cast
-						map each x of
-							<
-								firstOctetText,
-								secondOctetText,
-								thirdOctetText,
-								fourthOctetText
-							>
-						through [x (base 10)]
-					into
-					[
-						octets : <byte…|4>
-					|
-						{<
-							`an IPv4 address with octets ::= octets`
-								(source[firstOctetPosition..i-1])
-								@ firstOctetPosition:line
-						>}
-					]
-					else
-					[
-						Reject parse, expected:
-							"each octet of an IPv4 address to be [0..255]"
-					]
-				]
-			]
-		]
+		Reject parse, expected:
+			"each octet of an IPv4 address to be [0..255]"
 	]
 ];
 
-Print: “127.0.0.1” ++ "\n";
-moo
+Public macro "…!" is
+[
+	tokenPhrase : literal phrase ⇒ (literal token ⇒ IPv4 address)
+|
+	‘tokenPhrase's token's value's value’
+];
 
 /**
  * An Internet Protocol version 6 (IPv6) address is a 128-bit unsigned integer

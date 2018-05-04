@@ -1152,7 +1152,6 @@ public final class MessageSplitter
 						if (subgroup.underscoreCount() > 0)
 						{
 							subgroup.maximumCardinality(1);
-							subexpression = subgroup;
 						}
 						else
 						{
