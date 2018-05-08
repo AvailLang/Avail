@@ -580,6 +580,7 @@ public enum ParsingOperation
 				token ->
 				{
 					final TokenType tokenType = token.tokenType();
+					assert tokenType != WHITESPACE && tokenType != COMMENT;
 					if (tokenType == END_OF_FILE)
 					{
 						start.expected("any token, not end-of-file");

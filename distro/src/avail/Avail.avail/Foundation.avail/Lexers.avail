@@ -73,7 +73,7 @@ Body
  *          The possible lexes discovered at {@code "position"}, potentially
  *          conforming to a single {@type "comment"} {@type "token"}.
  */
-/*
+
 Lexer $"end of line comment lexer"
 when [c : character | c = ¢/]
 is
@@ -89,9 +89,6 @@ is
 		size ::= |source|;
 		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
 		commentText ::= source[position..i min size];
-Print: "commentText=";
-Print: “commentText”;
-Print: "\n";
 		{<comment (commentText) @ position:line>}
 	]
 	else [∅]
@@ -99,7 +96,7 @@ Print: "\n";
 
 // Here's the first end of line comment!
 // And here's the second, without a line terminator!
-*/
+
 
 radixIntegerAlphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
@@ -361,7 +358,7 @@ is
  * If the {@type "character"}s comprising the start delimiter are any other
  * {@type "character"}s, then the end delimiter must comprise those same {@type
  * "character"}s.
- * 
+ *
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
  *        The complete source text.

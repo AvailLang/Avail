@@ -124,6 +124,7 @@ import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
 	.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
+import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -163,7 +164,6 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -488,8 +488,6 @@ public final class AvailCompiler
 		final Con1 supplyAnswer)
 	{
 		assert compilationContext.getNoMoreWorkUnits() == null;
-		// Augment the start position with a variant that incorporates the
-		// solution-accepting continuation.
 		final List<CompilerSolution> solutions = new ArrayList<>(1);
 		compilationContext.setNoMoreWorkUnits(() ->
 		{
@@ -1615,6 +1613,10 @@ public final class AvailCompiler
 			"(type-check argument)",
 			StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
 
+	/** Marker phrase to signal cleanly reaching the end of the input. */
+	private static final A_Phrase endOfFileMarkerPhrase =
+		newMarkerNode(stringFrom("End of file marker")).makeShared();
+
 	/**
 	 * We've parsed part of a send. Try to finish the job.
 	 *
@@ -1905,6 +1907,8 @@ public final class AvailCompiler
 	 * @param tokenMap
 	 *        A map from string to message bundle tree, used for parsing tokens
 	 *        when in this state.
+	 * @param caseInsensitive
+	 *        Whether to match the token case-insensitively.
 	 */
 	private void attemptToConsumeToken (
 		final ParserState start,
@@ -2119,47 +2123,44 @@ public final class AvailCompiler
 				final TokenType tokenType = token.tokenType();
 				if (tokenType == COMMENT || tokenType == WHITESPACE)
 				{
-					if (!toSkip.isEmpty())
+					for (final A_Token previousToSkip : toSkip)
 					{
-						for (final A_Token previousToSkip : toSkip)
+						if (previousToSkip.string().equals(token.string()))
 						{
-							if (previousToSkip.string().equals(token.string()))
+							ambiguousWhitespace.set(true);
+							if (tokenType == WHITESPACE
+								&& token.string().tupleSize() < 50)
 							{
-								ambiguousWhitespace.set(true);
-								if (tokenType == WHITESPACE
-									&& token.string().tupleSize() < 50)
-								{
-									start.expected(
-										"the whitespace " + token.string()
-											+ " to be uniquely lexically"
-											+ " scanned.  There are probably"
-											+ " multiple conflicting lexers"
-											+ " visible in this module.");
-								}
-								else if (tokenType == COMMENT
-									&& token.string().tupleSize() < 100)
-								{
-									start.expected(
-										"the comment " + token.string()
-											+ " to be uniquely lexically"
-											+ " scanned.  There are probably"
-											+ " multiple conflicting lexers"
-											+ " visible in this module.");
-								}
-								else
-								{
-									start.expected(
-										"the comment or whitespace ("
-											+ token.string().tupleSize()
-											+ " characters) to be uniquely"
-											+ " lexically scanned.  There are"
-											+ " probably multiple conflicting"
-											+ " lexers visible in this"
-											+ " module.");
-								}
-								continuation.value(emptyList());
-								return;
+								start.expected(
+									"the whitespace " + token.string()
+										+ " to be uniquely lexically"
+										+ " scanned.  There are probably"
+										+ " multiple conflicting lexers"
+										+ " visible in this module.");
 							}
+							else if (tokenType == COMMENT
+								&& token.string().tupleSize() < 100)
+							{
+								start.expected(
+									"the comment " + token.string()
+										+ " to be uniquely lexically"
+										+ " scanned.  There are probably"
+										+ " multiple conflicting lexers"
+										+ " visible in this module.");
+							}
+							else
+							{
+								start.expected(
+									"the comment or whitespace ("
+										+ token.string().tupleSize()
+										+ " characters) to be uniquely"
+										+ " lexically scanned.  There are"
+										+ " probably multiple conflicting"
+										+ " lexers visible in this"
+										+ " module.");
+							}
+							continuation.value(emptyList());
+							return;
 						}
 					}
 					toSkip.add(token);
@@ -4431,43 +4432,6 @@ public final class AvailCompiler
 		final ParserState start)
 	{
 		compilationContext.loader().setPhase(COMPILING);
-		final MutableOrNull<List<ParserState>> afterWhitespaceHolder =
-			new MutableOrNull<>();
-		compilationContext.setNoMoreWorkUnits(() ->
-		{
-			if (compilationContext.diagnostics.isShuttingDown)
-			{
-				// Some of the tasks may have been bypassed due to the pending
-				// shutdown, so don't assume afterWhitespaceHolder.value has
-				// been set.
-				compilationContext.diagnostics.reportError();
-				return;
-			}
-			final List<ParserState> afterWhitespace =
-				afterWhitespaceHolder.value == null
-					? emptyList()
-					: afterWhitespaceHolder.value;
-			if (afterWhitespace.size() == 1)
-			{
-				parseOutermostStatementWithoutWhitespace(
-					afterWhitespace.get(0));
-			}
-			else if (afterWhitespace.isEmpty())
-			{
-				// It should have already reported a problem trying to lex.
-				compilationContext.diagnostics.reportError();
-			}
-			else
-			{
-				final ParserState earliest = Collections.min(
-					afterWhitespace,
-					comparingInt(ParserState::position));
-				earliest.expected(
-					"unambiguous lexical scan of whitespace and comments "
-						+ "between top-level statements");
-				compilationContext.diagnostics.reportError();
-			}
-		});
 		// Forget any accumulated tokens from previous top-level statements.
 		final LexingState startLexingState = start.lexingState;
 		final ParserState startWithoutAnyTokens = new ParserState(
@@ -4477,29 +4441,8 @@ public final class AvailCompiler
 				startLexingState.lineNumber,
 				emptyList()),
 			start.clientDataMap);
-		skipWhitespaceAndComments(
-			startWithoutAnyTokens,
-			positions -> afterWhitespaceHolder.value = positions);
-	}
-
-	/**
-	 * Having already skipped any whitespace and comments to get to a (unique)
-	 * parse position that's not at the end, parse an outermost statement.
-	 *
-	 * @param start
-	 *        Where to start parsing.  Cannot be at whitespace or a comment or
-	 *        the end of the module.
-	 */
-	private void parseOutermostStatementWithoutWhitespace (
-		final ParserState start)
-	{
-		if (start.atEnd())
-		{
-			reachedEndOfModule(start);
-			return;
-		}
 		parseOutermostStatement(
-			start,
+			startWithoutAnyTokens,
 			Con(
 				null,
 				solution ->
@@ -4507,6 +4450,13 @@ public final class AvailCompiler
 					// The counters must be read in this order for correctness.
 					assert compilationContext.getWorkUnitsCompleted()
 						== compilationContext.getWorkUnitsQueued();
+
+					// Check if we're cleanly at the end.
+					if (solution.phrase() == endOfFileMarkerPhrase)
+					{
+						reachedEndOfModule(solution.endState());
+						return;
+					}
 
 					// In case the top level statement is compound, process the
 					// base statements individually.
@@ -5243,33 +5193,48 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position());
 		tryIfUnambiguousThen(
 			start,
-			whenFoundStatement -> parseExpressionThen(
-				start,
-				Con(
-					null,
-					solution ->
+			whenFoundStatement ->
+			{
+				parseExpressionThen(
+					start,
+					Con(
+						null,
+						solution ->
+						{
+							final A_Phrase expression = solution.phrase();
+							final ParserState afterExpression =
+								solution.endState();
+							if (expression.phraseKindIsUnder(STATEMENT_PHRASE))
+							{
+								whenFoundStatement.value(
+									new CompilerSolution(
+										afterExpression, expression));
+								return;
+							}
+							afterExpression.expected(
+								new FormattingDescriber(
+									"an outer level statement, not %s (%s)",
+									expression.phraseKind(),
+									expression));
+						}));
+				nextNonwhitespaceTokensDo(
+					start,
+					token ->
 					{
-						final A_Phrase expression = solution.phrase();
-						final ParserState afterExpression = solution.endState();
-						if (expression.phraseKindIsUnder(STATEMENT_PHRASE))
+						if (token.tokenType() == END_OF_FILE)
 						{
 							whenFoundStatement.value(
 								new CompilerSolution(
-									afterExpression, expression));
-							return;
+									start, endOfFileMarkerPhrase));
 						}
-						afterExpression.expected(
-							new FormattingDescriber(
-								"an outer level statement, not %s (%s)",
-								expression.phraseKind(),
-								expression));
-					})),
+					}
+				);
+			},
 			continuation);
 	}
 
 	/**
-	 * Parse an expression, without directly using the
-	 * {@linkplain #fragmentCache}.
+	 * Parse an expression, without directly using the {@link #fragmentCache}.
 	 *
 	 * @param start
 	 *        Where to start parsing.
