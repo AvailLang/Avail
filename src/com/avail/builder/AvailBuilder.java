@@ -3299,11 +3299,11 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Given a {@linkplain Collection collection} of {@linkplain Continuation1
-	 * continuation}s, each of which expects a {@linkplain Continuation0
-	 * continuation} (called the post-continuation activity) that instructs it
-	 * on how to proceed when it has completed, produce a single continuation
-	 * that evaluates this collection in parallel and defers the
+	 * Given a {@linkplain Collection collection} of {@linkplain
+	 * Continuation1NotNull continuation}s, each of which expects a {@linkplain
+	 * Continuation0 continuation} (called the post-continuation activity) that
+	 * instructs it on how to proceed when it has completed, produce a single
+	 * continuation that evaluates this collection in parallel and defers the
 	 * post-continuation activity until every member has completed.
 	 *
 	 * @param continuations

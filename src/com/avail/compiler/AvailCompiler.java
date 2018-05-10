@@ -1662,28 +1662,29 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con1 continuation)
 	{
-		A_BundleTree bundleTree = bundleTreeArg;
+		A_BundleTree tempBundleTree = bundleTreeArg;
 		// If a bundle tree is marked as a source of a cycle, its latest
 		// backward jump field is always the target.  Just continue processing
 		// there and it'll never have to expand the current node.  However, it's
 		// the expand() that might set up the cycle in the first place...
-		bundleTree.expand(compilationContext.module());
-		while (bundleTree.isSourceOfCycle())
+		tempBundleTree.expand(compilationContext.module());
+		while (tempBundleTree.isSourceOfCycle())
 		{
 			// Jump to its (once-)equivalent ancestor.
-			bundleTree = bundleTree.latestBackwardJump();
+			tempBundleTree = tempBundleTree.latestBackwardJump();
 			// Give it a chance to find an equivalent ancestor of its own.
-			bundleTree.expand(compilationContext.module());
+			tempBundleTree.expand(compilationContext.module());
 			// Abort if the bundle trees have diverged.
-			if (!bundleTree.allParsingPlansInProgress().equals(
+			if (!tempBundleTree.allParsingPlansInProgress().equals(
 				bundleTreeArg.allParsingPlansInProgress()))
 			{
 				// They've diverged.  Disconnect the backward link.
 				bundleTreeArg.isSourceOfCycle(false);
-				bundleTree = bundleTreeArg;
+				tempBundleTree = bundleTreeArg;
 				break;
 			}
 		}
+		final A_BundleTree bundleTree = tempBundleTree;
 
 		boolean skipCheckArgumentAction = false;
 		if (firstArgOrNull == null)
@@ -1820,7 +1821,6 @@ public final class AvailCompiler
 				// expectations as neatly as possible.
 				if (successor.allParsingPlansInProgress().mapSize() == 0)
 				{
-					final A_BundleTree finalBundleTree = bundleTree;
 					start.expected(
 						continueWithDescription -> stringifyThen(
 							compilationContext.runtime,
@@ -1828,7 +1828,7 @@ public final class AvailCompiler
 							latestPhrase.expressionType(),
 							actualTypeString -> describeFailedTypeTestThen(
 								actualTypeString,
-								finalBundleTree,
+								bundleTree,
 								continueWithDescription)));
 				}
 				eventuallyParseRestOfSendNode(
@@ -2035,7 +2035,13 @@ public final class AvailCompiler
 							{
 								for (final A_Token token : tokens)
 								{
-									state.workUnitDo(continuation, token);
+									final TokenType tokenType =
+										token.tokenType();
+									if (tokenType != WHITESPACE
+										&& tokenType != COMMENT)
+									{
+										state.workUnitDo(continuation, token);
+									}
 								}
 							});
 					}
