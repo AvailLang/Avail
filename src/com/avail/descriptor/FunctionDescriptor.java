@@ -1,6 +1,6 @@
-/**
+/*
  * FunctionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,16 +45,16 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
@@ -95,7 +95,7 @@ extends Descriptor
 		A_Phrase phrase = code.originatingPhrase();
 		if (phrase.equalsNil())
 		{
-			phrase = L1Decompiler.parse(object);
+			phrase = L1Decompiler.parse((A_Function) object);
 		}
 		phrase.printOnAvoidingIndent(
 			aStream, recursionMap, indent + 1);
@@ -380,7 +380,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Convert a {@link ParseNodeDescriptor phrase} into a zero-argument
+	 * Convert a {@link PhraseDescriptor phrase} into a zero-argument
 	 * {@link A_Function}.
 	 *
 	 * @param phrase
@@ -407,7 +407,7 @@ extends Descriptor
 			emptySet(),
 			lineNumber,
 			phrase.tokens());
-		BlockNodeDescriptor.recursivelyValidate(block);
+		BlockPhraseDescriptor.recursivelyValidate(block);
 		final A_RawFunction compiledBlock = block.generateInModule(module);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
@@ -551,7 +551,6 @@ extends Descriptor
 	{
 		return immutable;
 	}
-
 
 	/** The shared {@link FunctionDescriptor}. */
 	private static final FunctionDescriptor shared =

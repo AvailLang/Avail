@@ -1,6 +1,6 @@
-/**
+/*
  * AvailCompilerBipartiteRendezvous.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,9 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompiler.Con;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An {@code AvailCompilerBipartiteRendezvous} comes at parsing from both sides
@@ -49,20 +48,17 @@ import java.util.List;
  * found it is run against all waiting actions and added to the list of
  * subexpressions.
  *
- * <p>
- * These two cases ensure each continuation runs with each subexpression –
+ * <p>These two cases ensure each continuation runs with each subexpression –
  * without requiring any particular order of execution of the continuations.
  * That allows us to reorder the continuations arbitrarily, including forcing
  * them to run basically in lock-step with the lexical scanner, avoiding
  * scanning too far ahead in the cases of dynamic scanning rules and power
- * strings.  It also allows parallel execution of the parser.
- * </p>
+ * strings.  It also allows parallel execution of the parser.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCompilerBipartiteRendezvous
 {
-
 	/**
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
@@ -72,14 +68,29 @@ public class AvailCompilerBipartiteRendezvous
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private final List<Con> actions = new ArrayList<>(3);
+	private final List<Con1> actions = new ArrayList<>(3);
+
+	/** Whether we've started parsing at this position. */
+	private final AtomicBoolean hasStarted = new AtomicBoolean(false);
+
+	/**
+	 * Atomically read hasStartedParsing, make it true, then answer the value
+	 * that was read.
+	 *
+	 * @return {@code true} if parsing had already been started at this
+	 *         position, {@code false} otherwise.
+	 */
+	boolean getAndSetStartedParsing ()
+	{
+		return hasStarted.getAndSet(true);
+	}
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
 	 * @param solution The new solution to record.
 	 */
-	void addSolution (final CompilerSolution solution)
+	synchronized void addSolution (final CompilerSolution solution)
 	{
 		if (solutions.contains(solution))
 		{
@@ -90,14 +101,14 @@ public class AvailCompilerBipartiteRendezvous
 			// repeated arguments can be unrolled, which causes the plans for
 			// different definitions of the same method to have diverging
 			// instructions.  More than one of these paths might complete
-			// successfully.  The resulting send nodes don't indicate which plan
-			// completed, just the bundle and argument phrases, hence the
+			// successfully.  The resulting send phrases don't indicate which
+			// plan completed, just the bundle and argument phrases, hence the
 			// duplicate solutions.
 			return;
 			// throw new DuplicateSolutionException();
 		}
 		solutions.add(solution);
-		for (final Con action : actions)
+		for (final Con1 action : actions)
 		{
 			action.value(solution);
 		}
@@ -108,7 +119,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	void addAction (final Con action)
+	synchronized void addAction (final Con1 action)
 	{
 		actions.add(action);
 		for (final CompilerSolution solution : solutions)

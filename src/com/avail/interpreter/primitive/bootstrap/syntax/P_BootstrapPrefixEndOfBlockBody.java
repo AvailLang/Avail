@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapPrefixEndOfBlockBody.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,11 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -52,9 +50,9 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode
@@ -65,7 +63,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixEndOfBlockBody} primitive is used for
- * bootstrapping the {@link BlockNodeDescriptor block} syntax for defining
+ * bootstrapping the {@link BlockPhraseDescriptor block} syntax for defining
  * {@link FunctionDescriptor functions}.
  *
  * <p>It ensures that declarations introduced within the block body end scope
@@ -94,15 +92,14 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-//		final A_Phrase optionalArgumentDeclarations = args.get(0);
-//		final A_Phrase optionalPrimitive = args.get(1);
-//		final A_Phrase optionalLabel = args.get(2);
-//		final A_Phrase statements = args.get(3);
-//		final A_Phrase optionalReturnExpression = args.get(4);
+		interpreter.checkArgumentCount(5);
+//		final A_Phrase optionalArgumentDeclarations = interpreter.argument(0);
+//		final A_Phrase optionalPrimitive = interpreter.argument(1);
+//		final A_Phrase optionalLabel = interpreter.argument(2);
+//		final A_Phrase statements = interpreter.argument(3);
+//		final A_Phrase optionalReturnExpression = interpreter.argument(4);
 
 		final A_Fiber fiber = interpreter.fiber();
 		A_Map fiberGlobals = fiber.fiberGlobals();
@@ -142,8 +139,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -154,8 +151,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */
@@ -170,8 +167,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 									TOKEN.o(),
 									/* Primitive failure variable type */
 									anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional label declaration. */
 					zeroOrOneOf(
 						/* Label parts. */
@@ -182,19 +179,19 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Statements and declarations so far. */
 					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o().
 						 */
-						STATEMENT_NODE.mostGeneralType())),
+						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_NODE.create(
+				LIST_PHRASE.create(
 					zeroOrOneOf(
-						PARSE_NODE.create(ANY.o())))),
+						PARSE_PHRASE.create(ANY.o())))),
 			TOP.o());
 	}
 

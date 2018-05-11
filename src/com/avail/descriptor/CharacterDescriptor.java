@@ -1,6 +1,6 @@
-/**
+/*
  * CharacterDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
 import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 
 /**

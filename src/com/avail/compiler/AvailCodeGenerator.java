@@ -1,6 +1,6 @@
-/**
+/*
  * AvailCodeGenerator.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ package com.avail.compiler;
 
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
@@ -57,25 +57,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
-	.LOCAL_CONSTANT;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.DeclarationKind.LOCAL_CONSTANT;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.ASSIGNMENT_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LABEL_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static java.util.Arrays.asList;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
- * ParseNodeDescriptor parse tree} into the corresponding {@linkplain
+ * PhraseDescriptor parse tree} into the corresponding {@linkplain
  * CompiledCodeDescriptor compiled code}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -240,9 +240,9 @@ public final class AvailCodeGenerator
 			module,
 			toList(blockPhrase.argumentsTuple()),
 			primitive,
-			BlockNodeDescriptor.locals(blockPhrase),
-			BlockNodeDescriptor.constants(blockPhrase),
-			BlockNodeDescriptor.labels(blockPhrase),
+			BlockPhraseDescriptor.locals(blockPhrase),
+			BlockPhraseDescriptor.constants(blockPhrase),
+			BlockPhraseDescriptor.labels(blockPhrase),
 			toList(blockPhrase.neededVariables()),
 			blockPhrase.resultType(),
 			blockPhrase.declaredExceptions(),
@@ -267,8 +267,8 @@ public final class AvailCodeGenerator
 			{
 				final A_Phrase lastStatement =
 					statementsTuple.tupleAt(statementsCount);
-				if (lastStatement.parseNodeKindIsUnder(LABEL_NODE)
-					|| (lastStatement.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+				if (lastStatement.phraseKindIsUnder(LABEL_PHRASE)
+					|| (lastStatement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
 						    && lastStatement.expressionType().isTop()))
 				{
 					// Either the block 1) ends with the label declaration or
@@ -362,7 +362,7 @@ public final class AvailCodeGenerator
 	 * to wrap the declared type in a variable type.
 	 *
 	 * @param declaration
-	 *        The {@link DeclarationNodeDescriptor declaration} to examine.
+	 *        The {@link DeclarationPhraseDescriptor declaration} to examine.
 	 * @return The type for the corresponding {@link ContinuationDescriptor
 	 *         continuation} slot.
 	 */
@@ -640,8 +640,8 @@ public final class AvailCodeGenerator
 	 *        The code from which to make a function.
 	 * @param neededVariables
 	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *        DeclarationNodeDescriptor declarations} of variables that the code
-	 *        needs to access.
+	 *        DeclarationPhraseDescriptor declarations} of variables that the
+	 *        code needs to access.
 	 */
 	public void emitCloseCode (
 		final A_Tuple tokens,
@@ -698,7 +698,7 @@ public final class AvailCodeGenerator
 	 *        The {@link A_Tuple} of {@link A_Token}s associated with this
 	 *        call.
 	 * @param localOrOuter
-	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 *        The {@linkplain DeclarationPhraseDescriptor declaration} of the
 	 *        variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
@@ -724,7 +724,7 @@ public final class AvailCodeGenerator
 	}
 
 	/**
-	 * Emit a {@linkplain DeclarationNodeDescriptor declaration} of a {@link
+	 * Emit a {@linkplain DeclarationPhraseDescriptor declaration} of a {@link
 	 * DeclarationKind#LABEL label} for the current block.
 	 *
 	 * @param labelNode
@@ -860,7 +860,7 @@ public final class AvailCodeGenerator
 	 *
 	 final A_Tuple tokens,
 	 * @param localOrOuter
-	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 *        The {@linkplain DeclarationPhraseDescriptor declaration} of the
 	 *        {@link DeclarationKind#LOCAL_VARIABLE local} or outer variable in
 	 *        which to write.
 	 */

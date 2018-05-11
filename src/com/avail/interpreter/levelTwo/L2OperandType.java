@@ -1,6 +1,6 @@
-/**
+/*
  * L2OperandType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,12 @@ package com.avail.interpreter.levelTwo;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.DefinitionDescriptor;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 import java.util.List;
 
@@ -48,58 +51,36 @@ import java.util.List;
  * associated register is being read or written or both.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public enum L2OperandType
 {
 	/**
 	 * An {@link L2ConstantOperand} holds a specific AvailObject.
 	 */
-	CONSTANT(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doConstant();
-		}
-	},
+	CONSTANT(false, false),
 
 	/**
-	 * An {@link L2ImmediateOperand} holds an {@code int} value.
+	 * An {@link L2IntImmediateOperand} holds an {@code int} value.
 	 */
-	IMMEDIATE(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doImmediate();
-		}
-	},
+	INT_IMMEDIATE(false, false),
+
+	/**
+	 * An {@link L2FloatImmediateOperand} holds a {@code double} value.
+	 */
+	FLOAT_IMMEDIATE(false, false),
 
 	/**
 	 * An {@link L2PcOperand} holds an offset into the chunk's instructions,
 	 * presumably for the purpose of branching there at some time and under some
 	 * condition.
 	 */
-	PC(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doPC();
-		}
-	},
+	PC(false, false),
 
 	/**
 	 * An {@link L2PrimitiveOperand} holds a {@link Primitive} to be invoked.
 	 */
-	PRIMITIVE(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doPrimitive();
-		}
-	},
+	PRIMITIVE(false, false),
 
 	/**
 	 * Like a {@link #CONSTANT}, the {@link L2SelectorOperand} holds the actual
@@ -107,117 +88,62 @@ public enum L2OperandType
 	 * L2Chunk} depends on this bundle, invalidating itself if its {@link
 	 * DefinitionDescriptor definitions} change.
 	 */
-	SELECTOR(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doSelector();
-		}
-	},
+	SELECTOR(false, false),
 
 	/**
 	 * The {@link L2ReadPointerOperand} holds the {@link L2ObjectRegister} that
 	 * will be read.
 	 */
-	READ_POINTER(true, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadPointer();
-		}
-	},
+	READ_POINTER(true, false),
 
 	/**
 	 * The {@link L2WritePointerOperand} holds the {@link L2ObjectRegister} that
 	 * will be written (but not read).
 	 */
-	WRITE_POINTER(false, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doWritePointer();
-		}
-	},
+	WRITE_POINTER(false, true),
 
 	/**
-	 * The {@link L2ReadIntOperand} holds the {@link L2IntegerRegister} that
+	 * The {@link L2ReadIntOperand} holds the {@link L2IntRegister} that
 	 * will be read.
 	 */
-	READ_INT(true, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadInt();
-		}
-	},
+	READ_INT(true, false),
 
 	/**
-	 * The {@link L2WriteIntOperand} holds the {@link L2IntegerRegister} that
+	 * The {@link L2WriteIntOperand} holds the {@link L2IntRegister} that
 	 * will be written (but not read).
 	 */
-	WRITE_INT(false, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doWriteInt();
-		}
-	},
+	WRITE_INT(false, true),
+
+	/**
+	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
+	 * will be read.
+	 */
+	READ_FLOAT(true, false),
+
+	/**
+	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
+	 * will be written (but not read).
+	 */
+	WRITE_FLOAT(false, true),
 
 	/**
 	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
 	 * L2ReadPointerOperand}s which will be read.
 	 */
-	READ_VECTOR(true, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadVector();
-		}
-	},
+	READ_VECTOR(true, false),
 
 	/**
-	 * The {@link L2WriteVectorOperand} holds a {@link List} of {@link
-	 * L2WritePointerOperand}s which will be written (but not read).
+	 * The {@link L2WritePhiOperand} holds the {@link L2Register} that will be
+	 * written (but not read).
 	 */
-	WRITE_VECTOR(false, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doWriteVector();
-		}
-	},
+	WRITE_PHI(false, true),
 
 	/**
 	 * The {@link L2CommentOperand} holds descriptive text that does not affect
 	 * analysis or execution of level two code.  It is for diagnostic purposes
 	 * only.
 	 */
-	COMMENT(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doComment();
-		}
-	};
-
-	/**
-	 * Invoke an entry point of the passed {@linkplain L2OperandTypeDispatcher
-	 * operand type dispatcher} that's specific to which {@code L2OperandType}
-	 * the receiver is.
-	 *
-	 * @param dispatcher
-	 *            The {@link L2OperandTypeDispatcher} to visit with the
-	 *            receiver.
-	 */
-	abstract void dispatch (L2OperandTypeDispatcher dispatcher);
+	COMMENT(false, false);
 
 	/**
 	 * Whether the receiver is to be treated as a source of information.
@@ -234,11 +160,11 @@ public enum L2OperandType
 	 * the only constructor calls are in the enum member definitions.
 	 *
 	 * @param isSource
-	 *            Whether I represent a (potential) read from a register.
+	 *        Whether I represent a (potential) read from a register.
 	 * @param isDestination
-	 *            Whether I represent a write to a register.  If I am also to be
-	 *            considered a read, then it is treated as a <em>potential</em>
-	 *            write.
+	 *        Whether I represent a write to a register.  If I am also to be
+	 *        considered a read, then it is treated as a <em>potential</em>
+	 *        write.
 	 */
 	L2OperandType (final boolean isSource, final boolean isDestination)
 	{
@@ -250,11 +176,29 @@ public enum L2OperandType
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
 	 * String} naming its role within some {@link L2Operation}.
 	 *
-	 * @param roleName The name of this operand.
+	 * @param roleName
+	 *        The name of this operand.
 	 * @return A named operand type.
 	 */
 	public L2NamedOperandType is (final String roleName)
 	{
-		return new L2NamedOperandType(this, roleName);
+		return new L2NamedOperandType(this, roleName, null);
+	}
+
+	/**
+	 * Create a {@link L2NamedOperandType} from the receiver, a {@link
+	 * String} naming its role within some {@link L2Operation}, and a designator
+	 * of its {@linkplain Purpose purpose}.
+	 *
+	 * @param roleName
+	 *        The name of this operand.
+	 * @param purpose
+	 *        The {@link Purpose} that best describes the {@link
+	 *        L2NamedOperandType}.
+	 * @return A named operand type.
+	 */
+	public L2NamedOperandType is (final String roleName, final Purpose purpose)
+	{
+		return new L2NamedOperandType(this, roleName, purpose);
 	}
 }

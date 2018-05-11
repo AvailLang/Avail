@@ -1,6 +1,6 @@
-/**
+/*
  * P_BindPojoStaticField.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,10 @@ import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -53,6 +53,7 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoFieldDescriptor
 	.pojoFieldVariableForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
@@ -60,7 +61,6 @@ import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.VariableTypeDescriptor
 	.mostGeneralVariableType;
@@ -89,12 +89,11 @@ public final class P_BindPojoStaticField extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type pojoType = args.get(0);
-		final A_String fieldName = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type pojoType = interpreter.argument(0);
+		final A_String fieldName = interpreter.argument(1);
 		final Field field;
 		// If pojoType is not a fused type, then it has an immediate class
 		// that should be used to recursively look up the field.

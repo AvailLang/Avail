@@ -1,6 +1,6 @@
-/**
+/*
  * P_FloatTimesTwoPower.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,10 @@ package com.avail.interpreter.primitive.floats;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -46,7 +44,7 @@ import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.two;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.*;
@@ -68,13 +66,12 @@ public final class P_FloatTimesTwoPower extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Number a = args.get(0);
-//		final A_Token literalTwo = args.get(1);
-		final A_Number b = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Number a = interpreter.argument(0);
+//		final A_Token literalTwo = interpreter.argument(1);
+		final A_Number b = interpreter.argument(2);
 
 		final int scale = b.isInt()
 			? min(max(b.extractInt(), -10000), 10000)

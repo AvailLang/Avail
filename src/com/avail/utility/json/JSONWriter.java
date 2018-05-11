@@ -1,6 +1,6 @@
-/**
+/*
  * JSONWriter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.utility.json;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -62,6 +61,16 @@ implements AutoCloseable
 {
 	/** The {@linkplain Writer target} for the raw JSON document. */
 	private final Writer writer;
+
+	/**
+	 * Answer the accumulated String contents of the {@link JSONWriter}.
+	 *
+	 * @return A String.
+	 */
+	public String contents ()
+	{
+		return writer.toString();
+	}
 
 	/**
 	 * Construct a new {@link JSONWriter}.
@@ -472,6 +481,16 @@ implements AutoCloseable
 	}
 
 	/**
+	 * Answer the current {@link JSONState} of this {@link JSONWriter}.
+	 *
+	 * @return A {@code JSONState}.
+	 */
+	public JSONState currentState ()
+	{
+		return stack.peekFirst();
+	}
+
+	/**
 	 * Write a JSON {@code null} to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
@@ -625,7 +644,7 @@ implements AutoCloseable
 		}
 		else
 		{
-			privateWrite(String.format("%g", value));
+			privateWrite(Float.toString(value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
@@ -635,6 +654,9 @@ implements AutoCloseable
 	 * Writer writer} as a JSON number. Use JSON 5 extensions (and an additional
 	 * NaN extension).
 	 *
+	 * <p>
+	 * <strong>NOTE:</strong> The number is only written to 10^-6 precision.
+	 * </p>
 	 * @param value
 	 *        A {@code double} value.
 	 * @throws JSONIOException
@@ -660,7 +682,7 @@ implements AutoCloseable
 		}
 		else
 		{
-			privateWrite(String.format("%g", value));
+			privateWrite(Double.toString(value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}

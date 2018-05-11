@@ -1,6 +1,6 @@
-/**
+/*
  * P_SpecialObject.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,18 +39,17 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.LiteralNodeDescriptor
+import static com.avail.descriptor.LiteralPhraseDescriptor
 	.syntheticLiteralNodeFor;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -71,11 +70,10 @@ public final class P_SpecialObject extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase ordinalLiteral = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase ordinalLiteral = interpreter.argument(0);
 		final A_Number ordinal = ordinalLiteral.token().literal();
 		if (!ordinal.isInt())
 		{
@@ -100,8 +98,8 @@ public final class P_SpecialObject extends Primitive
 	{
 		return functionType(
 			tuple(
-				LITERAL_NODE.create(naturalNumbers())),
-			LITERAL_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(naturalNumbers())),
+			LITERAL_PHRASE.mostGeneralType());
 	}
 
 	@Override

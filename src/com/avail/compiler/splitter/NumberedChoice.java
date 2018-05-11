@@ -1,6 +1,6 @@
-/**
+/*
  * NumberedChoice.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -49,9 +48,10 @@ import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
@@ -186,7 +186,7 @@ extends Expression
 			// *do not* pass the choice number as an argument.  Therefore
 			// nothing new has been pushed for us to clean up at this point.
 			alternative.emitOn(
-				emptyListNodeType(),
+				emptyListPhraseType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 			generator.emit(
@@ -209,19 +209,18 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + alternation + ")";
+		return getClass().getSimpleName() + '(' + alternation + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert argumentProvider != null;
-		final A_Phrase literal = argumentProvider.next();
+		final A_Phrase literal = stripNull(argumentProvider).next();
 		assert literal.isInstanceOf(
-			ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			PhraseKind.LITERAL_PHRASE.mostGeneralType());
 		final int index = literal.token().literal().extractInt();
 		builder.append('«');
 		final Expression alternative =

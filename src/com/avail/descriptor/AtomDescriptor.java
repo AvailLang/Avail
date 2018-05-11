@@ -1,6 +1,6 @@
-/**
+/*
  * AtomDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -582,7 +582,6 @@ extends Descriptor
 		return FALSE.atom;
 	}
 
-
 	// An enumeration of special atoms that the VM is aware of which name
 	// methods for invoking specific primitives.  Multiple primitives may be
 	// provided to make the method multimorphic.
@@ -630,6 +629,14 @@ extends Descriptor
 		 * have been parsed so far for the current method/macro site.
 		 */
 		ALL_TOKENS_KEY("All tokens"),
+
+		/**
+		 * The atom used as a key in a {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap} to accumulate the tuple of tokens that
+		 * have been parsed so far for the current method/macro site and are
+		 * mentioned by name in the method name.
+		 */
+		STATIC_TOKENS_KEY("Static tokens"),
 
 		/**
 		 * The atom used to identify the entry in a {@linkplain ParserState}'s

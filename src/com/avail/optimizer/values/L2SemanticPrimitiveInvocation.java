@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticPrimitiveInvocation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,18 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * Primitive}.  The primitive doesn't have to be stable or side-effect free, but
  * in that case the actual {@link L2Instruction} must be supplied, to ensure it
  * isn't executed too many or too few times.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class L2SemanticPrimitiveInvocation extends L2SemanticValue
+final class L2SemanticPrimitiveInvocation
+extends L2SemanticValue
 {
+	/**
+	 * The program counter, or {@code 0} for pure {@link Primitive}s.
+	 */
+	public final int pc;
+
 	/**
 	 * The {@link Primitive} whose invocation is being represented.
 	 */
@@ -56,27 +65,41 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	 * The {@link List} of {@link L2SemanticValue}s that represent the arguments
 	 * to the invocation of the primitive.
 	 */
-	public final List<L2SemanticValue> argumentSemanticValues;
+	private final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
 	 * The hash value of the receiver, computed during construction.
 	 */
-	public int hashOrZero;
+	private final int hash;
 
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
 	 *
+	 * @param pc
+	 *        The program counter, or {@code 0} for pure {@link Primitive}s.
 	 * @param primitive
 	 *        The primitive whose invocation is being represented.
 	 * @param argumentSemanticValues
 	 *        The semantic values.
 	 */
 	public L2SemanticPrimitiveInvocation (
+		final int pc,
 		final Primitive primitive,
 		final List<L2SemanticValue> argumentSemanticValues)
 	{
 		this.primitive = primitive;
 		this.argumentSemanticValues = new ArrayList<>(argumentSemanticValues);
+		this.pc = pc;
+		// Compute the hash.
+		int h = primitive.primitiveNumber * multiplier;
+		h ^= pc;
+		h *= multiplier;
+		for (final L2SemanticValue argument : argumentSemanticValues)
+		{
+			h ^= argument.hashCode();
+			h *= multiplier;
+		}
+		hash = h;
 	}
 
 	@Override
@@ -92,25 +115,15 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 		}
 		final L2SemanticPrimitiveInvocation
 			invocation = (L2SemanticPrimitiveInvocation) obj;
-		return primitive == invocation.primitive
+		return pc == invocation.pc
+			&& primitive == invocation.primitive
 			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		if (hashOrZero == 0)
-		{
-			int h = primitive.primitiveNumber;
-			h *= multiplier;
-			for (final L2SemanticValue argument : argumentSemanticValues)
-			{
-				h ^= argument.hashCode();
-				h *= multiplier;
-			}
-			hashOrZero = h;
-		}
-		return hashOrZero;
+		return hash;
 	}
 
 	@Override
@@ -130,7 +143,7 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 			if (!newArguments.get(i).equals(argumentSemanticValues.get(i)))
 			{
 				return new L2SemanticPrimitiveInvocation(
-					primitive, newArguments);
+					pc, primitive, newArguments);
 			}
 		}
 		return this;
@@ -140,9 +153,9 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Invoke ");
+		builder.append("Invoke");
 		builder.append(primitive.name());
-		builder.append("(");
+		builder.append('(');
 		boolean first = true;
 		for (final L2SemanticValue arg : argumentSemanticValues)
 		{
@@ -153,7 +166,7 @@ final class L2SemanticPrimitiveInvocation extends L2SemanticValue
 			builder.append(arg);
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 }

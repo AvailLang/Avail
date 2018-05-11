@@ -1,6 +1,6 @@
-/**
+/*
  * ObjectTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -61,8 +62,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
 	.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
@@ -71,7 +71,6 @@ import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots
 	.FIELD_TYPES_;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
@@ -207,6 +206,51 @@ extends TypeDescriptor
 					indent + 1);
 			}
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the fields nicely.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		final List<A_Atom> otherAtoms = new ArrayList<>();
+		for (final Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom fieldKey = entry.getKey();
+			final int index = entry.getValue();
+			if (index == 0)
+			{
+				otherAtoms.add(fieldKey);
+			}
+			else
+			{
+				fields.add(
+					new AvailObjectFieldHelper(
+						object,
+						new DebuggerObjectSlots(
+							"FIELD TYPE " + fieldKey.atomName()),
+						-1,
+						object.slot(FIELD_TYPES_, index)));
+			}
+		}
+		fields.sort(
+			Comparator.comparing(AvailObjectFieldHelper::nameForDebugger));
+		if (!otherAtoms.isEmpty())
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					new DebuggerObjectSlots("SUBCLASS_FIELDS"),
+					-1,
+					tupleFromList(otherAtoms)));
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override
@@ -537,15 +581,15 @@ extends TypeDescriptor
 					variant.realSlotCount);
 			for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)
 			{
-				final A_Type fieldIntersaction =
+				final A_Type fieldIntersection =
 					object.slot(FIELD_TYPES_, i).typeIntersection(
 						anObjectType.slot(FIELD_TYPES_, i));
-				if (fieldIntersaction.isBottom())
+				if (fieldIntersection.isBottom())
 				{
 					// Abandon the partially built object type.
 					return bottom();
 				}
-				intersection.setSlot(FIELD_TYPES_, i, fieldIntersaction);
+				intersection.setSlot(FIELD_TYPES_, i, fieldIntersection);
 			}
 			intersection.setSlot(HASH_OR_ZERO, 0);
 			return intersection;
@@ -634,10 +678,10 @@ extends TypeDescriptor
 					variant.realSlotCount);
 			for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)
 			{
-				final A_Type fieldIntersaction =
+				final A_Type fieldIntersection =
 					object.slot(FIELD_TYPES_, i).typeUnion(
 						anObjectType.slot(FIELD_TYPES_, i));
-				union.setSlot(FIELD_TYPES_, i, fieldIntersaction);
+				union.setSlot(FIELD_TYPES_, i, fieldIntersection);
 			}
 			union.setSlot(HASH_OR_ZERO, 0);
 			return union;
@@ -721,12 +765,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
-	 * {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-	 * atoms} to {@linkplain TypeDescriptor types}.
+	 * Create an {@code object type} using the given {@link A_Map} from {@link
+	 * A_Atom}s to {@linkplain TypeDescriptor types}.
 	 *
 	 * @param map The map from atoms to types.
-	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
+	 * @return The new {@code object type}.
 	 */
 	public static AvailObject objectTypeFromMap (final A_Map map)
 	{
@@ -750,8 +793,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create an {@linkplain ObjectTypeDescriptor object type} from the
-	 * specified {@linkplain TupleDescriptor tuple}.
+	 * Create an {@code object type} from the specified {@link A_Tuple}.
 	 *
 	 * @param tuple
 	 *        A tuple whose elements are 2-tuples whose first element is an
@@ -794,18 +836,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
-	 * user-defined object type}.  If the only field key {@linkplain
-	 * AtomDescriptor atoms} in the object type are {@linkplain
-	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the
-	 * name will not be recorded (unless allowSpecialAtomsToHoldName is true,
-	 * which is really only for naming special object types like {@link
+	 * Assign a name to the specified {@code object type}.  If the only field
+	 * key {@link A_Atom}s in the object type are {@linkplain
+	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the name
+	 * will not be recorded (unless allowSpecialAtomsToHoldName is true, which
+	 * is really only for naming special object types like {@link
 	 * #exceptionType}).  Note that it is technically <em>legal</em> for there
 	 * to be multiple names for a particular object type, although this is of
 	 * questionable value.
 	 *
 	 * @param anObjectType
-	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 *        An {@code object type}.
 	 * @param aString
 	 *        A name.
 	 * @param allowSpecialAtomsToHoldName
@@ -980,12 +1021,10 @@ extends TypeDescriptor
 	 * Answer the user-assigned names of the specified {@linkplain
 	 * ObjectTypeDescriptor user-defined object type}.
 	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
+	 * @param anObjectType An {@code object type}.
 	 * @return A {@linkplain SetDescriptor set} containing the names of the
-	 *         {@linkplain ObjectTypeDescriptor user-defined object type},
-	 *         excluding names for which a strictly more specific named type is
-	 *         known.
+	 *         {@code object type}, excluding names for which a strictly more
+	 *         specific named type is known.
 	 */
 	public static A_Set namesForType (final A_Type anObjectType)
 	{
@@ -997,11 +1036,10 @@ extends TypeDescriptor
 	 * ObjectTypeDescriptor user-defined object type}.
 	 *
 	 * @param anObjectType
-	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 *        An {@code object type}.
 	 * @return A {@linkplain SetDescriptor set} containing the named ancestors
-	 *         of the specified {@linkplain ObjectTypeDescriptor user-defined
-	 *         object type}, excluding named types for which a strictly more
-	 *         specific named type is known.
+	 *         of the specified {@code object type}, excluding named types for
+	 *         which a strictly more specific named type is known.
 	 */
 	public static A_BasicObject namedBaseTypesForType (
 		final A_Type anObjectType)

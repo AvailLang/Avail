@@ -36,7 +36,9 @@ import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -44,6 +46,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static org.objectweb.asm.Opcodes.*;
@@ -57,15 +60,22 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
 */
-public class L2_RETURN
+public final class L2_RETURN
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_RETURN}.
+	 */
+	private L2_RETURN ()
+	{
+		super(
+			READ_POINTER.is("return value"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_RETURN().init(
-			READ_POINTER.is("return value"));
+	public static final L2_RETURN instance = new L2_RETURN();
 
 	@Override
 	protected void propagateTypes (
@@ -88,6 +98,20 @@ extends L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return false;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand valueReg = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(valueReg);
 	}
 
 	@Override

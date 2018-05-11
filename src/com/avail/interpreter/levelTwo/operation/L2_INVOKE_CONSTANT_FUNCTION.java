@@ -35,7 +35,9 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
@@ -45,7 +47,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -66,18 +71,26 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_INVOKE_CONSTANT_FUNCTION
+public final class L2_INVOKE_CONSTANT_FUNCTION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_INVOKE_CONSTANT_FUNCTION}.
 	 */
-	public static final L2Operation instance =
-		new L2_INVOKE_CONSTANT_FUNCTION().init(
+	private L2_INVOKE_CONSTANT_FUNCTION ()
+	{
+		super(
 			CONSTANT.is("constant function"),
 			READ_VECTOR.is("arguments"),
-			PC.is("on return"),
-			PC.is("on reification"));
+			PC.is("on return", SUCCESS),
+			PC.is("on reification", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_INVOKE_CONSTANT_FUNCTION instance =
+		new L2_INVOKE_CONSTANT_FUNCTION();
 
 	@Override
 	protected void propagateTypes (
@@ -97,13 +110,25 @@ extends L2Operation
 	}
 
 	@Override
-	public String debugNameIn (
-		final L2Instruction instruction)
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
 	{
-		final A_Function exactFunction = instruction.constantAt(0);
-		return name()
-			+ ": "
-			+ exactFunction.code().methodName().asNativeString();
+		assert this == instruction.operation;
+		final L2Operand[] operands = instruction.operands;
+		final L2Operand calledFunction = operands[0];
+		final L2Operand argsRegsList = operands[1];
+//		final L2PcOperand onNormalReturn = instruction.pcAt(2);
+//		final L2PcOperand onReification = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(calledFunction);
+		builder.append("(");
+		builder.append(argsRegsList);
+		builder.append(")");
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * AvailLoader.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
@@ -95,12 +94,13 @@ import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.MethodDefinitionDescriptor
 	.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -127,7 +127,7 @@ public final class AvailLoader
 
 		boolean frozen = false;
 
-		public synchronized void freezeFromChanges()
+		@InnerAccess synchronized void freezeFromChanges()
 		{
 			assert !frozen;
 			frozen = true;
@@ -417,11 +417,11 @@ public final class AvailLoader
 			final List<A_Character> argsList = Collections.singletonList(
 				fromCodePoint(codePoint));
 			final Object joinLock = new Object();
-			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			final CompilationContext compilationContext =
 				lexingState.compilationContext;
 			final AvailLoader loader = compilationContext.loader();
 			compilationContext.startWorkUnits(allVisibleLexers.size());
+			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = newLoaderFiber(
@@ -630,7 +630,7 @@ public final class AvailLoader
 	}
 
 	/** Used for extracting tokens from the source text. */
-	private LexicalScanner lexicalScanner;
+	private @Nullable LexicalScanner lexicalScanner;
 
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
@@ -638,7 +638,7 @@ public final class AvailLoader
 	 */
 	public LexicalScanner lexicalScanner ()
 	{
-		return lexicalScanner;
+		return stripNull(lexicalScanner);
 	}
 
 	/**
@@ -816,21 +816,23 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Create the {@link #rootBundleTree} now that the module's imports and new
-	 * public names have been declared.
+	 * Set up the {@link #rootBundleTree} and {@link #lexicalScanner} for
+	 * compiling the body of the module.
 	 */
-	public void createFilteredBundleTree ()
+	public void prepareForCompilingModuleBody ()
 	{
 		rootBundleTree = module.buildFilteredBundleTree();
+		lexicalScanner = module.createLexicalScanner();
 	}
 
 	/**
-	 * Create the {@link #lexicalScanner} now that the module's imports and new
-	 * public names have been declared.
+	 * Nil the {@link #rootBundleTree} and {@link #lexicalScanner} in
+	 * preparation for loading (not compiling) the body of the module.
 	 */
-	public void createLexicalScanner ()
+	public void prepareForLoadingModuleBody ()
 	{
-		lexicalScanner = module.createLexicalScanner();
+		rootBundleTree = nil;
+		lexicalScanner = null;
 	}
 
 	/** The unresolved forward method declarations. */
@@ -916,23 +918,27 @@ public final class AvailLoader
 				}
 			}
 		}
-		final A_Definition newForward = newForwardDefinition(
-			method, module, bodySignature);
-		method.methodAddDefinition(newForward);
-		recordEffect(new LoadingEffectToAddDefinition(newForward));
-		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
-		theModule.lock(() ->
+		// Only bother with adding and resolving forwards during compilation.
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			theModule.moduleAddDefinition(newForward);
-			pendingForwards = pendingForwards.setWithElementCanDestroy(
-				newForward, true);
-			final A_DefinitionParsingPlan plan =
-				bundle.definitionParsingPlans().mapAt(newForward);
-			final A_ParsingPlanInProgress planInProgress =
-				newPlanInProgress(plan, 1);
-			root.addPlanInProgress(planInProgress);
-		});
+			final A_Definition newForward = newForwardDefinition(
+				method, module, bodySignature);
+			method.methodAddDefinition(newForward);
+			recordEffect(new LoadingEffectToAddDefinition(newForward));
+			final A_Module theModule = module;
+			final A_BundleTree root = rootBundleTree();
+			theModule.lock(() ->
+			{
+				theModule.moduleAddDefinition(newForward);
+				pendingForwards = pendingForwards.setWithElementCanDestroy(
+					newForward, true);
+				final A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(newForward);
+				final A_ParsingPlanInProgress planInProgress =
+					newPlanInProgress(plan, 1);
+				root.addPlanInProgress(planInProgress);
+			});
+		}
 	}
 
 	/**
@@ -1072,30 +1078,61 @@ public final class AvailLoader
 				}
 			}
 		}
-		final @Nullable A_Definition finalForward = forward;
-		final A_Module theModule = module;
-		theModule.lock(() ->
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			final A_Set ancestorModules = theModule.allAncestors();
-			final A_BundleTree root = rootBundleTree();
-			if (finalForward != null)
+			final @Nullable A_Definition finalForward = forward;
+			final A_Module finalModule = module;
+			finalModule.lock(() ->
 			{
+				final A_Set ancestorModules = finalModule.allAncestors();
+				final A_BundleTree root = rootBundleTree();
+				if (finalForward != null)
+				{
+					for (final A_Bundle bundle : method.bundles())
+					{
+						if (ancestorModules.hasElement(
+							bundle.message().issuingModule()))
+						{
+							// Remove the appropriate forwarder plan from the
+							// bundle tree.
+							final A_DefinitionParsingPlan plan =
+								bundle.definitionParsingPlans()
+									.mapAt(finalForward);
+							final A_ParsingPlanInProgress planInProgress =
+								newPlanInProgress(plan, 1);
+							root.removePlanInProgress(planInProgress);
+						}
+					}
+					removeForward(finalForward);
+				}
+				try
+				{
+					method.methodAddDefinition(newDefinition);
+				}
+				catch (final SignatureException e)
+				{
+					assert false : "Signature was already vetted";
+					return;
+				}
+				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
 						bundle.message().issuingModule()))
 					{
-						// Remove the appropriate forwarder plan from the
-						// bundle tree.
 						final A_DefinitionParsingPlan plan =
-							bundle.definitionParsingPlans().mapAt(finalForward);
+							bundle.definitionParsingPlans()
+								.mapAt(newDefinition);
 						final A_ParsingPlanInProgress planInProgress =
 							newPlanInProgress(plan, 1);
-						root.removePlanInProgress(planInProgress);
+						root.addPlanInProgress(planInProgress);
 					}
 				}
-				removeForward(finalForward);
-			}
+				finalModule.moduleAddDefinition(newDefinition);
+			});
+		}
+		else
+		{
 			try
 			{
 				method.methodAddDefinition(newDefinition);
@@ -1105,21 +1142,8 @@ public final class AvailLoader
 				assert false : "Signature was already vetted";
 				return;
 			}
-			recordEffect(new LoadingEffectToAddDefinition(newDefinition));
-			for (final A_Bundle bundle : method.bundles())
-			{
-				if (ancestorModules.hasElement(
-					bundle.message().issuingModule()))
-				{
-					final A_DefinitionParsingPlan plan =
-						bundle.definitionParsingPlans().mapAt(newDefinition);
-					final A_ParsingPlanInProgress planInProgress =
-						newPlanInProgress(plan, 1);
-					root.addPlanInProgress(planInProgress);
-				}
-			}
-			theModule.moduleAddDefinition(newDefinition);
-		});
+			module.moduleAddDefinition(newDefinition);
+		}
 	}
 
 	/**
@@ -1130,8 +1154,8 @@ public final class AvailLoader
 	 * @param methodName
 	 *        The macro's name, an {@linkplain AtomDescriptor atom}.
 	 * @param macroBody
-	 *        A {@linkplain FunctionDescriptor function} that manipulates parse
-	 *        nodes.
+	 *        A {@linkplain FunctionDescriptor function} that manipulates
+	 *        phrases.
 	 * @param prefixFunctions
 	 *        The tuple of functions to run during macro parsing, corresponding
 	 *        with occurrences of section checkpoints ("§") in the macro name.
@@ -1157,7 +1181,7 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		if (!macroBody.code().functionType().returnType().isSubtypeOf(
-			ParseNodeKind.PARSE_NODE.mostGeneralType()))
+			PARSE_PHRASE.mostGeneralType()))
 		{
 			throw new SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
@@ -1185,16 +1209,19 @@ public final class AvailLoader
 			// relationship with their result types, since they're static.
 		}
 		method.methodAddDefinition(macroDefinition);
-		recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
-		final A_BundleTree root = rootBundleTree();
-		module.lock(() ->
+		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			final A_DefinitionParsingPlan plan =
-				bundle.definitionParsingPlans().mapAt(macroDefinition);
-			final A_ParsingPlanInProgress planInProgress =
-				newPlanInProgress(plan, 1);
-			root.addPlanInProgress(planInProgress);
-		});
+			recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
+			final A_BundleTree root = rootBundleTree();
+			module.lock(() ->
+			{
+				final A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(macroDefinition);
+				final A_ParsingPlanInProgress planInProgress =
+					newPlanInProgress(plan, 1);
+				root.addPlanInProgress(planInProgress);
+			});
+		}
 	}
 
 	/**
@@ -1368,8 +1395,7 @@ public final class AvailLoader
 		if (definition.isForwardDefinition())
 		{
 			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-				definition,
-				true);
+				definition, true);
 		}
 		runtime.removeDefinition(definition);
 	}

@@ -1,6 +1,6 @@
-/**
+/*
  * AbstractEnumerationTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,11 +199,11 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final A_Type o_TypeIntersectionOfParseNodeType (
+	final A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return computeIntersectionWith(object, aParseNodeType);
+		return computeIntersectionWith(object, aPhraseType);
 	}
 
 	@Override @AvailMethod
@@ -254,7 +254,6 @@ extends AbstractTypeDescriptor
 		return computeIntersectionWith(object, aTupleType);
 	}
 
-
 	@Override @AvailMethod
 	final A_Type o_TypeUnion (
 		final AvailObject object,
@@ -278,7 +277,6 @@ extends AbstractTypeDescriptor
 	{
 		return computeUnionWith(object, aCompiledCodeType);
 	}
-
 
 	@Override @AvailMethod
 	final A_Type o_TypeUnionOfLiteralTokenType (
@@ -345,11 +343,11 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final A_Type o_TypeUnionOfParseNodeType (
+	final A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
-		return computeUnionWith(object, aParseNodeType);
+		return computeUnionWith(object, aPhraseType);
 	}
 
 	@Override @AvailMethod
@@ -609,9 +607,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return false;
 	}

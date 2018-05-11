@@ -1,6 +1,6 @@
-/**
+/*
  * ObjectDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -58,12 +59,10 @@ import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor
 	.namesAndBaseTypesForObjectType;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
@@ -150,6 +149,51 @@ extends Descriptor
 	{
 		return e == HASH_AND_MORE
 			|| e == KIND;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the fields nicely.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		final List<A_Atom> otherAtoms = new ArrayList<>();
+		for (final Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom fieldKey = entry.getKey();
+			final int index = entry.getValue();
+			if (index == 0)
+			{
+				otherAtoms.add(fieldKey);
+			}
+			else
+			{
+				fields.add(
+					new AvailObjectFieldHelper(
+						object,
+						new DebuggerObjectSlots(
+							"FIELD " + fieldKey.atomName()),
+						-1,
+						object.slot(FIELD_VALUES_, index)));
+			}
+		}
+		fields.sort(
+			Comparator.comparing(AvailObjectFieldHelper::nameForDebugger));
+		if (!otherAtoms.isEmpty())
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					new DebuggerObjectSlots("SUBCLASS_FIELDS"),
+					-1,
+					tupleFromList(otherAtoms)));
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override @AvailMethod
@@ -521,9 +565,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an {@linkplain ObjectDescriptor object} with attribute
-	 * {@linkplain AtomDescriptor keys} and values taken from the provided
-	 * {@linkplain MapDescriptor map}.
+	 * Construct an {@code object} with attribute {@linkplain AtomDescriptor
+	 * keys} and values taken from the provided {@link A_Map}.
 	 *
 	 * @param map A map from keys to their corresponding values.
 	 * @return The new object.
@@ -577,7 +620,7 @@ extends Descriptor
 	public final ObjectLayoutVariant variant;
 
 	/**
-	 * Construct a new {@link ObjectDescriptor}.
+	 * Construct a new {@code ObjectDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

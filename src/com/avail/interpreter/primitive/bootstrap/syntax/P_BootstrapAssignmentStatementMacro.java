@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapAssignmentStatementMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,29 +33,39 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleVariable;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -77,23 +87,23 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			2, CannotFail, CanInline, Bootstrap);
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
+	final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase variableNameLiteral = args.get(0);
-		final A_Phrase valueExpression = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase variableNameLiteral = interpreter.argument(0);
+		final A_Phrase valueExpression = interpreter.argument(1);
 
 		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(
+			LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -153,7 +163,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 						valueExpression.expressionType(),
 						declarationFinal.declaredType()));
 		}
-		final A_Tuple tokens = clientData.mapAt(allTokensKey);
+		final A_Tuple tokens = clientData.mapAt(staticTokensKey);
 		final A_Phrase assignment = newAssignment(
 			newUse(actualToken, declaration), valueExpression, tokens, false);
 		assignment.makeImmutable();
@@ -168,9 +178,9 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name for assignment */
-				LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Assignment value */
-				EXPRESSION_NODE.create(ANY.o())),
-			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType());
 	}
 }

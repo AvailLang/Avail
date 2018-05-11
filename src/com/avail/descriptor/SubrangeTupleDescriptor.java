@@ -1,6 +1,6 @@
-/**
+/*
  * SubrangeTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 
 import java.nio.ByteBuffer;
 
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots
 	.BASIS_TUPLE;

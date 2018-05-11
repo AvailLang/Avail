@@ -1,6 +1,6 @@
-/**
+/*
  * L2Instruction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,10 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -46,19 +46,15 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
 import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -98,9 +94,16 @@ public final class L2Instruction
 	 */
 	public final L2BasicBlock basicBlock;
 
-	@InnerAccess final List<L2Register> sourceRegisters = new ArrayList<>();
+	/**
+	 * The source {@link L2Register}s.
+	 */
+	@InnerAccess final List<L2Register<?>> sourceRegisters = new ArrayList<>();
 
-	@InnerAccess final List<L2Register> destinationRegisters = new ArrayList<>();
+	/**
+	 * The destination {@link L2Register}s.
+	 */
+	@InnerAccess final List<L2Register<?>> destinationRegisters =
+		new ArrayList<>();
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.
@@ -123,19 +126,6 @@ public final class L2Instruction
 	{
 		this.offset = offset;
 	}
-
-	/**
-	 * Each {@link L2Operation} is responsible for generating this {@link
-	 * Transformer1NotNullArg} as an action to directly invoke to accomplish the
-	 * effect of this instruction.  This interim measure helps alleviate some of
-	 * the runtime instruction decoding cost, until we're able to generate JVM
-	 * instructions directly.
-	 *
-	 * <p>Note that we have to wait until code generation of an {@link L2Chunk}
-	 * has completed before being able to set this action meaningfully, since
-	 * the point of it is to cache register numbering and target offsets.</p>
-	 */
-	public Transformer1NotNullArg<Interpreter, StackReifier> action;
 
 	/**
 	 * Construct a new {@code L2Instruction}.
@@ -171,29 +161,6 @@ public final class L2Instruction
 			operand.addSourceRegistersTo(sourceRegisters);
 			operand.addDestinationRegistersTo(destinationRegisters);
 		}
-		//noinspection ThisEscapedInObjectConstruction
-		action = uninitializedAction;
-	}
-
-	private static final Transformer1NotNullArg<Interpreter, StackReifier>
-		uninitializedAction = interpreter ->
-		{
-			assert false : "Instruction has not had its action initialized yet";
-			return null;
-		};
-
-	/**
-	 * Execute this {@linkplain #action} of this {@linkplain L2Instruction
-	 * instruction} upon the specified {@linkplain Interpreter interpreter}.
-	 *
-	 * @param interpreter
-	 *        The {@code Interpreter}.
-	 * @return {@code null} if the step completes normally, or a {@link
-	 *         StackReifier} if the instruction triggers stack reification.
-	 */
-	public @Nullable StackReifier runAction (final Interpreter interpreter)
-	{
-		return action.value(interpreter);
 	}
 
 	/**
@@ -202,8 +169,9 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
-	public List<L2Register> sourceRegisters ()
+	public List<L2Register<?>> sourceRegisters ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return sourceRegisters;
 	}
 
@@ -213,8 +181,9 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register}s.
 	 */
-	public List<L2Register> destinationRegisters ()
+	public List<L2Register<?>> destinationRegisters ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return destinationRegisters;
 	}
 
@@ -263,39 +232,6 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Propagate {@linkplain TypeDescriptor type} and constant value information
-	 * from source {@link L2Register}s to destination registers within the
-	 * provided {@link RegisterSet}s.  There is one RegisterSet for each target
-	 * L2Instruction, including the instruction that follows this one.  They
-	 * occur in the same order as the {@link #targetEdges()}, with the
-	 * successor instruction's RegisterSet prepended if it {@link
-	 * L2Operation#reachesNextInstruction()}.
-	 *
-	 * @param registerSets
-	 *            A list of RegisterSets in the above-specified order.
-	 * @param translator
-	 *            The L2Translator on behalf of which to propagate types.
-	 */
-	public void propagateTypes (
-		final List<RegisterSet> registerSets,
-		final L2Translator translator)
-	{
-		final int count = (operation.reachesNextInstruction() ? 1 : 0)
-			+ targetEdges().size();
-		assert registerSets.size() == count;
-		if (count == 1)
-		{
-			operation.propagateTypes(
-				this, registerSets.get(0), translator);
-		}
-		else
-		{
-			operation.propagateTypes(
-				this, registerSets, translator);
-		}
-	}
-
-	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
 	 * register is not present as a key of that map, leave it alone.  Do not
 	 * assume SSA form.
@@ -305,10 +241,11 @@ public final class L2Instruction
 	 *        L2Register}s having the same {@link L2Register#registerKind()}.
 	 */
 	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap)
+		final Map<L2Register<?>, L2Register<?>> registerRemap)
 	{
-		final List<L2Register> sourcesBefore = new ArrayList<>(sourceRegisters);
-		final List<L2Register> destinationsBefore =
+		final List<L2Register<?>> sourcesBefore =
+			new ArrayList<>(sourceRegisters);
+		final List<L2Register<?>> destinationsBefore =
 			new ArrayList<>(destinationRegisters);
 		for (final L2Operand operand : operands)
 		{
@@ -319,7 +256,6 @@ public final class L2Instruction
 		assert sourceRegisters.size() == sourcesBefore.size();
 		assert destinationRegisters.size() == destinationsBefore.size();
 	}
-
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock}.
@@ -361,19 +297,7 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(offset);
-		builder.append(". ");
-		builder.append(operation.name());
-		final L2NamedOperandType[] types = operation.operandTypes();
-		assert operands.length == types.length;
-		for (int i = 0; i < operands.length; i++)
-		{
-			builder.append(i == 0 ? ":\n\t" : ",\n\t");
-			assert operands[i].operandType() == types[i].operandType();
-			builder.append(types[i].name());
-			builder.append(" = ");
-			builder.append(increaseIndentation(operands[i].toString(), 1));
-		}
+		operation.toString(this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
 	}
 
@@ -381,7 +305,8 @@ public final class L2Instruction
 	 * Extract the constant {@link AvailObject} from the {@link
 	 * L2ConstantOperand} having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the constant.
+	 * @param operandIndex
+	 *        Which operand holds the constant.
 	 * @return The constant value.
 	 */
 	public AvailObject constantAt (final int operandIndex)
@@ -396,7 +321,8 @@ public final class L2Instruction
 	 * resulting {@link L2Chunk} should be dependent upon changes to its {@link
 	 * A_Method}.
 	 *
-	 * @param operandIndex Which operand holds the message bundle.
+	 * @param operandIndex
+	 *        Which operand holds the message bundle.
 	 * @return The message bundle.
 	 */
 	public A_Bundle bundleAt (final int operandIndex)
@@ -405,15 +331,29 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the immediate {@code int} from the {@link L2ImmediateOperand}
+	 * Extract the immediate {@code int} from the {@link L2IntImmediateOperand}
 	 * having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the immediate value.
+	 * @param operandIndex
+	 *        Which operand holds the immediate value.
 	 * @return The immediate value.
 	 */
-	public int immediateAt (final int operandIndex)
+	public int intImmediateAt (final int operandIndex)
 	{
-		return ((L2ImmediateOperand) operands[operandIndex]).value;
+		return ((L2IntImmediateOperand) operands[operandIndex]).value;
+	}
+
+	/**
+	 * Extract the immediate {@code double} from the {@link
+	 * L2FloatImmediateOperand} having the specified position in my array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds the immediate value.
+	 * @return The immediate value.
+	 */
+	public double floatImmediateAt (final int operandIndex)
+	{
+		return ((L2FloatImmediateOperand) operands[operandIndex]).value;
 	}
 
 	/**
@@ -435,7 +375,8 @@ public final class L2Instruction
 	 * Extract the program counter {@code int} from the {@link L2PcOperand}
 	 * having the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds the program counter value.
+	 * @param operandIndex
+	 *        Which operand holds the program counter value.
 	 * @return An int representing a target offset into a chunk's instructions.
 	 */
 	public int pcOffsetAt (final int operandIndex)
@@ -447,7 +388,8 @@ public final class L2Instruction
 	 * Extract the {@link Primitive} from the {@link L2PrimitiveOperand} having
 	 * the specified position in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a primitive.
+	 * @param operandIndex
+	 *        Which operand holds a primitive.
 	 * @return The specified {@link Primitive}.
 	 */
 	public Primitive primitiveAt (final int operandIndex)
@@ -459,7 +401,8 @@ public final class L2Instruction
 	 * Extract the {@link L2ReadIntOperand} having the specified position in my
 	 * array of operands.
 	 *
-	 * @param operandIndex Which operand holds a read of an integer register.
+	 * @param operandIndex
+	 *        Which operand holds a read of an integer register.
 	 * @return The specified {@link L2ReadIntOperand} to read.
 	 */
 	public L2ReadIntOperand readIntRegisterAt (final int operandIndex)
@@ -471,7 +414,8 @@ public final class L2Instruction
 	 * Extract the {@link L2WriteIntOperand} having the specified position in my
 	 * array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of an integer register.
+	 * @param operandIndex
+	 *        Which operand holds a write of an integer register.
 	 * @return The specified {@link L2WriteIntOperand} to write.
 	 */
 	public L2WriteIntOperand writeIntRegisterAt (final int operandIndex)
@@ -480,10 +424,37 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Extract the {@link L2ReadFloatOperand} having the specified position in
+	 * my array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a read of a double register.
+	 * @return The specified {@link L2ReadFloatOperand} to read.
+	 */
+	public L2ReadFloatOperand readFloatRegisterAt (final int operandIndex)
+	{
+		return (L2ReadFloatOperand) operands[operandIndex];
+	}
+
+	/**
+	 * Extract the {@link L2WriteFloatOperand} having the specified position in my
+	 * array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a write of a double register.
+	 * @return The specified {@link L2WriteFloatOperand} to write.
+	 */
+	public L2WriteFloatOperand writeFloatRegisterAt (final int operandIndex)
+	{
+		return (L2WriteFloatOperand) operands[operandIndex];
+	}
+
+	/**
 	 * Extract the {@link L2ReadPointerOperand} having the specified position in
 	 * my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a read of an object register.
+	 * @param operandIndex
+	 *        Which operand holds a read of an object register.
 	 * @return The specified {@link L2ObjectRegister} to read.
 	 */
 	public L2ReadPointerOperand readObjectRegisterAt (final int operandIndex)
@@ -495,8 +466,9 @@ public final class L2Instruction
 	 * Extract the {@link L2WritePointerOperand} having the specified position
 	 * in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of an object register.
-	 * @return The specified {@link L2ObjectRegister} to write.
+	 * @param operandIndex
+	 *        Which operand holds a write of an object register.
+	 * @return The specified {@code L2WritePointerOperand}.
 	 */
 	public L2WritePointerOperand writeObjectRegisterAt (final int operandIndex)
 	{
@@ -504,31 +476,44 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the {@link List} of {@link L2ReadPointerOperand}s from the {@link
+	 * Extract the {@link List} of {@link L2ReadOperand}s from the {@link
 	 * L2ReadVectorOperand} having the specified position in my array of
 	 * operands.
 	 *
-	 * @param operandIndex Which operand holds a read of a register vector.
+	 * @param <RR>
+	 *        The type of {@link L2ReadOperand}s in this vector.
+	 * @param <R>
+	 *        The type of {@link L2Register}s in this vector.
+	 * @param <T>
+	 *        The type of values in the registers.
+	 * @param operandIndex
+	 *        Which operand holds a read of a register vector.
 	 * @return The list of {@link L2ReadPointerOperand}s.
 	 */
-	public List<L2ReadPointerOperand> readVectorRegisterAt (
-		final int operandIndex)
+	@SuppressWarnings("unchecked")
+	public <
+		RR extends L2ReadOperand<R, T>,
+		R extends L2Register<T>,
+		T extends A_BasicObject>
+	List<RR> readVectorRegisterAt (final int operandIndex)
 	{
-		return ((L2ReadVectorOperand) operands[operandIndex]).elements();
+		return (
+			(L2ReadVectorOperand<RR, R, T>) operands[operandIndex]).elements();
 	}
 
 	/**
-	 * Extract the {@link List} of {@link L2WritePointerOperand}s from the
-	 * {@link L2WriteVectorOperand} having the specified position in my array of
-	 * operands.
+	 * Extract the {@link L2WritePhiOperand} having the specified position
+	 * in my array of operands.
 	 *
-	 * @param operandIndex Which operand holds a write of a register vector.
-	 * @return The list of {@link L2WritePointerOperand}s.
+	 * @param operandIndex
+	 *        Which operand holds a phi write.
+	 * @return The specified {@code L2WritePhiOperand}.
 	 */
-	public List<L2WritePointerOperand> writeVectorRegisterAt (
+	@SuppressWarnings("unchecked")
+	public <U extends L2WritePhiOperand<?, ?>> U writePhiRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2WriteVectorOperand) operands[operandIndex]).elements();
+		return (U) operands[operandIndex];
 	}
 
 	/**
@@ -564,7 +549,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Translate the {@link L2Instruction} into corresponding JVM instructions.
+	 * Translate the {@code L2Instruction} into corresponding JVM instructions.
 	 *
 	 * @param translator
 	 *        The {@link JVMTranslator} responsible for the translation.
@@ -572,7 +557,9 @@ public final class L2Instruction
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 */
-	public void translateToJVM (JVMTranslator translator, MethodVisitor method)
+	public void translateToJVM (
+		final JVMTranslator translator,
+		final MethodVisitor method)
 	{
 		operation.translateToJVM(translator, method, this);
 	}

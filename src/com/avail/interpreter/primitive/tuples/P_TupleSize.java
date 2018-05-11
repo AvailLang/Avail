@@ -1,6 +1,6 @@
-/**
+/*
  * P_TupleSize.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,24 @@ package com.avail.interpreter.primitive.tuples;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -52,7 +59,9 @@ import static com.avail.interpreter.Primitive.Flag.*;
  * <strong>Primitive:</strong> Answer the size of the {@linkplain
  * TupleDescriptor tuple}.
  */
-public final class P_TupleSize extends Primitive
+@SuppressWarnings("unused")
+public final class P_TupleSize
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -63,12 +72,10 @@ public final class P_TupleSize extends Primitive
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
+	public Result attempt (final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Tuple tuple = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Tuple tuple = interpreter.argument(0);
 		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize()));
 	}
 
@@ -85,6 +92,44 @@ public final class P_TupleSize extends Primitive
 		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		return argumentTypes.get(0).sizeRange();
+		return argumentTypes.get(0).sizeRange().typeIntersection(int32());
+	}
+
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
+	{
+		final A_Type returnType = returnTypeGuaranteedByVM(
+			rawFunction, argumentTypes);
+//		assert returnType.isSubtypeOf(int32());
+		final L2ReadIntOperand unboxedValue;
+		if (returnType.lowerBound().equals(returnType.upperBound()))
+		{
+			// If the exact size of the tuple is known, then leverage that
+			// information to produce a constant.
+			unboxedValue = translator.constantIntRegister(
+				returnType.lowerBound().extractInt());
+		}
+		else
+		{
+			// The exact size of the tuple isn't known, so generate code to
+			// extract it.
+			final L2WriteIntOperand writer =
+				translator.newIntRegisterWriter(returnType, null);
+			translator.addInstruction(
+				L2_TUPLE_SIZE.instance,
+				arguments.get(0),
+				writer);
+			unboxedValue = writer.read();
+		}
+		final L2ReadPointerOperand boxed =
+			translator.box(unboxedValue, returnType);
+		callSiteHelper.useAnswer(boxed);
+		return true;
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * ParsingOperation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -49,22 +49,26 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.compiler.AvailCompiler.Con;
+import static com.avail.compiler.AvailCompiler.nextNonwhitespaceTokensDo;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
 	.newMacroSubstitution;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.VARIABLE_USE_NODE;
-import static com.avail.descriptor.PermutedListNodeDescriptor
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PermutedListPhraseDescriptor
 	.newPermutedListNode;
-import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.utility.PrefixSharingList.*;
 import static com.avail.utility.StackPrinter.trace;
@@ -84,9 +88,9 @@ public enum ParsingOperation
 	 */
 
 	/**
-	 * {@code 0} - Push a new {@linkplain ListNodeDescriptor list} that
+	 * {@code 0} - Push a new {@linkplain ListPhraseDescriptor list} that
 	 * contains an {@linkplain TupleDescriptor#emptyTuple() empty tuple} of
-	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
+	 * {@linkplain PhraseDescriptor phrases} onto the parse stack.
 	 */
 	EMPTY_LIST(0, true, true)
 	{
@@ -101,10 +105,10 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
-			// Push an empty list node and continue.
+			// Push an empty list phrase and continue.
 			assert successorTrees.tupleSize() == 1;
 			final List<A_Phrase> newArgsSoFar =
 				append(argsSoFar, emptyListNode());
@@ -114,7 +118,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
 				continuation);
@@ -123,7 +127,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 1} - Pop an argument from the parse stack of the current
-	 * potential message send. Pop a {@linkplain ListNodeDescriptor list} from
+	 * potential message send. Pop a {@linkplain ListPhraseDescriptor list} from
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
@@ -140,8 +144,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final A_Phrase value = last(argsSoFar);
@@ -156,7 +160,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
 				continuation);
@@ -179,8 +183,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final int marker =
@@ -194,7 +198,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				newMarksSoFar,
 				continuation);
@@ -217,8 +221,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			compiler.eventuallyParseRestOfSendNode(
@@ -227,7 +231,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				withoutLast(marksSoFar),
 				continuation);
@@ -253,8 +257,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final int oldMarker = last(marksSoFar);
@@ -272,7 +276,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				newMarksSoFar,
 				continuation);
@@ -296,14 +300,14 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
+			final A_BundleTree successorTree = successorTrees.tupleAt(1);
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
 				firstArgOrNull == null
-					? continuation.superexpressions().advancedTo(
-						successorTrees.tupleAt(1))
+					? continuation.superexpressions().advancedTo(successorTree)
 					: continuation.superexpressions;
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
@@ -314,19 +318,19 @@ public enum ParsingOperation
 				false,
 				Con(
 					partialSubexpressionList,
-					(CompilerSolution solution) ->
+					solution ->
 					{
 						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.parseNode());
+							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
-							successorTrees.tupleAt(1),
+							successorTree,
 							null,
 							initialTokenPosition,
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
-							consumedTokens,
+							consumedStaticTokens,
 							newArgsSoFar,
 							marksSoFar,
 							continuation);
@@ -335,15 +339,15 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤,
-	 * then push <em>a literal node wrapping this expression</em> onto the parse
+	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤, then
+	 * push <em>a literal phrase wrapping this expression</em> onto the parse
 	 * stack.
 	 *
-	 * <p>If we didn't wrap the parse node inside a literal node, we wouldn't be
+	 * <p>If we didn't wrap the phrase inside a literal phrase, we wouldn't be
 	 * able to process sequences of statements in macros, since they would each
 	 * have an expressionType of ⊤ (or if one was ⊥, the entire expressionType
 	 * would also be ⊥).  Instead, they will have the expressionType phrase⇒⊤
-	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
+	 * (or phrase⇒⊥), which is perfectly fine to put inside a list phrase during
 	 * parsing.</p>
 	 */
 	PARSE_TOP_VALUED_ARGUMENT(6, false, true)
@@ -359,8 +363,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
@@ -380,7 +384,7 @@ public enum ParsingOperation
 					solution ->
 					{
 						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.parseNode());
+							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTrees.tupleAt(1),
@@ -389,7 +393,7 @@ public enum ParsingOperation
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
-							consumedTokens,
+							consumedStaticTokens,
 							newArgsSoFar,
 							marksSoFar,
 							continuation);
@@ -400,7 +404,7 @@ public enum ParsingOperation
 	/**
 	 * {@code 7} - Parse a {@linkplain TokenDescriptor raw token}. It should
 	 * correspond to a {@linkplain VariableDescriptor variable} that is
-	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
+	 * in scope. Push a {@linkplain ReferencePhraseDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
 	PARSE_VARIABLE_REFERENCE(7, false, true)
@@ -416,8 +420,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
@@ -438,13 +442,13 @@ public enum ParsingOperation
 					{
 						assert successorTrees.tupleSize() == 1;
 						final A_Phrase variableUse =
-							variableUseSolution.parseNode();
+							variableUseSolution.phrase();
 						final A_Phrase rawVariableUse =
 							variableUse.stripMacro();
 						final ParserState afterUse =
 							variableUseSolution.endState();
-						if (!rawVariableUse.parseNodeKindIsUnder(
-							VARIABLE_USE_NODE))
+						if (!rawVariableUse.phraseKindIsUnder(
+							VARIABLE_USE_PHRASE))
 						{
 							if (consumedAnything)
 							{
@@ -455,7 +459,7 @@ public enum ParsingOperation
 									describeWhyVariableUseIsExpected(
 										successorTrees.tupleAt(1)));
 							}
-							// It wasn't a variable use node, so give up.
+							// It wasn't a variable use phrase, so give up.
 							return;
 						}
 						// Make sure taking a reference is appropriate.
@@ -493,7 +497,7 @@ public enum ParsingOperation
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
-							consumedTokens,
+							consumedStaticTokens,
 							append(argsSoFar, variableReference),
 							marksSoFar,
 							continuation);
@@ -518,14 +522,14 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			compiler.parseArgumentInModuleScopeThen(
 				start,
 				firstArgOrNull,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
 				initialTokenPosition,
@@ -536,9 +540,9 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 9} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
-	 * leaving it on the parse stack.  In particular, push a literal node whose
-	 * token is a synthetic literal token whose value is the actual token that
-	 * was parsed.
+	 * leaving it on the parse stack.  In particular, push a literal phrase
+	 * whose token is a synthetic literal token whose value is the actual token
+	 * that was parsed.
 	 */
 	PARSE_ANY_RAW_TOKEN(9, false, false)
 	{
@@ -553,8 +557,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			if (firstArgOrNull != null)
@@ -567,49 +571,39 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType == END_OF_FILE)
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(consumedTokens, syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						start.expected("any token, not end-of-file");
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -630,8 +624,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			if (firstArgOrNull != null)
@@ -644,60 +638,48 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != KEYWORD)
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final TokenType tokenType = token.tokenType();
-									if (tokenType != KEYWORD)
-									{
-										if (consumedAnything)
-										{
-											start.expected(
-												"a keyword token, not "
-													+ token.string());
-										}
-										continue;
-									}
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(consumedTokens, syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						if (consumedAnything)
+						{
+							start.expected(
+								"a keyword token, not " +
+									(tokenType == END_OF_FILE
+										 ? "end-of-file"
+										 : tokenType == LITERAL
+											 ? token.literal()
+											 : token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -718,8 +700,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			if (firstArgOrNull != null)
@@ -732,63 +714,49 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != LITERAL
+						|| !token.literal().isInstanceOf(stringType()))
 					{
-						state.lexingState.withTokensDo(nextTokens ->
+						if (consumedAnything)
 						{
-							for (final A_Token token : nextTokens)
-							{
-								final TokenType tokenType = token.tokenType();
-								if (tokenType != LITERAL
-									|| !token.literal().isInstanceOf(
-										stringType()))
-								{
-									if (consumedAnything)
-									{
-										start.expected(
-											"a string literal token, not "
-												+ (tokenType != LITERAL
-													   ? token.string()
-													   : token.literal()));
-									}
-									continue;
-								}
-								final A_Token syntheticToken =
-									literalToken(
-										token.string(),
-										token.leadingWhitespace(),
-										token.trailingWhitespace(),
-										token.start(),
-										token.lineNumber(),
-										SYNTHETIC_LITERAL,
-										token);
-								final A_Phrase literalNode =
-									literalNodeFromToken(syntheticToken);
-								final List<A_Phrase> newArgsSoFar =
-									append(argsSoFar, literalNode);
-								compiler.eventuallyParseRestOfSendNode(
-									new ParserState(
-										token.nextLexingStateIn(
-											compiler.compilationContext),
-										start.clientDataMap,
-										start.capturedCommentTokens),
-									successorTrees.tupleAt(1),
-									null,
-									initialTokenPosition,
-									true,
-									append(consumedTokens, syntheticToken),
-									newArgsSoFar,
-									marksSoFar,
-									continuation);
-							}
-						});
+							start.expected(
+								"a string literal token, not " +
+									(tokenType == END_OF_FILE
+										 ? "end-of-file"
+										 : tokenType == LITERAL
+											 ? token.literal()
+											 : token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -809,8 +777,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			if (firstArgOrNull != null)
@@ -823,67 +791,49 @@ public enum ParsingOperation
 				// then reject the parse.
 				return;
 			}
-			compiler.skipWhitespaceAndComments(
+			nextNonwhitespaceTokensDo(
 				start,
-				statesAfterWhitespace ->
+				token ->
 				{
-					for (final ParserState state : statesAfterWhitespace)
+					final TokenType tokenType = token.tokenType();
+					if (tokenType != LITERAL
+						|| !token.literal().isInstanceOf(wholeNumbers()))
 					{
-						state.lexingState.withTokensDo(
-							nextTokens ->
-							{
-								for (final A_Token token : nextTokens)
-								{
-									final TokenType tokenType =
-										token.tokenType();
-									if (tokenType != LITERAL
-										|| !token.literal().isInstanceOf(
-											wholeNumbers()))
-									{
-										if (consumedAnything)
-										{
-											start.expected(
-												"a whole number literal token, "
-													+ "not "
-													+ (token.tokenType()
-														   != LITERAL
-													   ? token.string()
-													   : token.literal()));
-										}
-										continue;
-									}
-									final A_Token syntheticToken =
-										literalToken(
-											token.string(),
-											token.leadingWhitespace(),
-											token.trailingWhitespace(),
-											token.start(),
-											token.lineNumber(),
-											SYNTHETIC_LITERAL,
-											token);
-									final A_Phrase literalNode =
-										literalNodeFromToken(syntheticToken);
-									final List<A_Phrase> newArgsSoFar =
-										append(argsSoFar, literalNode);
-									compiler.eventuallyParseRestOfSendNode(
-										new ParserState(
-											token.nextLexingStateIn(
-												compiler.compilationContext),
-											start.clientDataMap,
-											start.capturedCommentTokens),
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										true,
-										append(consumedTokens, syntheticToken),
-										newArgsSoFar,
-										marksSoFar,
-										continuation);
-								}
-							});
+						if (consumedAnything)
+						{
+							start.expected(
+								"a whole number literal token, not " +
+									(tokenType == END_OF_FILE
+										? "end-of-file"
+										: tokenType == LITERAL
+									        ? token.literal()
+											: token.string()));
+						}
+						return;
 					}
-				},
-				new AtomicBoolean(false));
+					final A_Token syntheticToken =
+						literalToken(
+							token.string(),
+							token.leadingWhitespace(),
+							token.trailingWhitespace(),
+							token.start(),
+							token.lineNumber(),
+							SYNTHETIC_LITERAL,
+							token);
+					final List<A_Phrase> newArgsSoFar =
+						append(argsSoFar, literalNodeFromToken(syntheticToken));
+					compiler.eventuallyParseRestOfSendNode(
+						new ParserState(
+							token.nextLexingState(), start.clientDataMap),
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						append(consumedStaticTokens, syntheticToken),
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				});
 		}
 	},
 
@@ -903,8 +853,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final A_Phrase right = last(argsSoFar);
@@ -922,7 +872,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
 				continuation);
@@ -945,8 +895,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert false : "Illegal reserved parsing operation";
 		}
@@ -968,8 +918,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert false : "Illegal reserved parsing operation";
 		}
@@ -1005,8 +955,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			for (final A_BundleTree successorTree : successorTrees)
 			{
@@ -1016,7 +966,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					consumedTokens,
+					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
 					continuation);
@@ -1049,8 +999,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			compiler.eventuallyParseRestOfSendNode(
@@ -1059,7 +1009,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
 				continuation);
@@ -1091,8 +1041,8 @@ public enum ParsingOperation
 				final List<Integer> marksSoFar,
 				final ParserState initialTokenPosition,
 				final boolean consumedAnything,
-				final List<A_Token> consumedTokens,
-				final Con continuation)
+				final List<A_Token> consumedStaticTokens,
+				final Con1 continuation)
 			{
 				assert successorTrees.tupleSize() == 1;
 				compiler.eventuallyParseRestOfSendNode(
@@ -1101,7 +1051,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					consumedTokens,
+					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
 					continuation);
@@ -1133,8 +1083,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert false : name() + " instruction should not be dispatched";
 		}
@@ -1165,8 +1115,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert false : name() + " instruction should not be dispatched";
 		}
@@ -1195,8 +1145,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			assert firstArgOrNull == null;
@@ -1206,7 +1156,7 @@ public enum ParsingOperation
 				null,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
 				continuation);
@@ -1230,8 +1180,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final A_Phrase input = last(argsSoFar);
@@ -1253,7 +1203,7 @@ public enum ParsingOperation
 						firstArgOrNull,
 						initialTokenPosition,
 						consumedAnything,
-						consumedTokens,
+						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
 						continuation);
@@ -1277,8 +1227,8 @@ public enum ParsingOperation
 	 * Make a copy of the parse stack, then perform the equivalent of an {@link
 	 * #APPEND_ARGUMENT} on the copy, the specified number of times minus one
 	 * (because zero is not a legal operand).  Make it into a single {@linkplain
-	 * ListNodeDescriptor list node} and push it onto the original parse stack.
-	 * It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
+	 * ListPhraseDescriptor list phrase} and push it onto the original parse
+	 * stack. It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
@@ -1298,8 +1248,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			List<A_Phrase> stackCopy = argsSoFar;
 			// Only do N-1 steps.  We simply couldn't encode zero as an
@@ -1325,7 +1275,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					consumedTokens,
+					consumedStaticTokens,
 					newStack,
 					marksSoFar,
 					continuation);
@@ -1359,8 +1309,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final A_BundleTree successorTree = successorTrees.tupleAt(1);
@@ -1387,7 +1337,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				withoutPrefixArguments,
 				marksSoFar,
 				continuation);
@@ -1395,10 +1345,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+9} - Permute the elements of the list node on the top of the
-	 * stack via the permutation found via {@linkplain
-	 * MessageSplitter#permutationAtIndex(int)}.  The list node must be the same
-	 * size as the permutation.
+	 * {@code 16*N+9} - Permute the elements of the list phrase on the top of
+	 * the stack via the permutation found via {@linkplain
+	 * MessageSplitter#permutationAtIndex(int)}.  The list phrase must be the
+	 * same size as the permutation.
 	 */
 	PERMUTE_LIST(9, true, true)
 	{
@@ -1413,8 +1363,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			final int permutationIndex = operand(instruction);
 			final A_Tuple permutation =
@@ -1428,7 +1378,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				stack,
 				marksSoFar,
 				continuation);
@@ -1436,9 +1386,9 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
-	 * least the specified size.  Proceed to the next instruction only if this
-	 * is the case.
+	 * {@code 16*N+10} - Check that the list phrase on the top of the stack has
+	 * at least the specified size.  Proceed to the next instruction only if
+	 * this is the case.
 	 */
 	CHECK_AT_LEAST(10, true, true)
 	{
@@ -1453,8 +1403,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			final int limit = operand(instruction);
 			final A_Phrase top = last(argsSoFar);
@@ -1466,7 +1416,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					consumedTokens,
+					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
 					continuation);
@@ -1475,8 +1425,8 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+11} - Check that the list node on the top of the stack has at
-	 * most the specified size.  Proceed to the next instruction only if this
+	 * {@code 16*N+11} - Check that the list phrase on the top of the stack has
+	 * at most the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
 	CHECK_AT_MOST(11, true, true)
@@ -1492,8 +1442,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			final int limit = operand(instruction);
 			final A_Phrase top = last(argsSoFar);
@@ -1505,7 +1455,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					consumedTokens,
+					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
 					continuation);
@@ -1541,8 +1491,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert false : name() + " instruction should not be dispatched";
 		}
@@ -1551,7 +1501,7 @@ public enum ParsingOperation
 	/**
 	 * {@code 16*N+13} - Pop N arguments from the parse stack of the current
 	 * potential message send. Create an N-element {@linkplain
-	 * ListNodeDescriptor list} with them, and push the list back onto the
+	 * ListPhraseDescriptor list} with them, and push the list back onto the
 	 * parse stack.
 	 *
 	 * <p>This is the equivalent of pushing an empty list prior to pushing those
@@ -1576,8 +1526,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final int listSize = operand(instruction);
@@ -1586,7 +1536,8 @@ public enum ParsingOperation
 				argsSoFar.subList(0, totalSize - listSize);
 			final List<A_Phrase> popped =
 				argsSoFar.subList(totalSize - listSize, totalSize);
-			final A_Phrase newListNode = newListNode(tupleFromList(popped));
+			final A_Phrase newListNode = newListNode(
+				tupleFromList(popped));
 			final List<A_Phrase> newArgsSoFar =
 				append(unpopped, newListNode);
 			compiler.eventuallyParseRestOfSendNode(
@@ -1595,7 +1546,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
 				continuation);
@@ -1603,7 +1554,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+14} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 16*N+14} - Push a {@link LiteralPhraseDescriptor literal phrase}
 	 * containing the constant found at the position in the type list indicated
 	 * by the operand.
 	 */
@@ -1620,8 +1571,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			final AvailObject constant = MessageSplitter.constantForIndex(
 				operand(instruction));
@@ -1640,7 +1591,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				append(argsSoFar, literalNode),
 				marksSoFar,
 				continuation);
@@ -1664,8 +1615,8 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
-			final List<A_Token> consumedTokens,
-			final Con continuation)
+			final List<A_Token> consumedStaticTokens,
+			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			final int depthToReverse = operand(instruction);
@@ -1684,7 +1635,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
-				consumedTokens,
+				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
 				continuation);
@@ -1865,8 +1816,7 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Decode the specified instruction into an {@linkplain ParsingOperation
-	 * operation}.
+	 * Decode the specified instruction into a {@code ParsingOperation}.
 	 *
 	 * @param instruction A coded instruction.
 	 * @return The decoded operation.
@@ -1900,16 +1850,41 @@ public enum ParsingOperation
 	 * Perform one parsing instruction.
 	 *
 	 * @param compiler
+	 *        The {@link AvailCompiler} which is parsing.
 	 * @param instruction
+	 *        An int encoding the {@code ParsingOperation} to execute.
 	 * @param successorTrees
+	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *        MessageBundleTreeDescriptor bundle trees} at which to continue
+	 *        parsing.
 	 * @param start
+	 *        Where to start parsing.
 	 * @param firstArgOrNull
+	 *        Either the already-parsed first argument or null. If we're looking
+	 *        for leading-argument message sends to wrap an expression then this
+	 *        is not-null before the first argument position is encountered,
+	 *        otherwise it's null and we should reject attempts to start with an
+	 *        argument (before a keyword).
 	 * @param argsSoFar
+	 *        The message arguments that have been parsed so far.
 	 * @param marksSoFar
+	 *        The parsing markers that have been recorded so far.
 	 * @param initialTokenPosition
+	 *        The position at which parsing of this message started. If it was
+	 *        parsed as a leading argument send (i.e., firstArgOrNull started
+	 *        out non-null) then the position is of the token following the
+	 *        first argument.
 	 * @param consumedAnything
-	 * @param consumedTokens
+	 *        Whether any tokens or arguments have been consumed yet.
+	 * @param consumedStaticTokens
+	 *        The immutable {@link List} of "static" {@link A_Token}s that have
+	 *        been encountered and consumed for the current method or macro
+	 *        invocation being parsed.  These are the tokens that correspond
+	 *        with tokens that occur verbatim inside the name of the method or
+	 *        macro.
 	 * @param continuation
+	 *        What to do with a complete {@linkplain SendPhraseDescriptor
+	 *        message send}.
 	 */
 	abstract void execute (
 		final AvailCompiler compiler,
@@ -1921,8 +1896,8 @@ public enum ParsingOperation
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
-		final List<A_Token> consumedTokens,
-		final Con continuation);
+		final List<A_Token> consumedStaticTokens,
+		final Con1 continuation);
 
 	/**
 	 * Produce a {@link Describer} that says a variable use was expected, and
@@ -1947,7 +1922,7 @@ public enum ParsingOperation
 			}
 			else
 			{
-				builder.append(" ");
+				builder.append(' ');
 			}
 			boolean first = true;
 			for (final A_Bundle bundle : bundles)

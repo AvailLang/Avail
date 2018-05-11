@@ -1,6 +1,6 @@
-/**
+/*
  * CompiledCodeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,12 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1OperandType;
@@ -48,7 +50,6 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IndexedIntGenerator;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -82,10 +83,10 @@ import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static java.lang.String.format;
@@ -194,6 +195,9 @@ extends Descriptor
 		 * The number of outer variables that must captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_OUTERS = bitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
@@ -202,6 +206,9 @@ extends Descriptor
 		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
 		 * for continuations running this code.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField FRAME_SLOTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 48, 16);
 
@@ -209,6 +216,9 @@ extends Descriptor
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
 		 * code expects.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_ARGS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 32, 16);
 
@@ -216,6 +226,9 @@ extends Descriptor
 		 * The number of local variables declared in this code.  This does not
 		 * include arguments or local constants.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_LOCALS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 16, 16);
 
@@ -223,6 +236,9 @@ extends Descriptor
 		 * The number of local constants declared in this code.  These occur in
 		 * the frame after the arguments and local variables.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		static final BitField NUM_CONSTANTS = bitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 0, 16);
 	}
@@ -254,7 +270,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code}, in which to record information
 		 * such as the file and line number of source code.
 		 */
-//		@HideFieldInDebugger
+		@HideFieldJustForPrinting
 		PROPERTY_ATOM,
 
 		/**
@@ -305,11 +321,134 @@ extends Descriptor
 		volatile @Nullable Statistic returneeCheckStat = null;
 
 		/**
-		 * A boolean indicating whether the current {@linkplain
-		 * CompiledCodeDescriptor compiled code object} has been run during the
-		 * current code coverage session.
+		 * A {@code boolean} indicating whether the current {@link
+		 * A_RawFunction} has been run during the current code coverage session.
 		 */
 		@InnerAccess volatile boolean hasRun = false;
+	}
+
+	/**
+	 * A mechanism for extracting consecutive operations and operands from an
+	 * {@link A_RawFunction}.
+	 */
+	public static final class L1InstructionDecoder
+	{
+		/** The offset into the array of the first nybblecode. */
+		public static final int baseIndexInArray = NYBBLECODES_.ordinal();
+
+		/**
+		 * The actual longSlots field from the current {@link A_RawFunction}
+		 * being traced.
+		 */
+		long[] encodedInstructionsArray = new long[0];
+
+		/**
+		 * The long index just after consuming the last nybble.
+		 */
+		int finalLongIndex = -1;
+
+		/**
+		 * The shift just after consuming the last nybble.
+		 */
+		int finalShift = -1;
+
+		/**
+		 * The index of the current long in the {@link
+		 * #encodedInstructionsArray}.
+		 */
+		int longIndex = -1;
+
+		/**
+		 * The current shift factor for extracting nybblecodes from the long at
+		 * the current {@link #longIndex}.
+		 */
+		int shift = -1;
+
+		/**
+		 * Set the pc.  This can be done independently of the call to
+		 * {@link AvailObject#setUpInstructionDecoder(L1InstructionDecoder)}.
+		 *
+		 * @param pc The new one-based program counter.
+		 */
+		public void pc (final int pc)
+		{
+			longIndex = baseIndexInArray + (pc >> 4);
+			shift = (pc & 15) << 2;
+		}
+
+		/**
+		 * Answer the current one-based program counter.
+		 *
+		 * @return The current one-based nybblecode index.
+		 */
+		public int pc ()
+		{
+			return ((longIndex - baseIndexInArray) << 4) + (shift >> 2);
+		}
+
+		/**
+		 * Get one nybble from the stream of nybblecodes.
+		 *
+		 * @return The consumed nybble.
+		 */
+		private int getNybble ()
+		{
+			final int result =
+				(int) ((encodedInstructionsArray[longIndex] >> shift) & 15);
+			final int newShift = shift + 4;
+			// If shift has reached 64, increment longIndex.
+			longIndex += newShift >> 6;
+			shift = newShift & 63;
+			return result;
+		}
+
+		/**
+		 * Consume the next nybblecode operation.
+		 *
+		 * @return The {@link L1Operation} consumed at the current position.
+		 */
+		public L1Operation getOperation ()
+		{
+			int index = getNybble();
+			if (index == 15)
+			{
+				index = 16 + getNybble();
+			}
+			return L1Operation.lookup(index);
+		}
+
+		/**
+		 * Consume the next nybblecode operand.
+		 *
+		 * @return The {@code int} operand consumed at the current position.
+		 */
+		public int getOperand ()
+		{
+			final int firstNybble = getNybble();
+			final int encodeShift = firstNybble << 2;
+			int count = 15 & (int) (0x8421_1100_0000_0000L >>> encodeShift);
+			int value = 0;
+			while (count-- > 0)
+			{
+				value = (value << 4) + getNybble();
+			}
+			final int lowOff =
+				15 & (int) (0x00AA_AA98_7654_3210L >>> encodeShift);
+			final int highOff =
+				15 & (int) (0x0032_1000_0000_0000L >>> encodeShift);
+			return value + lowOff + (highOff << 4);
+		}
+
+		/**
+		 * Answer whether the receiver has reached the end of its instructions.
+		 *
+		 * @return {@code true} if there are no more instructions to consume,
+		 *         otherwise {@code false}.
+		 */
+		public boolean atEnd ()
+		{
+			return longIndex == finalLongIndex && shift == finalShift;
+		}
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -716,65 +855,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	L1Operation o_NextNybblecodeOperation (
-		final AvailObject object,
-		final MutableInt pc)
-	{
-		final int subindex = pc.value & 15;
-		final int longIndex = (pc.value >> 4) + 1;
-		long currentLong = object.slot(NYBBLECODES_, longIndex);
-		final int shift = subindex << 2;
-		int nybble = 15 & (int) (currentLong >> shift);
-		if (nybble != 15)
-		{
-			pc.value++;
-			return L1Operation.lookup(nybble);
-		}
-		// It's an extended nybblecode.
-		pc.value += 2;
-		if (subindex == 15)
-		{
-			// The extension/op crossed a long boundary.
-			currentLong = object.slot(NYBBLECODES_, longIndex + 1);
-			nybble = 15 & (int) currentLong;
-			return L1Operation.lookup(nybble + 16);
-		}
-		// The extension/op didn't cross a long boundary.  Skip the fetch.
-		nybble = 15 & (int) (currentLong >> (shift + 4));
-		return L1Operation.lookup(nybble + 16);
-	}
-
-	@Override @AvailMethod
-	int o_NextNybblecodeOperand (
-		final AvailObject object,
-		final MutableInt pc)
-	{
-		final int subindex = pc.value & 15;
-		int longIndex = (pc.value >> 4) + 1;
-		long currentLong = object.slot(NYBBLECODES_, longIndex);
-		int shift = subindex << 2;
-		final int firstNybble = 15 & (int) (currentLong >> shift);
-		final int encodeShift = firstNybble << 2;
-		int count = 15 & (int) (0x8421_1100_0000_0000L >>> encodeShift);
-		pc.value += 1 + count;
-		int value = 0;
-		while (count-- > 0)
-		{
-			shift += 4;
-			if (shift == 64)
-			{
-				shift = 0;
-				currentLong = object.slot(NYBBLECODES_, ++longIndex);
-			}
-			value <<= 4;
-			value += 15 & (int) (currentLong >> shift);
-		}
-		final int lowOff = 15 & (int) (0x00AA_AA98_7654_3210L >>> encodeShift);
-		final int highOff = 15 & (int) (0x0032_1000_0000_0000L >>> encodeShift);
-		return value + lowOff + (highOff << 4);
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCompiledCode(object);
@@ -1163,13 +1243,17 @@ extends Descriptor
 			builder,
 			recursionMap,
 			indent);
-		Strings.newlineTab(builder, indent);
-		builder.append("Nybblecodes:\n");
-		L1Disassembler.disassemble(
-			object,
-			builder,
-			recursionMap,
-			indent + 1);
+		final int longCount = object.variableIntegerSlotsCount();
+		if (longCount > 0)
+		{
+			Strings.newlineTab(builder, indent);
+			builder.append("Nybblecodes:\n");
+			L1Disassembler.disassemble(
+				object,
+				builder,
+				recursionMap,
+				indent + 1);
+		}
 	}
 
 	/**
@@ -1431,14 +1515,14 @@ extends Descriptor
 	}
 
 	/**
-	 * The key used to track the {@link ParseNodeDescriptor phrase} that a raw
+	 * The key used to track the {@link PhraseDescriptor phrase} that a raw
 	 * function was created from.
 	 */
 	private static final A_Atom originatingPhraseKeyAtom =
 		createSpecialAtom("originating phrase key");
 
 	/**
-	 * Answer the key used to track the {@link ParseNodeDescriptor phrase} that
+	 * Answer the key used to track the {@link PhraseDescriptor phrase} that
 	 * a raw function was created from.
 	 *
 	 * @return A special atom.

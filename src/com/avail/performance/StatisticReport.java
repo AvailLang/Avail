@@ -1,6 +1,6 @@
 /*
  * StatisticReport.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,10 @@ public enum StatisticReport
 
 	/** A breakdown of the time spent in L2 optimization phases. */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
+
+	/** A breakdown of the time spent in L2 optimization phases. */
+	L1_NAIVE_TRANSLATION_TIME(
+		"L1 -> L2 Naive translation by nybblecode", NANOSECONDS),
 
 	/** Dimensionless values related to L2Chunk creation. */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),

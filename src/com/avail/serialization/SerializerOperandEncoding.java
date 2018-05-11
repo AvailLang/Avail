@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerOperandEncoding.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import static com.avail.descriptor.NybbleTupleDescriptor
 	.generateNybbleTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TwoByteStringDescriptor
 	.generateTwoByteString;
@@ -330,7 +331,7 @@ enum SerializerOperandEncoding
 			// Visit the *elements* of the tuple.
 			for (final A_BasicObject element : object)
 			{
-				serializer.traceOne(element);
+				serializer.traceOne((AvailObject) element);
 			}
 		}
 
@@ -564,6 +565,11 @@ enum SerializerOperandEncoding
 		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
+			if (tupleSize == 0)
+			{
+				// Reasonably common case.
+				return emptyTuple();
+			}
 			return generateNybbleTupleFrom(
 				tupleSize,
 				new IndexedIntGenerator()

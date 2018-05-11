@@ -1,6 +1,6 @@
-/**
+/*
  * AvailScannerException.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,26 +65,6 @@ extends Exception
 	}
 
 	/**
-	 * Return the file position at which the {@link AvailScanner} failed.
-	 *
-	 * @return The position in the file at which the scanner failed.
-	 */
-	public int failurePosition ()
-	{
-		return failedScanner.position();
-	}
-
-	/**
-	 * Return the line number at which the {@link AvailScanner} failed.
-	 *
-	 * @return The line number at which the scanner failed.
-	 */
-	public int failureLineNumber ()
-	{
-		return failedScanner.lineNumber;
-	}
-
-	/**
 	 * Construct a new {@link AvailScannerException}.
 	 *
 	 * @param message
@@ -99,32 +79,5 @@ extends Exception
 	{
 		super(message);
 		this.failedScanner = failedScanner;
-	}
-
-	/**
-	 * Construct a new {@link AvailScannerException}.  Plug in a dummy {@link
-	 * AvailScanner}.
-	 *
-	 * @param cause
-	 *            The original problem to be treated as a scanner problem.
-	 * @param moduleName
-	 *            The name of the module that failed lexical scanning.
-	 */
-	public AvailScannerException (
-		final Throwable cause,
-		final String moduleName)
-	{
-		super(cause);
-		try
-		{
-			AvailScanner.scanString("", moduleName, true);
-			assert false : "Should have thrown exception";
-			// And throw in case assertions are off.  Keeps Java compiler happy.
-			throw new RuntimeException("Should have thrown exception");
-		}
-		catch (final AvailScannerException contrivedException)
-		{
-			this.failedScanner = contrivedException.failedScanner;
-		}
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * L2_INTERPRET_LEVEL_ONE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,9 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -70,16 +70,24 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_INTERPRET_LEVEL_ONE
+public final class L2_INTERPRET_LEVEL_ONE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_INTERPRET_LEVEL_ONE}.
+	 */
+	private L2_INTERPRET_LEVEL_ONE ()
+	{
+		super(
+			PC.is("call reentry point", ON_RAMP),
+			PC.is("interrupt reentry point", ON_RAMP));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_INTERPRET_LEVEL_ONE().init(
-			PC.is("call reentry point"),
-			PC.is("interrupt reentry point"));
+	public static final L2_INTERPRET_LEVEL_ONE instance =
+		new L2_INTERPRET_LEVEL_ONE();
 
 	@Override
 	public boolean reachesNextInstruction ()
@@ -89,8 +97,8 @@ extends L2Operation
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// No real optimization should ever be done near this wordcode.

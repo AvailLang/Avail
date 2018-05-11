@@ -1,6 +1,6 @@
-/**
+/*
  * CommentImplementationBuilder.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,6 @@ public final class CommentImplementationBuilder
 	{
 		authors.add(new StacksAuthorTag (tagContentTokens));
 	}
-
 
 	/**
 	 * The category keyword provides a category to which the method
@@ -636,7 +635,6 @@ public final class CommentImplementationBuilder
 				new StacksDescription(rest)));
 		}
 	}
-
 
 	/**
 	 * The restricts keyword indicates the input types used by the method

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreatePojoConstructorFunction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,15 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -58,11 +60,13 @@ import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
@@ -95,13 +99,12 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Type pojoType = args.get(0);
-		final A_Tuple paramTypes = args.get(1);
-		final A_Function failFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Type pojoType = interpreter.argument(0);
+		final A_Tuple paramTypes = interpreter.argument(1);
+		final A_Function failFunction = interpreter.argument(2);
 		// Do not attempt to bind a constructor to an abstract pojo type.
 		if (pojoType.isAbstract())
 		{
@@ -143,8 +146,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 			marshaledTypePojos.add(
 				equalityPojo(paramClass));
 		}
-		final A_Tuple marshaledTypesTuple =
-			tupleFromList(marshaledTypePojos);
+		final A_Tuple marshaledTypesTuple = tupleFromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo constructor invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.

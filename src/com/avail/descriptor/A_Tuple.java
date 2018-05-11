@@ -1,6 +1,6 @@
-/**
+/*
  * A_Tuple.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -660,5 +660,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return The maximum valid 1-based index for this tuple.
 	 */
+	@ReferencedInGeneratedCode
 	int tupleSize ();
 }

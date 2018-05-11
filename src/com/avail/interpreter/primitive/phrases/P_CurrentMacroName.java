@@ -1,6 +1,6 @@
-/**
+/*
  * P_CurrentMacroName.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,21 +35,17 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag
-	.IS_EVALUATING_MACRO;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -58,7 +54,7 @@ import static com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send node
+ * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send phrase
  * is being macro-evaluated in the current fiber.  Fail if macro evaluation is
  * not happening in this fiber.
  */
@@ -75,10 +71,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
 			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO);

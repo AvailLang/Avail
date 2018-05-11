@@ -1,6 +1,6 @@
-/**
+/*
  * SelfPojoTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import java.util.List;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
 	.JAVA_ANCESTORS;
@@ -53,7 +54,6 @@ import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
 	.JAVA_CLASS;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or
@@ -464,5 +464,4 @@ extends PojoTypeDescriptor
 		}
 		return newSelfPojoType(mainRawType, ancestorTypes);
 	}
-
 }

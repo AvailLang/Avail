@@ -1,6 +1,6 @@
-/**
+/*
  * FiberDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,15 +60,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
-	.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -1358,7 +1355,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up the {@linkplain DeclarationNodeDescriptor declaration} with the
+	 * Look up the {@linkplain DeclarationPhraseDescriptor declaration} with the
 	 * given name in the current compiler scope.  This information is associated
 	 * with the current {@link Interpreter}, and therefore the {@linkplain
 	 * A_Fiber fiber} that it is executing.  If no such binding exists, answer
@@ -1366,7 +1363,7 @@ extends Descriptor
 	 *
 	 * @param name
 	 *        The name of the binding to look up in the current scope.
-	 * @return The {@linkplain DeclarationNodeDescriptor declaration} that was
+	 * @return The {@linkplain DeclarationPhraseDescriptor declaration} that was
 	 *         requested, or {@code null} if there is no binding in scope with
 	 *         that name.
 	 */
@@ -1390,9 +1387,9 @@ extends Descriptor
 	 * the client data stored in the current fiber.  If there is already a
 	 * declaration by that name, return it; otherwise return {@code null}.
 	 *
-	 * @param declaration A {@link DeclarationNodeDescriptor declaration}.
+	 * @param declaration A {@link DeclarationPhraseDescriptor declaration}.
 	 * @return {@code Null} if successful, otherwise the existing {@link
-	 *         DeclarationNodeDescriptor declaration} that was in conflict.
+	 *         DeclarationPhraseDescriptor declaration} that was in conflict.
 	 */
 	public static @Nullable A_Phrase addDeclaration (
 		final A_Phrase declaration)
@@ -1578,19 +1575,5 @@ extends Descriptor
 	public static A_Fiber currentFiber ()
 	{
 		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
-	}
-
-	/**
-	 * Answer the {@link A_Fiber fiber} currently bound to this {@link
-	 * AvailThread}.
-	 *
-	 * @return A fiber, or {@code null} if no fiber is currently bound.
-	 */
-	public static @Nullable A_Fiber currentFiberOrNull ()
-	{
-		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
-		return interpreter != null
-			? interpreter.fiberOrNull()
-			: null;
 	}
 }

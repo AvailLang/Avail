@@ -1,6 +1,6 @@
-/**
+/*
  * ContinuationDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -49,7 +52,6 @@ import com.avail.interpreter.primitive.controlflow
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.MutableInt;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
@@ -104,16 +106,19 @@ extends Descriptor
 		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
-		 * The Level Two {@linkplain L2Chunk#instructions instruction} index at
-		 * which to resume.
+		 * A composite field containing the {@linkplain #LEVEL_TWO_OFFSET level
+		 * two offset}, and perhaps more later.
 		 */
-		LEVEL_TWO_OFFSET;
+		LEVEL_TWO_OFFSET_AND_OTHER;
 
 		/**
 		 * The index into the current continuation's {@linkplain
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		public static final BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			32,
@@ -124,9 +129,24 @@ extends Descriptor
 		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
 		 * deepest it just abuts the last local variable.
 		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
 		public static final BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
+			32);
+
+		/**
+		 * The Level Two {@linkplain L2Chunk#instructions instruction} index at
+		 * which to resume.
+		 */
+		@EnumField(
+			describedBy = Converter.class,
+			lookupMethodName = "decimal")
+		public static final BitField LEVEL_TWO_OFFSET = bitField(
+			LEVEL_TWO_OFFSET_AND_OTHER,
+			32,
 			32);
 	}
 
@@ -172,7 +192,7 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == LEVEL_TWO_OFFSET
+		return e == LEVEL_TWO_OFFSET_AND_OTHER
 			|| e == LEVEL_TWO_CHUNK;
 	}
 
@@ -218,11 +238,14 @@ extends Descriptor
 	{
 		final A_RawFunction code = object.function().code();
 		final A_Tuple encodedDeltas = code.lineNumberEncodedDeltas();
-		final MutableInt pc = new MutableInt(1);
-		final int continuationPc = object.pc();
+		final L1InstructionDecoder instructionDecoder =
+			new L1InstructionDecoder();
+		code.setUpInstructionDecoder(instructionDecoder);
+		instructionDecoder.pc(1);
 		int lineNumber = code.startingLineNumber();
 		int instructionCounter = 1;
-		while (pc.value < continuationPc)
+
+		while (!instructionDecoder.atEnd())
 		{
 			final int encodedDelta =
 				encodedDeltas.tupleIntAt(instructionCounter++);
@@ -231,10 +254,10 @@ extends Descriptor
 				: -(encodedDelta >> 1);
 			lineNumber += decodedDelta;
 			// Now skip one nybblecode instruction.
-			final L1Operation op = code.nextNybblecodeOperation(pc);
+			final L1Operation op = instructionDecoder.getOperation();
 			for (int i = op.operandTypes().length - 1; i >= 0; i--)
 			{
-				code.nextNybblecodeOperand(pc);
+				instructionDecoder.getOperand();
 			}
 		}
 		return lineNumber;
@@ -362,7 +385,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_LevelTwoOffset (final AvailObject object)
 	{
-		return (int) object.mutableSlot(LEVEL_TWO_OFFSET);
+		return object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	@Override

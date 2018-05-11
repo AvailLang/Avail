@@ -1,6 +1,6 @@
-/**
+/*
  * AvailCompilerFragmentCache.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,8 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompiler.Con;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
@@ -52,74 +50,26 @@ public class AvailCompilerFragmentCache
 	 * have been found at various positions.  Technically at various {@linkplain
 	 * ParserState parser states}, since we must take into account which
 	 * variable declarations are in scope when looking for subexpressions.
+	 *
+	 * <p>This is implemented with a {@link ConcurrentHashMap} to minimize
+	 * contention.</p>
 	 */
 	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
-		new HashMap<>(100);
+		new ConcurrentHashMap<>(100);
 
 	/**
-	 * Answer whether expression parsing has started at this position.
+	 * Look up the {@link AvailCompilerBipartiteRendezvous} at the given {@link
+	 * ParserState}, creating one if necessary.
 	 *
-	 * @param state
-	 *        The {@linkplain ParserState} at which parsing may have started
-	 * @return
-	 *         Whether parsing has started at that position.
+	 * @param parserState
+	 *        The {@link ParserState} to look up.
+	 * @return The requested {@link AvailCompilerBipartiteRendezvous}.
 	 */
-	boolean hasStartedParsingAt (
-		final ParserState state)
+	public synchronized AvailCompilerBipartiteRendezvous getRendezvous (
+		final ParserState parserState)
 	{
-		assert Thread.holdsLock(this);
-		return solutions.containsKey(state);
-	}
-
-	/**
-	 * Indicate that parsing has started at this position.
-	 *
-	 * @param state
-	 *        The {@linkplain ParserState} at which parsing has started.
-	 */
-	void indicateParsingHasStartedAt (
-		final ParserState state)
-	{
-		assert Thread.holdsLock(this);
-		assert !hasStartedParsingAt(state);
-		solutions.put(state, new AvailCompilerBipartiteRendezvous());
-		assert hasStartedParsingAt(state);
-	}
-
-	/**
-	 * Add one more parse solution at the specified position, running any
-	 * waiting actions with it.
-	 *
-	 * @param state
-	 *        The {@link ParserState} at which parsing took place.
-	 * @param solution
-	 *        The {@link CompilerSolution} to record.
-	 */
-	void addSolution (
-		final ParserState state,
-		final CompilerSolution solution)
-	{
-		assert Thread.holdsLock(this);
-		solutions.get(state).addSolution(solution);
-	}
-
-	/**
-	 * Add one more action at the specified position, running it for any
-	 * solutions that now exist or will exist later.
-	 *
-	 * @param state
-	 *            The {@link ParserState} at which the action is expecting
-	 *            solutions to show up.
-	 * @param action
-	 *            The {@link Con action} to run with each solution found at the
-	 *            specified position.
-	 */
-	void addAction (
-		final ParserState state,
-		final Con action)
-	{
-		assert Thread.holdsLock(this);
-		solutions.get(state).addAction(action);
+		return solutions.computeIfAbsent(
+			parserState, state -> new AvailCompilerBipartiteRendezvous());
 	}
 
 	/**

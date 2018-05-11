@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -47,10 +48,14 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -59,18 +64,26 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_OBJECTS_EQUAL
+public final class L2_JUMP_IF_OBJECTS_EQUAL
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_JUMP_IF_OBJECTS_EQUAL}.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_OBJECTS_EQUAL().init(
+	private L2_JUMP_IF_OBJECTS_EQUAL ()
+	{
+		super(
 			READ_POINTER.is("first value"),
 			READ_POINTER.is("second value"),
-			PC.is("is equal"),
-			PC.is("is not equal"));
+			PC.is("is equal", SUCCESS),
+			PC.is("is not equal", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_JUMP_IF_OBJECTS_EQUAL instance =
+		new L2_JUMP_IF_OBJECTS_EQUAL();
 
 	@Override
 	public boolean regenerate (
@@ -155,6 +168,28 @@ extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister firstReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister secondReg =
+			instruction.readObjectRegisterAt(1).register();
+//		final L2PcOperand ifEqual = instruction.pcAt(2);
+//		final L2PcOperand notEqual = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(firstReg);
+		builder.append(" = ");
+		builder.append(secondReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * P_FileWrite.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,9 @@ import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.Mutable;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -61,10 +63,11 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -109,16 +112,15 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_Number positionObject = args.get(0);
-		final A_Tuple bytes = args.get(1);
-		final A_Atom atom = args.get(2);
-		final A_Function succeed = args.get(3);
-		final A_Function fail = args.get(4);
-		final A_Number priority = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_Number positionObject = interpreter.argument(0);
+		final A_Tuple bytes = interpreter.argument(1);
+		final A_Atom atom = interpreter.argument(2);
+		final A_Function succeed = interpreter.argument(3);
+		final A_Function fail = interpreter.argument(4);
+		final A_Number priority = interpreter.argument(5);
 
 		final A_BasicObject pojo =
 			atom.getAtomProperty(FILE_KEY.atom);
@@ -241,8 +243,8 @@ extends Primitive
 				}
 			};
 		}
-		final Mutable<Long> nextPosition =
-			new Mutable<>(oneBasedPositionLong - 1);
+		final MutableLong nextPosition =
+			new MutableLong(oneBasedPositionLong - 1);
 		final Mutable<ByteBuffer> currentBuffer =
 			new Mutable<>(bufferIterator.next());
 		final MutableOrNull<Continuation0> continueWriting =
@@ -392,7 +394,7 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
+			tupleFromArray(
 				naturalNumbers(),
 				oneOrMoreOf(bytes()),
 				ATOM.o(),

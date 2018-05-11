@@ -1,6 +1,6 @@
-/**
+/*
  * P_MarkStandardInputStream.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,20 @@ package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.io.TextInputChannel;
+import com.avail.io.TextInputChannel;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -75,11 +74,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Number readAhead = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Number readAhead = interpreter.argument(0);
 		final int readAheadInt = readAhead.extractInt();
 		final TextInputChannel channel =
 			interpreter.fiber().textInterface().inputChannel();

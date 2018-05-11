@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapLexerSlashStarCommentBody.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,20 +37,16 @@ import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -71,13 +67,12 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_String source = args.get(0);
-		final A_Number sourcePositionInteger = args.get(1);
-		final A_Number startingLineNumber = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_String source = interpreter.argument(0);
+		final A_Number sourcePositionInteger = interpreter.argument(1);
+		final A_Number startingLineNumber = interpreter.argument(2);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
@@ -86,24 +81,24 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(emptyTuple());
+			return interpreter.primitiveSuccess(emptySet());
 		}
 		position++;
 
 		int depth = 1;
 		while (true)
 		{
-			final int c = source.tupleCodePointAt(position);
 			if (position >= sourceSize)
 			{
 				// There aren't two characters left, so it can't close the outer
 				// nesting of the comment (with "*/").  Reject the lexing with a
 				// suitable warning.
 				throw new AvailRejectedParseException(
-					"Missing '*/' to close (nestable) block comment");
+					"Subsequent '*/' to close this (nestable) block comment");
 			}
 
 			// At least two characters are available to examine.
+			final int c = source.tupleCodePointAt(position);
 			if (c == '*' && source.tupleCodePointAt(position + 1) == '/')
 			{
 				// Close a nesting level.
@@ -135,14 +130,12 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 			startPosition,
 			startingLineNumber.extractInt());
 		token.makeShared();
-		return interpreter.primitiveSuccess(tuple(token));
+		return interpreter.primitiveSuccess(set(tuple(token.makeShared())));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(stringType(), naturalNumbers(), naturalNumbers()),
-			zeroOrMoreOf(TOKEN.o()));
+		return lexerBodyFunctionType();
 	}
 }

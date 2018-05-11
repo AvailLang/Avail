@@ -1,6 +1,6 @@
-/**
+/*
  * P_MapBindings.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,17 @@ package com.avail.interpreter.primitive.maps;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -68,11 +67,10 @@ public final class P_MapBindings extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Map map = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Map map = interpreter.argument(0);
 
 		final A_Tuple[] bindings = new A_Tuple[map.mapSize()];
 		int index = 0;
@@ -81,16 +79,19 @@ public final class P_MapBindings extends Primitive
 			bindings[index++] =
 				tuple(entry.key(), entry.value());
 		}
-		return interpreter.primitiveSuccess(tuple(bindings));
+		return interpreter.primitiveSuccess(tupleFromArray(bindings));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralMapType()), zeroOrMoreOf(
-				tupleTypeForTypes(
-					ANY.o(),
-					ANY.o())));
+			functionType(
+				tuple(
+					mostGeneralMapType()),
+				zeroOrMoreOf(
+					tupleTypeForTypes(
+						ANY.o(),
+						ANY.o())));
 	}
 }

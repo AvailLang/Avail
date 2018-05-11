@@ -1,6 +1,6 @@
-/**
+/*
  * P_RaiseException.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,20 +36,18 @@ import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
 import static com.avail.utility.Nulls.stripNull;
@@ -79,11 +77,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject exception = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_BasicObject exception = interpreter.argument(0);
 		// Attach the current continuation to the exception, so that a stack
 		// dump can be obtained later.
 		final A_Map fieldMap = exception.fieldMap();

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateRestrictedSendExpression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,13 @@ import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.Generator;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -59,14 +60,14 @@ import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SEND_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
@@ -80,9 +81,9 @@ import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
- * {@linkplain SendNodeDescriptor send phrase} from the specified {@linkplain
- * A_Bundle message bundle}, {@linkplain ListNodeDescriptor list node} of
- * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}, and
+ * {@linkplain SendPhraseDescriptor send phrase} from the specified {@linkplain
+ * A_Bundle message bundle}, {@linkplain ListPhraseDescriptor list phrase} of
+ * {@linkplain PhraseKind#EXPRESSION_PHRASE argument expressions}, and
  * {@linkplain TypeDescriptor return type}.  In addition, run all semantic
  * restrictions in separate fibers.  The resulting send phrase's return type
  * will be the intersection of the supplied type, the return types produced by
@@ -116,13 +117,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Atom messageName = args.get(0);
-		final A_Phrase argsListNode = args.get(1);
-		final A_Type returnType = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Atom messageName = interpreter.argument(0);
+		final A_Phrase argsListNode = interpreter.argument(1);
+		final A_Type returnType = interpreter.argument(2);
 
 		final A_Tuple argExpressions = argsListNode.expressionsTuple();
 		final int argsCount = argExpressions.tupleSize();
@@ -208,7 +208,8 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		interpreter.primitiveSuspend(primitiveFunction);
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();
 		final Continuation0 decrement = () ->
@@ -223,7 +224,7 @@ extends Primitive
 			if (problems.isEmpty())
 			{
 				// There were no problems.  Succeed the primitive with a
-				// send node yielding the intersection type.
+				// send phrase yielding the intersection type.
 				resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
@@ -350,9 +351,9 @@ extends Primitive
 		return functionType(
 			tuple(
 				ATOM.o(),
-				LIST_NODE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
-			SEND_NODE.mostGeneralType());
+			SEND_PHRASE.mostGeneralType());
 	}
 
 	@Override
@@ -366,7 +367,7 @@ extends Primitive
 		final A_Type returnTypeType = argumentTypes.get(2);
 
 		final A_Type returnType = returnTypeType.instance();
-		return SEND_NODE.create(returnType);
+		return SEND_PHRASE.create(returnType);
 	}
 
 	@Override

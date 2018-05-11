@@ -1,6 +1,6 @@
-/**
+/*
  * ModuleImport.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,19 @@ package com.avail.compiler;
 
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.serialization.MalformedSerialStreamException;
 
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * Information that a {@link ModuleHeader} uses to keep track of a module
- * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
- * {@linkplain ExpectedToken#USES Uses} clause.
+ * import, whether from an Extends clause or a Uses clause, as specified by the
+ * {@link SpecialMethodAtom#MODULE_HEADER_METHOD}.
  */
 public class ModuleImport
 {
@@ -62,9 +63,9 @@ public class ModuleImport
 	public final A_Set acceptableVersions;
 
 	/**
-	 * Whether this {@link ModuleImport} is due to a {@linkplain
-	 * ExpectedToken#EXTENDS Extends} clause rather than a {@linkplain
-	 * ExpectedToken#USES Uses} clause.
+	 * Whether this {@link ModuleImport} is due to an Extends clause rather than
+	 * a Uses clause, as indicated by {@link
+	 * SpecialMethodAtom#MODULE_HEADER_METHOD}.
 	 */
 	public final boolean isExtension;
 
@@ -154,9 +155,8 @@ public class ModuleImport
 	}
 
 	/**
-	 * Produce an {@linkplain ModuleImport import} that represents an
-	 * {@link ExpectedToken#EXTENDS Extend} of the provided {@linkplain
-	 * A_Module module}.
+	 * Produce a {@code ModuleImport} that represents an extension of the
+	 * provided {@link A_Module}.
 	 *
 	 * @param module
 	 *        A module.
@@ -244,7 +244,7 @@ public class ModuleImport
 				// This will quote the string.
 				builder.append(redundant);
 			}
-			builder.append(")");
+			builder.append(')');
 			throw new ImportValidationException(builder.toString());
 		}
 	}
@@ -272,14 +272,19 @@ public class ModuleImport
 	 */
 	A_Tuple tupleForSerialization ()
 	{
-		return tuple(moduleName, acceptableVersions,
-			objectFromBoolean(isExtension), names, renames,
-			excludes, objectFromBoolean(wildcard));
+		return tupleFromArray(
+			moduleName,
+			acceptableVersions,
+			objectFromBoolean(isExtension),
+			names,
+			renames,
+			excludes,
+			objectFromBoolean(wildcard));
 	}
 
 	/**
 	 * Convert the provided {@linkplain TupleDescriptor tuple} into a
-	 * {@link ModuleImport}.  This is the reverse of the transformation
+	 * {@code ModuleImport}.  This is the reverse of the transformation
 	 * provided by {@link #tupleForSerialization()}.
 	 *
 	 * @param serializedTuple The tuple from which to build a ModuleImport.

@@ -1,6 +1,6 @@
-/**
+/*
  * ByteStringDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,18 +42,15 @@ import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
-import static com.avail.descriptor.CharacterDescriptor
-	.hashOfByteCharacterWithCodePoint;
+import static com.avail.descriptor.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
 import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.mutableTwoByteStringOfSize;
+import static com.avail.descriptor.TwoByteStringDescriptor.mutableTwoByteStringOfSize;
 
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
@@ -61,7 +58,7 @@ import static com.avail.descriptor.TwoByteStringDescriptor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final public class ByteStringDescriptor
+public final class ByteStringDescriptor
 extends StringDescriptor
 {
 	/**
@@ -579,7 +576,7 @@ extends StringDescriptor
 	 * @param aNativeByteString
 	 *        A Java {@link String} whose code points are all 0..255.
 	 * @return
-	 *        A corresponding Avail {@linkplain ByteStringDescriptor string}.
+	 *        A corresponding Avail {@link A_String}.
 	 */
 	static AvailObject mutableObjectFromNativeByteString(
 		final String aNativeByteString)
@@ -612,10 +609,9 @@ extends StringDescriptor
 		int i = 0;
 		for (final int excess : new int[] {0,7,6,5,4,3,2,1})
 		{
-			for (final Mutability mut : Mutability.values())
-			{
-				descriptors[i++] = new ByteStringDescriptor(mut, excess);
-			}
+			descriptors[i++] = new ByteStringDescriptor(MUTABLE, excess);
+			descriptors[i++] = new ByteStringDescriptor(IMMUTABLE, excess);
+			descriptors[i++] = new ByteStringDescriptor(SHARED, excess);
 		}
 	}
 

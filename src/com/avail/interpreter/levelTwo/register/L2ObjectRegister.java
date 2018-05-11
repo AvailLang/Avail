@@ -33,12 +33,14 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Inliner;
-
-import javax.annotation.Nullable;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -50,7 +52,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ObjectRegister
-extends L2Register
+extends L2Register<A_BasicObject>
 {
 	@Override
 	public RegisterKind registerKind ()
@@ -59,88 +61,68 @@ extends L2Register
 	}
 
 	/**
-	 * The {@link TypeRestriction} that constrains this register's content.
-	 */
-	private final TypeRestriction restriction;
-
-	/**
 	 * Construct a new {@code L2ObjectRegister}.
 	 *
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
-	 * @param type
-	 * 	      The type of value that is to be written to this register.
-	 * @param constantOrNull
-	 *        The exact value that is to be written to this register if known,
-	 *        otherwise {@code null}.
+	 * @param restriction
+	 * 	      The {@link TypeRestriction}.
 	 */
 	public L2ObjectRegister (
 		final int debugValue,
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final TypeRestriction<A_BasicObject> restriction)
 	{
-		super(debugValue);
-		this.restriction = TypeRestriction.restriction(type, constantOrNull);
+		super(debugValue, restriction);
 	}
 
-	/**
-	 * Answer this register's basic {@link TypeRestriction}.
-	 *
-	 * @return A {@link TypeRestriction}.
-	 */
-	public final TypeRestriction restriction ()
+	@Override
+	public L2ReadPointerOperand read (
+		final TypeRestriction<A_BasicObject> typeRestriction)
 	{
-		return restriction;
+		return new L2ReadPointerOperand(this, restriction);
+	}
+
+	@Override
+	public L2WritePointerOperand write ()
+	{
+		return new L2WritePointerOperand(this);
+	}
+
+	@Override
+	public L2Register<A_BasicObject> copyForTranslator (
+		final L1Translator translator,
+		final TypeRestriction<A_BasicObject> typeRestriction)
+	{
+		return new L2ObjectRegister(translator.nextUnique(), typeRestriction);
 	}
 
 	@Override
 	public L2ObjectRegister copyAfterColoring ()
 	{
 		final L2ObjectRegister result = new L2ObjectRegister(
-			finalIndex(), TOP.o(), null);
+			finalIndex(),
+			TypeRestriction.restriction(TOP.o(), null));
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
 
 	@Override
-	public L2ObjectRegister copyForInliner (
-		final L2Inliner inliner)
+	public L2ObjectRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2ObjectRegister(
-			inliner.targetTranslator.nextUnique(),
-			restriction.type,
-			restriction.constantOrNull);
+			inliner.targetTranslator.nextUnique(), restriction);
 	}
 
 	@Override
-	public String toString ()
+	public L2Operation phiMoveOperation ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("r");
-		if (finalIndex() != -1)
-		{
-			builder.append(finalIndex());
-		}
-		else
-		{
-			builder.append(uniqueValue);
-		}
-		if (restriction.constantOrNull != null)
-		{
-			builder.append("[CONST=");
-			String constString = restriction.constantOrNull.toString();
-			if (constString.length() > 50)
-			{
-				constString = constString.substring(0, 50) + "…";
-			}
-			//noinspection DynamicRegexReplaceableByCompiledPattern
-			constString = constString
-				.replace("\n", "\\n")
-				.replace("\t", "\\t");
-			builder.append(constString);
-			builder.append("]");
-		}
-		return builder.toString();
+		return L2_MOVE.instance;
+	}
+
+	@Override
+	public String namePrefix ()
+	{
+		return "r";
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * PrefixSharingList.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.utility;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -335,7 +334,8 @@ public final class PrefixSharingList<E>
 			{
 				return butLast;
 			}
-			final List<E2> flat = stripNull(strongOriginal.cachedFlatListOrMore);
+			final List<E2> flat = stripNull(
+				strongOriginal.cachedFlatListOrMore);
 			return new PrefixSharingList<>(flat, originalList.size() - 1);
 		}
 		return new PrefixSharingList<>(originalList, originalList.size() - 1);
@@ -387,7 +387,7 @@ public final class PrefixSharingList<E>
 		if (fromIndex > toIndex)
 		{
 			throw new IllegalArgumentException("fromIndex(" + fromIndex +
-				") > toIndex(" + toIndex + ")");
+				") > toIndex(" + toIndex + ')');
 		}
 		return cacheFlatListOrMore().subList(fromIndex, toIndex);
 	}

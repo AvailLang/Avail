@@ -35,10 +35,14 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -51,15 +55,37 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_LATEST_RETURN_VALUE
+public final class L2_GET_LATEST_RETURN_VALUE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_LATEST_RETURN_VALUE}.
+	 */
+	private L2_GET_LATEST_RETURN_VALUE ()
+	{
+		super(
+			WRITE_POINTER.is("latest result"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_LATEST_RETURN_VALUE().init(
-			WRITE_POINTER.is("latest result"));
+	public static final L2_GET_LATEST_RETURN_VALUE instance =
+		new L2_GET_LATEST_RETURN_VALUE();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand targetReg = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(targetReg);
+	}
 
 	@Override
 	public void translateToJVM (

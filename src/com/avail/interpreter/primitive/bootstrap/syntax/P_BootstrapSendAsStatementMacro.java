@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapSendAsStatementMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,23 +35,22 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ExpressionAsStatementNodeDescriptor;
+import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -59,7 +58,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 /**
  * The {@code P_BootstrapSendAsStatementMacro} primitive is used to allow
  * message sends producing ⊤ to be used as statements, by wrapping them inside
- * {@linkplain ExpressionAsStatementNodeDescriptor expression-as-statement
+ * {@linkplain ExpressionAsStatementPhraseDescriptor expression-as-statement
  * phrases}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -77,11 +76,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase sendPhraseInLiteral = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase sendPhraseInLiteral = interpreter.argument(0);
 
 		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
@@ -89,11 +87,11 @@ extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		final A_Phrase sendPhrase = sendPhraseInLiteral.token().literal();
-		if (!sendPhrase.parseNodeKindIsUnder(SEND_NODE))
+		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{
 			throw new AvailRejectedParseException(
-				"statement to be a ⊤-valued send node, not a %s: %s",
-				sendPhrase.parseNodeKind().name(),
+				"statement to be a ⊤-valued send phrase, not a %s: %s",
+				sendPhrase.phraseKind().name(),
 				sendPhrase);
 		}
 		if (!sendPhrase.expressionType().isTop())
@@ -112,9 +110,9 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* The send node to treat as a statement */
-				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
-			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
+				/* The send phrase to treat as a statement */
+				LITERAL_PHRASE.create(SEND_PHRASE.mostGeneralType())),
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType());
 	}
 
 	@Override

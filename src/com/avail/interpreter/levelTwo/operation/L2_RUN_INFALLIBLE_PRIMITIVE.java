@@ -39,20 +39,21 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
@@ -74,23 +75,31 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE
+public final class L2_RUN_INFALLIBLE_PRIMITIVE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_RUN_INFALLIBLE_PRIMITIVE}.
 	 */
-	public static final L2Operation instance =
-		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
+	private L2_RUN_INFALLIBLE_PRIMITIVE ()
+	{
+		super(
 			CONSTANT.is("raw function"),  // Used for inlining/reoptimization.
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("primitive result"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_RUN_INFALLIBLE_PRIMITIVE instance =
+		new L2_RUN_INFALLIBLE_PRIMITIVE();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final A_RawFunction rawFunction = instruction.constantAt(0);
@@ -123,9 +132,7 @@ extends L2Operation
 	{
 		// It depends on the primitive.
 		assert instruction.operation == this;
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[1];
-		final Primitive primitive = primitiveOperand.primitive;
+		final Primitive primitive = instruction.primitiveAt(1);
 		return primitive.hasFlag(Flag.HasSideEffect)
 			|| primitive.hasFlag(Flag.CatchException)
 			|| primitive.hasFlag(Flag.Invokes)
@@ -174,12 +181,36 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand[] operands = instruction.operands;
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
+		final L2Operand primitive = operands[1];
+		final L2Operand argumentRegs = operands[2];
+		final L2ObjectRegister resultReg =
+			instruction.writeObjectRegisterAt(3).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(resultReg);
+		builder.append(" ← ");
+		builder.append(primitive);
+		builder.append('(');
+		builder.append(argumentRegs);
+		builder.append(')');
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final A_RawFunction rawFunction = instruction.constantAt(0);
+//		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
 		final List<L2ReadPointerOperand> argumentRegs =
 			instruction.readVectorRegisterAt(2);
@@ -188,22 +219,26 @@ extends L2Operation
 
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method);
+		// [interp]
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"argsBuffer",
 			getDescriptor(List.class));
+		// [argsBuffer]
 		// :: argsBuffer.clear();
 		if (!argumentRegs.isEmpty())
 		{
 			method.visitInsn(DUP);
 		}
+		// [argsBuffer[, argsBuffer if #args > 0]]
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(List.class),
 			"clear",
 			getMethodDescriptor(VOID_TYPE),
 			true);
+		// [argsBuffer if #args > 0]
 		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
 		{
 			// :: argsBuffer.add(«argument[i]»);
@@ -220,31 +255,56 @@ extends L2Operation
 				true);
 			method.visitInsn(POP);
 		}
-		// :: res = interpreter.attemptPrimitive(primitive, false);
+		// []
+
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETSTATIC,
-			getInternalName(primitive.getClass()),
-			"instance",
-			getDescriptor(Primitive.class));
-		// Only primitive P_PushConstant is infallible and yet needs the
-		// function, and it's always folded.  In the case that
-		// P_PushConstant is known to produce the wrong type at some site
-		// (potentially dead code due to inlining of an unreachable branch),
-		// it is converted to an explicit failure instruction.  Thus we could
-		// null the function here and restore it after the call, for additional
-		// safety.  Note also that primitives which have to suspend the fiber
-		// (to perform a level one unsafe operation and then switch back to
-		// level one safe mode) must *never* be inlined, otherwise they couldn't
-		// reach a safe inter-nybblecode position.
+		// [interp]
+		translator.literal(method, primitive);
+		// [interp, prim]
+		method.visitInsn(DUP2);
+		// [interp, prim, interp, prim]
+		method.visitInsn(DUP2);
+		// [interp, prim, interp, prim, interp, prim]
+		// :: long timeBefore = beforeAttemptPrimitive(primitive);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),
-			"attemptPrimitive",
+			"beforeAttemptPrimitive",
 			getMethodDescriptor(
-				getType(Result.class),
+				getType(Long.TYPE),
 				getType(Primitive.class)),
 			false);
+		// [interp, prim, interp, prim, timeBeforeLong]
+		method.visitInsn(DUP2_X2);  // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
+		// [interp, prim, timeBeforeLong, interp, prim, timeBeforeLong]
+		method.visitInsn(POP2);  // Form 2: v1x2 -> empty
+		// [interp, prim, timeBeforeLong, interp, prim]
+		method.visitInsn(SWAP);
+		// [interp, prim, timeBeforeLong, prim, interp]
+		// :: Result success = primitive.attempt(interpreter)
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(primitive.getClass()),
+			"attempt",
+			getMethodDescriptor(
+				getType(Result.class),
+				getType(Interpreter.class)),
+			false);
+		// [interp, prim, timeBeforeLong, success]
+
+		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"afterAttemptPrimitive",
+			getMethodDescriptor(
+				getType(Result.class),
+				getType(Primitive.class),
+				getType(Long.TYPE),
+				getType(Result.class)),
+			false);
+		// [success] (returned as a nicety by afterAttemptPrimitive)
+
 		// If the infallible primitive definitely switches continuations, then
 		// return null to force the context switch.
 		if (primitive.hasFlag(Flag.AlwaysSwitchesContinuation))

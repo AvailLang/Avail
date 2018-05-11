@@ -1,6 +1,6 @@
-/**
+/*
  * Expression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
  */
 package com.avail.compiler.splitter;
 
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.SignatureException;
 
@@ -229,18 +229,18 @@ abstract class Expression
 
 	/**
 	 * Pretty-print this part of the message, using the provided argument
-	 * {@linkplain ParseNodeDescriptor nodes}.
+	 * {@linkplain PhraseDescriptor phrases}.
 	 *
 	 * @param arguments
-	 *        An {@link Iterator} that provides parse nodes to fill in for
+	 *        An {@link Iterator} that provides phrases to fill in for
 	 *        arguments and subgroups.
 	 * @param builder
 	 *        The {@link StringBuilder} on which to print.
 	 * @param indent
-	 *        The indentation level.
+	 *        The indent at which to present the arguments.
 	 */
 	public abstract void printWithArguments (
-		@Nullable Iterator<AvailObject> arguments,
+		@Nullable Iterator<? extends A_Phrase> arguments,
 		StringBuilder builder,
 		int indent);
 

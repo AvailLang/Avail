@@ -1,6 +1,6 @@
-/**
+/*
  * P_FileTruncate.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,14 +41,13 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
-import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -60,10 +59,10 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -93,15 +92,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_Atom atom = args.get(0);
-		final A_Number sizeObject = args.get(1);
-		final A_Function succeed = args.get(2);
-		final A_Function fail = args.get(3);
-		final A_Number priority = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_Atom atom = interpreter.argument(0);
+		final A_Number sizeObject = interpreter.argument(1);
+		final A_Function succeed = interpreter.argument(2);
+		final A_Function fail = interpreter.argument(3);
+		final A_Number priority = interpreter.argument(4);
 
 		final A_BasicObject pojo = atom.getAtomProperty(FILE_KEY.atom);
 		if (pojo.equalsNil())

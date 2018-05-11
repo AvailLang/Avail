@@ -45,7 +45,7 @@ import com.avail.utility.Mutable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.optimizer.L2Translator.OptimizationLevel.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
@@ -61,16 +61,24 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
+public final class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}.
+	 */
+	private L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ()
+	{
+		super(
+			INT_IMMEDIATE.is("new optimization level"),
+			INT_IMMEDIATE.is("is entry point"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init(
-			IMMEDIATE.is("new optimization level"),
-			IMMEDIATE.is("is entry point"));
+	public static final L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO instance =
+		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -81,7 +89,7 @@ extends L2Operation
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
 	{
-		return instruction.immediateAt(1) != 0;
+		return instruction.intImmediateAt(1) != 0;
 	}
 
 	@ReferencedInGeneratedCode
@@ -117,8 +125,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int targetOptimizationLevel = instruction.immediateAt(0);
-//		final int isEntryPoint = instruction.immediateAt(1);
+		final int targetOptimizationLevel = instruction.intImmediateAt(0);
+//		final int isEntryPoint = instruction.intImmediateAt(1);
 
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;

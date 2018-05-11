@@ -1,6 +1,6 @@
-/**
+/*
  * TupleReverseTest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,8 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.ByteTupleDescriptor.mutableObjectOfSize;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor
-	.createInterval;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
-	.createSmallInterval;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;

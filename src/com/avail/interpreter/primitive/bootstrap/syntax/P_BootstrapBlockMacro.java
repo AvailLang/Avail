@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapBlockMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,15 +45,17 @@ import java.util.List;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode
@@ -62,7 +65,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapBlockMacro} primitive is used for bootstrapping
- * the {@link BlockNodeDescriptor block} syntax for defining {@link
+ * the {@link BlockPhraseDescriptor block} syntax for defining {@link
  * FunctionDescriptor functions}.
  *
  * <p>The strategy is to invoke prefix functions as various checkpoints are
@@ -85,8 +88,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
  * passed to the macro body (i.e., this primitive).  The body function has to
  * look up any arguments, primitive failure variable, and/or label that may have
  * entered scope due to execution of a prefix function.  The body answers a
- * suitable replacement parse node, in this case a {@linkplain
- * BlockNodeDescriptor block node}.</p>
+ * suitable replacement phrase, in this case a {@linkplain
+ * BlockPhraseDescriptor block phrase}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -110,21 +113,20 @@ public final class P_BootstrapBlockMacro extends Primitive
 	final A_Atom scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom;
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
+	final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 7;
-		final A_Phrase optionalArgumentDeclarations = args.get(0);
-		final A_Phrase optionalPrimitive = args.get(1);
-		final A_Phrase optionalLabel = args.get(2);
-		final A_Phrase statements = args.get(3);
-		final A_Phrase optionalReturnExpression = args.get(4);
-		final A_Phrase optionalReturnType = args.get(5);
-		final A_Phrase optionalExceptionTypes = args.get(6);
+		interpreter.checkArgumentCount(7);
+		final A_Phrase optionalArgumentDeclarations = interpreter.argument(0);
+		final A_Phrase optionalPrimitive = interpreter.argument(1);
+		final A_Phrase optionalLabel = interpreter.argument(2);
+		final A_Phrase statements = interpreter.argument(3);
+		final A_Phrase optionalReturnExpression = interpreter.argument(4);
+		final A_Phrase optionalReturnType = interpreter.argument(5);
+		final A_Phrase optionalExceptionTypes = interpreter.argument(6);
 
 		A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		if (!fiberGlobals.hasKey(clientDataKey))
@@ -137,7 +139,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
-		if (!clientData.hasKey(allTokensKey))
+		if (!clientData.hasKey(staticTokensKey))
 		{
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
@@ -157,7 +159,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
 		final A_Map scopeMap = scopeStack.tupleAt(scopeStack.tupleSize());
-		final A_Tuple tokens = clientData.mapAt(allTokensKey);
+		final A_Tuple tokens = clientData.mapAt(staticTokensKey);
 
 		assert optionalArgumentDeclarations.expressionsSize() <= 1;
 		final A_Tuple argumentDeclarationPairs =
@@ -195,7 +197,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 		{
 			final A_Phrase primPhrase = optionalPrimitive.expressionAt(1);
 			final A_Phrase primNamePhrase = primPhrase.expressionAt(1);
-			if (!primNamePhrase.parseNodeKindIsUnder(LITERAL_NODE))
+			if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				throw new AvailRejectedParseException(
 					"primitive specification to be a (compiler created) "
@@ -284,7 +286,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 		{
 			final A_Phrase returnLiteralPhrase =
 				optionalReturnExpression.expressionAt(1);
-			assert returnLiteralPhrase.parseNodeKindIsUnder(LITERAL_NODE);
+			assert returnLiteralPhrase.phraseKindIsUnder(LITERAL_PHRASE);
 			final A_Phrase returnExpression =
 				returnLiteralPhrase.token().literal();
 			allStatements.add(returnExpression);
@@ -397,9 +399,9 @@ public final class P_BootstrapBlockMacro extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			tupleFromArray(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -410,8 +412,8 @@ public final class P_BootstrapBlockMacro extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */
@@ -426,8 +428,8 @@ public final class P_BootstrapBlockMacro extends Primitive
 									TOKEN.o(),
 									/* Primitive failure variable type */
 									anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional label declaration. */
 					zeroOrOneOf(
 						/* Label parts. */
@@ -438,30 +440,30 @@ public final class P_BootstrapBlockMacro extends Primitive
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Statements and declarations so far. */
 					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o().
 						 */
-						STATEMENT_NODE.mostGeneralType())),
+						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_NODE.create(
+				LIST_PHRASE.create(
 					zeroOrOneOf(
-						PARSE_NODE.create(ANY.o()))),
+						PARSE_PHRASE.create(ANY.o()))),
 				/* Optional return type */
-				LIST_NODE.create(
+				LIST_PHRASE.create(
 					zeroOrOneOf(
 						topMeta())),
 				/* Optional tuple of exception types */
-				LIST_NODE.create(
+				LIST_PHRASE.create(
 					zeroOrOneOf(
 						oneOrMoreOf(
 							exceptionType())))),
-			/* ...and produce a block node. */
-			BLOCK_NODE.mostGeneralType());
+			/* ...and produce a block phrase. */
+			BLOCK_PHRASE.mostGeneralType());
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * ReverseTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import com.avail.utility.IndexedGenerator;
 
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots
 	.HASH_OR_ZERO;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.SIZE;
@@ -143,7 +144,6 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
 	{
-
 		if (!object.descriptor.isShared())
 		{
 			final AvailObject treeTuple =
@@ -152,9 +152,9 @@ extends TupleDescriptor
 			object.becomeIndirectionTo(treeTuple);
 			return treeTuple.childAt(childIndex);
 		}
-		// Object is shared so cannot change to indirection, instead need
-		// to return the reverse of the child one level down at the opposite
-		// end of the tree from the childIndex.
+		// Object is shared so it cannot change to an indirection.  Instead, we
+		// need to return the reverse of the child one level down at the
+		// opposite end of the tree from the childIndex.
 		final int adjustedSubscript = object.childCount() + 1 - childIndex;
 		return object.slot(ORIGIN_TUPLE)
 			.childAt(adjustedSubscript)

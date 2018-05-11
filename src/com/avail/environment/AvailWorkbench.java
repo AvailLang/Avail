@@ -1,6 +1,6 @@
 /*
  * AvailWorkbench.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import com.avail.builder.*;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
-import com.avail.environment.editor.ModuleEditor;
-import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
 import com.avail.environment.nodes.EntryPointModuleNode;
 import com.avail.environment.nodes.EntryPointNode;
@@ -71,9 +69,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -84,7 +79,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
@@ -890,70 +884,6 @@ extends JFrame
 	public Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
 
-	/**
-	 * A {@link Map} from a module template name to a module template.
-	 */
-	public ModuleTemplates moduleTemplates;
-
-	/**
-	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
-	 */
-	public final ReplaceTextTemplate replaceTextTemplate =
-		new ReplaceTextTemplate();
-
-	/**
-	 * Answer an array of {@link #moduleTemplates} names.
-	 *
-	 * @return An array of strings.
-	 */
-	public String[] templateOptions ()
-	{
-		return moduleTemplates.moduleTemplates.keySet().
-			toArray(new String[moduleTemplates.moduleTemplates.size()]);
-	}
-
-	/**
-	 * Add a template to the {@linkplain #moduleTemplates}.
-	 *
-	 * @param templateName
-	 *        The new template name.
-	 * @param file
-	 *        The template file.
-	 */
-	public void addModuleTemplate (
-		final String templateName,
-		final File file)
-	{
-		if (!file.exists())
-		{
-			final String message = file + " not found!";
-				JOptionPane.showMessageDialog(this, message);
-		}
-		else
-		{
-			try
-			{
-				final StringBuilder sb = new StringBuilder();
-				final List<String> lines =
-					Files.lines(file.toPath()).collect(Collectors.toList());
-				final int size = lines.size();
-				for (int i = 0; i < size - 1; i++)
-				{
-					sb.append(lines.get(i));
-					sb.append('\n');
-				}
-				sb.append(lines.get(size - 1));
-				moduleTemplates.moduleTemplates.put(
-					templateName,
-					sb.toString());
-			}
-			catch (final IOException e)
-			{
-				System.err.println("Failed to read file");
-			}
-		}
-	}
-
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private final @Nullable BuildInputStream inputStream;
 
@@ -1120,25 +1050,6 @@ extends JFrame
 	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
 		new SetDocumentationPathAction(this);
 
-	/**
-	 * The {@linkplain NewModuleAction new module path dialog action}.
-	 */
-	@InnerAccess final NewModuleAction newModuleAction =
-		new NewModuleAction(this);
-
-	/**
-	 * The {@linkplain NewPackageAction new module path dialog action}.
-	 */
-	@InnerAccess final NewPackageAction newPackageAction =
-		new NewPackageAction(this);
-
-	/**
-	 * The {@linkplain AddModuleTemplateAction module template path dialog
-	 * action}.
-	 */
-	@InnerAccess final AddModuleTemplateAction addModuleTemplateAction =
-		new AddModuleTemplateAction(this);
-
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
 	@InnerAccess final ShowVMReportAction showVMReportAction =
 		new ShowVMReportAction(this);
@@ -1174,6 +1085,10 @@ extends JFrame
 	@InnerAccess final ToggleDebugInterpreterL2 toggleDebugL2 =
 		new ToggleDebugInterpreterL2(this);
 
+	/** The {@linkplain ToggleL2SanityCheck} toggle L2 sanity checks action}. */
+	@InnerAccess final ToggleL2SanityCheck toggleL2SanityCheck =
+		new ToggleL2SanityCheck(this);
+
 	/**
 	 * The {@linkplain ToggleDebugInterpreterPrimitives toggle primitive debug
 	 * action}.
@@ -1183,8 +1098,7 @@ extends JFrame
 
 	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
 	@InnerAccess
-	final ToggleDebugJVM toggleDebugJVM =
-		new ToggleDebugJVM(this);
+	final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
@@ -1216,10 +1130,6 @@ extends JFrame
 	/** The {@linkplain BuildAction action to build an entry point module}. */
 	@InnerAccess final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
-
-	/** The {@linkplain EditModuleAction action to open a source module}. */
-	@InnerAccess final EditModuleAction editModuleAction =
-		new EditModuleAction(this);
 
 //	/**
 //	 * The {@linkplain DisplayCodeCoverageReport action to display the current
@@ -1272,13 +1182,6 @@ extends JFrame
 					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
-		editModuleAction.setEnabled(
-			!busy && selectedModuleIsLoaded());
-		newModuleAction.setEnabled(!busy &&
-			(selectedModule() != null || selectedModuleRoot() != null));
-		newPackageAction.setEnabled(!busy &&
-			(selectedModule() != null || selectedModuleRoot() != null));
-		addModuleTemplateAction.setEnabled(!busy);
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -1881,7 +1784,6 @@ extends JFrame
 			percent));
 	}
 
-
 	/** A monitor to protect updates to the per module progress. */
 	private final Object perModuleProgressMonitor = new Object();
 
@@ -2105,7 +2007,6 @@ extends JFrame
 		}
 		return roots;
 	}
-
 
 	/**
 	 * Parse the {@link ModuleRoots} from the module roots preferences node.
@@ -2433,186 +2334,6 @@ extends JFrame
 		return new LayoutConfiguration(configurationString);
 	}
 
-	/**
-	 * The module templates.
-	 */
-	public static class ModuleTemplates
-	{
-		/**
-		 * A {@link Map} representing module template name - template pairs.
-		 */
-		public final Map<String, String> moduleTemplates = new HashMap<>();
-
-		/**
-		 * Answer the requested template or an empty string if none found.
-		 *
-		 * @param templateName
-		 *        The name of the template.
-		 * @return The requested template or an empty string.
-		 */
-		public String get (final String templateName)
-		{
-			return moduleTemplates.getOrDefault(templateName, "");
-		}
-
-		/**
-		 * Answer the result of a filled out template.
-		 *
-		 * @param templateName
-		 *        The template to fill out.
-		 * @param moduleName
-		 *        The name of the module being created.
-		 * @return A string containing filled out template.
-		 */
-		public String createNewModuleFromTemplate (
-			final String templateName,
-			final String moduleName)
-		{
-			final String year = Integer.toString(LocalDateTime.ofInstant(
-				Instant.now(), ZoneOffset.UTC).getYear());
-
-			return Replaceable.replace(get(templateName), moduleName, year);
-		}
-
-		/**
-		 * An enum of the patterns that are replaceable in a {@link
-		 * ModuleTemplates}.
-		 */
-		enum Replaceable
-		{
-			MODULE ("${MODULE}"),
-			YEAR ("${YEAR}");
-
-			/**
-			 * The pattern that can be replaced in the template.
-			 */
-			private final String pattern;
-
-			/**
-			 * Answer the result of a filled out template.
-			 *
-			 * @param template
-			 *        The template to fill out.
-			 * @param replacements
-			 *        The replacement values for the template.
-			 * @return A filled out template.
-			 */
-			static String replace (
-				final String template,
-				final String... replacements)
-			{
-				final Replaceable[] replaceables = Replaceable.values();
-
-				assert replaceables.length == replacements.length;
-
-				String result = template;
-				for (int i = 0; i < replacements.length; i++)
-				{
-					result = result.replace(
-						replaceables[i].pattern, replacements[i]);
-				}
-				return result;
-			}
-
-			/**
-			 * Construct a {@code Replaceable}.
-			 *
-			 * @param pattern
-			 *        The replacement pattern.
-			 */
-			Replaceable (final String pattern)
-			{
-				this.pattern = pattern;
-			}
-		}
-
-		/**
-		 * Answer a string representation of this template store that is
-		 * suitable for being stored and restored via the {@link
-		 * ModuleTemplates#ModuleTemplates(String)} constructor.
-		 *
-		 * @return A string.
-		 */
-		public String stringToStore ()
-		{
-			final String [] strings = new String [moduleTemplates.size()];
-			final int index = 0;
-			for (final Entry<String, String> entry : moduleTemplates.entrySet())
-			{
-				strings[index] = entry.getKey() + '\0' +
-					entry.getValue();
-			}
-
-			final StringBuilder builder = new StringBuilder();
-			boolean first = true;
-			for (final @Nullable String string : strings)
-			{
-				if (!first)
-				{
-					builder.append(0x1e);
-				}
-				if (string != null)
-				{
-					builder.append(string);
-				}
-				first = false;
-			}
-			return builder.toString();
-		}
-
-		/**
-		 * Construct a new {@code ModuleTemplates} with no templates specified.
-		 */
-		public ModuleTemplates ()
-		{
-			// no templates
-		}
-
-		/**
-		 * Construct a new {@code ModuleTemplates} with preferences specified by
-		 * some private encoding in the provided {@link String}.
-		 *
-		 * @param input
-		 *        A string in some encoding compatible with that produced
-		 *        by {@link #stringToStore()}.
-		 */
-		public ModuleTemplates (final String input)
-		{
-			if (!input.isEmpty())
-			{
-				final String pairSpliter = "" + '\0';
-				final String recordSpliter  = "" + 0x1e;
-				@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-				final String[] substrings = input.split(recordSpliter);
-				for (final String template : substrings)
-				{
-					final String[] pair = template.split(pairSpliter);
-					assert  pair.length == 2;
-					moduleTemplates.put(pair[0], pair[1]);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Figure out how to initially lay out the frame, based on previously saved
-	 * preference information.
-	 *
-	 * @return The initial {@link LayoutConfiguration}.
-	 */
-	@InnerAccess static ModuleTemplates getInitialModuleTemplate ()
-	{
-		final Preferences preferences = templatePreferences();
-		final String templateString = preferences.get(
-			moduleLeafKeyString,
-			null);
-		if (templateString == null)
-		{
-			return new ModuleTemplates();
-		}
-		return new ModuleTemplates(templateString);
-	}
-
 	/** Statistic for waiting for updateQueue's monitor. */
 	static final Statistic waitForDequeueLock = new Statistic(
 		"Wait for lock to trim old entries",
@@ -2732,9 +2453,6 @@ extends JFrame
 		// Get the existing preferences early for plugging in at the right
 		// times during construction.
 		final LayoutConfiguration configuration = getInitialConfiguration();
-		this.moduleTemplates = getInitialModuleTemplate();
-		replaceTextTemplate.initializeTemplatesFromPropertiesFile();
-
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		// Set *just* the window title...
@@ -2757,11 +2475,6 @@ extends JFrame
 				null,
 			refreshAction);
 		menuBar.add(buildMenu);
-		final JMenu moduleMenu = menu(
-			"Module",
-			newPackageAction, newModuleAction, editModuleAction, null,
-			addModuleTemplateAction);
-		menuBar.add(moduleMenu);
 		if (!runningOnMac)
 		{
 			augment(buildMenu, null, preferencesAction);
@@ -2796,6 +2509,7 @@ extends JFrame
 						null,
 						new JCheckBoxMenuItem(toggleDebugL1),
 						new JCheckBoxMenuItem(toggleDebugL2),
+						new JCheckBoxMenuItem(toggleL2SanityCheck),
 						new JCheckBoxMenuItem(toggleDebugPrimitives),
 						null,
 						new JCheckBoxMenuItem(toggleDebugJVM),
@@ -2811,16 +2525,6 @@ extends JFrame
 		}
 		setJMenuBar(menuBar);
 
-		final JMenu buildPopup = menu(
-			"Modules",
-			buildAction,
-			editModuleAction,
-			documentAction,
-			null,
-			unloadAction,
-//			cleanModuleAction,  //TODO MvG Fix implementation and enable.
-			null,
-			refreshAction);
 		// The refresh item needs a little help ...
 		InputMap inputMap = getRootPane().getInputMap(
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -2828,21 +2532,12 @@ extends JFrame
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
 		actionMap.put("refresh", refreshAction);
 
-		final JMenu entryPointsPopup = menu(
-			"Entry points",
-			buildEntryPointModuleAction, null,
-			editModuleAction, null,
-			insertEntryPointAction, null,
-			createProgramAction, null,
-			refreshAction);
-
 		final JMenu transcriptPopup = menu("Transcript", clearTranscriptAction);
 
 		// Create the module tree.
 		moduleTree = new JTree(
 			new DefaultMutableTreeNode("(packages hidden root)"));
 		moduleTree.setToolTipText("All modules, organized by module root.");
-		moduleTree.setComponentPopupMenu(buildPopup.getPopupMenu());
 		moduleTree.setEditable(false);
 		moduleTree.setEnabled(true);
 		moduleTree.setFocusable(true);
@@ -2874,7 +2569,6 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
-		actionMap.put("view", editModuleAction);
 		// Expand rows bottom-to-top to expand only the root nodes.
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
@@ -2886,7 +2580,6 @@ extends JFrame
 			new DefaultMutableTreeNode("(entry points hidden root)"));
 		entryPointsTree.setToolTipText(
 			"All entry points, organized by defining module.");
-		entryPointsTree.setComponentPopupMenu(entryPointsPopup.getPopupMenu());
 		entryPointsTree.setEditable(false);
 		entryPointsTree.setEnabled(true);
 		entryPointsTree.setFocusable(true);
@@ -3125,9 +2818,6 @@ extends JFrame
 				preferences.put(
 					placementLeafKeyString,
 					saveConfiguration.stringToStore());
-				templatePreferences().put(
-					moduleLeafKeyString,
-					moduleTemplates.stringToStore());
 //				templatePreferences().put(
 //					textLeafKeyString,
 //					replaceTextTemplate.stringToStore());

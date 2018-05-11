@@ -1,6 +1,6 @@
-/**
+/*
  * RegisterSet.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,19 +40,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
@@ -69,7 +60,7 @@ public final class RegisterSet
 	/**
 	 * The mapping from each register to its current state, if any.
 	 */
-	final Map<L2Register, RegisterState> registerStates = new HashMap<>();
+	final Map<L2Register<?>, RegisterState> registerStates = new HashMap<>();
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
@@ -80,7 +71,7 @@ public final class RegisterSet
 	void debugOn (
 		final StringBuilder builder)
 	{
-		final List<L2Register> sortedRegs =
+		final List<L2Register<?>> sortedRegs =
 			new ArrayList<>(registerStates.keySet());
 		sortedRegs.sort((r1, r2) ->
 		{
@@ -88,7 +79,7 @@ public final class RegisterSet
 			assert r2 != null;
 			return Long.compare(r1.uniqueValue, r2.uniqueValue);
 		});
-		for (final L2Register reg : sortedRegs)
+		for (final L2Register<?> reg : sortedRegs)
 		{
 			final RegisterState state = stateForReading(reg);
 			builder.append(String.format(
@@ -96,7 +87,7 @@ public final class RegisterSet
 				reg,
 				state.constant(),
 				state.type()));
-			final List<L2Register> aliases = state.origins();
+			final List<L2Register<?>> aliases = state.origins();
 			if (!aliases.isEmpty())
 			{
 				builder.append(",  ALIASES = ");
@@ -119,7 +110,6 @@ public final class RegisterSet
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -133,7 +123,7 @@ public final class RegisterSet
 	 *         L2Register at a particular point in the generated code.
 	 */
 	public RegisterState stateForModifying (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		RegisterState state = registerStates.get(register);
 		if (state == null)
@@ -158,7 +148,7 @@ public final class RegisterSet
 	 *         a particular point in the generated code.
 	 */
 	public RegisterState stateForReading (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		RegisterState state = registerStates.get(register);
 		if (state == null)
@@ -176,7 +166,7 @@ public final class RegisterSet
 	 * @return Whether the register has most recently been assigned a constant.
 	 */
 	public boolean hasConstantAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		return stateForReading(register).hasConstant();
 	}
@@ -213,7 +203,7 @@ public final class RegisterSet
 	 *        The constant {@link A_BasicObject value} bound to the register.
 	 */
 	public void constantAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_BasicObject value)
 	{
 		final AvailObject strongValue = (AvailObject) value;
@@ -240,7 +230,7 @@ public final class RegisterSet
 	 *        The instruction that puts the constant in the register.
 	 */
 	public void constantAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_BasicObject value,
 		final L2Instruction instruction)
 	{
@@ -265,7 +255,7 @@ public final class RegisterSet
 	 * @return The constant object.
 	 */
 	public AvailObject constantAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		return stripNull(stateForReading(register).constant());
 	}
@@ -276,7 +266,7 @@ public final class RegisterSet
 	 * @param register The register.
 	 */
 	public void removeConstantAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		stateForModifying(register).constant(null);
 	}
@@ -289,7 +279,7 @@ public final class RegisterSet
 	 * @return Whether the register has a known type at this point.
 	 */
 	public boolean hasTypeAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		return stateForReading(register).type() != null;
 	}
@@ -301,7 +291,7 @@ public final class RegisterSet
 	 * @return The type bound to the register, or null if not bound.
 	 */
 	public A_Type typeAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		return stripNull(stateForReading(register).type());
 	}
@@ -315,7 +305,7 @@ public final class RegisterSet
 	 *            The type of object that will be in the register at this point.
 	 */
 	private void typeAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_Type type)
 	{
 		assert !type.isBottom();
@@ -336,7 +326,7 @@ public final class RegisterSet
 	 *            The instruction that affected this register.
 	 */
 	public void typeAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_Type type,
 		final L2Instruction instruction)
 	{
@@ -361,15 +351,15 @@ public final class RegisterSet
 	 * @return The set of all {@link L2Register}s known to contain the same
 	 *         value as the given register.
 	 */
-	private Set<L2Register> allEquivalentRegisters (
-		final L2Register register)
+	private Set<L2Register<?>> allEquivalentRegisters (
+		final L2Register<?> register)
 	{
-		Set<L2Register> equivalents = new HashSet<>(3);
+		Set<L2Register<?>> equivalents = new HashSet<>(3);
 		equivalents.add(register);
 		while (true)
 		{
-			final Set<L2Register> newEquivalents = new HashSet<>(equivalents);
-			for (final L2Register reg : new ArrayList<>(equivalents))
+			final Set<L2Register<?>> newEquivalents = new HashSet<>(equivalents);
+			for (final L2Register<?> reg : new ArrayList<>(equivalents))
 			{
 				final RegisterState state = stateForReading(reg);
 				newEquivalents.addAll(state.origins());
@@ -397,10 +387,10 @@ public final class RegisterSet
 	 * @param type The type to strengthen it to.
 	 */
 	public void strengthenTestedTypeAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_Type type)
 	{
-		for (final L2Register alias : allEquivalentRegisters(register))
+		for (final L2Register<?> alias : allEquivalentRegisters(register))
 		{
 			typeAtPut(alias, type);
 		}
@@ -417,10 +407,10 @@ public final class RegisterSet
 	 * @param value The value in the register.
 	 */
 	public void strengthenTestedValueAtPut (
-		final L2Register register,
+		final L2Register<?> register,
 		final A_BasicObject value)
 	{
-		for (final L2Register alias : allEquivalentRegisters(register))
+		for (final L2Register<?> alias : allEquivalentRegisters(register))
 		{
 			constantAtPut(alias, value);
 		}
@@ -432,7 +422,7 @@ public final class RegisterSet
 	 * @param register The register from which to clear type information.
 	 */
 	public void removeTypeAt (
-		final L2Register register)
+		final L2Register<?> register)
 	{
 		stateForModifying(register).type(null);
 	}
@@ -469,8 +459,8 @@ public final class RegisterSet
 	 *            The {@link L2Instruction} which is moving the value.
 	 */
 	public void propagateMove (
-		final L2Register sourceRegister,
-		final L2Register destinationRegister,
+		final L2Register<?> sourceRegister,
+		final L2Register<?> destinationRegister,
 		final L2Instruction instruction)
 	{
 		if (sourceRegister == destinationRegister)
@@ -481,11 +471,11 @@ public final class RegisterSet
 		final RegisterState sourceState = stateForReading(sourceRegister);
 		final RegisterState destinationState =
 			stateForModifying(destinationRegister);
-		final List<L2Register> sourceOrigins = sourceState.origins();
-		final List<L2Register> destinationOrigins =
+		final List<L2Register<?>> sourceOrigins = sourceState.origins();
+		final List<L2Register<?>> destinationOrigins =
 			append(sourceOrigins, sourceRegister);
 		destinationState.origins(destinationOrigins);
-		for (final L2Register origin : destinationOrigins)
+		for (final L2Register<?> origin : destinationOrigins)
 		{
 			stateForModifying(origin).addInvertedOrigin(destinationRegister);
 		}
@@ -504,15 +494,15 @@ public final class RegisterSet
 	 * @param instruction The instruction doing the writing.
 	 */
 	public void propagateWriteTo (
-		final L2Register destinationRegister,
+		final L2Register<?> destinationRegister,
 		final L2Instruction instruction)
 	{
 		// Firstly, the destinationRegister's value is no longer derived
 		// from any other register (until and unless the client says which).
 		final RegisterState destinationState =
 			stateForModifying(destinationRegister);
-		final List<L2Register> origins = destinationState.origins();
-		for (final L2Register origin : origins)
+		final List<L2Register<?>> origins = destinationState.origins();
+		for (final L2Register<?> origin : origins)
 		{
 			stateForModifying(origin).removeInvertedOrigin(
 				destinationRegister);
@@ -521,7 +511,7 @@ public final class RegisterSet
 
 		// Secondly, any registers that were derived from the old value of
 		// the destinationRegister are no longer equivalent to it.
-		for (final L2Register descendant : destinationState.invertedOrigins())
+		for (final L2Register<?> descendant : destinationState.invertedOrigins())
 		{
 			final RegisterState state = stateForModifying(descendant);
 			assert state.origins().contains(destinationRegister);
@@ -549,10 +539,10 @@ public final class RegisterSet
 	boolean mergeFrom (final RegisterSet other)
 	{
 		boolean registerSetChanged = false;
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: registerStates.entrySet())
 		{
-			final L2Register reg = entry.getKey();
+			final L2Register<?> reg = entry.getKey();
 			RegisterState state = entry.getValue();
 			// We'll write this back only if it's modified below.
 			state = new RegisterState(state);
@@ -596,15 +586,15 @@ public final class RegisterSet
 			// Keep the intersection of the lists of origin registers.  In
 			// theory the two lists might have overlapping elements in a
 			// different order, but in that case any order will be good enough.
-			final List<L2Register> oldList = state.origins();
-			final List<L2Register> otherList = otherState.origins();
-			final List<L2Register> newList = new ArrayList<>(oldList);
+			final List<L2Register<?>> oldList = state.origins();
+			final List<L2Register<?>> otherList = otherState.origins();
+			final List<L2Register<?>> newList = new ArrayList<>(oldList);
 			final boolean listChanged = newList.retainAll(otherList);
 			if (listChanged)
 			{
 				entryChanged = true;
 				state.origins(newList);
-				for (final L2Register oldOrigin : oldList)
+				for (final L2Register<?> oldOrigin : oldList)
 				{
 					assert oldOrigin != reg
 						: "Register should not have been its own origin";
@@ -614,7 +604,7 @@ public final class RegisterSet
 							reg);
 					}
 				}
-				for (final L2Register newOrigin : newList)
+				for (final L2Register<?> newOrigin : newList)
 				{
 					assert newOrigin != reg
 						: "Register should not be its own origin";
@@ -636,10 +626,10 @@ public final class RegisterSet
 		// those instructions from being discarded, since their results *may*
 		// be used here.  However, only keep information about registers that
 		// are mentioned in both RegisterSets.
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: registerStates.entrySet())
 		{
-			final L2Register reg = entry.getKey();
+			final L2Register<?> reg = entry.getKey();
 			RegisterState state = entry.getValue();
 			final List<L2Instruction> sources = state.sourceInstructions();
 			final List<L2Instruction> otherSources =
@@ -667,9 +657,9 @@ public final class RegisterSet
 		@SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
 		final Formatter formatter = new Formatter();
 		formatter.format("RegisterSet(%n\tConstants:");
-		final Map<L2Register, RegisterState> sorted =
+		final Map<L2Register<?>, RegisterState> sorted =
 			new TreeMap<>(registerStates);
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final AvailObject constant = entry.getValue().constant();
@@ -682,7 +672,7 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tTypes:");
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final A_Type type = entry.getValue().type();
@@ -695,10 +685,10 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tOrigins:");
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final List<L2Register> origins = entry.getValue().origins();
+			final List<L2Register<?>> origins = entry.getValue().origins();
 			if (!origins.isEmpty())
 			{
 				formatter.format(
@@ -708,7 +698,7 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tSources:");
-		for (final Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final List<L2Instruction> sourceInstructions =

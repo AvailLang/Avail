@@ -1,6 +1,6 @@
-/**
+/*
  * P_TypeUnion.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,16 @@ package com.avail.interpreter.primitive.types;
 
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -61,12 +61,11 @@ public final class P_TypeUnion extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Type type1 = args.get(0);
-		final A_Type type2 = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Type type1 = interpreter.argument(0);
+		final A_Type type2 = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
 			type1.typeUnion(type2).makeImmutable());
 	}

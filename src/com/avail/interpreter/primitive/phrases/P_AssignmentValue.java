@@ -1,6 +1,6 @@
-/**
+/*
  * P_AssignmentValue.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,25 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AssignmentNodeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.ASSIGNMENT_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.EXPRESSION_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
- * AssignmentNodeDescriptor assignment}'s {@linkplain
- * ParseNodeKind#EXPRESSION_NODE value expression}.
+ * AssignmentPhraseDescriptor assignment}'s {@linkplain
+ * PhraseKind#EXPRESSION_PHRASE value expression}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -71,11 +69,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase assignment = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase assignment = interpreter.argument(0);
 		return interpreter.primitiveSuccess(assignment.expression());
 	}
 
@@ -83,7 +80,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(ASSIGNMENT_NODE.mostGeneralType()),
-				EXPRESSION_NODE.create(ANY.o()));
+			functionType(
+				tuple(
+					ASSIGNMENT_PHRASE.mostGeneralType()),
+				EXPRESSION_PHRASE.create(ANY.o()));
 	}
 }

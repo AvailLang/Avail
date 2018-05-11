@@ -2,7 +2,6 @@ package com.avail.environment.editor.utility;
 
 import com.avail.utility.Pair;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;

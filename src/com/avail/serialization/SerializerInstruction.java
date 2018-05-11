@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerInstruction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,25 +44,22 @@ import com.avail.descriptor.AvailObject;
 final class SerializerInstruction
 {
 	/**
-	 * The {@link AvailObject} to be serialized.
+	 * An array of subobjects resulting from decomposing the object.  These
+	 * correspond to the operation's {@link SerializerOperation#operands()}.
 	 */
-	final AvailObject object;
+	private final A_BasicObject[] subobjects;
 
 	/**
-	 * Answer the {@link AvailObject} that this instruction is serializing.
-	 *
-	 * @return The AvailObject to serialize.
+	 * The {@link SerializerOperation} that can decompose this object for
+	 * serialization.
 	 */
-	AvailObject object ()
-	{
-		return object;
-	}
+	private final SerializerOperation operation;
 
 	/**
 	 * The index of this instruction in the list of instructions produced by a
 	 * {@link Serializer}.
 	 */
-	int index = -1;
+	private int index = -1;
 
 	/**
 	 * Set this instruction's absolute index in its {@link Serializer}'s
@@ -99,12 +96,6 @@ final class SerializerInstruction
 	}
 
 	/**
-	 * The {@link SerializerOperation} that can decompose this object for
-	 * serialization.
-	 */
-	final SerializerOperation operation;
-
-	/**
 	 * Answer the {@link SerializerOperation} that will serialize the object.
 	 *
 	 * @return The {@code SerializerOperation} used to decompose the object.
@@ -120,13 +111,12 @@ final class SerializerInstruction
 	 * subobjects that must be serialized before me, but it's up to each operand
 	 * to determine that, as well as the encoding mechanism.
 	 *
-	 * @param serializer The serializer requesting decomposition.
 	 * @return The array of {@code AvailObject}s for my operation's operands to
 	 *         interpret.
 	 */
-	A_BasicObject[] decomposed (final Serializer serializer)
+	A_BasicObject[] subobjects ()
 	{
-		return operation.decompose(object, serializer);
+		return subobjects;
 	}
 
 	/**
@@ -134,25 +124,29 @@ final class SerializerInstruction
 	 *
 	 * @param serializer Where to write the instruction.
 	 */
-	void writeTo (final Serializer serializer)
+	void writeTo (
+		final Serializer serializer)
 	{
-		operation.writeObject(object, serializer);
+		operation.writeObject(subobjects, serializer);
 	}
 
 	/**
 	 * Construct a new {@link SerializerInstruction}.
 	 *
-	 * @param object
-	 *            The {@link AvailObject} to serialize.
 	 * @param operation
-	 *            The {@link SerializerOperation} that will decompose the object
-	 *            for serialization.
+	 *        The {@link SerializerOperation} that will decompose the object for
+	 *        serialization.
+	 * @param object
+	 *        The object to record by this instruction.
+	 * @param serializer
+	 *        The {@link Serializer} to which this instruction will record.
 	 */
-	public SerializerInstruction (
-		final AvailObject object,
-		final SerializerOperation operation)
+	SerializerInstruction (
+		final SerializerOperation operation,
+		final A_BasicObject object,
+		final Serializer serializer)
 	{
-		this.object = object;
 		this.operation = operation;
+		this.subobjects = operation.decompose((AvailObject) object, serializer);
 	}
 }

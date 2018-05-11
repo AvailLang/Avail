@@ -33,12 +33,16 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.LONG_TYPE;
@@ -52,21 +56,29 @@ import static org.objectweb.asm.Type.LONG_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_DIVIDE_INT_BY_INT
+public final class L2_DIVIDE_INT_BY_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_DIVIDE_INT_BY_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_DIVIDE_INT_BY_INT().init(
+	private L2_DIVIDE_INT_BY_INT ()
+	{
+		super(
 			READ_INT.is("dividend"),
 			READ_INT.is("divisor"),
 			WRITE_INT.is("quotient"),
 			WRITE_INT.is("remainder"),
-			PC.is("out of range"),
-			PC.is("zero divisor"),
-			PC.is("success"));
+			PC.is("out of range", FAILURE),
+			PC.is("zero divisor", OFF_RAMP),
+			PC.is("success", SUCCESS));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_DIVIDE_INT_BY_INT instance =
+		new L2_DIVIDE_INT_BY_INT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -76,18 +88,48 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2IntRegister dividendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister divisorReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister quotientReg =
+			instruction.writeIntRegisterAt(2).register();
+		final L2IntRegister remainderReg =
+			instruction.writeIntRegisterAt(3).register();
+//		final L2PcOperand undefined = instruction.pcAt(4);
+//		final int successIndex = instruction.pcOffsetAt(5);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(quotientReg);
+		builder.append(", ");
+		builder.append(remainderReg);
+		builder.append(" ← ");
+		builder.append(dividendReg);
+		builder.append(" ÷ ");
+		builder.append(divisorReg);
+		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister dividendReg =
+		final L2IntRegister dividendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister divisorReg =
+		final L2IntRegister divisorReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister intQuotientReg =
+		final L2IntRegister intQuotientReg =
 			instruction.writeIntRegisterAt(2).register();
-		final L2IntegerRegister intRemainderReg =
+		final L2IntRegister intRemainderReg =
 			instruction.writeIntRegisterAt(3).register();
 		final int outOfRangeIndex = instruction.pcOffsetAt(4);
 		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
@@ -152,7 +194,7 @@ extends L2Operation
 		method.visitInsn(LSUB);
 		final int remainder = translator.nextLocal(LONG_TYPE);
 		method.visitVarInsn(LSTORE, remainder);
-		
+
 		// :: if (quotient != (int) quotient) goto outOfRange;
 		method.visitVarInsn(LLOAD, quotient);
 		method.visitInsn(DUP);

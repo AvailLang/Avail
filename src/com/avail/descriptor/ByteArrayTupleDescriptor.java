@@ -1,6 +1,6 @@
-/**
+/*
  * ByteArrayTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,17 +40,15 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots
-	.BYTE_ARRAY_POJO;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
@@ -139,8 +137,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = tuple(newElement);
-		return object.concatenateWith(singleton, canDestroy);
+		return object.concatenateWith(tuple(newElement), canDestroy);
 	}
 
 	@Override @AvailMethod

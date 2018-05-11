@@ -1,6 +1,6 @@
-/**
+/*
  * P_DoubleModulus.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,10 @@ import com.avail.descriptor.DoubleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.DoubleDescriptor.objectFromDoubleRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.floor;
@@ -62,12 +61,11 @@ public final class P_DoubleModulus extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final AvailObject a = interpreter.argument(0);
+		final AvailObject b = interpreter.argument(1);
 		final double da = a.extractDouble();
 		final double db = b.extractDouble();
 		final double div = da / db;

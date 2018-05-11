@@ -1,6 +1,6 @@
-/**
+/*
  * PhiRestriction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,54 +31,46 @@
  */
 
 package com.avail.interpreter.levelTwo.operand;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-
-import javax.annotation.Nullable;
-
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
- * This mechanism allows type information for an {@link L2ObjectRegister} to
- * be restricted along a branch.  A good example is a type-testing
- * instruction, which narrows the type along the "pass" branch, but not
- * along the "fail" branch.  Eventually we may capture negative type
- * information as well (e.g., "x isn't an integer or tuple here"), in which
- * case we would separately narrow the types for both branches.
+ * This mechanism allows type information for an {@link L2Register} to be
+ * restricted along a branch. A good example is a type-testing instruction,
+ * which narrows the type along the "pass" branch, but not along the "fail"
+ * branch.  Eventually we may capture negative type information as well (e.g.,
+ * "x isn't an integer or tuple here"), in which case we would separately narrow
+ * the types for both branches.
+ *
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 public final class PhiRestriction
 {
 	/**
-	 * The {@link L2ObjectRegister} which is to be restricted along this
+	 * The {@link L2Register} which is to be restricted along this
 	 * control flow branch.
 	 */
-	public final L2ObjectRegister register;
+	public final L2Register<?> register;
 
 	/**
-	 * The {@link TypeRestriction} being placed on the register.
+	 * The new {@link TypeRestriction} for the register along the affected edge.
 	 */
-	public final TypeRestriction typeRestriction;
+	public final TypeRestriction<?> typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.
+	 * restriction along a control flow edge.
 	 *
 	 * @param register
-	 *        The register to restrict along this branch.
-	 * @param type
-	 *        The type that the register will hold along this branch.
-	 * @param constantOrNull
-	 *        Either {@code null} or the exact value that the register will hold
-	 *        along this branch.
+	 *        The register to restrict along this edge.
+	 * @param typeRestriction
+	 *        The {@link TypeRestriction} that the register will have along the
+	 *        affected edge.
 	 */
 	public PhiRestriction (
-		final L2ObjectRegister register,
-		final A_Type type,
-		final @Nullable A_BasicObject constantOrNull)
+		final L2Register<?> register,
+		final TypeRestriction<?> typeRestriction)
 	{
 		this.register = register;
-		this.typeRestriction = restriction(type, constantOrNull);
+		this.typeRestriction = typeRestriction;
 	}
 }

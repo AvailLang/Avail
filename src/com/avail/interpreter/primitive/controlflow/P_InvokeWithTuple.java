@@ -1,6 +1,6 @@
-/**
+/*
  * P_InvokeWithTuple.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -55,8 +54,8 @@ import java.util.stream.IntStream;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
@@ -89,12 +88,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Function function = args.get(0);
-		final A_Tuple argTuple = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Function function = interpreter.argument(0);
+		final A_Tuple argTuple = interpreter.argument(1);
 		final A_Type functionType = function.kind();
 
 		final int numArgs = argTuple.tupleSize();
@@ -118,7 +116,10 @@ extends Primitive
 		// The arguments and parameter types agree.  Can't fail after here, so
 		// feel free to clobber the argsBuffer.
 		interpreter.argsBuffer.clear();
-		argTuple.forEach(interpreter.argsBuffer::add);
+		for (final AvailObject arg : argTuple)
+		{
+			interpreter.argsBuffer.add(arg);
+		}
 		interpreter.function = function;
 		return READY_TO_INVOKE;
 	}
@@ -237,10 +238,9 @@ extends Primitive
 		final int argsSize = upperBound.extractInt();
 
 		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegisters =
-			L2_EXPLODE_TUPLE.explodeTupleIfPossible(
+			translator.explodeTupleIfPossible(
 				tupleReg,
-				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)),
-				translator);
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)));
 		if (explodedArgumentRegisters == null)
 		{
 			return false;
@@ -253,6 +253,7 @@ extends Primitive
 			functionReg,
 			explodedArgumentRegisters,
 			TOP.o(),
+			true,
 			callSiteHelper);
 		return true;
 	}

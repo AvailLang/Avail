@@ -38,9 +38,9 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
 /**
@@ -49,20 +49,27 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP
+public final class L2_JUMP
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_JUMP}.
+	 */
+	private L2_JUMP ()
+	{
+		super(
+			PC.is("target", SUCCESS));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP().init(
-			PC.is("target"));
+	public static final L2_JUMP instance = new L2_JUMP();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		// No effect on registers; it just jumps unconditionally.

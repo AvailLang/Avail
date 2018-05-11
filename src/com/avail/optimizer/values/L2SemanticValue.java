@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticValue.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,17 +45,6 @@ import com.avail.utility.evaluation.Transformer1NotNull;
 public abstract class L2SemanticValue
 {
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to ensure it's
-	 * immutable.
-	 *
- 	 * @return The {@link L2SemanticMakeImmutable}.
-	 */
-	public L2SemanticValue immutable ()
-	{
-		return new L2SemanticMakeImmutable(this);
-	}
-
-	/**
 	 * Answer the semantic value representing a particular constant value.
 	 *
 	 * @param value The actual Avail value.
@@ -64,6 +53,51 @@ public abstract class L2SemanticValue
 	public static L2SemanticValue constant (final A_BasicObject value)
 	{
 		return new L2SemanticConstant(value);
+	}
+
+	/**
+	 * For some semantic values, reification doesn't affect whether the actual
+	 * value is still immutable, but for others, new objects have to be created
+	 * which might be mutable.
+	 *
+	 * @return Whether to consider immutability before reification to still hold
+	 *         upon return into the corresponding on-ramp.
+	 */
+	public boolean immutabilityTranscendsReification ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer the semantic value like the receiver, but wrapped to qualify that
+	 * it's been unboxed as an {@code int}.
+	 *
+	 * @return The {@link L2SemanticUnboxedInt}.
+	 */
+	public L2SemanticUnboxedInt unboxedAsInt ()
+	{
+		return new L2SemanticUnboxedInt(this);
+	}
+
+	/**
+	 * Answer the semantic value like the receiver, but wrapped to qualify that
+	 * it's been unboxed as a {@code double}.
+	 *
+	 * @return The {@link L2SemanticUnboxedFloat}.
+	 */
+	public L2SemanticUnboxedFloat unboxedAsFloat ()
+	{
+		return new L2SemanticUnboxedFloat(this);
+	}
+
+	/**
+	 * Answer the semantic value like the receiver, but unboxed.
+	 *
+	 * @return The {@link L2SemanticValue}.
+	 */
+	public L2SemanticValue boxed ()
+	{
+		return this;
 	}
 
 	/**
@@ -82,4 +116,26 @@ public abstract class L2SemanticValue
 		final Transformer1NotNull<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
 		final Transformer1NotNull<Frame, Frame> frameTransformer);
+
+	/**
+	 * Is the receiver an unboxed {@code int}?
+	 *
+	 * @return {@code true} if the receiver is an unboxed {@code int}, {@code
+	 *         false} otherwise.
+	 */
+	public boolean isUnboxedInt ()
+	{
+		return false;
+	}
+
+	/**
+	 * Is the receiver an unboxed {@code double}?
+	 *
+	 * @return {@code true} if the receiver is an unboxed {@code double}, {@code
+	 *         false} otherwise.
+	 */
+	public boolean isUnboxedFloat ()
+	{
+		return false;
+	}
 }

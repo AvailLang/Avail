@@ -1,6 +1,6 @@
-/**
+/*
  * AvailObject.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,19 +33,19 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -61,7 +61,6 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -69,7 +68,6 @@ import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -378,6 +376,24 @@ implements
 		final A_Number another)
 	{
 		return numericCompare(another).isLessOrEqual();
+	}
+
+	/**
+	 * 	Helper method for transferring this object's longSlots into an
+	 * 	{@link L1InstructionDecoder}.  The receiver's descriptor must be a
+	 * 	{@link CompiledCodeDescriptor}.
+	 *
+	 * @param instructionDecoder The {@link L1InstructionDecoder} to populate.
+	 */
+	@Override
+	public void setUpInstructionDecoder (
+		final L1InstructionDecoder instructionDecoder)
+	{
+		super.setUpInstructionDecoder(instructionDecoder);
+		final int finalPc = numNybbles() + 1;
+		instructionDecoder.finalLongIndex =
+			L1InstructionDecoder.baseIndexInArray + (finalPc >> 4);
+		instructionDecoder.finalShift = (finalPc & 0xF) << 2;
 	}
 
 	/**
@@ -1798,10 +1814,10 @@ implements
 	}
 
 	@Override
-	public boolean equalsParseNodeType (
-		final A_Type aParseNodeType)
+	public boolean equalsPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_EqualsParseNodeType(this, aParseNodeType);
+		return descriptor.o_EqualsPhraseType(this, aPhraseType);
 	}
 
 	@Override
@@ -2436,10 +2452,10 @@ implements
 	}
 
 	@Override
-	public boolean isSupertypeOfParseNodeType (
-		final A_Type aParseNodeType)
+	public boolean isSupertypeOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_IsSupertypeOfParseNodeType(this, aParseNodeType);
+		return descriptor.o_IsSupertypeOfPhraseType(this, aPhraseType);
 	}
 
 	@Override
@@ -3588,12 +3604,12 @@ implements
 	}
 
 	@Override
-	public A_Type typeIntersectionOfParseNodeType (
-		final A_Type aParseNodeType)
+	public A_Type typeIntersectionOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeIntersectionOfParseNodeType(
+		return descriptor.o_TypeIntersectionOfPhraseType(
 			this,
-			aParseNodeType);
+			aPhraseType);
 	}
 
 	@Override
@@ -3700,12 +3716,12 @@ implements
 	}
 
 	@Override
-	public A_Type typeUnionOfParseNodeType (
-		final A_Type aParseNodeType)
+	public A_Type typeUnionOfPhraseType (
+		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeUnionOfParseNodeType(
+		return descriptor.o_TypeUnionOfPhraseType(
 			this,
-			aParseNodeType);
+			aPhraseType);
 	}
 
 	@Override
@@ -3791,8 +3807,8 @@ implements
 
 	/**
 	 * Extract the expression from the {@linkplain
-	 * ParseNodeKind#ASSIGNMENT_NODE assignment phrase} or {@linkplain
-	 * ParseNodeKind#EXPRESSION_AS_STATEMENT_NODE expression-as-statement
+	 * PhraseKind#ASSIGNMENT_PHRASE assignment phrase} or {@linkplain
+	 * PhraseKind#EXPRESSION_AS_STATEMENT_PHRASE expression-as-statement
 	 * phrase}.
 	 */
 	@Override
@@ -3951,9 +3967,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase copyWith (final A_Phrase newParseNode)
+	public A_Phrase copyWith (final A_Phrase newPhrase)
 	{
-		return descriptor.o_CopyWith(this, newParseNode);
+		return descriptor.o_CopyWith(this, newPhrase);
 	}
 
 	@Override
@@ -3975,9 +3991,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase copyMutableParseNode ()
+	public A_Phrase copyMutablePhrase ()
 	{
-		return descriptor.o_CopyMutableParseNode(this);
+		return descriptor.o_CopyMutablePhrase(this);
 	}
 
 	@Override
@@ -3987,9 +4003,9 @@ implements
 	}
 
 	@Override
-	public A_Phrase outputParseNode ()
+	public A_Phrase outputPhrase ()
 	{
-		return descriptor.o_OutputParseNode(this);
+		return descriptor.o_OutputPhrase(this);
 	}
 
 	@Override
@@ -4185,16 +4201,16 @@ implements
 	}
 
 	@Override
-	public ParseNodeKind parseNodeKind ()
+	public PhraseKind phraseKind ()
 	{
-		return descriptor.o_ParseNodeKind(this);
+		return descriptor.o_PhraseKind(this);
 	}
 
 	@Override
-	public boolean parseNodeKindIsUnder (
-		final ParseNodeKind expectedParseNodeKind)
+	public boolean phraseKindIsUnder (
+		final PhraseKind expectedPhraseKind)
 	{
-		return descriptor.o_ParseNodeKindIsUnder(this, expectedParseNodeKind);
+		return descriptor.o_PhraseKindIsUnder(this, expectedPhraseKind);
 	}
 
 	@Override
@@ -4914,9 +4930,9 @@ implements
 	}
 
 	@Override
-	public boolean equalsParseNode (final A_Phrase aParseNode)
+	public boolean equalsPhrase (final A_Phrase aPhrase)
 	{
-		return descriptor.o_EqualsParseNode(this, aParseNode);
+		return descriptor.o_EqualsPhrase(this, aPhrase);
 	}
 
 	@Override
@@ -5880,17 +5896,16 @@ implements
 	}
 
 	@Override
-	public LexingState nextLexingStateIn (
-		final CompilationContext compilationContext)
+	public LexingState nextLexingState ()
 	{
-		return descriptor.o_NextLexingStateIn(this, compilationContext);
+		return descriptor.o_NextLexingState(this);
 	}
 
 	@Override
-	public void setNextLexingState (
-		final @Nullable LexingState lexingState)
+	public void setNextLexingStateFromPrior (
+		final LexingState priorLexingState)
 	{
-		descriptor.o_SetNextLexingState(this, lexingState);
+		descriptor.o_SetNextLexingStateFromPrior(this, priorLexingState);
 	}
 
 	@Override
@@ -5977,19 +5992,6 @@ implements
 	public Statistic returneeCheckStat ()
 	{
 		return descriptor.o_ReturneeCheckStat(this);
-	}
-
-	@Override
-	public L1Operation nextNybblecodeOperation (
-		final MutableInt pc)
-	{
-		return descriptor.o_NextNybblecodeOperation(this, pc);
-	}
-
-	@Override
-	public int nextNybblecodeOperand (final MutableInt pc)
-	{
-		return descriptor.o_NextNybblecodeOperand(this, pc);
 	}
 
 	@Override

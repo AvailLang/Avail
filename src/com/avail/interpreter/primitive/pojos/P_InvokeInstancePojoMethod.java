@@ -1,6 +1,6 @@
-/**
+/*
  * P_InvokeInstancePojoMethod.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,17 +43,17 @@ import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
@@ -82,14 +82,13 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 4;
-		final A_BasicObject methodPojo = args.get(0);
-		final A_BasicObject receiverPojo = args.get(1);
-		final A_Tuple methodArgs = args.get(2);
-		final A_Tuple marshaledTypePojos = args.get(3);
+		interpreter.checkArgumentCount(4);
+		final A_BasicObject methodPojo = interpreter.argument(0);
+		final A_BasicObject receiverPojo = interpreter.argument(1);
+		final A_Tuple methodArgs = interpreter.argument(2);
+		final A_Tuple marshaledTypePojos = interpreter.argument(3);
 		// Marshal the arguments and invoke the method.
 		final Method method = methodPojo.javaObjectNotNull();
 		final Object receiver = receiverPojo.rawPojo().javaObjectNotNull();

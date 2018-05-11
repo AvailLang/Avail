@@ -38,7 +38,9 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -46,7 +48,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -60,22 +65,31 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_CONTINUATION
+public final class L2_CREATE_CONTINUATION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_CONTINUATION}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_CONTINUATION().init(
+	private L2_CREATE_CONTINUATION ()
+	{
+		super(
 			READ_POINTER.is("function"),
 			READ_POINTER.is("caller"),
-			IMMEDIATE.is("level one pc"),
-			IMMEDIATE.is("stack pointer"),
+			INT_IMMEDIATE.is("level one pc"),
+			INT_IMMEDIATE.is("stack pointer"),
 			READ_VECTOR.is("slot values"),
 			WRITE_POINTER.is("destination"),
-			PC.is("on-ramp"),
-			PC.is("fall through after creation"));
+			PC.is("on-ramp", ON_RAMP),
+			PC.is("fall through after creation", OFF_RAMP),
+			COMMENT.is("usage comment"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_CONTINUATION instance =
+		new L2_CREATE_CONTINUATION();
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
@@ -95,6 +109,39 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand function = instruction.readObjectRegisterAt(0);
+		final L2Operand caller = instruction.readObjectRegisterAt(1);
+		final int levelOnePC = instruction.intImmediateAt(2);
+		final int levelOneStackp = instruction.intImmediateAt(3);
+		final L2Operand slots = instruction.operands[4];
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(5).register();
+//		final int onRampOffset = instruction.pcOffsetAt(6);
+//		final L2PcOperand fallThrough = instruction.pcAt(7);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destReg);
+		builder.append(" ← $[");
+		builder.append(function);
+		builder.append("]:pc=");
+		builder.append(levelOnePC);
+		builder.append(" stack=");
+		builder.append(slots);
+		builder.append('[');
+		builder.append(levelOneStackp);
+		builder.append("] caller=");
+		builder.append(caller);
+		renderOperandsStartingAt(instruction, 6, desiredTypes, builder);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
@@ -104,8 +151,8 @@ extends L2Operation
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister callerReg =
 			instruction.readObjectRegisterAt(1).register();
-		final int levelOnePC = instruction.immediateAt(2);
-		final int levelOneStackp = instruction.immediateAt(3);
+		final int levelOnePC = instruction.intImmediateAt(2);
+		final int levelOneStackp = instruction.intImmediateAt(3);
 		final List<L2ReadPointerOperand> slots =
 			instruction.readVectorRegisterAt(4);
 		final L2ObjectRegister destReg =
@@ -144,6 +191,7 @@ extends L2Operation
 				getType(L2Chunk.class),
 				INT_TYPE),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		for (int i = 0, limit = slots.size(); i < limit; i++)
 		{
 			// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);

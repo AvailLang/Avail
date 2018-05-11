@@ -1,6 +1,6 @@
-/**
+/*
  * ExpectedToken.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,15 +46,18 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
 public enum ExpectedToken
 {
 	/** Module header token: Precedes the name of the defined module. */
+	@Deprecated
 	MODULE("Module", KEYWORD),
 
 	/**
 	 * Module header token: Precedes the list of versions for which the
 	 * defined module guarantees compatibility.
 	 */
+	@Deprecated
 	VERSIONS("Versions", KEYWORD),
 
 	/** Module header token: Precedes the list of pragma strings. */
+	@Deprecated
 	PRAGMA("Pragma", KEYWORD),
 
 	/**
@@ -91,6 +94,7 @@ public enum ExpectedToken
 	 * (filtered) names should be re-exported to clients of the defined
 	 * module.
 	 */
+	@Deprecated
 	EXTENDS("Extends", KEYWORD),
 
 	/**
@@ -98,15 +102,18 @@ public enum ExpectedToken
 	 * (filtered) names are imported only for the private use of the
 	 * defined module.
 	 */
+	@Deprecated
 	USES("Uses", KEYWORD),
 
 	/**
 	 * Module header token: Precedes the list of names exported for use by
 	 * clients of the defined module.
 	 */
+	@Deprecated
 	NAMES("Names", KEYWORD),
 
 	/** Module header token: Precedes the list of entry points. */
+	@Deprecated
 	ENTRIES("Entries", KEYWORD),
 
 	/** Module header token: Precedes the contents of the defined module. */
@@ -116,27 +123,35 @@ public enum ExpectedToken
 	 * Module header token: Mutually exclusive alternative to {@link #BODY};
 	 * provides a way to treat files without Avail headers as modules.
 	 */
+	@Deprecated
 	FILES("Files", KEYWORD),
 
 	/** Module header token: Separates string literals. */
+	@Deprecated
 	COMMA(",", OPERATOR),
 
 	/** Module header token: Separates string literals for renames. */
+	@Deprecated
 	RIGHT_ARROW("→", OPERATOR),
 
 	/** Module header token: Prefix to indicate exclusion. */
+	@Deprecated
 	MINUS("-", OPERATOR),
 
 	/** Module header token: Indicates wildcard import */
+	@Deprecated
 	ELLIPSIS("…", OPERATOR),
 
 	/** Uses related to declaration and assignment. */
+	@Deprecated
 	EQUALS("=", OPERATOR),
 
 	/** Module header token: Uses related to grouping. */
+	@Deprecated
 	OPEN_PARENTHESIS("(", OPERATOR),
 
 	/** Module header token: Uses related to grouping. */
+	@Deprecated
 	CLOSE_PARENTHESIS(")", OPERATOR);
 
 	/** The Java {@link String} form of the lexeme. */
@@ -158,16 +173,6 @@ public enum ExpectedToken
 	public A_String lexeme ()
 	{
 		return lexeme;
-	}
-
-	/**
-	 * Answer the {@linkplain TokenType token type}.
-	 *
-	 * @return The token type.
-	 */
-	TokenType tokenType ()
-	{
-		return tokenType;
 	}
 
 	/**

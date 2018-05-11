@@ -1,6 +1,6 @@
-/**
+/*
  * P_IfTrueThenElse.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,19 @@ package com.avail.interpreter.primitive.controlflow;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -69,13 +69,12 @@ public final class P_IfTrueThenElse extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-//		final A_Atom ignoredBoolean = args.get(0);
-		final A_Function trueFunction = args.get(1);
-//		final A_Function ignoredFalseFunction = args.get(2);
+		interpreter.checkArgumentCount(3);
+//		final A_Atom ignoredBoolean = interpreter.argument(0);
+		final A_Function trueFunction = interpreter.argument(1);
+//		final A_Function ignoredFalseFunction = interpreter.argument(2);
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();
@@ -124,6 +123,7 @@ public final class P_IfTrueThenElse extends Primitive
 			thenFunction,  // 'then' function
 			emptyList(),   // takes no arguments.
 			thenFunction.type().returnType(),
+			true,
 			callSiteHelper);
 		return true;
 	}

@@ -1,6 +1,6 @@
 /*
  * Exceptions.avail
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1297,7 +1297,7 @@ System exception "incorrect-type-for-group" (32)
 	extends bad-message exception;
 System exception "no-special-object" (33)
 	extends element-access exception;
-System exception "macro-argument-must-be-a-parse-node" (34)
+System exception "macro-argument-must-be-a-phrase" (34)
 	extends definition exception;
 System exception "ambiguous-name" (35)
 	extends bad-message exception;
@@ -1363,9 +1363,9 @@ System exception "not-evaluating-macro" (65)
 	extends definition exception;
 System exception "bad-yield-type" (66)
 	extends bad-phrase exception;
-System exception "macro-prefix-function-argument-must-be-a-parse-node" (67)
+System exception "macro-prefix-function-argument-must-be-a-phrase" (67)
 	extends definition exception;
-System exception "macro-must-return-a-parse-node" (68)
+System exception "macro-must-return-a-phrase" (68)
 	extends definition exception;
 System exception "no-such-field" (69)
 	extends element-access exception;

@@ -33,11 +33,13 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 
-import static java.lang.String.format;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link
@@ -81,6 +83,17 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return format("Const(%s)", object);
+		final StringBuilder builder = new StringBuilder();
+		builder.append("$(");
+		if (object.isInstanceOf(mostGeneralCompiledCodeType()))
+		{
+			builder.append(L1Decompiler.parse((A_RawFunction) object));
+		}
+		else
+		{
+			builder.append(object);
+		}
+		builder.append(")");
+		return builder.toString();
 	}
 }

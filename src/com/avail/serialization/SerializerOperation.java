@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerOperation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
@@ -48,15 +48,15 @@ import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.AssignmentNodeDescriptor.isInline;
-import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.isInline;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor
 	.createAtomWithProperties;
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
@@ -67,12 +67,12 @@ import static com.avail.descriptor.ContinuationDescriptor
 	.createContinuationExceptFrame;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newDeclaration;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 	.newExpressionAsStatement;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
 	.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
@@ -82,12 +82,12 @@ import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
 	.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor
@@ -96,29 +96,32 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PermutedListNodeDescriptor
+import static com.avail.descriptor.PermutedListPhraseDescriptor
 	.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.ReferencePhraseDescriptor
+	.referenceNodeFromUse;
 import static com.avail.descriptor.SelfPojoTypeDescriptor
 	.pojoFromSerializationProxy;
 import static com.avail.descriptor.SelfPojoTypeDescriptor
 	.pojoSerializationProxy;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
-import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
+import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TokenDescriptor.newToken;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
@@ -1640,16 +1643,14 @@ public enum SerializerOperation
 				final A_String atomName = pair.tupleAt(2);
 				if (moduleName.equalsNil())
 				{
-					for (final A_Atom specialAtom
-						: Serializer.specialAtoms.keySet())
+					final @Nullable A_Atom specialAtom =
+						Serializer.specialAtomsByName.get(atomName);
+					if (specialAtom != null)
 					{
-						if (specialAtom.atomName().equals(atomName))
+						final A_Bundle bundle = specialAtom.bundleOrNil();
+						if (!bundle.equalsNil())
 						{
-							final A_Bundle bundle = specialAtom.bundleOrNil();
-							if (!bundle.equalsNil())
-							{
-								return bundle.bundleMethod();
-							}
+							return bundle.bundleMethod();
 						}
 					}
 					throw new RuntimeException(
@@ -2052,7 +2053,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * An {@link AssignmentNodeDescriptor assignment phrase}.
+	 * An {@link AssignmentPhraseDescriptor assignment phrase}.
 	 */
 	ASSIGNMENT_PHRASE (60,
 		BYTE.as("flags"),
@@ -2088,7 +2089,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link BlockNodeDescriptor block phrase}.
+	 * A {@link BlockPhraseDescriptor block phrase}.
 	 */
 	BLOCK_PHRASE (61,
 		TUPLE_OF_OBJECTS.as("arguments tuple"),
@@ -2154,7 +2155,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link DeclarationNodeDescriptor declaration phrase}.
+	 * A {@link DeclarationPhraseDescriptor declaration phrase}.
 	 */
 	DECLARATION_PHRASE (62,
 		BYTE.as("declaration kind ordinal"),
@@ -2210,7 +2211,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * An {@link ExpressionAsStatementNodeDescriptor expression-as-statement
+	 * An {@link ExpressionAsStatementPhraseDescriptor expression-as-statement
 	 * phrase}.
 	 */
 	EXPRESSION_AS_STATEMENT_PHRASE (63,
@@ -2236,7 +2237,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link FirstOfSequenceNodeDescriptor first-of-sequence phrase}.
+	 * A {@link FirstOfSequencePhraseDescriptor first-of-sequence phrase}.
 	 */
 	FIRST_OF_SEQUENCE_PHRASE (64,
 		TUPLE_OF_OBJECTS.as("statements"))
@@ -2261,7 +2262,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link ListNodeDescriptor list phrase}.
+	 * A {@link ListPhraseDescriptor list phrase}.
 	 */
 	LIST_PHRASE (65,
 		TUPLE_OF_OBJECTS.as("expressions"))
@@ -2286,7 +2287,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link LiteralNodeDescriptor literal phrase}.
+	 * A {@link LiteralPhraseDescriptor literal phrase}.
 	 */
 	LITERAL_PHRASE (66,
 		OBJECT_REFERENCE.as("literal token"))
@@ -2311,9 +2312,9 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link MacroSubstitutionNodeDescriptor macro substitution phrase}.
+	 * A {@link MacroSubstitutionPhraseDescriptor macro substitution phrase}.
 	 */
-	MACRO_SUBSTITITION_PHRASE (67,
+	MACRO_SUBSTITUTION_PHRASE(67,
 		OBJECT_REFERENCE.as("original phrase"),
 		OBJECT_REFERENCE.as("output phrase"))
 	{
@@ -2324,7 +2325,7 @@ public enum SerializerOperation
 		{
 			return array(
 				object.macroOriginalSendNode(),
-				object.outputParseNode());
+				object.outputPhrase());
 		}
 
 		@Override
@@ -2333,13 +2334,13 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Phrase macroOriginalSendPhrase = subobjects[0];
-			final A_Phrase outputPhrase = subobjects[0];
+			final A_Phrase outputPhrase = subobjects[1];
 			return newMacroSubstitution(macroOriginalSendPhrase, outputPhrase);
 		}
 	},
 
 	/**
-	 * A {@link PermutedListNodeDescriptor permuted list phrase}.
+	 * A {@link PermutedListPhraseDescriptor permuted list phrase}.
 	 */
 	PERMUTED_LIST_PHRASE (68,
 		OBJECT_REFERENCE.as("list phrase"),
@@ -2367,7 +2368,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link PermutedListNodeDescriptor permuted list phrase}.
+	 * A {@link PermutedListPhraseDescriptor permuted list phrase}.
 	 */
 	REFERENCE_PHRASE (69,
 		OBJECT_REFERENCE.as("variable use"))
@@ -2392,7 +2393,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link SendNodeDescriptor send phrase}.
+	 * A {@link SendPhraseDescriptor send phrase}.
 	 */
 	SEND_PHRASE (70,
 		OBJECT_REFERENCE.as("bundle"),
@@ -2426,7 +2427,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link SequenceNodeDescriptor sequence phrase}.
+	 * A {@link SequencePhraseDescriptor sequence phrase}.
 	 */
 	SEQUENCE_PHRASE (71,
 		TUPLE_OF_OBJECTS.as("statements"))
@@ -2451,7 +2452,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link SuperCastNodeDescriptor super cast phrase}.
+	 * A {@link SuperCastPhraseDescriptor super cast phrase}.
 	 */
 	SUPER_CAST_PHRASE (72,
 		OBJECT_REFERENCE.as("expression"),
@@ -2479,7 +2480,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@link VariableUseNodeDescriptor variable use phrase}.
+	 * A {@link VariableUsePhraseDescriptor variable use phrase}.
 	 */
 	VARIABLE_USE_PHRASE (73,
 		OBJECT_REFERENCE.as("use token"),
@@ -3231,7 +3232,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain ParseNodeTypeDescriptor parse phrase type}.
+	 * A {@linkplain PhraseTypeDescriptor parse phrase type}.
 	 */
 	PARSE_NODE_TYPE (97,
 		BYTE.as("kind"),
@@ -3243,7 +3244,7 @@ public enum SerializerOperation
 			final Serializer serializer)
 		{
 			return array (
-				fromInt(object.parseNodeKind().ordinal()),
+				fromInt(object.phraseKind().ordinal()),
 				object.expressionType());
 		}
 
@@ -3252,16 +3253,16 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final int parseNodeKindOrdinal = subobjects[0].extractInt();
+			final int phraseKindOrdinal = subobjects[0].extractInt();
 			final AvailObject expressionType = subobjects[1];
-			final ParseNodeKind parseNodeKind =
-				ParseNodeKind.lookup(parseNodeKindOrdinal);
-			return parseNodeKind.create(expressionType);
+			final PhraseKind phraseKind =
+				PhraseKind.lookup(phraseKindOrdinal);
+			return phraseKind.create(expressionType);
 		}
 	},
 
 	/**
-	 * A {@linkplain ListNodeTypeDescriptor list phrase type}.
+	 * A {@linkplain ListPhraseTypeDescriptor list phrase type}.
 	 */
 	LIST_NODE_TYPE (98,
 		BYTE.as("list phrase kind"),
@@ -3274,7 +3275,7 @@ public enum SerializerOperation
 			final Serializer serializer)
 		{
 			return array (
-				fromInt(object.parseNodeKind().ordinal()),
+				fromInt(object.phraseKind().ordinal()),
 				object.expressionType(),
 				object.subexpressionsTupleType());
 		}
@@ -3284,13 +3285,13 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final int parseNodeKindOrdinal = subobjects[0].extractInt();
+			final int phraseKindOrdinal = subobjects[0].extractInt();
 			final AvailObject expressionType = subobjects[1];
 			final AvailObject subexpressionsTupleType = subobjects[2];
-			final ParseNodeKind parseNodeKind =
-				ParseNodeKind.lookup(parseNodeKindOrdinal);
+			final PhraseKind phraseKind =
+				PhraseKind.lookup(phraseKindOrdinal);
 			return createListNodeType(
-				parseNodeKind, expressionType, subexpressionsTupleType);
+				phraseKind, expressionType, subexpressionsTupleType);
 		}
 	},
 
@@ -3459,19 +3460,20 @@ public enum SerializerOperation
 	 * Write the given {@link AvailObject} to the {@link Serializer}.  It
 	 * must have already been fully traced.
 	 *
-	 * @param object The already traced {@code AvailObject} to serialize.
-	 * @param serializer Where to serialize it.
+	 * @param operandValues
+	 *        The already extracted array of operand values.
+	 * @param serializer
+	 *        Where to serialize it.
 	 */
 	void writeObject (
-		final AvailObject object,
+		final A_BasicObject[] operandValues,
 		final Serializer serializer)
 	{
 		serializer.writeByte(ordinal());
-		final A_BasicObject[] decomposed = decompose(object, serializer);
-		assert decomposed.length == operands.length;
-		for (int i = 0; i < decomposed.length; i++)
+		assert operandValues.length == operands.length;
+		for (int i = 0; i < operandValues.length; i++)
 		{
-			operands[i].write((AvailObject) decomposed[i], serializer);
+			operands[i].write((AvailObject) operandValues[i], serializer);
 		}
 	}
 

@@ -33,14 +33,20 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
@@ -55,15 +61,37 @@ import static org.objectweb.asm.Type.getInternalName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_CURRENT_CONTINUATION
+public final class L2_GET_CURRENT_CONTINUATION
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_CURRENT_CONTINUATION}.
+	 */
+	private L2_GET_CURRENT_CONTINUATION ()
+	{
+		super(
+			WRITE_POINTER.is("current continuation"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_CURRENT_CONTINUATION().init(
-			WRITE_POINTER.is("current continuation"));
+	public static final L2_GET_CURRENT_CONTINUATION instance =
+		new L2_GET_CURRENT_CONTINUATION();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand targetReg = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(targetReg);
+	}
 
 	@Override
 	public void translateToJVM (
@@ -81,6 +109,7 @@ extends L2Operation
 			getInternalName(Interpreter.class),
 			"reifiedContinuation",
 			getDescriptor(A_Continuation.class));
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, targetReg);
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateDirectory.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,11 @@ import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
@@ -57,7 +56,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -67,11 +65,11 @@ import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -121,15 +119,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_String directoryName = args.get(0);
-		final A_Set ordinals = args.get(1);
-		final A_Function succeed = args.get(2);
-		final A_Function fail = args.get(3);
-		final A_Number priority = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_String directoryName = interpreter.argument(0);
+		final A_Set ordinals = interpreter.argument(1);
+		final A_Function succeed = interpreter.argument(2);
+		final A_Function fail = interpreter.argument(3);
+		final A_Number priority = interpreter.argument(4);
 
 		final AvailRuntime runtime = interpreter.runtime();
 		final FileSystem fileSystem = AvailRuntime.fileSystem();

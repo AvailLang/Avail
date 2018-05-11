@@ -1,6 +1,6 @@
-/**
+/*
  * IntegerDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -50,8 +51,7 @@ import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
-	.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
@@ -2111,7 +2111,6 @@ extends ExtendedIntegerDescriptor
 		return out;
 	}
 
-
 	/**
 	 * Convert the specified Java {@code int} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
@@ -2119,6 +2118,7 @@ extends ExtendedIntegerDescriptor
 	 * @param anInteger A Java {@code int}.
 	 * @return An {@link AvailObject}.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject fromInt (final int anInteger)
 	{
 		if (anInteger == (anInteger & 255))

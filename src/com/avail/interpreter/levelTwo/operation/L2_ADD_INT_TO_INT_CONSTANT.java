@@ -33,13 +33,19 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -51,19 +57,59 @@ import static org.objectweb.asm.Type.INT_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_ADD_INT_TO_INT_CONSTANT
+public final class L2_ADD_INT_TO_INT_CONSTANT
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_ADD_INT_TO_INT_CONSTANT}.
+	 */
+	private L2_ADD_INT_TO_INT_CONSTANT ()
+	{
+		super(
+			READ_INT.is("augend"),
+			INT_IMMEDIATE.is("addend"),
+			WRITE_INT.is("sum"),
+			PC.is("in range", SUCCESS),
+			PC.is("out of range", FAILURE));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_CONSTANT().init(
-			READ_INT.is("augend"),
-			IMMEDIATE.is("addend"),
-			WRITE_INT.is("sum"),
-			PC.is("in range"),
-			PC.is("out of range"));
+	public static final L2_ADD_INT_TO_INT_CONSTANT instance =
+		new L2_ADD_INT_TO_INT_CONSTANT();
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand[] operands = instruction.operands;
+		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2Operand addend = operands[1];
+		final L2IntRegister sumReg =
+			instruction.writeIntRegisterAt(2).register();
+//		final L2PcOperand inRange = instruction.pcAt(3);
+//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(sumReg);
+		builder.append(" ← ");
+		builder.append(augendReg);
+		builder.append(" + ");
+		builder.append(addend);
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
+	}
 
 	@Override
 	public void translateToJVM (
@@ -71,10 +117,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister augendReg =
+		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final int addend = instruction.immediateAt(1);
-		final L2IntegerRegister sumReg =
+		final int addend = instruction.intImmediateAt(1);
+		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);
@@ -85,7 +131,7 @@ extends L2Operation
 		translator.literal(method, addend);
 		method.visitInsn(I2L);
 		method.visitInsn(LADD);
-		method.visitInsn(DUP);
+		method.visitInsn(DUP2);
 		// :: intSum = (int) longSum;
 		method.visitInsn(L2I);
 		method.visitInsn(DUP);

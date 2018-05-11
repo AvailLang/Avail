@@ -1,6 +1,6 @@
-/**
+/*
  * MapDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,7 +147,7 @@ extends Descriptor
 			final int entryStart = builder.length();
 			entry.key().printOnAvoidingIndent(
 				builder, recursionMap, indent + 2);
-			builder.append("→");
+			builder.append('→');
 			entry.value().printOnAvoidingIndent(
 				builder, recursionMap, indent + 1);
 			if (builder.length() - startPosition > 100
@@ -177,7 +177,7 @@ extends Descriptor
 				{
 					Strings.newlineTab(builder, indent + 1);
 				}
-				builder.append("→");
+				builder.append('→');
 				entry.value().printOnAvoidingIndent(
 					builder, recursionMap, indent + 1);
 				first = false;
@@ -194,15 +194,15 @@ extends Descriptor
 	{
 		/**
 		 * A fake slot to present in the debugging view for each key of the map.
-		 * It is always followed by its corresponding {@link #VALUE} slot.
+		 * It is always followed by its corresponding {@link #VALUE_} slot.
 		 */
-		KEY,
+		KEY_,
 
 		/**
 		 * A fake slot to present in the debugging view for each value in the
-		 * map.  It is always preceded by its corresponding {@link #KEY} slot.
+		 * map.  It is always preceded by its corresponding {@link #KEY_} slot.
 		 */
-		VALUE
+		VALUE_
 	}
 
 	/**
@@ -221,9 +221,9 @@ extends Descriptor
 		for (final Entry entry : object.mapIterable())
 		{
 			fields[(counter << 1)] = new AvailObjectFieldHelper(
-				object, FakeMapSlots.KEY, counter + 1, entry.key());
+				object, FakeMapSlots.KEY_, counter + 1, entry.key());
 			fields[(counter << 1) + 1] = new AvailObjectFieldHelper(
-				object, FakeMapSlots.VALUE, counter + 1, entry.value());
+				object, FakeMapSlots.VALUE_, counter + 1, entry.value());
 			counter++;
 		}
 		return fields;
@@ -861,7 +861,7 @@ extends Descriptor
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
 	 */
-	public static A_Map createFromBin (final A_MapBin rootBin)
+	private static A_Map createFromBin (final A_MapBin rootBin)
 	{
 		final A_Map newMap = mutable.create();
 		setRootBin(newMap, rootBin);

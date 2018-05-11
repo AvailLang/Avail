@@ -1,6 +1,6 @@
 /*
  * Interpreter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
@@ -93,12 +92,10 @@ import static com.avail.descriptor.FiberDescriptor.TraceFlag
 	.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
@@ -109,7 +106,6 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -876,21 +872,18 @@ public final class Interpreter
 	 * other indicating how to cause the primitive to fail (taking an
 	 * AvailErrorCode).
 	 *
-	 * @param args
-	 *        The {@link List} of arguments to the primitive.
 	 * @param action
 	 *        The action supplied by the client that itself takes two actions
 	 *        for succeeding and failing the primitive at a later time.
 	 * @return The value FIBER_SUSPENDED.
 	 */
 	public Result suspendAndDo (
-		final List<AvailObject> args,
 		final Continuation2NotNull<
 				Continuation1NotNull<A_BasicObject>,
 				Continuation1NotNull<AvailErrorCode>>
 			action)
 	{
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs = new ArrayList<>(argsBuffer);
 		final AvailRuntime theRuntime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(function);
 		final @Nullable Primitive prim = primitiveFunction.code().primitive();
@@ -1239,6 +1232,23 @@ public final class Interpreter
 	public Result attemptPrimitive (
 		final Primitive primitive)
 	{
+		final long timeBefore = beforeAttemptPrimitive(primitive);
+		final Result success = primitive.attempt(this);
+		afterAttemptPrimitive(primitive, timeBefore, success);
+		return success;
+	}
+
+	/**
+	 * Prepare to execute the given primitive.  Answer the current time in
+	 * nanoseconds.
+	 *
+	 * @param primitive
+	 *        The {@link Primitive} that is about to run.
+	 * @return The current time in nanoseconds, as a {@code long}.
+	 */
+	@ReferencedInGeneratedCode
+	public long beforeAttemptPrimitive (final Primitive primitive)
+	{
 		if (debugPrimitives)
 		{
 			log(
@@ -1251,9 +1261,27 @@ public final class Interpreter
 		returnNow = false;
 		latestResult(null);
 		assert current() == this;
-		final long timeBefore = AvailRuntime.captureNanos();
-		final Result success =
-			primitive.attempt(unmodifiableArgsBuffer, this);
+		return AvailRuntime.captureNanos();
+	}
+
+	/**
+	 * The given primitive has just executed; do any necessary post-processing.
+	 *
+	 * @param primitive
+	 *        The primitive that just ran.
+	 * @param timeBefore
+	 *        The time in nanoseconds just prior to the primitive running.
+	 * @param success
+	 *        The {@link Result} of running the primitive, indicating whether
+	 *        it succeeded, failed, etc.
+	 * @return The same {@link Result} that was passed, to make calling simpler.
+	 */
+	@ReferencedInGeneratedCode
+	public Result afterAttemptPrimitive (
+		final Primitive primitive,
+		final long timeBefore,
+		final Result success)
+	{
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1345,10 +1373,29 @@ public final class Interpreter
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
 
 	/**
-	 * A reusable unmodifiable view of the {@link #argsBuffer}.
+	 * Assert that the number of arguments in the {@link #argsBuffer} agrees
+	 * with the given expected number.
+	 *
+	 * @param expectedCount
+	 *        The exact number of arguments that should be present.
 	 */
-	public final List<AvailObject> unmodifiableArgsBuffer =
-		unmodifiableList(argsBuffer);
+	public void checkArgumentCount (final int expectedCount)
+	{
+		assert argsBuffer.size() == expectedCount;
+	}
+
+	/**
+	 * Answer the specified element of argsBuffer.
+	 *
+	 * @param zeroBasedIndex
+	 *        The zero-based index at which to extract an argument being passed
+	 *        in an invocation.
+	 * @return The actual argument.
+	 */
+	public AvailObject argument (final int zeroBasedIndex)
+	{
+		return argsBuffer.get(zeroBasedIndex);
+	}
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
@@ -1640,8 +1687,7 @@ public final class Interpreter
 	 *         a {@link StackReifier} used to indicate the stack is being
 	 *         unwound (and the Avail function is <em>not</em> returning).
 	 */
-	public @Nullable StackReifier invokeFunction (
-		final A_Function aFunction)
+	public @Nullable StackReifier invokeFunction (final A_Function aFunction)
 	{
 		assert !exitNow;
 		function = aFunction;
@@ -1794,12 +1840,15 @@ public final class Interpreter
 	 *        What zero-argument function to invoke after reification.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
+	 * @param shouldReturnNow
+	 *        Whether an Avail return should happen after reification.
 	 * @return The {@link StackReifier} that collects reified continuations on
 	 *         the way out to {@link #run()}.
 	 */
 	public StackReifier reifyThenCall0 (
 		final A_Function functionToCall,
-		final Statistic reificationStatistic)
+		final Statistic reificationStatistic,
+		final boolean shouldReturnNow)
 	{
 		return reifyThen(
 			reificationStatistic,
@@ -1809,6 +1858,7 @@ public final class Interpreter
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
+				returnNow = shouldReturnNow;
 			});
 	}
 
@@ -1821,6 +1871,8 @@ public final class Interpreter
 	 *        What three-argument function to invoke after reification.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
+	 * @param shouldReturnNow
+	 *        Whether an Avail return should happen after reification.
 	 * @param arg1
 	 *        The first argument of the function.
 	 * @param arg2
@@ -1833,6 +1885,7 @@ public final class Interpreter
 	public StackReifier reifyThenCall3 (
 		final A_Function functionToCall,
 		final Statistic reificationStatistic,
+		final boolean shouldReturnNow,
 		final A_BasicObject arg1,
 		final A_BasicObject arg2,
 		final A_BasicObject arg3)
@@ -1848,14 +1901,15 @@ public final class Interpreter
 				function = functionToCall;
 				chunk = functionToCall.code().startingChunk();
 				offset = 0;
+				returnNow = shouldReturnNow;
 			});
 	}
 
 	/**
-	 * Immediately throw a {@link StackReifier}.  Various Java stack
-	 * frames will catch and rethrow it, accumulating reified {@link
-	 * A_Continuation}s along the way.  The outer interpreter loop should catch
-	 * this, then run the provided {@link Continuation0}.
+	 * Create and return a {@link StackReifier}.  This will get returned all the
+	 * way out to the {@link #run()} method, accumulating reified stack frames
+	 * along the way.  The run() method will then invoke the given
+	 * postReificationAction and resume execution.
 	 *
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification.
@@ -2173,66 +2227,6 @@ public final class Interpreter
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
 			});
-	}
-
-	/**
-	 * Check that the result is an instance of the expected type.  If it is,
-	 * return.  If not, invoke the resultDisagreedWithExpectedTypeFunction.
-	 * Also accumulate statistics related to the return type check.  The {@link
-	 * Interpreter#returningFunction} must have been set by the client.
-	 *
-	 * @param result
-	 *        The value that was just returned.
-	 * @param expectedReturnType
-	 *        The expected type to check the value against.
-	 * @param returnee
-	 *        The {@link A_Function} that we're returning into.
-	 * @return A {@link StackReifier} if reification is needed, otherwise {@code
-	 *         null}.
-	 */
-	public @Nullable StackReifier checkReturnType (
-		final AvailObject result,
-		final A_Type expectedReturnType,
-		final A_Function returnee)
-	{
-		final long before = AvailRuntime.captureNanos();
-		final boolean checkOk = result.isInstanceOf(expectedReturnType);
-		final long after = AvailRuntime.captureNanos();
-		final A_Function returner = stripNull(returningFunction);
-		final @Nullable Primitive calledPrimitive = returner.code().primitive();
-		if (calledPrimitive != null)
-		{
-			calledPrimitive.addNanosecondsCheckingResultType(
-				after - before, interpreterIndex);
-		}
-		else
-		{
-			returner.code().returnerCheckStat().record(
-				after - before, interpreterIndex);
-			returnee.code().returneeCheckStat().record(
-				after - before, interpreterIndex);
-		}
-		if (!checkOk)
-		{
-			final A_Variable reportedResult =
-				newVariableWithContentType(Types.ANY.o());
-			reportedResult.setValueNoCheck(result);
-			argsBuffer.clear();
-			argsBuffer.add((AvailObject) returner);
-			argsBuffer.add((AvailObject) expectedReturnType);
-			argsBuffer.add((AvailObject) reportedResult);
-			final @Nullable StackReifier reifier =
-				invokeFunction(
-					runtime.resultDisagreedWithExpectedTypeFunction());
-			// The function has to be bottom-valued, so it can't ever actually
-			// return.  However, it's reifiable.  Note that the original callee
-			// is not part of the stack.  No point, since it was returning and
-			// is probably mostly evacuated.
-			assert reifier != null;
-			return reifier;
-		}
-		// Check was ok.
-		return null;
 	}
 
 	/**

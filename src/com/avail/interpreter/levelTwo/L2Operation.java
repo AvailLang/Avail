@@ -1,6 +1,6 @@
 /*
  * L2Operation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -49,20 +49,19 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Transformer1NotNullArg;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -101,7 +100,7 @@ public abstract class L2Operation
 	/**
 	 * The array of operand indices which have type {@link L2PcOperand}.
 	 */
-	private int[] labelOperandIndices = {};
+	private int[] labelOperandIndices;
 
 	/**
 	 * Whether this operation can do something other than fall through to the
@@ -138,6 +137,9 @@ public abstract class L2Operation
 		return stripNull(name);
 	}
 
+	/** An empty array of ints. */
+	static final int[] emptyIntArray = new int[0];
+
 	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
@@ -148,27 +150,12 @@ public abstract class L2Operation
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
 	 */
-	protected L2Operation ()
+	protected L2Operation (final L2NamedOperandType... theNamedOperandTypes)
 	{
 		final String className = this.getClass().getSimpleName();
 		name = className;
 		jvmTranslationTime = new Statistic(
 			className, StatisticReport.JVM_TRANSLATION_TIME);
-	}
-
-	/** An empty array of ints. */
-	static int[] emptyIntArray = new int[0];
-
-	/**
-	 * Initialize a fresh {@code L2Operation}.
-	 *
-	 * @param theNamedOperandTypes
-	 *        The named operand types that this operation expects.
-	 * @return The receiver.
-	 */
-	public L2Operation init (final L2NamedOperandType... theNamedOperandTypes)
-	{
-		assert namedOperandTypes == null;
 		namedOperandTypes = theNamedOperandTypes.clone();
 
 		// The number of targets won't be large, so don't worry about the
@@ -188,7 +175,6 @@ public abstract class L2Operation
 			: labelIndicesList.stream().mapToInt(Integer::intValue).toArray();
 		altersControlFlow = labelOperandIndices.length > 0
 			|| !reachesNextInstruction();
-		return this;
 	}
 
 	/**
@@ -354,14 +340,11 @@ public abstract class L2Operation
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
 	 */
-	public void instructionWasAdded (
-		final L2Instruction instruction)
+	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		if (isEntryPoint(instruction))
-		{
-			assert instruction.basicBlock.instructions().get(0) == instruction
-				: "Entry point instruction must be at start of a block";
-		}
+		assert !isEntryPoint(instruction)
+				|| instruction.basicBlock.instructions().get(0) == instruction
+			: "Entry point instruction must be at start of a block";
 	}
 
 	/**
@@ -449,7 +432,7 @@ public abstract class L2Operation
 			translator.newObjectRegisterWriter(outerType, null);
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2ImmediateOperand(outerIndex),
+			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer);
 		return writer.read();
@@ -511,16 +494,113 @@ public abstract class L2Operation
 			.collect(toList());
 	}
 
-	/**
-	 * Produce a suitable name to describe this instruction.
-	 *
-	 * @param instruction The instruction to name.
-	 * @return The name of the instruction, suitable for debugging.
-	 */
-	public String debugNameIn (final L2Instruction instruction)
+	@Override
+	public final String toString ()
 	{
-		assert instruction.operation == this;
-		return name();
+		// Skip the L2_ prefix, as it is redundant in context.
+		return name().substring(3);
+	}
+
+	/**
+	 * Produce a sensible preamble for the textual rendition of the specified
+	 * {@link L2Instruction} that includes the {@linkplain
+	 * L2Instruction#offset() offset} and {@linkplain #toString() name} of the
+	 * {@code L2Operation}.
+	 *
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param builder
+	 *        The {@code StringBuilder} to which the preamble should be written.
+	 */
+	protected final void renderPreamble (
+		final L2Instruction instruction,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final int offset = instruction.offset();
+		if (offset != -1)
+		{
+			builder.append(instruction.offset());
+			builder.append(". ");
+		}
+		builder.append(this);
+	}
+
+	/**
+	 * Generically render all {@linkplain L2Operand operands} of the specified
+	 * {@link L2Instruction} starting at the specified index.
+	 *
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param start
+	 *        The start index.
+	 * @param desiredTypes
+	 *        The {@link L2OperandType}s of {@link L2Operand}s to be included in
+	 *        generic renditions. Customized renditions may not honor these
+	 *        types.
+	 * @param builder
+	 *        The {@link StringBuilder} to which the rendition should be
+	 *        written.
+	 */
+	protected final void renderOperandsStartingAt (
+		final L2Instruction instruction,
+		final int start,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		final L2Operand[] operands = instruction.operands;
+		final L2NamedOperandType[] types = operandTypes();
+		for (int i = start, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
+	}
+
+	/**
+	 * Produce a sensible textual rendition of the specified {@link
+	 * L2Instruction}.
+	 *
+	 * @param instruction
+	 *        The {@code L2Instruction}.
+	 * @param desiredTypes
+	 *        The {@link L2OperandType}s of {@link L2Operand}s to be included in
+	 *        generic renditions. Customized renditions may not honor these
+	 *        types.
+	 * @param builder
+	 *        The {@link StringBuilder} to which the rendition should be
+	 *        written.
+	 */
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+		final L2NamedOperandType[] types = operandTypes();
+		final L2Operand[] operands = instruction.operands;
+		for (int i = 0, limit = operands.length; i < limit; i++)
+		{
+			final L2NamedOperandType type = types[i];
+			if (desiredTypes.contains(type.operandType()))
+			{
+				final L2Operand operand = operands[i];
+				builder.append("\n\t");
+				assert operand.operandType() == type.operandType();
+				builder.append(type.name());
+				builder.append(" = ");
+				builder.append(increaseIndentation(operand.toString(), 1));
+			}
+		}
 	}
 
 	/**

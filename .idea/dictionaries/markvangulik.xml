@@ -9,6 +9,9 @@
       <w>bytecodes</w>
       <w>callees</w>
       <w>callerless</w>
+      <w>canonicalization</w>
+      <w>canonicalized</w>
+      <w>canonicalizing</w>
       <w>choosable</w>
       <w>codepoints</w>
       <w>colorer</w>
@@ -31,6 +34,7 @@
       <w>gulik</w>
       <w>homogenous</w>
       <w>idempotently</w>
+      <w>immutables</w>
       <w>indexable</w>
       <w>inlineable</w>
       <w>inlined</w>
@@ -49,7 +53,9 @@
       <w>looper</w>
       <w>megamorphic</w>
       <w>metacharacter</w>
+      <w>metacovariance</w>
       <w>metatype</w>
+      <w>metatypes</w>
       <w>metavariance</w>
       <w>monomorphic</w>
       <w>multimethod</w>
@@ -60,6 +66,7 @@
       <w>nilpotent</w>
       <w>noninterfering</w>
       <w>nontype</w>
+      <w>nonwhitespace</w>
       <w>nullary</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
@@ -117,6 +124,7 @@
       <w>transactionally</w>
       <w>tuples</w>
       <w>unbackquoted</w>
+      <w>unbox</w>
       <w>unboxed</w>
       <w>uncached</w>
       <w>underflows</w>

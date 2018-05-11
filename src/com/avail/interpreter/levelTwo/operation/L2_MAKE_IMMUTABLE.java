@@ -34,10 +34,13 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -60,16 +63,42 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MAKE_IMMUTABLE
+public final class L2_MAKE_IMMUTABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MAKE_IMMUTABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_MAKE_IMMUTABLE().init(
+	private L2_MAKE_IMMUTABLE ()
+	{
+		super(
 			READ_POINTER.is("input"),
 			WRITE_POINTER.is("output"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MAKE_IMMUTABLE instance = new L2_MAKE_IMMUTABLE();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister inputReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister outputReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(outputReg);
+		builder.append(" ← ");
+		builder.append(inputReg);
+	}
 
 	@Override
 	public void translateToJVM (

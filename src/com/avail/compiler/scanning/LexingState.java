@@ -1,6 +1,6 @@
-/**
+/*
  * LexingState.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,13 +30,13 @@
  */
 
 package com.avail.compiler.scanning;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
@@ -67,6 +67,7 @@ import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -102,6 +103,14 @@ public class LexingState
 	public final int lineNumber;
 
 	/**
+	 * Every token, including whitespace, that has been parsed up to this point,
+	 * from the start of the current top-level statement.  This should also
+	 * include the initial leading whitespace, as we like to put related
+	 * comments before statements.
+	 */
+	public final List<A_Token> allTokens;
+
+	/**
 	 * The immutable {@link List} of {@link A_Token tokens} that may each be
 	 * next, starting at this lexing position.
 	 *
@@ -127,19 +136,28 @@ public class LexingState
 	 * and no actions have been queued to run against that eventual list of
 	 * tokens.
 	 *
+	 * @param compilationContext
+	 *        The {@link CompilationContext} in which compilation is occurring.
 	 * @param position
 	 *        The one-based position in the source.
 	 * @param lineNumber
 	 *        The one-based line number of this position in the source.
+	 * @param allTokens
+	 *        The immutable list of {@link A_Token}s that have been parsed up to
+	 *        this position, starting at the current top-level statement, but
+	 *        including any leading whitespace and comment tokens.
 	 */
 	public LexingState (
 		final CompilationContext compilationContext,
 		final int position,
-		final int lineNumber)
+		final int lineNumber,
+		final List<A_Token> allTokens)
 	{
 		this.compilationContext = compilationContext;
 		this.position = position;
 		this.lineNumber = lineNumber;
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
+		this.allTokens = allTokens;
 	}
 
 	/**
@@ -160,7 +178,7 @@ public class LexingState
 	 *        What to pass as an argument to the provided {@linkplain
 	 *        Continuation1 one-argument continuation}.
 	 */
-	public <ArgType> void workUnitsDo (
+	private <ArgType> void workUnitsDo (
 		final List<Continuation1NotNull<ArgType>> continuations,
 		final ArgType argument)
 	{
@@ -219,42 +237,40 @@ public class LexingState
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		final List<A_Token> theNextTokens = new ArrayList<>(2);
-		nextTokens = theNextTokens;
-		final LexicalScanner scanner =
-			compilationContext.loader().lexicalScanner();
+		nextTokens = new ArrayList<>(2);
 		final A_String source = compilationContext.source();
 		if (position > source.tupleSize())
 		{
 			// The end of the source code.  Produce an end-of-file token.
 			assert position == source.tupleSize() + 1;
-			theNextTokens.add(
-				newToken(
-					emptyTuple(),
-					emptyTuple(),
-					emptyTuple(),
-					position,
-					lineNumber,
-					END_OF_FILE));
+			final A_Token endOfFileToken = newToken(
+				stringFrom("end-of-file"),
+				emptyTuple(),
+				emptyTuple(),
+				position,
+				lineNumber,
+				END_OF_FILE);
+			nextTokens.add(endOfFileToken);
 			for (final Continuation1NotNull<List<A_Token>> action : actions)
 			{
-				workUnitDo(action, theNextTokens);
+				workUnitDo(action, nextTokens);
 			}
 			actions = null;
 			return;
 		}
-		final int codePoint =
-			compilationContext.source().tupleCodePointAt(position);
-		scanner.getLexersForCodePointThen(
+		compilationContext.loader().lexicalScanner().getLexersForCodePointThen(
 			this,
-			codePoint,
+			source.tupleCodePointAt(position),
 			this::evaluateLexers,
 			this::reportLexerFilterFailures);
 	}
 
 	/**
-	 * The lexer filters
-	 * A lexer has just run and produced zero or more tokens at this position.
+	 * The lexer filter functions have produced a tuple of applicable {@link
+	 * A_Lexer}s, so run them.  When they have all completed, there will be no
+	 * outstanding tasks for the relevant {@link CompilationContext}, so it will
+	 * automatically invoke {@link CompilationContext#noMoreWorkUnits}, allowing
+	 * parsing to continue.
 	 *
 	 * @param applicableLexers
 	 *        The lexers that passed their filter functions.
@@ -284,9 +300,9 @@ public class LexingState
 			actions = null;
 			return;
 		}
-		// There's at least one applicable lexer.  Launch
-		// fibers which, when the last one completes, will
-		// capture the list of tokens and run the actions.
+		// There's at least one applicable lexer.  Launch fibers which, when the
+		// last one completes, will capture the list of tokens and run the
+		// actions.
 		final AtomicInteger countdown =
 			new AtomicInteger(applicableLexers.tupleSize());
 		final List<A_BasicObject> arguments =
@@ -302,7 +318,10 @@ public class LexingState
 
 	/**
 	 * Run a lexer.  When it completes, decrement the countdown.  If it reaches
-	 * zero,
+	 * zero, run {@link #lexerBodyWasSuccessful(A_Set, AtomicInteger)} with
+	 * all the possible tokens at this position to indicate success (otherwise
+	 * indicate an expectation of a valid token).
+	 *
 	 * @param lexer
 	 *        The lexer to execute.
 	 * @param arguments
@@ -311,7 +330,7 @@ public class LexingState
 	 *        A countdown to indicate completion of the group of lexers running
 	 *        at the same source position in parallel.
 	 */
-	@InnerAccess void evaluateLexerAndRunActionsWhenZero (
+	private void evaluateLexerAndRunActionsWhenZero (
 		final A_Lexer lexer,
 		final List<A_BasicObject> arguments,
 		final AtomicInteger countdown)
@@ -329,7 +348,7 @@ public class LexingState
 //		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(compilationContext.getTextInterface());
 		final Continuation1NotNull<AvailObject> onSuccess =
-			newTokens -> lexerBodyWasSuccessful(newTokens, countdown);
+			newTokenRuns -> lexerBodyWasSuccessful(newTokenRuns, countdown);
 		final Continuation1NotNull<Throwable> onFailure =
 			throwable ->
 			{
@@ -338,21 +357,24 @@ public class LexingState
 					final AvailRejectedParseException rej =
 						(AvailRejectedParseException) throwable;
 					expected(rej.rejectionString().asNativeString());
-					return;
 				}
-				// Report the problem as an expectation, with a stack trace.
-				expected(
-					afterDescribing ->
-					{
-						final StringWriter writer = new StringWriter();
-						throwable.printStackTrace(new PrintWriter(writer));
-						final String text = format(
-							"%s not to have failed while "
-								+ "evaluating its body:\n%s",
-							lexer.toString(),
-							writer.toString());
-						afterDescribing.value(text);
-					});
+				else
+				{
+					// Report the problem as an expectation, with a stack trace.
+					expected(
+						afterDescribing ->
+						{
+							final StringWriter writer = new StringWriter();
+							throwable.printStackTrace(new PrintWriter(writer));
+							final String text = format(
+								"%s not to have failed while "
+									+ "evaluating its body:\n%s",
+								lexer.toString(),
+								writer.toString());
+							afterDescribing.value(text);
+						});
+				}
+				decrementAndRunActionsWhenZero(countdown);
 			};
 		assert compilationContext.getNoMoreWorkUnits() != null;
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
@@ -371,28 +393,54 @@ public class LexingState
 	 * A lexer body completed successfully with the given tuple of next tokens
 	 * (all tokens that the lexer indicates might be the very next token).
 	 *
-	 * @param newTokens
-	 *        All tokens that might be the very next one, according to the lexer
-	 *        that just completed.
+	 * @param newTokenRuns
+	 *        A set of sequences (tuples) of tokens that represent possible
+	 *        future non-empty lineages of tokens, as produced by lexers.
 	 * @param countdown
 	 *        The {@link AtomicInteger} which counts down to zero with each
 	 *        successful invocation (not each token), then runs all outstanding
 	 *        actions once.
 	 */
-	final synchronized void lexerBodyWasSuccessful (
-		final A_Tuple newTokens,
+	private synchronized void lexerBodyWasSuccessful (
+		final A_Set newTokenRuns,
 		final AtomicInteger countdown)
 	{
 		final List<A_Token> theNextTokens = stripNull(nextTokens);
-		for (final A_Token token : newTokens)
+		for (final A_Tuple run : newTokenRuns)
 		{
-			theNextTokens.add(token);
+//			assert run.tupleSize() > 0;
+			theNextTokens.add(run.tupleAt(1));
+			LexingState state = this;
+			for (final A_Token token : run)
+			{
+				token.setNextLexingStateFromPrior(state);
+				state = token.nextLexingState();
+			}
 		}
+		decrementAndRunActionsWhenZero(countdown);
+	}
+
+	/**
+	 * Decrement the supplied {@link AtomicInteger}.  If it reaches zero, queue
+	 * the actions, transitioning to a state where new actions will simply run
+	 * with the {@link #nextTokens}.
+	 *
+	 * @param countdown
+	 *        The {@link AtomicInteger}.
+	 */
+	private void decrementAndRunActionsWhenZero (final AtomicInteger countdown)
+	{
 		if (countdown.decrementAndGet() == 0)
 		{
-			// We just heard from the last lexer.  Run the actions once.
-			workUnitsDo(stripNull(actions), theNextTokens);
-			actions = null;
+			// We just heard from the last lexer.  Run the actions once, and
+			// ensure any new actions start immediately with nextTokens.
+			final List<Continuation1NotNull<List<A_Token>>> queuedActions;
+			synchronized (this)
+			{
+				queuedActions = stripNull(actions);
+				actions = null;
+			}
+			workUnitsDo(queuedActions, stripNull(nextTokens));
 		}
 	}
 

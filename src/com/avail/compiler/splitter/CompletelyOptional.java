@@ -1,6 +1,6 @@
-/**
+/*
  * CompletelyOptional.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 
 import javax.annotation.Nullable;
@@ -41,7 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCONSISTENT_ARGUMENT_REORDERING;
@@ -64,7 +64,7 @@ final class CompletelyOptional
 extends Expression
 {
 	/** The governed {@linkplain Sequence sequence}. */
-	final Sequence sequence;
+	private final Sequence sequence;
 
 	/**
 	 * Construct a new {@link CompletelyOptional}.
@@ -136,7 +136,7 @@ extends Expression
 		 * @expressionSkip:
 		 */
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(emptyListNodeType());
+			sequence.mightBeEmpty(emptyListPhraseType());
 		final Label $expressionSkip = new Label();
 		generator.emitBranchForward(this, $expressionSkip);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
@@ -150,7 +150,7 @@ extends Expression
 		for (final Expression expression : sequence.expressions)
 		{
 			expression.emitOn(
-				emptyListNodeType(),
+				emptyListPhraseType(),
 				generator,
 				WrapState.SHOULD_NOT_HAVE_ARGUMENTS);
 		}
@@ -164,12 +164,12 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + sequence.expressions + ")";
+		return getClass().getSimpleName() + '(' + sequence.expressions + ')';
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -187,12 +187,12 @@ extends Expression
 		else
 		{
 			// A sequence of tokens that are optional (in aggregate).
-			builder.append("«");
+			builder.append('«');
 			sequence.printWithArguments(
 				emptyTuple().iterator(), builder, indent);
-			builder.append("»");
+			builder.append('»');
 		}
-		builder.append("⁇");
+		builder.append('⁇');
 	}
 
 	@Override

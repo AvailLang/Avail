@@ -1,6 +1,6 @@
-/**
+/*
  * P_TupleAppend.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,14 +41,15 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.util.List;
 
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
 	.concatenatingAnd;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
@@ -73,12 +74,11 @@ public final class P_TupleAppend extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Tuple tuple = args.get(0);
-		final A_BasicObject newElement = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Tuple tuple = interpreter.argument(0);
+		final A_BasicObject newElement = interpreter.argument(1);
 
 		return interpreter.primitiveSuccess(
 			tuple.appendCanDestroy(newElement, true));

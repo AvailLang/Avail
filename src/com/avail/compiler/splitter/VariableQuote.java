@@ -1,6 +1,6 @@
-/**
+/*
  * VariableQuote.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,10 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ReferenceNodeDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.ReferencePhraseDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 
 import javax.annotation.Nullable;
@@ -42,13 +42,14 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code VariableQuote} is an occurrence of {@linkplain
  * Metacharacter#UP_ARROW up arrow} (↑) after an underscore in a
  * message name. It indicates that the expression must be the name of a
  * {@linkplain VariableDescriptor variable} that is currently in-scope. It
- * produces a {@linkplain ReferenceNodeDescriptor reference} to the
+ * produces a {@linkplain ReferencePhraseDescriptor reference} to the
  * variable, rather than extracting its value.
  */
 final class VariableQuote
@@ -75,7 +76,7 @@ extends Argument
 		generator.flushDelayed();
 		generator.emit(this, PARSE_VARIABLE_REFERENCE);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		if (!ParseNodeKind.REFERENCE_NODE.mostGeneralType().isSubtypeOf(
+		if (!PhraseKind.REFERENCE_PHRASE.mostGeneralType().isSubtypeOf(
 			phraseType))
 		{
 			generator.emitDelayed(
@@ -88,16 +89,15 @@ extends Argument
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
+		final @Nullable Iterator<? extends A_Phrase> arguments,
 		final StringBuilder builder,
 		final int indent)
 	{
-		assert arguments != null;
 		// Describe the variable reference that was parsed as this argument.
-		arguments.next().printOnAvoidingIndent(
+		stripNull(arguments).next().printOnAvoidingIndent(
 			builder,
 			new IdentityHashMap<>(),
 			indent + 1);
-		builder.append("↑");
+		builder.append('↑');
 	}
 }

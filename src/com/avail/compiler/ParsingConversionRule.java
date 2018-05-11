@@ -1,6 +1,6 @@
-/**
+/*
  * ParsingConversionRule.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,32 +33,22 @@
 package com.avail.compiler;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralNodeDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the
- * top of the parsing stack from one {@linkplain ParseNodeDescriptor phrase} to
+ * top of the parsing stack from one {@linkplain PhraseDescriptor phrase} to
  * another.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -83,8 +73,8 @@ public enum ParsingConversionRule
 	},
 
 	/**
-	 * {@code 1} - Convert a {@linkplain ListNodeDescriptor list} into a
-	 * {@linkplain LiteralNodeDescriptor literal node} that yields an
+	 * {@code 1} - Convert a {@linkplain ListPhraseDescriptor list} into a
+	 * {@linkplain LiteralPhraseDescriptor literal phrase} that yields an
 	 * {@linkplain IntegerDescriptor integer} representing the {@linkplain
 	 * AvailObject#tupleSize() size} of the original list.
 	 */
@@ -114,9 +104,9 @@ public enum ParsingConversionRule
 	},
 
 	/**
-	 * {@code 2} - Immediately evaluate the {@linkplain ParseNodeDescriptor
-	 * parse node} on the stack to produce a value.  Replace the parse node with
-	 * a literal node holding this value.
+	 * {@code 2} - Immediately evaluate the {@linkplain PhraseDescriptor
+	 * phrase} on the stack to produce a value.  Replace the phrase with
+	 * a literal phrase holding this value.
 	 */
 	EVALUATE_EXPRESSION(2)
 	{
@@ -161,9 +151,9 @@ public enum ParsingConversionRule
 	 * @param lexingState
 	 *        The {@link LexingState} after the phrase.
 	 * @param input
-	 *        The parse node to be converted.
+	 *        The phrase to be converted.
 	 * @param continuation
-	 *        What to do with the replacement parse node.
+	 *        What to do with the replacement phrase.
 	 * @param onProblem
 	 *        What to do if there's a problem.
 	 */

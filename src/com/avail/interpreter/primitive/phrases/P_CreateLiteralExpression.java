@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateLiteralExpression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,23 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
 import com.avail.descriptor.LiteralTokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain LiteralNodeDescriptor
+ * <strong>Primitive:</strong> Create a {@linkplain LiteralPhraseDescriptor
  * literal expression} from the specified {@linkplain LiteralTokenDescriptor
  * literal token}.
  *
@@ -71,11 +69,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Token token = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Token token = interpreter.argument(0);
 		return interpreter.primitiveSuccess(literalNodeFromToken(token));
 	}
 
@@ -83,7 +80,8 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(mostGeneralLiteralTokenType()),
-			LITERAL_NODE.mostGeneralType());
+			tuple(
+				mostGeneralLiteralTokenType()),
+			LITERAL_PHRASE.mostGeneralType());
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapPrefixBlockArgument.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,28 +37,26 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newArgument;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -85,11 +83,10 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase optionalBlockArgumentsList = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase optionalBlockArgumentsList = interpreter.argument(0);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
@@ -107,8 +104,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		final A_Phrase namePhrase = lastPair.expressionAt(1);
 		final A_Phrase typePhrase = lastPair.expressionAt(2);
 
-		assert namePhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
-		assert typePhrase.isInstanceOfKind(LITERAL_NODE.create(anyMeta()));
+		assert namePhrase.isInstanceOfKind(LITERAL_PHRASE.create(TOKEN.o()));
+		assert typePhrase.isInstanceOfKind(LITERAL_PHRASE.create(anyMeta()));
 		final A_Token outerArgToken = namePhrase.token();
 		final A_Token argToken = outerArgToken.literal();
 		final A_String argName = argToken.string();
@@ -149,8 +146,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */

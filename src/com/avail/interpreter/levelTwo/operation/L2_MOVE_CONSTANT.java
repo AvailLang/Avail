@@ -33,14 +33,17 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -51,21 +54,28 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_CONSTANT
+public final class L2_MOVE_CONSTANT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_MOVE_CONSTANT}.
 	 */
-	public static final L2Operation instance =
-		new L2_MOVE_CONSTANT().init(
+	private L2_MOVE_CONSTANT ()
+	{
+		super(
 			CONSTANT.is("constant"),
 			WRITE_POINTER.is("destination"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_MOVE_CONSTANT instance = new L2_MOVE_CONSTANT();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final AvailObject constant = instruction.constantAt(0);
@@ -84,20 +94,28 @@ extends L2Operation
 	 * @return The constant {@link AvailObject} that is moved by the
 	 *         instruction.
 	 */
-	public static AvailObject constantOf (
-		final L2Instruction instruction)
+	public static AvailObject constantOf (final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;
 		return instruction.constantAt(0);
 	}
 
 	@Override
-	public String debugNameIn (
-		final L2Instruction instruction)
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
 	{
-		final AvailObject constant = instruction.constantAt(0);
-		return super.debugNameIn(instruction)
-			+ "(const=" + constant.typeTag() + ")";
+		assert this == instruction.operation;
+		final L2Operand constant = instruction.operands[0];
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destinationReg);
+		builder.append(" ← ");
+		builder.append(constant);
 	}
 
 	@Override

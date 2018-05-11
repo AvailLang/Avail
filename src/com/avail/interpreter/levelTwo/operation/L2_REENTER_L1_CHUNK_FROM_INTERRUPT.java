@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
@@ -62,14 +63,22 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT
+public final class L2_REENTER_L1_CHUNK_FROM_INTERRUPT
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_REENTER_L1_CHUNK_FROM_INTERRUPT}.
+	 */
+	private L2_REENTER_L1_CHUNK_FROM_INTERRUPT ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT().init();
+	public static final L2_REENTER_L1_CHUNK_FROM_INTERRUPT instance =
+		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -105,7 +114,8 @@ extends L2Operation
 				interpreter.debugModeString);
 		}
 
-		assert interpreter.function == continuation.function();
+		final A_Function function = stripNull(interpreter.function);
+		assert function == continuation.function();
 		final int numSlots = continuation.numSlots();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
@@ -115,7 +125,8 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(dest++, continuation.stackAt(i));
 		}
-		stepper.pc.value = continuation.pc();
+		function.code().setUpInstructionDecoder(stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(continuation.pc());
 		stepper.stackp = continuation.stackp();
 	}
 

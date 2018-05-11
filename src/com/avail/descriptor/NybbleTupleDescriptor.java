@@ -1,6 +1,6 @@
-/**
+/*
  * NybbleTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
 	.HASH_OR_ZERO;
 import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
 	.RAW_LONG_AT_;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor
 	.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;

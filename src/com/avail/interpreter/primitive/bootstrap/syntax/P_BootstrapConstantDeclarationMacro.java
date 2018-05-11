@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapConstantDeclarationMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,29 +38,28 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newConstant;
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
- * bootstrapping declaration of a {@link ParseNodeKind#LOCAL_CONSTANT_NODE local
+ * bootstrapping declaration of a {@link PhraseKind#LOCAL_CONSTANT_PHRASE local
  * constant declaration}.  Constant declarations that occur at the outermost
- * scope are rewritten by the {@link AvailCompiler} as a {@link ParseNodeKind
+ * scope are rewritten by the {@link AvailCompiler} as a {@link PhraseKind
  * #MODULE_CONSTANT_NODE}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -77,12 +76,11 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase constantNameLiteral = args.get(0);
-		final A_Phrase initializationExpression = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase constantNameLiteral = interpreter.argument(0);
+		final A_Phrase initializationExpression = interpreter.argument(1);
 
 		final A_Token nameToken = constantNameLiteral.token().literal();
 		final A_String nameString = nameToken.string();
@@ -122,10 +120,10 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Constant name token as a literal node */
-				LITERAL_NODE.create(TOKEN.o()),
+				/* Constant name token as a literal phrase */
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_CONSTANT_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			LOCAL_CONSTANT_PHRASE.mostGeneralType());
 	}
 }

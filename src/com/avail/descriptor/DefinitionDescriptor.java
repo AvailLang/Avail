@@ -1,6 +1,6 @@
-/**
+/*
  * DefinitionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,16 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots
-	.DEFINITION_METHOD;
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.MODULE;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -159,10 +157,10 @@ extends Descriptor
 		assert sizes.lowerBound().extractInt()
 			== object.slot(DEFINITION_METHOD).numArgs();
 		return createListNodeType(
-			ParseNodeKind.LIST_NODE,
+			PhraseKind.LIST_PHRASE,
 			argsTupleType,
 			tupleTypeFromTupleOfTypes(
-				argsTupleType, ParseNodeKind.EXPRESSION_NODE::create));
+				argsTupleType, PhraseKind.EXPRESSION_PHRASE::create));
 	}
 
 	@Override @AvailMethod

@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapVariableUseMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,12 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,25 +56,27 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor
+	.newModuleVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapVariableUseMacro} primitive is used to create
- * {@link VariableUseNodeDescriptor variable use} phrases.
+ * {@link VariableUsePhraseDescriptor variable use} phrases.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -89,18 +92,17 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase variableNameLiteral = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase variableNameLiteral = interpreter.argument(0);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -149,10 +151,8 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 					builder.append("variable ");
 					builder.append(variableNameString);
 					builder.append(" to be in scope (local scope is: ");
-					final List<A_String> scope = new ArrayList<>();
-					scope.addAll(
-						toList(
-							scopeMap.keysAsSet().asTuple()));
+					final List<A_String> scope = new ArrayList<>(
+						toList(scopeMap.keysAsSet().asTuple()));
 					scope.sort((s1, s2) ->
 					{
 						assert s1 != null && s2 != null;
@@ -187,7 +187,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name */
-				LITERAL_NODE.create(TOKEN.o())),
-			VARIABLE_USE_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(TOKEN.o())),
+			VARIABLE_USE_PHRASE.mostGeneralType());
 	}
 }

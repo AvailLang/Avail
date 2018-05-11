@@ -45,29 +45,27 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ReverseTupleDescriptor.createReverseTuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SubrangeTupleDescriptor.createSubrange;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.max;
@@ -1315,47 +1313,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a tuple with the specified elements. The elements are not made
-	 * immutable first, nor is the new tuple.
-	 *
-	 * @param elements
-	 *        The array of Avail values from which to construct a tuple.
-	 * @return The new mutable tuple.
-	 */
-	@ReferencedInGeneratedCode
-	public static A_Tuple tuple (
-		final A_BasicObject... elements)
-	{
-		if (elements.length == 0)
-		{
-			return emptyTuple();
-		}
-		return generateObjectTupleFrom(elements.length, i -> elements[i - 1]);
-	}
-
-	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * passed in a list.  The elements are not made immutable first, nor is the
-	 * new tuple necessarily made immutable.
-	 *
-	 * @param list
-	 *        The list of {@linkplain AvailObject Avail objects} from which
-	 *        to construct a tuple.
-	 * @return The corresponding tuple of objects.
-	 */
-	public static <E extends A_BasicObject> A_Tuple tupleFromList (
-		final List<E> list)
-	{
-		final int size = list.size();
-		if (size == 0)
-		{
-			return emptyTuple();
-		}
-		return generateObjectTupleFrom(size, i -> list.get(i - 1));
-	}
-
-	/**
-	 * Construct a {@linkplain List list} from the specified {@linkplain
+	 * Construct a Java {@link List} from the specified {@linkplain
 	 * TupleDescriptor tuple}. The elements are not made immutable.
 	 *
 	 * @param tuple
@@ -1372,6 +1330,26 @@ extends Descriptor
 			list.add((X) element);
 		}
 		return list;
+	}
+
+	/**
+	 * Construct a Java {@link Set} from the specified {@linkplain
+	 * TupleDescriptor tuple}. The elements are not made immutable.
+	 *
+	 * @param tuple
+	 *        A tuple.
+	 * @return The corresponding {@link Set} of objects.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <X extends A_BasicObject> Set<X> toSet (
+		final A_Tuple tuple)
+	{
+		final Set<X> set = new HashSet<>(tuple.tupleSize());
+		for (final AvailObject element : tuple)
+		{
+			set.add((X) element);
+		}
+		return set;
 	}
 
 	/**
@@ -1511,7 +1489,6 @@ extends Descriptor
 			* powersOfMultiplier[2][(anInteger >> 16) & 0xFF]
 			* powersOfMultiplier[3][(anInteger >> 24) & 0xFF];
 	}
-
 
 	/**
 	 * The constant by which each element's hash should be XORed prior to

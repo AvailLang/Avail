@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapPrefixLabelDeclaration.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,14 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,17 +51,16 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationNodeDescriptor.newLabel;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newLabel;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -91,13 +90,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Phrase optionalBlockArgumentsList = args.get(0);
-//		final A_Phrase optionalPrimFailurePhrase = args.get(1);
-		final A_Phrase optionalLabelPhrase = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Phrase optionalBlockArgumentsList = interpreter.argument(0);
+//		final A_Phrase optionalPrimFailurePhrase = interpreter.argument(1);
+		final A_Phrase optionalLabelPhrase = interpreter.argument(2);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
@@ -126,7 +124,7 @@ extends Primitive
 		{
 			labelReturnTypePhrase =
 				optionalLabelReturnTypePhrase.expressionAt(1);
-			assert labelReturnTypePhrase.parseNodeKindIsUnder(LITERAL_NODE);
+			assert labelReturnTypePhrase.phraseKindIsUnder(LITERAL_PHRASE);
 			labelReturnType = labelReturnTypePhrase.token().literal();
 		}
 		else
@@ -153,7 +151,7 @@ extends Primitive
 				assert argumentPair.expressionsSize() == 2;
 				final A_Phrase typePhrase = argumentPair.expressionAt(2);
 				assert typePhrase.isInstanceOfKind(
-					LITERAL_NODE.create(anyMeta()));
+					LITERAL_PHRASE.create(anyMeta()));
 				final A_Type argType = typePhrase.token().literal();
 				assert argType.isType();
 				blockArgumentTypes.add(argType);
@@ -184,8 +182,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional arguments section. */
 					zeroOrOneOf(
 						/* Arguments are present. */
@@ -196,8 +194,8 @@ extends Primitive
 								TOKEN.o(),
 								/* Argument type. */
 								anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
 					zeroOrOneOf(
 						/* Primitive declaration */
@@ -212,8 +210,8 @@ extends Primitive
 									TOKEN.o(),
 									/* Primitive failure variable type */
 									anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+				/* Macro argument is a phrase. */
+				LIST_PHRASE.create(
 					/* Optional label declaration. */
 					zeroOrOneOf(
 						/* Label parts. */

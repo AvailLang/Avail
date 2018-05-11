@@ -34,14 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
@@ -54,20 +57,27 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CLEAR_VARIABLE
+public final class L2_CLEAR_VARIABLE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_CLEAR_VARIABLE}.
+	 */
+	private L2_CLEAR_VARIABLE ()
+	{
+		super(
+			READ_POINTER.is("variable"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_CLEAR_VARIABLE().init(
-			READ_POINTER.is("variable"));
+	public static final L2_CLEAR_VARIABLE instance = new L2_CLEAR_VARIABLE();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand variableReg =
@@ -86,6 +96,20 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand variableReg = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(variableReg);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
@@ -101,7 +125,7 @@ extends L2Operation
 			INVOKEINTERFACE,
 			getInternalName(A_Variable.class),
 			"clearValue",
-			getMethodDescriptor(VOID_TYPE, getType(A_Variable.class)),
+			getMethodDescriptor(VOID_TYPE),
 			true);
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateBlockExpression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,29 +38,29 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockNodeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor
-	.containsOnlyStatements;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.exceptions.AvailErrorCode
@@ -70,8 +70,8 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Create a {@linkplain BlockNodeDescriptor
- * block expression} from the specified {@linkplain ParseNodeKind#ARGUMENT_NODE
+ * <strong>Primitive:</strong> Create a {@linkplain BlockPhraseDescriptor
+ * block expression} from the specified {@linkplain PhraseKind#ARGUMENT_PHRASE
  * argument declarations}, primitive number, statements, result type, and
  * exception set.
  *
@@ -90,15 +90,14 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 5;
-		final A_Tuple argDecls = args.get(0);
-		final A_String primitiveName = args.get(1);
-		final A_Tuple statements = args.get(2);
-		final A_Type resultType = args.get(3);
-		final A_Set exceptions = args.get(4);
+		interpreter.checkArgumentCount(5);
+		final A_Tuple argDecls = interpreter.argument(0);
+		final A_String primitiveName = interpreter.argument(1);
+		final A_Tuple statements = interpreter.argument(2);
+		final A_Type resultType = interpreter.argument(3);
+		final A_Set exceptions = interpreter.argument(4);
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".
@@ -144,12 +143,12 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType()),
+				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
 				stringType(),
-				zeroOrMoreOf(PARSE_NODE.mostGeneralType()),
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
 				topMeta(),
 				setTypeForSizesContentType(wholeNumbers(), exceptionType())),
-			BLOCK_NODE.mostGeneralType());
+			BLOCK_PHRASE.mostGeneralType());
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * LexerDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,13 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -141,7 +143,9 @@ extends Descriptor
 				stringType(),
 				naturalNumbers(),
 				naturalNumbers()),
-			zeroOrMoreOf(TOKEN.o())
+			setTypeForSizesContentType(
+				wholeNumbers(),
+				oneOrMoreOf(TOKEN.o()))
 		).makeShared();
 
 	public static A_Type lexerBodyFunctionType ()

@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapDefineSpecialObjectMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,35 +37,34 @@ import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
-import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 	.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
-import static com.avail.descriptor.ListNodeDescriptor.newListNode;
-import static com.avail.descriptor.LiteralNodeDescriptor
+import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
+import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
+import static com.avail.descriptor.LiteralPhraseDescriptor
 	.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SEQUENCE_NODE;
-import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
-import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.SEQUENCE_PHRASE;
+import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
+import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
@@ -91,12 +90,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase nameLiteral = args.get(0);
-		final A_Phrase specialObjectLiteral = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase nameLiteral = interpreter.argument(0);
+		final A_Phrase specialObjectLiteral = interpreter.argument(1);
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null || loader.module().equalsNil())
@@ -151,7 +149,7 @@ extends Primitive
 			emptyTuple(),
 			CREATE_LITERAL_PHRASE.bundle,
 			newListNode(tuple(createLiteralToken)),
-			LITERAL_NODE.create(specialObjectLiteral.expressionType()));
+			LITERAL_PHRASE.create(specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = newSendNode(
 			emptyTuple(),
 			MACRO_DEFINER.bundle,
@@ -163,7 +161,7 @@ extends Primitive
 						emptyTuple(),
 						0,
 						tuple(createLiteralNode),
-						LITERAL_NODE.create(
+						LITERAL_PHRASE.create(
 							specialObjectLiteral.expressionType()),
 						emptySet(),
 						0,
@@ -181,8 +179,8 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				LITERAL_NODE.create(oneOrMoreOf(CHARACTER.o())),
-				LITERAL_NODE.create(ANY.o())),
-			SEQUENCE_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(oneOrMoreOf(CHARACTER.o())),
+				LITERAL_PHRASE.create(ANY.o())),
+			SEQUENCE_PHRASE.mostGeneralType());
 	}
 }

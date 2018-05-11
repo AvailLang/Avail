@@ -1,6 +1,6 @@
-/**
+/*
  * ShowCCReportAction.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 package com.avail.environment.actions;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.builder.AvailBuilder;
 import com.avail.descriptor.CompiledCodeDescriptor.CodeCoverageReport;
 import com.avail.descriptor.FiberDescriptor;
@@ -58,47 +57,42 @@ public final class ShowCCReportAction
 extends AbstractWorkbenchAction
 {
 	/** The current runtime. */
-	final AvailRuntime runtime;
+	private final AvailRuntime runtime;
 
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
-		{
-			@Override
-			public void value ()
-			{
-				codeCoverageReportsThen(
-					reports ->
+		runtime.execute(
+			FiberDescriptor.commandPriority,
+			() -> codeCoverageReportsThen(
+				reports ->
+				{
+					// Order the report items using the natural sort defined
+					// in the object.
+					Collections.sort(reports);
+
+					// Announce the beginning of the report dump.
+					final StringBuilder builder = new StringBuilder();
+					final String header =
+						"Code Coverage Report - all functions\n" +
+						'\n' +
+						"KEY\n" +
+						"r: Function has run\n" +
+						"t: Function has been translated\n" +
+						"m: Module name\n" +
+						"l: Starting line number\n" +
+						"f: Function name and sub-function ordinals\n" +
+						'\n';
+					builder.append(header);
+
+					// Iterate over each report
+					for (final CodeCoverageReport r : reports)
 					{
-						// Order the report items using the natural sort defined
-						// in the object.
-						Collections.sort(reports);
-
-						// Announce the beginning of the report dump.
-						final StringBuilder builder = new StringBuilder();
-						final String header =
-							"Code Coverage Report - all functions\n" +
-							"\n" +
-							"KEY\n" +
-							"r: Function has run\n" +
-							"t: Function has been translated\n" +
-							"m: Module name\n" +
-							"l: Starting line number\n" +
-							"f: Function name and sub-function ordinals\n" +
-							"\n";
-						builder.append(header);
-
-						// Iterate over each report
-						for (final CodeCoverageReport r : reports)
-						{
-							builder.append(r);
-							builder.append('\n');
-						}
-						workbench.writeText(builder.toString(), INFO);
-					});
-			}
-		});
+						builder.append(r);
+						builder.append('\n');
+					}
+					workbench.writeText(builder.toString(), INFO);
+				}));
 	}
 
 	/**

@@ -1,6 +1,6 @@
-/**
+/*
  * ConcatenatedTupleTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -557,7 +556,7 @@ extends TypeDescriptor
 	 * @return The type of the specified index within the concatenated tuple
 	 *         type.
 	 */
-	@InnerAccess static A_Type elementOfConcatenation (
+	private static A_Type elementOfConcatenation (
 		final A_Type firstTupleType,
 		final A_Type secondTupleType,
 		final int index)

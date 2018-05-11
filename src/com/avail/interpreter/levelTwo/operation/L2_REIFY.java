@@ -38,7 +38,10 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -48,10 +51,13 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
@@ -75,18 +81,25 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REIFY
+public final class L2_REIFY
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_REIFY}.
+	 */
+	private L2_REIFY ()
+	{
+		super(
+			INT_IMMEDIATE.is("capture frames"),
+			INT_IMMEDIATE.is("process interrupt"),
+			INT_IMMEDIATE.is("statistic category"),
+			PC.is("on reification", OFF_RAMP));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_REIFY().init(
-			IMMEDIATE.is("capture frames"),
-			IMMEDIATE.is("process interrupt"),
-			IMMEDIATE.is("statistic category"),
-			PC.is("on reification"));
+	public static final L2_REIFY instance = new L2_REIFY();
 
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
@@ -127,6 +140,50 @@ extends L2Operation
 		// instruction from being re-ordered to a place where the interpreter's
 		// top reified continuation is no longer the right one.
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final boolean actuallyReify = instruction.intImmediateAt(0) == 1;
+		final boolean processInterrupt = instruction.intImmediateAt(1) == 1;
+		final StatisticCategory category =
+			StatisticCategory.values()[instruction.intImmediateAt(2)];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
+		if (actuallyReify || processInterrupt)
+		{
+			builder.append(" [");
+			if (actuallyReify)
+			{
+				builder.append("actually reify");
+				if (processInterrupt)
+				{
+					builder.append(", ");
+				}
+			}
+			if (processInterrupt)
+			{
+				builder.append("process interrupt");
+			}
+			builder.append(']');
+		}
+		final L2NamedOperandType type = operandTypes()[3];
+		if (desiredTypes.contains(type.operandType()))
+		{
+			final L2Operand operand = instruction.operands[3];
+			builder.append("\n\t");
+			assert operand.operandType() == type.operandType();
+			builder.append(type.name());
+			builder.append(" = ");
+			builder.append(increaseIndentation(operand.toString(), 1));
+		}
 	}
 
 	@SuppressWarnings("unused")
@@ -185,9 +242,9 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int actuallyReify = instruction.immediateAt(0);
-		final int processInterrupt = instruction.immediateAt(1);
-		final int categoryIndex = instruction.immediateAt(2);
+		final int actuallyReify = instruction.intImmediateAt(0);
+		final int processInterrupt = instruction.intImmediateAt(1);
+		final int categoryIndex = instruction.intImmediateAt(2);
 		final L2PcOperand reify = instruction.pcAt(3);
 
 		// :: reifier = L2_REIFY.reify(

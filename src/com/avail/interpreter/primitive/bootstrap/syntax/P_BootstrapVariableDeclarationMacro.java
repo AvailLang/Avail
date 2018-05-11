@@ -1,6 +1,6 @@
-/**
+/*
  * P_BootstrapVariableDeclarationMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,25 +37,24 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import javax.annotation.Nullable;
-import java.util.List;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.DECLARATION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LITERAL_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LITERAL_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -78,12 +77,11 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase variableNameLiteral = args.get(0);
-		final A_Phrase typeLiteral = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase variableNameLiteral = interpreter.argument(0);
+		final A_Phrase typeLiteral = interpreter.argument(1);
 
 		final A_Token nameToken = variableNameLiteral.token().literal();
 		final A_String nameString = nameToken.string();
@@ -122,9 +120,9 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		return functionType(
 			tuple(
 				/* Variable name phrase. */
-				LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */
-				LITERAL_NODE.create(anyMeta())),
-			DECLARATION_NODE.mostGeneralType());
+				LITERAL_PHRASE.create(anyMeta())),
+			DECLARATION_PHRASE.mostGeneralType());
 	}
 }

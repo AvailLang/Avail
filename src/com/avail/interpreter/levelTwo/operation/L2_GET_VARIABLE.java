@@ -1,6 +1,6 @@
 /*
  * L2_GET_VARIABLE.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -44,10 +45,12 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -57,18 +60,25 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_VARIABLE
+public final class L2_GET_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_GET_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_VARIABLE().init(
+	private L2_GET_VARIABLE ()
+	{
+		super(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("read succeeded"),
-			PC.is("read failed"));
+			PC.is("read succeeded", SUCCESS),
+			PC.is("read failed", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_GET_VARIABLE instance = new L2_GET_VARIABLE();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -81,6 +91,28 @@ extends L2Operation
 	public boolean isVariableGet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1).register();
+//		final int successIndex = instruction.pcOffsetAt(2);
+//		final L2PcOperand failure = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destReg);
+		builder.append(" ← ↓");
+		builder.append(variableReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-/**
+/*
  * ProblemType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 /**
@@ -104,8 +104,7 @@ public enum ProblemType
 	/**
 	 * A {@link Problem} occurred while parsing a module's body.  This includes
 	 * both malformed tokens and assemblies of tokens that could not be
-	 * successfully transformed into {@linkplain ParseNodeDescriptor parse
-	 * trees}.
+	 * successfully transformed into {@linkplain PhraseDescriptor phrases}.
 	 */
 	PARSE
 	{

@@ -1,6 +1,6 @@
-/**
+/*
  * P_DeclarationInitializingExpression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,13 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationNodeDescriptor;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -52,10 +50,10 @@ import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.DECLARATION_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.DECLARATION_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.exceptions.AvailErrorCode
@@ -67,8 +65,8 @@ import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> If the specified {@linkplain
- * DeclarationNodeDescriptor declaration} has an initializing {@linkplain
- * ParseNodeKind#EXPRESSION_NODE expression}, then store it in the provided
+ * DeclarationPhraseDescriptor declaration} has an initializing {@linkplain
+ * PhraseKind#EXPRESSION_PHRASE expression}, then store it in the provided
  * {@linkplain VariableTypeDescriptor variable}. Answer {@linkplain
  * AtomDescriptor#trueObject()} if a value was stored.
  *
@@ -87,12 +85,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Variable var = args.get(0);
-		final A_Phrase decl = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Variable var = interpreter.argument(0);
+		final A_Phrase decl = interpreter.argument(1);
 		final A_Phrase initializer = decl.initializationExpression();
 		try
 		{
@@ -116,7 +113,7 @@ extends Primitive
 		return functionType(
 			tuple(
 				variableReadWriteType(TOP.o(), bottom()),
-				DECLARATION_NODE.mostGeneralType()),
+				DECLARATION_PHRASE.mostGeneralType()),
 			booleanType());
 	}
 

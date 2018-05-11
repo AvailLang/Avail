@@ -1,6 +1,6 @@
-/**
+/*
  * LinearSetBinDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,7 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
 import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedBin;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
-import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots
-	.BIN_ELEMENT_AT_;
+import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;

@@ -1,6 +1,6 @@
-/**
+/*
  * P_AttemptJoinFiber.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,13 @@ package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.utility.Mutable;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
-
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -51,8 +49,8 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
@@ -80,11 +78,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Fiber joinee = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Fiber joinee = interpreter.argument(0);
 		final Mutable<Boolean> shouldPark = new Mutable<>(false);
 		final A_Fiber current = interpreter.fiber();
 		// Forbid auto-joining.

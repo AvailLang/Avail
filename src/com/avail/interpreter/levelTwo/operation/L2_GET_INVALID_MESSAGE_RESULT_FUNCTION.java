@@ -34,25 +34,30 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
 
@@ -72,16 +77,24 @@ public final class L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_INVALID_MESSAGE_RESULT_FUNCTION}.
+	 */
+	private L2_GET_INVALID_MESSAGE_RESULT_FUNCTION ()
+	{
+		super(
+			WRITE_POINTER.is("invalid message result function"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_INVALID_MESSAGE_RESULT_FUNCTION().init(
-			WRITE_POINTER.is("invalid message result function"));
+	public static final L2_GET_INVALID_MESSAGE_RESULT_FUNCTION instance =
+		new L2_GET_INVALID_MESSAGE_RESULT_FUNCTION();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2WritePointerOperand destination =
@@ -95,6 +108,20 @@ extends L2Operation
 					variableTypeFor(ANY.o())),
 				bottom()),
 			instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand destination = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destination);
 	}
 
 	@Override
@@ -121,6 +148,7 @@ extends L2Operation
 			"resultDisagreedWithExpectedTypeFunction",
 			getMethodDescriptor(getType(A_Function.class)),
 			false);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, destination);
 	}
 }

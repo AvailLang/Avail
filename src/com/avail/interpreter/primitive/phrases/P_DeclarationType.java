@@ -1,6 +1,6 @@
-/**
+/*
  * P_DeclarationType.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,22 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationNodeDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.DECLARATION_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.DECLARATION_PHRASE;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain TypeDescriptor type}
- * of the specified {@linkplain DeclarationNodeDescriptor declaration}.
+ * of the specified {@linkplain DeclarationPhraseDescriptor declaration}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -68,11 +66,10 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Phrase decl = args.get(0);
+		interpreter.checkArgumentCount(1);
+		final A_Phrase decl = interpreter.argument(0);
 		return interpreter.primitiveSuccess(decl.declaredType());
 	}
 
@@ -80,6 +77,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(DECLARATION_NODE.mostGeneralType()), anyMeta());
+			functionType(
+				tuple(
+					DECLARATION_PHRASE.mostGeneralType()),
+				anyMeta());
 	}
 }

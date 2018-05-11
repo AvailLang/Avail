@@ -1,6 +1,6 @@
-/**
+/*
  * AbstractTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,9 +203,9 @@ extends Descriptor
 		final AvailObject anObjectType);
 
 	@Override @AvailMethod
-	abstract boolean o_IsSupertypeOfParseNodeType (
+	abstract boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType);
+		final A_Type aPhraseType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfPojoType (
@@ -343,9 +343,9 @@ extends Descriptor
 		final AvailObject anObjectType);
 
 	@Override @AvailMethod
-	abstract A_Type o_TypeIntersectionOfParseNodeType (
+	abstract A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType);
+		final A_Type aPhraseType);
 
 	@Override
 	abstract A_Type o_TypeIntersectionOfPojoType (
@@ -426,9 +426,9 @@ extends Descriptor
 		final AvailObject anObjectType);
 
 	@Override @AvailMethod
-	abstract A_Type o_TypeUnionOfParseNodeType (
+	abstract A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType);
+		final A_Type aPhraseType);
 
 	@Override
 	abstract A_Type o_TypeUnionOfPrimitiveTypeEnum (

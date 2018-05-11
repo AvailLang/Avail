@@ -1,6 +1,6 @@
-/**
+/*
  * BottomTypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -343,7 +343,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		assert !aType.equals(bottom());
+		assert !aType.isBottom();
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 			|| aType.isSubtypeOf(topMeta());
 	}
@@ -480,7 +480,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override
 	A_Type o_SubexpressionsTupleType (final AvailObject object)
 	{
-		// See ListNodeDescriptor.
+		// See ListPhraseDescriptor.
 		return object;
 	}
 

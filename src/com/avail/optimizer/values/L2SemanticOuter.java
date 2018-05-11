@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticOuter.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,8 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * A semantic value which represents a numbered outer variable in the function
  * of some {@link Frame}.
  */
-final class L2SemanticOuter extends L2SemanticValue
+final class L2SemanticOuter
+extends L2SemanticValue
 {
 	/** The {@link Frame} for which this is an outer of its function. */
 	public final Frame frame;
@@ -94,5 +95,17 @@ final class L2SemanticOuter extends L2SemanticValue
 	public String toString ()
 	{
 		return "Outer #" + outerIndex + " of " + frame;
+	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// An outer value, once made immutable, continues to be immutable even
+		// after we follow an off-ramp/on-ramp pair.  That's because the
+		// function itself is constructed exactly once in each history – and
+		// even if it weren't, then it would have had to make the *source* of
+		// the outer immutable for safety (because it was supplied to two
+		// functions).
+		return true;
 	}
 }

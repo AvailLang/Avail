@@ -33,10 +33,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -49,17 +52,48 @@ import static org.objectweb.asm.Opcodes.IADD;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_ADD_INT_TO_INT_MOD_32_BITS
+public final class L2_ADD_INT_TO_INT_MOD_32_BITS
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_ADD_INT_TO_INT_MOD_32_BITS}.
+	 */
+	private L2_ADD_INT_TO_INT_MOD_32_BITS ()
+	{
+		super(
+			READ_INT.is("augend"),
+			READ_INT.is("addend"),
+			WRITE_INT.is("sum"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
-			READ_INT.is("addend"),
-			READ_INT.is("augend"),
-			WRITE_INT.is("sum"));
+	public static final L2_ADD_INT_TO_INT_MOD_32_BITS instance =
+		new L2_ADD_INT_TO_INT_MOD_32_BITS();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister addendReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister sumReg =
+			instruction.writeIntRegisterAt(2).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(sumReg);
+		builder.append(" ← ");
+		builder.append(augendReg);
+		builder.append(" + ");
+		builder.append(addendReg);
+	}
 
 	@Override
 	public void translateToJVM (
@@ -67,16 +101,16 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister addendReg =
+		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister augendReg =
+		final L2IntRegister addendReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister sumReg =
+		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 
-		// :: sum = addend + augend;
-		translator.load(method, addendReg);
+		// :: sum = augend + addend;
 		translator.load(method, augendReg);
+		translator.load(method, addendReg);
 		method.visitInsn(IADD);
 		translator.store(method, sumReg);
 	}

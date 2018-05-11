@@ -1,6 +1,6 @@
-/**
+/*
  * TypeConsistencyTest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ package com.avail.test;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Primitive.Result;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,18 +57,20 @@ import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.Types;
 import static com.avail.descriptor.FiberTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
@@ -77,10 +79,7 @@ import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setMeta;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -199,12 +198,15 @@ public class TypeConsistencyTest
 			{
 				if (!primitiveTypes.containsKey(type))
 				{
-					final Types typeParent = type.parent;
-					final Node [] parents =
-						new Node[typeParent == null ? 0 : 1];
+					final @Nullable Types typeParent = type.parent;
+					final Node [] parents;
 					if (typeParent != null)
 					{
-						parents[0] = primitiveTypes.get(typeParent);
+						parents = new Node[]{primitiveTypes.get(typeParent)};
+					}
+					else
+					{
+						parents = new Node[0];
 					}
 					final Node node = new Node(type.name(), parents)
 					{
@@ -247,7 +249,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMeta(NONTYPE.o());
+				return instanceMeta(Types.NONTYPE.o());
 			}
 		};
 
@@ -814,7 +816,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return variableReadWriteType(bottom(), TOP.o());
+				return variableReadWriteType(bottom(), Types.TOP.o());
 			}
 		};
 
@@ -946,52 +948,51 @@ public class TypeConsistencyTest
 		};
 
 		/**
-		 * A two tiered map from parse node kind to inner Node (or null) to
-		 * parse node type Node.  This is used to construct the lattice of
-		 * parse node type nodes incrementally.  A null indicates the inner
-		 * type should be {@link #BOTTOM}, even though it hasn't been defined
-		 * yet.
+		 * A two tiered map from phrase kind to inner Node (or null) to phrase
+		 * type Node.  This is used to construct the lattice of phrase type
+		 * nodes incrementally.  A null indicates the inner type should be
+		 * {@link #BOTTOM}, even though it hasn't been defined yet.
 		 */
-		static final Map<ParseNodeKind, Map<Node, Node>> parseNodeTypeMap =
-			new EnumMap<>(ParseNodeKind.class);
+		static final Map<PhraseKind, Map<Node, Node>> phraseTypeMap =
+			new EnumMap<>(PhraseKind.class);
 
 		/**
-		 * Create a parse node type Node with the given name, parse node kind,
-		 * Node indicating the expressionType, and the array of Nodes that are
+		 * Create a phrase type Node with the given name, phrase kind, Node
+		 * indicating the expressionType, and the array of Nodes that are
 		 * supertypes of the expressionType.  Passing null for the
-		 * expressionType causes {@linkplain BottomTypeDescriptor#bottom()
-		 * the bottom type} to be used.  We can't use the node {@link #BOTTOM}
+		 * expressionType causes {@linkplain BottomTypeDescriptor#bottom() the
+		 * bottom type} to be used.  We can't use the node {@link #BOTTOM}
 		 * because of circular dependency.
 		 *
 		 * @param nodeName
-		 *            A {@link String} naming this node for diagnostics.
-		 * @param parseNodeKind
-		 *            The {@linkplain ParseNodeKind kind} of parse node type.
+		 *        A {@link String} naming this node for diagnostics.
+		 * @param phraseKind
+		 *        The {@linkplain PhraseKind kind} of phrase type.
 		 * @param innerNode
-		 *            The expressionType of the resulting parse node type, or
-		 *            null to indicate {@linkplain BottomTypeDescriptor#bottom()
-		 *            bottom}.
+		 *        The expressionType of the resulting phrase type, or {@code
+		 *        null} to indicate {@linkplain BottomTypeDescriptor#bottom()
+		 *        bottom}.
 		 * @param parentInnerNodes
-		 *            An array of parent nodes of the innerNode.
+		 *        An array of parent nodes of the innerNode.
 		 */
 		static void addHelper (
 			final String nodeName,
-			final ParseNodeKind parseNodeKind,
+			final PhraseKind phraseKind,
 			final @Nullable Node innerNode,
 			final Node... parentInnerNodes)
 		{
 			final Map<Node, Node> submap;
-			if (parseNodeTypeMap.containsKey(parseNodeKind))
+			if (phraseTypeMap.containsKey(phraseKind))
 			{
-				submap = parseNodeTypeMap.get(parseNodeKind);
+				submap = phraseTypeMap.get(phraseKind);
 			}
 			else
 			{
 				submap = new HashMap<>();
-				parseNodeTypeMap.put(parseNodeKind, submap);
+				phraseTypeMap.put(phraseKind, submap);
 			}
 			final List<Node> parents = new ArrayList<>();
-			if (parseNodeKind.parentKind() == null)
+			if (phraseKind.parentKind() == null)
 			{
 				final Node outerParent =
 					stripNull(primitiveTypes.get(Types.NONTYPE));
@@ -1000,7 +1001,7 @@ public class TypeConsistencyTest
 			else
 			{
 				final Map<Node, Node> m =
-					parseNodeTypeMap.get(parseNodeKind.parentKind());
+					phraseTypeMap.get(phraseKind.parentKind());
 				final Node outerParent = m.get(innerNode);
 				if (outerParent != null)
 				{
@@ -1024,23 +1025,23 @@ public class TypeConsistencyTest
 							? bottom()
 							: innerNode.t();
 					final A_Type newType;
-					if (parseNodeKind.isSubkindOf(ParseNodeKind.LIST_NODE))
+					if (phraseKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 					{
 						final A_Type subexpressionsTupleType =
 							tupleTypeFromTupleOfTypes(
 								innerType,
-								ParseNodeKind.PARSE_NODE::create);
+								PhraseKind.PARSE_PHRASE::create);
 						newType = createListNodeType(
-							parseNodeKind,
+							phraseKind,
 							innerType,
 							subexpressionsTupleType);
 					}
 					else
 					{
-						newType = parseNodeKind.create(innerType);
+						newType = phraseKind.create(innerType);
 					}
 					assert newType.expressionType().equals(innerType)
-						: "parse node kind was not parameterized as expected";
+						: "phrase kind was not parameterized as expected";
 					return newType;
 				}
 			};
@@ -1049,15 +1050,15 @@ public class TypeConsistencyTest
 
 		/**
 		 * Deduce the relationships among the inner nodes of the kind, adding a
-		 * parse node kind node for each inner node.
+		 * phrase kind node for each inner node.
 		 *
 		 * @param kind
-		 *        A {@linkplain ParseNodeKind parse node kind}.
+		 *        A {@linkplain PhraseKind phrase kind}.
 		 * @param innerNodes
-		 *        The nodes by which to parameterize this parse node kind.
+		 *        The nodes by which to parameterize this phrase kind.
 		 */
 		static void addMultiHelper (
-			final ParseNodeKind kind,
+			final PhraseKind kind,
 			final Node... innerNodes)
 		{
 			for (final Node node : innerNodes)
@@ -1093,22 +1094,22 @@ public class TypeConsistencyTest
 
 		static
 		{
-			// Include all parse node types.  Include a minimal diamond of types
-			// for each parse node kind.
+			// Include all phrase types.  Include a minimal diamond of types
+			// for each phrase kind.
 			final Node topNode = primitiveTypes.get(Types.TOP);
 			final Node anyNode = primitiveTypes.get(Types.ANY);
 			final Node nontypeNode = primitiveTypes.get(Types.NONTYPE);
 			final Node atomNode = SOME_ATOM_TYPE;
 			final Node anotherAtomNode = ANOTHER_ATOM_TYPE;
-			for (final ParseNodeKind kind : ParseNodeKind.all())
+			for (final PhraseKind kind : PhraseKind.all())
 			{
-				// This is future-proofing (for total coverage of parse node
+				// This is future-proofing (for total coverage of phrase
 				// kinds).
 				switch (kind)
 				{
-					case MARKER_NODE:
+					case MARKER_PHRASE:
 						break;
-					case BLOCK_NODE:
+					case BLOCK_PHRASE:
 						addMultiHelper(
 							kind,
 							MOST_GENERAL_FUNCTION,
@@ -1118,7 +1119,7 @@ public class TypeConsistencyTest
 							MOST_SPECIFIC_FUNCTION,
 							null);
 						break;
-					case REFERENCE_NODE:
+					case REFERENCE_PHRASE:
 						addMultiHelper(
 							kind,
 							ROOT_VARIABLE,
@@ -1127,10 +1128,10 @@ public class TypeConsistencyTest
 							BOTTOM_VARIABLE,
 							null);
 						break;
-					case ASSIGNMENT_NODE:
-					case LITERAL_NODE:
-					case SUPER_CAST_NODE:
-					case VARIABLE_USE_NODE:
+					case ASSIGNMENT_PHRASE:
+					case LITERAL_PHRASE:
+					case SUPER_CAST_PHRASE:
+					case VARIABLE_USE_PHRASE:
 						addMultiHelper(
 							kind,
 							anyNode,
@@ -1154,26 +1155,26 @@ public class TypeConsistencyTest
 							BOTTOM_VARIABLE,
 							null);
 						break;
-					case STATEMENT_NODE:
-					case SEQUENCE_NODE:
-					case FIRST_OF_SEQUENCE_NODE:
-					case DECLARATION_NODE:
-					case ARGUMENT_NODE:
-					case LABEL_NODE:
-					case LOCAL_VARIABLE_NODE:
-					case LOCAL_CONSTANT_NODE:
-					case MODULE_VARIABLE_NODE:
-					case MODULE_CONSTANT_NODE:
-					case PRIMITIVE_FAILURE_REASON_NODE:
-					case EXPRESSION_AS_STATEMENT_NODE:
+					case STATEMENT_PHRASE:
+					case SEQUENCE_PHRASE:
+					case FIRST_OF_SEQUENCE_PHRASE:
+					case DECLARATION_PHRASE:
+					case ARGUMENT_PHRASE:
+					case LABEL_PHRASE:
+					case LOCAL_VARIABLE_PHRASE:
+					case LOCAL_CONSTANT_PHRASE:
+					case MODULE_VARIABLE_PHRASE:
+					case MODULE_CONSTANT_PHRASE:
+					case PRIMITIVE_FAILURE_REASON_PHRASE:
+					case EXPRESSION_AS_STATEMENT_PHRASE:
 						addMultiHelper(
 							kind,
 							topNode,
 							null);
 						break;
-					case PARSE_NODE:
-					case EXPRESSION_NODE:
-					case SEND_NODE:
+					case PARSE_PHRASE:
+					case EXPRESSION_PHRASE:
+					case SEND_PHRASE:
 						addMultiHelper(
 							kind,
 							topNode,
@@ -1200,8 +1201,8 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
-					case LIST_NODE:
-					case PERMUTED_LIST_NODE:
+					case LIST_PHRASE:
+					case PERMUTED_LIST_PHRASE:
 						addMultiHelper(
 							kind,
 							TUPLE,
@@ -1210,7 +1211,7 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
-					case MACRO_SUBSTITUTION:
+					case MACRO_SUBSTITUTION_PHRASE:
 						addMultiHelper(
 							kind,
 							topNode,
@@ -1218,7 +1219,6 @@ public class TypeConsistencyTest
 				}
 			}
 		}
-
 
 		/**
 		 * The list of all {@link Node}s except BOTTOM.
@@ -1323,7 +1323,6 @@ public class TypeConsistencyTest
 			values.add(this);
 		}
 
-
 		/* The nodes' slots have to be initialized here because they pass
 		 * the Node.class to the EnumSet factory, which attempts to
 		 * determine the number of enumeration values, which isn't known yet
@@ -1364,7 +1363,6 @@ public class TypeConsistencyTest
 			}
 			while (changed);
 		}
-
 
 		/**
 		 * Enumeration instances are required to implement this to construct the
@@ -1486,7 +1484,6 @@ public class TypeConsistencyTest
 				node.subtypeCache = new Boolean[0];
 			}
 		}
-
 	}
 
 	/**
@@ -1505,8 +1502,6 @@ public class TypeConsistencyTest
 
 		// dumpGraphTo(System.out);
 	}
-
-
 
 	/**
 	 * Output a machine-readable representation of the graph as a sequence of
@@ -1583,12 +1578,9 @@ public class TypeConsistencyTest
 				{
 					out.println("(" + i1 + " " + i2 + ")");
 				}
-
 			}
 		}
 	}
-
-
 
 	/**
 	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
@@ -1598,7 +1590,6 @@ public class TypeConsistencyTest
 	{
 		Node.eraseTypes();
 	}
-
 
 	/**
 	 * Compare the first two arguments for {@linkplain Object#equals(Object)
@@ -2156,7 +2147,7 @@ public class TypeConsistencyTest
 			A_Type transform (final A_Type type)
 			{
 				return
-					functionType(tuple(type), TOP.o());
+					functionType(tuple(type), Types.TOP.o());
 			}
 		});
 	}
@@ -2214,7 +2205,6 @@ public class TypeConsistencyTest
 			}
 		}
 	}
-
 
 	/**
 	 * Check that the type intersection of two types' types is the same as the

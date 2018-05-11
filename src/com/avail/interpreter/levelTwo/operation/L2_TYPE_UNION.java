@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -41,8 +42,9 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -56,22 +58,29 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_TYPE_UNION
+public final class L2_TYPE_UNION
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_TYPE_UNION}.
 	 */
-	public static final L2Operation instance =
-		new L2_TYPE_UNION().init(
+	private L2_TYPE_UNION ()
+	{
+		super(
 			READ_POINTER.is("first type"),
 			READ_POINTER.is("second type"),
 			WRITE_POINTER.is("union type"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_TYPE_UNION instance = new L2_TYPE_UNION();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand firstInputTypeReg =
@@ -88,6 +97,29 @@ extends L2Operation
 		final A_Type unionMeta = firstMeta.typeUnion(secondMeta);
 		registerSet.typeAtPut(
 			outputTypeReg.register(), unionMeta, instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister firstInputTypeReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister secondInputTypeReg =
+			instruction.readObjectRegisterAt(1).register();
+		final L2ObjectRegister outputTypeReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(outputTypeReg);
+		builder.append(" ← ");
+		builder.append(firstInputTypeReg);
+		builder.append(" ∪ ");
+		builder.append(secondInputTypeReg);
 	}
 
 	@Override

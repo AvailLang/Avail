@@ -1,6 +1,6 @@
-/**
+/*
  * L2SemanticLabel.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.utility.evaluation.Transformer1NotNull;
 
 /**
@@ -89,5 +88,13 @@ final class L2SemanticLabel extends L2SemanticValue
 	public String toString ()
 	{
 		return "Label for " + frame;
+	}
+
+	@Override
+	public boolean immutabilityTranscendsReification ()
+	{
+		// A label, once made immutable, continues to be immutable even after we
+		// follow an off-ramp/on-ramp pair.
+		return true;
 	}
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * P_MapReplacingNAryKey.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,14 +43,13 @@ import com.avail.exceptions.AvailException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -87,7 +86,7 @@ extends Primitive
 	 *		the current position of pathTuple being accessed
 	 * @param newValue
 	 * 		the updating value
-	 * @return
+	 * @return The updated tuple.
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_SUBSCRIPT_OUT_OF_BOUNDS
 	 */
@@ -144,7 +143,7 @@ extends Primitive
 	 * 		the current position of pathTuple being accessed
 	 * @param newValue
 	 * 		the updating value
-	 * @return
+	 * @return The updated map.
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_KEY_NOT_FOUND
 	 */
@@ -188,13 +187,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Map map = args.get(0);
-		final A_Tuple pathTuple = args.get(1);
-		final A_BasicObject newValue = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Map map = interpreter.argument(0);
+		final A_Tuple pathTuple = interpreter.argument(1);
+		final A_BasicObject newValue = interpreter.argument(2);
 		try
 		{
 			return interpreter.primitiveSuccess(recursivelyUpdateMap(

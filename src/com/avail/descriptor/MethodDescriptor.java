@@ -1,6 +1,6 @@
-/**
+/*
  * MethodDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,7 @@ import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.*;
@@ -863,7 +864,7 @@ extends Descriptor
 
 	/**
 	 * Answer a new {@code MethodDescriptor method}. It has no name yet,
-	 * but will before it gets used in a send node.  It gets named by virtue of
+	 * but will before it gets used in a send phrase.  It gets named by virtue of
 	 * it being referenced by one or more {@linkplain MessageBundleDescriptor
 	 * message bundle}s, each of which keeps track of how to parse it using that
 	 * bundle's name.  The bundles will be grouped into a bundle tree to allow
@@ -1040,7 +1041,7 @@ extends Descriptor
 
 	// An enumeration of special atoms that the VM is aware of which name
 	// methods for invoking specific primitives.  Multiple primitives may be
-	// provided to make the method multimorphic.
+	// provided to make the method polymorphic.
 	public enum SpecialMethodAtom
 	{
 		/** The special atom for failing during bootstrap.  Must be first. */
@@ -1193,15 +1194,15 @@ extends Descriptor
 		MODULE_HEADER_METHOD(
 			"Module…$"
 				+ "«Versions«…$‡,»»"
-				+ "«"
+				+ '«'
 					+ "«Extends|Uses»!"
-					+ "«"
+					+ '«'
 						+ "…$"
 						+ "«(«…$‡,»)»"
 						+ "«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»"
 						+ "‡,"
-					+ "»"
-				+ "»"
+					+ '»'
+				+ '»'
 				+ "«Names«…$‡,»»"
 				+ "«Entries«…$‡,»»"
 				+ "«Pragma«…$‡,»»"
@@ -1271,14 +1272,14 @@ extends Descriptor
 				{
 					definition = newMethodDefinition(
 						method,
-						nil,  // System defs have no module.
+						nil,  // System definitions have no module.
 						function);
 				}
 				else
 				{
 					definition = newMacroDefinition(
 						method,
-						nil,  // System defs have no module.
+						nil,  // System definitions have no module.
 						function,
 						emptyTuple());
 				}

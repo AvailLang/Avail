@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
@@ -135,8 +135,8 @@ extends A_BasicObject
 	boolean couldEverBeInvokedWith (List<? extends A_Type> argTypes);
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
-	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
+	 * block phrases} and {@linkplain SendPhraseDescriptor send phrases}.
 	 *
 	 * @return The set of declared exception types.
 	 */
@@ -148,13 +148,13 @@ extends A_BasicObject
 	A_Type defaultType ();
 
 	/**
-	 * Return the parse node type's expression type, which is the type of object
-	 * that will be produced by parse nodes of that type.
+	 * Return the phrase type's expression type, which is the type of object
+	 * that will be produced by phrases of that type.
 	 *
-	 * <p>Also implemented in {@link A_Phrase} (for parse node instances).</p>
+	 * <p>Also implemented in {@link A_Phrase} (for phrase instances).</p>
 	 *
 	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by this type of parse node.
+	 *         that will be produced by this type of phrase.
 	 */
 	A_Type expressionType ();
 
@@ -231,8 +231,8 @@ extends A_BasicObject
 
 	/**
 	 */
-	boolean isSupertypeOfParseNodeType (
-		A_Type aParseNodeType);
+	boolean isSupertypeOfPhraseType (
+		A_Type aPhraseType);
 
 	/**
 	 * Dispatch to the descriptor
@@ -308,12 +308,12 @@ extends A_BasicObject
 	A_BasicObject parent ();
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain ParseNodeDescriptor
-	 * parse nodes}, not just parse node types.
+	 * Also declared in {@link A_Phrase} for {@linkplain PhraseDescriptor
+	 * phrases}, not just phrase types.
 	 *
-	 * @return
+	 * @return Answer the phrase's PhraseKind.
 	 */
-	ParseNodeKind parseNodeKind ();
+	PhraseKind phraseKind ();
 
 	/**
 	 * @return
@@ -321,8 +321,8 @@ extends A_BasicObject
 	A_Type readType ();
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
-	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
+	 * block phrases} and {@linkplain SendPhraseDescriptor send phrases}.
 	 */
 	A_Type returnType ();
 
@@ -461,11 +461,11 @@ extends A_BasicObject
 		AvailObject anObjectType);
 
 	/**
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	A_Type typeIntersectionOfParseNodeType (
-		A_Type aParseNodeType);
+	A_Type typeIntersectionOfPhraseType (
+		A_Type aPhraseType);
 
 	/**
 	 * @param aPojoType
@@ -545,10 +545,10 @@ extends A_BasicObject
 	A_Type typeUnionOfObjectType (AvailObject anObjectType);
 
 	/**
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	A_Type typeUnionOfParseNodeType (A_Type aParseNodeType);
+	A_Type typeUnionOfPhraseType (A_Type aPhraseType);
 
 	/**
 	 * @param aPojoType
@@ -660,14 +660,14 @@ extends A_BasicObject
 	 * Also declared in A_Phrase, so the same operation applies both to phrases
 	 * and to phrase types.
 	 *
-	 * @param expectedParseNodeKind
-	 *        The {@link ParseNodeKind} to test this phrase type against.
+	 * @param expectedPhraseKind
+	 *        The {@link PhraseKind} to test this phrase type against.
 	 * @return Whether the receiver, a phrase type, has a {@link
-	 *         #parseNodeKind()} at or below the specified {@link
-	 *         ParseNodeKind}.
+	 *         #phraseKind()} at or below the specified {@link
+	 *         PhraseKind}.
 	 */
-	boolean parseNodeKindIsUnder (
-		ParseNodeKind expectedParseNodeKind);
+	boolean phraseKindIsUnder (
+		PhraseKind expectedPhraseKind);
 
 	/**
 	 * Answer the type of the subexpressions tuple that instances (list phrases)
@@ -679,7 +679,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer whether the receiver, a type, is a supertype of the given {@link
-	 * ListNodeTypeDescriptor list phrase type}.
+	 * ListPhraseTypeDescriptor list phrase type}.
 	 *
 	 * @param aListNodeType The list phrase type.
 	 * @return Whether the receiver is a supertype of the given type.

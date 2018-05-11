@@ -1,6 +1,6 @@
-/**
+/*
  * compiler/scanner/AvailScanner.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,7 @@ package com.avail.compiler.scanning;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ExpectedToken;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.CommentTokenDescriptor;
-import com.avail.descriptor.LiteralTokenDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
 
@@ -749,8 +741,7 @@ public class AvailScanner
 				final A_Token token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
-					&& token.string().equals(
-						ExpectedToken.BODY.lexeme()))
+					&& token.string().equals(ExpectedToken.BODY.lexeme()))
 				{
 					scanner.encounteredBodyToken = true;
 				}

@@ -1,6 +1,6 @@
 /*
  * L2ValueManifest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,17 @@
  */
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
 /**
@@ -68,17 +58,18 @@ import static java.util.Collections.unmodifiableSet;
  * have <em>at most one</em> register mapped to it.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2ValueManifest
 {
 	/**
 	 * The current mapping from {@link L2SemanticValue} to {@link
-	 * L2ReadPointerOperand}.  A separate manifest is created to represent
-	 * different places in the {@link L2ControlFlowGraph}.  This is mirrored in
-	 * the {@link #registerToSemanticValues}, although that uses the {@link
-	 * L2Register} directly instead of an {@link L2ReadPointerOperand}.
+	 * L2ReadOperand}. A separate manifest is created to represent different
+	 * places in the {@link L2ControlFlowGraph}. This is mirrored in the {@link
+	 * #registerToSemanticValues}, although that uses the {@link L2Register}
+	 * directly instead of an {@link L2ReadOperand}.
 	 */
-	private final Map<L2SemanticValue, L2ReadPointerOperand>
+	private final Map<L2SemanticValue, L2ReadOperand<?, ?>>
 		semanticValueToRegister;
 
 	/**
@@ -86,51 +77,65 @@ public final class L2ValueManifest
 	 * L2SemanticValue}s that it holds.  A separate manifest is created to
 	 * represent different places in the {@link L2ControlFlowGraph}.  This is
 	 * mirrored in the {@link #semanticValueToRegister}, although that uses an
-	 * {@link L2ReadPointerOperand} instead of an {@link L2Register} so that
+	 * {@link L2ReadOperand} instead of an {@link L2Register} so that
 	 * strengthening tests for regions of code can be represented.
 	 */
-	private final Map<L2Register, Set<L2SemanticValue>>
+	private final Map<L2Register<?>, Set<L2SemanticValue>>
 		registerToSemanticValues;
+
+	/**
+	 * The (mutable) {@link Set} of semantic values which are known to have
+	 * already been made immutable at the position associated with this
+	 * manifest.  DO NOT include values that might be regenerated as equivalent
+	 * but <em>mutable</em> objects.  Values captured by closures or
+	 * continuations are fine.
+	 */
+	public final Set<L2SemanticValue> semanticValuesKnownToBeImmutable;
 
 	/**
 	 * Create an empty manifest.
 	 */
-	public L2ValueManifest ()
+	L2ValueManifest ()
 	{
 		this.semanticValueToRegister = new HashMap<>();
 		this.registerToSemanticValues = new HashMap<>();
+		this.semanticValuesKnownToBeImmutable = new HashSet<>();
 	}
 
 	/**
 	 * Copy an existing manifest.
 	 *
 	 * @param originalManifest
-	 * 	The original manifest.
+	 * 	      The original manifest.
 	 */
 	public L2ValueManifest (final L2ValueManifest originalManifest)
 	{
-		this.semanticValueToRegister = new HashMap<>(
-			originalManifest.semanticValueToRegister);
+		this.semanticValueToRegister =
+			new HashMap<>(originalManifest.semanticValueToRegister);
 		this.registerToSemanticValues = new HashMap<>();
-		for (final Entry<L2Register, Set<L2SemanticValue>> entry
+		for (final Entry<L2Register<?>, Set<L2SemanticValue>> entry
 			: originalManifest.registerToSemanticValues.entrySet())
 		{
 			registerToSemanticValues.put(
 				entry.getKey(), new HashSet<>(entry.getValue()));
 		}
+		this.semanticValuesKnownToBeImmutable =
+			new HashSet<>(originalManifest.semanticValuesKnownToBeImmutable);
 	}
 
 	/**
 	 * Look up the given semantic value, answering the register that holds that
 	 * value, if any, otherwise {@code null}.
 	 *
-	 * @param semanticValue The semantic value to look up.
-	 * @return The {@link L2ReadPointerOperand} holding that value.
+	 * @param semanticValue
+	 *        The semantic value to look up.
+	 * @return The {@link L2ReadOperand} holding that value.
 	 */
-	public @Nullable L2ReadPointerOperand semanticValueToRegister (
-		final L2SemanticValue semanticValue)
+	@SuppressWarnings("unchecked")
+	public @Nullable <U extends L2ReadOperand<?, ?>>
+	U semanticValueToRegister (final L2SemanticValue semanticValue)
 	{
-		return semanticValueToRegister.get(semanticValue);
+		return (U) semanticValueToRegister.get(semanticValue);
 	}
 
 	/**
@@ -142,29 +147,30 @@ public final class L2ValueManifest
 	 * @return The {@link Set} of {@link L2SemanticValue}s that it currently
 	 *         holds.
 	 */
-	public @Nullable Set<L2SemanticValue> registerToSemanticValues (
-		final L2Register register)
+	public Set<L2SemanticValue> registerToSemanticValues (
+		final L2Register<?> register)
 	{
-		final @Nullable Set<L2SemanticValue> set =
+		final Set<L2SemanticValue> set =
 			registerToSemanticValues.get(register);
-		return set == null ? null : unmodifiableSet(set);
+		return set == null ? emptySet() : unmodifiableSet(set);
 	}
 
 	/**
 	 * Record the fact that the given register now holds this given semantic
 	 * value, in addition to any it may have already held.  There must not be
-	 * a register already associated with this semantic value.
+	 * a different register already associated with this semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to associate with the register.
 	 * @param registerRead
-	 *        The {@link L2Register} to associate with the semantic value.
+	 *        The {@link L2ReadOperand} to associate with the semantic value.
 	 */
 	public void addBinding (
 		final L2SemanticValue semanticValue,
-		final L2ReadPointerOperand registerRead)
+		final L2ReadOperand<?, ?> registerRead)
 	{
-		assert !semanticValueToRegister.containsKey(semanticValue);
+		assert semanticValueToRegister.getOrDefault(
+			semanticValue, registerRead).equals(registerRead);
 		semanticValueToRegister.put(semanticValue, registerRead);
 		final Set<L2SemanticValue> semanticValues =
 			registerToSemanticValues.computeIfAbsent(
@@ -173,31 +179,119 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Record the fact that the given semantic value no longer has any register
-	 * mapped to it.
+	 * Have any of this register's {@link L2SemanticValue}s been marked
+	 * immutable?
 	 *
-	 * @param semanticValue
-	 *        The {@link L2SemanticValue} to disassociate from its register.
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return {@code true} if the register is known to contain an immutable
+	 *         value here, {@code false} otherwise.
 	 */
-	public void removeBinding (
-		final L2SemanticValue semanticValue)
+	public boolean isAlreadyImmutable (final L2ReadPointerOperand registerRead)
 	{
-		final L2ReadPointerOperand oldRegisterRead =
-			semanticValueToRegister.remove(semanticValue);
-		if (oldRegisterRead != null)
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
 		{
-			final L2ObjectRegister oldRegister = oldRegisterRead.register();
-			final @Nullable Set<L2SemanticValue> semanticValues =
-				registerToSemanticValues.get(oldRegister);
-			if (semanticValues != null)
+			if (semanticValuesKnownToBeImmutable.contains(semanticValue))
 			{
-				semanticValues.remove(semanticValue);
-				if (semanticValues.isEmpty())
-				{
-					registerToSemanticValues.remove(oldRegister);
-				}
+				return true;
 			}
 		}
+		return false;
+	}
+
+	/**
+	 * Answer the unboxed {@code int} variant of the specified {@link
+	 * L2ReadPointerOperand}, if one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return The requested unboxed variant.
+	 */
+	public @Nullable L2ReadIntOperand alreadyUnboxedInt (
+		final L2ReadPointerOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			final L2SemanticValue unboxedValue = semanticValue.unboxedAsInt();
+			final @Nullable L2ReadIntOperand unboxedInt =
+				semanticValueToRegister(unboxedValue);
+			if (unboxedInt != null)
+			{
+				return unboxedInt;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the unboxed {@code double} variant of the specified {@link
+	 * L2ReadPointerOperand}, if one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadPointerOperand} to test.
+	 * @return The requested unboxed variant.
+	 */
+	public @Nullable L2ReadFloatOperand alreadyUnboxedFloat (
+		final L2ReadPointerOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			final L2SemanticValue unboxedValue = semanticValue.unboxedAsFloat();
+			final @Nullable L2ReadFloatOperand unboxedFloat =
+				semanticValueToRegister(unboxedValue);
+			if (unboxedFloat != null)
+			{
+				return unboxedFloat;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the boxed variant of the specified {@link L2ReadIntOperand}, if
+	 * one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadIntOperand} to test.
+	 * @return The requested boxed variant.
+	 */
+	public @Nullable L2ReadPointerOperand alreadyBoxed (
+		final L2ReadIntOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (!semanticValue.isUnboxedInt())
+			{
+				return semanticValueToRegister(semanticValue);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the boxed variant of the specified {@link L2ReadFloatOperand}, if
+	 * one already exists.
+	 *
+	 * @param registerRead
+	 *        The {@code L2ReadFloatOperand} to test.
+	 * @return The requested boxed variant.
+	 */
+	public @Nullable L2ReadPointerOperand alreadyBoxed (
+		final L2ReadFloatOperand registerRead)
+	{
+		for (final L2SemanticValue semanticValue :
+			registerToSemanticValues(registerRead.register()))
+		{
+			if (!semanticValue.isUnboxedFloat())
+			{
+				return semanticValueToRegister(semanticValue);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -210,16 +304,15 @@ public final class L2ValueManifest
 	 *        The destination of the register-register move.
 	 */
 	public void replaceRegister (
-		final L2ReadPointerOperand sourceRead,
-		final L2WritePointerOperand destinationWrite)
+		final L2ReadOperand<?, ?> sourceRead,
+		final L2WriteOperand<?, ?> destinationWrite)
 	{
-		final L2Register sourceRegister = sourceRead.register();
+		final L2Register<?> sourceRegister = sourceRead.register();
 		final @Nullable Set<L2SemanticValue> sourceSemanticValues =
 			registerToSemanticValues.get(sourceRegister);
 		if (sourceSemanticValues != null)
 		{
-			final L2ReadPointerOperand destinationRead =
-				destinationWrite.read();
+			final L2ReadOperand<?, ?> destinationRead = destinationWrite.read();
 			for (final L2SemanticValue semanticValue : sourceSemanticValues)
 			{
 				assert semanticValueToRegister.get(semanticValue).register()
@@ -239,19 +332,21 @@ public final class L2ValueManifest
 	 *
 	 * @return The indicated {@link Map}.
 	 */
-	public Map<L2SemanticValue, L2ReadPointerOperand> bindings ()
+	public Map<L2SemanticValue, L2ReadOperand<?, ?>> bindings ()
 	{
 		return new HashMap<>(semanticValueToRegister);
 	}
 
 	/**
 	 * Remove all information about registers and semantic values from this
-	 * manifest.
+	 * manifest, including information about which semantic values are known to
+	 * be immutable.
 	 */
 	public void clear ()
 	{
 		registerToSemanticValues.clear();
 		semanticValueToRegister.clear();
+		semanticValuesKnownToBeImmutable.clear();
 	}
 
 	/**
@@ -267,12 +362,14 @@ public final class L2ValueManifest
 	 *        The {@link L1Translator} on which to write any necessary phi
 	 *        functions.
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
 		final L1Translator translator)
 	{
 		assert semanticValueToRegister.isEmpty();
 		assert registerToSemanticValues.isEmpty();
+		assert semanticValuesKnownToBeImmutable.isEmpty();
 		final int manifestsSize = manifests.size();
 		if (manifestsSize == 0)
 		{
@@ -283,89 +380,89 @@ public final class L2ValueManifest
 			final L2ValueManifest soleManifest = manifests.get(0);
 			semanticValueToRegister.putAll(
 				soleManifest.semanticValueToRegister);
-			for (final Entry<L2Register, Set<L2SemanticValue>> entry
+			for (final Entry<L2Register<?>, Set<L2SemanticValue>> entry
 				: soleManifest.registerToSemanticValues.entrySet())
 			{
 				registerToSemanticValues.put(
 					entry.getKey(), new HashSet<>(entry.getValue()));
 			}
+			semanticValuesKnownToBeImmutable.addAll(
+				soleManifest.semanticValuesKnownToBeImmutable);
 			return;
 		}
 		final Iterator<L2ValueManifest> iterator = manifests.iterator();
+		final L2ValueManifest firstManifest = iterator.next();
 		final Set<L2SemanticValue> semanticValues = new HashSet<>(
-			iterator.next().semanticValueToRegister.keySet());
+			firstManifest.semanticValueToRegister.keySet());
+		final Set<L2SemanticValue> knownImmutables = new HashSet<>(
+			firstManifest.semanticValuesKnownToBeImmutable);
 		while (iterator.hasNext())
 		{
+			final L2ValueManifest nextManifest = iterator.next();
 			semanticValues.retainAll(
-				iterator.next().semanticValueToRegister.keySet());
+				nextManifest.semanticValueToRegister.keySet());
+			knownImmutables.retainAll(
+				nextManifest.semanticValuesKnownToBeImmutable);
 		}
+		// Note that the set of knownImmutables is allowed to include values for
+		// which there is not currently a bound semantic value in the manifest.
+		semanticValuesKnownToBeImmutable.addAll(knownImmutables);
+		final Map<List<L2Register<?>>, L2ReadOperand<?, ?>> phiMap =
+			new HashMap<>();
 		for (final L2SemanticValue semanticValue : semanticValues)
 		{
-			final List<L2ReadPointerOperand> sources =
+			final List<L2ReadOperand<?, ?>> sources =
 				new ArrayList<>(manifests.size());
-			final Set<L2Register> distinctRegisters = new HashSet<>();
-			@Nullable TypeRestriction restriction = null;
+			final List<L2Register<?>> sourceRegisters =
+				new ArrayList<>(manifests.size());
+			final Set<L2Register<?>> distinctRegisters = new HashSet<>();
+			@Nullable TypeRestriction<?> restriction = null;
 			for (final L2ValueManifest manifest : manifests)
 			{
-				final L2ReadPointerOperand reader =
+				final L2ReadOperand<?, ?> reader =
 					stripNull(manifest.semanticValueToRegister(semanticValue));
-				final L2Register register = reader.register();
+				final L2Register<?> register = reader.register();
 				sources.add(reader);
+				sourceRegisters.add(register);
 				distinctRegisters.add(register);
 				restriction = restriction == null
 					? reader.restriction()
-					: restriction.union(reader.restriction());
+					: restriction.union((TypeRestriction) reader.restriction());
 			}
 			assert restriction != null;
-			final @Nullable A_BasicObject constant = restriction.constantOrNull;
-			final @Nullable L2SemanticValue constantSemanticValue =
-				constant != null
-					? L2SemanticValue.constant(constant)
-					: null;
 			if (distinctRegisters.size() == 1)
 			{
 				// All of the incoming edges had the same register bound to the
 				// semantic value.
 				addBinding(
 					semanticValue,
-					new L2ReadPointerOperand(
-						(L2ObjectRegister) distinctRegisters.iterator().next(),
-						restriction));
+					sourceRegisters.get(0).read(
+						(TypeRestriction) restriction));
 			}
-			else if (constantSemanticValue != null
-				&& semanticValueToRegister.containsKey(constantSemanticValue))
+			else if (phiMap.containsKey(sourceRegisters))
 			{
-				// We've already made this value available in an existing
-				// register.  Add another binding for the semantic value we're
-				// adding.  Make sure to skip it if it was added as a constant
-				// binding (as part of the phi case below) and we're trying to
-				// add that same binding again.
-				if (!semanticValue.equals(constantSemanticValue))
-				{
-					addBinding(
-						semanticValue,
-						semanticValueToRegister.get(constantSemanticValue));
-				}
+				// This combination of input registers already occurs as a phi
+				// in this block.  Simply bind the existing phi to this
+				// additional semanticValue.
+				final L2ReadOperand<?, ?> existingPhi =
+					phiMap.get(sourceRegisters);
+				addBinding(semanticValue, existingPhi);
 			}
 			else
 			{
 				// Create a phi function.
-				final L2WritePointerOperand newWrite =
-					translator.newObjectRegisterWriter(
-						restriction.type, constant);
+				final L2WritePhiOperand<?, ?> newWrite =
+					translator.newPhiRegisterWriter(
+						sources.get(0).register().copyForTranslator(
+							translator,
+							(TypeRestriction) restriction));
 				translator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
 					new L2ReadVectorOperand(sources),
 					newWrite);
-				addBinding(semanticValue, newWrite.read());
-				if (constantSemanticValue != null
-					&& !semanticValueToRegister.containsKey(
-						constantSemanticValue))
-				{
-					// It's also a constant, so make it available as such if it
-					// isn't already.
-					addBinding(constantSemanticValue, newWrite.read());
-				}
+				final L2ReadOperand<?, ?> newRead = newWrite.read();
+				phiMap.put(sourceRegisters, newRead);
+				addBinding(semanticValue, newRead);
 			}
 		}
 	}

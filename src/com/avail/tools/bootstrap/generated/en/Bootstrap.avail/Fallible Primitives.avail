@@ -53,7 +53,6 @@ Uses
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
-		"Define lexer_filter_body_",
 		"Error:_",
 		"Exit_with_",
 		"Export_as a new name",
@@ -62,6 +61,7 @@ Uses
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
+		"Lexer_when_is_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -201,7 +201,7 @@ Primitive "Private semantic restriction_is_" is
 	Private fail primitive with failureCode
 ] : ⊤;
 
-Private semantic restriction "Private invoke_with«_‡,»" is 
+Private semantic restriction "Private invoke_with«_‡,»" is
 [
 	aFunction : function meta,
 	arguments : tuple meta
@@ -2139,7 +2139,7 @@ Primitive "semantic restrictions for_given_" is
  * to produce tokens in that circumstance.
  *
  * @category "Primitives"
- * @method "Define lexer_filter_body_"
+ * @method "Lexer_when_is_"
  * @param "lexerName" "atom"
  *        The atom that names the lexer.
  * @param "filterFunction" "lexer filter function"
@@ -2171,7 +2171,7 @@ Primitive "semantic restrictions for_given_" is
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
  */
-Primitive "Define lexer_filter_body_" is
+Primitive "Lexer_when_is_" is
 [
 	lexerName : atom,
 	filterFunction : lexer filter function,
@@ -2207,11 +2207,11 @@ Primitive "Define lexer_filter_body_" is
 /**
  * Define a macro with the specified name and body. A macro is a method invoked
  * directly by the compiler as a consequence of parsing a sequence of tokens.
- * The arguments of a macro are parse nodes that structurally represent the
- * corresponding lexical expressions. The result of a macro is a parse node that
+ * The arguments of a macro are phrases that structurally represent the
+ * corresponding lexical expressions. The result of a macro is a phrase that
  * completely replaces the macro invocation; the compiler proceeds as if it had
- * built this parse node from the original tokens instead of the macro
- * invocation parse node.
+ * built this phrase from the original tokens instead of the macro
+ * invocation phrase.
  *
  * If a macro name contains the section sign (§), it must have a prefix function
  * for each occurrence of that character in the name.  The prefix function will
@@ -2234,7 +2234,7 @@ Primitive "Define lexer_filter_body_" is
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
- * @raises "macro-argument-must-be-a-parse-node exception"
+ * @raises "macro-argument-must-be-a-phrase exception"
  * @raises "ambiguous-name exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
  * @raises "redefined-with-same-argument-types exception"
@@ -2267,7 +2267,7 @@ Primitive "Macro_is«_,»_" is
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
-		macro-argument-must-be-a-parse-node code,
+		macro-argument-must-be-a-phrase code,
 		ambiguous-name code,
 		exclamation-mark-must-follow-an-alternation-group code,
 		redefined-with-same-argument-types code,
@@ -2290,8 +2290,8 @@ Primitive "Macro_is«_,»_" is
 		macro-prefix-functions-must-return-top code,
 		cannot-define-during-compilation code,
 		macro-prefix-function-index-out-of-bounds code,
-		macro-prefix-function-argument-must-be-a-parse-node code,
-		macro-must-return-a-parse-node code,
+		macro-prefix-function-argument-must-be-a-phrase code,
+		macro-must-return-a-phrase code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2301,11 +2301,11 @@ Primitive "Macro_is«_,»_" is
 /**
  * Define a macro with the specified name and body. A macro is a method invoked
  * directly by the compiler as a consequence of parsing a sequence of tokens.
- * The arguments of a macro are parse nodes that structurally represent the
- * corresponding lexical expressions. The result of a macro is a parse node that
+ * The arguments of a macro are phrases that structurally represent the
+ * corresponding lexical expressions. The result of a macro is a phrase that
  * completely replaces the macro invocation; the compiler proceeds as if it had
- * built this parse node from the original tokens instead of the macro
- * invocation parse node.
+ * built this phrase from the original tokens instead of the macro
+ * invocation phrase.
  *
  * If a macro name contains the section sign (§), it must have a prefix function
  * for each occurrence of that character in the name.  The prefix function will
@@ -2328,7 +2328,7 @@ Primitive "Macro_is«_,»_" is
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
- * @raises "macro-argument-must-be-a-parse-node exception"
+ * @raises "macro-argument-must-be-a-phrase exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
  * @raises "redefined-with-same-argument-types exception"
  * @raises "incorrect-type-for-complex-group exception"
@@ -2350,8 +2350,8 @@ Primitive "Macro_is«_,»_" is
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "macro-prefix-function-index-out-of-bounds exception"
- * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
- * @raises "macro-must-return-a-parse-node exception"
+ * @raises "macro-prefix-function-argument-must-be-a-phrase exception"
+ * @raises "macro-must-return-a-phrase exception"
  * @raises "loading-is-over exception"
  */
 Primitive "Macro_is«_,»_" is
@@ -2364,7 +2364,7 @@ Primitive "Macro_is«_,»_" is
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
-		macro-argument-must-be-a-parse-node code,
+		macro-argument-must-be-a-phrase code,
 		exclamation-mark-must-follow-an-alternation-group code,
 		redefined-with-same-argument-types code,
 		incorrect-type-for-complex-group code,
@@ -2386,8 +2386,8 @@ Primitive "Macro_is«_,»_" is
 		macro-prefix-functions-must-return-top code,
 		cannot-define-during-compilation code,
 		macro-prefix-function-index-out-of-bounds code,
-		macro-prefix-function-argument-must-be-a-parse-node code,
-		macro-must-return-a-parse-node code,
+		macro-prefix-function-argument-must-be-a-phrase code,
+		macro-must-return-a-phrase code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2809,7 +2809,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 ] : block phrase;
 
 /**
- * Construct and answer a first-of-sequence node from the specified tuple of
+ * Construct and answer a first-of-sequence phrase from the specified tuple of
  * statements.
  *
  * @category "Primitives"
@@ -2817,7 +2817,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  * @param "statements" "phrase tuple"
  *        A tuple of statements.
  * @returns "first of sequence phrase⇒⊤"
- *    The requested first-of-sequence node.
+ *    The requested first-of-sequence phrase.
  * @raises "sequence-contains-invalid-statements exception"
  */
 Primitive "first-of-seq`«_`»" is
@@ -2848,7 +2848,7 @@ Primitive "_⇒_" is
 	aPhrase : phrase meta,
 	semanticType : type
 |
-	Primitive CreateParseNodeType (failureCode : {
+	Primitive CreatePhraseType (failureCode : {
 		bad-yield-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : phrase meta;
@@ -3066,13 +3066,13 @@ Primitive "`«supercast(_::_)`»" is
 ] : super cast phrase;
 
 /**
- * Answer the atom for the message bundle of the send node being evaluated as a
- * macro.  Fail if a macro is not being evaluated by the current fiber.
+ * Answer the atom for the message bundle of the send phrase being evaluated as
+ * a macro.  Fail if a macro is not being evaluated by the current fiber.
  *
  * @category "Primitives"
  * @method "current macro name"
  * @returns "atom"
- *    The atom of the send node undergoing macro expansion.
+ *    The atom of the send phrase undergoing macro expansion.
  * @raises "not-evaluating-macro"
  *    If a macro is not being evaluated by the current fiber.
  */
@@ -3485,9 +3485,9 @@ Primitive "_[_]:=_" is
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired method.
  * @returns "(⊤)'s type"
- *    The Java methods return type.
- * @raises "{8}"
- * @raises "{9}"
+ *    The Java method's return type.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
  */
 Primitive "return type of_._«parameterized by»⁇_" is
 [

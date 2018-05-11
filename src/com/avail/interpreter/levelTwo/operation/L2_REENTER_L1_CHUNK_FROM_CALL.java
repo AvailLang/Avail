@@ -68,14 +68,22 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK_FROM_CALL
+public final class L2_REENTER_L1_CHUNK_FROM_CALL
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_REENTER_L1_CHUNK_FROM_CALL}.
+	 */
+	private L2_REENTER_L1_CHUNK_FROM_CALL ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_REENTER_L1_CHUNK_FROM_CALL().init();
+	public static final L2_REENTER_L1_CHUNK_FROM_CALL instance =
+		new L2_REENTER_L1_CHUNK_FROM_CALL();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -123,7 +131,9 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(destination++, continuation.stackAt(i));
 		}
-		stepper.pc.value = continuation.pc();
+		returneeFunction.code().setUpInstructionDecoder(
+			stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(continuation.pc());
 		stepper.stackp = continuation.stackp();
 		stepper.pointerAtPut(stepper.stackp, returnValue);
 	}

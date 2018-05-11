@@ -42,6 +42,8 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -55,16 +57,24 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_JUMP_IF_INTERRUPT
+public final class L2_JUMP_IF_INTERRUPT
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_JUMP_IF_INTERRUPT}.
+	 */
+	private L2_JUMP_IF_INTERRUPT ()
+	{
+		super(
+			PC.is("if interrupt", OFF_RAMP),
+			PC.is("if not interrupt", SUCCESS));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_INTERRUPT().init(
-			PC.is("if interrupt"),
-			PC.is("if not interrupt"));
+	public static final L2_JUMP_IF_INTERRUPT instance =
+		new L2_JUMP_IF_INTERRUPT();
 
 	@Override
 	protected void propagateTypes (

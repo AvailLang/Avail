@@ -40,6 +40,7 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -52,8 +53,11 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -66,18 +70,26 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_VARIABLE_CLEARING
+public final class L2_GET_VARIABLE_CLEARING
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_GET_VARIABLE_CLEARING}.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_VARIABLE_CLEARING().init(
+	private L2_GET_VARIABLE_CLEARING ()
+	{
+		super(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("read succeeded"),
-			PC.is("read failed"));
+			PC.is("read succeeded", SUCCESS),
+			PC.is("read failed", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_GET_VARIABLE_CLEARING instance =
+		new L2_GET_VARIABLE_CLEARING();
 
 	@Override
 	protected void propagateTypes (
@@ -117,6 +129,28 @@ extends L2Operation
 	public boolean isVariableGet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1).register();
+//		final int successIndex = instruction.pcOffsetAt(2);
+//		final L2PcOperand failure = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destReg);
+		builder.append(" ← ↓");
+		builder.append(variableReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

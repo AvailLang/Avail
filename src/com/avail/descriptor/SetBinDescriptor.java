@@ -1,6 +1,6 @@
-/**
+/*
  * SetBinDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.BIN_HASH;
  * used to implement hashed maps.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class SetBinDescriptor
 extends Descriptor

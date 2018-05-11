@@ -1,6 +1,6 @@
-/**
+/*
  * StacksOutputFile.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ package com.avail.stacks;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.IO;
-import com.avail.utility.Mutable;
+import com.avail.utility.MutableLong;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class StacksOutputFile
 	{
 		final ByteBuffer buffer = ByteBuffer.wrap(
 			(outputText.getBytes(StandardCharsets.UTF_8)));
-		final Mutable<Long> pos = new Mutable<>(0L);
+		final MutableLong pos = new MutableLong(0L);
 		outputFile.write(
 			buffer,
 			pos.value,

@@ -34,12 +34,16 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -52,15 +56,23 @@ import static org.objectweb.asm.Type.*;
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.</p>
  */
-public class L2_ENTER_L2_CHUNK
+public final class L2_ENTER_L2_CHUNK
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_ENTER_L2_CHUNK}.
+	 */
+	private L2_ENTER_L2_CHUNK ()
+	{
+		super(
+			INT_IMMEDIATE.is("entry point offset in default chunk"),
+			COMMENT.is("chunk entry point name"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_ENTER_L2_CHUNK().init(
-			IMMEDIATE.is("entry point offset in default chunk"));
+	public static final L2_ENTER_L2_CHUNK instance = new L2_ENTER_L2_CHUNK();
 
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
@@ -75,12 +87,24 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+//		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
+
+		assert this == instruction.operation;
+		renderPreamble(instruction, builder);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int offsetInUnoptimizedChunk = instruction.immediateAt(0);
+		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
 
 		// :: if (!chunk.isValid()) {
 		translator.loadInterpreter(method);

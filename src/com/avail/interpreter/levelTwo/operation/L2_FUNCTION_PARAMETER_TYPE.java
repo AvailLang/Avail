@@ -36,8 +36,10 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -46,11 +48,11 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -64,27 +66,35 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_FUNCTION_PARAMETER_TYPE
+public final class L2_FUNCTION_PARAMETER_TYPE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_FUNCTION_PARAMETER_TYPE}.
+	 */
+	private L2_FUNCTION_PARAMETER_TYPE ()
+	{
+		super(
+			READ_POINTER.is("function"),
+			INT_IMMEDIATE.is("parameter index"),
+			WRITE_POINTER.is("parameter type"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_FUNCTION_PARAMETER_TYPE().init(
-			READ_POINTER.is("function"),
-			IMMEDIATE.is("parameter index"),
-			WRITE_POINTER.is("parameter type"));
+	public static final L2_FUNCTION_PARAMETER_TYPE instance =
+		new L2_FUNCTION_PARAMETER_TYPE();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
@@ -132,7 +142,7 @@ extends L2Operation
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
@@ -178,6 +188,28 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand function = instruction.readObjectRegisterAt(0);
+		final int paramIndex = instruction.intImmediateAt(1);
+		final L2ObjectRegister outputParamTypeReg =
+			instruction.writeObjectRegisterAt(2).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(outputParamTypeReg);
+		builder.append(" ← ");
+		builder.append(function);
+		builder.append('[');
+		builder.append(paramIndex);
+		builder.append(']');
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
@@ -185,7 +217,7 @@ extends L2Operation
 	{
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(0).register();
-		final int paramIndex = instruction.immediateAt(1);
+		final int paramIndex = instruction.intImmediateAt(1);
 		final L2ObjectRegister outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2).register();
 

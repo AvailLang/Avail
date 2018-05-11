@@ -42,7 +42,8 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -53,13 +54,22 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_UNREACHABLE_CODE
+public final class L2_UNREACHABLE_CODE
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_UNREACHABLE_CODE}.
+	 */
+	private L2_UNREACHABLE_CODE ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance = new L2_UNREACHABLE_CODE().init();
+	public static final L2_UNREACHABLE_CODE instance =
+		new L2_UNREACHABLE_CODE();
 
 	@Override
 	protected void propagateTypes (
@@ -87,7 +97,7 @@ extends L2Operation
 	 * {@code UnreachableCodeException} is thrown only if unreachable code is
 	 * actually reached.
 	 */
-	public static class UnreachableCodeException
+	private static class UnreachableCodeException
 	extends RuntimeException
 	{
 		// No implementation required.

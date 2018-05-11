@@ -1,6 +1,6 @@
-/**
+/*
  * MacroDefinitionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,13 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 
 /**
@@ -49,12 +48,11 @@ import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
  * ordinary multimethods.  The first difference is which primitive is used to
  * define a macro versus a method.  The other difference is that instead of
  * generating code at an occurrence to call a method (a call site), the macro
- * body is immediately invoked, passing the {@link ParseNodeDescriptor parse
- * nodes} that occupy the corresponding argument positions in the method/macro
- * name.  The macro body will then do what it does and return a suitable parse
- * node.
+ * body is immediately invoked, passing the {@link PhraseDescriptor phrases}
+ * that occupy the corresponding argument positions in the method/macro name.
+ * The macro body will then do what it does and return a suitable phrase.
  *
- * <p>Instead of returning a new parse node, a macro body may instead reject
+ * <p>Instead of returning a new phrase, a macro body may instead reject
  * parsing, the same way a {@link SemanticRestrictionDescriptor semantic
  * restriction may}.  As you might expect, the diagnostic message provided to
  * the parse rejection primitive will be presented to the user.</p>
@@ -65,9 +63,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
  * (_) and guillemet groups contained therein.  When exactly one underscore or
  * guillemet group occurs within a group, then a simple tuple of values is
  * expected (rather than a tuple of tuples).  Macros expect tuples in an
- * analogous way, but (1) the bottom-level pieces are always parse nodes, and
- * (2) the grouping is actually via {@link ListNodeDescriptor list nodes} rather
- * than tuples.  Thus, a macro always operates on parse nodes.
+ * analogous way, but (1) the bottom-level pieces are always phrases, and (2)
+ * the grouping is actually via {@link ListPhraseDescriptor list phrases} rather
+ * than tuples.  Thus, a macro always operates on phrases.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -91,8 +89,7 @@ extends DefinitionDescriptor
 
 		/**
 		 * The {@linkplain FunctionDescriptor function} to invoke to transform
-		 * the (complete) argument parse nodes into a suitable replacement parse
-		 * node.
+		 * the (complete) argument phrases into a suitable replacement phrase.
 		 */
 		BODY_BLOCK,
 
@@ -169,7 +166,7 @@ extends DefinitionDescriptor
 			== object.slot(DEFINITION_METHOD).numArgs();
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return createListNodeType(
-			ParseNodeKind.LIST_NODE,
+			PhraseKind.LIST_PHRASE,
 			tupleTypeFromTupleOfTypes(argsTupleType, A_Type::expressionType),
 			argsTupleType);
 	}
@@ -231,7 +228,7 @@ extends DefinitionDescriptor
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when a call
 	 *            site is compiled, passing the sub<em>expressions</em>
-	 *            ({@linkplain ParseNodeDescriptor parse nodes}) as arguments.
+	 *            ({@linkplain PhraseDescriptor phrases}) as arguments.
 	 * @param prefixFunctions
 	 *            The tuple of prefix functions that correspond with the section
 	 *            checkpoints ("§") in the macro's name.

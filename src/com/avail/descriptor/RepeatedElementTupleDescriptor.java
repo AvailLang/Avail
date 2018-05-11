@@ -1,6 +1,6 @@
-/**
+/*
  * RepeatedElementTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor
 	.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor

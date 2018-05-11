@@ -1,6 +1,6 @@
-/**
+/*
  * Descriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,18 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -61,14 +60,12 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -872,9 +869,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1421,9 +1418,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1523,9 +1520,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2095,7 +2092,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override
 	int o_TupleSize (final AvailObject object)
 	{
@@ -2353,9 +2349,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNodeType (
+	boolean o_EqualsPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return false;
 	}
@@ -2928,13 +2924,13 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
 		throw unsupportedOperationException();
 	}
 
 	/**
-	 * Visit my child parse nodes with aBlock.
+	 * Visit my child phrases with the action.
 	 */
 	@Override
 	void o_ChildrenDo (
@@ -2961,7 +2957,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newParseNode)
+	A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newPhrase)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2985,7 +2981,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_CopyMutableParseNode (final AvailObject object)
+	A_Phrase o_CopyMutablePhrase (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2998,7 +2994,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_OutputParseNode (final AvailObject object)
+	A_Phrase o_OutputPhrase (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3153,15 +3149,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	boolean o_ParseNodeKindIsUnder (
+	boolean o_PhraseKindIsUnder (
 		final AvailObject object,
-		final ParseNodeKind expectedParseNodeKind)
+		final PhraseKind expectedPhraseKind)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3904,9 +3900,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsParseNode (
+	boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final A_Phrase aPhrase)
 	{
 		return false;
 	}
@@ -4868,17 +4864,16 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext)
+	LexingState o_NextLexingState (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	void o_SetNextLexingState (
+	void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
-		final @Nullable LexingState lexingState)
+		final LexingState priorLexingState)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4979,20 +4974,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	L1Operation o_NextNybblecodeOperation (
-		final AvailObject object, final MutableInt pc)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_NextNybblecodeOperand (
-		final AvailObject object, final MutableInt pc)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_NumNybbles (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -5015,8 +4996,6 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
-
 
 	@Override
 	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (

@@ -1,6 +1,6 @@
-/**
+/*
  * Sequence.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,9 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
@@ -48,11 +47,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter
-	.circledNumberCodePoint;
+import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
 import static com.avail.compiler.splitter.WrapState.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
 
@@ -301,7 +299,7 @@ extends Expression
 	 *        sequence.  Indexed by the second()s of the run pairs.
 	 */
 	@InnerAccess
-	void emitRunOn (
+	private void emitRunOn (
 		final List<Pair<Expression, Integer>> run,
 		final int positionInRun,
 		final InstructionGenerator generator,
@@ -316,7 +314,7 @@ extends Expression
 				? permutedArguments.get(typeIndex - 1)
 				: typeIndex;
 		final A_Type subexpressionType = typeIndex == 0
-			? emptyListNodeType()
+			? emptyListPhraseType()
 			: subexpressionsTupleType.typeAtIndex(realTypeIndex);
 		if (positionInRun == runSize - 1)
 		{
@@ -329,7 +327,6 @@ extends Expression
 		{
 			((Optional) expression).emitInRunThen(
 				generator,
-				subexpressionType,
 				() -> emitRunOn(
 					run,
 					positionInRun + 1,
@@ -434,7 +431,7 @@ extends Expression
 			final A_Tuple permutationTuple =
 				tupleFromIntegerList(permutedArguments);
 			final int permutationIndex = indexForPermutation(permutationTuple);
-			// This sequence was already collected into a list node as the
+			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
@@ -462,13 +459,13 @@ extends Expression
 			}
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -478,7 +475,7 @@ extends Expression
 		{
 			if (needsSpace && expression.shouldBeSeparatedOnLeft())
 			{
-				builder.append(" ");
+				builder.append(' ');
 			}
 			final int oldLength = builder.length();
 			expression.printWithArguments(
@@ -548,7 +545,7 @@ extends Expression
 				E_INCONSISTENT_ARGUMENT_REORDERING,
 				"The circled numbers for this clause must range from 1 "
 				+ "to the number of arguments/groups, but must not be "
-				+ "in ascending order (got " + usedOrdinalsList + ")");
+				+ "in ascending order (got " + usedOrdinalsList + ')');
 		}
 		assert permutedArguments.isEmpty();
 		permutedArguments.addAll(usedOrdinalsList);
@@ -579,7 +576,7 @@ extends Expression
 			}
 			else
 			{
-				if (!expression.mightBeEmpty(emptyListNodeType()))
+				if (!expression.mightBeEmpty(emptyListPhraseType()))
 				{
 					return false;
 				}

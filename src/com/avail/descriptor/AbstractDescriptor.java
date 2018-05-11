@@ -1,6 +1,6 @@
-/**
+/*
  * AbstractDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +32,23 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -66,7 +64,6 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -74,7 +71,6 @@ import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -138,6 +134,38 @@ import static java.lang.Math.max;
  */
 public abstract class AbstractDescriptor
 {
+	/**
+	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
+	 * Useful for customizing debugger views of objects.
+	 */
+	final class DebuggerObjectSlots implements ObjectSlotsEnum
+	{
+		/** The slot name. */
+		public final String name;
+
+		/**
+		 * Create a new artificial slot with the given name.
+		 *
+		 * @param name The name of the slot.
+		 */
+		DebuggerObjectSlots (final String name)
+		{
+			this.name = name;
+		}
+
+		@Override
+		public String name ()
+		{
+			return name;
+		}
+
+		@Override
+		public int ordinal ()
+		{
+			return -1;
+		}
+	}
+
 	/** The {@linkplain Mutability mutability} of my instances. */
 	final Mutability mutability;
 
@@ -569,7 +597,6 @@ public abstract class AbstractDescriptor
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
-
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
@@ -707,6 +734,7 @@ public abstract class AbstractDescriptor
 			{
 				Strings.newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
+				final List<BitField> bitFields = bitFieldsFor(slot);
 				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -715,23 +743,22 @@ public abstract class AbstractDescriptor
 					builder.append(slotName, 0, slotName.length() - 1);
 					builder.append('[');
 					builder.append(subscript);
-					builder.append("]");
+					builder.append(']');
 				}
 				else
 				{
 					value = object.slot(slot);
-					builder.append(slotName);
-				}
-				final List<BitField> bitFields = bitFieldsFor(slot);
-				if (bitFields.isEmpty())
-				{
-					builder.append(" = ");
-					builder.append(value);
-				}
-				else
-				{
-					describeIntegerSlot(
-						object, value, slot, bitFields, builder);
+					if (bitFields.isEmpty())
+					{
+						builder.append(slotName);
+						builder.append(" = ");
+						builder.append(value);
+					}
+					else
+					{
+						describeIntegerSlot(
+							object, value, slot, bitFields, builder);
+					}
 				}
 			}
 		}
@@ -890,7 +917,7 @@ public abstract class AbstractDescriptor
 			}
 			else
 			{
-				builder.append(" (");
+				builder.append("(");
 				boolean first = true;
 				for (final BitField bitField : bitFields)
 				{
@@ -2023,12 +2050,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	abstract boolean o_IsSupertypeOfParseNodeType (
+	abstract boolean o_IsSupertypeOfPhraseType (
 		AvailObject object,
-		A_Type aParseNodeType);
+		A_Type aPhraseType);
 
 	/**
 	 * @param object
@@ -2776,12 +2803,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	abstract A_Type o_TypeIntersectionOfParseNodeType (
+	abstract A_Type o_TypeIntersectionOfPhraseType (
 		AvailObject object,
-		A_Type aParseNodeType);
+		A_Type aPhraseType);
 
 	/**
 	 * @param object
@@ -3866,12 +3893,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	abstract boolean o_EqualsParseNodeType (
+	abstract boolean o_EqualsPhraseType (
 		AvailObject object,
-		A_Type aParseNodeType);
+		A_Type aPhraseType);
 
 	/**
 	 * @param object
@@ -4439,16 +4466,15 @@ public abstract class AbstractDescriptor
 	/**
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.
-	 *
-	 * @param object
-	 * @param aBlock
+	 *  @param object
+	 * @param transformer
 	 */
 	abstract void o_ChildrenMap (
 		AvailObject object,
-		Transformer1<A_Phrase, A_Phrase> aBlock);
+		Transformer1<A_Phrase, A_Phrase> transformer);
 
 	/**
-	 * Visit my child parse nodes with aBlock.
+	 * Visit my child phrases with aBlock.
 	 *  @param object
 	 * @param action
 	 */
@@ -4475,12 +4501,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param newParseNode
+	 * @param newPhrase
 	 * @return
 	 */
 	abstract A_Phrase o_CopyWith (
 		AvailObject object,
-		A_Phrase newParseNode);
+		A_Phrase newPhrase);
 
 	/**
 	 * @param object
@@ -4508,7 +4534,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Phrase o_CopyMutableParseNode (
+	abstract A_Phrase o_CopyMutablePhrase (
 		AvailObject object);
 
 	/**
@@ -4522,7 +4548,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Phrase o_OutputParseNode (
+	abstract A_Phrase o_OutputPhrase (
 		AvailObject object);
 
 	/**
@@ -4712,28 +4738,28 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aParseNodeType
+	 * @param aPhraseType
 	 * @return
 	 */
-	abstract A_Type o_TypeUnionOfParseNodeType (
+	abstract A_Type o_TypeUnionOfPhraseType (
 		AvailObject object,
-		A_Type aParseNodeType);
+		A_Type aPhraseType);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract ParseNodeKind o_ParseNodeKind (
+	abstract PhraseKind o_PhraseKind (
 		AvailObject object);
 
 	/**
 	 * @param object
-	 * @param expectedParseNodeKind
+	 * @param expectedPhraseKind
 	 * @return
 	 */
-	abstract boolean o_ParseNodeKindIsUnder (
+	abstract boolean o_PhraseKindIsUnder (
 		AvailObject object,
-		ParseNodeKind expectedParseNodeKind);
+		PhraseKind expectedPhraseKind);
 
 	/**
 	 * @param object
@@ -5573,12 +5599,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aParseNode
+	 * @param aPhrase
 	 * @return
 	 */
-	abstract boolean o_EqualsParseNode (
+	abstract boolean o_EqualsPhrase (
 		final AvailObject object,
-		final A_Phrase aParseNode);
+		final A_Phrase aPhrase);
 
 	/**
 	 * @param object
@@ -6636,21 +6662,17 @@ public abstract class AbstractDescriptor
 	/**
 	 *
 	 * @param object
-	 * @param compilationContext
 	 * @return
 	 */
-	abstract LexingState o_NextLexingStateIn (
-		final AvailObject object,
-		final CompilationContext compilationContext);
+	abstract LexingState o_NextLexingState (
+		final AvailObject object);
 
 	/**
-	 *
-	 * @param object
-	 * @param lexingState
-	 */
-	abstract void o_SetNextLexingState (
+	 *  @param object
+	 * @param priorLexingState*/
+	abstract void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
-		final @Nullable LexingState lexingState);
+		final LexingState priorLexingState);
 
 	/**
 	 *
@@ -6750,24 +6772,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract Statistic o_ReturneeCheckStat (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @param pc
-	 * @return
-	 */
-	abstract L1Operation o_NextNybblecodeOperation (
-		final AvailObject object,
-		final MutableInt pc);
-
-	/**
-	 * @param object
-	 * @param pc
-	 * @return
-	 */
-	abstract int o_NextNybblecodeOperand (
-		final AvailObject object,
-		final MutableInt pc);
 
 	/**
 	 * @param object

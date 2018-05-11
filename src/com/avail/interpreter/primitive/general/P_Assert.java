@@ -1,6 +1,6 @@
-/**
+/*
  * P_Assert.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,19 +37,19 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -86,12 +86,11 @@ public final class P_Assert extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom predicate = args.get(0);
-		final A_String failureMessage = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Atom predicate = interpreter.argument(0);
+		final A_String failureMessage = interpreter.argument(1);
 		if (!predicate.extractBoolean())
 		{
 			final A_Fiber fiber = interpreter.fiber();
@@ -200,6 +199,7 @@ public final class P_Assert extends Primitive
 				translator.constantRegister(falseObject()),
 				arguments.get(1)),
 			functionToCallReg.type().returnType(),
+			true,
 			callSiteHelper);
 
 		// Happy case.  Just push nil and jump to a suitable exit point.

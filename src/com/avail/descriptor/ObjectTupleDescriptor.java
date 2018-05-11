@@ -1,6 +1,6 @@
-/**
+/*
  * ObjectTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,20 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.IndexedGenerator;
 import com.avail.utility.IteratorNotNull;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**
@@ -538,7 +538,7 @@ extends TupleDescriptor
 	 * @param size The number of elements in the resulting tuple.
 	 * @return An uninitialized object tuple of the requested size.
 	 */
-	public static AvailObject createUninitialized (final int size)
+	private static AvailObject createUninitialized (final int size)
 	{
 		return mutable.create(size);
 	}
@@ -595,6 +595,182 @@ extends TupleDescriptor
 		for (int i = size; i >= 1; i--)
 		{
 			result.setSlot(TUPLE_AT_, i, generator.value(i));
+		}
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified elements. The elements are not made
+	 * immutable first, nor is the new tuple.
+	 *
+	 * @param elements
+	 *        The array of Avail values from which to construct a tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tupleFromArray (
+		final A_BasicObject... elements)
+	{
+		final int size = elements.length;
+		if (size == 0)
+		{
+			return emptyTuple();
+		}
+		final AvailObject result = createUninitialized(size);
+		for (int i = 1; i <= size; i++)
+		{
+			result.setSlot(TUPLE_AT_, i, elements[i - 1]);
+		}
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified sole element. The element is not made
+	 * immutable first, nor is the new tuple.
+	 *
+	 * @param element1
+	 *        The value for the first element of the tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tuple (
+		final A_BasicObject element1)
+	{
+		final AvailObject result = createUninitialized(1);
+		result.setSlot(TUPLE_AT_, 1, element1);
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified two elements. The elements are not made
+	 * immutable first, nor is the new tuple.
+	 *
+	 * @param element1
+	 *        The value for the first element of the tuple.
+	 * @param element2
+	 *        The value for the second element of the tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tuple (
+		final A_BasicObject element1,
+		final A_BasicObject element2)
+	{
+		final AvailObject result = createUninitialized(2);
+		result.setSlot(TUPLE_AT_, 1, element1);
+		result.setSlot(TUPLE_AT_, 2, element2);
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified three elements. The elements are not
+	 * made immutable first, nor is the new tuple.
+	 *
+	 * @param element1
+	 *        The value for the first element of the tuple.
+	 * @param element2
+	 *        The value for the second element of the tuple.
+	 * @param element3
+	 *        The value for the third element of the tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tuple (
+		final A_BasicObject element1,
+		final A_BasicObject element2,
+		final A_BasicObject element3)
+	{
+		final AvailObject result = createUninitialized(3);
+		result.setSlot(TUPLE_AT_, 1, element1);
+		result.setSlot(TUPLE_AT_, 2, element2);
+		result.setSlot(TUPLE_AT_, 3, element3);
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified four elements. The elements are not
+	 * made immutable first, nor is the new tuple.
+	 *
+	 * @param element1
+	 *        The value for the first element of the tuple.
+	 * @param element2
+	 *        The value for the second element of the tuple.
+	 * @param element3
+	 *        The value for the third element of the tuple.
+	 * @param element4
+	 *        The value for the fourth element of the tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tuple (
+		final A_BasicObject element1,
+		final A_BasicObject element2,
+		final A_BasicObject element3,
+		final A_BasicObject element4)
+	{
+		final AvailObject result = createUninitialized(4);
+		result.setSlot(TUPLE_AT_, 1, element1);
+		result.setSlot(TUPLE_AT_, 2, element2);
+		result.setSlot(TUPLE_AT_, 3, element3);
+		result.setSlot(TUPLE_AT_, 4, element4);
+		return result;
+	}
+
+	/**
+	 * Create a tuple with the specified five elements. The elements are not
+	 * made immutable first, nor is the new tuple.
+	 *
+	 * @param element1
+	 *        The value for the first element of the tuple.
+	 * @param element2
+	 *        The value for the second element of the tuple.
+	 * @param element3
+	 *        The value for the third element of the tuple.
+	 * @param element4
+	 *        The value for the fourth element of the tuple.
+	 * @param element5
+	 *        The value for the fifth element of the tuple.
+	 * @return The new mutable tuple.
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Tuple tuple (
+		final A_BasicObject element1,
+		final A_BasicObject element2,
+		final A_BasicObject element3,
+		final A_BasicObject element4,
+		final A_BasicObject element5)
+	{
+		final AvailObject result = createUninitialized(5);
+		result.setSlot(TUPLE_AT_, 1, element1);
+		result.setSlot(TUPLE_AT_, 2, element2);
+		result.setSlot(TUPLE_AT_, 3, element3);
+		result.setSlot(TUPLE_AT_, 4, element4);
+		result.setSlot(TUPLE_AT_, 5, element5);
+		return result;
+	}
+
+	/**
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
+	 * passed in a list.  The elements are not made immutable first, nor is the
+	 * new tuple necessarily made immutable.
+	 *
+	 * @param list
+	 *        The list of {@linkplain AvailObject Avail objects} from which
+	 *        to construct a tuple.
+	 * @return The corresponding tuple of objects.
+	 */
+	public static <E extends A_BasicObject> A_Tuple tupleFromList (
+		final List<E> list)
+	{
+		final int size = list.size();
+		if (size == 0)
+		{
+			return emptyTuple();
+		}
+		final AvailObject result = createUninitialized(size);
+		for (int i = 1; i <= size; i++)
+		{
+			result.setSlot(TUPLE_AT_, i, list.get(i - 1));
 		}
 		return result;
 	}

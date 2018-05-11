@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 build.xml
-Copyright © 1993-2017, The Avail Foundation, LLC.
+Copyright © 1993-2018, The Avail Foundation, LLC.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -384,6 +384,12 @@ POSSIBILITY OF SUCH DAMAGE.
 			<fileset dir="${path.avail.jar}"
 					 includes="*.jar"
 					 excludes="junit.jar" />
+			<filelist dir="${path.avail.libraries}">
+				<file name="${path.avail.libraries}/asm-6.0.jar" />
+				<file name="${path.avail.libraries}/asm-util-6.0.jar" />
+				<file name="${path.avail.libraries}/asm-tree-6.0.jar" />
+				<file name="${path.avail.libraries}/asm-analysis-6.0.jar" />
+			</filelist>
 		</copy>
 		<!-- Make the java app launcher executable... -->
 		<chmod file="${app.base}/Contents/MacOs/JavaAppLauncher" perm="+x"/>

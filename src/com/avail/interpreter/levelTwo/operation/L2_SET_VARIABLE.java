@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -49,13 +50,14 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -64,18 +66,26 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_SET_VARIABLE
+public final class L2_SET_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_SET_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_SET_VARIABLE().init(
+	private L2_SET_VARIABLE ()
+	{
+		super(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"),
-			PC.is("write succeeded"),
-			PC.is("write failed"));
+			PC.is("write succeeded", SUCCESS),
+			PC.is("write failed", OFF_RAMP));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_SET_VARIABLE instance =
+		new L2_SET_VARIABLE();
 
 	@Override
 	protected void propagateTypes (
@@ -137,6 +147,28 @@ extends L2Operation
 	public boolean isVariableSet ()
 	{
 		return true;
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0).register();
+		final L2ObjectRegister valueReg =
+			instruction.readObjectRegisterAt(1).register();
+//		final int successIndex = instruction.pcOffsetAt(2);
+//		final L2PcOperand failure = instruction.pcAt(3);
+
+		renderPreamble(instruction, builder);
+		builder.append(" ↓");
+		builder.append(variableReg);
+		builder.append(" ← ");
+		builder.append(valueReg);
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
 	@Override

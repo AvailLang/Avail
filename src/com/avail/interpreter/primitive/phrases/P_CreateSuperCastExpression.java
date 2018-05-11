@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateSuperCastExpression.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,22 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.SuperCastNodeDescriptor;
+import com.avail.descriptor.SuperCastPhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.SUPER_CAST_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.SUPER_CAST_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -58,7 +56,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Transform a base expression and a type into
- * a {@linkplain SuperCastNodeDescriptor supercast phrase} that will use that
+ * a {@linkplain SuperCastPhraseDescriptor supercast phrase} that will use that
  * type for lookup.  Fail if the type is not a strict supertype of that which
  * will be produced by the expression.  Also fail if the expression is itself a
  * supertype, or if it is top-valued or bottom-valued.
@@ -75,12 +73,11 @@ public final class P_CreateSuperCastExpression extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Phrase expression = args.get(0);
-		final A_Type lookupType = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Phrase expression = interpreter.argument(0);
+		final A_Type lookupType = interpreter.argument(1);
 
 		final A_Type expressionType = expression.expressionType();
 		if (expressionType.isBottom() || expressionType.isTop())
@@ -88,7 +85,7 @@ public final class P_CreateSuperCastExpression extends Primitive
 			return interpreter.primitiveFailure(
 				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
 		}
-		if (expression.parseNodeKindIsUnder(SUPER_CAST_NODE))
+		if (expression.phraseKindIsUnder(SUPER_CAST_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST);
@@ -108,9 +105,9 @@ public final class P_CreateSuperCastExpression extends Primitive
 	{
 		return functionType(
 			tuple(
-				EXPRESSION_NODE.create(ANY.o()),
+				EXPRESSION_PHRASE.create(ANY.o()),
 				anyMeta()),
-			SUPER_CAST_NODE.mostGeneralType());
+			SUPER_CAST_PHRASE.mostGeneralType());
 	}
 
 	@Override

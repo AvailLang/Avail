@@ -34,12 +34,9 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -47,7 +44,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_ACCEPTANCE;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 
@@ -86,10 +83,9 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		interpreter.checkArgumentCount(0);
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
 			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_ACCEPTANCE);
@@ -100,7 +96,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(), bottom());
+		return functionType(emptyTuple(), bottom());
 	}
 
 	@Override

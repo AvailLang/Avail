@@ -1,6 +1,6 @@
-/**
+/*
  * MutableInt.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,8 @@ public class MutableInt
 	/**
 	 * Expose a public field for readability.  For instance, one could declare
 	 * something {@code "final MutableInt x = new MutableInt(9);"} and then have
-	 * code within inner classes like {@code "x.value = 5"} or {@code
-	 * "x.value++"}.
+	 * code within inner classes like {@code "x.value = 5;"} or {@code
+	 * "x.value++;"}.
 	 */
 	public int value;
 

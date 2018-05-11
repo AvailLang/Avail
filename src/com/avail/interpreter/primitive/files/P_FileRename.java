@@ -1,6 +1,6 @@
-/**
+/*
  * P_FileRename.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,10 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.CopyOption;
@@ -64,10 +64,11 @@ import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -95,16 +96,15 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final A_String source = args.get(0);
-		final A_String destination = args.get(1);
-		final A_Atom replaceExisting = args.get(2);
-		final A_Function succeed = args.get(3);
-		final A_Function fail = args.get(4);
-		final A_Number priority = args.get(5);
+		interpreter.checkArgumentCount(6);
+		final A_String source = interpreter.argument(0);
+		final A_String destination = interpreter.argument(1);
+		final A_Atom replaceExisting = interpreter.argument(2);
+		final A_Function succeed = interpreter.argument(3);
+		final A_Function fail = interpreter.argument(4);
+		final A_Number priority = interpreter.argument(5);
 
 		final AvailRuntime runtime = currentRuntime();
 		final Path sourcePath;
@@ -203,7 +203,7 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
+			tupleFromArray(
 				stringType(),
 				stringType(),
 				booleanType(),

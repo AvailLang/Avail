@@ -1,6 +1,6 @@
 /*
  * L2_PREPARE_NEW_FRAME_FOR_L1.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,6 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
@@ -81,14 +80,22 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_PREPARE_NEW_FRAME_FOR_L1
+public final class L2_PREPARE_NEW_FRAME_FOR_L1
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_PREPARE_NEW_FRAME_FOR_L1}.
+	 */
+	private L2_PREPARE_NEW_FRAME_FOR_L1 ()
+	{
+		// Prevent accidental construction due to code cloning.
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_PREPARE_NEW_FRAME_FOR_L1().init();
+	public static final L2_PREPARE_NEW_FRAME_FOR_L1 instance =
+		new L2_PREPARE_NEW_FRAME_FOR_L1();
 
 	/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
 	private static final Statistic reificationForInterruptInL1Stat =
@@ -102,7 +109,7 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		// No real optimization should ever be done near this wordcode.
+		// No real optimization should ever be done near this L2 instruction.
 		// Do nothing.
 	}
 
@@ -155,7 +162,8 @@ extends L2Operation
 		{
 			stepper.pointerAtPut(dest++, nil);
 		}
-		stepper.pc.value = 1;
+		code.setUpInstructionDecoder(stepper.instructionDecoder);
+		stepper.instructionDecoder.pc(1);
 		stepper.stackp = numSlots + 1;
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)

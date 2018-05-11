@@ -1,6 +1,6 @@
-/**
+/*
  * GrammaticalRestrictionDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,8 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor
-	.IntegerSlots.HASH;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor
-	.ObjectSlots.*;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.HASH;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to

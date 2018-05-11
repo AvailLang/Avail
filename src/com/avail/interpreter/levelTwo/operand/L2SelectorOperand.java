@@ -85,6 +85,6 @@ extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Selector(%s)", bundle.message().atomName());
+		return "$" + bundle.message().atomName();
 	}
 }

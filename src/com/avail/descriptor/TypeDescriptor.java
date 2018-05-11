@@ -1,6 +1,6 @@
-/**
+/*
  * TypeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,7 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PrimitiveTypeDescriptor
-	.createMutablePrimitiveObjectNamed;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -665,7 +664,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		// By default, nothing is a supertype of a list node type unless it
+		// By default, nothing is a supertype of a list phrase type unless it
 		// states otherwise.
 		return false;
 	}
@@ -699,9 +698,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfParseNodeType (
+	boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return false;
 	}
@@ -921,9 +920,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return bottom();
 	}
@@ -1050,9 +1049,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
-		final A_Type aParseNodeType)
+		final A_Type aPhraseType)
 	{
 		return object.typeUnion(NONTYPE.o());
 	}
@@ -1125,6 +1124,21 @@ extends AbstractTypeDescriptor
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
+	}
+
+	/**
+	 * Answer whether the first type is a proper subtype of the second type,
+	 * meaning that it's a subtype but not equal.
+	 *
+	 * @param type1 The purported subtype.
+	 * @param type2 The purported supertype.
+	 * @return If type1 is a subtype of but not equal to type2.
+	 */
+	public static boolean isProperSubtype (
+		final A_Type type1,
+		final A_Type type2)
+	{
+		return !type1.equals(type2) && type1.isSubtypeOf(type2);
 	}
 
 	/**

@@ -1,6 +1,6 @@
-/**
+/*
  * DefinitionParsingPlanDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor
-	.ObjectSlots.*;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
 

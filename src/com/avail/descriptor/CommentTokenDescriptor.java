@@ -1,6 +1,6 @@
-/**
+/*
  * CommentTokenDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.utility.json.JSONWriter;
 
@@ -136,11 +135,6 @@ extends TokenDescriptor
 		/**
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
-		 *
-		 * <p>The field is typically {@link NilDescriptor#nil nil}, to
-		 * indicate the {@link LexingState} should be looked up by position (and
-		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
-		 * </p>
 		 */
 		@HideFieldJustForPrinting
 		NEXT_LEXING_STATE_POJO;
@@ -158,7 +152,6 @@ extends TokenDescriptor
 			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
 				== NEXT_LEXING_STATE_POJO.ordinal();
 		}
-
 	}
 
 	@Override

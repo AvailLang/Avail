@@ -1,6 +1,6 @@
-/**
+/*
  * ByteBufferTupleDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,17 +39,15 @@ import com.avail.utility.json.JSONWriter;
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ByteBufferTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots
-	.BYTE_BUFFER;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots.BYTE_BUFFER;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;

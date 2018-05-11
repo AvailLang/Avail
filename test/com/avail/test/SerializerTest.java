@@ -1,6 +1,6 @@
-/**
+/*
  * SerializerTest.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,13 +74,14 @@ import static com.avail.descriptor.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.utility.Nulls.stripNull;
-import static java.lang.Integer.MAX_VALUE;
-import static java.lang.Integer.MIN_VALUE;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -324,7 +325,6 @@ public final class SerializerTest
 		checkObject(stringFrom("I really like music 𝄞𝄞"));
 	}
 
-
 	/**
 	 * Test serialization of some tuples of integers.
 	 *
@@ -349,8 +349,8 @@ public final class SerializerTest
 		}
 		checkObject(
 			tuple(
-				fromLong(MIN_VALUE),
-				fromLong(MAX_VALUE)));
+				fromLong(Integer.MIN_VALUE),
+				fromLong(Integer.MAX_VALUE)));
 		checkObject(
 			tuple(
 				fromLong(Long.MIN_VALUE),

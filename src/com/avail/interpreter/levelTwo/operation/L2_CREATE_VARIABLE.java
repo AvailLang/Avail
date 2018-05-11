@@ -36,14 +36,16 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -57,21 +59,28 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_VARIABLE
+public final class L2_CREATE_VARIABLE
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_VARIABLE}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_VARIABLE().init(
+	private L2_CREATE_VARIABLE ()
+	{
+		super(
 			CONSTANT.is("outerType"),
 			WRITE_POINTER.is("variable"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_VARIABLE instance = new L2_CREATE_VARIABLE();
 
 	@Override
 	protected void propagateTypes (
-		@NotNull final L2Instruction instruction,
-		@NotNull final RegisterSet registerSet,
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
 		final A_Type outerType = instruction.constantAt(0);
@@ -82,6 +91,24 @@ extends L2Operation
 		registerSet.removeConstantAt(destReg.register());
 		registerSet.typeAtPut(
 			destReg.register(), outerType, instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final A_Type outerType = instruction.constantAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destReg);
+		builder.append(" ← new ");
+		builder.append(outerType);
 	}
 
 	@Override

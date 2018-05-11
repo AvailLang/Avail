@@ -1,6 +1,6 @@
-/**
+/*
  * CompilerDiagnostics.java
- * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2018, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,10 +31,8 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
@@ -44,7 +42,6 @@ import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
@@ -53,20 +50,27 @@ import com.avail.utility.evaluation.SimpleDescriber;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.regex.Matcher;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.utility.Strings.addLineNumbers;
+import static com.avail.utility.Strings.lineBreakPattern;
+import static java.lang.String.format;
+import static java.util.Collections.emptyIterator;
+import static java.util.Collections.reverseOrder;
 
 public class CompilerDiagnostics
 {
 	/**
-	 * Create a {@link CompilerDiagnostics} suitable for tracking the potential
+	 * Create a {@code CompilerDiagnostics} suitable for tracking the potential
 	 * problems encountered during compilation of a single module.
 	 *
 	 * @param source
@@ -332,13 +336,13 @@ public class CompilerDiagnostics
 				state.position,
 				state.lineNumber,
 				WHITESPACE);
+			emptyToken.setNextLexingStateFromPrior(state);
 			continuation.value(emptyToken.makeShared());
 			return;
 		}
 		continuation.value(
 			candidates.stream()
-				.max(Comparator.comparing(
-					(A_Token t) -> t.string().tupleSize()))
+				.max(Comparator.comparing(t -> t.string().tupleSize()))
 				.get());
 	}
 
@@ -358,53 +362,79 @@ public class CompilerDiagnostics
 	{
 		final List<Integer> descendingIndices =
 			new ArrayList<>(expectationsIndexHeap);
-		descendingIndices.sort(Collections.reverseOrder());
-		final Iterator<Integer> descendingIterator =
-			descendingIndices.iterator();
-		final IndicatorGenerator indicatorGenerator = new IndicatorGenerator();
-		final List<ProblemsAtPosition> groupedProblems = new ArrayList<>();
-		final MutableOrNull<Continuation0> writeAnotherThen =
-			new MutableOrNull<>();
-		writeAnotherThen.value = () ->
+		descendingIndices.sort(reverseOrder());
+		accumulateErrorsThen(
+			descendingIndices.iterator(),
+			new IndicatorGenerator(),
+			new ArrayList<>(),
+			groups -> reportGroupedErrors(
+				groups, headerMessagePattern, afterFail));
+	}
+
+	/**
+	 * Accumulate the errors, then pass the {@link List} of {@link
+	 * ProblemsAtPosition}s to the given {@link Continuation1NotNull}.
+	 *
+	 * @param descendingIterator
+	 *        An {@link Iterator} that supplies source positions at which
+	 *        problems have been recorded, ordered by descending position.
+	 * @param indicatorGenerator
+	 *        An {@link IndicatorGenerator} for producing marker strings to
+	 *        label the successive (descending) positions in the source where
+	 *        problems occurred.
+	 * @param groupedProblems
+	 *        The {@link List} of {@link ProblemsAtPosition}s accumulated so
+	 *        far.
+	 * @param afterGrouping
+	 *        What to do after producing the grouped error reports.
+	 */
+	private void accumulateErrorsThen (
+		final Iterator<Integer> descendingIterator,
+		final IndicatorGenerator indicatorGenerator,
+		final List<ProblemsAtPosition> groupedProblems,
+		final Continuation1NotNull<List<ProblemsAtPosition>> afterGrouping)
+	{
+		if (!descendingIterator.hasNext())
 		{
-			if (!descendingIterator.hasNext())
+			// Done assembling each of the problems.  Report them.
+			assert !groupedProblems.isEmpty();
+			afterGrouping.value(groupedProblems);
+			return;
+		}
+		final int sourcePosition = descendingIterator.next();
+		final Map<LexingState, List<Describer>> innerMap =
+			expectations.get(sourcePosition);
+		assert !innerMap.isEmpty();
+		// Due to local lexer ambiguity, there may be multiple possible
+		// tokens at this position.  Choose the longest for the purpose
+		// of displaying the diagnostics.  We only care about the tokens
+		// that have already been formed, not ones in progress.
+		findLongestTokenThen(
+			innerMap.keySet(),
+			longestToken ->
 			{
-				// Done assembling each of the problems.  Report them.
-				assert !groupedProblems.isEmpty();
-				reportError(
-					groupedProblems, headerMessagePattern, afterFail);
-				return;
-			}
-			final int sourcePosition = descendingIterator.next();
-			final Map<LexingState, List<Describer>> innerMap =
-				expectations.get(sourcePosition);
-			assert !innerMap.isEmpty();
-			final CompilationContext compilationContext =
-				innerMap.keySet().iterator().next().compilationContext;
-			// Due to local lexer ambiguity, there may be multiple possible
-			// tokens at this position.  Choose the longest for the purpose
-			// of displaying the diagnostics.  We only care about the tokens
-			// that have already been formed, not ones in progress.
-			findLongestTokenThen(
-				innerMap.keySet(),
-				longestToken ->
+				final List<Describer> describers = new ArrayList<>();
+				for (final List<Describer> eachDescriberList
+					: innerMap.values())
 				{
-					final List<Describer> describers = new ArrayList<>();
-					for (final List<Describer> eachDescriberList
-						: innerMap.values())
-					{
-						describers.addAll(eachDescriberList);
-					}
-					groupedProblems.add(
-						new ProblemsAtPosition(
-							innerMap.keySet().iterator().next(),
-							longestToken.nextLexingStateIn(compilationContext),
-							indicatorGenerator.next(),
-							describers));
-					writeAnotherThen.value().value();
-				});
-		};
-		writeAnotherThen.value().value();
+					describers.addAll(eachDescriberList);
+				}
+				final LexingState before =
+					innerMap.keySet().iterator().next();
+				groupedProblems.add(
+					new ProblemsAtPosition(
+						before,
+						longestToken.tokenType() == END_OF_FILE
+							? before
+							: longestToken.nextLexingState(),
+						indicatorGenerator.next(),
+						describers));
+				accumulateErrorsThen(
+					descendingIterator,
+					indicatorGenerator,
+					groupedProblems,
+					afterGrouping);
+			});
 	}
 
 	/**
@@ -458,6 +488,7 @@ public class CompilerDiagnostics
 	 *         backward from the given initial index.  If the code point is not
 	 *         found, answer 0.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	static int firstIndexOf (
 		final A_String string,
 		final int codePoint,
@@ -492,6 +523,7 @@ public class CompilerDiagnostics
 	 *         backward from the given initial index.  If the code point is not
 	 *         found, answer 0.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	static int lastIndexOf (
 		final A_String string,
 		final int codePoint,
@@ -524,6 +556,7 @@ public class CompilerDiagnostics
 	 *         The number of occurrences of the codePoint in the specified range
 	 *         of the {@link A_String}.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	static int occurrencesInRange (
 		final A_String string,
 		final int codePoint,
@@ -556,7 +589,7 @@ public class CompilerDiagnostics
 	 * @param afterFail
 	 *        What to do after the problems have actually been reported.
 	 */
-	public void reportError (
+	public void reportGroupedErrors (
 		final List<ProblemsAtPosition> groupedProblems,
 		final String headerMessagePattern,
 		final Continuation0 afterFail)
@@ -624,22 +657,21 @@ public class CompilerDiagnostics
 
 		// Insert line numbers...
 		final int maxDigits = Integer.toString(finalLineNumber + 1).length();
-		@SuppressWarnings("resource")
-		final Formatter text = new Formatter();
-		text.format(
-			"%s",
-			Strings.addLineNumbers(
+		final StringBuilder builder = new StringBuilder();
+		//noinspection StringConcatenationMissingWhitespace
+		builder.append(
+			addLineNumbers(
 				((A_String) unnumbered).asNativeString(),
 				">>> %" + maxDigits + "d: %s",
 				initialLineNumber));
-		text.format(">>>%s", rowOfDashes);
+		builder.append(">>>").append(rowOfDashes);
 
 		// Now output all the problems, in the original group order.  Start off
 		// with an empty problemIterator to keep the code simple.
 		final Iterator<ProblemsAtPosition> groupIterator =
 			groupedProblems.iterator();
-		final Mutable<Iterator<Describer>> problemIterator = new Mutable<>(
-			Collections.<Describer>emptyIterator());
+		final Mutable<Iterator<Describer>> problemIterator =
+			new Mutable<>(emptyIterator());
 		final Set<String> alreadySeen = new HashSet<>();
 		final MutableOrNull<Continuation0> continueReport =
 			new MutableOrNull<>();
@@ -654,18 +686,19 @@ public class CompilerDiagnostics
 					compilationIsInvalid = true;
 					// Generate the footer that indicates the module and
 					// line where the last indicator was found.
-					text.format(
-						"%n(file=\"%s\", line=%d)",
-						moduleName.qualifiedName(),
-						lastProblem.lineNumber());
-					text.format("%n>>>%s", rowOfDashes);
+					builder.append(
+						format(
+							"%n(file=\"%s\", line=%d)%n>>>%s",
+							moduleName.qualifiedName(),
+							lastProblem.lineNumber(),
+							rowOfDashes));
 					handleProblem(new Problem(
 						moduleName,
 						lastProblem.lineNumber(),
 						lastProblem.position(),
 						PARSE,
 						"{0}",
-						text.toString())
+						builder.toString())
 					{
 						@Override
 						public void abortCompilation ()
@@ -680,10 +713,12 @@ public class CompilerDiagnostics
 				}
 				// Advance to the next problem group...
 				final ProblemsAtPosition newGroup = groupIterator.next();
-				text.format(
-					"%n>>> " + headerMessagePattern,
-					newGroup.indicator,
-					newGroup.lineNumber());
+				builder.append("\n>>> ");
+				builder.append(
+					format(
+						headerMessagePattern,
+						newGroup.indicator,
+						newGroup.lineNumber()));
 				problemIterator.value = newGroup.describers.iterator();
 				alreadySeen.clear();
 				assert problemIterator.value.hasNext();
@@ -695,21 +730,16 @@ public class CompilerDiagnostics
 					if (!alreadySeen.contains(message))
 					{
 						alreadySeen.add(message);
-						text.format(
-							"%n>>>\t\t%s",
-							message.replace("\n", "\n>>>\t\t"));
+						builder.append("\n>>>\t\t");
+						builder.append(
+							lineBreakPattern.matcher(message).replaceAll(
+								Matcher.quoteReplacement("\n>>>\t\t")));
 					}
 					// Avoid using direct recursion to keep the stack
 					// from getting too deep.
-					currentRuntime().execute(new AvailTask(
-						FiberDescriptor.compilerPriority)
-					{
-						@Override
-						public void value ()
-						{
-							continueReport.value().value();
-						}
-					});
+					currentRuntime().execute(
+						FiberDescriptor.compilerPriority,
+						() -> continueReport.value().value());
 				});
 		};
 		// Initiate all the grouped error printing.

@@ -1,6 +1,6 @@
-/**
+/*
  * P_CreateLocalConstantDeclaration.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,19 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import java.util.List;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.newConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.LOCAL_CONSTANT_NODE;
-import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+	.LOCAL_CONSTANT_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -56,9 +55,9 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain
- * ParseNodeKind#LOCAL_CONSTANT_NODE local constant declaration} from the
+ * PhraseKind#LOCAL_CONSTANT_PHRASE local constant declaration} from the
  * specified {@linkplain TokenDescriptor token} and initializing {@linkplain
- * ParseNodeKind#EXPRESSION_NODE expression}.
+ * PhraseKind#EXPRESSION_PHRASE expression}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -75,12 +74,11 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Token token = args.get(0);
-		final AvailObject initializer = args.get(1);
+		interpreter.checkArgumentCount(2);
+		final A_Token token = interpreter.argument(0);
+		final AvailObject initializer = interpreter.argument(1);
 		return interpreter.primitiveSuccess(newConstant(token, initializer));
 	}
 
@@ -90,7 +88,7 @@ extends Primitive
 		return functionType(
 			tuple(
 				TOKEN.o(),
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_CONSTANT_NODE.mostGeneralType());
+				EXPRESSION_PHRASE.create(ANY.o())),
+			LOCAL_CONSTANT_PHRASE.mostGeneralType());
 	}
 }

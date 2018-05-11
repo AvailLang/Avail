@@ -33,13 +33,18 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Set;
+
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -51,19 +56,26 @@ import static org.objectweb.asm.Type.INT_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_ADD_INT_TO_INT
+public final class L2_ADD_INT_TO_INT
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_ADD_INT_TO_INT}.
 	 */
-	public static final L2Operation instance =
-		new L2_ADD_INT_TO_INT().init(
+	private L2_ADD_INT_TO_INT ()
+	{
+		super(
 			READ_INT.is("augend"),
 			READ_INT.is("addend"),
 			WRITE_INT.is("sum"),
-			PC.is("in range"),
-			PC.is("out of range"));
+			PC.is("in range", SUCCESS),
+			PC.is("out of range", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_ADD_INT_TO_INT instance = new L2_ADD_INT_TO_INT();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -73,16 +85,42 @@ extends L2Operation
 	}
 
 	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2IntRegister augendReg =
+			instruction.readIntRegisterAt(0).register();
+		final L2IntRegister addendReg =
+			instruction.readIntRegisterAt(1).register();
+		final L2IntRegister sumReg =
+			instruction.writeIntRegisterAt(2).register();
+//		final L2PcOperand inRange = instruction.pcAt(3);
+//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(sumReg);
+		builder.append(" ← ");
+		builder.append(augendReg);
+		builder.append(" + ");
+		builder.append(addendReg);
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
+	}
+
+	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntegerRegister augendReg =
+		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2IntegerRegister addendReg =
+		final L2IntRegister addendReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2IntegerRegister sumReg =
+		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 		final L2PcOperand inRange = instruction.pcAt(3);
 		final int outOfRangeOffset = instruction.pcOffsetAt(4);
@@ -93,7 +131,7 @@ extends L2Operation
 		translator.load(method, addendReg);
 		method.visitInsn(I2L);
 		method.visitInsn(LADD);
-		method.visitInsn(DUP);
+		method.visitInsn(DUP2);
 		// :: intSum = (int) longSum;
 		method.visitInsn(L2I);
 		method.visitInsn(DUP);

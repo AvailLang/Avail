@@ -1,6 +1,6 @@
-/**
+/*
  * LookupTree.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,9 +187,9 @@ public abstract class LookupTreeTraverser<
 		// same position in the tree.  Push them in *reverse* order of their
 		// execution.
 		final MutableOrNull<TraversalMemento> memento = new MutableOrNull<>();
-		actionStack.add(() -> visitPostInternalNode(memento.value));
+		actionStack.add(() -> visitPostInternalNode(memento.value()));
 		actionStack.add(() -> visit(internalNode.ifCheckFails()));
-		actionStack.add(() -> visitIntraInternalNode(memento.value));
+		actionStack.add(() -> visitIntraInternalNode(memento.value()));
 		actionStack.add(() -> visit(internalNode.ifCheckHolds()));
 		actionStack.add(() -> memento.value = visitPreInternalNode(
 			internalNode.argumentPositionToTest,

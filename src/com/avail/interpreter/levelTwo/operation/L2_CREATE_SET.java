@@ -1,6 +1,6 @@
 /*
  * L2_CREATE_SET.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -43,6 +44,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -56,16 +58,51 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_CREATE_SET
+public final class L2_CREATE_SET
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_CREATE_SET}.
 	 */
-	public static final L2Operation instance =
-		new L2_CREATE_SET().init(
+	private L2_CREATE_SET ()
+	{
+		super(
 			READ_VECTOR.is("values"),
 			WRITE_POINTER.is("new set"));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_CREATE_SET instance = new L2_CREATE_SET();
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final List<L2ReadPointerOperand> elements =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister destinationSetReg =
+			instruction.writeObjectRegisterAt(1).register();
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destinationSetReg);
+		builder.append(" ← {");
+		for (int i = 0, limit = elements.size(); i < limit; i++)
+		{
+			if (i > 0)
+			{
+				builder.append(", ");
+			}
+			final L2ReadPointerOperand element = elements.get(i);
+			builder.append(element);
+		}
+		builder.append('}');
+	}
 
 	@Override
 	public void translateToJVM (
@@ -73,7 +110,7 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> operands =
+		final List<L2ReadPointerOperand> elements =
 			instruction.readVectorRegisterAt(0);
 		final L2ObjectRegister destinationSetReg =
 			instruction.writeObjectRegisterAt(1).register();
@@ -85,7 +122,7 @@ extends L2Operation
 			"emptySet",
 			getMethodDescriptor(getType(A_Set.class)),
 			false);
-		for (final L2ReadPointerOperand operand : operands)
+		for (final L2ReadPointerOperand operand : elements)
 		{
 			// :: set = set.setWithElementCanDestroy(«register», true);
 			translator.load(method, operand.register());

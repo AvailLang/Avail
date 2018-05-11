@@ -1,6 +1,6 @@
-/**
+/*
  * P_SimpleMacroDefinitionForAtom.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -49,6 +49,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,11 +61,10 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
-	.PARSE_NODE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -81,9 +81,9 @@ import static com.avail.utility.Nulls.stripNull;
  * occurrence of a {@linkplain Metacharacter#SECTION_SIGN section sign} (§)
  * in the macro name.  The third argument is the function to invoke for the
  * complete macro.  It is constrained to answer a {@linkplain
- * ParseNodeDescriptor parse node}.
+ * PhraseDescriptor phrase}.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_SimpleMacroDefinitionForAtom
 extends Primitive
@@ -98,13 +98,12 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final A_Atom atom = args.get(0);
-		final A_Tuple prefixFunctions = args.get(1);
-		final A_Function function = args.get(2);
+		interpreter.checkArgumentCount(3);
+		final A_Atom atom = interpreter.argument(0);
+		final A_Tuple prefixFunctions = interpreter.argument(1);
+		final A_Function function = interpreter.argument(2);
 
 		final A_Fiber fiber = interpreter.fiber();
 		final @Nullable AvailLoader loader = fiber.availLoader();
@@ -125,7 +124,7 @@ extends Primitive
 			for (int argIndex = 1; argIndex <= numArgs; argIndex++)
 			{
 				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-					PARSE_NODE.mostGeneralType()))
+					PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE);
@@ -158,20 +157,21 @@ extends Primitive
 		for (int argIndex = 1; argIndex <= numArgs; argIndex++)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-				PARSE_NODE.mostGeneralType()))
+				PARSE_PHRASE.mostGeneralType()))
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 			}
 		}
-		if (!kind.returnType().isSubtypeOf(PARSE_NODE.mostGeneralType()))
+		if (!kind.returnType().isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final List<AvailObject> copiedArgs =
+			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
@@ -220,8 +220,11 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(ATOM.o(), zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
+			tuple(
+				ATOM.o(),
+				zeroOrMoreOf(mostGeneralFunctionType()),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
+			TOP.o());
 	}
 
 	@Override

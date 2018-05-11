@@ -1,6 +1,6 @@
-/**
+/*
  * MessageBundleTreeDescriptor.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
@@ -66,11 +66,13 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 
 /**
@@ -233,7 +235,7 @@ extends Descriptor
 		 *
 		 * <p>Similarly, the {@link ParsingOperation#CHECK_ARGUMENT} instruction
 		 * is treated specially. When it is encountered and the argument that
-		 * was just parsed is a send node, that send node is looked up in the
+		 * was just parsed is a send phrase, that send phrase is looked up in the
 		 * {@link #LAZY_PREFILTER_MAP}, yielding the next message bundle tree.
 		 * If it's not present as a key (or the argument isn't a send), then the
 		 * instruction is looked up normally in the lazy actions map.</p>
@@ -337,7 +339,7 @@ extends Descriptor
 	/**
 	 * This is the {@link LookupTreeAdaptor} for building and navigating the
 	 * {@link ObjectSlots#LAZY_TYPE_FILTER_TREE_POJO}.  It gets built from
-	 * 2-tuples containing a {@link ParseNodeTypeDescriptor phrase type} and a
+	 * 2-tuples containing a {@link PhraseTypeDescriptor phrase type} and a
 	 * corresponding {@link A_ParsingPlanInProgress}.  The type is used to
 	 * perform type filtering after parsing each leaf argument, and the phrase
 	 * type is the expected type of that latest argument.
@@ -687,7 +689,7 @@ extends Descriptor
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						toList(typeFilterPairs.value),
 						Collections.singletonList(
-							ParseNodeKind.PARSE_NODE.mostGeneralType()),
+							PhraseKind.PARSE_PHRASE.mostGeneralType()),
 						latestBackwardJump);
 				final A_BasicObject pojo = identityPojo(tree);
 				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());
@@ -836,7 +838,6 @@ extends Descriptor
 		invalidationsStat.record(
 			timeAfter - timeBefore, thread.interpreter.interpreterIndex);
 	}
-
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)

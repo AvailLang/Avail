@@ -32,13 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
@@ -60,12 +54,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -79,20 +74,28 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_LOOKUP_BY_VALUES
+public final class L2_LOOKUP_BY_VALUES
 extends L2Operation
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct an {@code L2_LOOKUP_BY_VALUES}.
 	 */
-	public static final L2Operation instance =
-		new L2_LOOKUP_BY_VALUES().init(
+	private L2_LOOKUP_BY_VALUES ()
+	{
+		super(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
-			PC.is("lookup succeeded"),
-			PC.is("lookup failed"));
+			PC.is("lookup succeeded", SUCCESS),
+			PC.is("lookup failed", FAILURE));
+	}
+
+	/**
+	 * Initialize the sole instance.
+	 */
+	public static final L2_LOOKUP_BY_VALUES instance =
+		new L2_LOOKUP_BY_VALUES();
 
 	/**
 	 * The error codes that can be produced by a failed lookup.

@@ -36,13 +36,17 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Set;
 
 import static com.avail.AvailRuntime.implicitObserveFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -60,11 +64,19 @@ public final class L2_GET_IMPLICIT_OBSERVE_FUNCTION
 extends L2Operation
 {
 	/**
+	 * Construct an {@code L2_GET_IMPLICIT_OBSERVE_FUNCTION}.
+	 */
+	private L2_GET_IMPLICIT_OBSERVE_FUNCTION ()
+	{
+		super(
+			WRITE_POINTER.is("implicit observe function"));
+	}
+
+	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2Operation instance =
-		new L2_GET_IMPLICIT_OBSERVE_FUNCTION().init(
-			WRITE_POINTER.is("implicit observe function"));
+	public static final L2_GET_IMPLICIT_OBSERVE_FUNCTION instance =
+		new L2_GET_IMPLICIT_OBSERVE_FUNCTION();
 
 	@Override
 	protected void propagateTypes (
@@ -78,6 +90,20 @@ extends L2Operation
 			destination.register(),
 			implicitObserveFunctionType,
 			instruction);
+	}
+
+	@Override
+	public void toString (
+		final L2Instruction instruction,
+		final Set<L2OperandType> desiredTypes,
+		final StringBuilder builder)
+	{
+		assert this == instruction.operation;
+		final L2Operand destination = instruction.operands[0];
+
+		renderPreamble(instruction, builder);
+		builder.append(' ');
+		builder.append(destination);
 	}
 
 	@Override

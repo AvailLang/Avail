@@ -1,6 +1,6 @@
-/**
+/*
  * Alternation.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -41,7 +41,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 
 /**
  * An {@code Alternation} is a special {@linkplain Expression expression}
@@ -160,7 +160,7 @@ extends Expression
 			// can produce a value (argument, counter, etc), there's no
 			// problem.
 			final WrapState newWrapState = alternatives.get(i).emitOn(
-				emptyListNodeType(), generator, wrapState);
+				emptyListPhraseType(), generator, wrapState);
 			assert newWrapState == wrapState;
 			// Generate a jump to the last label unless this is the last
 			// alternative.
@@ -182,7 +182,7 @@ extends Expression
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(getClass().getSimpleName());
-		builder.append("(");
+		builder.append('(');
 		boolean first = true;
 		for (final Expression expression : alternatives)
 		{
@@ -193,13 +193,13 @@ extends Expression
 			builder.append(expression);
 			first = false;
 		}
-		builder.append(")");
+		builder.append(')');
 		return builder.toString();
 	}
 
 	@Override
 	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> argumentProvider,
+		final @Nullable Iterator<? extends A_Phrase> argumentProvider,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -208,7 +208,7 @@ extends Expression
 		{
 			if (!isFirst)
 			{
-				builder.append("|");
+				builder.append('|');
 			}
 			alternative.printWithArguments(
 				null,

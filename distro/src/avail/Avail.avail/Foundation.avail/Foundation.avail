@@ -1,6 +1,6 @@
 /*
  * Foundation.avail
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,7 @@ Extends
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Invoke_with_,⁇forked at priority_",
+		"Lexer_when_is_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",
@@ -170,6 +171,8 @@ Extends
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"invoke_with_,⁇forked at priority_",
 		"label phrase",
+		"lexer filter function",
+		"lexer body function",
 		"list phrase",
 		"literal phrase",
 		"literal token",
@@ -459,9 +462,9 @@ Extends
 		"key-not-found code",
 		"loading-is-over code",
 		"local-type-literal-is-not-a-type code",
-		"macro-argument-must-be-a-parse-node code",
-		"macro-must-return-a-parse-node code",
-		"macro-prefix-function-argument-must-be-a-parse-node code",
+		"macro-argument-must-be-a-phrase code",
+		"macro-must-return-a-phrase code",
+		"macro-prefix-function-argument-must-be-a-phrase code",
 		"method-is-sealed code",
 		"method-name-is-not-canonical code",
 		"method-return-type-not-as-forward-declared code",
@@ -739,7 +742,7 @@ Extends
 		"key-not-found exception",
 		"loading-is-over exception",
 		"local-type-literal-is-not-a-type exception",
-		"macro-argument-must-be-a-parse-node exception",
+		"macro-argument-must-be-a-phrase exception",
 		"method-is-sealed exception",
 		"method-name-is-not-canonical exception",
 		"method-return-type-not-as-forward-declared exception",
@@ -966,6 +969,7 @@ Extends
 		"Require:macro send has no internal whitespace(_)",
 		"Require:_named_does not shadow",
 		"constituent tokens",
+		"static tokens",
 		"parse map",
 		"parse map:=_",
 		"scope map",
