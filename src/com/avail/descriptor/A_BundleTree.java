@@ -52,7 +52,7 @@ extends A_BasicObject
 	/**
 	 * Answer the bundle tree's map of all plans.
 	 *
-	 * @return A map of type {bundle→{definition→plan|0..}|}.
+	 * @return A map of type {bundle→{definition→plan|0..}|0..}.
 	 */
 	A_Map allParsingPlansInProgress ();
 

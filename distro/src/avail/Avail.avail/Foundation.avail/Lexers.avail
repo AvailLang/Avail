@@ -73,7 +73,6 @@ Body
  *          The possible lexes discovered at {@code "position"}, potentially
  *          conforming to a single {@type "comment"} {@type "token"}.
  */
-
 Lexer $"end of line comment lexer"
 when [c : character | c = ¢/]
 is
@@ -96,7 +95,6 @@ is
 
 // Here's the first end of line comment!
 // And here's the second, without a line terminator!
-
 
 radixIntegerAlphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
@@ -131,7 +129,7 @@ is
 	position : real source position,
 	line : real source line number
 |
-	/* Scan ahead looking for the radix indicator, ¢r. */
+	// Scan ahead looking for the radix indicator, ¢r.
 	i : real source position;
 	i ?= position + 1;
 	size ::= |source|;
@@ -141,7 +139,7 @@ is
 	[
 		integerText ::= source[position..i-1];
 		basePosition ::= (++i);
-		/* Scan for the end of the radix specifier token. */
+		// Scan for the end of the radix specifier token.
 		While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 		if i ≤ size ∧ source[i] is a letter then [∅]
 		else
@@ -206,7 +204,7 @@ is
 	position : real source position,
 	line : real source line number
 |
-	/* Look ahead for a subsequent ¢b. */
+	// Look ahead for a subsequent ¢b.
 	i : real source position;
 	i ?= position + 1;
 	size ::= |source|;
@@ -214,7 +212,7 @@ is
 	else
 	[
 		valuePosition ::= (++i);
-		/* Scan for the boundary. */
+		// Scan for the boundary.
 		While i ≤ size ∧ source[i] ∈ binaryAlphabet do [i++;];
 		if
 			i ≤ size ∧
@@ -260,7 +258,7 @@ is
 	position : real source position,
 	line : real source line number
 |
-	/* Look ahead for a subsequent ¢o. */
+	// Look ahead for a subsequent ¢o.
 	i : real source position;
 	i ?= position + 1;
 	size ::= |source|;
@@ -268,7 +266,7 @@ is
 	else
 	[
 		valuePosition ::= (++i);
-		/* Scan for the boundary. */
+		// Scan for the boundary.
 		While i ≤ size ∧ source[i] ∈ octalAlphabet do [i++;];
 		if
 			i ≤ size ∧
@@ -314,7 +312,7 @@ is
 	position : real source position,
 	line : real source line number
 |
-	/* Look ahead for a subsequent ¢x. */
+	// Look ahead for a subsequent ¢x.
 	i : real source position;
 	i ?= position + 1;
 	size ::= |source|;
@@ -322,7 +320,7 @@ is
 	else
 	[
 		valuePosition ::= (++i);
-		/* Scan for the boundary. */
+		// Scan for the boundary.
 		While i ≤ size ∧ source[i] ∈ hexadecimalAlphabet do [i++;];
 		if i ≤ size ∧ source[i] is a letter then
 		[
@@ -378,7 +376,7 @@ is
 	position : real source position,
 	line : real source line number
 |
-	/* Count subsequent ¢" characters. */
+	// Count subsequent ¢" characters.
 	i : real source position;
 	i ?= position + 1;
 	size ::= |source|;
@@ -407,7 +405,7 @@ is
 				else [punctuation start for startChar];
 			endDelimiter ::= delimiterSize of endChar;
 			valuePosition ::= i;
-			/* Scan ahead for the close delimiter. */
+			// Scan ahead for the close delimiter.
 			limit ::= size - delimiterSize + 1;
 			While
 				i ≤ limit

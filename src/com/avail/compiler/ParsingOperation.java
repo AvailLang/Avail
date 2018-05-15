@@ -109,6 +109,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -122,6 +123,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
@@ -148,6 +150,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -164,6 +167,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
@@ -187,6 +191,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -202,6 +207,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
 				newMarksSoFar,
@@ -225,6 +231,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -235,6 +242,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
 				withoutLast(marksSoFar),
@@ -261,6 +269,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -280,6 +289,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
 				newMarksSoFar,
@@ -304,6 +314,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -334,6 +345,10 @@ public enum ParsingOperation
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
+							// We're about to parse an argument, so whatever was
+							// in consumedAnything should be moved into
+							// consumedAnythingBeforeLatestArgument.
+							consumedAnything,
 							consumedStaticTokens,
 							newArgsSoFar,
 							marksSoFar,
@@ -367,6 +382,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -397,6 +413,10 @@ public enum ParsingOperation
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
+							// We're about to parse an argument, so whatever was
+							// in consumedAnything should be moved into
+							// consumedAnythingBeforeLatestArgument.
+							consumedAnything,
 							consumedStaticTokens,
 							newArgsSoFar,
 							marksSoFar,
@@ -424,9 +444,11 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
+			// TODO Rewrite to simply peek for a keyword token and look it up.
 			assert successorTrees.tupleSize() == 1;
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
 				firstArgOrNull == null
@@ -501,6 +523,10 @@ public enum ParsingOperation
 							// The argument counts as something that was
 							// consumed if it's not a leading argument...
 							firstArgOrNull == null,
+							// We're about to parse an argument, so whatever was
+							// in consumedAnything should be moved into
+							// consumedAnythingBeforeLatestArgument.
+							consumedAnything,
 							consumedStaticTokens,
 							append(argsSoFar, variableReference),
 							marksSoFar,
@@ -526,17 +552,19 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
 			assert successorTrees.tupleSize() == 1;
 			compiler.parseArgumentInModuleScopeThen(
 				start,
+				initialTokenPosition,
 				firstArgOrNull,
+				consumedAnything,
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
-				initialTokenPosition,
 				successorTrees,
 				continuation);
 		}
@@ -561,6 +589,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -601,6 +630,10 @@ public enum ParsingOperation
 						null,
 						initialTokenPosition,
 						true,
+						// Until we've passed the type test, we don't consider
+						// tokens read past it in the stream to have been truly
+						// encountered.
+						consumedAnything,
 						append(consumedStaticTokens, syntheticToken),
 						newArgsSoFar,
 						marksSoFar,
@@ -626,6 +659,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -675,6 +709,10 @@ public enum ParsingOperation
 						null,
 						initialTokenPosition,
 						true,
+						// Until we've passed the type test, we don't consider
+						// tokens read past it in the stream to have been truly
+						// encountered.
+						consumedAnything,
 						append(consumedStaticTokens, syntheticToken),
 						newArgsSoFar,
 						marksSoFar,
@@ -700,6 +738,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -750,6 +789,10 @@ public enum ParsingOperation
 						null,
 						initialTokenPosition,
 						true,
+						// Until we've passed the type test, we don't consider
+						// tokens read past it in the stream to have been truly
+						// encountered.
+						consumedAnything,
 						append(consumedStaticTokens, syntheticToken),
 						newArgsSoFar,
 						marksSoFar,
@@ -775,6 +818,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -825,6 +869,10 @@ public enum ParsingOperation
 						null,
 						initialTokenPosition,
 						true,
+						// Until we've passed the type test, we don't consider
+						// tokens read past it in the stream to have been truly
+						// encountered.
+						consumedAnything,
 						append(consumedStaticTokens, syntheticToken),
 						newArgsSoFar,
 						marksSoFar,
@@ -849,6 +897,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -868,6 +917,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
@@ -891,6 +941,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -914,6 +965,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -951,6 +1003,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -962,6 +1015,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
@@ -995,6 +1049,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1005,6 +1060,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
@@ -1037,6 +1093,7 @@ public enum ParsingOperation
 				final List<Integer> marksSoFar,
 				final ParserState initialTokenPosition,
 				final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 				final List<A_Token> consumedStaticTokens,
 				final Con1 continuation)
 			{
@@ -1047,6 +1104,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1079,6 +1137,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1111,6 +1170,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1141,6 +1201,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1152,6 +1213,7 @@ public enum ParsingOperation
 				null,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
@@ -1176,6 +1238,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1199,6 +1262,7 @@ public enum ParsingOperation
 						firstArgOrNull,
 						initialTokenPosition,
 						consumedAnything,
+						consumedAnythingBeforeLatestArgument,
 						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
@@ -1245,6 +1309,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1272,6 +1337,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
 					newStack,
 					marksSoFar,
@@ -1306,6 +1372,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1334,6 +1401,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				withoutPrefixArguments,
 				marksSoFar,
@@ -1360,6 +1428,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1374,6 +1443,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				stack,
 				marksSoFar,
@@ -1399,6 +1469,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1412,6 +1483,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1438,6 +1510,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1451,6 +1524,7 @@ public enum ParsingOperation
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1487,6 +1561,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1522,6 +1597,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1542,6 +1618,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
@@ -1567,6 +1644,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1583,6 +1661,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				append(argsSoFar, literalNode),
 				marksSoFar,
@@ -1607,6 +1686,7 @@ public enum ParsingOperation
 			final List<Integer> marksSoFar,
 			final ParserState initialTokenPosition,
 			final boolean consumedAnything,
+			final boolean consumedAnythingBeforeLatestArgument,
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
@@ -1627,6 +1707,7 @@ public enum ParsingOperation
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
@@ -1868,6 +1949,11 @@ public enum ParsingOperation
 	 *        first argument.
 	 * @param consumedAnything
 	 *        Whether any tokens or arguments have been consumed yet.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param consumedStaticTokens
 	 *        The immutable {@link List} of "static" {@link A_Token}s that have
 	 *        been encountered and consumed for the current method or macro
@@ -1888,6 +1974,7 @@ public enum ParsingOperation
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedStaticTokens,
 		final Con1 continuation);
 

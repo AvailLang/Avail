@@ -69,13 +69,10 @@ extends Argument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_ANY_RAW_TOKEN);
-		if (!literalTokenType(TOKEN.o()).isSubtypeOf(phraseType))
-		{
-			generator.emitDelayed(
-				this,
-				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForConstant(phraseType));
-		}
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
 		return wrapState;
 	}
 }

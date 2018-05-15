@@ -64,7 +64,6 @@ import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
-import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -93,6 +92,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BooleanSupplier;
+import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.ExpectedToken.*;
@@ -164,6 +164,9 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -1504,6 +1507,7 @@ public final class AvailCompiler
 			null,
 			start,
 			false,  // Nothing consumed yet.
+			false,  // (ditto)
 			emptyList(),
 			initialParseStack,
 			initialMarkStack,
@@ -1539,6 +1543,7 @@ public final class AvailCompiler
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
+			false,  // (ditto)
 			emptyList(),
 			initialParseStack,
 			initialMarkStack,
@@ -1634,6 +1639,11 @@ public final class AvailCompiler
 	 * @param consumedAnything
 	 *        Whether any actual tokens have been consumed so far for this send
 	 *        phrase.  That includes any leading argument.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param consumedTokens
 	 *        The immutable {@link List} of {@link A_Token}s that have been
 	 *        consumed so far in this potential method/macro send, only
@@ -1657,6 +1667,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
@@ -1726,6 +1737,7 @@ public final class AvailCompiler
 					start,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1741,6 +1753,7 @@ public final class AvailCompiler
 					start,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1775,6 +1788,7 @@ public final class AvailCompiler
 							null,
 							initialTokenPosition,
 							consumedAnything,
+							consumedAnythingBeforeLatestArgument,
 							consumedTokens,
 							argsSoFar,
 							marksSoFar,
@@ -1837,6 +1851,7 @@ public final class AvailCompiler
 					null,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
@@ -1874,6 +1889,7 @@ public final class AvailCompiler
 							marksSoFar,
 							initialTokenPosition,
 							consumedAnything,
+							consumedAnythingBeforeLatestArgument,
 							consumedTokens,
 							value,
 							continuation),
@@ -1893,6 +1909,11 @@ public final class AvailCompiler
 	 * @param consumedAnything
 	 *        Whether any tokens have been consumed so far for this potential
 	 *        send phrase.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param consumedTokens
 	 *        An immutable {@link PrefixSharingList} of {@link A_Token}s that
 	 *        have been consumed so far for the current potential send phrase.
@@ -1914,6 +1935,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
@@ -1975,6 +1997,7 @@ public final class AvailCompiler
 								null,
 								initialTokenPosition,
 								true,  // Just consumed a token.
+								consumedAnythingBeforeLatestArgument,
 								append(consumedTokens, token),
 								argsSoFar,
 								marksSoFar,
@@ -2260,17 +2283,16 @@ public final class AvailCompiler
 		final A_BundleTree bundleTree,
 		final Continuation1NotNull<String> continuation)
 	{
-		// TODO(MvG) Present the full phrase type if it can be a macro argument.
-		final Map<A_Type, Set<String>> definitionsByType = new HashMap<>();
+		final Set<A_Type> typeSet = new HashSet<>();
+		final Map<String, Set<A_Type>> typesByPlanString = new HashMap<>();
 		for (final Entry entry
 			: bundleTree.allParsingPlansInProgress().mapIterable())
 		{
 			final A_Map submap = entry.value();
 			for (final Entry subentry : submap.mapIterable())
 			{
-				final A_Set inProgressSet = subentry.value();
 				for (final A_ParsingPlanInProgress planInProgress
-					: inProgressSet)
+					: subentry.value())
 				{
 					final A_DefinitionParsingPlan plan =
 						planInProgress.parsingPlan();
@@ -2279,56 +2301,65 @@ public final class AvailCompiler
 						instructions.tupleIntAt(planInProgress.parsingPc());
 					final int typeIndex =
 						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction);
+					// TODO(MvG) Present the full phrase type if it can be a
+					// macro argument.
 					final A_Type argType =
-						MessageSplitter.constantForIndex(typeIndex);
-					Set<String> planStrings = definitionsByType.get(argType);
-					if (planStrings == null)
-					{
-						planStrings = new HashSet<>();
-						definitionsByType.put(
-							argType.expressionType(), planStrings);
-					}
-					planStrings.add(planInProgress.nameHighlightingPc());
+						MessageSplitter.constantForIndex(typeIndex)
+							.expressionType();
+					typeSet.add(argType);
+					// Add the type under the given plan *string*, even if it's
+					// a different underlying message bundle.
+					final Set<A_Type> typesForPlan =
+						typesByPlanString.computeIfAbsent(
+							planInProgress.nameHighlightingPc(),
+							planString -> new HashSet<>());
+					typesForPlan.add(argType);
 				}
 			}
 		}
-		final List<A_Type> types = new ArrayList<>(definitionsByType.keySet());
+		final List<A_Type> typeList = new ArrayList<>(typeSet);
 		// Generate the type names in parallel.
 		stringifyThen(
 			compilationContext.runtime,
 			compilationContext.getTextInterface(),
-			types,
-			typeNames ->
+			typeList,
+			typeNamesList ->
 			{
-				// Stitch the type names back onto the plan
-				// strings, prior to sorting by type name.
-				assert typeNames.size() == types.size();
-				final List<Pair<String, List<String>>> pairs =
-					new ArrayList<>();
-				for (int i = 0; i < types.size(); i++)
-				{
-					final A_Type type = types.get(i);
-					final List<String> planStrings =
-						new ArrayList<>(definitionsByType.get(type));
-					// Sort individual lists of plans.
-					Collections.sort(planStrings);
-					pairs.add(new Pair<>(typeNames.get(i), planStrings));
-				}
-				// Now sort by type names.
-				pairs.sort(Comparator.comparing(Pair::first));
-				// Print it all out.
+				assert typeList.size() == typeNamesList.size();
+				final Map<A_Type, String> typeMap =
+					IntStream.range(0, typeList.size())
+					.boxed()
+					.collect(toMap(typeList::get, typeNamesList::get));
+				// Stitch the type names back onto the plan strings, prior to
+				// sorting by type name.
+				final List<Map.Entry<String, Set<A_Type>>> entries =
+					new ArrayList<>(typesByPlanString.entrySet());
+				entries.sort(comparing(Map.Entry::getKey));
+
 				final StringBuilder builder = new StringBuilder(100);
 				builder.append("phrase to have a type other than ");
 				builder.append(actualTypeString);
 				builder.append(".  Expecting:");
-				for (final Pair<String, List<String>> pair : pairs)
+				for (final Map.Entry<String, Set<A_Type>> entry : entries)
 				{
+					final String planString = entry.getKey();
+					final Set<A_Type> types = entry.getValue();
 					builder.append("\n\t");
-					builder.append(increaseIndentation(pair.first(), 2));
-					for (final String planString : pair.second())
+					builder.append(planString);
+					builder.append("   ");
+					final List<String> typeNames = types.stream()
+						.map(typeMap::get)
+						.sorted()
+						.collect(toList());
+					boolean first = true;
+					for (final String typeName : typeNames)
 					{
-						builder.append("\n\t\t");
-						builder.append(planString);
+						if (!first)
+						{
+							builder.append(", ");
+						}
+						first = false;
+						builder.append(increaseIndentation(typeName, 2));
 					}
 				}
 				continuation.value(builder.toString());
@@ -2361,6 +2392,11 @@ public final class AvailCompiler
 	 *        first argument.
 	 * @param consumedAnything
 	 *        Whether any tokens or arguments have been consumed yet.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param consumedTokens
 	 *        The immutable {@link List} of "static" {@link A_Token}s that have
 	 *        been encountered and consumed for the current method or macro
@@ -2383,6 +2419,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final A_Tuple successorTrees,
 		final Con1 continuation)
@@ -2425,6 +2462,7 @@ public final class AvailCompiler
 			marksSoFar,
 			initialTokenPosition,
 			consumedAnything,
+			consumedAnythingBeforeLatestArgument,
 			consumedTokens,
 			continuation);
 		final long timeAfter = AvailRuntime.captureNanos();
@@ -2456,6 +2494,11 @@ public final class AvailCompiler
 	 *        invocation started.
 	 * @param consumedAnything
 	 *        Whether any tokens have been consumed so far at this macro site.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param argsSoFar
 	 *        The stack of phrases.
 	 * @param marksSoFar
@@ -2473,6 +2516,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
@@ -2519,6 +2563,7 @@ public final class AvailCompiler
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
+					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
@@ -2539,6 +2584,7 @@ public final class AvailCompiler
 						firstArgOrNull,
 						initialTokenPosition,
 						consumedAnything,
+						consumedAnythingBeforeLatestArgument,
 						consumedTokens,
 						argsSoFar,
 						marksSoFar,
@@ -3391,15 +3437,15 @@ public final class AvailCompiler
 	 *
 	 * @param start
 	 *        The position at which parsing should occur.
+	 * @param initialTokenPosition
+	 *        The parse position where the send phrase started to be processed.
+	 *        Does not count the position of the first argument if there are no
+	 *        leading keywords.
 	 * @param firstArgOrNull
 	 *        An optional already parsed expression which, if present, must be
 	 *        used as a leading argument.  If it's {@code null} then no leading
 	 *        argument has been parsed, and a request to parse a leading
 	 *        argument should simply produce no local solution.
-	 * @param initialTokenPosition
-	 *        The parse position where the send phrase started to be processed.
-	 *        Does not count the position of the first argument if there are no
-	 *        leading keywords.
 	 * @param argsSoFar
 	 *        The list of arguments parsed so far. I do not modify it. This is a
 	 *        stack of expressions that the parsing instructions will assemble
@@ -3418,11 +3464,12 @@ public final class AvailCompiler
 	 */
 	void parseArgumentInModuleScopeThen (
 		final ParserState start,
+		final ParserState initialTokenPosition,
 		final @Nullable A_Phrase firstArgOrNull,
+		final boolean consumedAnything,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final ParserState initialTokenPosition,
 		final A_Tuple successorTrees,
 		final Con1 continuation)
 	{
@@ -3500,6 +3547,10 @@ public final class AvailCompiler
 						// The argument counts as something that was
 						// consumed if it's not a leading argument...
 						firstArgOrNull == null,
+						// We're about to parse an argument, so whatever was
+						// in consumedAnything should be moved into
+						// consumedAnythingBeforeLatestArgument.
+						consumedAnything,
 						consumedTokens,
 						newArgsSoFar,
 						marksSoFar,
@@ -4458,7 +4509,7 @@ public final class AvailCompiler
 						== compilationContext.getWorkUnitsQueued();
 
 					// Check if we're cleanly at the end.
-					if (solution.phrase() == endOfFileMarkerPhrase)
+					if (solution.phrase().equals(endOfFileMarkerPhrase))
 					{
 						reachedEndOfModule(solution.endState());
 						return;
@@ -4679,82 +4730,47 @@ public final class AvailCompiler
 				onSuccess.value(solutions, this::rollbackModuleTransaction);
 			});
 		recordExpectationsRelativeTo(1);
-		skipWhitespaceAndComments(
+		parseExpressionThen(
 			start,
-			afterLeadingWhitespaceStates ->
-			{
-				// Rollback the module transaction no matter what happens.
-				if (afterLeadingWhitespaceStates.size() == 0)
+			Con(
+				null,
+				solution ->
 				{
-					start.expected(
-						"a way to lexically scan whitespace before the "
-							+ "command");
-					return;
-				}
-				if (afterLeadingWhitespaceStates.size() > 1)
-				{
-					start.expected(
-						"an unambiguous way to lexically scan whitespace "
-							+ "before the command");
-					return;
-				}
-				parseExpressionThen(
-					afterLeadingWhitespaceStates.get(0),
-					Con(
-						null,
-						solution ->
+					final A_Phrase expression = solution.phrase();
+					final ParserState afterExpression = solution.endState();
+					if (expression.equals(endOfFileMarkerPhrase))
+					{
+						afterExpression.expected(
+							"a valid command, not just whitespace");
+						return;
+					}
+					if (expression.hasSuperCast())
+					{
+						afterExpression.expected(
+							"a valid command, not a supercast");
+						return;
+					}
+					// Check that after the expression is only whitespace and
+					// the end-of-file.
+					nextNonwhitespaceTokensDo(
+						afterExpression,
+						token ->
 						{
-							final A_Phrase expression = solution.phrase();
-							final ParserState afterExpression =
-								solution.endState();
-							if (expression.hasSuperCast())
+							if (token.tokenType() == END_OF_FILE)
+							{
+								synchronized (solutions)
+								{
+									solutions.add(expression);
+								}
+							}
+							else
 							{
 								afterExpression.expected(
-									"a valid command, not a supercast");
-								return;
+									"end of command");
 							}
-							skipWhitespaceAndComments(
-								afterExpression,
-								finalStates ->
-								{
-									if (finalStates.size() == 1)
-									{
-										final ParserState finalState =
-											finalStates.get(0);
-										if (finalState.atEnd())
-										{
-											synchronized (solutions)
-											{
-												solutions.add(expression);
-											}
-											return;
-										}
-										finalState.expected("end of command");
-										// Fall-through.
-									}
-									// Otherwise, report a failure.
-									if (finalStates.size() == 0)
-									{
-										afterExpression.expected(
-											"a way to lexically scan "
-												+ "whitespace after the "
-												+ "command");
-									}
-									else if (finalStates.size() > 1)
-									{
-										final ParserState earliest =
-											Collections.min(
-												finalStates,
-												Comparator.comparing(
-													ParserState::position));
-										earliest.expected(
-											"an unambiguous way to lexically "
-												+ "scan whitespace after the "
-												+ "command");
-									}
-								});
-						}));
-			});
+						}
+					);
+				}));
 	}
 
 	/**
@@ -5279,6 +5295,11 @@ public final class AvailCompiler
 	 *        first argument.
 	 * @param consumedAnything
 	 *        Whether any tokens have been consumed yet.
+	 * @param consumedAnythingBeforeLatestArgument
+	 *        Whether any tokens or arguments had been consumed before
+	 *        encountering the most recent argument.  This is to improve
+	 *        diagnostics when argument type checking is postponed past matches
+	 *        for subsequent tokens.
 	 * @param argsSoFar
 	 *        The arguments stack.
 	 * @param marksSoFar
@@ -5292,6 +5313,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
+		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
@@ -5304,11 +5326,12 @@ public final class AvailCompiler
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
+				consumedAnythingBeforeLatestArgument,
 				consumedTokens,
 				argsSoFar,
 				marksSoFar,
 				continuation),
-			"999");
+			"ignored");
 	}
 
 	/**

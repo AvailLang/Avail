@@ -116,7 +116,7 @@ extends TypeDescriptor
 	{
 		if (object.slot(TYPE_TUPLE).tupleSize() == 0)
 		{
-			if (object.sizeRange().equals(wholeNumbers()))
+			if (object.slot(SIZE_RANGE).equals(wholeNumbers()))
 			{
 				if (object.slot(DEFAULT_TYPE).equals(ANY.o()))
 				{

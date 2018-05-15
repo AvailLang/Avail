@@ -58,7 +58,7 @@ final class ArgumentInModuleScope
 extends Argument
 {
 	/**
-	 * Construct a new {@link ArgumentInModuleScope}.
+	 * Construct a new {@code ArgumentInModuleScope}.
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */

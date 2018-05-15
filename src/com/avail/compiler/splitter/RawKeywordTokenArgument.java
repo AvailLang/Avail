@@ -51,7 +51,7 @@ final class RawKeywordTokenArgument
 extends RawTokenArgument
 {
 	/**
-	 * Construct a new {@link RawKeywordTokenArgument}.
+	 * Construct a new {@code RawKeywordTokenArgument}.
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
@@ -70,14 +70,10 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-		if (!literalTokenType(TOKEN.o()).isSubtypeOf(
-			phraseType))
-		{
-			generator.emitDelayed(
-				this,
-				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForConstant(phraseType));
-		}
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
 		return wrapState;
 	}
 }

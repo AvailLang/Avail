@@ -59,7 +59,7 @@ final class ArgumentForMacroOnly
 extends Argument
 {
 	/**
-	 * Construct a new {@link ArgumentForMacroOnly}.
+	 * Construct a new {@code ArgumentForMacroOnly}.
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */

@@ -56,7 +56,7 @@ final class VariableQuote
 extends Argument
 {
 	/**
-	 * Construct a new {@link VariableQuote}.
+	 * Construct a new {@code VariableQuote}.
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
@@ -76,14 +76,10 @@ extends Argument
 		generator.flushDelayed();
 		generator.emit(this, PARSE_VARIABLE_REFERENCE);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		if (!PhraseKind.REFERENCE_PHRASE.mostGeneralType().isSubtypeOf(
-			phraseType))
-		{
-			generator.emitDelayed(
-				this,
-				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForConstant(phraseType));
-		}
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
 		return wrapState;
 	}
 

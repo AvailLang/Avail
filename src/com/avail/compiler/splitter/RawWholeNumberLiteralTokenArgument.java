@@ -73,13 +73,10 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
-		if (!literalTokenType(wholeNumbers()).isSubtypeOf(phraseType))
-		{
-			generator.emitDelayed(
-				this,
-				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForConstant(phraseType));
-		}
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
 		return wrapState;
 	}
 }

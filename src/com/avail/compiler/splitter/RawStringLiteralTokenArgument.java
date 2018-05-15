@@ -52,7 +52,7 @@ final class RawStringLiteralTokenArgument
 extends RawTokenArgument
 {
 	/**
-	 * Construct a new {@link RawStringLiteralTokenArgument}.
+	 * Construct a new {@code RawStringLiteralTokenArgument}.
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
@@ -71,13 +71,10 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
-		if (!literalTokenType(stringType()).isSubtypeOf(phraseType))
-		{
-			generator.emitDelayed(
-				this,
-				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForConstant(phraseType));
-		}
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
 		return wrapState;
 	}
 }
