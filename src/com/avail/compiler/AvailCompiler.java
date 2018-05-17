@@ -4865,7 +4865,7 @@ public final class AvailCompiler
 		final A_String moduleName = stringFromToken(moduleNameToken);
 		if (!moduleName.asNativeString().equals(moduleName().localName()))
 		{
-			moduleNameToken.nextLexingState().expected(
+			moduleNameToken.literal().nextLexingState().expected(
 				"declared local module name to agree with "
 				+ "fully-qualified module name");
 			compilationContext.diagnostics.reportError();

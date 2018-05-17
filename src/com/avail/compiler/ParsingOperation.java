@@ -448,7 +448,6 @@ public enum ParsingOperation
 			final List<A_Token> consumedStaticTokens,
 			final Con1 continuation)
 		{
-			// TODO Rewrite to simply peek for a keyword token and look it up.
 			assert successorTrees.tupleSize() == 1;
 			final @Nullable PartialSubexpressionList partialSubexpressionList =
 				firstArgOrNull == null
