@@ -50,7 +50,6 @@ import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.exceptions.MalformedPragmaException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -95,8 +94,8 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.PragmaKind.pragmaKindByLexeme;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
@@ -228,7 +227,7 @@ public final class AvailCompiler
 	 *
 	 * @return The module name.
 	 */
-	private ModuleName moduleName ()
+	ModuleName moduleName ()
 	{
 		return new ModuleName(
 			compilationContext.module().moduleName().asNativeString());
@@ -1092,7 +1091,7 @@ public final class AvailCompiler
 	 *        is no point in having the continuation accept this value, hence
 	 *        the {@linkplain Continuation0 nullary continuation}.
 	 */
-	private void evaluateModuleStatementThen (
+	void evaluateModuleStatementThen (
 		final ParserState startState,
 		final ParserState afterStatement,
 		final A_Phrase expression,
@@ -2205,7 +2204,7 @@ public final class AvailCompiler
 				{
 					start.expected(
 						"a way to parse tokens here, but all lexers were "
-							+ "unproductive.");
+							+ "unproductive");
 					continuation.value(emptyList());
 				}
 				else
@@ -3746,14 +3745,13 @@ public final class AvailCompiler
 	 *        A value that should be checked, somehow, for conformance.
 	 * @param success
 	 *        What to do after the check completes successfully.
-	 * @throws MalformedPragmaException
-	 *         If there's a problem with this check pragma.
 	 */
-	private static void pragmaCheckThen (
+	@SuppressWarnings("MethodMayBeStatic")
+	void pragmaCheckThen (
+		final ParserState state,
 		final String propertyName,
 		final String propertyValue,
 		final Continuation0 success)
-	throws MalformedPragmaException
 	{
 		switch (propertyName)
 		{
@@ -3779,23 +3777,25 @@ public final class AvailCompiler
 				// the virtual machine are incompatible.
 				if (!requiredVersions.setIntersects(activeVersions))
 				{
-					throw new MalformedPragmaException(
+					state.expected(
 						format(
 							"Module and virtual machine are not compatible; "
 								+ "the virtual machine guarantees versions %s, "
 								+ "but the current module requires %s",
 							activeVersions,
 							requiredVersions));
+					return;
 				}
 				break;
 			default:
 				final Set<String> viableAssertions = new HashSet<>();
 				viableAssertions.add("version");
-				throw new MalformedPragmaException(
+				state.expected(
 					format(
 						"Expected check pragma to assert one of the following "
 							+ "properties: %s",
 						viableAssertions));
+				return;
 		}
 		success.value();
 	}
@@ -3821,7 +3821,7 @@ public final class AvailCompiler
 	 * @param success
 	 *        What to do after the method is bootstrapped successfully.
 	 */
-	private void bootstrapMethodThen (
+	void bootstrapMethodThen (
 		final ParserState state,
 		final A_Token token,
 		final String methodName,
@@ -3869,7 +3869,7 @@ public final class AvailCompiler
 	 * @param success
 	 *        What to do after the macro is defined successfully.
 	 */
-	private void bootstrapMacroThen (
+	void bootstrapMacroThen (
 		final ParserState state,
 		final A_Token token,
 		final String macroName,
@@ -3956,39 +3956,33 @@ public final class AvailCompiler
 	 *        the lexer being defined.
 	 * @param success
 	 *        What to do after the method is bootstrapped successfully.
-	 * @throws MalformedPragmaException
-	 *         If the lexer pragma cannot be created.
 	 */
-	private void bootstrapLexerThen (
+	void bootstrapLexerThen (
 		final ParserState state,
 		final A_Token token,
 		final A_Atom lexerAtom,
 		final String filterPrimitiveName,
 		final String bodyPrimitiveName,
 		final Continuation0 success)
-	throws MalformedPragmaException
 	{
 		// Process the filter primitive.
 		final @Nullable Primitive filterPrimitive =
 			primitiveByName(filterPrimitiveName);
 		if (filterPrimitive == null)
 		{
-			throw new MalformedPragmaException(
-				"Unknown lexer filter primitive name ("
-					+ filterPrimitiveName
-					+ ')');
+			state.expected("a valid primitive for the lexer filter");
+			return;
 		}
 		final A_Type filterFunctionType =
 			filterPrimitive.blockTypeRestriction();
-		if (!filterFunctionType.equals(
-			lexerFilterFunctionType()))
+		if (!filterFunctionType.equals(lexerFilterFunctionType()))
 		{
-			throw new MalformedPragmaException(
-				"Type signature for filter primitive is invalid for lexer. "
-					+ "Primitive has "
-					+ filterFunctionType
-					+ " but a lexer filter needs "
-					+ lexerFilterFunctionType());
+			state.expected(
+				"a primitive lexer filter function with type "
+				+ lexerFilterFunctionType()
+				+ ", not "
+				+ filterFunctionType);
+			return;
 		}
 		final A_Function filterFunction =
 			newPrimitiveFunction(
@@ -4001,20 +3995,17 @@ public final class AvailCompiler
 			primitiveByName(bodyPrimitiveName);
 		if (bodyPrimitive == null)
 		{
-			throw new MalformedPragmaException(
-				"Unknown lexer body primitive name ("
-					+ bodyPrimitiveName
-					+ ')');
+			state.expected("a valid primitive for the lexer body");
+			return;
 		}
 		final A_Type bodyFunctionType = bodyPrimitive.blockTypeRestriction();
 		if (!bodyFunctionType.equals(lexerBodyFunctionType()))
 		{
-			throw new MalformedPragmaException(
-				"Type signature for body primitive is invalid for lexer. "
-					+ "Primitive has "
-					+ bodyFunctionType
-					+ " but a lexer body needs "
-					+ lexerBodyFunctionType());
+			state.expected(
+				"a primitive lexer body function with type "
+				+ lexerBodyFunctionType()
+				+ ", not "
+				+ bodyFunctionType);
 		}
 		final A_Function bodyFunction =
 			newPrimitiveFunction(
@@ -4042,285 +4033,6 @@ public final class AvailCompiler
 			new HashMap<>(),
 			false,
 			success);
-	}
-
-	/**
-	 * Apply a {@link ExpectedToken#PRAGMA_CHECK check} pragma that was detected
-	 * during parse of the {@linkplain ModuleHeader module header}.
-	 *
-	 * @param pragmaValue
-	 *        The pragma {@link String} after {@code "check="}.
-	 * @param success
-	 *        What to do after the pragmas have been applied successfully.
-	 * @throws MalformedPragmaException if the pragma is malformed.
-	 */
-	private static void applyCheckPragmaThen (
-		final String pragmaValue,
-		final Continuation0 success)
-	throws MalformedPragmaException
-	{
-		final String[] parts = pragmaValue.split("=", 2);
-		if (parts.length != 2)
-		{
-			throw new MalformedPragmaException(
-				"Should have the form 'check=<property>=<value>'.");
-		}
-		final String propertyName = parts[0].trim();
-		final String propertyValue = parts[1].trim();
-		pragmaCheckThen(propertyName, propertyValue, success);
-	}
-
-	/**
-	 * Apply a method pragma detected during parse of the {@linkplain
-	 * ModuleHeader module header}.
-	 *
-	 * @param pragmaValue
-	 *        The pragma {@link String} after "method=".
-	 * @param state
-	 *        Where the pragma occurs in the module.
-	 * @param success
-	 *        What to do if successful.
-	 * @throws MalformedPragmaException
-	 *         If this method-pragma is malformed.
-	 */
-	private void applyMethodPragmaThen (
-		final A_Token pragmaToken,
-		final String pragmaValue,
-		final ParserState state,
-		final Continuation0 success)
-	throws MalformedPragmaException
-	{
-		final String[] parts = pragmaValue.split("=", 2);
-		if (parts.length != 2)
-		{
-			throw new MalformedPragmaException(
-				format(
-					"Expected method pragma to have the form "
-						+ "%s=primitiveName=name",
-					PRAGMA_METHOD.lexemeJavaString));
-		}
-		final String primName = parts[0].trim();
-		final String methodName = parts[1].trim();
-		bootstrapMethodThen(
-			state, pragmaToken, methodName, primName, success);
-	}
-
-	/**
-	 * Apply a macro pragma detected during parse of the {@linkplain
-	 * ModuleHeader module header}.
-	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
-	 * @param pragmaValue
-	 *        The pragma {@link String} after "macro=".
-	 * @param state
-	 *        The {@linkplain ParserState parse state} following a parse of the
-	 *        module header.
-	 * @param success
-	 *        What to do after the macro is defined successfully.
-	 */
-	private void applyMacroPragmaThen (
-		final A_Token pragmaToken,
-		final String pragmaValue,
-		final ParserState state,
-		final Continuation0 success)
-	{
-		final String[] parts = pragmaValue.split("=", 2);
-		if (parts.length != 2)
-		{
-			throw new IllegalArgumentException();
-		}
-		final String pragmaPrim = parts[0].trim();
-		final String macroName = parts[1].trim();
-		final String[] primNameStrings = pragmaPrim.split(",");
-		final String[] primNames = new String[primNameStrings.length];
-		for (int i = 0; i < primNames.length; i++)
-		{
-			final String primName = primNameStrings[i];
-			final @Nullable Primitive prim = primitiveByName(primName);
-			if (prim == null)
-			{
-				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingState(),
-					"Malformed pragma at %s on line %d:",
-					format(
-						"Expected macro pragma to reference "
-							+ "a valid primitive, not %s",
-						primName));
-				return;
-			}
-			primNames[i] = primName;
-		}
-		bootstrapMacroThen(
-			state, pragmaToken, macroName, primNames, success);
-	}
-
-	/**
-	 * Apply a stringify definition pragma detected during parse of the
-	 * {@linkplain ModuleHeader module header}.
-	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
-	 * @param pragmaValue
-	 *        The pragma {@link String} after "stringify=".
-	 * @param state
-	 *        The {@linkplain ParserState parse state} following a parse of the
-	 *        module header.
-	 * @param success
-	 *        What to do after the stringification name is defined successfully.
-	 */
-	private void applyStringifyPragmaThen (
-		final A_Token pragmaToken,
-		final String pragmaValue,
-		final ParserState state,
-		final Continuation0 success)
-	{
-		final A_String availName = stringFrom(pragmaValue);
-		final A_Set atoms =
-			compilationContext.module().trueNamesForStringName(availName);
-		if (atoms.setSize() == 0)
-		{
-			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingState(),
-				"Problem in stringification macro at %s on line %d:",
-				format(
-					"stringification method \"%s\" should be introduced"
-						+ " in this module",
-					availName.asNativeString()));
-			return;
-		}
-		if (atoms.setSize() > 1)
-		{
-			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingState(),
-				"Problem in stringification macro at %s on line %d:",
-				format(
-					"stringification method \"%s\" is ambiguous",
-					availName.asNativeString()));
-			return;
-		}
-		final A_Atom atom = atoms.asTuple().tupleAt(1);
-		final A_Phrase send = newSendNode(
-			emptyTuple(),
-			DECLARE_STRINGIFIER.bundle,
-			newListNode(tuple(syntheticLiteralNodeFor(atom))),
-			TOP.o());
-		evaluateModuleStatementThen(
-			state, state, send, new HashMap<>(), false, success);
-	}
-
-	/**
-	 * Apply a lexer definition pragma detected during parse of the {@linkplain
-	 * ModuleHeader module header}.
-	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
-	 * @param pragmaValue
-	 *        The pragma {@link String} after "lexer=".
-	 * @param state
-	 *        The {@linkplain ParserState parse state} following a parse of the
-	 *        module header.
-	 * @param success
-	 *        What to do after the lexer is defined successfully.
-	 */
-	private void applyLexerPragmaThen (
-		final A_Token pragmaToken,
-		final String pragmaValue,
-		final ParserState state,
-		final Continuation0 success)
-	{
-		final String filterPrimitiveName;
-		final String bodyPrimitiveName;
-		final String lexerName;
-		try
-		{
-			final String[] parts = pragmaValue.split("=", 2);
-			if (parts.length != 2)
-			{
-				throw new IllegalArgumentException();
-			}
-			final String primNames = parts[0].trim();
-			final String[] primParts = primNames.split(",", 2);
-			if (primParts.length != 2)
-			{
-				throw new IllegalArgumentException();
-			}
-			filterPrimitiveName = primParts[0];
-			bodyPrimitiveName = primParts[1];
-			lexerName = parts[1].trim();
-		}
-		catch (final IllegalArgumentException e)
-		{
-			compilationContext.diagnostics.handleProblem(
-				new Problem(
-					moduleName(),
-					pragmaToken.lineNumber(),
-					pragmaToken.start(),
-					PARSE,
-					"Expected lexer pragma to have the form "
-						+ "{0}=filterPrim,bodyPrim=lexerName",
-					PRAGMA_LEXER.lexemeJavaString)
-				{
-					@Override
-					public void abortCompilation ()
-					{
-						compilationContext.diagnostics.reportError();
-					}
-				});
-			return;
-		}
-
-		final A_String availName = stringFrom(lexerName);
-		final A_Module module = state.lexingState.compilationContext.module();
-		final A_Set atoms = module.trueNamesForStringName(availName);
-		if (atoms.setSize() == 0)
-		{
-			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingState(),
-				"Problem in lexer pragma at %s on line %d:",
-				format(
-					"lexer method %s should be introduced in this module",
-					availName));
-			return;
-		}
-		if (atoms.setSize() > 1)
-		{
-			compilationContext.diagnostics.reportError(
-				pragmaToken.nextLexingState(),
-				"Problem in lexer pragma at %s on line %d:",
-				format("lexer name %s is ambiguous", availName));
-			return;
-		}
-		final A_Atom lexerAtom = atoms.iterator().next();
-
-		try
-		{
-			bootstrapLexerThen(
-				state,
-				pragmaToken,
-				lexerAtom,
-				filterPrimitiveName,
-				bodyPrimitiveName,
-				success);
-		}
-		catch (final MalformedPragmaException e)
-		{
-			compilationContext.diagnostics.handleProblem(
-				new Problem(
-					moduleName(),
-					pragmaToken.lineNumber(),
-					pragmaToken.start(),
-					PARSE,
-					e.problem(),
-					PRAGMA_LEXER.lexemeJavaString)
-				{
-					@Override
-					public void abortCompilation ()
-					{
-						compilationContext.diagnostics.reportError();
-					}
-				});
-		}
 	}
 
 	/**
@@ -4365,74 +4077,19 @@ public final class AvailCompiler
 					"Pragma should have the form key=value");
 				return;
 			}
-			final String pragmaKind = pragmaParts[0].trim();
+			final String pragmaKindString = pragmaParts[0].trim();
 			final String pragmaValue = pragmaParts[1].trim();
-			try
+			final @Nullable PragmaKind pragmaKind =
+				pragmaKindByLexeme(pragmaKindString);
+			if (pragmaKind == null)
 			{
-				switch (pragmaKind)
-				{
-					case "check":
-					{
-						assert pragmaKind.equals(
-							PRAGMA_CHECK.lexemeJavaString);
-						applyCheckPragmaThen(pragmaValue, next);
-						break;
-					}
-					case "method":
-					{
-						assert pragmaKind.equals(
-							PRAGMA_METHOD.lexemeJavaString);
-						applyMethodPragmaThen(
-							pragmaToken, pragmaValue, state, next);
-						break;
-					}
-					case "macro":
-					{
-						assert pragmaKind.equals(
-							PRAGMA_MACRO.lexemeJavaString);
-						applyMacroPragmaThen(
-							pragmaToken, pragmaValue, state, next);
-						break;
-					}
-					case "stringify":
-					{
-						assert pragmaKind.equals(
-							PRAGMA_STRINGIFY.lexemeJavaString);
-						applyStringifyPragmaThen(
-							pragmaToken, pragmaValue, state, next);
-						break;
-					}
-					case "lexer":
-					{
-						assert pragmaKind.equals(
-							PRAGMA_LEXER.lexemeJavaString);
-						applyLexerPragmaThen(
-							pragmaToken, pragmaValue, state, next);
-						break;
-					}
-					default:
-						compilationContext.diagnostics.reportError(
-							pragmaToken.nextLexingState(),
-							"Malformed pragma at %s on line %d:",
-							format(
-								"Pragma key should be one of "
-									+ "%s, %s, %s, %s, or %s",
-								PRAGMA_CHECK.lexemeJavaString,
-								PRAGMA_METHOD.lexemeJavaString,
-								PRAGMA_MACRO.lexemeJavaString,
-								PRAGMA_STRINGIFY.lexemeJavaString,
-								PRAGMA_LEXER.lexemeJavaString));
-				}
+				state.expected(
+					"one of these pragma kinds: "
+					+ asList(PragmaKind.values()));
+				return;
 			}
-			catch (final MalformedPragmaException e)
-			{
-				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingState(),
-					"Malformed pragma at %s on line %d:",
-					format(
-						"Malformed pragma: %s",
-						e.problem()));
-			}
+			pragmaKind.applyThen(
+				this, pragmaToken, pragmaValue, state, next);
 		};
 		compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
 		next.value();
@@ -4839,7 +4496,7 @@ public final class AvailCompiler
 	 * Process a header that has just been parsed.
 	 *
 	 * @param headerPhrase
-	 *        The invocation of {@link SpecialMethodAtom#MODULE_HEADER_METHOD}
+	 *        The invocation of {@link SpecialMethodAtom#MODULE_HEADER}
 	 *        that was just parsed.
 	 */
 	private void processHeaderMacro (
@@ -4850,7 +4507,7 @@ public final class AvailCompiler
 
 		assert headerPhrase.phraseKindIsUnder(SEND_PHRASE);
 		assert headerPhrase.apparentSendName().equals(
-			MODULE_HEADER_METHOD.atom);
+			MODULE_HEADER.atom);
 		final A_Tuple args =
 			convertHeaderPhraseToValue(headerPhrase.argumentsListNode());
 		assert args.tupleSize() == 6;
@@ -4861,16 +4518,9 @@ public final class AvailCompiler
 		final A_Tuple optionalEntries = args.tupleAt(5);
 		final A_Tuple optionalPragmas = args.tupleAt(6);
 
-		// Module name section
+		// Module name was checked against file name in a prefix function.
 		final A_String moduleName = stringFromToken(moduleNameToken);
-		if (!moduleName.asNativeString().equals(moduleName().localName()))
-		{
-			moduleNameToken.literal().nextLexingState().expected(
-				"declared local module name to agree with "
-				+ "fully-qualified module name");
-			compilationContext.diagnostics.reportError();
-			return;
-		}
+		assert moduleName.asNativeString().equals(moduleName().localName());
 
 		// Module version section
 		if (optionalVersions.tupleSize() > 0)
@@ -5064,8 +4714,9 @@ public final class AvailCompiler
 				if (header.exportedNames.contains(nameString))
 				{
 					nameToken.nextLexingState().expected(
-						"declared names to be unique");
-					compilationContext.diagnostics.reportError();
+						format(
+							"declared name %s (on line %d) to be unique",
+							nameString));
 					return;
 				}
 				header.exportedNames.add(nameString);
@@ -5139,7 +4790,7 @@ public final class AvailCompiler
 					assert headerPhrase.phraseKindIsUnder(
 						EXPRESSION_AS_STATEMENT_PHRASE);
 					assert headerPhrase.apparentSendName().equals(
-						MODULE_HEADER_METHOD.atom);
+						MODULE_HEADER.atom);
 					processHeaderMacro(
 						headerPhrase.expression(),
 						solution.endState());

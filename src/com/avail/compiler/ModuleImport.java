@@ -46,7 +46,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 /**
  * Information that a {@link ModuleHeader} uses to keep track of a module
  * import, whether from an Extends clause or a Uses clause, as specified by the
- * {@link SpecialMethodAtom#MODULE_HEADER_METHOD}.
+ * {@link SpecialMethodAtom#MODULE_HEADER}.
  */
 public class ModuleImport
 {
@@ -65,7 +65,7 @@ public class ModuleImport
 	/**
 	 * Whether this {@link ModuleImport} is due to an Extends clause rather than
 	 * a Uses clause, as indicated by {@link
-	 * SpecialMethodAtom#MODULE_HEADER_METHOD}.
+	 * SpecialMethodAtom#MODULE_HEADER}.
 	 */
 	public final boolean isExtension;
 

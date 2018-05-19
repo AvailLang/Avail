@@ -115,6 +115,7 @@ import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 import static java.lang.System.arraycopy;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Comparator.comparing;
@@ -268,7 +269,7 @@ extends JFrame
 				status = "Done";
 			}
 			workbench.writeText(
-				String.format(
+				format(
 					"%s (%d.%03ds).%n",
 					status,
 					durationMillis / 1000,
@@ -1244,13 +1245,36 @@ extends JFrame
 	}
 
 	/**
-	 * Re-parse the package structure from scratch.
+	 * Re-parse the package structure from scratch.  Answer a pair consisting
+	 * of the module tree and the entry points tree, but don't install them.
+	 * This can safely be run outside the UI thread.
+	 *
+	 * @return The &lt;module tree, entry points tree&gt; {@link Pair}.
 	 */
-	public void refresh ()
+	public Pair<TreeNode, TreeNode> calculateRefreshedTrees ()
 	{
 		resolver.clearCache();
-		final @Nullable ResolvedModuleName selection = selectedModule();
 		final TreeNode modules = newModuleTree();
+		final TreeNode entryPoints = newEntryPointsTree();
+		return new Pair<>(modules, entryPoints);
+	}
+
+	/**
+	 * Re-populate the visible tree structures based on the provided tree of
+	 * modules and tree of entry points.  Attempt to preserve selection and
+	 * expansion information.
+	 *
+	 * @param modules
+	 *        The {@link TreeNode} of modules to present.
+	 * @param entryPoints
+	 *        The {@link TreeNode} of entry points to present.
+	 */
+	public void refreshFor (
+		final TreeNode modules,
+		final TreeNode entryPoints)
+	{
+		final @Nullable ResolvedModuleName selection = selectedModule();
+
 		moduleTree.setModel(new DefaultTreeModel(modules));
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
@@ -1266,7 +1290,6 @@ extends JFrame
 			}
 		}
 
-		final TreeNode entryPoints = newEntryPointsTree();
 		entryPointsTree.setModel(new DefaultTreeModel(entryPoints));
 		for (int i = entryPointsTree.getRowCount() - 1; i >= 0; i--)
 		{
@@ -1512,10 +1535,7 @@ extends JFrame
 		availBuilder.traceDirectories(
 			(resolvedName, moduleVersion) ->
 			{
-				assert resolvedName != null;
-				assert moduleVersion != null;
-				final List<String> entryPoints =
-					moduleVersion.getEntryPoints();
+				final List<String> entryPoints = moduleVersion.getEntryPoints();
 				if (!entryPoints.isEmpty())
 				{
 					final EntryPointModuleNode moduleNode =
@@ -1811,7 +1831,7 @@ extends JFrame
 		final int perThousand = (int) ((position.value * 1000) / max.value);
 		buildProgress.setValue(perThousand);
 		final float percent = perThousand / 10.0f;
-		buildProgress.setString(String.format(
+		buildProgress.setString(format(
 			"Build Progress: %,d / %,d bytes (%3.1f%%)",
 			position.value,
 			max.value,
@@ -1903,7 +1923,7 @@ extends JFrame
 		{
 			final Pair<Long, Long> pair = entry.getValue();
 			builder.append(
-				String.format(
+				format(
 					"%,6d / %,6d - %s%n",
 					pair.first(),
 					pair.second(),
@@ -3042,26 +3062,55 @@ extends JFrame
 		// Display the UI.
 		invokeLater(() ->
 		{
-			final AvailWorkbench frame = new AvailWorkbench(resolver);
+			final AvailWorkbench bench = new AvailWorkbench(resolver);
 			if (runningOnMac)
 			{
-				frame.setUpInstanceForMac();
+				bench.setUpInstanceForMac();
 			}
-			frame.setVisible(true);
-			frame.refresh();
-
-			// Select an initial module if specified.
-			if (!initial.isEmpty())
-			{
-				final @Nullable TreePath path = frame.modulePath(initial);
-				if (path != null)
+			final AbstractWorkbenchTask initialRefreshTask =
+				new AbstractWorkbenchTask(bench, null)
 				{
-					frame.moduleTree.setSelectionPath(path);
-					frame.moduleTree.scrollRowToVisible(
-						frame.moduleTree.getRowForPath(path));
-					frame.setEnablements();
-				}
-			}
+					@Override
+					protected void executeTask ()
+					{
+						// First refresh the module and entry point trees.
+						workbench.writeText(
+							"Scanning all module headers.\n",
+							INFO);
+						final long before = currentTimeMillis();
+						final Pair<TreeNode, TreeNode> modulesAndEntryPoints =
+							workbench.calculateRefreshedTrees();
+						final long after = currentTimeMillis();
+						workbench.writeText(
+							format("...done (%,3dms)\n", after - before),
+							INFO);
+						// Now select an initial module, if specified.
+						invokeLater(() ->
+						{
+							workbench.refreshFor(
+								modulesAndEntryPoints.first(),
+								modulesAndEntryPoints.second());
+							if (!initial.isEmpty())
+							{
+								final @Nullable TreePath path =
+									workbench.modulePath(initial);
+								if (path != null)
+								{
+									workbench.moduleTree.setSelectionPath(path);
+									workbench.moduleTree.scrollRowToVisible(
+										workbench.moduleTree
+											.getRowForPath(path));
+								}
+							}
+							workbench.backgroundTask = null;
+							workbench.setEnablements();
+						});
+					}
+				};
+			bench.backgroundTask = initialRefreshTask;
+			bench.setEnablements();
+			bench.setVisible(true);
+			initialRefreshTask.execute();
 		});
 	}
 }

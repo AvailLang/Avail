@@ -47,7 +47,10 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
+import com.avail.interpreter.primitive.bootstrap.syntax
+	.P_ModuleHeaderPrefixCheckName;
+import com.avail.interpreter.primitive.bootstrap.syntax
+	.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -68,17 +71,28 @@ import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor
+	.newParsingPlan;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
-import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_MACRO;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_METHOD;
+import static com.avail.descriptor.MethodDefinitionDescriptor
+	.newMethodDefinition;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
+	.CREATE_MACRO;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
+	.CREATE_METHOD;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
@@ -87,9 +101,12 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -880,20 +897,20 @@ extends Descriptor
 			SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple());
 		result.setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple());
 		final Set<L2Chunk> chunkSet = Collections.newSetFromMap(
-			new WeakHashMap<L2Chunk, Boolean>());
+			new WeakHashMap<>());
 		result.setSlot(
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			identityPojo(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				Collections.emptyList(), initialTypes, null);
+				emptyList(), initialTypes, null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				Collections.emptyList(), initialTypes, null);
+				emptyList(), initialTypes, null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
@@ -1182,8 +1199,8 @@ extends Descriptor
 			P_ResumeContinuation.instance),
 
 		/** The special atom for parsing module headers. */
-		MODULE_HEADER_METHOD(
-			"Module…$"
+		MODULE_HEADER(
+			"Module…$§"
 				+ "«Versions«…$‡,»»"
 				+ '«'
 					+ "«Extends|Uses»!"
@@ -1199,6 +1216,8 @@ extends Descriptor
 				+ "«Pragma«…$‡,»»"
 				+ "Body",
 			CREATE_MACRO,
+			singletonList(
+				P_ModuleHeaderPrefixCheckName.instance),
 			P_ModuleHeaderPseudoMacro.instance);
 
 		/** The special atom. */
@@ -1207,14 +1226,61 @@ extends Descriptor
 		/** The special atom's message bundle. */
 		public final A_Bundle bundle;
 
+		/**
+		 * Create an instance.  Note that the variadic argument is for
+		 * alternative overrides, whereas the explicit list is for prefix
+		 * functions.  A variant of this constructor elides that (uncommon)
+		 * list.
+		 *
+		 * @param name
+		 *        The name of the method or macro being defined.
+		 * @param methodOrMacro
+		 *        Whether it's supposed to be creating a method or macro,
+		 *        expressed as a {@link CreateMethodOrMacroEnum} value.
+		 * @param prefixFunctions
+		 *        A {@link List} of prefix functions to provide to the macro
+		 *        definition, if this is a macro being defined (or always an
+		 *        empty list for non-macros).  Note that if there are multiple
+		 *        primitives provided in the variadic argument below, each will
+		 *        use the same list of prefix functions.
+		 * @param primitives
+		 *        The primitive to wrap into a method or macro definition.  Note
+		 *        that multiple overrides may be provided in this variadic
+		 *        argument.
+		 */
+		SpecialMethodAtom (
+			final String name,
+			final CreateMethodOrMacroEnum methodOrMacro,
+			final List<Primitive> prefixFunctions,
+			final Primitive... primitives)
+		{
+			this.atom = createSpecialMethodAtom(
+				name, methodOrMacro, prefixFunctions, primitives);
+			this.bundle = atom.bundleOrNil();
+		}
+
+		/**
+		 * Create an instance.  Note that the variadic argument is for
+		 * alternative overrides, whereas the explicit list is for prefix
+		 * functions.  A variant of this constructor elides that (uncommon)
+		 * list.
+		 *
+		 * @param name
+		 *        The name of the method or macro being defined.
+		 * @param methodOrMacro
+		 *        Whether it's supposed to be creating a method or macro,
+		 *        expressed as a {@link CreateMethodOrMacroEnum} value.
+		 * @param primitives
+		 *        The primitive to wrap into a method or macro definition.  Note
+		 *        that multiple overrides may be provided in this variadic
+		 *        argument.
+		 */
 		SpecialMethodAtom (
 			final String name,
 			final CreateMethodOrMacroEnum methodOrMacro,
 			final Primitive... primitives)
 		{
-			this.atom = createSpecialMethodAtom(
-				name, methodOrMacro, primitives);
-			this.bundle = atom.bundleOrNil();
+			this(name, methodOrMacro, emptyList(), primitives);
 		}
 
 		/**
@@ -1229,6 +1295,12 @@ extends Descriptor
 		 *        A string used to help identify the new atom.
 		 * @param createMethodOrMacro
 		 *        Whether to create method(s) or macro(s).
+		 * @param prefixFunctions
+		 *        A {@link List} of prefix functions to provide to the macro
+		 *        definition, if this is a macro being defined.  Note that if
+		 *        there are multiple primitives provided in the variadic
+		 *        argument below, each will use the same list of prefix
+		 *        functions.
 		 * @param primitives
 		 *        The {@link Primitive}s to instantiate as method definitions in
 		 *        this atom's message bundle's method.
@@ -1239,6 +1311,7 @@ extends Descriptor
 		private static A_Atom createSpecialMethodAtom (
 			final String name,
 			final CreateMethodOrMacroEnum createMethodOrMacro,
+			final List<Primitive> prefixFunctions,
 			final Primitive... primitives)
 		{
 			final A_Atom atom = createSpecialAtom(name);
@@ -1261,6 +1334,7 @@ extends Descriptor
 				final A_Definition definition;
 				if (createMethodOrMacro == CREATE_METHOD)
 				{
+					assert prefixFunctions.isEmpty();
 					definition = newMethodDefinition(
 						method,
 						nil,  // System definitions have no module.
@@ -1272,7 +1346,10 @@ extends Descriptor
 						method,
 						nil,  // System definitions have no module.
 						function,
-						emptyTuple());
+						tupleFromList(
+							prefixFunctions.stream()
+								.map(p -> newPrimitiveFunction(p, nil, 0))
+								.collect(Collectors.toList())));
 				}
 
 				try

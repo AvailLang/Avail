@@ -49,7 +49,7 @@ import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-	.MODULE_HEADER_METHOD;
+	.MODULE_HEADER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
@@ -65,7 +65,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
  * headers of modules with the same machinery used for the bodies.
  *
  * <p>The name of the module header method is given in {@link
- * SpecialMethodAtom#MODULE_HEADER_METHOD}.</p>
+ * SpecialMethodAtom#MODULE_HEADER}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -96,7 +96,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 				newSendNode(
 					// Don't bother collecting tokens in header.
 					emptyTuple(),
-					MODULE_HEADER_METHOD.bundle,
+					MODULE_HEADER.bundle,
 					newListNode(
 						tupleFromArray(
 							moduleNameLiteral,

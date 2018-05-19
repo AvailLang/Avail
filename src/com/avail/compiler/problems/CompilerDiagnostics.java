@@ -664,7 +664,7 @@ public class CompilerDiagnostics
 			: source.tupleSize() + 1;
 
 		// Insert the problem location indicators...
-		int sourcePosition = startOfFirstLine /* + 1*/;
+		int sourcePosition = startOfFirstLine;
 		final List<A_Tuple> parts = new ArrayList<>(10);
 		for (final ProblemsAtPosition eachProblem : ascending)
 		{

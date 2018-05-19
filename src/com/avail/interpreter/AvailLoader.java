@@ -1590,7 +1590,7 @@ public final class AvailLoader
 
 		// Now add the method that allows the header to be parsed.
 		final A_Atom headerMethodName =
-			SpecialMethodAtom.MODULE_HEADER_METHOD.atom;
+			SpecialMethodAtom.MODULE_HEADER.atom;
 		final A_Bundle headerMethodBundle;
 		try
 		{

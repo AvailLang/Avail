@@ -288,8 +288,11 @@ public class LexingState
 			expected(
 				format(
 					"an applicable lexer, but all %d filter functions returned "
-						+ "false.  Code point = \'%c\' (U+%2$04x).",
+						+ "false (code point = %s(U+%04x))",
 					scanner.allVisibleLexers.size(),
+					(Character.isWhitespace(codePoint)
+						 ? ""
+						 : "¢" + codePoint + " "),
 					codePoint));
 			for (final Continuation1NotNull<List<A_Token>> action
 				: stripNull(actions))
@@ -413,8 +416,11 @@ public class LexingState
 	}
 
 	/**
-	 * A lexer body completed successfully with the given tuple of next tokens
-	 * (all tokens that the lexer indicates might be the very next token).
+	 * A lexer body completed successfully with the given set of tuples of next
+	 * tokens.  The set reflects different possibilities, and each tuple is of
+	 * consecutive tokens from the input, all of which actually have to be
+	 * physically present in the text.  Technically, some of the tokens might
+	 * have empty lexemes to ensure the right number of characters are consumed.
 	 *
 	 * @param newTokenRuns
 	 *        A set of sequences (tuples) of tokens that represent possible

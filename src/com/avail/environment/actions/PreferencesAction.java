@@ -37,6 +37,7 @@ import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
+import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -44,6 +45,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
@@ -55,6 +57,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import static java.lang.Math.min;
+import static javax.swing.SwingUtilities.invokeLater;
 
 /**
  * An {@code AboutAction} presents the "About Avail" dialog.
@@ -353,8 +356,13 @@ extends AbstractWorkbenchAction
 				public void actionPerformed (final ActionEvent e)
 				{
 					savePreferences();
-					workbench.refresh();
-					preferencesDialog.setVisible(false);
+					final Pair<TreeNode, TreeNode> trees =
+						workbench.calculateRefreshedTrees();
+					invokeLater(()->
+					{
+						workbench.refreshFor(trees.first(), trees.second());
+						preferencesDialog.setVisible(false);
+					});
 				}
 			};
 		final JButton okButton = new JButton(okAction);

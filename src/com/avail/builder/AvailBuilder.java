@@ -114,6 +114,8 @@ import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
+import static java.util.Collections.singleton;
+import static java.util.Collections.sort;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
@@ -679,14 +681,14 @@ public final class AvailBuilder
 	@InnerAccess class BuildDirectoryTracer
 	{
 		/**
-		 * The number of trace requests that have been scheduled.
+		 * The trace requests that have been scheduled.
 		 */
-		private int traceRequests = 0;
+		private final Set<Path> traceRequests = new HashSet<>();
 
 		/**
-		 * The number of trace requests that have been completed.
+		 * The traces that have been completed.
 		 */
-		private int traceCompletions = 0;
+		private final Set<Path> traceCompletions = new HashSet<>();
 
 		/**
 		 * Schedule a hierarchical tracing of all module files in all visible
@@ -696,21 +698,22 @@ public final class AvailBuilder
 		 * caches to treat the current versions as having been accessed most
 		 * recently.
 		 *
-		 * <p>When a module header parsing starts, increment traceRequests.
-		 * When a module header parsing is complete, increment traceCompletions,
-		 * and if the two are now equal, send {@link #notifyAll()} to the {@link
-		 * BuildTracer}.</p>
+		 * <p>When a module header parsing starts, add the module name to
+		 * traceRequests. When a module header parsing is complete, add it to
+		 * traceCompletions, and if the two now have the same size, send {@link
+		 * #notifyAll()} to the {@link BuildTracer}.</p>
 		 *
 		 * <p>{@linkplain IndexedRepositoryManager#commit() Commit} all affected
 		 * repositories at the end.  Return only after all relevant files have
 		 * been scanned or looked up in the repositories, or failed somehow.</p>
 		 *
 		 * @param moduleAction
-		 *        What to do each time we've extracted or replayed a
-		 *        {@link ModuleVersion} from a valid module file.
+		 *        What to do each time we've extracted or replayed a {@link
+		 *        ModuleVersion} from a valid module file.
 		 */
 		@InnerAccess void traceAllModuleHeaders (
-			final Continuation2<ResolvedModuleName, ModuleVersion> moduleAction)
+			final Continuation2NotNull<ResolvedModuleName, ModuleVersion>
+				moduleAction)
 		{
 			final ModuleRoots moduleRoots = runtime.moduleRoots();
 			for (final ModuleRoot moduleRoot : moduleRoots)
@@ -723,10 +726,9 @@ public final class AvailBuilder
 				{
 					@Override
 					public FileVisitResult preVisitDirectory (
-						final @Nullable Path dir,
-						final @Nullable BasicFileAttributes unused)
+						final Path dir,
+						final BasicFileAttributes unused)
 					{
-						assert dir != null;
 						if (dir.equals(rootPath))
 						{
 							// The base directory doesn't have the .avail
@@ -743,17 +745,16 @@ public final class AvailBuilder
 
 					@Override
 					public FileVisitResult visitFile (
-						final @Nullable Path file,
-						final @Nullable BasicFileAttributes unused)
+						final Path file,
+						final BasicFileAttributes unused)
 					{
-						assert file != null;
 						final String localName = file.toFile().getName();
 						if (!localName.endsWith(availExtension))
 						{
 							return CONTINUE;
 						}
 						// It's a module file.
-						incrementTraceRequests();
+						addTraceRequest(file);
 						runtime.execute(
 							0,
 							() ->
@@ -780,15 +781,18 @@ public final class AvailBuilder
 								final ResolvedModuleName resolved =
 									new ResolvedModuleName(
 										moduleName, moduleRoots, false);
-								traceOneModuleHeader(resolved, moduleAction);
+								traceOneModuleHeader(
+									resolved,
+									moduleAction,
+									() -> indicateTraceCompleted(file));
 							});
 						return CONTINUE;
 					}
 
 					@Override
 					public FileVisitResult visitFileFailed (
-						final @Nullable Path file,
-						final @Nullable IOException exception)
+						final Path file,
+						final IOException exception)
 					{
 						// Ignore the exception and continue.  We're just
 						// trying to populate the list of entry points, so it's
@@ -798,8 +802,8 @@ public final class AvailBuilder
 
 					@Override
 					public FileVisitResult postVisitDirectory (
-						final @Nullable Path dir,
-						final @Nullable IOException e)
+						final Path dir,
+						final IOException e)
 					{
 						return CONTINUE;
 					}
@@ -808,7 +812,7 @@ public final class AvailBuilder
 				{
 					Files.walkFileTree(
 						rootPath,
-						Collections.singleton(FileVisitOption.FOLLOW_LINKS),
+						singleton(FileVisitOption.FOLLOW_LINKS),
 						Integer.MAX_VALUE,
 						visitor);
 				}
@@ -831,11 +835,13 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Add one to the traceRequests variable while holding the monitor.
+		 * Add a module name to traceRequests while holding the monitor.
 		 */
-		@InnerAccess synchronized void incrementTraceRequests ()
+		@InnerAccess synchronized void addTraceRequest (
+			final Path modulePath)
 		{
-			traceRequests++;
+			final boolean added = traceRequests.add(modulePath);
+			assert added : "Attempting to trace file " + modulePath + " twice";
 		}
 
 		/**
@@ -846,13 +852,40 @@ public final class AvailBuilder
 		 */
 		private synchronized boolean waitAndCheckInterrupts ()
 		{
+			final long period = 10000;
+			long nextReportMillis = System.currentTimeMillis() + period;
 			boolean interrupted = false;
-			while (traceRequests != traceCompletions)
+			while (traceRequests.size() != traceCompletions.size())
 			{
 				try
 				{
+					// Wait for notification, interrupt, or timeout.  The
+					// timeout is set a few milliseconds after the target time
+					// to avoid repeated wake-ups from imprecision.
 					//noinspection SynchronizeOnThis
-					wait();
+					wait(nextReportMillis - System.currentTimeMillis() + 5);
+					if (System.currentTimeMillis() > nextReportMillis)
+					{
+						final Set<Path> outstanding =
+							new HashSet<>(traceRequests);
+						outstanding.removeAll(traceCompletions);
+						if (!outstanding.isEmpty())
+						{
+							final List<Path> sorted =
+								new ArrayList<>(outstanding);
+							sort(sorted);
+							final StringBuilder builder = new StringBuilder();
+							builder.append("Still tracing files:\n");
+							for (final Path path : sorted)
+							{
+								builder.append('\t');
+								builder.append(path);
+								builder.append('\n');
+							}
+							System.err.print(builder);
+						}
+					}
+					nextReportMillis = System.currentTimeMillis() + period;
 				}
 				catch (final InterruptedException e)
 				{
@@ -866,21 +899,26 @@ public final class AvailBuilder
 		 * Examine the specified file, adding information about its header to
 		 * its associated repository.  If this particular file version has
 		 * already been traced, or if an error is encountered while fetching or
-		 * parsing the header of the file, simply invoke {@link
-		 * #indicateTraceCompleted()}.  Otherwise update the repository and then
-		 * invoke {@code #indicateTraceCompleted()}.
+		 * parsing the header of the file, simply invoke the {@code
+		 * completedAction}.  Otherwise, update the repository and then invoke
+		 * the {@code completedAction}.
 		 *
 		 * @param resolvedName
 		 *        The resolved name of the module file to examine.
 		 * @param action
-		 *        A {@link Continuation2} to perform with each encountered
-		 *        ResolvedModuleName and the associated {@link ModuleVersion},
-		 *        if one can be produced without error by parsing or replaying
-		 *        from the repository.
+		 *        A {@link Continuation2NotNull} to perform with each
+		 *        encountered ResolvedModuleName and the associated {@link
+		 *        ModuleVersion}, if one can be produced without error by
+		 *        parsing or replaying from the repository.
+		 * @param completedAction
+		 *        The {@link Continuation0} to execute exactly once when the
+		 *        examination of this module file has completed.
 		 */
 		@InnerAccess void traceOneModuleHeader (
 			final ResolvedModuleName resolvedName,
-			final Continuation2<ResolvedModuleName, ModuleVersion> action)
+			final Continuation2NotNull<ResolvedModuleName, ModuleVersion>
+				action,
+			final Continuation0 completedAction)
 		{
 			final IndexedRepositoryManager repository =
 				resolvedName.repository();
@@ -898,7 +936,7 @@ public final class AvailBuilder
 				// This version was already traced and recorded for a
 				// subsequent replay... like right now.  Reuse it.
 				action.value(resolvedName, existingVersion);
-				indicateTraceCompleted();
+				completedAction.value();
 				return;
 			}
 			// Trace the source and write it back to the repository.
@@ -914,7 +952,7 @@ public final class AvailBuilder
 				{
 					compiler.compilationContext.diagnostics
 						.setSuccessAndFailureReporters(
-							() -> { }, this::indicateTraceCompleted);
+							() -> { }, completedAction);
 					compiler.parseModuleHeader(
 						afterHeader ->
 						{
@@ -932,10 +970,10 @@ public final class AvailBuilder
 							serialize(header, newVersion);
 							archive.putVersion(versionKey, newVersion);
 							action.value(resolvedName, newVersion);
-							indicateTraceCompleted();
+							completedAction.value();
 						});
 				},
-				this::indicateTraceCompleted,
+				completedAction,
 				new BuilderProblemHandler("")
 				{
 					@Override
@@ -955,16 +993,18 @@ public final class AvailBuilder
 		 * A module was just traced, so record that fact.  Note that the
 		 * trace was either successful or unsuccessful.
 		 */
-		@InnerAccess synchronized void indicateTraceCompleted ()
+		@InnerAccess synchronized void indicateTraceCompleted (
+			final Path modulePath)
 		{
-			traceCompletions++;
+			final boolean added = traceCompletions.add(modulePath);
+			assert added : "Completed trace of file " + modulePath + " twice";
 			log(
 				Level.FINEST,
 				"Build-directory traced one (%d/%d)",
 				traceCompletions,
 				traceRequests);
 			// Avoid spurious wake-ups.
-			if (traceRequests == traceCompletions)
+			if (traceRequests.size() == traceCompletions.size())
 			{
 				//noinspection SynchronizeOnThis
 				notifyAll();
@@ -1431,10 +1471,10 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Trace the imports of the {@linkplain ResolvedModuleName
-		 * specified} {@linkplain ModuleDescriptor module}.  Return only
-		 * when these new <em>requests</em> have been accounted for, so that
-		 * the current request can be considered completed in the caller.
+		 * Trace the imports of the {@linkplain ResolvedModuleName specified}
+		 * {@linkplain ModuleDescriptor module}.  Return only when these new
+		 * <em>requests</em> have been accounted for, so that the current
+		 * request can be considered completed in the caller.
 		 *
 		 * @param moduleName
 		 *        The name of the module being traced.
@@ -2530,7 +2570,7 @@ public final class AvailBuilder
 			{
 				final Graph<ResolvedModuleName> ancestry =
 					moduleGraph.ancestryOfAll(
-						Collections.singleton(targetModule));
+						singleton(targetModule));
 				final Graph<ResolvedModuleName> reduced =
 					ancestry.dagWithoutRedundantEdges();
 				renderGraph(reduced);
@@ -2967,16 +3007,16 @@ public final class AvailBuilder
 	/**
 	 * Scan all module files in all visible source directories, passing each
 	 * {@link ResolvedModuleName} and corresponding {@link ModuleVersion} to the
-	 * provided {@link Continuation2}.
+	 * provided {@link Continuation2NotNull}.
 	 *
-	 * <p>Note that the action may be invoked from multiple {@link Thread}s
+	 * <p>Note that the action may be invoked in multiple {@link Thread}s
 	 * simultaneously, so the client may need to provide suitable
 	 * synchronization.</p>
 	 *
 	 * @param action What to do with each module version.
 	 */
 	public void traceDirectories (
-		final Continuation2<ResolvedModuleName, ModuleVersion> action)
+		final Continuation2NotNull<ResolvedModuleName, ModuleVersion> action)
 	{
 		new BuildDirectoryTracer().traceAllModuleHeaders(action);
 	}

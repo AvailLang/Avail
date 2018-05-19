@@ -1011,9 +1011,8 @@ public abstract class AbstractStacksScanner
 	static final byte[] dispatchTable = new byte[65536];
 
 	/**
-	 * Statically initialize the {@link dispatchTable} with suitable
-	 * {@link AvailScanner.ScannerAction scanner actions}. Note that this
-	 * happens as part of class loading.
+	 * Statically initialize the {@link dispatchTable} with suitable scanner
+	 * actions. Note that this happens as part of class loading.
 	 */
 	static
 	{

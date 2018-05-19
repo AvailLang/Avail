@@ -261,7 +261,18 @@ extends TokenDescriptor
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(LITERAL, literal);
-		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
+		if (literal.isInstanceOfKind(TOKEN.o()))
+		{
+			// We're wrapping another token, so share that token's
+			// nextLexingState pojo, if set.
+			final A_BasicObject pojo =
+				literal.traversed().slot(NEXT_LEXING_STATE_POJO);
+			instance.setSlot(NEXT_LEXING_STATE_POJO, pojo);
+		}
+		else
+		{
+			instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
+		}
 		return instance.makeShared();
 	}
 

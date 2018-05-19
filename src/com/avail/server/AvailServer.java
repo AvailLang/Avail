@@ -1033,17 +1033,13 @@ public final class AvailServer
 				builder.traceDirectories(
 					(name, version) ->
 					{
-						assert name != null;
-						assert version != null;
 						final List<String> entryPoints =
 							version.getEntryPoints();
 						if (!entryPoints.isEmpty())
 						{
 							synchronized (map)
 							{
-								map.put(
-									name.qualifiedName(),
-									entryPoints);
+								map.put(name.qualifiedName(), entryPoints);
 							}
 						}
 					});

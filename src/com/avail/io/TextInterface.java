@@ -91,7 +91,7 @@ public final class TextInterface
 	}
 
 	/**
-	 * Construct a new {@link TextInterface}.
+	 * Construct a new {@code TextInterface}.
 	 *
 	 * @param inputChannel
 	 *        The {@linkplain TextInputChannel standard input channel}.
@@ -111,7 +111,7 @@ public final class TextInterface
 	}
 
 	/**
-	 * Answer a {@link TextInterface} bound to the {@linkplain System}
+	 * Answer a {@code TextInterface} bound to the {@linkplain System}
 	 * {@linkplain System#in input}, {@linkplain System#out output}, and
 	 * {@linkplain System#err error} channels.
 	 *

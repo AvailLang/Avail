@@ -33,11 +33,15 @@
 package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
+import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+
+import static javax.swing.SwingUtilities.invokeLater;
 
 /**
  * A {@code RefreshAction} updates the module tree with new information from the
@@ -50,11 +54,16 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		workbench.refresh();
+		final Pair<TreeNode, TreeNode> modulesAndEntryPoints =
+			workbench.calculateRefreshedTrees();
+		invokeLater(() ->
+			workbench.refreshFor(
+				modulesAndEntryPoints.first(),
+				modulesAndEntryPoints.second()));
 	}
 
 	/**
-	 * Construct a new {@link RefreshAction}.
+	 * Construct a new {@code RefreshAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

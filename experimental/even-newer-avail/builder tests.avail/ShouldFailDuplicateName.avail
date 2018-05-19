@@ -1,5 +1,5 @@
 /*
- * MalformedPragmaException.java
+ * ShouldFailDuplicateName.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,46 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
-
-/**
- * A {@code MalformedPragmaException} is thrown when a pragma within a module
- * header is malformed.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- */
-public final class MalformedPragmaException
-extends Exception
-{
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -7584923574827897383L;
-
-	/**
-	 * A {@link String} that describes the problem with the malformed pragma.
-	 */
-	private final String problem;
-
-	/**
-	 * Construct a new {@link MalformedPragmaException} with a string that
-	 * describes the problem.
-	 *
-	 * @param problem
-	 *        A {@link String} that describes what was malformed about the
-	 *        pragma.
-	 */
-	public MalformedPragmaException (
-		final String problem)
-	{
-		this.problem = problem;
-	}
-
-	/**
-	 * Answer a description of how the pragma is malformed.
-	 *
-	 * @return A description of what is wrong with the encountered pragma.
-	 */
-	public String problem ()
-	{
-		return problem;
-	}
-}
+Module "ShouldFailDuplicateName"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Names
+	"cat",
+	"dog",
+	"zzcat"  /* Redundant, should be rejected. */
+Body
