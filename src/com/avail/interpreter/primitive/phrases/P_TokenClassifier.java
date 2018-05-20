@@ -77,7 +77,7 @@ extends Primitive
 		interpreter.checkArgumentCount(1);
 		final A_Token token = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
-			TokenType.lookup(token.tokenType().ordinal()).atom);
+			lookupTokenType(token.tokenType().ordinal()).atom);
 	}
 
 	@Override

@@ -620,6 +620,7 @@ public enum ParsingOperation
 							token.start(),
 							token.lineNumber(),
 							token);
+					compiler.compilationContext.recordToken(syntheticToken);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
 					compiler.eventuallyParseRestOfSendNode(
@@ -699,6 +700,7 @@ public enum ParsingOperation
 							token.start(),
 							token.lineNumber(),
 							token);
+					compiler.compilationContext.recordToken(syntheticToken);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
 					compiler.eventuallyParseRestOfSendNode(
@@ -779,6 +781,7 @@ public enum ParsingOperation
 							token.start(),
 							token.lineNumber(),
 							token);
+					compiler.compilationContext.recordToken(syntheticToken);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
 					compiler.eventuallyParseRestOfSendNode(
@@ -859,6 +862,7 @@ public enum ParsingOperation
 							token.start(),
 							token.lineNumber(),
 							token);
+					compiler.compilationContext.recordToken(syntheticToken);
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNodeFromToken(syntheticToken));
 					compiler.eventuallyParseRestOfSendNode(

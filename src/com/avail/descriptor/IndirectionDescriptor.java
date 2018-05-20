@@ -5119,4 +5119,10 @@ extends AbstractDescriptor
 		o_Traversed(object).setSuccessAndFailureContinuations(
 			onSuccess, onFailure);
 	}
+
+	@Override
+	void o_ClearLexingState (final AvailObject object)
+	{
+		o_Traversed(object).clearLexingState();
+	}
 }

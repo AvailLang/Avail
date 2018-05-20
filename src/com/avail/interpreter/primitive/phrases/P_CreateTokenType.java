@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.phrases;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TokenTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -43,17 +42,20 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.primitive.phrases.P_CreateToken.tokenTypeOrdinalKey;
+import static com.avail.interpreter.primitive.phrases.P_CreateToken
+	.tokenTypeOrdinalKey;
 
 /**
  * <strong>Primitive:</strong> Construct a {@linkplain TokenTypeDescriptor token
@@ -79,8 +81,9 @@ extends Primitive
 		interpreter.checkArgumentCount(1);
 		final A_Atom type = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
-			tokenType(TokenType.lookup(
-				type.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
+			tokenType(
+				lookupTokenType(
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
 	}
 
 	@Override
@@ -93,8 +96,11 @@ extends Primitive
 		if (atomType.instanceCount().equalsInt(1))
 		{
 			final A_Atom atom = atomType.instance();
-			return instanceType(tokenType(TokenType.lookup(
-				atom.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
+			return instanceType(
+				tokenType(
+					lookupTokenType(
+						atom.getAtomProperty(tokenTypeOrdinalKey)
+							.extractInt())));
 
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);

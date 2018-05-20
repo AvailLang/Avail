@@ -32,7 +32,14 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -40,7 +47,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
@@ -103,7 +111,7 @@ extends Primitive
 				lexeme,
 				start.extractInt(),
 				line.extractInt(),
-				TokenType.lookup(
+				lookupTokenType(
 					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())));
 	}
 
@@ -120,8 +128,9 @@ extends Primitive
 		if (atomType.instanceCount().equalsInt(1))
 		{
 			final A_Atom atom = atomType.instance();
-			return tokenType(TokenType.lookup(
-				atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()));
+			return tokenType(
+				lookupTokenType(
+					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()));
 
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);

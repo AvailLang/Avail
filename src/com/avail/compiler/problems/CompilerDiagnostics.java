@@ -49,6 +49,8 @@ import com.avail.utility.evaluation.SimpleDescriber;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 
@@ -61,12 +63,12 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.addLineNumbers;
 import static com.avail.utility.Strings.lineBreakPattern;
 import static java.lang.String.format;
-import static java.util.Collections.emptyIterator;
-import static java.util.Collections.reverseOrder;
+import static java.util.Collections.*;
 
 public class CompilerDiagnostics
 {
@@ -138,6 +140,15 @@ public class CompilerDiagnostics
 		new PriorityQueue<>();
 
 	/**
+	 * A collection of tokens that have been encountered during parsing since
+	 * the last time this list was cleared.
+	 */
+	private List<A_Token> liveTokens = new ArrayList<>(100);
+
+	/** A lock to protect access to {@link #liveTokens}. */
+	private final ReadWriteLock liveTokensLock = new ReentrantReadWriteLock();
+
+	/**
 	 * Record the fact that we're starting to parse a top-level statement at the
 	 * indicated one-based position in the source.  Clear any already recorded
 	 * expectations.
@@ -150,6 +161,25 @@ public class CompilerDiagnostics
 		startOfStatement = initialPosition;
 		expectations.clear();
 		expectationsIndexHeap.clear();
+		// Tidy up all tokens from the previous top-level statement.
+		final List<A_Token> priorTokens =
+			lockWhile(
+				liveTokensLock.writeLock(),
+				() ->
+				{
+					final List<A_Token> old = liveTokens;
+					liveTokens = emptyList();
+					return old;
+				});
+
+		for (final A_Token token : priorTokens)
+		{
+			token.clearLexingState();
+		}
+
+		lockWhile(
+			liveTokensLock.writeLock(),
+			() -> liveTokens = new ArrayList<>(100));
 	}
 
 	/**
@@ -288,6 +318,17 @@ public class CompilerDiagnostics
 			lexingState,
 			k -> new ArrayList<>());
 		innerList.add(describer);
+	}
+
+	/**
+	 * Record the fact that this token was encountered while parsing the current
+	 * top-level statement.
+	 *
+	 * @param token The token that was encountered.
+	 */
+	public void recordToken (final A_Token token)
+	{
+		lockWhile(liveTokensLock.writeLock(), () -> liveTokens.add(token));
 	}
 
 	/**
@@ -500,7 +541,7 @@ public class CompilerDiagnostics
 		final Map<LexingState, List<Describer>> innerMap = new HashMap<>();
 		innerMap.put(
 			lexingState,
-			Collections.singletonList(new SimpleDescriber(message)));
+			singletonList(new SimpleDescriber(message)));
 		expectations.put(startPosition, innerMap);
 		expectationsIndexHeap.add(startPosition);
 		reportError(headerMessagePattern);
@@ -636,7 +677,7 @@ public class CompilerDiagnostics
 		}
 		final List<ProblemsAtPosition> ascending =
 			new ArrayList<>(groupedProblems);
-		Collections.sort(ascending);
+		sort(ascending);
 
 		// Figure out where to start showing the file content.  Never show the
 		// content before the line on which startOfStatement resides.

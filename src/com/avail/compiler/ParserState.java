@@ -147,7 +147,9 @@ public class ParserState
 			lexingState.position,
 			min(lexingState.position + 20, source.tupleSize()),
 			false);
-		return lexingState.lineNumber + ":" + nearbyText.asNativeString() + '…';
+		return lexingState.lineNumber + ":"
+			+ nearbyText.asNativeString().replace("\n", "\\n")
+			+ '…';
 	}
 
 	/**

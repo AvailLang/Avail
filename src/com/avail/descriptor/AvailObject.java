@@ -6029,4 +6029,10 @@ implements
 	{
 		descriptor.o_ForEachInMapBin(this, action);
 	}
+
+	@Override
+	public void clearLexingState ()
+	{
+		descriptor.o_ClearLexingState(this);
+	}
 }

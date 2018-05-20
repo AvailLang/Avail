@@ -54,6 +54,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.STRING;
+import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.utility.PrefixSharingList.append;
@@ -184,7 +185,7 @@ extends Descriptor
 		public final A_Atom atom;
 
 		/**
-		 * Construct a {@link TokenType} and its associated {@linkplain A_Atom
+		 * Construct a {@code TokenType} and its associated {@linkplain A_Atom
 		 * special atom}.
 		 */
 		TokenType ()
@@ -201,7 +202,7 @@ extends Descriptor
 		 *        The {@link #ordinal()} of the {@code TokenType}.
 		 * @return The {@code TokenType}.
 		 */
-		public static TokenType lookup (final int ordinal)
+		public static TokenType lookupTokenType (final int ordinal)
 		{
 			return all[ordinal];
 		}
@@ -236,11 +237,17 @@ extends Descriptor
 	 * @param token A token.
 	 * @return The lowercase lexeme (an Avail string).
 	 */
-	private A_String lowerCaseStringFrom (final AvailObject token)
+	private static A_String lowerCaseStringFrom (final AvailObject token)
 	{
 		final String nativeOriginal = token.slot(STRING).asNativeString();
 		final String nativeLowerCase = nativeOriginal.toLowerCase();
 		return stringFrom(nativeLowerCase);
+	}
+
+	@Override
+	void o_ClearLexingState (final AvailObject object)
+	{
+		object.setSlot(NEXT_LEXING_STATE_POJO, nil);
 	}
 
 	@Override @AvailMethod
@@ -354,7 +361,7 @@ extends Descriptor
 	@Override @AvailMethod
 	TokenType o_TokenType (final AvailObject object)
 	{
-		return TokenType.lookup(object.slot(TOKEN_TYPE_CODE));
+		return lookupTokenType(object.slot(TOKEN_TYPE_CODE));
 	}
 
 	@Override

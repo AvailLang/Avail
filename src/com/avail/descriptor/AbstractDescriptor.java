@@ -6828,4 +6828,10 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure);
+
+	/**
+	 * @param object
+	 */
+	abstract void o_ClearLexingState (
+		final AvailObject object);
 }

@@ -40,6 +40,7 @@ import com.avail.utility.json.JSONWriter;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
@@ -134,7 +135,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	TokenType o_TokenType (final AvailObject object)
 	{
-		return TokenType.lookup((int) object.slot(TOKEN_TYPE_CODE));
+		return lookupTokenType((int) object.slot(TOKEN_TYPE_CODE));
 	}
 
 	@Override

@@ -48,6 +48,7 @@ import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.utility.Casts.cast;
 
 /**
  * I represent a token that's a literal representation of some object.
@@ -265,9 +266,19 @@ extends TokenDescriptor
 		{
 			// We're wrapping another token, so share that token's
 			// nextLexingState pojo, if set.
+			final A_Token innerToken = cast(literal.traversed());
 			final A_BasicObject pojo =
-				literal.traversed().slot(NEXT_LEXING_STATE_POJO);
+				((AvailObject) innerToken).slot(NEXT_LEXING_STATE_POJO);
 			instance.setSlot(NEXT_LEXING_STATE_POJO, pojo);
+			// Also add this token to the same CompilationContext that the
+			// inner token might also be inside.  Even if it isn't, the new
+			// token will be cleanly disconnected from the CompilationContext
+			// after finishing parsing of the current top-level statement.
+			if (!pojo.equalsNil())
+			{
+				final LexingState nextState = pojo.javaObjectNotNull();
+				nextState.compilationContext.recordToken(innerToken);
+			}
 		}
 		else
 		{

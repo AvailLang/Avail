@@ -38,7 +38,6 @@ import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 
@@ -112,6 +111,7 @@ import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
+import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -1474,7 +1474,7 @@ public enum SerializerOperation
 				string,
 				start,
 				lineNumber,
-				TokenType.lookup(tokenTypeOrdinal));
+				lookupTokenType(tokenTypeOrdinal));
 		}
 	},
 
@@ -3287,7 +3287,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return tokenType(TokenType.lookup(subobjects[0].extractInt()));
+			return tokenType(lookupTokenType(subobjects[0].extractInt()));
 		}
 	},
 

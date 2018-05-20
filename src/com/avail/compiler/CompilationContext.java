@@ -296,6 +296,17 @@ public class CompilationContext
 	}
 
 	/**
+	 * Record the fact that this token was encountered while parsing the current
+	 * top-level statement.
+	 *
+	 * @param token The token that was encountered.
+	 */
+	public void recordToken (final A_Token token)
+	{
+		diagnostics.recordToken(token);
+	}
+
+	/**
 	 * Attempt the {@linkplain Continuation0 zero-argument continuation}. The
 	 * implementation is free to execute it now or to put it in a bag of
 	 * continuations to run later <em>in an arbitrary order</em>. There may be

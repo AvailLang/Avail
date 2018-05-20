@@ -4933,4 +4933,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	void o_ClearLexingState (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

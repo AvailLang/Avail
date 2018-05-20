@@ -438,6 +438,10 @@ public class LexingState
 		for (final A_Tuple run : newTokenRuns)
 		{
 			assert run.tupleSize() > 0;
+			for (final A_Token token : run)
+			{
+				compilationContext.recordToken(token);
+			}
 			theNextTokens.add(run.tupleAt(1));
 			LexingState state = this;
 			final Iterator<AvailObject> iterator = run.iterator();

@@ -48,6 +48,11 @@ public interface A_Token
 extends A_BasicObject
 {
 	/**
+	 * Disconnect this token from its internal cache of what comes next.
+	 */
+	void clearLexingState ();
+
+	/**
 	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
 	 * token}, such as a string or number.
 	 *
