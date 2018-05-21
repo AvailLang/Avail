@@ -67,6 +67,7 @@ import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.addLineNumbers;
 import static com.avail.utility.Strings.lineBreakPattern;
+import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 
@@ -748,9 +749,8 @@ public class CompilerDiagnostics
 		final Mutable<Iterator<Describer>> problemIterator =
 			new Mutable<>(emptyIterator());
 		final Set<String> alreadySeen = new HashSet<>();
-		final MutableOrNull<Continuation0> continueReport =
-			new MutableOrNull<>();
-		continueReport.value = () ->
+		// Initiate all the grouped error printing.
+		recurse(continueReport ->
 		{
 			if (!problemIterator.value.hasNext())
 			{
@@ -814,10 +814,8 @@ public class CompilerDiagnostics
 					// from getting too deep.
 					currentRuntime().execute(
 						FiberDescriptor.compilerPriority,
-						continueReport.value());
+						continueReport);
 				});
-		};
-		// Initiate all the grouped error printing.
-		continueReport.value().value();
+		});
 	}
 }

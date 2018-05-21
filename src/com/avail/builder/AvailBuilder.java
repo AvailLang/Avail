@@ -60,7 +60,6 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
@@ -111,6 +110,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
+import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.String.format;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -1936,96 +1936,95 @@ public final class AvailBuilder
 				fail.value(e);
 				return;
 			}
-//			availLoader.createFilteredBundleTree();
 
 			// Run each zero-argument block, one after another.
-			final MutableOrNull<Continuation0> runNext = new MutableOrNull<>();
-			runNext.value = () ->
-			{
-				availLoader.setPhase(Phase.LOADING);
-				final @Nullable A_Function function;
-				try
+			recurse(
+				runNext ->
 				{
-					function = shouldStopBuild()
-						? null : deserializer.deserialize();
-				}
-				catch (
-					final MalformedSerialStreamException | RuntimeException e)
-				{
-					fail.value(e);
-					return;
-				}
-				if (function != null)
-				{
-					final A_Fiber fiber = newLoaderFiber(
-						function.kind().returnType(),
-						availLoader,
-						() ->
-						{
-							final A_RawFunction code = function.code();
-							return
-								formatString(
-									"Load repo module %s, in %s:%d",
-									code.methodName(),
-									code.module().moduleName(),
-									code.startingLineNumber());
-						});
-					fiber.textInterface(textInterface);
-					final long before = AvailRuntime.captureNanos();
-					fiber.setSuccessAndFailureContinuations(
-						ignored ->
-						{
-							final long after = AvailRuntime.captureNanos();
-							Interpreter.current().recordTopStatementEvaluation(
-								after - before,
-								module,
-								function.code().startingLineNumber());
-							runNext.value().value();
-						},
-						fail);
-					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD);
-					if (AvailLoader.debugLoadedStatements)
+					availLoader.setPhase(Phase.LOADING);
+					final @Nullable A_Function function;
+					try
 					{
-						System.out.println(
-							module
-								+ ":" + function.code().startingLineNumber()
-								+ " Running precompiled -- " + function);
+						function = shouldStopBuild()
+							? null : deserializer.deserialize();
 					}
-					runOutermostFunction(
-						runtime,
-						fiber,
-						function,
-						Collections.emptyList());
-				}
-				else if (shouldStopBuild())
-				{
-					module.removeFrom(
-						availLoader,
-						() ->
-						{
-							postLoad(moduleName, 0L);
-							completionAction.value();
-						});
-				}
-				else
-				{
-					runtime.addModule(module);
-					final LoadedModule loadedModule = new LoadedModule(
-						moduleName,
-						sourceDigest,
-						module,
-						version,
-						compilation);
-					synchronized (AvailBuilder.this)
+					catch (
+						final MalformedSerialStreamException
+							| RuntimeException e)
 					{
-						putLoadedModule(moduleName, loadedModule);
+						fail.value(e);
+						return;
 					}
-					postLoad(moduleName, 0L);
-					completionAction.value();
-				}
-			};
-			// The argument is ignored, so it doesn't matter what gets passed.
-			runNext.value().value();
+					if (function != null)
+					{
+						final A_Fiber fiber = newLoaderFiber(
+							function.kind().returnType(),
+							availLoader,
+							() ->
+							{
+								final A_RawFunction code = function.code();
+								return
+									formatString(
+										"Load repo module %s, in %s:%d",
+										code.methodName(),
+										code.module().moduleName(),
+										code.startingLineNumber());
+							});
+						fiber.textInterface(textInterface);
+						final long before = AvailRuntime.captureNanos();
+						fiber.setSuccessAndFailureContinuations(
+							ignored ->
+							{
+								final long after = AvailRuntime.captureNanos();
+								Interpreter.current().
+									recordTopStatementEvaluation(
+										after - before,
+										module,
+										function.code().startingLineNumber());
+								runNext.value();
+							},
+							fail);
+						availLoader.setPhase(Phase.EXECUTING_FOR_LOAD);
+						if (AvailLoader.debugLoadedStatements)
+						{
+							System.out.println(
+								module
+									+ ":" + function.code().startingLineNumber()
+									+ " Running precompiled -- " + function);
+						}
+						runOutermostFunction(
+							runtime,
+							fiber,
+							function,
+							Collections.emptyList());
+					}
+					else if (shouldStopBuild())
+					{
+						module.removeFrom(
+							availLoader,
+							() ->
+							{
+								postLoad(moduleName, 0L);
+								completionAction.value();
+							});
+					}
+					else
+					{
+						runtime.addModule(module);
+						final LoadedModule loadedModule = new LoadedModule(
+							moduleName,
+							sourceDigest,
+							module,
+							version,
+							compilation);
+						synchronized (AvailBuilder.this)
+						{
+							putLoadedModule(moduleName, loadedModule);
+						}
+						postLoad(moduleName, 0L);
+						completionAction.value();
+					}
+				});
 		}
 
 		/**

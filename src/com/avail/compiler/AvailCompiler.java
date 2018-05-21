@@ -64,6 +64,7 @@ import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.PrefixSharingList;
+import com.avail.utility.evaluation.Combinator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
@@ -157,6 +158,7 @@ import static com.avail.utility.PrefixSharingList.append;
 import static com.avail.utility.PrefixSharingList.last;
 import static com.avail.utility.StackPrinter.trace;
 import static com.avail.utility.Strings.increaseIndentation;
+import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -2764,10 +2766,8 @@ public final class AvailCompiler
 				{
 					assert !failureMessages.isEmpty();
 					final StringBuilder builder = new StringBuilder();
-					final MutableOrNull<Continuation0> looper =
-						new MutableOrNull<>();
-					looper.value = () ->
-						failureMessages.get(index).describeThen(
+					recurse(
+						looper -> failureMessages.get(index).describeThen(
 							string ->
 							{
 								if (index > 0)
@@ -2778,14 +2778,13 @@ public final class AvailCompiler
 								index++;
 								if (index < failureMessages.size())
 								{
-									looper.value().value();
+									looper.value();
 								}
 								else
 								{
 									continuation.value(builder.toString());
 								}
-							});
-					looper.value().value();
+							}));
 				}
 			});
 		};
@@ -4050,49 +4049,49 @@ public final class AvailCompiler
 		final Continuation0 success)
 	{
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
-		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
-		final Continuation0 next =
-			() -> state.lexingState.compilationContext.eventuallyDo(
-				state.lexingState,
-				body.value());
-		body.value = () ->
-		{
-			if (!iterator.hasNext())
-			{
-				// Done with all the pragmas, if any.  Report any new
-				// problems relative to the body section.
-				recordExpectationsRelativeTo(state.position());
-				success.value();
-				return;
-			}
-			final A_Token pragmaToken = iterator.next();
-			final A_String pragmaString = pragmaToken.literal();
-			final String nativeString = pragmaString.asNativeString();
-			final String[] pragmaParts = nativeString.split("=", 2);
-			if (pragmaParts.length != 2)
-			{
-				compilationContext.diagnostics.reportError(
-					pragmaToken.nextLexingState(),
-					"Malformed pragma at %s on line %d:",
-					"Pragma should have the form key=value");
-				return;
-			}
-			final String pragmaKindString = pragmaParts[0].trim();
-			final String pragmaValue = pragmaParts[1].trim();
-			final @Nullable PragmaKind pragmaKind =
-				pragmaKindByLexeme(pragmaKindString);
-			if (pragmaKind == null)
-			{
-				state.expected(
-					"one of these pragma kinds: "
-					+ asList(PragmaKind.values()));
-				return;
-			}
-			pragmaKind.applyThen(
-				this, pragmaToken, pragmaValue, state, next);
-		};
 		compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
-		next.value();
+		recurse(
+			recurser ->
+			{
+				if (!iterator.hasNext())
+				{
+					// Done with all the pragmas, if any.  Report any new
+					// problems relative to the body section.
+					recordExpectationsRelativeTo(state.position());
+					success.value();
+					return;
+				}
+				final A_Token pragmaToken = iterator.next();
+				final A_String pragmaString = pragmaToken.literal();
+				final String nativeString = pragmaString.asNativeString();
+				final String[] pragmaParts = nativeString.split("=", 2);
+				if (pragmaParts.length != 2)
+				{
+					compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"Pragma should have the form key=value");
+					return;
+				}
+				final String pragmaKindString = pragmaParts[0].trim();
+				final String pragmaValue = pragmaParts[1].trim();
+				final @Nullable PragmaKind pragmaKind =
+					pragmaKindByLexeme(pragmaKindString);
+				if (pragmaKind == null)
+				{
+					state.expected(
+						"one of these pragma kinds: "
+						+ asList(PragmaKind.values()));
+					return;
+				}
+				pragmaKind.applyThen(
+					this,
+					pragmaToken,
+					pragmaValue,
+					state,
+					() -> state.lexingState.compilationContext.eventuallyDo(
+						state.lexingState, recurser));
+			});
 	}
 
 	/**
@@ -4212,38 +4211,33 @@ public final class AvailCompiler
 							afterStatement.withMap(start.clientDataMap));
 					};
 
-					// What to do after running a simple statement (or to get
-					// the first one to run).
-					final MutableOrNull<Continuation0> executeSimpleStatement =
-						new MutableOrNull<>();
-					executeSimpleStatement.value = () ->
-					{
-						if (!simpleStatementIterator.hasNext())
-						{
-							resumeParsing.value();
-							return;
-						}
-						final A_Phrase statement =
-							simpleStatementIterator.next();
-						if (AvailLoader.debugLoadedStatements)
-						{
-							System.out.println(
-								moduleName().qualifiedName()
-									+ ':' + start.lineNumber()
-									+ " Running statement:\n" + statement);
-						}
-						evaluateModuleStatementThen(
-							start,
-							afterStatement,
-							statement,
-							declarationRemap,
-							false,
-							executeSimpleStatement.value());
-					};
-
-					// Kick off execution of these simple statements.
 					compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
-					executeSimpleStatement.value().value();
+					// Run the simple statements in succession.
+					recurse(
+						executeNextSimpleStatement ->
+						{
+							if (!simpleStatementIterator.hasNext())
+							{
+								resumeParsing.value();
+								return;
+							}
+							final A_Phrase statement =
+								simpleStatementIterator.next();
+							if (AvailLoader.debugLoadedStatements)
+							{
+								System.out.println(
+									moduleName().qualifiedName()
+										+ ':' + start.lineNumber()
+										+ " Running statement:\n" + statement);
+							}
+							evaluateModuleStatementThen(
+								start,
+								afterStatement,
+								statement,
+								declarationRemap,
+								false,
+								executeNextSimpleStatement);
+						});
 				}));
 	}
 

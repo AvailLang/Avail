@@ -41,7 +41,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -74,7 +73,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.Math.min;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Write the specified {@linkplain
@@ -171,12 +172,12 @@ extends Primitive
 		if (bytes.isByteBufferTuple())
 		{
 			final ByteBuffer buffer = bytes.byteBuffer().slice();
-			bufferIterator = Collections.singletonList(buffer).iterator();
+			bufferIterator = singletonList(buffer).iterator();
 		}
 		else if (bytes.isByteArrayTuple())
 		{
 			final ByteBuffer buffer = ByteBuffer.wrap(bytes.byteArray());
-			bufferIterator = Collections.singletonList(buffer).iterator();
+			bufferIterator = singletonList(buffer).iterator();
 		}
 		else
 		{
@@ -247,9 +248,7 @@ extends Primitive
 			new MutableLong(oneBasedPositionLong - 1);
 		final Mutable<ByteBuffer> currentBuffer =
 			new Mutable<>(bufferIterator.next());
-		final MutableOrNull<Continuation0> continueWriting =
-			new MutableOrNull<>();
-		continueWriting.value = () ->
+		recurse(continueWriting ->
 		{
 			if (!currentBuffer.value.hasRemaining())
 			{
@@ -274,7 +273,7 @@ extends Primitive
 						{
 							assert bytesWritten != null;
 							nextPosition.value += (long) bytesWritten;
-							continueWriting.value().value();
+							continueWriting.value();
 						}
 
 						@Override
@@ -296,8 +295,7 @@ extends Primitive
 								runtime,
 								newFiber,
 								fail,
-								Collections.singletonList(
-									E_IO_ERROR.numericCode()));
+								singletonList(E_IO_ERROR.numericCode()));
 						}
 					});
 			}
@@ -385,8 +383,7 @@ extends Primitive
 				Interpreter.runOutermostFunction(
 					runtime, newFiber, succeed, Collections.emptyList());
 			}
-		};
-		continueWriting.value().value();
+		});
 		return interpreter.primitiveSuccess(newFiber);
 	}
 
