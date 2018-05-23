@@ -233,11 +233,12 @@ public class ParserState
 		final List<? extends A_BasicObject> values,
 		final Function<List<String>, String> transformer)
 	{
-		expected(continuation -> Interpreter.stringifyThen(
-			currentRuntime(),
-			lexingState.compilationContext.getTextInterface(),
-			values,
-			list -> continuation.value(transformer.apply(list))));
+		expected(
+			continuation -> Interpreter.stringifyThen(
+				currentRuntime(),
+				lexingState.compilationContext.getTextInterface(),
+				values,
+				list -> continuation.value(transformer.apply(list))));
 	}
 
 	/**

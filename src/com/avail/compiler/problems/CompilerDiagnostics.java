@@ -40,7 +40,6 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Mutable;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
@@ -118,6 +117,12 @@ public class CompilerDiagnostics
 	int startOfStatement;
 
 	/**
+	 * Guards access to {@link #expectations} and {@link
+	 * #expectationsIndexHeap}.
+	 */
+	final ReadWriteLock expectationsLock = new ReentrantReadWriteLock();
+
+	/**
 	 * The rightmost few positions at which potential problems have been
 	 * recorded.  The keys of this {@link Map} always agree with the values in
 	 * the {@link #expectationsIndexHeap}.  The key is the one-based position of
@@ -129,7 +134,7 @@ public class CompilerDiagnostics
 	 * token is created for this purpose.  This allows positioning the problem
 	 * at an exact character position.</p>
 	 */
-	final Map<Integer, Map<LexingState, List<Describer>>> expectations =
+	private final Map<Integer, Map<LexingState, List<Describer>>> expectations =
 		new HashMap<>();
 
 	/**
@@ -137,7 +142,7 @@ public class CompilerDiagnostics
 	 * diagnostic message has been recorded.  The entries always agree with the
 	 * keys of {@link #expectations}.
 	 */
-	final PriorityQueue<Integer> expectationsIndexHeap =
+	private final PriorityQueue<Integer> expectationsIndexHeap =
 		new PriorityQueue<>();
 
 	/**
@@ -160,8 +165,13 @@ public class CompilerDiagnostics
 	public void startParsingAt (final int initialPosition)
 	{
 		startOfStatement = initialPosition;
-		expectations.clear();
-		expectationsIndexHeap.clear();
+		lockWhile(
+			expectationsLock.writeLock(),
+			() ->
+			{
+				expectations.clear();
+				expectationsIndexHeap.clear();
+			});
 		// Tidy up all tokens from the previous top-level statement.
 		final List<A_Token> priorTokens =
 			lockWhile(
@@ -290,35 +300,40 @@ public class CompilerDiagnostics
 	 * @param lexingState
 	 *        The {@link LexingState} at which the expectation occurred.
 	 */
-	public synchronized void expectedAt (
+	public void expectedAt (
 		final Describer describer,
 		final LexingState lexingState)
 	{
-		final Integer position = lexingState.position;
-		Map<LexingState, List<Describer>> innerMap = expectations.get(position);
-		if (innerMap == null)
-		{
-			//noinspection ConstantConditions
-			if (expectationsIndexHeap.size() == expectationsCountToTrack
-				&& position < expectationsIndexHeap.peek())
+		lockWhile(
+			expectationsLock.writeLock(),
+			() ->
 			{
-				// We have the maximum number of expectation sites, and the new
-				// one would come before them all, so ignore it.
-				return;
-			}
-			innerMap = new HashMap<>();
-			expectations.put(position, innerMap);
-			// Also update expectationsIndexHeap.
-			expectationsIndexHeap.add(position);
-			if (expectationsIndexHeap.size() > expectationsCountToTrack)
-			{
-				expectationsIndexHeap.remove();
-			}
-		}
-		final List<Describer> innerList = innerMap.computeIfAbsent(
-			lexingState,
-			k -> new ArrayList<>());
-		innerList.add(describer);
+				final Integer position = lexingState.position;
+				Map<LexingState, List<Describer>> innerMap =
+					expectations.get(position);
+				if (innerMap == null)
+				{
+					//noinspection ConstantConditions
+					if (expectationsIndexHeap.size() == expectationsCountToTrack
+						&& position < expectationsIndexHeap.peek())
+					{
+						// We have the maximum number of expectation sites, and
+						// the new one would come before them all, so ignore it.
+						return;
+					}
+					innerMap = new HashMap<>();
+					expectations.put(position, innerMap);
+					// Also update expectationsIndexHeap.
+					expectationsIndexHeap.add(position);
+					if (expectationsIndexHeap.size() > expectationsCountToTrack)
+					{
+						expectationsIndexHeap.remove();
+					}
+				}
+				final List<Describer> innerList = innerMap.computeIfAbsent(
+					lexingState, k -> new ArrayList<>());
+				innerList.add(describer);
+			});
 	}
 
 	/**
@@ -439,11 +454,12 @@ public class CompilerDiagnostics
 	 *        first argument is where the indicator string goes, and the second
 	 *        is for the line number.
 	 */
-	private synchronized void reportError (
+	private void reportError (
 		final String headerMessagePattern)
 	{
-		final List<Integer> descendingIndices =
-			new ArrayList<>(expectationsIndexHeap);
+		final List<Integer> descendingIndices = lockWhile(
+			expectationsLock.readLock(),
+			() -> new ArrayList<>(expectationsIndexHeap));
 		descendingIndices.sort(reverseOrder());
 		accumulateErrorsThen(
 			descendingIndices.iterator(),
@@ -483,8 +499,20 @@ public class CompilerDiagnostics
 			return;
 		}
 		final int sourcePosition = descendingIterator.next();
-		final Map<LexingState, List<Describer>> innerMap =
-			expectations.get(sourcePosition);
+		final Map<LexingState, List<Describer>> innerMap = lockWhile(
+			expectationsLock.readLock(),
+			() ->
+			{
+				final Map<LexingState, List<Describer>> originalMap =
+					expectations.get(sourcePosition);
+				final Map<LexingState, List<Describer>> safeMap =
+					new HashMap<>();
+				originalMap.forEach(
+					(lexingState, listOfDescribers) ->
+						safeMap.put(
+							lexingState, new ArrayList<>(listOfDescribers)));
+				return safeMap;
+			});
 		assert !innerMap.isEmpty();
 		// Due to local lexer ambiguity, there may be multiple possible
 		// tokens at this position.  Choose the longest for the purpose
@@ -531,20 +559,23 @@ public class CompilerDiagnostics
 	 * @param message
 	 *        The message text for this problem.
 	 */
-	public synchronized void reportError (
+	public void reportError (
 		final LexingState lexingState,
 		final String headerMessagePattern,
 		final String message)
 	{
 		final int startPosition = lexingState.position;
-		expectations.clear();
-		expectationsIndexHeap.clear();
 		final Map<LexingState, List<Describer>> innerMap = new HashMap<>();
-		innerMap.put(
-			lexingState,
-			singletonList(new SimpleDescriber(message)));
-		expectations.put(startPosition, innerMap);
-		expectationsIndexHeap.add(startPosition);
+		innerMap.put(lexingState, singletonList(new SimpleDescriber(message)));
+		lockWhile(
+			expectationsLock.writeLock(),
+			() ->
+			{
+				expectations.clear();
+				expectationsIndexHeap.clear();
+				expectations.put(startPosition, innerMap);
+				expectationsIndexHeap.add(startPosition);
+			});
 		reportError(headerMessagePattern);
 	}
 
@@ -726,9 +757,7 @@ public class CompilerDiagnostics
 		if (unnumbered.tupleSize() == 0
 			|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
 		{
-			unnumbered = unnumbered.appendCanDestroy(
-				fromCodePoint('\n'),
-				true);
+			unnumbered = unnumbered.appendCanDestroy(fromCodePoint('\n'), true);
 		}
 
 		// Insert line numbers...

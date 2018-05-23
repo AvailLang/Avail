@@ -64,7 +64,6 @@ import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Combinator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
@@ -803,22 +802,13 @@ public final class AvailCompiler
 		final Mutable<A_Phrase> phrase2 = new Mutable<>(interpretation2);
 		findParseTreeDiscriminants(phrase1, phrase2);
 		where.expected(
-			continuation ->
-			{
-				final List<A_Phrase> phrases =
-					asList(phrase1.value, phrase2.value);
-				stringifyThen(
-					compilationContext.runtime,
-					compilationContext.getTextInterface(),
-					phrases,
-					phraseStrings ->
-						continuation.value(
-							"unambiguous interpretation.  "
-								+ "Here are two possible parsings...\n\t"
-								+ phraseStrings.get(0)
-								+ "\n\t"
-								+ phraseStrings.get(1)));
-			});
+			asList(phrase1.value, phrase2.value),
+			strings ->
+				"unambiguous interpretation.  "
+					+ "Here are two possible parsings...\n\t"
+					+ strings.get(0)
+					+ "\n\t"
+					+ strings.get(1));
 		compilationContext.diagnostics.reportError();
 	}
 
