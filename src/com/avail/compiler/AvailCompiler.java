@@ -4041,7 +4041,7 @@ public final class AvailCompiler
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
 		recurse(
-			recurser ->
+			recurse ->
 			{
 				if (!iterator.hasNext())
 				{
@@ -4069,9 +4069,13 @@ public final class AvailCompiler
 					pragmaKindByLexeme(pragmaKindString);
 				if (pragmaKind == null)
 				{
-					state.expected(
-						"one of these pragma kinds: "
-						+ asList(PragmaKind.values()));
+					compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Unsupported pragma kind at %s on line %d:",
+						"Pragma kind should be one of: "
+							+ Arrays.stream(PragmaKind.values())
+								.map(PragmaKind::lexeme)
+								.collect(toList()));
 					return;
 				}
 				pragmaKind.applyThen(
@@ -4080,7 +4084,7 @@ public final class AvailCompiler
 					pragmaValue,
 					state,
 					() -> state.lexingState.compilationContext.eventuallyDo(
-						state.lexingState, recurser));
+						state.lexingState, recurse));
 			});
 	}
 
@@ -4697,10 +4701,11 @@ public final class AvailCompiler
 				final A_String nameString = stringFromToken(nameToken);
 				if (header.exportedNames.contains(nameString))
 				{
-					nameToken.nextLexingState().expected(
+					compilationContext.diagnostics.reportError(
+						nameToken.nextLexingState(),
+						"Duplicate declared name detected at %s on line %d:",
 						format(
-							"declared name %s (on line %d) to be unique",
-							nameString));
+							"Declared name %s should be unique", nameString));
 					return;
 				}
 				header.exportedNames.add(nameString);
@@ -4775,10 +4780,21 @@ public final class AvailCompiler
 						EXPRESSION_AS_STATEMENT_PHRASE);
 					assert headerPhrase.apparentSendName().equals(
 						MODULE_HEADER.atom);
-					processHeaderMacro(
-						headerPhrase.expression(),
-						solution.endState());
-					onSuccess.value(solution.endState());
+					try
+					{
+						processHeaderMacro(
+							headerPhrase.expression(),
+							solution.endState());
+						onSuccess.value(solution.endState());
+					}
+					catch (final Exception e)
+					{
+						compilationContext.diagnostics.reportError(
+							solution.endState().lexingState,
+							"Unexpected exception encountered while processing "
+								+ "module header (ends at %s, line %d):\n\t%s",
+								trace(e));
+					}
 				}));
 	}
 

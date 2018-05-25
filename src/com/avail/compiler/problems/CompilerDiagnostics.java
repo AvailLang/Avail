@@ -48,6 +48,7 @@ import com.avail.utility.evaluation.SimpleDescriber;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BooleanSupplier;
@@ -263,8 +264,19 @@ public class CompilerDiagnostics
 		final Continuation0 theSuccessReporter,
 		final Continuation0 theFailureReporter)
 	{
-		this.successReporter = theSuccessReporter;
-		this.failureReporter = theFailureReporter;
+		final AtomicBoolean hasRun = new AtomicBoolean(false);
+		this.successReporter = () ->
+		{
+			final boolean ran = hasRun.getAndSet(true);
+			assert !ran : "Success/failure reporter ran twice";
+			theSuccessReporter.value();
+		};
+		this.failureReporter = () ->
+		{
+			final boolean ran = hasRun.getAndSet(true);
+			assert !ran : "Success/failure reporter ran twice";
+			theFailureReporter.value();
+		};
 	}
 
 	/** A bunch of dash characters, wide enough to catch the eye. */

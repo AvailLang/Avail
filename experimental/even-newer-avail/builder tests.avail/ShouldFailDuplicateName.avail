@@ -36,5 +36,5 @@ Versions
 Names
 	"cat",
 	"dog",
-	"zzcat"  /* Redundant, should be rejected. */
+	"cat"  /* Redundant, should be rejected. */
 Body

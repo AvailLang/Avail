@@ -303,6 +303,14 @@ public enum PragmaKind
 	public final String lexeme;
 
 	/**
+	 * Answer the Java {@link String} form of this pragma's lexeme.
+	 */
+	public final String lexeme ()
+	{
+		return lexeme;
+	}
+
+	/**
 	 * Construct a new {@code PragmaKind}.
 	 *
 	 * @param lexeme
