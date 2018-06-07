@@ -769,9 +769,9 @@ implements A_BasicObject
 	 *        The positive one-based subscript into the target field at which to
 	 *        start writing.
 	 * @param sourceArray
-	 *        The object supplying values in consecutive slots.
+	 *        The array supplying values for consecutive slots.
 	 * @param zeroBasedStartSourceSubscript
-	 *        The zero-based subscript into the sourceArray from which to start
+	 *        The zero-based subscript in the sourceArray from which to start
 	 *        reading.
 	 * @param count
 	 *        How many values to transfer.
@@ -793,6 +793,75 @@ implements A_BasicObject
 			zeroBasedStartSourceSubscript,
 			objectSlots,
 			targetField.ordinal() + startTargetSubscript - 1,
+			count);
+	}
+
+	/**
+	 * Read elements from consecutive slots of a long array, writing them to
+	 * consecutive slots of the receiver.
+	 *
+	 * @param targetField
+	 *        The integer field of the receiver into which to write longs.
+	 * @param startTargetSubscript
+	 *        The positive one-based subscript into the target field at which to
+	 *        start writing.
+	 * @param sourceArray
+	 *        The long[] array supplying longs for consecutive slots.
+	 * @param zeroBasedStartSourceSubscript
+	 *        The zero-based subscript in the sourceArray from which to start
+	 *        reading.
+	 * @param count
+	 *        How many longs to transfer.
+	 */
+	public final void setSlotsFromArray (
+		final IntegerSlotsEnum targetField,
+		final int startTargetSubscript,
+		final long[] sourceArray,
+		final int zeroBasedStartSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared()
+			: "Block-transfers into shared objects is not supported";
+		checkSlot(targetField);
+		checkWriteForField(targetField);
+		System.arraycopy(
+			sourceArray,
+			zeroBasedStartSourceSubscript,
+			longSlots,
+			targetField.ordinal() + startTargetSubscript - 1,
+			count);
+	}
+
+	/**
+	 * Read consecutive long slots from the receiver, writing them into slots of
+	 * a long array.
+	 *
+	 * @param sourceField
+	 *        The integer field of the receiver from which to read longs.
+	 * @param startSourceSubscript
+	 *        The positive one-based subscript in the target field at which to
+	 *        start reading.
+	 * @param targetArray
+	 *        The long[] array into which to write longs.
+	 * @param zeroBasedStartTargetSubscript
+	 *        The zero-based subscript in the sourceArray at which to start
+	 *        writing.
+	 * @param count
+	 *        How many longs to transfer.
+	 */
+	public final void slotsIntoArray (
+		final IntegerSlotsEnum sourceField,
+		final int startSourceSubscript,
+		final long[] targetArray,
+		final int zeroBasedStartTargetSubscript,
+		final int count)
+	{
+		checkSlot(sourceField);
+		System.arraycopy(
+			longSlots,
+			sourceField.ordinal() + startSourceSubscript - 1,
+			targetArray,
+			zeroBasedStartTargetSubscript,
 			count);
 	}
 
@@ -877,6 +946,49 @@ implements A_BasicObject
 	}
 
 	/**
+	 * Read elements from consecutive integer slots of the sourceObject, writing
+	 * them to consecutive slots of the receiver.  It's the client's
+	 * responsibility to ensure the values are suitably immutable or shared.
+	 *
+	 * @param targetField
+	 *        The field of the receiver into which to write longs.
+	 * @param startTargetSubscript
+	 *        The positive one-based subscript into the target field at which to
+	 *        start writing.
+	 * @param sourceObject
+	 *        The object supplying values in consecutive long slots.
+	 * @param sourceField
+	 *        The repeating integer field of the sourceObject.
+	 * @param startSourceSubscript
+	 *        The positive one-based subscript into the sourceObject from which
+	 *        to start reading longs.
+	 * @param count
+	 *        How many longs to transfer.
+	 */
+	public final void setSlotsFromLongSlots (
+		final IntegerSlotsEnum targetField,
+		final int startTargetSubscript,
+		final A_BasicObject sourceObject,
+		final IntegerSlotsEnum sourceField,
+		final int startSourceSubscript,
+		final int count)
+	{
+		assert !descriptor.isShared()
+			: "Block-transfers into shared objects is not supported";
+		checkSlot(targetField);
+		checkWriteForField(targetField);
+		final AvailObjectRepresentation sourceRep =
+			(AvailObjectRepresentation) sourceObject;
+		sourceRep.checkSlot(sourceField);
+		System.arraycopy(
+			sourceRep.longSlots,
+			sourceField.ordinal() + startSourceSubscript - 1,
+			longSlots,
+			targetField.ordinal() + startTargetSubscript - 1,
+			count);
+	}
+
+	/**
 	 * Store the {@linkplain AvailObject object} in the specified slots of the
 	 * receiver.  The caller is responsible for ensuring the value has been
 	 * marked {@link Mutability#IMMUTABLE} if necessary.
@@ -932,17 +1044,6 @@ implements A_BasicObject
 			return objectSlots[field.ordinal()];
 		}
 	}
-
-//	/**
-//	 * An {@link AtomicReferenceFieldUpdater} suitable for updating the
-//	 * descriptor field of an Avail object.
-//	 */
-//	private static final
-//			AtomicReferenceFieldUpdater<AbstractAvailObject, AbstractDescriptor>
-//		descriptorFieldUpdater = AtomicReferenceFieldUpdater.newUpdater(
-//			AbstractAvailObject.class,
-//			AbstractDescriptor.class,
-//			"descriptor");
 
 	/**
 	 * Provide fast volatile and atomic access to long and AvailObject slots.
@@ -1485,6 +1586,6 @@ implements A_BasicObject
 			: new AvailObject[objectSlotsSize];
 		longSlots = integerSlotsCount == 0
 			? emptyIntegerSlots
-			:new long[integerSlotsCount];
+			: new long[integerSlotsCount];
 	}
 }

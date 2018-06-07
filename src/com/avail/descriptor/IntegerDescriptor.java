@@ -42,20 +42,27 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
+	.RAW_LONG_SLOTS_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.utility.Locks.lockWhile;
+import static com.avail.utility.Locks.lockWhileNullable;
 import static java.lang.Math.*;
+import static java.util.Collections.singleton;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
@@ -148,52 +155,85 @@ extends ExtendedIntegerDescriptor
 	{
 		if (object.isLong())
 		{
-			// The *vast* majority of uses, extends a bit beyond 9 quintillion.
+			// The *vast* majority of uses, extends beyond 9 quintillion.
 			aStream.append(object.extractLong());
 		}
 		else
 		{
-			// A slower approach that deals with huge numbers.  Collect groups
-			// of 18 digits at a time by repeatedly dividing by a quintillion
-			// and recording the moduli.  Avoid making the original object
-			// immutable unnecessarily, as printing is performed by the Java
-			// debugger, and printing a mutable integer can cause subsequent
-			// initializing/updating writes to fail.
-			A_Number residue = object.descriptor().isMutable()
-				? newLike(mutable(), object, 0, 0).makeImmutable()
-				: object;
+			A_Number magnitude = object;
 			if (object.lessThan(zero()))
 			{
 				aStream.append('-');
-				residue = zero().minusCanDestroy(residue, false);
+				magnitude = zero().minusCanDestroy(object, false);
 			}
-			// Make room for a little more than is needed.
-			final long[] digitGroups = new long[intCount(object)];
-			int digitGroupSubscript = 0;
-			do
-			{
-				final A_Number quotient = residue.divideCanDestroy(
-					quintillionInteger, false);
-				final A_Number modulus = residue.minusCanDestroy(
-					quotient.timesCanDestroy(quintillionInteger, false),
-					false);
-				assert modulus.isLong();
-				digitGroups[digitGroupSubscript++] = modulus.extractLong();
-				residue = quotient;
-			} while (residue.greaterThan(zero()));
-			// Write the first big digit (up to 18 actual digits).
-			aStream.append(digitGroups[--digitGroupSubscript]);
-			while (--digitGroupSubscript >= 0)
-			{
-				// We add a quintillion to force otherwise-leading zeroes to be
-				// output, then skip the bogus leading 1.  It's still several
-				// quintillion from overflowing a long.
-				final String paddedString = Long.toString(
-					quintillionLong + digitGroups[digitGroupSubscript]);
-				assert paddedString.length() == 19;
-				aStream.append(paddedString, 1, 19);
-			}
+			printBigInteger(magnitude, aStream, 0);
 		}
+	}
+
+	/**
+	 * A helper function for printing very large integers.
+	 *
+	 * @param magnitude
+	 *        A positive integer to print.
+	 * @param aStream
+	 *        The {@link StringBuilder} on which to write this integer.
+	 * @param minDigits
+	 *        The minimum number of digits that must be printed, padding on the
+	 *        left with zeroes as needed.
+	 */
+	private static void printBigInteger (
+		final A_Number magnitude,
+		final StringBuilder aStream,
+		final int minDigits)
+	{
+		assert minDigits >= 0;
+		if (magnitude.isLong())
+		{
+			// Use native printing.
+			final long value = magnitude.extractLong();
+			if (minDigits == 0)
+			{
+				aStream.append(value);
+				return;
+			}
+			final String digits = Long.toString(value);
+			for (int i = digits.length(); i < minDigits; i++)
+			{
+				aStream.append('0');
+			}
+			aStream.append(digits);
+			return;
+		}
+		// It's bigger than a long, so divide and conquer.  Find the largest
+		// (10^18)^(2^n) still less than the number, divide it to produce a
+		// quotient and divisor, and print those recursively.
+		int n = 0;
+		A_Number nextDivisor = quintillionInteger;
+		@Nullable A_Number previousDivisor;
+		do
+		{
+			previousDivisor = nextDivisor;
+			nextDivisor = cachedSquareOfQuintillion(++n);
+		}
+		while (nextDivisor.lessThan(magnitude));
+		// We went one too far.  Decrement n and use previousDivisor.  Splitting
+		// the number by dividing by previousDivisor assigns the low 18*(2^n)
+		// digits to the remainder, and the rest to the quotient.
+		n--;
+		final int remainderDigits = 18 * (1<<n);
+		assert minDigits == 0 || remainderDigits < minDigits;
+		final A_Number quotient =
+			magnitude.divideCanDestroy(previousDivisor, false);
+		final A_Number remainder = magnitude.minusCanDestroy(
+			quotient.timesCanDestroy(previousDivisor, false), false);
+		printBigInteger(
+			quotient,
+			aStream,
+			minDigits == 0 ? 0 : minDigits - remainderDigits);
+		printBigInteger(
+			remainder,
+			aStream,
+			remainderDigits);
 	}
 
 	@Override
@@ -840,11 +880,11 @@ extends ExtendedIntegerDescriptor
 		if (object.lessThan(zero()))
 		{
 			// a/o for o<0:  use (-a/-o)
+			final A_Number positiveNumerator =
+				anInteger.subtractFromIntegerCanDestroy(zero, canDestroy);
 			return object.subtractFromIntegerCanDestroy(zero, canDestroy)
 				.divideIntoIntegerCanDestroy(
-					(AvailObject) anInteger.subtractFromIntegerCanDestroy(
-						zero, canDestroy),
-					canDestroy);
+					(AvailObject) positiveNumerator, canDestroy);
 		}
 		if (anInteger.lessThan(zero()))
 		{
@@ -858,196 +898,40 @@ extends ExtendedIntegerDescriptor
 				minusOneMinusA.divideCanDestroy(object, true);
 			return negativeOne().minusCanDestroy(quotient, true);
 		}
-		if (object.isInt() && anInteger.isInt())
+		if (object.isLong() && anInteger.isLong())
 		{
-			final long quotient = ((long) anInteger.extractInt())
-				/ ((long) object.extractInt());
-			// NOTE:  This test can ONLY fail for -2^31/-1 (which is a *long*).
-			if (quotient == (int) quotient)
+			final long numerator = anInteger.extractLong();
+			final long denominator = object.extractLong();
+			if (denominator == -1L)
 			{
-				// Yes, it fits.  Clobber one of the inputs, or create a new
-				// int-sized object if they were both immutable...
-				@Nullable AvailObject output = canDestroy
-					? mutableOf(object, anInteger)
-					: null;
-				if (output == null)
-				{
-					output = createUninitializedInteger(1);
-				}
-				assert intCount(output) == 1;
-				output.rawSignedIntegerAtPut(1, (int) quotient);
+				// This also handles the only overflow case, -2^63/-1.
+				return zero().minusCanDestroy(anInteger, canDestroy);
+			}
+			final long quotient = numerator / denominator;
+			// Clobber one of the inputs, or create a new single-long object if
+			// they were both immutable...
+			final @Nullable AvailObject output = canDestroy
+				? mutableOf(object, anInteger)
+				: null;
+			if (output != null)
+			{
+				// Eventually we can just do a single long write.
+				output.setIntSlot(RAW_LONG_SLOTS_, 1, (int) quotient);
+				output.setIntSlot(RAW_LONG_SLOTS_, 2, (int) (quotient >> 32L));
+				// Distinguish between a long-sized and int-sized integer.
+				output.descriptor = descriptorFor(
+					MUTABLE, quotient == (int) quotient ? 1 : 2);
 				return output;
 			}
-			// Doesn't fit.  Worst case: -2^31 / -1 = 2^31, which easily fits in
-			// 64 bits, even with the sign.
 			return fromLong(quotient);
 		}
-		// Both integers are now positive, and the divisor is not zero. That
-		// simplifies things quite a bit. Ok, we need to keep estimating the
-		// quotient and reverse multiplying until our remainder is in
-		// [0..divisor - 1]. Each pass through the loop we estimate
-		// partialQuotient = remainder / object. This should be accurate to
-		// about 50 bits. We then set remainder = remainder - (partialQuotient *
-		// object). If remainder goes negative (due to overestimation), we
-		// toggle a flag (saying whether it represents a positive or negative
-		// quantity), then negate it to make it a positive integer. Also, we
-		// either add partialQuotient to the fullQuotient or subtract it,
-		// depending on the setting of this flag. At the end, we adjust the
-		// remainder (in case it represents a negative value) and quotient
-		// (accordingly). Note that we're using double precision floating point
-		// math to do the estimation. Not all processors will do this well, so a
-		// 32-bit fixed-point division estimation might be a more 'portable' way
-		// to do this. The rest of the algorithm would stay the same, however.
 
-		AvailObject remainder = anInteger;
-		boolean remainderIsReallyNegative = false;
-		AvailObject fullQuotient = (AvailObject) zero();
-
-		final int divisorSlotsCount = intCount(object);
-		// Power of two by which to scale doubleDivisor to get actual value
-		final long divisorScale = ((long) divisorSlotsCount - 1) << 5;
-		final long divisorHigh = object.rawUnsignedIntegerAt(divisorSlotsCount);
-		final long divisorMedium = divisorSlotsCount > 1
-			? object.rawUnsignedIntegerAt(divisorSlotsCount - 1)
-			: 0;
-		final long divisorLow = divisorSlotsCount > 2
-			? object.rawUnsignedIntegerAt(divisorSlotsCount - 2)
-			: 0;
-		final double doubleDivisor =
-			scalb((double) divisorLow, -64) +
-			scalb((double) divisorMedium, -32) +
-			divisorHigh;
-
-		while (remainder.greaterOrEqual(object))
-		{
-			// Estimate partialQuotient = remainder / object, using the
-			// uppermost 3 words of each. Allow a slightly negative remainder
-			// due to rounding.  Compensate at the bottom of the loop.
-			final int dividendSlotsCount = intCount(remainder);
-		   // Power of two by which to scale doubleDividend to get actual value
-			final long dividendScale = ((long) dividendSlotsCount - 1) << 5;
-			final long dividendHigh =
-				remainder.rawUnsignedIntegerAt(dividendSlotsCount);
-			final long dividendMedium = dividendSlotsCount > 1
-				? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 1)
-				: 0;
-			final long dividendLow = dividendSlotsCount > 2
-				? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 2)
-				: 0;
-			final double doubleDividend =
-				scalb((double) dividendLow, -64) +
-				scalb((double) dividendMedium, -32) +
-				dividendHigh;
-
-			// Divide the doubles to estimate remainder / object. The estimate
-			// should be very good since we extracted 96 bits of data, only
-			// about 33 of which could be leading zero bits. The mantissas are
-			// basically filled with as many bits as they can hold, so the
-			// division should produce about as many bits of useful output.
-			// After suitable truncation and conversion to an integer, this
-			// quotient should produce about 50 bits of the final result.
-			//
-			// It's not obvious that it always converges, but here's my
-			// reasoning. The first pass produces 50 accurate bits of quotient
-			// (or completes by producing a small enough remainder). The
-			// remainder from this pass is used as the dividend in the next
-			// pass, and this is always at least 50 bits smaller than the
-			// previous dividend. Eventually this leads to a remainder within a
-			// factor of two of the dividend.
-			//
-			// Now say we have a very large divisor and that the first 50+ bits
-			// of the divisor and (remaining) dividend agree exactly. In that
-			// case the estimated division will still make progress, because it
-			// will produce exactly 1.0d as the quotient, which causes the
-			// remainder to decrease to <= the divisor (because we already got
-			// it to within a factor of two above), thus terminating the loop.
-			// Note that the quotient can't be <1.0d (when quotientScale is also
-			// zero), since that can only happen when the remainder is truly
-			// less than the divisor, which would have caused an exit after the
-			// previous iteration. If it's >1.0d (or =1.0d) then we are making
-			// progress each step, eliminating 50 actual bits, except on the
-			// final iteration which must converge in at most one more step.
-			// Note that we could have used just a few bits in the floating
-			// point division and still always converged in time proportional to
-			// the difference in bit lengths divided by the number of bits of
-			// accuracy in the floating point quotient.
-			final long quotientScale = dividendScale - divisorScale;
-			assert quotientScale >= 0L;
-
-			// Include room for sign bit plus safety margin.
-			final AvailObject partialQuotient = createUninitializedInteger(
-				(int) ((quotientScale + 2 >> 5) + 1));
-
-			final long bitShift = quotientScale
-				- (((long) intCount(partialQuotient) - 1) << 5L);
-			assert -100L < bitShift && bitShift < 100L;
-			final double doubleQuotient = doubleDividend / doubleDivisor;
-			double scaledDoubleQuotient = scalb(doubleQuotient, (int) bitShift);
-			for (int i = intCount(partialQuotient); i >= 1; --i)
-			{
-				long word = 0;
-				if (scaledDoubleQuotient != 0.0d)
-				{
-					word = (long) scaledDoubleQuotient;
-					assert word >= 0 && word <= 0xFFFFFFFFL;
-					scaledDoubleQuotient -= word;
-					scaledDoubleQuotient = scalb(scaledDoubleQuotient, 32);
-				}
-				partialQuotient.rawSignedIntegerAtPut(i, (int) word);
-			}
-			partialQuotient.trimExcessInts();
-
-			if (remainderIsReallyNegative)
-			{
-				fullQuotient =
-					(AvailObject) partialQuotient.subtractFromIntegerCanDestroy(
-						fullQuotient, false);
-			}
-			else
-			{
-				fullQuotient =
-					(AvailObject) partialQuotient.addToIntegerCanDestroy(
-						fullQuotient, false);
-			}
-			remainder = (AvailObject) remainder.noFailMinusCanDestroy(
-				partialQuotient.noFailTimesCanDestroy(object, false),
-				false);
-			if (remainder.lessThan(zero()))
-			{
-				// Oops, we overestimated the partial quotient by a little bit.
-				// I would guess this never gets much more than one part in
-				// 2^50. Because of the way we've done the math, when the
-				// problem is small enough the estimated division is always
-				// correct. So we don't need to worry about this case near the
-				// end, just when there are plenty of digits of accuracy
-				// produced by the estimated division. So instead of correcting
-				// the partial quotient and remainder, we simply toggle a flag
-				// indicating whether the remainder we're actually dealing with
-				// is positive or negative, and then negate the remainder to
-				// keep it positive.
-				remainder =
-					(AvailObject) remainder.subtractFromIntegerCanDestroy(
-						zero, false);
-				remainderIsReallyNegative = !remainderIsReallyNegative;
-			}
-		}
-		// At this point, we really have a remainder in [-object+1..object-1].
-		// If the remainder is less than zero, adjust it to make it positive.
-		// This just involves adding the divisor to it while decrementing the
-		// quotient because the divisor doesn't quite go into the dividend as
-		// many times as we thought.
-		if (remainderIsReallyNegative && remainder.greaterThan(zero()))
-		{
-			// We fix the sign of remainder then add object all in one fell
-			// swoop.
-			remainder = (AvailObject) remainder.subtractFromIntegerCanDestroy(
-				object, false);
-			fullQuotient =
-				(AvailObject) one().subtractFromIntegerCanDestroy(
-					fullQuotient, false);
-		}
-		assert remainder.greaterOrEqual(zero()) && remainder.lessThan(object);
-		return fullQuotient;
+		// For simplicity and efficiency, fall back on Java's BigInteger
+		// implementation.
+		final BigInteger numeratorBigInt = anInteger.asBigInteger();
+		final BigInteger denominatorBigInt = object.asBigInteger();
+		final BigInteger quotient = numeratorBigInt.divide(denominatorBigInt);
+		return fromBigInteger(quotient);
 	}
 
 	@Override
@@ -2322,17 +2206,15 @@ extends ExtendedIntegerDescriptor
 
 	/**
 	 * Answer the descriptor that has the specified mutability flag and is
-	 * suitable to describe a tuple with the given number of elements.
+	 * suitable to describe an integer with the given number of int slots.
 	 *
 	 * @param flag
-	 *            Whether the requested descriptor should be mutable.
+	 *        Whether the requested descriptor should be mutable.
 	 * @param size
-	 *            How many elements are in a tuple to be represented by the
-	 *            descriptor.
-	 * @return
-	 *            A {@link TwoByteStringDescriptor} suitable for representing a
-	 *            two-byte string of the given mutability and {@link
-	 *            AvailObject#tupleSize() size}.
+	 *        How many int slots are in the large integer to be represented by
+	 *        the descriptor.
+	 * @return An {@code IntegerDescriptor} suitable for representing an integer
+	 *         of the given mutability and int slot count.
 	 */
 	private static IntegerDescriptor descriptorFor (
 		final Mutability flag,
@@ -2475,4 +2357,57 @@ extends ExtendedIntegerDescriptor
 	 */
 	private static final A_Number quintillionInteger =
 		fromLong(quintillionLong).makeShared();
+
+	/**
+	 * Successive squares of one (U.S.) quintillion, 10^18.  Element #n is
+	 * equal to (10^18)^(2^n).  List access is protected by
+	 * {@link #squaresOfQuintillionLock}.
+	 */
+	//@GuardedBy("squaresOfQuntillionLock")
+	private static final List<A_Number> squaresOfQuintillion =
+		new ArrayList<>(singleton(quintillionInteger));
+
+	/** The lock that protects access to squaresOfQuintillion. */
+	private static final ReadWriteLock squaresOfQuintillionLock =
+		new ReentrantReadWriteLock();
+
+	/**
+	 * Answer the nth successive square of a (U.S.) quintillion, which will be
+	 * (10^18)^(2^n).  N must be ≥ 0.  Cache this number for performance.
+	 *
+	 * @param n The number of times to successively square a quintillion.
+	 * @return The value (10^18)^(2^n).
+	 */
+	public static A_Number cachedSquareOfQuintillion (
+		final int n)
+	{
+		// Use a safe double-check mechanism.  Use a read-lock first.
+		final @Nullable A_Number result = lockWhileNullable(
+			squaresOfQuintillionLock.readLock(),
+			() -> n < squaresOfQuintillion.size()
+				? squaresOfQuintillion.get(n)
+				: null);
+		if (result != null)
+		{
+			// Most common case.
+			return result;
+		}
+		// Otherwise, hold the write-lock.
+		return lockWhile(
+			squaresOfQuintillionLock.writeLock(),
+			() ->
+			{
+				// Note that the list may have changed between releasing the
+				// read-lock and acquiring the write-lock.  The for-loop should
+				// accommodate that situation.
+				for (int size = squaresOfQuintillion.size(); size <= n; size++)
+				{
+					final A_Number last = squaresOfQuintillion.get(size - 1);
+					final A_Number next =
+						last.timesCanDestroy(last, false).makeShared();
+					squaresOfQuintillion.add(next);
+				}
+				return squaresOfQuintillion.get(n);
+			});
+	}
 }
