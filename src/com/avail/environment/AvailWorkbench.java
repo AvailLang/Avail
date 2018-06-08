@@ -61,7 +61,6 @@ import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
 import com.avail.utility.Pair;
-import com.sun.javafx.application.PlatformImpl;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -2483,11 +2482,6 @@ extends JFrame
 	@InnerAccess AvailWorkbench (
 		final ModuleNameResolver resolver)
 	{
-		//This must be called to circumvent a bug that won't be fixed for swing
-		//and JavaFx interaction
-		//See https://bugs.openjdk.java.net/browse/JDK-8090517
-		PlatformImpl.startup(() -> {});
-
 		// Set module components.
 		this.resolver = resolver;
 		final AvailRuntime runtime = new AvailRuntime(resolver);
