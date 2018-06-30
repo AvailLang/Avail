@@ -340,10 +340,22 @@ POSSIBILITY OF SUCH DAMAGE.
 				includes="resources/**"/>
 			<zipgroupfileset
 					dir="${path.avail}/libraries"
-					includes="richtextfx-fat-1.0.0-SNAPSHOT.jar"/>
+					includes="asm-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-analysis-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-tree-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-util-6.0.jar"/>
             <zipgroupfileset
                     dir="${path.avail.distro}/lib"
                     includes="annotations-java8.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="jsr305.jar"/>
 		</jar>
 		<copy todir="${path.avail.bin}/resources">
 			<fileset dir="${path.avail.resources}"/>
@@ -425,9 +437,24 @@ POSSIBILITY OF SUCH DAMAGE.
 				dir="${path.avail}"
 				includes="resources/**"
 				excludes="resources/workbench/**"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-analysis-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-tree-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-util-6.0.jar"/>
             <zipgroupfileset
                     dir="${path.avail.distro}/lib"
                     includes="annotations-java8.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="jsr305.jar"/>
 		</jar>
 	</target>
 
