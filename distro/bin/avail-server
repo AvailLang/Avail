@@ -98,7 +98,7 @@ if [ "X$VM" = "X" ]; then
 fi
 
 # These are the system arguments for the Java virtual machine.
-VMARGS=-classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
+VMARGS=-Xmx2g\ -classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
 # Launch the Avail server in the background.
 SERVJAR=$AVAIL_HOME/lib/AvailServer.jar

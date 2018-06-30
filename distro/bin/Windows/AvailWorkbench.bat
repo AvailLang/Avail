@@ -19,4 +19,4 @@ REM ***  removed from the command line.
 set temp_roots=avail=%AVAIL_HOME%\repositories\avail.repo,%AVAIL_HOME%\distro\src\avail
 set temp_roots=%temp_roots%;examples=%AVAIL_HOME%\repositories\examples.repo,%AVAIL_HOME%\distro\src\examples
 
-java -DavailRoots="%temp_roots%" -cp "%temp_cp%" com.avail.environment.AvailWorkbench
+java -Xmx2g -DavailRoots="%temp_roots%" -cp "%temp_cp%" com.avail.environment.AvailWorkbench
