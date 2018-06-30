@@ -323,11 +323,10 @@ recommends that you obtain a full-featured programmer's text editor that has
 good support for Unicode and user templates.
 
 For those who wish to contribute source code to Avail itself, please use the
-latest version of Eclipse and the "eclipse-luna.epf" preferences file and the
-"avail-templates.xml" code templates files provided in $PROJ. This practice
-assists the Avail team in maintaining consistency in coding, documentation, and
-formatting practices. You are also strive to imitate the existing stylistic
-conventions, just as you would for any other established code base.
+latest version of IntelliJ IDEA. This practice assists the Avail team in
+maintaining consistency in coding, documentation, and formatting practices. You
+should also strive to imitate the existing stylistic conventions, just as you
+would for any other established code base.
 
 
 STAYING CURRENT
