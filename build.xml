@@ -432,7 +432,9 @@ POSSIBILITY OF SUCH DAMAGE.
 			</manifest>
 			<fileset
 				dir="${path.avail.bin}"
-				includes="com/avail/server/**"/>
+				includes="
+					com/avail/server/**,
+					com/avail/tools/**"/>
 			<fileset
 				dir="${path.avail}"
 				includes="resources/**"
