@@ -52,6 +52,9 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -64,7 +67,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_EQUALS_CONSTANT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_EQUALS_CONSTANT}.
@@ -85,7 +88,7 @@ extends L2ControlFlowOperation
 		new L2_JUMP_IF_EQUALS_CONSTANT();
 
 	@Override
-	public boolean regenerate (
+	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
 		final L1Translator translator)
@@ -94,26 +97,20 @@ extends L2ControlFlowOperation
 		final L2ReadPointerOperand valueReg =
 			instruction.readObjectRegisterAt(0);
 		final A_BasicObject constant = instruction.constantAt(1);
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand ifUnequal = instruction.pcAt(3);
 
 		final @Nullable A_BasicObject valueOrNull = valueReg.constantOrNull();
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
-			translator.addInstruction(
-				L2_JUMP.instance,
-				valueOrNull.equals(constant) ? ifEqual : ifUnequal);
-			return true;
+			return valueOrNull.equals(constant) ? AlwaysTaken : NeverTaken;
 		}
 		if (!constant.isInstanceOf(valueReg.type()))
 		{
 			// They can't be equal.
-			translator.addInstruction(L2_JUMP.instance, ifUnequal);
-			return true;
+			return NeverTaken;
 		}
 		// Otherwise it's still contingent.
-		return super.regenerate(instruction, registerSet, translator);
+		return SometimesTaken;
 	}
 
 	@Override
@@ -136,13 +133,6 @@ extends L2ControlFlowOperation
 		// introducing a new version somehow.  Likewise, we can capture an
 		// is-not-a set of types along the other path.
 //		postJumpSet.strengthenTestedValueAtPut(objectReg, value);
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
 	}
 
 	@Override

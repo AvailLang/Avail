@@ -58,7 +58,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_INTERRUPT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_INTERRUPT}.
@@ -86,15 +86,6 @@ extends L2ControlFlowOperation
 		// indicated.  Neither transition directly affects registers, although
 		// the instruction sequence that deals with an interrupt may do plenty.
 		assert registerSets.size() == 2;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.  It also dynamically tests
-		// for an interrupt request, which doesn't commute well with other
-		// instructions.
-		return true;
 	}
 
 	@Override

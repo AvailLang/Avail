@@ -36,7 +36,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -54,6 +53,7 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -65,7 +65,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_KIND_OF_CONSTANT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_KIND_OF_CONSTANT}.
@@ -86,7 +86,7 @@ extends L2ControlFlowOperation
 		new L2_JUMP_IF_KIND_OF_CONSTANT();
 
 	@Override
-	public boolean regenerate (
+	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
 		final L1Translator translator)
@@ -95,49 +95,27 @@ extends L2ControlFlowOperation
 		final L2ReadPointerOperand valueReg =
 			instruction.readObjectRegisterAt(0);
 		final A_Type type = instruction.constantAt(1);
-		final L2PcOperand isKind = instruction.pcAt(2);
-		final L2PcOperand notKind = instruction.pcAt(3);
+//		final L2PcOperand isKind = instruction.pcAt(2);
+//		final L2PcOperand notKind = instruction.pcAt(3);
 
 		final @Nullable A_BasicObject constant = valueReg.constantOrNull();
 		if (constant != null)
 		{
-			translator.addInstruction(
-				L2_JUMP.instance,
-				constant.isInstanceOf(type) ? isKind : notKind);
-			return true;
+			return constant.isInstanceOf(type) ? AlwaysTaken : NeverTaken;
 		}
 		final A_Type knownType = valueReg.type();
 		if (knownType.isSubtypeOf(type))
 		{
 			// It's a subtype, so it must always pass the type test.
-			translator.addInstruction(L2_JUMP.instance, isKind);
-			return true;
+			return AlwaysTaken;
 		}
 		final A_Type intersection = type.typeIntersection(knownType);
 		if (intersection.isBottom())
 		{
 			// The types don't intersect, so it can't ever pass the type test.
-			translator.addInstruction(L2_JUMP.instance, notKind);
-			return true;
+			return NeverTaken;
 		}
-		// The branch direction isn't known statically.  However, since it's
-		// already known to be an X and we're testing for Y, we might be better
-		// off testing for an X∩Y instead.  Let's just assume it's quicker for
-		// now.  Eventually we can extend this idea to testing things other than
-		// types, such as if we know we have a tuple but we want to dispatch
-		// based on the tuple's size.
-		if (!intersection.equals(type))
-		{
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueReg,
-				new L2ConstantOperand(intersection),
-				isKind,
-				notKind);
-			return true;
-		}
-		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, registerSet, translator);
+		return SometimesTaken;
 	}
 
 	@Override
@@ -159,13 +137,6 @@ extends L2ControlFlowOperation
 		final A_Type existingType = isKindSet.typeAt(valueReg.register());
 		final A_Type intersection = existingType.typeIntersection(type);
 		isKindSet.strengthenTestedTypeAtPut(valueReg.register(), intersection);
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
 	}
 
 	@Override

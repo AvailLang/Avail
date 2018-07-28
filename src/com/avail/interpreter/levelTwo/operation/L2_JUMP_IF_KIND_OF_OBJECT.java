@@ -36,7 +36,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -53,6 +52,7 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -64,7 +64,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_KIND_OF_OBJECT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_KIND_OF_OBJECT}.
@@ -85,7 +85,7 @@ extends L2ControlFlowOperation
 		new L2_JUMP_IF_KIND_OF_OBJECT();
 
 	@Override
-	public boolean regenerate (
+	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
 		final L1Translator translator)
@@ -94,8 +94,8 @@ extends L2ControlFlowOperation
 			instruction.readObjectRegisterAt(0);
 		final L2ReadPointerOperand typeReg =
 			instruction.readObjectRegisterAt(1);
-		final L2PcOperand isKind = instruction.pcAt(2);
-		final L2PcOperand isNotKind = instruction.pcAt(3);
+//		final L2PcOperand isKind = instruction.pcAt(2);
+//		final L2PcOperand isNotKind = instruction.pcAt(3);
 
 		if (registerSet.hasConstantAt(typeReg.register()))
 		{
@@ -104,15 +104,17 @@ extends L2ControlFlowOperation
 			// one of the branches.
 			final A_Type constantType =
 				registerSet.constantAt(typeReg.register());
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueReg,
-				new L2ConstantOperand(constantType),
-				isKind,
-				isNotKind);
-			return true;
+			final A_Type valueType = registerSet.typeAt(valueReg.register());
+			if (valueType.isSubtypeOf(constantType))
+			{
+				return AlwaysTaken;
+			}
+			if (valueType.typeIntersection(constantType).isBottom())
+			{
+				return NeverTaken;
+			}
 		}
-		return super.regenerate(instruction, registerSet, translator);
+		return SometimesTaken;
 	}
 
 	@Override
@@ -150,13 +152,6 @@ extends L2ControlFlowOperation
 		isKindSet.strengthenTestedTypeAtPut(
 			valueReg.register(),
 			type.typeIntersection(isKindSet.typeAt(valueReg.register())));
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
 	}
 
 	@Override

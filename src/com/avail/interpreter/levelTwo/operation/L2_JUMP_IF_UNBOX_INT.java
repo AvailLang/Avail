@@ -59,7 +59,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_UNBOX_INT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_UNBOX_INT}.
@@ -78,12 +78,6 @@ extends L2ControlFlowOperation
 	 */
 	public static final L2_JUMP_IF_UNBOX_INT instance =
 		new L2_JUMP_IF_UNBOX_INT();
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
 
 	@Override
 	public void toString (

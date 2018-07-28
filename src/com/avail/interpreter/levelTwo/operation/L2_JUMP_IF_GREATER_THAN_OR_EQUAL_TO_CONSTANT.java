@@ -58,7 +58,7 @@ import static org.objectweb.asm.Type.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT
-extends L2ControlFlowOperation
+extends L2ConditionalJump
 {
 	/**
 	 * Construct an {@code L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT}.
@@ -77,13 +77,6 @@ extends L2ControlFlowOperation
 	 */
 	public static final L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT instance =
 		new L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT();
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
-	}
 
 	@Override
 	public void toString (
