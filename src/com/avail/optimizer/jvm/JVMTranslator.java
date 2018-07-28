@@ -1131,7 +1131,7 @@ public final class JVMTranslator
 				method.visitInsn(DUP);
 				intConstant(method, i);
 				load(method, operands.get(i).register());
-				method.visitInsn(AASTORE);
+				method.visitInsn(IASTORE);
 			}
 		}
 	}
