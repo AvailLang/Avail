@@ -33,7 +33,6 @@ package com.avail.persistence;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.LRUCache;
-import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.evaluation.Transformer2;
@@ -289,8 +288,8 @@ public abstract class IndexedFile
 			buffer.putInt(serialNumber);
 			buffer.putLong(fileLimit);
 			buffer.putInt(rawBytes.size());
-			buffer.putLong(metaDataLocation.filePosition());
-			buffer.putInt(metaDataLocation.blockPosition());
+			buffer.putLong(metaDataLocation.filePosition);
+			buffer.putInt(metaDataLocation.blockPosition);
 			buffer.putInt(orphanCount);
 			for (byte level = 0; level < orphansByLevel.size(); level++)
 			{
@@ -298,8 +297,8 @@ public abstract class IndexedFile
 					orphansByLevel.get(level))
 				{
 					buffer.put((byte) (level + 1));
-					buffer.putLong(orphanLocation.filePosition());
-					buffer.putInt(orphanLocation.blockPosition());
+					buffer.putLong(orphanLocation.filePosition);
+					buffer.putInt(orphanLocation.blockPosition);
 				}
 			}
 			assert buffer.position() <= pageSize
@@ -390,29 +389,39 @@ public abstract class IndexedFile
 	 * of the record within the <em>uncompressed</em> block.
 	 */
 	@InnerAccess static final class RecordCoordinates
-	extends Pair<Long, Integer>
 	{
 		/**
-		 * Answer the absolute position within the {@linkplain IndexedFile
-		 * indexed file} of the compressed block containing the record.
-		 *
-		 * @return The file position.
+		 * The absolute position within the {@linkplain IndexedFile indexed
+		 * file} of the compressed block containing the record.
 		 */
-		long filePosition ()
-		{
-			return first();
-		}
+		public final long filePosition;
 
 		/**
-		 * Answer the position within the <em>uncompressed</em> block of the
-		 * record.
-		 *
-		 * @return The block position.
+		 * The position within the <em>uncompressed</em> block of the record.
 		 */
-		int blockPosition ()
-		{
-			return second();
-		}
+		public final int blockPosition;
+
+//		/**
+//		 * Answer the absolute position within the {@linkplain IndexedFile
+//		 * indexed file} of the compressed block containing the record.
+//		 *
+//		 * @return The file position.
+//		 */
+//		long filePosition ()
+//		{
+//			return filePosition;
+//		}
+//
+//		/**
+//		 * Answer the position within the <em>uncompressed</em> block of the
+//		 * record.
+//		 *
+//		 * @return The block position.
+//		 */
+//		int blockPosition ()
+//		{
+//			return blockPosition;
+//		}
 
 		@Override
 		public boolean equals (final @Nullable Object other)
@@ -422,15 +431,15 @@ public abstract class IndexedFile
 				return false;
 			}
 			final RecordCoordinates strongOther = (RecordCoordinates) other;
-			return filePosition() == strongOther.filePosition()
-				&& blockPosition() == strongOther.blockPosition();
+			return filePosition == strongOther.filePosition
+				&& blockPosition == strongOther.blockPosition;
 		}
 
 		@Override
 		public int hashCode ()
 		{
-			return (int) ((filePosition() ^ 0x58FC0112)
-				* (blockPosition() ^ 0xCACC77F3)
+			return (int) ((filePosition ^ 0x58FC0112)
+				* (blockPosition ^ 0xCACC77F3)
 				+ 0x62B02A14);
 		}
 
@@ -448,7 +457,8 @@ public abstract class IndexedFile
 			final long filePosition,
 			final int blockPosition)
 		{
-			super(filePosition, blockPosition);
+			this.filePosition = filePosition;
+			this.blockPosition = blockPosition;
 		}
 
 		/** The origin. */
@@ -594,8 +604,8 @@ public abstract class IndexedFile
 				m.rawBytes.size());
 			for (final RecordCoordinates orphan : orphans)
 			{
-				m.uncompressedData.writeLong(orphan.filePosition());
-				m.uncompressedData.writeInt(orphan.blockPosition());
+				m.uncompressedData.writeLong(orphan.filePosition);
+				m.uncompressedData.writeInt(orphan.blockPosition);
 			}
 			orphans.clear();
 			compressAndFlushIfFull();
@@ -1049,11 +1059,11 @@ public abstract class IndexedFile
 		long pow = (long) Math.pow(fanout, startingLevel);
 		assert startingIndex < pow : "Arithmetic error traversing perfect tree";
 		RecordCoordinates node = new RecordCoordinates(
-			startingNodePosition.filePosition(),
-			startingNodePosition.blockPosition());
+			startingNodePosition.filePosition,
+			startingNodePosition.blockPosition);
 		ByteBuffer buffer = ByteBuffer.wrap(
-			blockAtFilePosition(node.filePosition()));
-		buffer.position(node.blockPosition());
+			blockAtFilePosition(node.filePosition));
+		buffer.position(node.blockPosition);
 		long zIndex = startingIndex;
 		int level = startingLevel;
 		while (level != 0)
@@ -1061,14 +1071,14 @@ public abstract class IndexedFile
 			pow /= fanout;
 			final int zSubscript = (int) (zIndex / pow);
 			zIndex %= pow;
-			buffer.position(12 * zSubscript + node.blockPosition());
+			buffer.position(12 * zSubscript + node.blockPosition);
 			node = new RecordCoordinates(
 				buffer.getLong(),
 				buffer.getInt());
 			level--;
 			buffer = ByteBuffer.wrap(
-				blockAtFilePosition(node.filePosition()));
-			buffer.position(node.blockPosition());
+				blockAtFilePosition(node.filePosition));
+			buffer.position(node.blockPosition);
 		}
 		final byte[] result = new byte[buffer.getInt()];
 		buffer.get(result);
@@ -1380,9 +1390,9 @@ public abstract class IndexedFile
 			if (metaData == null)
 			{
 				final byte[] block = blockAtFilePosition(
-					master().metaDataLocation.filePosition());
+					master().metaDataLocation.filePosition);
 				final ByteBuffer buffer = ByteBuffer.wrap(block);
-				buffer.position(master().metaDataLocation.blockPosition());
+				buffer.position(master().metaDataLocation.blockPosition);
 				final int size = buffer.getInt();
 				metaData = new byte[size];
 				buffer.get(metaData);
