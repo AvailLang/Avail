@@ -65,6 +65,14 @@ public interface L2OperandDispatcher
 	void doOperand (L2ConstantOperand operand);
 
 	/**
+	 * Process an operand which is an internal counter.
+	 *
+	 * @param operand
+	 *        An {@link L2InternalCounterOperand}.
+	 */
+	void doOperand (L2InternalCounterOperand operand);
+
+	/**
 	 * Process an operand which is an {@code int} immediate value.
 	 *
 	 * @param operand
@@ -82,7 +90,7 @@ public interface L2OperandDispatcher
 
 	/**
 	 * Process an operand which is a constant level two offset into a
-	 * {@linkplain L2Chunk level two chunk}'s wordcode instructions.
+	 * {@linkplain L2Chunk level two chunk}'s {@link L2Instruction} sequence.
 	 *
 	 * @param operand
 	 *        An {@link L2PcOperand}.

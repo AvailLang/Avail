@@ -138,7 +138,7 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister destReg =
@@ -243,7 +243,7 @@ extends L2ControlFlowOperation
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);
 		// ::    goto failure;
-		translator.branch(method, instruction, failure);
+		translator.jump(method, instruction, failure);
 		// :: }
 	}
 }

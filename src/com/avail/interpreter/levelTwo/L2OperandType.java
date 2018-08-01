@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import java.util.List;
+import java.util.concurrent.atomic.LongAdder;
 
 
 /**
@@ -137,6 +138,13 @@ public enum L2OperandType
 	 * written (but not read).
 	 */
 	WRITE_PHI(false, true),
+
+	/**
+	 * The {@link L2InternalCounterOperand} holds a {@link LongAdder} that will
+	 * be incremented when a specific condition happens, such as taking or not
+	 * taking a branch.
+	 */
+	INTERNAL_COUNTER(true, false),
 
 	/**
 	 * The {@link L2CommentOperand} holds descriptive text that does not affect

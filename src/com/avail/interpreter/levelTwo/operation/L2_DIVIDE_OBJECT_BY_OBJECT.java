@@ -95,7 +95,7 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister dividendReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister divisorReg =
@@ -196,7 +196,7 @@ extends L2ControlFlowOperation
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);
 		// ::    goto undefined;
-		translator.branch(method, instruction, undefined);
+		translator.jump(method, instruction, undefined);
 		// :: }
 	}
 }

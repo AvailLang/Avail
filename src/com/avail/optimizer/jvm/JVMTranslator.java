@@ -81,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -490,6 +491,12 @@ public final class JVMTranslator
 		}
 
 		@Override
+		public void doOperand (final L2InternalCounterOperand operand)
+		{
+			recordLiteralObject(operand.counter);
+		}
+
+		@Override
 		public void doOperand (final L2IntImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
@@ -663,16 +670,14 @@ public final class JVMTranslator
 		final JVMTranslationPreparer preparer = new JVMTranslationPreparer();
 		for (final L2Instruction instruction : instructions)
 		{
-			if (instruction.operation.isEntryPoint(instruction))
+			if (instruction.operation().isEntryPoint(instruction))
 			{
 				final Label label = new Label();
 				entryPoints.put(instruction.offset(), label);
 				labels.put(instruction.offset(), label);
 			}
-			for (final L2Operand operand : instruction.operands)
-			{
-				operand.dispatchOperand(preparer);
-			}
+			instruction.operandsDo(
+				operand ->  operand.dispatchOperand(preparer));
 		}
 	}
 
@@ -1261,7 +1266,7 @@ public final class JVMTranslator
 	 * @param operand
 	 *        The {@code L2PcOperand} that specifies the branch target.
 	 */
-	public void branch (
+	public void jump (
 		final MethodVisitor method,
 		final L2Instruction instruction,
 		final L2PcOperand operand)
@@ -1272,6 +1277,109 @@ public final class JVMTranslator
 		if (instruction.offset() != pc - 1)
 		{
 			method.visitJumpInsn(GOTO, labelFor(pc));
+		}
+	}
+
+	/**
+	 * Emit code to conditionally branch to one of the specified {@linkplain
+	 * L2PcOperand program counters}.
+	 *
+	 * @param method
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM
+	 *        instructions will be written.
+	 * @param instruction
+	 *        The {@link L2Instruction} that includes the operands.
+	 * @param opcode
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
+	 *        the two branch targets.
+	 * @param success
+	 *        The {@code L2PcOperand} that specifies the branch target in the
+	 *        event that the opcode succeeds, i.e., actually branches.
+	 * @param failure
+	 *        The {@code L2PcOperand} that specifies the branch target in the
+	 *        event that the opcode fails, i.e., does not actually branch and
+	 *        falls through to a branch.
+	 * @param successCounter
+	 *        An {@link LongAdder} to increment each time the branch is taken.
+	 * @param failureCounter
+	 *        An {@link LongAdder} to increment each time the branch falls
+	 *        through.
+	 */
+	public void branch (
+		final MethodVisitor method,
+		final L2Instruction instruction,
+		final int opcode,
+		final L2PcOperand success,
+		final L2PcOperand failure,
+		final LongAdder successCounter,
+		final LongAdder failureCounter)
+	{
+		final int offset = instruction.offset();
+		final int successPc = success.targetBlock().offset();
+		final int failurePc = failure.targetBlock().offset();
+		if (offset == failurePc - 1)
+		{
+			// Reverse the condition to make it easier to insert counter
+			// maintenance:
+			//   jump if failed to logFailure
+			//   increment successCounter
+			//   jump to successPc
+			//   logFailure: increment failureCounter
+			//   (fall through to failurePc)
+			final Label logFailure = new Label();
+			method.visitJumpInsn(reverseOpcode(opcode), logFailure);
+			literal(method, successCounter);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(LongAdder.class),
+				"increment",
+				getMethodDescriptor(VOID_TYPE),
+				false);
+			method.visitJumpInsn(GOTO, labelFor(successPc));
+			method.visitLabel(logFailure);
+			literal(method, failureCounter);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(LongAdder.class),
+				"increment",
+				getMethodDescriptor(VOID_TYPE),
+				false);
+			// Fall through to failurePc.
+		}
+		else
+		{
+			// Keep the condition the same to make it easier to insert counter
+			// maintenance.  Note that this form only falls through if the
+			// success label follows it, otherwise it has to jump.
+			//   jump if success to logSuccess
+			//   increment failureCounter
+			//   jump to failurePc
+			//   logSuccess: increment successCounter
+			//   (fall through or jump to successPc)
+			final Label logSuccess = new Label();
+			method.visitJumpInsn(opcode, logSuccess);
+			literal(method, failureCounter);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(LongAdder.class),
+				"increment",
+				getMethodDescriptor(VOID_TYPE),
+				false);
+			method.visitJumpInsn(GOTO, labelFor(failurePc));
+			method.visitLabel(logSuccess);
+			literal(method, successCounter);
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				getInternalName(LongAdder.class),
+				"increment",
+				getMethodDescriptor(VOID_TYPE),
+				false);
+			// If the success branch targets the next instruction, fall through,
+			// otherwise jump to it.
+			if (offset != successPc - 1)
+			{
+				method.visitJumpInsn(GOTO, labelFor(successPc));
+			}
 		}
 	}
 
@@ -1574,7 +1682,7 @@ public final class JVMTranslator
 			final long afterTranslation = AvailRuntime.captureNanos();
 			if (interpreter != null)
 			{
-				instruction.operation.jvmTranslationTime.record(
+				instruction.operation().jvmTranslationTime.record(
 					afterTranslation - beforeTranslation,
 					interpreter.interpreterIndex);
 			}

@@ -78,7 +78,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0).register();
 		final int slotIndex = instruction.intImmediateAt(1);

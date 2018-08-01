@@ -104,7 +104,7 @@ extends L2ControlFlowOperation
 	public static List<L2ReadPointerOperand> slotRegistersFor (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readVectorRegisterAt(5);
 	}
 
@@ -114,12 +114,12 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2Operand function = instruction.readObjectRegisterAt(0);
 		final L2Operand caller = instruction.readObjectRegisterAt(1);
 		final int levelOnePC = instruction.intImmediateAt(2);
 		final int levelOneStackp = instruction.intImmediateAt(3);
-		final L2Operand slots = instruction.operands[4];
+		final L2Operand slots = instruction.operand(4);
 		final L2ObjectRegister destReg =
 			instruction.writeObjectRegisterAt(5).register();
 //		final int onRampOffset = instruction.pcOffsetAt(6);
@@ -210,6 +210,6 @@ extends L2ControlFlowOperation
 		}
 		translator.store(method, destReg);
 		// :: goto fallThrough;
-		translator.branch(method, instruction, fallThrough);
+		translator.jump(method, instruction, fallThrough);
 	}
 }

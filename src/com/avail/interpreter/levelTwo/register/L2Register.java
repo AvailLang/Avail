@@ -235,7 +235,7 @@ public abstract class L2Register<T extends A_BasicObject>
 			assert other.definitions.size() == 1;
 			final L2Instruction definition =
 				other.definitions.iterator().next();
-			if (definition.operation.isMove())
+			if (definition.operation().isMove())
 			{
 				final List<L2Register<?>> sources =
 					definition.sourceRegisters();

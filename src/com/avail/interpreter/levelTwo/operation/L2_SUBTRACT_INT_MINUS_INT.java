@@ -91,7 +91,7 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2IntRegister minuend =
 			instruction.readIntRegisterAt(0).register();
 		final L2IntRegister subtrahend =
@@ -159,6 +159,6 @@ extends L2ControlFlowOperation
 			intDifferenceEnd,
 			intDifferenceLocal);
 		translator.store(method, difference);
-		translator.branch(method, instruction, inRange);
+		translator.jump(method, instruction, inRange);
 	}
 }

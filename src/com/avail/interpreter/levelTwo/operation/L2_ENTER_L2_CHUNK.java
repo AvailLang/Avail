@@ -94,7 +94,7 @@ extends L2Operation
 	{
 //		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
 
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 	}
 

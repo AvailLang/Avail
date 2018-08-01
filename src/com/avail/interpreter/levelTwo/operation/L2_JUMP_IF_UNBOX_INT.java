@@ -85,7 +85,7 @@ extends L2ConditionalJump
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister sourceReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2IntRegister destinationReg =
@@ -135,6 +135,6 @@ extends L2ConditionalJump
 			getMethodDescriptor(INT_TYPE),
 			true);
 		translator.store(method, destinationReg);
-		translator.branch(method, instruction, ifUnboxed);
+		translator.jump(method, instruction, ifUnboxed);
 	}
 }

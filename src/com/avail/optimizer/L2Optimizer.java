@@ -51,6 +51,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.Casts;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation1;
@@ -61,6 +62,7 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.disjoint;
@@ -316,7 +318,7 @@ public final class L2Optimizer
 			for (int i = instructions.size() - 1; i >= 0; i--)
 			{
 				final L2Instruction instruction = instructions.get(i);
-				if (instruction.operation.isPhi())
+				if (instruction.operation().isPhi())
 				{
 					// We've reached the phis at the start of the block.
 					lastPhiIndex = i;
@@ -344,7 +346,7 @@ public final class L2Optimizer
 				for (int i = lastPhiIndex; i >= 0; i--)
 				{
 					final L2Instruction phiInstruction = instructions.get(i);
-					assert phiInstruction.operation.isPhi();
+					assert phiInstruction.operation().isPhi();
 					edgeSometimesLiveIn.removeAll(
 						phiInstruction.destinationRegisters());
 					edgeAlwaysLiveIn.removeAll(
@@ -429,8 +431,8 @@ public final class L2Optimizer
 							final L2Instruction newInstruction =
 								new L2Instruction(
 									destinationBlock,
-									instruction.operation,
-									instruction.operands);
+									instruction.operation(),
+									instruction.operands());
 							destinationBlock.insertInstruction(
 								0, newInstruction);
 							// None of the registers defined by the instruction
@@ -483,8 +485,8 @@ public final class L2Optimizer
 	{
 		if (instruction.hasSideEffect()
 			|| instruction.altersControlFlow()
-			|| instruction.operation.isPhi()
-			|| instruction.operation.isEntryPoint(instruction))
+			|| instruction.operation().isPhi()
+			|| instruction.operation().isEntryPoint(instruction))
 		{
 			return null;
 		}
@@ -560,7 +562,7 @@ public final class L2Optimizer
 			while (instructionIterator.hasNext())
 			{
 				final L2Instruction instruction = instructionIterator.next();
-				if (!(instruction.operation.isPhi()))
+				if (!(instruction.operation().isPhi()))
 				{
 					// Phi functions are always at the start, so we must be past
 					// them, if any.
@@ -581,7 +583,7 @@ public final class L2Optimizer
 						block.predecessorEdgeAt(i).sourceBlock();
 					final List<L2Instruction> instructions =
 						predecessor.instructions();
-					assert predecessor.finalInstruction().operation
+					assert predecessor.finalInstruction().operation()
 						instanceof L2_JUMP;
 					final L2Register<?> sourceReg = phiSources.get(i);
 					final L2Instruction move =
@@ -699,7 +701,7 @@ public final class L2Optimizer
 			while (iterator.hasNext())
 			{
 				final L2Instruction instruction = iterator.next();
-				if (instruction.operation.isMove()
+				if (instruction.operation().isMove()
 					&& instruction.sourceRegisters().get(0).finalIndex()
 					== instruction.destinationRegisters().get(0).finalIndex())
 				{
@@ -725,7 +727,7 @@ public final class L2Optimizer
 			{
 				final L2BasicBlock block = blockIterator.next();
 				if (block.instructions().size() == 1
-					&& block.finalInstruction().operation instanceof L2_JUMP)
+					&& block.finalInstruction().operation() instanceof L2_JUMP)
 				{
 					// Redirect all predecessors through the jump.
 					final L2PcOperand jumpEdge =
@@ -968,14 +970,14 @@ public final class L2Optimizer
 			block -> block.instructions().forEach(
 				instruction ->
 				{
-					for (final L2Operand operand : instruction.operands)
+					instruction.operandsDo(operand ->
 					{
 						final boolean added = allOperands.add(operand);
 						assert added;
-						if (L2ReadVectorOperand.class.isInstance(operand))
+						if (operand instanceof L2ReadVectorOperand)
 						{
 							final L2ReadVectorOperand<?, ?, ?> vector =
-								L2ReadVectorOperand.class.cast(operand);
+								cast(operand);
 							vector.elements().forEach(
 								read ->
 								{
@@ -983,7 +985,7 @@ public final class L2Optimizer
 									assert ok;
 								});
 						}
-					}
+					});
 				}
 			));
 	}
@@ -998,7 +1000,7 @@ public final class L2Optimizer
 		{
 			for (final L2Instruction instruction : block.instructions())
 			{
-				assert !instruction.operation.isPhi()
+				assert !instruction.operation().isPhi()
 					|| instruction.sourceRegisters().size()
 					== block.predecessorEdgesCount();
 			}
@@ -1068,12 +1070,12 @@ public final class L2Optimizer
 			final UsedRegisters workingSet = new UsedRegisters(checked);
 			for (final L2Instruction instruction : block.instructions())
 			{
-				if (instruction.operation instanceof L2_ENTER_L2_CHUNK)
+				if (instruction.operation() instanceof L2_ENTER_L2_CHUNK)
 				{
 					// Wipe all registers.
 					workingSet.clearAll();
 				}
-				if (!instruction.operation.isPhi())
+				if (!instruction.operation().isPhi())
 				{
 					for (final L2Register<?> register :
 						instruction.sourceRegisters())
@@ -1106,7 +1108,7 @@ public final class L2Optimizer
 				for (final L2Instruction phiInTarget
 					: targetBlock.instructions())
 				{
-					if (!phiInTarget.operation.isPhi())
+					if (!phiInTarget.operation().isPhi())
 					{
 						// All the phis are at the start of the block.
 						break;
@@ -1133,7 +1135,7 @@ public final class L2Optimizer
 			b -> b.instructions().forEach(
 				i ->
 				{
-					assert !i.operation.isEntryPoint(i)
+					assert !i.operation().isEntryPoint(i)
 						|| b.instructions().get(0) == i;
 				}
 		));

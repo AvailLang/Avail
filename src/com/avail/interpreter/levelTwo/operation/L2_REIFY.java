@@ -138,7 +138,7 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final boolean actuallyReify = instruction.intImmediateAt(0) == 1;
 		final boolean processInterrupt = instruction.intImmediateAt(1) == 1;
 		final StatisticCategory category =
@@ -167,7 +167,7 @@ extends L2ControlFlowOperation
 		final L2NamedOperandType type = operandTypes()[3];
 		if (desiredTypes.contains(type.operandType()))
 		{
-			final L2Operand operand = instruction.operands[3];
+			final L2Operand operand = instruction.operand(3);
 			builder.append("\n\t");
 			assert operand.operandType() == type.operandType();
 			builder.append(type.name());
@@ -256,6 +256,6 @@ extends L2ControlFlowOperation
 			false);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: goto reify;
-		translator.branch(method, instruction, reify);
+		translator.jump(method, instruction, reify);
 	}
 }

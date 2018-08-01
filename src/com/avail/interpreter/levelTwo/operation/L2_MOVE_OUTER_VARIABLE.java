@@ -108,7 +108,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1).register();

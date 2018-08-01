@@ -95,8 +95,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand constant = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand constant = instruction.operand(0);
 		final L2IntRegister destinationIntReg =
 			instruction.writeIntRegisterAt(1).register();
 

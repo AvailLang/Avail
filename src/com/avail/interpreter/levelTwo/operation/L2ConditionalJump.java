@@ -34,14 +34,20 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.utility.MutableLong;
+import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.INTERNAL_COUNTER;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
+import static com.avail.utility.Casts.cast;
+import static java.util.Arrays.copyOf;
 
 /**
  * Jump to {@code "if satisfied"} if some condition is met, otherwise jump to
@@ -54,29 +60,79 @@ public abstract class L2ConditionalJump
 extends L2ControlFlowOperation
 {
 	/**
-	 * A counter that keeps track of how many times this conditional jump is
-	 * executed in such a way that the branch is taken.
-	 */
-	public final MutableLong takenCount = new MutableLong(0L);
-
-	/**
-	 * A counter that keeps track of how many times this conditional jump is
-	 * executed in such a way that the branch is <em>not</em> taken.
-	 */
-	public final MutableLong notTakenCount = new MutableLong(0L);
-
-	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
 	 *
 	 * <p>By convention, there are always 2 {@link #targetEdges(L2Instruction)},
 	 * the first of which is the "taken" branch, and the second of which is the
 	 * "not taken" branch.</p>
+	 *
+	 * <p>Two additional operands are automatically appended here to track the
+	 * number of times the branch instruction is taken versus not taken.</p>
 	 */
 	protected L2ConditionalJump (
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
-		super(theNamedOperandTypes);
+		super(augment(theNamedOperandTypes));
+	}
+
+	/**
+	 * Add two {@link L2InternalCounterOperand}s to the given array of {@link
+	 * L2NamedOperandType}s, returning the new array.
+	 *
+	 * @param namedOperandTypes
+	 *        The original named operand types.
+	 * @return The augmented named operand types.
+	 */
+	private static L2NamedOperandType[] augment(
+		final L2NamedOperandType[] namedOperandTypes)
+	{
+		final L2NamedOperandType[] newNames = copyOf(
+			namedOperandTypes, namedOperandTypes.length + 2);
+		// Number of times the branch is taken.
+		newNames[newNames.length - 2] = INTERNAL_COUNTER.is("branch taken");
+		// Number of times the branch is not taken.
+		newNames[newNames.length - 1] = INTERNAL_COUNTER.is("branch not taken");
+		return newNames;
+	}
+
+	/**
+	 * Emit a conditional branch, including an increment for the counters along
+	 * each path.
+	 *
+	 * @param translator
+	 *        The {@link JVMTranslator} controlling code generation.
+	 * @param method
+	 *        The {@link MethodVisitor} on which to write the instructions.
+	 * @param instruction
+	 *        The {@link L2Instruction} causing this code generation.
+	 * @param opcode
+	 *        The Java bytecode to emit for the branch instruction.
+	 * @param isSubtype
+	 *        Where to jump if the condition holds.
+	 * @param notSubtype
+	 *        Where to jump if the condition does not hold.
+	 */
+	protected void emitBranch (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction,
+		final int opcode,
+		final L2PcOperand isSubtype,
+		final L2PcOperand notSubtype)
+	{
+		final L2InternalCounterOperand taken =
+			cast(instruction.operand(instruction.operands().length - 2));
+		final L2InternalCounterOperand notTaken =
+			cast(instruction.operand(instruction.operands().length - 1));
+		translator.branch(
+			method,
+			instruction,
+			opcode,
+			isSubtype,
+			notSubtype,
+			taken.counter,
+			notTaken.counter);
 	}
 
 	/**
@@ -153,5 +209,25 @@ extends L2ControlFlowOperation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	/**
+	 * Augment the array of operands with any that are supposed to be supplied
+	 * implicitly by this class.
+	 *
+	 * @param operands The origginal array of {@link L2Operand}s.
+	 * @return The augmented array of {@link L2Operand}s, which may be the same
+	 *         as the given array.
+	 */
+	@Override
+	public L2Operand[] augment (
+		final L2Operand[] operands)
+	{
+		final L2Operand[] parentOperands = super.augment(operands);
+		final L2Operand[] newOperands =
+			copyOf(parentOperands, parentOperands.length + 2);
+		newOperands[newOperands.length - 2] = new L2InternalCounterOperand();
+		newOperands[newOperands.length - 1] = new L2InternalCounterOperand();
+		return newOperands;
 	}
 }

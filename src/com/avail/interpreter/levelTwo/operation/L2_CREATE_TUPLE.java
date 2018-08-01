@@ -159,7 +159,7 @@ extends L2Operation
 	public static List<L2ReadPointerOperand> tupleSourceRegistersOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readVectorRegisterAt(0);
 	}
 
@@ -169,8 +169,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand elements = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand elements = instruction.operand(0);
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(1).register();
 

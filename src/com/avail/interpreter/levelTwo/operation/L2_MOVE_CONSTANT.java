@@ -96,7 +96,7 @@ extends L2Operation
 	 */
 	public static AvailObject constantOf (final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.constantAt(0);
 	}
 
@@ -106,8 +106,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand constant = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand constant = instruction.operand(0);
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(1).register();
 

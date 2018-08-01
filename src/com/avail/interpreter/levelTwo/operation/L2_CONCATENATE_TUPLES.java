@@ -120,7 +120,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final List<L2ReadPointerOperand> vector =
 			instruction.readVectorRegisterAt(0);
 		final L2ObjectRegister targetTupleReg =

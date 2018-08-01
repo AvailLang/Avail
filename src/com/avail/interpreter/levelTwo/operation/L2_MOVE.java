@@ -135,7 +135,7 @@ extends L2Operation
 		// Trace it back toward the actual function creation.
 		final L2Instruction earlierInstruction =
 			sourceReg.register().definitionSkippingMoves();
-		return earlierInstruction.operation.extractFunctionOuterRegister(
+		return earlierInstruction.operation().extractFunctionOuterRegister(
 			earlierInstruction,
 			sourceReg,
 			outerIndex,
@@ -147,10 +147,10 @@ extends L2Operation
 	public @Nullable A_RawFunction getConstantCodeFrom (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		final L2ReadPointerOperand source = sourceOf(instruction);
 		final L2Instruction producer = source.register().definition();
-		return producer.operation.getConstantCodeFrom(producer);
+		return producer.operation().getConstantCodeFrom(producer);
 	}
 
 	@Override
@@ -181,7 +181,7 @@ extends L2Operation
 	private static L2ReadPointerOperand sourceOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readObjectRegisterAt(0);
 	}
 
@@ -191,7 +191,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister sourceReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister destinationReg =

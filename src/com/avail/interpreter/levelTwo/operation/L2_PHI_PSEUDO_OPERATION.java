@@ -157,7 +157,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final int inputIndex)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		final List<? extends L2ReadOperand<?, ?>> oldSources =
 			instruction.readVectorRegisterAt(0);
 		final L2WritePhiOperand<?, ?> destinationReg =
@@ -211,7 +211,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final L2Register<?> usedRegister)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 
 		final List<? extends L2ReadOperand<?, ?>> sources =
 			instruction.readVectorRegisterAt(0);
@@ -245,7 +245,7 @@ extends L2Operation
 	public static <U extends L2WritePhiOperand<?, ?>>
 	U destinationRegisterWrite (final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return cast(instruction.writePhiRegisterAt(1));
 	}
 
@@ -274,8 +274,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand vector = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand vector = instruction.operand(0);
 		final L2Register<?> target =
 			instruction.writePhiRegisterAt(1).register();
 		builder.append("ϕ ");

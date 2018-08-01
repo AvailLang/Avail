@@ -36,7 +36,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -166,10 +165,10 @@ extends L2ConditionalJump
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister typeRegister =
 			instruction.readObjectRegisterAt(0).register();
-		final L2Operand constantType = instruction.operands[1];
+		final L2Operand constantType = instruction.operand(1);
 //		final L2PcOperand isSubtype = instruction.pcAt(2);
 //		final L2PcOperand notSubtype = instruction.pcAt(3);
 
@@ -203,6 +202,7 @@ extends L2ConditionalJump
 			"isSubtypeOf",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
 			true);
-		translator.branch(method, instruction, IFNE, isSubtype, notSubtype);
+		emitBranch(
+			translator, method, instruction, IFNE, isSubtype, notSubtype);
 	}
 }

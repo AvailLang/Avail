@@ -36,9 +36,11 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -115,10 +117,11 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
-		final L2Operand calledFunction = operands[0];
-		final L2Operand argsRegsList = operands[1];
+		assert this == instruction.operation();
+		final A_Function calledFunction =
+			instruction.constantAt(0);
+		final List<L2ReadPointerOperand> argsRegsList =
+			instruction.readVectorRegisterAt(1);
 //		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 //		final L2PcOperand onReification = instruction.pcAt(3);
 

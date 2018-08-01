@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -90,11 +89,10 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
+		assert this == instruction.operation();
 		final L2IntRegister augendReg =
 			instruction.readIntRegisterAt(0).register();
-		final L2Operand addend = operands[1];
+		final int addend = instruction.intImmediateAt(1);
 		final L2IntRegister sumReg =
 			instruction.writeIntRegisterAt(2).register();
 //		final L2PcOperand inRange = instruction.pcAt(3);
@@ -157,6 +155,6 @@ extends L2ControlFlowOperation
 			intSumEnd,
 			intSumLocal);
 		translator.store(method, sumReg);
-		translator.branch(method, instruction, inRange);
+		translator.jump(method, instruction, inRange);
 	}
 }

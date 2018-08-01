@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -76,12 +77,12 @@ public final class L2Instruction
 	/**
 	 * The {@link L2Operation} whose execution this instruction represents.
 	 */
-	public final L2Operation operation;
+	private final L2Operation operation;
 
 	/**
 	 * The {@link L2Operand}s to supply to the operation.
 	 */
-	public final L2Operand[] operands;
+	private final L2Operand[] operands;
 
 	/**
 	 * The position of this instruction within its array of instructions.
@@ -104,6 +105,43 @@ public final class L2Instruction
 	 */
 	@InnerAccess final List<L2Register<?>> destinationRegisters =
 		new ArrayList<>();
+
+	/**
+	 * The {@link L2Operation} whose execution this instruction represents.
+	 */
+	public L2Operation operation ()
+	{
+		return operation;
+	}
+
+	/**
+	 * Answer the {@link L2Operand}s to supply to the operation.
+	 */
+	public L2Operand[] operands ()
+	{
+		return operands;
+	}
+
+	/**
+	 * Evaluate the given function with each operand.
+	 *
+	 * @param consumer The {@link Consumer} to evaluate.
+	 */
+	public void operandsDo (final Consumer<L2Operand> consumer)
+	{
+		for (final L2Operand operand : operands)
+		{
+			consumer.accept(operand);
+		}
+	}
+
+	/**
+	 * Answer the Nth {@link L2Operand} to supply to the operation.
+	 */
+	public L2Operand operand (final int index)
+	{
+		return operands[index];
+	}
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.
@@ -132,31 +170,35 @@ public final class L2Instruction
 	 *
 	 * @param operation
 	 *        The {@link L2Operation} that this instruction performs.
-	 * @param operands
+	 * @param theOperands
 	 *        The array of {@link L2Operand}s on which this instruction
 	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2OperandType}s.
+	 *        L2NamedOperandType}s.  The operation is given an opportunity to
+	 *        augment this array, just as it may be given the opportunity to
+	 *        augment the named operand types.
 	 * @param basicBlock
 	 *        The {@link L2BasicBlock} which will contain this instruction.
 	 */
 	public L2Instruction (
 		final L2BasicBlock basicBlock,
 		final L2Operation operation,
-		final L2Operand... operands)
+		final L2Operand... theOperands)
 	{
+		final L2Operand[] augmentedOperands = operation.augment(theOperands);
 		final L2NamedOperandType[] operandTypes =
 			stripNull(operation.namedOperandTypes);
-		assert operandTypes.length == operands.length;
-		for (int i = 0; i < operands.length; i++)
+		assert operandTypes.length == augmentedOperands.length;
+		for (int i = 0; i < augmentedOperands.length; i++)
 		{
-			assert operands[i].operandType() == operandTypes[i].operandType();
+			assert augmentedOperands[i].operandType()
+				== operandTypes[i].operandType();
 		}
 		this.operation = operation;
-		this.operands = new L2Operand[operands.length];
+		this.operands = new L2Operand[augmentedOperands.length];
 		this.basicBlock = basicBlock;
 		for (int i = 0; i < operands.length; i++)
 		{
-			final L2Operand operand = operands[i].clone();
+			final L2Operand operand = augmentedOperands[i].clone();
 			this.operands[i] = operand;
 			operand.addSourceRegistersTo(sourceRegisters);
 			operand.addDestinationRegistersTo(destinationRegisters);
@@ -201,7 +243,7 @@ public final class L2Instruction
 	 */
 	public List<L2PcOperand> targetEdges ()
 	{
-		return operation.targetEdges(this);
+		return operation().targetEdges(this);
 	}
 
 	/**
@@ -217,7 +259,7 @@ public final class L2Instruction
 	 */
 	public boolean altersControlFlow ()
 	{
-		return operation.altersControlFlow();
+		return operation().altersControlFlow();
 	}
 
 	/**
@@ -228,7 +270,7 @@ public final class L2Instruction
 	 */
 	public boolean hasSideEffect ()
 	{
-		return operation.hasSideEffect(this);
+		return operation().hasSideEffect(this);
 	}
 
 	/**
@@ -247,10 +289,7 @@ public final class L2Instruction
 			new ArrayList<>(sourceRegisters);
 		final List<L2Register<?>> destinationsBefore =
 			new ArrayList<>(destinationRegisters);
-		for (final L2Operand operand : operands)
-		{
-			operand.replaceRegisters(registerRemap, this);
-		}
+		operandsDo(operand -> operand.replaceRegisters(registerRemap, this));
 		sourceRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
 		destinationRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
 		assert sourceRegisters.size() == sourcesBefore.size();
@@ -262,11 +301,8 @@ public final class L2Instruction
 	 */
 	public void justAdded ()
 	{
-		operation.instructionWasAdded(this);
-		for (final L2Operand operand : operands)
-		{
-			operand.instructionWasAdded(this);
-		}
+		operation().instructionWasAdded(this);
+		operandsDo(operand -> operand.instructionWasAdded(this));
 	}
 
 	/**
@@ -274,10 +310,7 @@ public final class L2Instruction
 	 */
 	public void justRemoved ()
 	{
-		for (final L2Operand operand : operands)
-		{
-			operand.instructionWasRemoved(this);
-		}
+		operandsDo(operand -> operand.instructionWasRemoved(this));
 	}
 
 	/**
@@ -290,14 +323,15 @@ public final class L2Instruction
 	 */
 	public boolean shouldEmit ()
 	{
-		return operation.shouldEmit(this);
+		return operation().shouldEmit(this);
 	}
 
 	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		operation.toString(this, EnumSet.allOf(L2OperandType.class), builder);
+		operation()
+			.toString(this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
 	}
 
@@ -311,7 +345,7 @@ public final class L2Instruction
 	 */
 	public AvailObject constantAt (final int operandIndex)
 	{
-		return ((L2ConstantOperand) operands[operandIndex]).object;
+		return ((L2ConstantOperand) operand(operandIndex)).object;
 	}
 
 	/**
@@ -327,7 +361,7 @@ public final class L2Instruction
 	 */
 	public A_Bundle bundleAt (final int operandIndex)
 	{
-		return ((L2SelectorOperand) operands[operandIndex]).bundle;
+		return ((L2SelectorOperand) operand(operandIndex)).bundle;
 	}
 
 	/**
@@ -340,7 +374,7 @@ public final class L2Instruction
 	 */
 	public int intImmediateAt (final int operandIndex)
 	{
-		return ((L2IntImmediateOperand) operands[operandIndex]).value;
+		return ((L2IntImmediateOperand) operand(operandIndex)).value;
 	}
 
 	/**
@@ -353,7 +387,7 @@ public final class L2Instruction
 	 */
 	public double floatImmediateAt (final int operandIndex)
 	{
-		return ((L2FloatImmediateOperand) operands[operandIndex]).value;
+		return ((L2FloatImmediateOperand) operand(operandIndex)).value;
 	}
 
 	/**
@@ -368,7 +402,7 @@ public final class L2Instruction
 	 */
 	public L2PcOperand pcAt (final int operandIndex)
 	{
-		return ((L2PcOperand) operands[operandIndex]);
+		return ((L2PcOperand) operand(operandIndex));
 	}
 
 	/**
@@ -394,7 +428,7 @@ public final class L2Instruction
 	 */
 	public Primitive primitiveAt (final int operandIndex)
 	{
-		return ((L2PrimitiveOperand) operands[operandIndex]).primitive;
+		return ((L2PrimitiveOperand) operand(operandIndex)).primitive;
 	}
 
 	/**
@@ -407,7 +441,7 @@ public final class L2Instruction
 	 */
 	public L2ReadIntOperand readIntRegisterAt (final int operandIndex)
 	{
-		return (L2ReadIntOperand) operands[operandIndex];
+		return (L2ReadIntOperand) operand(operandIndex);
 	}
 
 	/**
@@ -420,7 +454,7 @@ public final class L2Instruction
 	 */
 	public L2WriteIntOperand writeIntRegisterAt (final int operandIndex)
 	{
-		return (L2WriteIntOperand) operands[operandIndex];
+		return (L2WriteIntOperand) operand(operandIndex);
 	}
 
 	/**
@@ -433,7 +467,7 @@ public final class L2Instruction
 	 */
 	public L2ReadFloatOperand readFloatRegisterAt (final int operandIndex)
 	{
-		return (L2ReadFloatOperand) operands[operandIndex];
+		return (L2ReadFloatOperand) operand(operandIndex);
 	}
 
 	/**
@@ -446,7 +480,7 @@ public final class L2Instruction
 	 */
 	public L2WriteFloatOperand writeFloatRegisterAt (final int operandIndex)
 	{
-		return (L2WriteFloatOperand) operands[operandIndex];
+		return (L2WriteFloatOperand) operand(operandIndex);
 	}
 
 	/**
@@ -459,7 +493,7 @@ public final class L2Instruction
 	 */
 	public L2ReadPointerOperand readObjectRegisterAt (final int operandIndex)
 	{
-		return (L2ReadPointerOperand) operands[operandIndex];
+		return (L2ReadPointerOperand) operand(operandIndex);
 	}
 
 	/**
@@ -472,7 +506,7 @@ public final class L2Instruction
 	 */
 	public L2WritePointerOperand writeObjectRegisterAt (final int operandIndex)
 	{
-		return (L2WritePointerOperand) operands[operandIndex];
+		return (L2WritePointerOperand) operand(operandIndex);
 	}
 
 	/**
@@ -498,7 +532,7 @@ public final class L2Instruction
 	List<RR> readVectorRegisterAt (final int operandIndex)
 	{
 		return (
-			(L2ReadVectorOperand<RR, R, T>) operands[operandIndex]).elements();
+			(L2ReadVectorOperand<RR, R, T>) operand(operandIndex)).elements();
 	}
 
 	/**
@@ -513,7 +547,7 @@ public final class L2Instruction
 	public <U extends L2WritePhiOperand<?, ?>> U writePhiRegisterAt (
 		final int operandIndex)
 	{
-		return (U) operands[operandIndex];
+		return (U) operand(operandIndex);
 	}
 
 	/**
@@ -525,10 +559,10 @@ public final class L2Instruction
 	 */
 	public L2Operand[] transformOperands (final L2Inliner inliner)
 	{
-		final L2Operand[] newOperands = new L2Operand[operands.length];
-		for (int i = 0; i < operands.length; i++)
+		final L2Operand[] newOperands = new L2Operand[operands().length];
+		for (int i = 0; i < newOperands.length; i++)
 		{
-			newOperands[i] = inliner.transformOperand(operands[i]);
+			newOperands[i] = inliner.transformOperand(operand(i));
 		}
 		return newOperands;
 	}
@@ -544,7 +578,7 @@ public final class L2Instruction
 	 */
 	public void transformAndEmitOn (final L2Inliner inliner)
 	{
-		operation.emitTransformedInstruction(
+		operation().emitTransformedInstruction(
 			this, transformOperands(inliner), inliner);
 	}
 
@@ -561,6 +595,6 @@ public final class L2Instruction
 		final JVMTranslator translator,
 		final MethodVisitor method)
 	{
-		operation.translateToJVM(translator, method, this);
+		operation().translateToJVM(translator, method, this);
 	}
 }

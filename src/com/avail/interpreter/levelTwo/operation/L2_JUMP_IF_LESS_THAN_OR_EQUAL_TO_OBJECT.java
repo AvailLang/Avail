@@ -84,7 +84,7 @@ extends L2ConditionalJump
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister firstReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister secondReg =
@@ -130,6 +130,6 @@ extends L2ConditionalJump
 			"isLessOrEqual",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		translator.branch(method, instruction, IFNE, ifTrue, ifFalse);
+		emitBranch(translator, method, instruction, IFNE, ifTrue, ifFalse);
 	}
 }

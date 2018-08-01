@@ -291,7 +291,7 @@ extends L2ControlFlowOperation
 			false);
 		translator.store(method, errorCodeReg);
 		// ::    goto lookupFailed;
-		translator.branch(method, instruction, lookupFailed);
+		translator.jump(method, instruction, lookupFailed);
 		// :: }
 	}
 }

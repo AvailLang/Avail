@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -84,11 +85,10 @@ extends L2ConditionalJump
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
+		assert this == instruction.operation();
 		final L2ObjectRegister valueReg =
 			instruction.readObjectRegisterAt(0).register();
-		final L2Operand constant = operands[1];
+		final A_BasicObject constant = instruction.constantAt(1);
 //		final L2PcOperand ifTrue = instruction.pcAt(2);
 //		final L2PcOperand ifFalse = instruction.pcAt(3);
 
@@ -129,6 +129,6 @@ extends L2ConditionalJump
 			"isLessOrEqual",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		translator.branch(method, instruction, IFNE, ifTrue, ifFalse);
+		emitBranch(translator, method, instruction, IFNE, ifTrue, ifFalse);
 	}
 }

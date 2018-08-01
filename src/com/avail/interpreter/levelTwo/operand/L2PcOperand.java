@@ -242,7 +242,7 @@ extends L2Operand
 			newBlock,
 			L2_JUMP.instance,
 			new L2PcOperand(garbageBlock, manifest, phiRestrictions));
-		jump.operands[0] = this;
+		jump.operands()[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
 		assert newBlock.successorEdgesCount() == 0;
@@ -255,7 +255,7 @@ extends L2Operand
 		newBlock.addPredecessorEdge(newEdge);
 
 		// Wire in the new edge.
-		asList(originalSource.operands).replaceAll(
+		asList(originalSource.operands()).replaceAll(
 			x -> x == this ? newEdge : x);
 		originalSource.basicBlock.replaceSuccessorEdge(this, newEdge);
 		return newBlock;

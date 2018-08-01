@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -42,12 +43,15 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.utility.Casts;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
@@ -56,6 +60,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -131,7 +136,7 @@ extends L2Operation
 	public boolean hasSideEffect (final L2Instruction instruction)
 	{
 		// It depends on the primitive.
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		final Primitive primitive = instruction.primitiveAt(1);
 		return primitive.hasFlag(Flag.HasSideEffect)
 			|| primitive.hasFlag(Flag.CatchException)
@@ -144,7 +149,7 @@ extends L2Operation
 	public L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.writeObjectRegisterAt(3);
 	}
 
@@ -159,7 +164,7 @@ extends L2Operation
 	public static Primitive primitiveOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.primitiveAt(1);
 	}
 
@@ -176,7 +181,7 @@ extends L2Operation
 	public static List<L2ReadPointerOperand> argsOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readVectorRegisterAt(2);
 	}
 
@@ -186,11 +191,14 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
+		assert this == instruction.operation();
 //		final A_RawFunction rawFunction = instruction.constantAt(0);
-		final L2Operand primitive = operands[1];
-		final L2Operand argumentRegs = operands[2];
+		final L2PrimitiveOperand primitive = cast(instruction.operand(1));
+		final L2ReadVectorOperand<
+				L2ReadPointerOperand,
+				L2ObjectRegister,
+				A_BasicObject>
+			argumentsVector = cast(instruction.operand(2));
 		final L2ObjectRegister resultReg =
 			instruction.writeObjectRegisterAt(3).register();
 
@@ -200,7 +208,7 @@ extends L2Operation
 		builder.append(" ← ");
 		builder.append(primitive);
 		builder.append('(');
-		builder.append(argumentRegs);
+		builder.append(argumentsVector);
 		builder.append(')');
 	}
 

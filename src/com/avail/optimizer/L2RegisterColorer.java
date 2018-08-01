@@ -169,7 +169,7 @@ public final class L2RegisterColorer
 			registerBeingTraced = reg;
 			for (final L2Instruction instruction : reg.uses())
 			{
-				if (instruction.operation.isPhi())
+				if (instruction.operation().isPhi())
 				{
 					for (final L2BasicBlock predBlock :
 						L2_PHI_PSEUDO_OPERATION.predecessorBlocksForUseOf(
@@ -228,7 +228,7 @@ public final class L2RegisterColorer
 		{
 			// Process live-out for this instruction.
 			final L2Instruction instruction = instructions.get(index);
-			assert instruction.operation != L2_ENTER_L2_CHUNK.instance
+			assert instruction.operation() != L2_ENTER_L2_CHUNK.instance
 				: "Liveness trace must not reach an L2_ENTER_L2_CHUNK";
 			boolean definesCurrentRegister = false;
 			for (final L2Register<?> written
@@ -256,7 +256,7 @@ public final class L2RegisterColorer
 				// interest (registerBeingTraced) and the destination of the
 				// move, but only if the live-out variable isn't also the source
 				// of the move.
-				if (instruction.operation.isMove()
+				if (instruction.operation().isMove()
 					&& instruction.sourceRegisters().get(0)
 						== registerBeingTraced)
 				{
@@ -299,7 +299,7 @@ public final class L2RegisterColorer
 		{
 			for (final L2Instruction instruction : reg.definitions())
 			{
-				if (instruction.operation.isMove())
+				if (instruction.operation().isMove())
 				{
 					// The source and destination registers shouldn't be
 					// considered interfering if they'll hold the same value.

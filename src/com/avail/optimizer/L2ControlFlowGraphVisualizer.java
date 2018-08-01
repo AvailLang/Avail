@@ -274,7 +274,7 @@ public class L2ControlFlowGraphVisualizer
 	{
 		final StringBuilder builder = new StringBuilder();
 		// Hoist a comment operand, if one is present.
-		for (final L2Operand operand : instruction.operands)
+		instruction.operandsDo(operand ->
 		{
 			if (operand.operandType() == COMMENT)
 			{
@@ -289,16 +289,14 @@ public class L2ControlFlowGraphVisualizer
 				builder.append("<font face=\"Helvetica\" color=\"gray\"><i>");
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
-				// There should never be a second comment. If there is — tough.
-				break;
 			}
-		}
+		});
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
 			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
-		instruction.operation.toString(instruction, desiredTypes, builder);
+		instruction.operation().toString(instruction, desiredTypes, builder);
 		// Escape everything since the saved position.
 		return builder.replace(
 			escapeIndex,
@@ -327,12 +325,12 @@ public class L2ControlFlowGraphVisualizer
 		final String bgcolor;
 		final String fontcolor;
 		if (basicBlock.instructions().stream().anyMatch(
-			i -> i.operation == L2_UNREACHABLE_CODE.instance))
+			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
 		{
 			bgcolor = "#000000";
 			fontcolor = "#ffffff";
 		}
-		else if (first != null && first.operation.isEntryPoint(first))
+		else if (first != null && first.operation().isEntryPoint(first))
 		{
 			bgcolor = "#ffd394";
 			fontcolor = "#000000";
@@ -413,16 +411,15 @@ public class L2ControlFlowGraphVisualizer
 		while (iterator.hasNext())
 		{
 			final L2PcOperand edge = iterator.next();
-			final StringBuilder builder = new StringBuilder();
 			final L2BasicBlock sourceBlock = edge.sourceBlock();
 			final L2Instruction last = sourceBlock.finalInstruction();
-			final L2NamedOperandType[] types = last.operation.operandTypes();
-			final L2Operand[] operands = last.operands;
+			final L2NamedOperandType[] types = last.operation().operandTypes();
+			final L2Operand[] operands = last.operands();
 			int i;
 			for (i = 0; i < operands.length; i++)
 			{
 				// Find the L2PcOperand corresponding to this edge.
-				final L2Operand operand = operands[i];
+				final L2Operand operand = last.operand(i);
 				if (operand.operandType() == PC
 					&& ((L2PcOperand) operand).targetBlock() == targetBlock)
 				{
@@ -439,6 +436,7 @@ public class L2ControlFlowGraphVisualizer
 			//
 			// In particular, Courier, Arial, Helvetica, and Times are
 			// supported.
+			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				"<table border=\"0\" cellspacing=\"0\">"
 					+ "<tr><td balign=\"left\">"

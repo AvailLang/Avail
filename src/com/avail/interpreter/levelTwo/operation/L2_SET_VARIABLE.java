@@ -135,10 +135,10 @@ extends L2ControlFlowOperation
 			// be able to avoid the check.
 			translator.addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
-				instruction.operands[0],
-				instruction.operands[1],
-				instruction.operands[2],
-				instruction.operands[3]);
+				instruction.operand(0),
+				instruction.operand(1),
+				instruction.operand(2),
+				instruction.operand(3));
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, translator);
@@ -156,7 +156,7 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister valueReg =
@@ -213,7 +213,7 @@ extends L2ControlFlowOperation
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);
 		// ::    goto failure;
-		translator.branch(method, instruction, failure);
+		translator.jump(method, instruction, failure);
 		// :: }
 	}
 }

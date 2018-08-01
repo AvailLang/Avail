@@ -141,8 +141,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand elements = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand elements = instruction.operand(0);
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(1).register();
 

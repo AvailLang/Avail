@@ -91,6 +91,13 @@ public final class L2Inliner
 		public void doOperand (final L2ConstantOperand operand) { }
 
 		@Override
+		public void doOperand (final L2InternalCounterOperand operand)
+		{
+			// Create a new counter.
+			currentOperand = new L2InternalCounterOperand();
+		}
+
+		@Override
 		public void doOperand (final L2IntImmediateOperand operand) { }
 
 		@Override

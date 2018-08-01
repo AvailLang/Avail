@@ -79,7 +79,7 @@ extends L2Operation
 		final L2IntRegister destinationReg =
 			instruction.writeIntRegisterAt(1).register();
 
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(destinationReg);

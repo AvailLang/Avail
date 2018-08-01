@@ -80,8 +80,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand targetReg = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand targetReg = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

@@ -205,10 +205,8 @@ public final class L2Translator
 
 		for (final L2Instruction instruction : instructions)
 		{
-			for (final L2Operand operand : instruction.operands)
-			{
-				operand.dispatchOperand(registerCounter);
-			}
+			instruction.operandsDo(
+				operand -> operand.dispatchOperand(registerCounter));
 		}
 
 		final int afterPrimitiveOffset =
@@ -394,6 +392,9 @@ public final class L2Translator
 
 		@Override
 		public void doOperand (final L2PrimitiveOperand operand) { }
+
+		@Override
+		public void doOperand (final L2InternalCounterOperand operand) { }
 
 		@Override
 		public void doOperand (final L2ReadIntOperand operand)

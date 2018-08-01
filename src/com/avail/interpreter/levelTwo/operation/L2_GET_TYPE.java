@@ -128,7 +128,7 @@ extends L2Operation
 	public static L2ReadPointerOperand sourceValueOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readObjectRegisterAt(0);
 	}
 
@@ -138,7 +138,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2ObjectRegister valueReg =
 			instruction.readObjectRegisterAt(0).register();
 		final L2ObjectRegister typeReg =

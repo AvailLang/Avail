@@ -94,7 +94,7 @@ extends L2ControlFlowOperation
 	 */
 	public static L2PcOperand jumpTarget (final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.pcAt(0);
 	}
 
@@ -107,6 +107,6 @@ extends L2ControlFlowOperation
 		final L2PcOperand target = instruction.pcAt(0);
 
 		// :: goto offset;
-		translator.branch(method, instruction, target);
+		translator.jump(method, instruction, target);
 	}
 }

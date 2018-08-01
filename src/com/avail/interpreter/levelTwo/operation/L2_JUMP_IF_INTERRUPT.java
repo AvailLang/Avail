@@ -106,7 +106,8 @@ extends L2ConditionalJump
 			"isInterruptRequested",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		translator.branch(
+		emitBranch(
+			translator,
 			method,
 			instruction,
 			IFNE,

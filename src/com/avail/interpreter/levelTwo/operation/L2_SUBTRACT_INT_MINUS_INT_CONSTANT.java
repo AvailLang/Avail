@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -89,11 +88,10 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
+		assert this == instruction.operation();
 		final L2IntRegister minuend =
 			instruction.readIntRegisterAt(0).register();
-		final L2Operand subtrahend = operands[1];
+		final int subtrahend = instruction.intImmediateAt(1);
 		final L2IntRegister difference =
 			instruction.writeIntRegisterAt(2).register();
 //		final L2PcOperand inRange = instruction.pcAt(3);
@@ -156,6 +154,6 @@ extends L2ControlFlowOperation
 			intDifferenceEnd,
 			intDifferenceLocal);
 		translator.store(method, differenceReg);
-		translator.branch(method, instruction, inRange);
+		translator.jump(method, instruction, inRange);
 	}
 }

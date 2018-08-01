@@ -565,7 +565,7 @@ extends Descriptor
 	@InnerAccess static final Set<A_RawFunction> activeRawFunctions =
 		Collections.synchronizedSet(
 			Collections.newSetFromMap(
-				new WeakHashMap<A_RawFunction, Boolean>()));
+				new WeakHashMap<>()));
 
 	/**
 	 * Reset the code coverage details of all {@link A_RawFunction}s by

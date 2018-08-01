@@ -145,11 +145,10 @@ extends L2ConditionalJump
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
+		assert this == instruction.operation();
 		final L2ObjectRegister valueRegister =
 			instruction.readObjectRegisterAt(0).register();
-		final L2Operand constant = operands[1];
+		final A_BasicObject constant = instruction.constantAt(1);
 //		final L2PcOperand isKind = instruction.pcAt(2);
 //		final L2PcOperand notKind = instruction.pcAt(3);
 
@@ -183,6 +182,6 @@ extends L2ConditionalJump
 			"isInstanceOf",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
 			true);
-		translator.branch(method, instruction, IFNE, isKind, notKind);
+		emitBranch(translator, method, instruction, IFNE, isKind, notKind);
 	}
 }

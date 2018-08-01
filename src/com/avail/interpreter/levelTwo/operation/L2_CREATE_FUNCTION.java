@@ -191,7 +191,7 @@ extends L2Operation
 	public A_RawFunction getConstantCodeFrom (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.constantAt(0);
 	}
 
@@ -201,8 +201,8 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand code = instruction.operands[0];
+		assert this == instruction.operation();
+		final L2Operand code = instruction.operand(0);
 		final List<L2ReadPointerOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
 		final L2ObjectRegister newFunctionReg =

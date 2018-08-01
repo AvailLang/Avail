@@ -309,7 +309,7 @@ implements L1OperationDispatcher
 				final L2BasicBlock predecessorBlock =
 					predecessorEdge.sourceBlock();
 				final L2Instruction jump = predecessorBlock.finalInstruction();
-				if (jump.operation == L2_JUMP.instance)
+				if (jump.operation() == L2_JUMP.instance)
 				{
 					// The new block has only one predecessor, which
 					// unconditionally jumps to it.  Remove the jump and
@@ -2222,7 +2222,7 @@ implements L1OperationDispatcher
 				constantValue.equals(AtomDescriptor.trueObject());
 			final L2Instruction boolSource =
 				registerToTest.register().definitionSkippingMoves();
-			if (boolSource.operation == L2_RUN_INFALLIBLE_PRIMITIVE.instance)
+			if (boolSource.operation() == L2_RUN_INFALLIBLE_PRIMITIVE.instance)
 			{
 				final Primitive primitive =
 					L2_RUN_INFALLIBLE_PRIMITIVE.primitiveOf(boolSource);
@@ -2279,7 +2279,7 @@ implements L1OperationDispatcher
 					{
 						final L2Instruction typeSource =
 							args.get(0).register().definitionSkippingMoves();
-						if (typeSource.operation == L2_GET_TYPE.instance)
+						if (typeSource.operation() == L2_GET_TYPE.instance)
 						{
 							// There's a get-type followed by an is-subtype
 							// followed by a compare-and-branch of the result
@@ -2782,7 +2782,7 @@ implements L1OperationDispatcher
 		// was created from.
 		final L2Instruction functionDefinition =
 			functionToCallReg.register().definitionSkippingMoves();
-		return functionDefinition.operation.getConstantCodeFrom(
+		return functionDefinition.operation().getConstantCodeFrom(
 			functionDefinition);
 	}
 
@@ -2853,7 +2853,7 @@ implements L1OperationDispatcher
 		// creation.
 		final L2Instruction tupleDefinitionInstruction =
 			tupleReg.register().definitionSkippingMoves();
-		if (tupleDefinitionInstruction.operation == L2_CREATE_TUPLE.instance)
+		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
 		{
 			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
 				tupleDefinitionInstruction);

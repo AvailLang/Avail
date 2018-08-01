@@ -246,7 +246,7 @@ public abstract class L2Operation
 	 */
 	public boolean hasSideEffect (final L2Instruction instruction)
 	{
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		return hasSideEffect();
 	}
 
@@ -342,7 +342,7 @@ public abstract class L2Operation
 		final L2Operand[] transformedOperands,
 		final L2Inliner inliner)
 	{
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		inliner.emitInstruction(this, transformedOperands);
 	}
 
@@ -370,7 +370,7 @@ public abstract class L2Operation
 		final L1Translator translator)
 	{
 		// By default just produce the same instruction.
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		translator.addInstruction(instruction);
 		return false;
 	}
@@ -402,7 +402,7 @@ public abstract class L2Operation
 		final A_Type outerType,
 		final L1Translator translator)
 	{
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		final L2WritePointerOperand writer =
 			translator.newObjectRegisterWriter(restriction(outerType));
 		translator.addInstruction(
@@ -425,7 +425,7 @@ public abstract class L2Operation
 	public @Nullable A_RawFunction getConstantCodeFrom (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		return null;
 	}
 
@@ -445,7 +445,7 @@ public abstract class L2Operation
 	public @Nullable L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == this;
+		assert instruction.operation() == this;
 		return null;
 	}
 
@@ -489,7 +489,7 @@ public abstract class L2Operation
 		final L2Instruction instruction,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final int offset = instruction.offset();
 		if (offset != -1)
 		{
@@ -521,14 +521,14 @@ public abstract class L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2Operand[] operands = instruction.operands;
+		final L2Operand[] operands = instruction.operands();
 		final L2NamedOperandType[] types = operandTypes();
 		for (int i = start, limit = operands.length; i < limit; i++)
 		{
 			final L2NamedOperandType type = types[i];
 			if (desiredTypes.contains(type.operandType()))
 			{
-				final L2Operand operand = operands[i];
+				final L2Operand operand = instruction.operand(i);
 				builder.append("\n\t");
 				assert operand.operandType() == type.operandType();
 				builder.append(type.name());
@@ -557,16 +557,16 @@ public abstract class L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		final L2NamedOperandType[] types = operandTypes();
-		final L2Operand[] operands = instruction.operands;
+		final L2Operand[] operands = instruction.operands();
 		for (int i = 0, limit = operands.length; i < limit; i++)
 		{
 			final L2NamedOperandType type = types[i];
 			if (desiredTypes.contains(type.operandType()))
 			{
-				final L2Operand operand = operands[i];
+				final L2Operand operand = instruction.operand(i);
 				builder.append("\n\t");
 				assert operand.operandType() == type.operandType();
 				builder.append(type.name());
@@ -592,4 +592,18 @@ public abstract class L2Operation
 		JVMTranslator translator,
 		MethodVisitor method,
 		L2Instruction instruction);
+
+	/**
+	 * Augment the array of operands with any that are supposed to be supplied
+	 * implicitly by this class.
+	 *
+	 * @param operands The origginal array of {@link L2Operand}s.
+	 * @return The augmented array of {@link L2Operand}s, which may be the same
+	 *         as the given array.
+	 */
+	public L2Operand[] augment (
+		final L2Operand[] operands)
+	{
+		return operands;
+	}
 }

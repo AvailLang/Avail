@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
@@ -41,6 +42,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
@@ -49,6 +51,7 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Casts;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Collections;
@@ -59,6 +62,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY
 	.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
@@ -157,10 +161,14 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
-		final L2Operand[] operands = instruction.operands;
-		final L2Operand continuationReg = operands[0];
-		final L2Operand argumentsVector = operands[1];
+		assert this == instruction.operation();
+		final L2Operand continuationReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ReadVectorOperand<
+				L2ReadPointerOperand,
+				L2ObjectRegister,
+				A_BasicObject>
+			argumentsVector = cast(instruction.operand(1));
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

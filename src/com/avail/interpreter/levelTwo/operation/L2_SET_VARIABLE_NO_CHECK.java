@@ -136,7 +136,7 @@ extends L2ControlFlowOperation
 //		final int successIndex = instruction.pcOffsetAt(2);
 //		final L2PcOperand failure = instruction.pcAt(3);
 
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(" ↓");
 		builder.append(variableReg);
@@ -186,7 +186,7 @@ extends L2ControlFlowOperation
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);
 		// ::    goto failure;
-		translator.branch(method, instruction, failure);
+		translator.jump(method, instruction, failure);
 		// :: }
 	}
 }

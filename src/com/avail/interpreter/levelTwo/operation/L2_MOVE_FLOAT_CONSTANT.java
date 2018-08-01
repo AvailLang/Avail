@@ -92,7 +92,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final double constant = instruction.floatImmediateAt(0);
 		final L2FloatRegister destinationFloatReg =
 			instruction.writeFloatRegisterAt(1).register();

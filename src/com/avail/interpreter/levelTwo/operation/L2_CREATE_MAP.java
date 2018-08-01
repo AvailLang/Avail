@@ -84,7 +84,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final List<L2ReadPointerOperand> keysVector =
 			instruction.readVectorRegisterAt(0);
 		final List<L2ReadPointerOperand> valuesVector =

@@ -223,7 +223,7 @@ public final class L2BasicBlock
 			for (int i = 0; i < instructions.size(); i++)
 			{
 				final L2Instruction instruction = instructions.get(i);
-				if (instruction.operation.isPhi())
+				if (instruction.operation().isPhi())
 				{
 					final L2Instruction replacement =
 						L2_PHI_PSEUDO_OPERATION.withoutIndex(
@@ -387,7 +387,7 @@ public final class L2BasicBlock
 	{
 		assert !hasControlFlowAtEnd;
 		assert instruction.basicBlock == this;
-		if (instruction.operation.isPhi())
+		if (instruction.operation().isPhi())
 		{
 			// For simplicity, phi functions are routed to the *start* of the
 			// block.
@@ -472,7 +472,7 @@ public final class L2BasicBlock
 			{
 				final L2Instruction previousInstruction =
 					output.get(output.size() - 1);
-				if (previousInstruction.operation instanceof L2_JUMP)
+				if (previousInstruction.operation() instanceof L2_JUMP)
 				{
 					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
 						== this)

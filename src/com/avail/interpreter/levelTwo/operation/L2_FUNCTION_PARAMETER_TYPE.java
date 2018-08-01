@@ -117,7 +117,7 @@ extends L2Operation
 		if (sources.size() == 1)
 		{
 			final L2Instruction source = sources.get(0);
-			if (source.operation == L2_CREATE_FUNCTION.instance)
+			if (source.operation() == L2_CREATE_FUNCTION.instance)
 			{
 				final A_RawFunction code = sources.get(0).constantAt(0);
 				final A_Type functionType = code.functionType();
@@ -162,7 +162,7 @@ extends L2Operation
 			{
 				// Exactly one instruction provides the function.
 				final L2Instruction closeInstruction = sources.get(0);
-				if (closeInstruction.operation instanceof L2_CREATE_FUNCTION)
+				if (closeInstruction.operation() instanceof L2_CREATE_FUNCTION)
 				{
 					// The creation of the function is visible.  We can get to
 					// the code, which gives a precise functionType (a kind, not
@@ -193,7 +193,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2Operand function = instruction.readObjectRegisterAt(0);
 		final int paramIndex = instruction.intImmediateAt(1);
 		final L2ObjectRegister outputParamTypeReg =

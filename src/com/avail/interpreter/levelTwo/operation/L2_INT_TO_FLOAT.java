@@ -75,7 +75,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2IntRegister sourceReg =
 			instruction.readIntRegisterAt(0).register();
 		final L2FloatRegister destinationReg =

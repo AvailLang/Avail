@@ -120,13 +120,14 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2Operand[] operands = instruction.operands;
-		final L2Operand calledFunctionReg = operands[0];
-		final L2Operand argsRegsList = operands[1];
+		final L2ReadPointerOperand calledFunctionReg =
+			instruction.readObjectRegisterAt(0);
+		final List<L2ReadPointerOperand> argsRegsList =
+			instruction.readVectorRegisterAt(1);
 //		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 //		final L2PcOperand onReification = instruction.pcAt(3);
 
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(calledFunctionReg);

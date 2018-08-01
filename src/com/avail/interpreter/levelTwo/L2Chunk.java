@@ -197,7 +197,7 @@ implements ExecutableChunk
 		private final Set<L2Chunk> chunks =
 			Collections.synchronizedSet(
 				Collections.newSetFromMap(
-					new WeakHashMap<L2Chunk, Boolean>()));
+					new WeakHashMap<>()));
 
 		/**
 		 * Record a newly created chunk in the latest generation, triggering

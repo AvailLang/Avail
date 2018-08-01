@@ -144,13 +144,13 @@ public final class P_CastIntoElse extends Primitive
 		}
 		final L2Instruction originOfFunction =
 			functionReg.register().definitionSkippingMoves();
-		if (originOfFunction.operation instanceof L2_MOVE_CONSTANT)
+		if (originOfFunction.operation() instanceof L2_MOVE_CONSTANT)
 		{
 			final A_Function function = originOfFunction.constantAt(0);
 			final A_Type functionType = function.code().functionType();
 			return functionType.argsTupleType().typeAtIndex(1);
 		}
-		if (originOfFunction.operation instanceof L2_CREATE_FUNCTION)
+		if (originOfFunction.operation() instanceof L2_CREATE_FUNCTION)
 		{
 			final A_RawFunction code = originOfFunction.constantAt(0);
 			final A_Type functionType = code.functionType();

@@ -137,7 +137,7 @@ extends L2Operation
 	private static L2ReadFloatOperand sourceOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation == instance;
+		assert instruction.operation() == instance;
 		return instruction.readFloatRegisterAt(0);
 	}
 
@@ -147,7 +147,7 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		assert this == instruction.operation;
+		assert this == instruction.operation();
 		final L2FloatRegister sourceReg =
 			instruction.readFloatRegisterAt(0).register();
 		final L2FloatRegister destinationReg =
