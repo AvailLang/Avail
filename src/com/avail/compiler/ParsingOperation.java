@@ -115,8 +115,6 @@ public enum ParsingOperation
 		{
 			// Push an empty list phrase and continue.
 			assert successorTrees.tupleSize() == 1;
-			final List<A_Phrase> newArgsSoFar =
-				append(argsSoFar, emptyListNode());
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -125,7 +123,7 @@ public enum ParsingOperation
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				newArgsSoFar,
+				append(argsSoFar, emptyListNode()),
 				marksSoFar,
 				continuation);
 		}
@@ -158,9 +156,6 @@ public enum ParsingOperation
 			final A_Phrase value = last(argsSoFar);
 			final List<A_Phrase> poppedOnce = withoutLast(argsSoFar);
 			final A_Phrase oldNode = last(poppedOnce);
-			final A_Phrase listNode = oldNode.copyWith(value);
-			final List<A_Phrase> newArgsSoFar =
-				append(withoutLast(poppedOnce), listNode);
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -169,7 +164,7 @@ public enum ParsingOperation
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				newArgsSoFar,
+				append(withoutLast(poppedOnce), oldNode.copyWith(value)),
 				marksSoFar,
 				continuation);
 		}
@@ -200,7 +195,6 @@ public enum ParsingOperation
 				firstArgOrNull == null
 					? start.position()
 					: initialTokenPosition.position();
-			final List<Integer> newMarksSoFar = append(marksSoFar, marker);
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -210,7 +204,7 @@ public enum ParsingOperation
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
-				newMarksSoFar,
+				append(marksSoFar, marker),
 				continuation);
 		}
 	},
@@ -281,8 +275,6 @@ public enum ParsingOperation
 				return;
 			}
 			final int newMarker = start.position();
-			final List<Integer> newMarksSoFar =
-				append(withoutLast(marksSoFar), newMarker);
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -292,7 +284,7 @@ public enum ParsingOperation
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
-				newMarksSoFar,
+				append(withoutLast(marksSoFar), newMarker),
 				continuation);
 		}
 	},
@@ -335,8 +327,6 @@ public enum ParsingOperation
 					partialSubexpressionList,
 					solution ->
 					{
-						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTree,
@@ -350,7 +340,7 @@ public enum ParsingOperation
 							// consumedAnythingBeforeLatestArgument.
 							consumedAnything,
 							consumedStaticTokens,
-							newArgsSoFar,
+							append(argsSoFar, solution.phrase()),
 							marksSoFar,
 							continuation);
 					}));
@@ -403,8 +393,6 @@ public enum ParsingOperation
 					partialSubexpressionList,
 					solution ->
 					{
-						final List<A_Phrase> newArgsSoFar =
-							append(argsSoFar, solution.phrase());
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTrees.tupleAt(1),
@@ -418,7 +406,7 @@ public enum ParsingOperation
 							// consumedAnythingBeforeLatestArgument.
 							consumedAnything,
 							consumedStaticTokens,
-							newArgsSoFar,
+							append(argsSoFar, solution.phrase()),
 							marksSoFar,
 							continuation);
 					}));
@@ -1096,7 +1084,7 @@ public enum ParsingOperation
 				final List<Integer> marksSoFar,
 				final ParserState initialTokenPosition,
 				final boolean consumedAnything,
-			final boolean consumedAnythingBeforeLatestArgument,
+				final boolean consumedAnythingBeforeLatestArgument,
 				final List<A_Token> consumedStaticTokens,
 				final Con1 continuation)
 			{
@@ -1257,8 +1245,6 @@ public enum ParsingOperation
 				replacementExpression ->
 				{
 					assert sanityFlag.compareAndSet(false, true);
-					final List<A_Phrase> newArgsSoFar =
-						append(withoutLast(argsSoFar), replacementExpression);
 					compiler.eventuallyParseRestOfSendNode(
 						start,
 						successorTrees.tupleAt(1),
@@ -1267,7 +1253,7 @@ public enum ParsingOperation
 						consumedAnything,
 						consumedAnythingBeforeLatestArgument,
 						consumedStaticTokens,
-						newArgsSoFar,
+						append(withoutLast(argsSoFar), replacementExpression),
 						marksSoFar,
 						continuation);
 				},
@@ -1330,8 +1316,6 @@ public enum ParsingOperation
 				stackCopy = append(withoutLast(poppedOnce), listNode);
 			}
 			assert stackCopy.size() == 1;
-			final A_Phrase newListNode = stackCopy.get(0);
-			final List<A_Phrase> newStack = append(argsSoFar, newListNode);
 			for (final A_BundleTree successorTree : successorTrees)
 			{
 				compiler.eventuallyParseRestOfSendNode(
@@ -1342,7 +1326,7 @@ public enum ParsingOperation
 					consumedAnything,
 					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
-					newStack,
+					append(argsSoFar, stackCopy.get(0)),
 					marksSoFar,
 					continuation);
 			}
@@ -1391,22 +1375,17 @@ public enum ParsingOperation
 			final int prefixIndex = operand(instruction);
 			final A_Function prefixFunction =
 				prefixFunctions.tupleAt(prefixIndex);
-			final A_Phrase prefixArgumentsList = last(argsSoFar);
-			final List<A_Phrase> withoutPrefixArguments =
-				withoutLast(argsSoFar);
-			final List<AvailObject> listOfArgs = toList(
-				prefixArgumentsList.expressionsTuple());
 			compiler.runPrefixFunctionThen(
 				start,
 				successorTree,
 				prefixFunction,
-				listOfArgs,
+				toList(last(argsSoFar).expressionsTuple()),
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				withoutPrefixArguments,
+				withoutLast(argsSoFar),
 				marksSoFar,
 				continuation);
 		}
@@ -1657,7 +1636,6 @@ public enum ParsingOperation
 				initialTokenPosition.position(),
 				initialTokenPosition.lineNumber(),
 				constant);
-			final A_Phrase literalNode = literalNodeFromToken(token);
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -1666,7 +1644,7 @@ public enum ParsingOperation
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				append(argsSoFar, literalNode),
+				append(argsSoFar, literalNodeFromToken(token)),
 				marksSoFar,
 				continuation);
 		}
