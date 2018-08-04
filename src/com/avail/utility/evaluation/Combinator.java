@@ -46,7 +46,7 @@ public final class Combinator
 	 * continuation from within itself (either in the same {@link Thread} or
 	 * another).  This bypasses a Java Catch-22 whereby only final variables can
 	 * be accessed from a lambda, but the lambda can't be stored in a final
-	 * variable if its definition referes to that variable.</p>
+	 * variable if its definition refers to that variable.</p>
 	 *
 	 * @param body
 	 *        The {@link Continuation1NotNull} itself.
@@ -67,7 +67,7 @@ public final class Combinator
 	 * continuation from within itself (either in the same {@link Thread} or
 	 * another).  This bypasses a Java Catch-22 whereby only final variables can
 	 * be accessed from a lambda, but the lambda can't be stored in a final
-	 * variable if its definition referes to that variable.</p>
+	 * variable if its definition refers to that variable.</p>
 	 *
 	 * @param argument
 	 *        The first argument to pass to the body.
