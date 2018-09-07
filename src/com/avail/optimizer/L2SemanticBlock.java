@@ -76,9 +76,10 @@ import static com.avail.descriptor.AvailObject.multiplier;
  */
 public final class L2SemanticBlock
 {
-	/**
-	 * The {@link Frame} in which the basic block occurs.
-	 */
+	/** The descriptive name of this semantic block. */
+	public final String name;
+
+	/** The {@link Frame} in which the basic block occurs. */
 	public final Frame frame;
 
 	/**
@@ -109,6 +110,8 @@ public final class L2SemanticBlock
 	/**
 	 * Construct a new {@code L2SemanticBlock}.
 	 *
+	 * @param name
+	 *        A descriptive name for this semantic block.
 	 * @param frame
 	 *        The {@link Frame} for which this block is generated
 	 * @param pc
@@ -119,10 +122,12 @@ public final class L2SemanticBlock
 	 *        code-splitting is occurring.
 	 */
 	L2SemanticBlock (
+		final String name,
 		final Frame frame,
 		final int pc,
 		final Map<L2SemanticValue, TypeRestriction<?>> requestedRestrictions)
 	{
+		this.name = name;
 		this.frame = frame;
 		this.pc = pc;
 		this.requestedRestrictions = new HashMap<>(requestedRestrictions);
@@ -161,6 +166,6 @@ public final class L2SemanticBlock
 	@Override
 	public String toString ()
 	{
-		return "SemanticBlock(" + frame + "@" + pc + ")";
+		return "SemanticBlock(" + name + ", " + frame + "@" + pc + ")";
 	}
 }

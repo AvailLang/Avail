@@ -44,7 +44,7 @@ Body
  *
  * @method "foundation test suite"
  * @returns "atom"
- *          The requsted test suite identifier.
+ *          The requested test suite identifier.
  */
 Public method "Foundation|foundation test suite" is [$"foundation test suite"];
 

@@ -40,12 +40,13 @@ import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.serialization.Serializer;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.utility.evaluation.Transformer2NotNull;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -61,15 +62,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSortedMap;
 
 /**
  * An {@code IndexedRepositoryManager} manages a persistent {@linkplain
@@ -78,7 +83,7 @@ import static java.util.Collections.unmodifiableList;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class IndexedRepositoryManager
+public class IndexedRepositoryManager implements Closeable
 {
 	/** The {@linkplain Logger logger}. */
 	public static final Logger logger = Logger.getLogger(
@@ -232,13 +237,9 @@ public class IndexedRepositoryManager
 	 * false to cause on open attempt to fail.  The first argument is the file's
 	 * version, and the second is the code's version.
 	 */
-	static final Transformer2<Integer, Integer, Boolean> versionCheck =
+	static final Transformer2NotNull<Integer, Integer, Boolean> versionCheck =
 		(fileVersion, codeVersion) ->
-		{
-			assert fileVersion != null;
-			assert codeVersion != null;
-			return fileVersion.intValue() == codeVersion.intValue();
-		};
+			fileVersion.intValue() == codeVersion.intValue();
 
 	/**
 	 * A {@link Map} which discards the oldest entry whenever an attempt is made
@@ -257,7 +258,7 @@ public class IndexedRepositoryManager
 		final int maximumSize;
 
 		/**
-		 * Construct a new {@code LimitedCache} with * the given maximum size.
+		 * Construct a new {@code LimitedCache} with the given maximum size.
 		 *
 		 * @param maximumSize The maximum cache size.
 		 */
@@ -293,7 +294,7 @@ public class IndexedRepositoryManager
 			new LinkedHashMap<>(maxRecordedVersionsPerModule, 0.75f, true);
 
 		/** This module's name, relative to its root. */
-		@InnerAccess final String rootRelativeName;
+		final String rootRelativeName;
 
 		/**
 		 * A {@link LimitedCache} used to avoid computing digests of files when
@@ -524,6 +525,23 @@ public class IndexedRepositoryManager
 		{
 			versions.clear();
 		}
+
+		/**
+		 * Answer an immutable {@link Map} from {@link ModuleVersionKey} to
+		 * {@link ModuleVersion}, containing entries for every version still
+		 * tracked by this {@code ModuleArchive}.
+		 *
+		 * @return An immutable {@link Map} from {@link ModuleVersionKey} to
+		 *         {@link ModuleVersion}.
+		 */
+		public SortedMap<ModuleVersionKey, ModuleVersion> getAllKnownVersions ()
+		{
+			final Map<ModuleVersionKey, ModuleVersion> map =
+				lockWhile(
+					lock,
+					() -> new HashMap<>(versions));
+			return unmodifiableSortedMap(new TreeMap<>(map));
+		}
 	}
 
 	/**
@@ -531,7 +549,7 @@ public class IndexedRepositoryManager
 	 * whether the module's name refers to a package (a directory), and the
 	 * digest of the file's contents.
 	 */
-	public static class ModuleVersionKey
+	public static class ModuleVersionKey implements Comparable<ModuleVersionKey>
 	{
 		/**
 		 * Is the {@linkplain ModuleDescriptor module} a package
@@ -564,9 +582,9 @@ public class IndexedRepositoryManager
 		private int computeHash ()
 		{
 			int h = isPackage ? 0xDEAD_BEEF : 0xA_CABBA6E;
-			for (final byte aSourceDigest : sourceDigest)
+			for (final byte digestByte : sourceDigest)
 			{
-				h = h * multiplier + aSourceDigest;
+				h = h * multiplier + digestByte;
 			}
 			return h;
 		}
@@ -646,6 +664,31 @@ public class IndexedRepositoryManager
 			this.sourceDigest = sourceDigest.clone();
 			this.isPackage = moduleName.isPackage();
 			this.hash = computeHash();
+		}
+
+		public String shortString ()
+		{
+			final byte[] prefix = Arrays.copyOf(sourceDigest, 3);
+			return DatatypeConverter.printHexBinary(prefix);
+		}
+
+		@Override
+		public int compareTo (final ModuleVersionKey other)
+		{
+			for (
+				int i = 0;
+				i < sourceDigest.length && i < other.sourceDigest.length;
+				i++)
+			{
+				// Compare as unsigned bytes.
+				final int d =
+					(sourceDigest[i] & 255) - (other.sourceDigest[i] & 255);
+				if (d != 0)
+				{
+					return d;
+				}
+			}
+			return sourceDigest.length - other.sourceDigest.length;
 		}
 	}
 
@@ -804,6 +847,20 @@ public class IndexedRepositoryManager
 			compilations = new LimitedCache<>(maxHistoricalVersionCompilations);
 
 		/**
+		 * Answer an immutable {@link List} of compilations for this module
+		 * version. There may be multiple compilations due to changes in
+		 * ancestor module versions that forced this module to be recompiled.
+		 *
+		 * @return A list of all {@link ModuleCompilation}s of this version.
+		 */
+		public List<ModuleCompilation> allCompilations ()
+		{
+			return lockWhile(
+				lock,
+				() -> unmodifiableList(new ArrayList<>(compilations.values())));
+		}
+
+		/**
 		 * Look up the {@link ModuleCompilation} associated with the provided
 		 * {@link ModuleCompilationKey}, answering {@code null} if unavailable.
 		 *
@@ -856,12 +913,13 @@ public class IndexedRepositoryManager
 		 */
 		public void putModuleHeader (final byte[] bytes)
 		{
-			// Write the serialized data to the end of the repository.
-			final IndexedRepository repo = repository();
+			//noinspection Duplicates
 			lockWhile(
 				lock,
 				() ->
 				{
+					// Write the serialized data to the end of the repository.
+					final IndexedRepository repo = repository();
 					moduleHeaderRecordNumber = repo.size();
 					repo.add(bytes);
 					markDirty();
@@ -900,12 +958,13 @@ public class IndexedRepositoryManager
 		 */
 		public void putComments (final byte[] bytes)
 		{
-			// Write the comment tuple to the end of the repository.
-			final IndexedRepository repo = repository();
+			//noinspection Duplicates
 			lockWhile(
 				lock,
 				() ->
 				{
+					// Write the comment tuple to the end of the repository.
+					final IndexedRepository repo = repository();
 					stacksRecordNumber = repo.size();
 					repo.add(bytes);
 					markDirty();
@@ -1116,10 +1175,18 @@ public class IndexedRepositoryManager
 			final long compilationTime,
 			final byte [] bytes)
 		{
-			this.compilationTime = compilationTime;
-			final IndexedRepository repo = repository();
-			this.recordNumber = repo.size();
-			repo.add(bytes);
+			lock.lock();
+			try
+			{
+				this.compilationTime = compilationTime;
+				final IndexedRepository repo = repository();
+				this.recordNumber = repo.size();
+				repo.add(bytes);
+			}
+			finally
+			{
+				lock.unlock();
+			}
 		}
 	}
 
@@ -1144,6 +1211,22 @@ public class IndexedRepositoryManager
 			lock,
 			() -> moduleMap.computeIfAbsent(
 				rootRelativeName, ModuleArchive::new));
+	}
+
+	/**
+	 * Produce an alphabetized list of all modules known to this repository.
+	 *
+	 * @return An immutable {@link List} of {@link ModuleArchive}s.
+	 */
+	List<ModuleArchive> getAllArchives ()
+	{
+		return unmodifiableList(
+			lockWhile(
+				lock,
+				() -> moduleMap.entrySet().stream()
+					.sorted(Entry.comparingByKey())
+					.map(Entry::getValue)
+					.collect(Collectors.toList())));
 	}
 
 	/**
@@ -1245,7 +1328,7 @@ public class IndexedRepositoryManager
 						{
 							binaryStream.writeInt(moduleMap.size());
 							for (final ModuleArchive moduleArchive :
-								moduleMap .values())
+								moduleMap.values())
 							{
 								moduleArchive.write(binaryStream);
 							}
@@ -1297,6 +1380,7 @@ public class IndexedRepositoryManager
 	/**
 	 * Close the underlying {@linkplain IndexedRepository indexed repository}.
 	 */
+	@Override
 	public void close ()
 	{
 		lockWhile(

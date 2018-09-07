@@ -51,13 +51,14 @@ extends AbstractWorkbenchAction
 	{
 		assert workbench.backgroundTask == null;
 
-		final String selectedEntryPoint = workbench.selectedEntryPoint();
+		final @Nullable String selectedEntryPoint =
+			workbench.selectedEntryPoint();
 		if (selectedEntryPoint == null)
 		{
 			return;
 		}
 
-		final ResolvedModuleName moduleName =
+		final @Nullable ResolvedModuleName moduleName =
 			workbench.selectedEntryPointModule();
 		if (moduleName == null)
 		{
@@ -71,7 +72,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link CreateProgramAction}.
+	 * Construct a new {@code CreateProgramAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

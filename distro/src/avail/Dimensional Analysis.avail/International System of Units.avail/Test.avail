@@ -48,7 +48,7 @@ Body
  *
  * @method "SI test suite"
  * @returns "atom"
- *          The requsted test suite identifier.
+ *          The requested test suite identifier.
  */
 Public method "SI test suite" is [$"SI test suite"];
 

@@ -99,15 +99,12 @@ import static com.avail.compiler.PragmaKind.pragmaKindByLexeme;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
@@ -116,11 +113,9 @@ import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
@@ -128,8 +123,7 @@ import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -4188,10 +4182,6 @@ public final class AvailCompiler
 					// so that module constants can have types as strong as the
 					// actual values produced by running their initialization
 					// expressions.
-					final Map<A_Phrase, A_Phrase> declarationRemap =
-						new HashMap<>();
-					final Iterator<A_Phrase> simpleStatementIterator =
-						simpleStatements.iterator();
 
 					// What to do after running all these simple statements.
 					final Continuation0 resumeParsing = () ->
@@ -4207,6 +4197,10 @@ public final class AvailCompiler
 
 					compilationContext.loader().setPhase(EXECUTING_FOR_COMPILE);
 					// Run the simple statements in succession.
+					final Iterator<A_Phrase> simpleStatementIterator =
+						simpleStatements.iterator();
+					final Map<A_Phrase, A_Phrase> declarationRemap =
+						new HashMap<>();
 					recurse(
 						executeNextSimpleStatement ->
 						{
@@ -4319,9 +4313,8 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Parse a command, compiling it into the current {@linkplain
-	 * ModuleDescriptor module}, from the {@linkplain
-	 * TokenDescriptor token} list.
+	 * Parse a command, compiling it into the current {@link ModuleDescriptor
+	 * module}, from the {@linkplain TokenDescriptor token} list.
 	 *
 	 * @param onSuccess
 	 *        What to do after compilation succeeds. This {@linkplain

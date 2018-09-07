@@ -108,6 +108,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import static com.avail.builder.ModuleNameResolver.availExtension;
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
 import static com.avail.utility.Locks.lockWhile;
@@ -1081,10 +1082,10 @@ extends JFrame
 		new ResetVMReportDataAction(this);
 
 	/** The {@linkplain ShowCCReportAction show CC report action}. */
-	@InnerAccess final @Nullable ShowCCReportAction showCCReportAction;
+	@InnerAccess final ShowCCReportAction showCCReportAction;
 
 	/** The {@linkplain ResetCCReportDataAction reset CC report data action}. */
-	@InnerAccess final @Nullable ResetCCReportDataAction
+	@InnerAccess final ResetCCReportDataAction
 		resetCCReportDataAction;
 
 	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
@@ -1125,8 +1126,7 @@ extends JFrame
 		new ToggleDebugWorkUnits(this);
 
 	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
-	@InnerAccess
-	final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
+	@InnerAccess final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
@@ -1144,8 +1144,16 @@ extends JFrame
 		new TraceLoadedStatementsAction(this);
 
 	/** The {@linkplain ParserIntegrityCheckAction}. */
-	@InnerAccess final @Nullable ParserIntegrityCheckAction
+	@InnerAccess final ParserIntegrityCheckAction
 		parserIntegrityCheckAction;
+
+	/** The {@linkplain ExamineRepositoryAction}. */
+	@InnerAccess final ExamineRepositoryAction
+		examineRepositoryAction;
+
+	/** The {@linkplain ExamineCompilationAction}. */
+	@InnerAccess final ExamineCompilationAction
+		examineCompilationAction;
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
 	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
@@ -1208,14 +1216,14 @@ extends JFrame
 				&& selectedEntryPointModule != null
 				&& availBuilder.getLoadedModule(selectedEntryPointModule)
 					!= null);
+		examineRepositoryAction.setEnabled(
+			!busy && selectedModuleRootNode() != null);
+		examineCompilationAction.setEnabled(
+			!busy && selectedModule() != null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
-		inputLabel.setText(isRunning
-			? "Console Input:"
-			: "Command:");
-		inputField.setBackground(isRunning
-			? new Color(192, 255, 192)
-			: null);
+		inputLabel.setText(isRunning ? "Console Input:" : "Command:");
+		inputField.setBackground(isRunning ? new Color(192, 255, 192) : null);
 	}
 
 	/**
@@ -1311,10 +1319,43 @@ extends JFrame
 		final Deque<DefaultMutableTreeNode> stack,
 		final ModuleRoot moduleRoot)
 	{
-		final String extension = ModuleNameResolver.availExtension;
 		final Mutable<Boolean> isRoot = new Mutable<>(true);
 		return new FileVisitor<Path>()
 		{
+			private ModuleName resolveModule (
+				final DefaultMutableTreeNode parentNode,
+				final String fileName)
+			{
+				final String localName = fileName.substring(
+					0, fileName.length() - availExtension.length());
+				final ModuleName moduleName;
+				if (parentNode instanceof ModuleRootNode)
+				{
+					// Add a top-level package.
+					final ModuleRootNode strongParentNode =
+						(ModuleRootNode) parentNode;
+					final ModuleRoot thisRoot = strongParentNode.moduleRoot();
+					assert thisRoot == moduleRoot;
+					moduleName = new ModuleName(
+						"/" + moduleRoot.name() + "/" + localName);
+				}
+				else
+				{
+					// Add a non-top-level package.
+					assert parentNode instanceof ModuleOrPackageNode;
+					final ModuleOrPackageNode strongParentNode =
+						(ModuleOrPackageNode) parentNode;
+					assert strongParentNode.isPackage();
+					final ResolvedModuleName parentModuleName =
+						strongParentNode.resolvedModuleName();
+					// The (resolved) parent is a package representative
+					// module, so use its parent, the package itself.
+					moduleName = new ModuleName(
+						parentModuleName.packageName(), localName);
+				}
+				return moduleName;
+			}
+
 			@Override
 			public FileVisitResult preVisitDirectory (
 				final @Nullable Path dir,
@@ -1334,36 +1375,10 @@ extends JFrame
 					return FileVisitResult.CONTINUE;
 				}
 				final String fileName = dir.getFileName().toString();
-				if (fileName.endsWith(extension))
+				if (fileName.endsWith(availExtension))
 				{
-					final String localName = fileName.substring(
-						0, fileName.length() - extension.length());
-					final ModuleName moduleName;
-					if (parentNode instanceof ModuleRootNode)
-					{
-						// Add a top-level package.
-						final ModuleRootNode strongParentNode =
-							(ModuleRootNode) parentNode;
-						final ModuleRoot thisRoot =
-							strongParentNode.moduleRoot();
-						assert thisRoot == moduleRoot;
-						moduleName = new ModuleName(
-							"/" + moduleRoot.name() + "/" + localName);
-					}
-					else
-					{
-						// Add a non-top-level package.
-						assert parentNode instanceof ModuleOrPackageNode;
-						final ModuleOrPackageNode strongParentNode =
-							(ModuleOrPackageNode) parentNode;
-						assert strongParentNode.isPackage();
-						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName();
-						// The (resolved) parent is a package representative
-						// module, so use its parent, the package itself.
-						moduleName = new ModuleName(
-							parentModuleName.packageName(), localName);
-					}
+					final ModuleName moduleName =
+						resolveModule(parentNode, fileName);
 					final ResolvedModuleName resolved;
 					try
 					{
@@ -1415,34 +1430,10 @@ extends JFrame
 					throw new IOException("Avail root should be a directory");
 				}
 				final String fileName = file.getFileName().toString();
-				if (fileName.endsWith(extension))
+				if (fileName.endsWith(availExtension))
 				{
-					final String localName = fileName.substring(
-						0, fileName.length() - extension.length());
-					final ModuleName moduleName;
-					if (parentNode instanceof ModuleRootNode)
-					{
-						// Add a top-level module (directly in a root).
-						final ModuleRootNode strongParentNode =
-							(ModuleRootNode) parentNode;
-						final ModuleRoot thisRoot =
-							strongParentNode.moduleRoot();
-						assert thisRoot == moduleRoot;
-						moduleName = new ModuleName(
-							"/" + moduleRoot.name() + "/" + localName);
-					}
-					else
-					{
-						// Add a non-top-level module.
-						assert parentNode instanceof ModuleOrPackageNode;
-						final ModuleOrPackageNode strongParentNode =
-							(ModuleOrPackageNode) parentNode;
-						assert strongParentNode.isPackage();
-						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName();
-						moduleName = new ModuleName(
-							parentModuleName.packageName(), localName);
-					}
+					final ModuleName moduleName =
+						resolveModule(parentNode, fileName);
 					try
 					{
 						final ResolvedModuleName resolved =
@@ -2526,40 +2517,39 @@ extends JFrame
 				"Run",
 				insertEntryPointAction, null,
 				clearTranscriptAction));
+		showCCReportAction = new ShowCCReportAction(this, runtime);
+		resetCCReportDataAction =
+			new ResetCCReportDataAction(this, runtime);
+		parserIntegrityCheckAction =
+			new ParserIntegrityCheckAction(this, runtime);
+		examineRepositoryAction = new ExamineRepositoryAction(this, runtime);
+		examineCompilationAction = new ExamineCompilationAction(this, runtime);
 		if (showDeveloperTools)
 		{
-			showCCReportAction = new ShowCCReportAction(this, runtime);
-			resetCCReportDataAction =
-				new ResetCCReportDataAction(this, runtime);
-			parserIntegrityCheckAction =
-				new ParserIntegrityCheckAction(this, runtime);
 			menuBar.add(
 				menu(
 					"Developer",
 					showVMReportAction, resetVMReportDataAction, null,
 					showCCReportAction, resetCCReportDataAction, null,
-						new JCheckBoxMenuItem(debugMacroExpansionsAction),
-						new JCheckBoxMenuItem(debugCompilerAction),
-						new JCheckBoxMenuItem(traceSummarizeStatementsAction),
-						new JCheckBoxMenuItem(traceLoadedStatementsAction),
-						new JCheckBoxMenuItem(toggleFastLoaderAction),
-						null,
-						new JCheckBoxMenuItem(toggleDebugL1),
-						new JCheckBoxMenuItem(toggleDebugL2),
-						new JCheckBoxMenuItem(toggleL2SanityCheck),
-						new JCheckBoxMenuItem(toggleDebugPrimitives),
-						new JCheckBoxMenuItem(toggleDebugWorkUnits),
-						null,
-						new JCheckBoxMenuItem(toggleDebugJVM),
-						null,
-					parserIntegrityCheckAction, null,
+					new JCheckBoxMenuItem(debugMacroExpansionsAction),
+					new JCheckBoxMenuItem(debugCompilerAction),
+					new JCheckBoxMenuItem(traceSummarizeStatementsAction),
+					new JCheckBoxMenuItem(traceLoadedStatementsAction),
+					new JCheckBoxMenuItem(toggleFastLoaderAction),
+					null,
+					new JCheckBoxMenuItem(toggleDebugL1),
+					new JCheckBoxMenuItem(toggleDebugL2),
+					new JCheckBoxMenuItem(toggleL2SanityCheck),
+					new JCheckBoxMenuItem(toggleDebugPrimitives),
+					new JCheckBoxMenuItem(toggleDebugWorkUnits),
+					null,
+					new JCheckBoxMenuItem(toggleDebugJVM),
+					null,
+					parserIntegrityCheckAction,
+					examineRepositoryAction,
+					examineCompilationAction,
+					null,
 					graphAction));
-		}
-		else
-		{
-			showCCReportAction = null;
-			resetCCReportDataAction = null;
-			parserIntegrityCheckAction = null;
 		}
 		setJMenuBar(menuBar);
 

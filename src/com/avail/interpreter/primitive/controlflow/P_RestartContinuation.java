@@ -135,9 +135,9 @@ extends Primitive
 			L2_RESTART_CONTINUATION.instance,
 			arguments.get(0));
 		assert !translator.currentlyReachable();
-		translator.startBlock(
-			translator.createBasicBlock(
-				"unreachable after L2_RESTART_CONTINUATION"));
+//		translator.startBlock(
+//			translator.createBasicBlock(
+//				"unreachable after L2_RESTART_CONTINUATION"));
 		return true;
 	}
 }

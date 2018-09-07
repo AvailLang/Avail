@@ -470,7 +470,7 @@ public final class AvailBuilder
 	 * @throws MalformedSerialStreamException If the CRC check fails.
 	 */
 	@InnerAccess
-	static ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
+	public static ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
 		throws MalformedSerialStreamException
 	{
 		final int storedChecksum =

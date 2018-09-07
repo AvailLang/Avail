@@ -2402,7 +2402,7 @@ Completely seal method "_≍_";
  *
  * @method "dimensional analysis test suite"
  * @returns "atom"
- *          The requsted test suite identifier.
+ *          The requested test suite identifier.
  */
 Public method "Dimensional|dimensional analysis test suite"
 	is [$"dimensional analysis test suite"];

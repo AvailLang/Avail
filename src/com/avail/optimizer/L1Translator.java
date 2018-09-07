@@ -3459,7 +3459,6 @@ implements L1OperationDispatcher
 		final L2BasicBlock reenterFromInterruptBlock,
 		final L2BasicBlock unreachableBlock)
 	{
-		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 		initialBlock.makeIrremovable();
 		loopBlock.makeIrremovable();
 		reenterFromRestartBlock.makeIrremovable();
@@ -3468,6 +3467,7 @@ implements L1OperationDispatcher
 		unreachableBlock.makeIrremovable();
 
 		// 0. First try to run it as a primitive.
+		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 		controlFlowGraph.startBlock(initialBlock);
 		initialBlock.addInstruction(new L2Instruction(
 			initialBlock, L2_TRY_OPTIONAL_PRIMITIVE.instance));

@@ -35,7 +35,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.utility.LRUCache;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Transformer1;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.utility.evaluation.Transformer2NotNull;
 
 import javax.annotation.Nullable;
 import java.io.DataOutputStream;
@@ -59,6 +59,7 @@ import java.util.zip.Inflater;
 import static com.avail.persistence.IndexedRepositoryManager.log;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Locks.lockWhile;
+import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -84,8 +85,7 @@ public abstract class IndexedFile
 	 * The {@linkplain ReentrantReadWriteLock lock} that guards against unsafe
 	 * concurrent access.
 	 */
-	private final ReentrantReadWriteLock lock =
-		new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
 	/** The {@linkplain File file reference}. */
 	private @Nullable File fileReference;
@@ -995,7 +995,7 @@ public abstract class IndexedFile
 	 *         If something else goes wrong.
 	 */
 	private void readHeaderData (
-		final Transformer2<Integer, Integer, Boolean> versionCheck)
+		final Transformer2NotNull<Integer, Integer, Boolean> versionCheck)
 	throws IOException, IndexedFileException
 	{
 		boolean finished = false;
@@ -1016,7 +1016,7 @@ public abstract class IndexedFile
 			}
 			version = buffer.getInt();
 			final Boolean okVersion =
-				stripNull(versionCheck.value(version, currentVersion()));
+				versionCheck.value(version, currentVersion());
 			if (!okVersion)
 			{
 				throw new IndexedFileException(
@@ -1351,22 +1351,19 @@ public abstract class IndexedFile
 	 */
 	public long size ()
 	{
-		lock.readLock().lock();
-		try
-		{
-			long power = 1;
-			long sum = 0;
-			for (int i = 0; i < master().orphansByLevel.size() ; i++)
+		return lockWhile(
+			lock.readLock(),
+			() ->
 			{
-				sum += master().orphansByLevel.get(i).size() * power;
-				power *= fanout;
-			}
-			return sum;
-		}
-		finally
-		{
-			lock.readLock().unlock();
-		}
+				long power = 1;
+				long sum = 0;
+				for (int i = 0; i < master().orphansByLevel.size() ; i++)
+				{
+					sum += master().orphansByLevel.get(i).size() * power;
+					power *= fanout;
+				}
+				return sum;
+			});
 	}
 
 	/**
@@ -1380,30 +1377,27 @@ public abstract class IndexedFile
 		// Note that it is okay for multiple readers to destructively update
 		// the metaData field: they will all write the same answer. This is why
 		// we only grab a read lock.
-		lock.readLock().lock();
-		try
-		{
-			if (RecordCoordinates.origin().equals(master().metaDataLocation))
+		return lockWhileNullable(
+			lock.readLock(),
+			() ->
 			{
-				return null;
-			}
-			if (metaData == null)
-			{
-				final byte[] block = blockAtFilePosition(
-					master().metaDataLocation.filePosition);
-				final ByteBuffer buffer = ByteBuffer.wrap(block);
-				buffer.position(master().metaDataLocation.blockPosition);
-				final int size = buffer.getInt();
-				metaData = new byte[size];
-				buffer.get(metaData);
-			}
-			//noinspection AssignmentOrReturnOfFieldWithMutableType
-			return metaData;
-		}
-		finally
-		{
-			lock.readLock().unlock();
-		}
+				if (RecordCoordinates.origin().equals(master().metaDataLocation))
+				{
+					return null;
+				}
+				if (metaData == null)
+				{
+					final byte[] block = blockAtFilePosition(
+						master().metaDataLocation.filePosition);
+					final ByteBuffer buffer = ByteBuffer.wrap(block);
+					buffer.position(master().metaDataLocation.blockPosition);
+					final int size = buffer.getInt();
+					metaData = new byte[size];
+					buffer.get(metaData);
+				}
+				//noinspection AssignmentOrReturnOfFieldWithMutableType
+				return metaData;
+			});
 	}
 
 	/**
@@ -1682,7 +1676,7 @@ public abstract class IndexedFile
 		final Class<F> subclass,
 		final File fileReference,
 		final boolean forWriting,
-		final Transformer2<Integer, Integer, Boolean> versionCheck)
+		final Transformer2NotNull<Integer, Integer, Boolean> versionCheck)
 	throws IOException
 	{
 		log(Level.INFO, "Open: {0}", fileReference);
