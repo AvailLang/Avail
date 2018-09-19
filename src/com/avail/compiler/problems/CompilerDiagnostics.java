@@ -382,7 +382,7 @@ public class CompilerDiagnostics
 				// Follow the circled Z with the value of an
 				// increasing counter, plus a space to visually
 				// separate it from any subsequent token.
-				indicator += Integer.toString(supplementaryCounter) + " ";
+				indicator += supplementaryCounter + " ";
 			}
 			// Keep using Ⓩ (circled Z) if we're looking back
 			// more than 26 tokens for problems.
@@ -795,7 +795,7 @@ public class CompilerDiagnostics
 		{
 			if (!problemIterator.value.hasNext())
 			{
-				// Start a new problem group...
+				// End this group.
 				if (!groupIterator.hasNext())
 				{
 					// Done everything.  Pass the complete text forward.

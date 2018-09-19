@@ -823,7 +823,7 @@ public final class AvailBuilder
 			}
 			final boolean interrupted = waitAndCheckInterrupts();
 			// Force each repository to commit, since we may have changed the
-			// access order of some of the caches.
+			// last-access order of some of the caches.
 			for (final ModuleRoot root : moduleRoots.roots())
 			{
 				root.repository().commit();

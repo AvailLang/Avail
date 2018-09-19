@@ -4479,8 +4479,11 @@ public final class AvailCompiler
 	 * @param headerPhrase
 	 *        The invocation of {@link SpecialMethodAtom#MODULE_HEADER}
 	 *        that was just parsed.
+	 * @return Whether header processing was successful.  If unsuccessful,
+	 *         arrangements will already have been made (and perhaps already
+	 *         executed) to present the error.
 	 */
-	private void processHeaderMacro (
+	private boolean processHeaderMacro (
 		final A_Phrase headerPhrase,
 		final ParserState stateAfterHeader)
 	{
@@ -4516,7 +4519,7 @@ public final class AvailCompiler
 					versionStringToken.nextLexingState()
 						.expected("version strings to be unique");
 					compilationContext.diagnostics.reportError();
-					return;
+					return false;
 				}
 				header.versions.add(versionString);
 			}
@@ -4559,7 +4562,7 @@ public final class AvailCompiler
 								.expected(
 									"module import versions to be unique");
 							compilationContext.diagnostics.reportError();
-							return;
+							return false;
 						}
 						importVersions =
 							importVersions.setWithElementCanDestroy(
@@ -4605,7 +4608,7 @@ public final class AvailCompiler
 										"negated or renaming import, but "
 											+ "not both");
 								compilationContext.diagnostics.reportError();
-								return;
+								return false;
 							}
 							final A_String rename =
 								stringFromToken(renameToken);
@@ -4617,7 +4620,7 @@ public final class AvailCompiler
 										"renames to specify distinct "
 											+ "target names");
 								compilationContext.diagnostics.reportError();
-								return;
+								return false;
 							}
 							importedRenames =
 								importedRenames.mapAtPuttingCanDestroy(
@@ -4631,7 +4634,7 @@ public final class AvailCompiler
 								nameToken.nextLexingState()
 									.expected("import exclusions to be unique");
 								compilationContext.diagnostics.reportError();
-								return;
+								return false;
 							}
 							importedExcludes =
 								importedExcludes.setWithElementCanDestroy(
@@ -4646,7 +4649,7 @@ public final class AvailCompiler
 								nameToken.nextLexingState()
 									.expected("import names to be unique");
 								compilationContext.diagnostics.reportError();
-								return;
+								return false;
 							}
 							importedNames =
 								importedNames.setWithElementCanDestroy(
@@ -4680,7 +4683,7 @@ public final class AvailCompiler
 					importedModuleToken.nextLexingState()
 						.expected(e.getMessage());
 					compilationContext.diagnostics.reportError();
-					return;
+					return false;
 				}
 			}  // modules of an import subsection
 		}  // imports section
@@ -4699,7 +4702,7 @@ public final class AvailCompiler
 						"Duplicate declared name detected at %s on line %d:",
 						format(
 							"Declared name %s should be unique", nameString));
-					return;
+					return false;
 				}
 				header.exportedNames.add(nameString);
 			}
@@ -4727,6 +4730,7 @@ public final class AvailCompiler
 		}
 		header.startOfBodyPosition = stateAfterHeader.position();
 		header.startOfBodyLineNumber = stateAfterHeader.lineNumber();
+		return true;
 	}
 
 	/**
@@ -4775,10 +4779,13 @@ public final class AvailCompiler
 						MODULE_HEADER.atom);
 					try
 					{
-						processHeaderMacro(
+						final boolean ok = processHeaderMacro(
 							headerPhrase.expression(),
 							solution.endState());
-						onSuccess.value(solution.endState());
+						if (ok)
+						{
+							onSuccess.value(solution.endState());
+						}
 					}
 					catch (final Exception e)
 					{

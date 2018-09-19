@@ -51,7 +51,6 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.Casts;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation1;

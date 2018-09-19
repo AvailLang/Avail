@@ -35,6 +35,7 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.utility.evaluation.Describer;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,7 +68,7 @@ public final class ProblemsAtPosition
 	final List<Describer> describers;
 
 	/**
-	 * Construct a new {@link ProblemsAtPosition}.
+	 * Construct a new {@code ProblemsAtPosition}.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} where the problems occurred.
@@ -91,7 +92,7 @@ public final class ProblemsAtPosition
 		this.lexingState = lexingState;
 		this.lexingStateAfterToken = lexingStateAfterToken;
 		this.indicator = indicator;
-		this.describers = describers;
+		this.describers = new ArrayList<>(describers);
 	}
 
 	@Override

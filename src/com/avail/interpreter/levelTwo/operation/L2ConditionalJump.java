@@ -84,7 +84,7 @@ extends L2ControlFlowOperation
 	 *        The original named operand types.
 	 * @return The augmented named operand types.
 	 */
-	private static L2NamedOperandType[] augment(
+	private static L2NamedOperandType[] augment (
 		final L2NamedOperandType[] namedOperandTypes)
 	{
 		final L2NamedOperandType[] newNames = copyOf(
@@ -215,7 +215,7 @@ extends L2ControlFlowOperation
 	 * Augment the array of operands with any that are supposed to be supplied
 	 * implicitly by this class.
 	 *
-	 * @param operands The origginal array of {@link L2Operand}s.
+	 * @param operands The original array of {@link L2Operand}s.
 	 * @return The augmented array of {@link L2Operand}s, which may be the same
 	 *         as the given array.
 	 */

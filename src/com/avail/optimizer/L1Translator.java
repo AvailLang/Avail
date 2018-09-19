@@ -157,7 +157,7 @@ implements L1OperationDispatcher
 	public final Frame topFrame;
 
 	/**
-	 * The {@link L2SemanticValue}s corresponding with to slots of the virtual
+	 * The {@link L2SemanticValue}s corresponding with the slots of the virtual
 	 * continuation.  These indices are zero-based, but the slot numbering is
 	 * one-based.
 	 */
