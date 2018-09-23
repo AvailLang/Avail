@@ -50,7 +50,7 @@ import static com.avail.utility.PrefixSharingList.*;
 /**
  * This class maintains information about one {@linkplain L2Register} on behalf
  * of a {@link RegisterSet} held by an {@linkplain L2Instruction} inside an
- * {@linkplain L2Chunk} constructed by the {@link L2Translator}.
+ * {@linkplain L2Chunk} constructed by the {@link L2Generator}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

@@ -37,7 +37,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -49,7 +49,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 
 /**
  * Move a {@code double} from the source to the destination. The {@link
- * L2Translator} creates more moves than are strictly necessary, but various
+ * L2Generator} creates more moves than are strictly necessary, but various
  * mechanisms cooperate to remove redundant inter-register moves.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -77,7 +77,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		final L2ReadFloatOperand sourceReg =
 			instruction.readFloatRegisterAt(0);

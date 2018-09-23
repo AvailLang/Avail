@@ -46,12 +46,11 @@ import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.Casts;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Collections;
@@ -103,7 +102,7 @@ extends L2ControlFlowOperation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		// Do nothing; there are no destinations reached from here within the
 		// current chunk.  Technically the restart might be to somewhere in the

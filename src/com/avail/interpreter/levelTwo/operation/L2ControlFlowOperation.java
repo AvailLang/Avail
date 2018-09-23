@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.ArrayList;
@@ -100,14 +100,14 @@ public abstract class L2ControlFlowOperation extends L2Operation
 	 *        A RegisterSet to advance to a state corresponding with after
 	 *        having run the given instruction.
 	 * @param translator
-	 *        The L2Translator for which to advance the type analysis.
-	 * @see #propagateTypes(L2Instruction, List, L2Translator)
+	 *        The {@link L2Generator} for which to advance the type analysis.
+	 * @see #propagateTypes(L2Instruction, List, L2Generator)
 	 */
 	@Override
 	protected final void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		throw new UnsupportedOperationException(
 			"Single-target propagateTypes is not applicable to an "

@@ -53,7 +53,7 @@ import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -150,11 +150,11 @@ implements IntegerEnumSlotDescriptionEnum
 	public enum Flag
 	{
 		/**
-		 * The primitive can be attempted by the {@code L2Translator Level Two
-		 * translator} at re-optimization time if the arguments are known
-		 * constants. The result should be stable, such that invoking the
-		 * primitive again with the same arguments should produce the same
-		 * value. The primitive should not have side-effects.
+		 * The primitive can be attempted by the {@code L2Generator} at
+		 * re-optimization time if the arguments are known constants. The result
+		 * should be stable, such that invoking the primitive again with the
+		 * same arguments should produce the same value. The primitive should
+		 * not have side-effects.
 		 */
 		CanFold,
 
@@ -257,9 +257,9 @@ implements IntegerEnumSlotDescriptionEnum
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
-		 * {@linkplain L2Translator Level Two translator}. The current
-		 * continuation should be reified prior to attempting the primitive. Do
-		 * not attempt to fold or inline this primitive.
+		 * {@link L2Generator}. The current continuation should be reified prior
+		 * to attempting the primitive. Do not attempt to fold or inline this
+		 * primitive.
 		 */
 		Unknown
 	}
@@ -467,7 +467,7 @@ implements IntegerEnumSlotDescriptionEnum
 	private int argCount;
 
 	/**
-	 * The flags that indicate to the {@link L2Translator} how an invocation of
+	 * The flags that indicate to the {@link L2Generator} how an invocation of
 	 * this primitive should be handled.
 	 */
 	private final EnumSet<Flag> primitiveFlags = EnumSet.noneOf(Flag.class);
@@ -729,7 +729,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        indicate it may have any number of arguments.  However, note that
 	 *        that primitive cannot be used explicitly in Avail code.
 	 * @param flags
-	 *        The flags that describe how the {@link L2Translator} should deal
+	 *        The flags that describe how the {@link L2Generator} should deal
 	 *        with this primitive.
 	 * @return The initialized primitive.
 	 */

@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -54,7 +54,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Move an {@link AvailObject} from the source to the destination.  The
- * {@link L2Translator} creates more moves than are strictly necessary, but
+ * {@link L2Generator} creates more moves than are strictly necessary, but
  * various mechanisms cooperate to remove redundant inter-register moves.
  *
  * <p>
@@ -87,7 +87,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		final L2ReadPointerOperand sourceReg =
 			instruction.readObjectRegisterAt(0);

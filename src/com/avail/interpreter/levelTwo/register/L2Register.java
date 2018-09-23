@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,7 +51,7 @@ import java.util.Set;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
- * L2Operation level two Avail operation} in the {@link L2Translator}.
+ * L2Operation level two Avail operation} in the {@link L2Generator}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

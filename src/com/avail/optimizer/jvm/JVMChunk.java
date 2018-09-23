@@ -37,8 +37,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.ExecutableChunk;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.OptimizationLevel;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Generator.OptimizationLevel;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -51,8 +51,8 @@ import java.nio.file.Paths;
 /**
  * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
  * Machine. It is produced by a {@link JVMTranslator} on behalf of an {@link
- * L2Translator} that has just completed a {@linkplain
- * L2Translator#translateToLevelTwo(A_RawFunction, OptimizationLevel,
+ * L2Generator} that has just completed a {@linkplain
+ * L2Generator#translateToLevelTwo(A_RawFunction, OptimizationLevel,
  * Interpreter) translation or optimization}.
  *
  * <p>

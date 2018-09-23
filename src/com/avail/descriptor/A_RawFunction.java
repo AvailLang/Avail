@@ -37,7 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
@@ -68,7 +68,7 @@ extends A_BasicObject
 	A_Type constantTypeAt (int index);
 
 	/**
-	 * Set the countdown until reoptimization by the {@linkplain L2Translator
+	 * Set the countdown until reoptimization by the {@linkplain L2Generator
 	 * Level Two translator}.
 	 *
 	 * @param value
@@ -77,19 +77,19 @@ extends A_BasicObject
 	void countdownToReoptimize (int value);
 
 	/**
-	 * Atomically decrement the countdown to reoptimization by the {@linkplain
-	 * L2Translator Level Two translator}. If the count reaches zero
-	 * ({@code 0}), then lock this raw function, thereby blocking concurrent
-	 * applications of {@linkplain A_Function functions} derived from this raw
-	 * function, and then evaluate the argument in order to effect
-	 * reoptimization.
+	 * Atomically decrement the countdown to reoptimization by the {@link
+	 * L2Generator}. If the count reaches zero ({@code 0}), then lock this raw
+	 * function, thereby blocking concurrent applications of {@linkplain
+	 * A_Function functions} derived from this raw function, and then evaluate
+	 * the argument in order to effect reoptimization.
 	 *
 	 * @param continuation
 	 *        The {@linkplain Continuation0 continuation} responsible for
 	 *        reoptimizing this function implementation in the event that the
 	 *        countdown reaches zero ({@code 0}).
 	 */
-	void decrementCountdownToReoptimize (Continuation1NotNull<Boolean> continuation);
+	void decrementCountdownToReoptimize (
+		Continuation1NotNull<Boolean> continuation);
 
 	/**
 	 * Answer the {@linkplain FunctionTypeDescriptor function type} associated
@@ -294,7 +294,7 @@ extends A_BasicObject
 	/**
 	 * Set the {@linkplain L2Chunk chunk} that implements this {@linkplain
 	 * A_RawFunction function implementation} and the countdown to
-	 * reoptimization by the {@linkplain L2Translator Level Two translator}.
+	 * reoptimization by the {@link L2Generator}.
 	 *
 	 * @param chunk
 	 *        The chunk to invoke whenever the {@linkplain Interpreter
@@ -323,8 +323,7 @@ extends A_BasicObject
 	 *
 	 * @return The backing chunk for this function implementation. This will be
 	 *         the {@linkplain L2Chunk#unoptimizedChunk special unoptimized
-	 *         chunk} prior to conversion by the {@linkplain L2Translator
-	 *         Level Two translator}.
+	 *         chunk} prior to conversion by the {@link L2Generator}.
 	 */
 	L2Chunk startingChunk ();
 

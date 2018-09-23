@@ -45,7 +45,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Inliner;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -59,9 +59,8 @@ import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
- * the {@linkplain Interpreter level two Avail interpreter}. These
- * instructions are model objects generated and manipulated by the {@linkplain
- * L2Translator translator}.
+ * the {@linkplain Interpreter level two Avail interpreter}. These instructions
+ * are model objects generated and manipulated by the {@link L2Generator}.
  *
  * <p>It used to be the case that the instructions were flattened into a stream
  * of integers, operation followed by operands.  That is no longer the case, as

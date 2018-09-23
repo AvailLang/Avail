@@ -678,7 +678,7 @@ implements ExecutableChunk
 			code,
 			name(code),
 			controlFlowGraph,
-			theInstructions.toArray(new L2Instruction[theInstructions.size()]));
+			theInstructions.toArray(new L2Instruction[0]));
 		jvmTranslator.translate();
 		final L2Chunk chunk = new L2Chunk(
 			code,
@@ -749,8 +749,7 @@ implements ExecutableChunk
 		this.numIntegers = numIntegers;
 		this.numDoubles = numFloats;
 		this.offsetAfterInitialTryPrimitive = offsetAfterInitialTryPrimitive;
-		this.instructions = instructions.toArray(
-			new L2Instruction[instructions.size()]);
+		this.instructions = instructions.toArray(new L2Instruction[0]);
 		this.controlFlowGraph = controlFlowGraph;
 		this.contingentValues = contingentValues;
 		this.executableChunk = executableChunk;

@@ -113,7 +113,7 @@ import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction
 	.restriction;
 import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
-import static com.avail.optimizer.L2Translator.*;
+import static com.avail.optimizer.L2Generator.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -133,9 +133,9 @@ public final class L1Translator
 implements L1OperationDispatcher
 {
 	/**
-	 * The {@link L2Translator} for which I'm producing an initial translation.
+	 * The {@link L2Generator} for which I'm producing an initial translation.
 	 */
-	private final L2Translator translator;
+	private final L2Generator translator;
 
 	/**
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
@@ -261,15 +261,19 @@ implements L1OperationDispatcher
 	}
 
 	/**
-	 * Create a new L1 naive translator for the given {@link L2Translator}.
+	 * Create a new L1 naive translator for the given {@link L2Generator}.
+	 *
 	 * @param translator
-	 *        The {@link L2Translator} for which I'm producing an initial
+	 *        The {@link L2Generator} for which I'm producing an initial
 	 *        translation from L1.
+	 * @param code
+	 *        The {@link A_RawFunction} which is the source of the chunk being
+	 *        created.
 	 */
-	L1Translator (final L2Translator translator)
+	L1Translator (final L2Generator translator, final A_RawFunction code)
 	{
 		this.translator = translator;
-		this.code = translator.code;
+		this.code = code;
 		this.topFrame = new Frame(null, this.code, "top frame");
 		this.numSlots = code.numSlots();
 		this.stackp = numSlots + 1;
@@ -912,9 +916,9 @@ implements L1OperationDispatcher
 		}
 		else
 		{
-			// The reader may be unboxable. Copy the manifest for the
-			// success case, adding unboxed variants for the unboxed
-			// reader. Do not add these bindings to the failure case.
+			// The reader may be unboxable. Copy the manifest for the success
+			// case, adding unboxed variants for the unboxed reader. Do not add
+			// these bindings to the failure case.
 			unboxedWriter = newIntRegisterWriter(restrictedType, null);
 			addInstruction(
 				L2_JUMP_IF_UNBOX_INT.instance,

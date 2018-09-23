@@ -47,8 +47,8 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Inliner;
-import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
@@ -163,12 +163,12 @@ public abstract class L2Operation
 	 *        A list of RegisterSets to update with information that this
 	 *        operation provides.
 	 * @param translator
-	 *        The L2Translator for which to advance the type analysis.
+	 *        The L2Generator for which to advance the type analysis.
 	 */
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		assert !(this instanceof L2ControlFlowOperation);
 		throw new UnsupportedOperationException(
@@ -188,13 +188,13 @@ public abstract class L2Operation
 	 *            A list of RegisterSets to update with information that this
 	 *            operation provides.
 	 * @param translator
-	 *            The L2Translator for which to advance the type analysis.
-	 * @see #propagateTypes(L2Instruction, List, L2Translator)
+	 *            The L2Generator for which to advance the type analysis.
+	 * @see #propagateTypes(L2Instruction, List, L2Generator)
 	 */
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Translator translator)
+		final L2Generator translator)
 	{
 		// We're phasing this out, so don't make this an abstract method.
 		throw new UnsupportedOperationException(

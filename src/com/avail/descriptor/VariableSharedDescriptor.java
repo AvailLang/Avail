@@ -375,7 +375,7 @@ extends VariableDescriptor
 		// Record the fact that the given chunk depends on this object not
 		// changing.  Local synchronization is sufficient, since invalidation
 		// can't happen while L2 code is running (and therefore when the
-		// L2Translator could be calling this).
+		// L2Generator could be calling this).
 		synchronized (object)
 		{
 			final A_BasicObject pojo =

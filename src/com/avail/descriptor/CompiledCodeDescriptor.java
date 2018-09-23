@@ -475,11 +475,12 @@ extends Descriptor
 		/** Used for showing an L1 disassembly of the code. */
 		L1_DISASSEMBLY,
 
-		/** Used for showing a tuple of all literals of the code. They're
-		 * grouped together under one literal to reduce the amount of
-		 * spurious (excruciatingly slow) computation done in the Eclipse
-		 * debugger.  Keeping this entry collapsed avoids having to compute the
-		 * print representations of the literals.
+		/**
+		 * Used for showing a tuple of all literals of the code. They're grouped
+		 * together under one literal to reduce the amount of spurious
+		 * (excruciatingly slow) computation done in the Eclipse debugger.
+		 * Keeping this entry collapsed avoids having to compute the print
+		 * representations of the literals.
 		 */
 		ALL_LITERALS;
 	}
@@ -543,7 +544,7 @@ extends Descriptor
 				FakeSlots.ALL_LITERALS,
 				-1,
 				tupleFromList(allLiterals)));
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields.toArray(new AvailObjectFieldHelper[0]);
 	}
 
 	/**
@@ -1173,9 +1174,8 @@ extends Descriptor
 		writer.write(object.startingLineNumber());
 		writer.write("literals");
 		writer.startArray();
-		for (int i = 1, limit = object.variableObjectSlotsCount();
-			i <= limit;
-			i++)
+		final int limit = object.variableObjectSlotsCount();
+		for (int i = 1; i <= limit; i++)
 		{
 			A_BasicObject literal = object.slot(LITERAL_AT_, i);
 			if (literal.equalsNil())
@@ -1210,15 +1210,18 @@ extends Descriptor
 		object.slot(FUNCTION_TYPE).writeSummaryTo(writer);
 		writer.write("method");
 		object.methodName().writeTo(writer);
-		writer.write("module");
-		object.module().moduleName().writeTo(writer);
+		final A_Module module = object.module();
+		if (!module.equalsNil())
+		{
+			writer.write("module");
+			object.module().moduleName().writeTo(writer);
+		}
 		writer.write("starting line number");
 		writer.write(object.startingLineNumber());
 		writer.write("literals");
 		writer.startArray();
-		for (int i = 1, limit = object.variableObjectSlotsCount();
-			i <= limit;
-			i++)
+		final int limit = object.variableObjectSlotsCount();
+		for (int i = 1; i <= limit; i++)
 		{
 			A_BasicObject literal = object.slot(LITERAL_AT_, i);
 			if (literal.equalsNil())

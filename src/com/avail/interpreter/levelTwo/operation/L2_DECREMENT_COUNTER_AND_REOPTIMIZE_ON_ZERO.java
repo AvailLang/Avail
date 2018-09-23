@@ -38,7 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
@@ -46,7 +46,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.optimizer.L2Translator.OptimizationLevel.optimizationLevel;
+import static com.avail.optimizer.L2Generator.OptimizationLevel.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -106,7 +106,7 @@ extends L2Operation
 			{
 				code.countdownToReoptimize(
 					L2Chunk.countdownForNewlyOptimizedCode());
-				L2Translator.translateToLevelTwo(
+				L2Generator.translateToLevelTwo(
 					code,
 					optimizationLevel(targetOptimizationLevel),
 					interpreter);

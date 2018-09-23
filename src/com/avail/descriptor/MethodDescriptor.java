@@ -65,7 +65,7 @@ import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap;
 import com.avail.interpreter.primitive.variables.P_GetValue;
-import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
@@ -198,7 +198,7 @@ extends Descriptor
 		 * is <em>assumed</em> to hold at compile time (of the call) and
 		 * <em>checked</em> at runtime.
 		 *
-		 * <p>When the {@link L2Translator} inlines a {@link Primitive} method
+		 * <p>When the {@link L2Generator} inlines a {@link Primitive} method
 		 * definition, it asks the primitive what type it guarantees ({@link
 		 * Primitive#returnTypeGuaranteedByVM(A_RawFunction, List)}) to return
 		 * for the specific provided argument types.  If that return type is
@@ -349,7 +349,7 @@ extends Descriptor
 		// Record the fact that the given chunk depends on this object not
 		// changing.  Local synchronization is sufficient, since invalidation
 		// can't happen while L2 code is running (and therefore when the
-		// L2Translator could be calling this).
+		// L2Generator could be calling this).
 		synchronized (object)
 		{
 			final A_BasicObject pojo =
@@ -651,7 +651,7 @@ extends Descriptor
 		// Method manipulation takes place while all fibers are L1-precise and
 		// suspended.  Use a global lock at the outermost calls to side-step
 		// deadlocks.  Because no fiber is running we don't have to protect
-		// subsystems like the L2Translator from these changes.
+		// subsystems like the L2Generator from these changes.
 		//
 		// Also create definition parsing plans for each bundle.  HOWEVER, note
 		// that we don't update the current module's message bundle tree here,
@@ -730,7 +730,7 @@ extends Descriptor
 		// Method manipulation takes place while all fibers are L1-precise and
 		// suspended.  Use a global lock at the outermost calls to side-step
 		// deadlocks.  Because no fiber is running we don't have to protect
-		// subsystems like the L2Translator from these changes.
+		// subsystems like the L2Generator from these changes.
 		L2Chunk.invalidationLock.lock();
 		try
 		{

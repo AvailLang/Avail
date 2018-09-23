@@ -543,7 +543,7 @@ public final class L2ValueManifest
 	 * Populate the empty receiver with bindings from the incoming manifests.
 	 * Only keep the bindings for {@link L2SemanticValue}s that occur in all
 	 * incoming manifests.  Generate phi functions as needed on the provided
-	 * {@link L2Translator}.  The phi functions' source registers correspond
+	 * {@link L2Generator}.  The phi functions' source registers correspond
 	 * positionally with the list of manifests.
 	 *
 	 * @param manifests
