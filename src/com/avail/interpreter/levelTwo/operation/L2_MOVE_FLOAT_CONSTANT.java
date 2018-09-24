@@ -74,7 +74,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final double constant = instruction.floatImmediateAt(0);
 		final L2WriteFloatOperand destinationIntReg =

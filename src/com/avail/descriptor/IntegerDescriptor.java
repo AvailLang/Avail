@@ -782,7 +782,8 @@ extends ExtendedIntegerDescriptor
 		{
 			// Top bit of last word no longer agrees with sign of result. Extend
 			// it.
-			final AvailObject newOutput = createUninitializedInteger(outputSize + 1);
+			final AvailObject newOutput =
+				createUninitializedInteger(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
 				newOutput.setIntSlot(
@@ -2335,17 +2336,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * Answer an {@link AvailObject} representing the {@linkplain
-	 * IntegerDescriptor integer} ten (10).
-	 *
-	 * @return The Avail integer ten.
-	 */
-	public static A_Number ten ()
-	{
-		return ten;
-	}
-
-	/**
 	 * One (U.S.) quintillion, which is 10^18.  This is the largest power of ten
 	 * representable as a signed long.
 	 */
@@ -2363,7 +2353,7 @@ extends ExtendedIntegerDescriptor
 	 * equal to (10^18)^(2^n).  List access is protected by
 	 * {@link #squaresOfQuintillionLock}.
 	 */
-	//@GuardedBy("squaresOfQuntillionLock")
+	//@GuardedBy("squaresOfQuintillionLock")
 	private static final List<A_Number> squaresOfQuintillion =
 		new ArrayList<>(singleton(quintillionInteger));
 

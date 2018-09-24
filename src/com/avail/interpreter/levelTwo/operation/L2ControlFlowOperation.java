@@ -99,7 +99,7 @@ public abstract class L2ControlFlowOperation extends L2Operation
 	 * @param registerSet
 	 *        A RegisterSet to advance to a state corresponding with after
 	 *        having run the given instruction.
-	 * @param translator
+	 * @param generator
 	 *        The {@link L2Generator} for which to advance the type analysis.
 	 * @see #propagateTypes(L2Instruction, List, L2Generator)
 	 */
@@ -107,7 +107,7 @@ public abstract class L2ControlFlowOperation extends L2Operation
 	protected final void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		throw new UnsupportedOperationException(
 			"Single-target propagateTypes is not applicable to an "

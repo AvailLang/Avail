@@ -676,7 +676,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			final URL resource =
 				Primitive.class.getResource(allPrimitivesFileName);
-			try (BufferedReader input = new BufferedReader(
+			try (final BufferedReader input = new BufferedReader(
 				new InputStreamReader(resource.openStream(), UTF_8)))
 			{
 				while (true)

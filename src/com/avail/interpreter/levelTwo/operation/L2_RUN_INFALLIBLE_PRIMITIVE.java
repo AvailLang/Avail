@@ -103,7 +103,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
@@ -340,12 +340,12 @@ extends L2Operation
 		else
 		{
 			// :: if (res == Result.SUCCESS) {
-			final Label switchedContinuations = new Label();
 			method.visitFieldInsn(
 				GETSTATIC,
 				getInternalName(Result.class),
 				"SUCCESS",
 				getDescriptor(Result.class));
+			final Label switchedContinuations = new Label();
 			method.visitJumpInsn(IF_ACMPNE, switchedContinuations);
 			// ::    result = interpreter.latestResult();
 			translator.loadInterpreter(method);

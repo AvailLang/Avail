@@ -87,7 +87,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// Approximate it for now.  If testing the return type dynamically
 		// becomes a bottleneck, we can improve this bound.

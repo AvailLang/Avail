@@ -117,7 +117,7 @@ extends L2ControlFlowOperation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over

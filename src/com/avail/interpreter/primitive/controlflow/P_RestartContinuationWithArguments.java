@@ -204,10 +204,9 @@ extends Primitive
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
 			continuationReg,
 			new L2ReadVectorOperand<>(explodedArgumentRegs));
-		assert !translator.currentlyReachable();
-		translator.startBlock(
-			translator.createBasicBlock(
-				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"));
+		assert !translator.generator.currentlyReachable();
+		translator.generator.startBlock(translator.generator.createBasicBlock(
+			"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"));
 		return true;
 	}
 }

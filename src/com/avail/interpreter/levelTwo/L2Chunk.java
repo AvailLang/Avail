@@ -74,6 +74,7 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
+import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -895,7 +896,7 @@ implements ExecutableChunk
 			new L2BasicBlock("Unreachable");
 
 		final L2ControlFlowGraph controlFlowGraph =
-			L1Translator.generateDefaultChunkControlFlowGraph(
+			generateDefaultChunkControlFlowGraph(
 				initialBlock,
 				reenterFromRestartBlock,
 				loopBlock,

@@ -87,7 +87,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final List<L2ReadPointerOperand> elements =
 			instruction.readVectorRegisterAt(0);

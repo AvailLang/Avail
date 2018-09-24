@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT;
-import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Inliner;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
@@ -90,11 +90,10 @@ extends L2Register<A_Number>
 
 	@Override
 	public <R extends L2Register<A_Number>> R copyForTranslator (
-		final L1Translator translator,
+		final L2Generator generator,
 		final TypeRestriction<A_Number> typeRestriction)
 	{
-		return
-			cast(new L2IntRegister(translator.nextUnique(), typeRestriction));
+		return cast(new L2IntRegister(generator.nextUnique(), typeRestriction));
 	}
 
 	@Override

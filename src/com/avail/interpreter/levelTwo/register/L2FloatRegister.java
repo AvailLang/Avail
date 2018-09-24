@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT;
-import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Inliner;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
@@ -90,11 +90,11 @@ extends L2Register<A_Number>
 
 	@Override
 	public <R extends L2Register<A_Number>> R copyForTranslator (
-		final L1Translator translator,
+		final L2Generator generator,
 		final TypeRestriction<A_Number> typeRestriction)
 	{
 		return
-			cast(new L2FloatRegister(translator.nextUnique(), typeRestriction));
+			cast(new L2FloatRegister(generator.nextUnique(), typeRestriction));
 	}
 
 	@Override

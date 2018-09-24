@@ -39,10 +39,9 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Inliner;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Inliner;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -303,14 +302,14 @@ public abstract class L2Register<T extends A_BasicObject>
 	/**
 	 * Answer a new register like this one.
 	 *
-	 * @param translator
-	 *        The {@link L1Translator} for which copying is requested.
+	 * @param generator
+	 *        The {@link L2Generator} for which copying is requested.
 	 * @param typeRestriction
 	 *        The {@link TypeRestriction}.
 	 * @return The new {@code L2Register}.
 	 */
 	public abstract <R extends L2Register<T>> R copyForTranslator (
-		final L1Translator translator,
+		final L2Generator generator,
 		final TypeRestriction<T> typeRestriction);
 
 	/**

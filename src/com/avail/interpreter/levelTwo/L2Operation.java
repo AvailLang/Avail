@@ -168,7 +168,7 @@ public abstract class L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		assert !(this instanceof L2ControlFlowOperation);
 		throw new UnsupportedOperationException(
@@ -194,7 +194,7 @@ public abstract class L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// We're phasing this out, so don't make this an abstract method.
 		throw new UnsupportedOperationException(

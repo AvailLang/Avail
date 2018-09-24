@@ -227,11 +227,12 @@ extends Primitive
 
 		// Attempt to unbox the arguments.
 		final L2BasicBlock unboxedArg1Block =
-			translator.createBasicBlock("unboxed arg#1");
+			translator.generator.createBasicBlock("unboxed arg#1");
 		final L2BasicBlock unboxedAddition =
-			translator.createBasicBlock("unboxed addition");
+			translator.generator.createBasicBlock("unboxed addition");
 		final L2BasicBlock boxedAddition =
-			translator.createBasicBlock("fall back to boxed addition");
+			translator.generator
+				.createBasicBlock("fall back to boxed addition");
 		final L2ReadIntOperand a = translator.unboxIntoIntRegister(
 			arguments.get(0),
 			aType,
@@ -320,7 +321,7 @@ extends Primitive
 			// performed the unboxed arithmetic and the sad one that needs to
 			// fall back to the full primitive invocation mechanism.
 			final L2BasicBlock boxUpSum =
-				translator.createBasicBlock("box sum");
+				translator.generator.createBasicBlock("box sum");
 			translator.addInstruction(
 				operation,
 				op1,
@@ -331,14 +332,14 @@ extends Primitive
 
 			// Here we've succeeded at performing unboxed arithmetic, so we need
 			// to arrange to box the result up again for delivery.
-			translator.startBlock(boxUpSum);
+			translator.generator.startBlock(boxUpSum);
 			final L2ReadPointerOperand boxed =
 				translator.box(sum.read(), returnType);
 			callSiteHelper.useAnswer(boxed);
 
 			// Here we've failed at performing unboxed arithmetic, so we need to
 			// fall back to primitive invocation.
-			translator.startBlock(boxedAddition);
+			translator.generator.startBlock(boxedAddition);
 			translator.generateGeneralFunctionInvocation(
 				functionToCallReg,
 				arguments,

@@ -548,13 +548,13 @@ public final class L2ValueManifest
 	 *
 	 * @param manifests
 	 *        The list of manifests from which to populate the receiver.
-	 * @param translator
-	 *        The {@link L1Translator} on which to write any necessary phi
+	 * @param generator
+	 *        The {@link L2Generator} on which to write any necessary phi
 	 *        functions.
 	 */
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		assert registerToSynonym.isEmpty();
 		assert semanticValueToSynonym.isEmpty();
@@ -684,10 +684,10 @@ public final class L2ValueManifest
 					cast(firstSynonym.defaultRegisterRead().register());
 				final L2Register<A_BasicObject> newRegister =
 					firstDefaultRegister.copyForTranslator(
-						translator, newRestriction);
+						generator, newRestriction);
 				final L2WritePhiOperand<?, ?> newPhiWrite =
-					translator.newPhiRegisterWriter(newRegister);
-				translator.addInstruction(
+					generator.newPhiRegisterWriter(newRegister);
+				generator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
 					new L2ReadVectorOperand<>(cast(reads)),
 					newPhiWrite);

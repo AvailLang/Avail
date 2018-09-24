@@ -84,7 +84,7 @@ extends L2ControlFlowOperation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// A return instruction doesn't mention where it might end up.
 		assert registerSets.size() == 0;

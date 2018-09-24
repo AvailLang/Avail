@@ -77,7 +77,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final L2ReadFloatOperand sourceReg =
 			instruction.readFloatRegisterAt(0);

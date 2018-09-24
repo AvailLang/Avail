@@ -154,8 +154,7 @@ public final class L2Inliner
 			T extends A_BasicObject>
 		void doOperand (final L2ReadVectorOperand<RR, R, T> operand)
 		{
-			final List<RR> oldElements =
-				operand.<L2ReadPointerOperand>elements();
+			final List<RR> oldElements = operand.elements();
 			final List<RR> newElements = new ArrayList<>(oldElements.size());
 			for (final RR oldElement : oldElements)
 			{
@@ -225,9 +224,9 @@ public final class L2Inliner
 			final R copiedRegister =
 				cast(
 					oldRegister.copyForTranslator(
-						targetTranslator, oldRegister.restriction()));
+						targetTranslator.generator, oldRegister.restriction()));
 			final L2WritePhiOperand<R, T> writer =
-				targetTranslator.newPhiRegisterWriter(copiedRegister);
+				targetTranslator.generator.newPhiRegisterWriter(copiedRegister);
 			final R newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -329,7 +328,7 @@ public final class L2Inliner
 	public L2BasicBlock mapBlock (final L2BasicBlock block)
 	{
 		return blockMap.computeIfAbsent(
-			block, b -> targetTranslator.createBasicBlock(b.name()));
+			block, b -> targetTranslator.generator.createBasicBlock(b.name()));
 	}
 
 	/**
@@ -352,7 +351,7 @@ public final class L2Inliner
 	 * Transform an {@link L2PcOperand}'s {@link L2ValueManifest} in preparation
 	 * for inlining.  The new manifest should take into account the bindings of
 	 * the old manifest, but shifted into a sub-{@link Frame}, combined with the
-	 * {@link #targetTranslator}'s {@link L1Translator#currentManifest}.
+	 * {@link #targetTranslator}'s {@link L2Generator#currentManifest}.
 	 *
 	 * @return The new {@link L2ValueManifest}.
 	 */

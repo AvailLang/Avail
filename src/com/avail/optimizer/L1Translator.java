@@ -75,20 +75,15 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
@@ -99,8 +94,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
@@ -110,10 +104,11 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
-import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static com.avail.optimizer.L2Generator.*;
+import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
+import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
+import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -135,7 +130,11 @@ implements L1OperationDispatcher
 	/**
 	 * The {@link L2Generator} for which I'm producing an initial translation.
 	 */
-	private final L2Generator translator;
+	public final L2Generator generator;
+
+
+	/** The {@link Interpreter} that tripped the translation request. */
+	private final Interpreter interpreter;
 
 	/**
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
@@ -181,34 +180,6 @@ implements L1OperationDispatcher
 	 */
 	private final @Nullable A_Function exactFunctionOrNull;
 
-	/** The control flow graph being generated. */
-	final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
-
-	/**
-	 * The {@link L2BasicBlock} which is the entry point for a function that has
-	 * just been invoked.
-	 */
-	final L2BasicBlock initialBlock = createBasicBlock("START");
-
-	/**
-	 * Primitive {@link A_RawFunction}s will start with a {@link
-	 * L2_TRY_OPTIONAL_PRIMITIVE} instruction.  If we have just optimized such
-	 * code, we must have already tried and failed the primitive (because we try
-	 * the primitive prior to {@link
-	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}). In either case, this block
-	 * is where to continue in the new chunk right after optimizing.
-	 *
-	 * <p>In addition, this block is published so that a caller that inlines
-	 * a fallible primitive can safely attempt the primitive, then if it fails
-	 * invoke the fallback code safely.</p>
-	 */
-	@Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock = null;
-
-	/**
-	 * An {@link L2BasicBlock} that shouldn't actually be dynamically reachable.
-	 */
-	private @Nullable L2BasicBlock unreachableBlock = null;
-
 	/**
 	 * Answer the {@link L2SemanticValue} representing the virtual continuation
 	 * slot having the given one-based index.
@@ -222,57 +193,24 @@ implements L1OperationDispatcher
 	}
 
 	/**
-	 * Answer an L2PcOperand that targets an {@link L2BasicBlock} which should
-	 * never actually be dynamically reached.
-	 *
-	 * @return An {@link L2PcOperand} that should never be traversed.
-	 */
-	private L2PcOperand unreachablePcOperand ()
-	{
-		if (unreachableBlock == null)
-		{
-			unreachableBlock = createBasicBlock("UNREACHABLE");
-			// Because we generate the initial code in control flow order, we
-			// have to wait until later to generate the instructions.  We strip
-			// out all phi information here.
-		}
-		return new L2PcOperand(unreachableBlock, currentManifest);
-	}
-
-	/** The {@link L2BasicBlock} that code is currently being generated into. */
-	private @Nullable L2BasicBlock currentBlock = initialBlock;
-
-	/**
-	 * Use this {@link L2ValueManifest} to track which {@link L2Register} holds
-	 * which {@link L2SemanticValue} at the current code generation point.
-	 */
-	final L2ValueManifest currentManifest = new L2ValueManifest();
-
-	/**
-	 * Answer the current {@link L2ValueManifest}, which tracks which {@link
-	 * L2Register} holds which {@link L2SemanticValue} at the current code
-	 * generation point.
-	 *
-	 * @return The current {@link L2ValueManifest}.
-	 */
-	public L2ValueManifest currentManifest ()
-	{
-		return currentManifest;
-	}
-
-	/**
 	 * Create a new L1 naive translator for the given {@link L2Generator}.
 	 *
-	 * @param translator
+	 * @param generator
 	 *        The {@link L2Generator} for which I'm producing an initial
 	 *        translation from L1.
+	 * @param interpreter
+	 *        The {@link Interpreter} that tripped the translation request.
 	 * @param code
 	 *        The {@link A_RawFunction} which is the source of the chunk being
 	 *        created.
 	 */
-	L1Translator (final L2Generator translator, final A_RawFunction code)
+	L1Translator (
+		final L2Generator generator,
+		final Interpreter interpreter,
+		final A_RawFunction code)
 	{
-		this.translator = translator;
+		this.generator = generator;
+		this.interpreter = interpreter;
 		this.code = code;
 		this.topFrame = new Frame(null, this.code, "top frame");
 		this.numSlots = code.numSlots();
@@ -285,66 +223,6 @@ implements L1OperationDispatcher
 		}
 		code.setUpInstructionDecoder(instructionDecoder);
 		instructionDecoder.pc(1);
-	}
-
-	/**
-	 * Start code generation for the given {@link L2BasicBlock}.  This naive
-	 * translator doesn't create loops, so ensure all predecessor blocks have
-	 * already finished generation.
-	 *
-	 * <p>Also, reconcile the slot registers that were collected for each
-	 * predecessor, creating an {@link L2_PHI_PSEUDO_OPERATION} if needed.</p>
-	 *
-	 * @param block The {@link L2BasicBlock} beginning code generation.
-	 */
-	public void startBlock (final L2BasicBlock block)
-	{
-		if (!block.isIrremovable())
-		{
-			if (block.predecessorEdgesCount() == 0)
-			{
-				currentBlock = null;
-				return;
-			}
-			if (block.predecessorEdgesCount() == 1)
-			{
-				final L2PcOperand predecessorEdge =
-					block.predecessorEdgesIterator().next();
-				final L2BasicBlock predecessorBlock =
-					predecessorEdge.sourceBlock();
-				final L2Instruction jump = predecessorBlock.finalInstruction();
-				if (jump.operation() == L2_JUMP.instance)
-				{
-					// The new block has only one predecessor, which
-					// unconditionally jumps to it.  Remove the jump and
-					// continue generation in the predecessor block.  Restore
-					// the manifest from the jump edge.
-					currentManifest.clear();
-					currentManifest.populateFromIntersection(
-						singletonList(predecessorEdge.manifest()), this);
-					predecessorBlock.instructions().remove(
-						predecessorBlock.instructions().size() - 1);
-					jump.justRemoved();
-					currentBlock = predecessorBlock;
-					return;
-				}
-			}
-		}
-		currentBlock = block;
-		controlFlowGraph.startBlock(block);
-		block.startIn(this);
-	}
-
-	/**
-	 * Determine whether the current block is probably reachable.  If it has no
-	 * predecessors and is removable, it's unreachable, but otherwise we assume
-	 * it's reachable, at least until dead code elimination.
-	 *
-	 * @return Whether the current block is probably reachable.
-	 */
-	public boolean currentlyReachable ()
-	{
-		return currentBlock != null && currentBlock.currentlyReachable();
 	}
 
 	/**
@@ -389,7 +267,7 @@ implements L1OperationDispatcher
 	{
 		final L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
 			stripNull(
-				currentManifest.semanticValueToSynonym(
+				generator.currentManifest().semanticValueToSynonym(
 					semanticSlot(slotIndex)));
 		return synonym.defaultRegisterRead();
 	}
@@ -421,7 +299,7 @@ implements L1OperationDispatcher
 		semanticSlots[slotIndex - 1] = semanticValue;
 		final L2WritePointerOperand writer =
 			newObjectRegisterWriter(restriction);
-		currentManifest.addBinding(semanticValue, writer.register());
+		generator.currentManifest().addBinding(semanticValue, writer.register());
 		return writer;
 	}
 
@@ -475,9 +353,9 @@ implements L1OperationDispatcher
 		final L2SemanticValue semanticValue =
 			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
-		currentManifest.addBinding(semanticValue, register);
+		generator.currentManifest().addBinding(semanticValue, register);
 		final @Nullable L2Synonym<L2Register<T>, T> synonym =
-			currentManifest.registerToSynonym(register);
+			generator.currentManifest().registerToSynonym(register);
 		assert synonym != null;
 		synonym.setRestriction(restriction);
 	}
@@ -503,7 +381,7 @@ implements L1OperationDispatcher
 	 */
 	public int nextUnique ()
 	{
-		return controlFlowGraph.nextUnique();
+		return generator.nextUnique();
 	}
 
 	/**
@@ -564,21 +442,6 @@ implements L1OperationDispatcher
 	}
 
 	/**
-	 * Answer a {@link L2WritePhiOperand} that writes to the specified
-	 * {@link L2Register}.
-	 *
-	 * @param register
-	 *        The register.
-	 * @return The new register write operand.
-	 */
-	@SuppressWarnings("MethodMayBeStatic")
-	public <R extends L2Register<T>, T extends A_BasicObject>
-		L2WritePhiOperand<R, T> newPhiRegisterWriter (final R register)
-	{
-		return new L2WritePhiOperand<>(register);
-	}
-
-	/**
 	 * Write instructions to extract the current function, and answer an {@link
 	 * L2ReadPointerOperand} for the register that will hold the function
 	 * afterward.
@@ -587,7 +450,8 @@ implements L1OperationDispatcher
 	{
 		final L2SemanticValue semanticFunction = topFrame.function();
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-			currentManifest.semanticValueToSynonym(semanticFunction);
+			generator.currentManifest().semanticValueToSynonym(
+				semanticFunction);
 		if (synonym != null)
 		{
 			return synonym.defaultRegisterRead();
@@ -603,7 +467,8 @@ implements L1OperationDispatcher
 		final L2WritePointerOperand functionWrite =
 			newObjectRegisterWriter(restriction(code.functionType()));
 		addInstruction(L2_GET_CURRENT_FUNCTION.instance, functionWrite);
-		currentManifest.addBinding(semanticFunction, functionWrite.register());
+		generator.currentManifest().addBinding(
+			semanticFunction, functionWrite.register());
 		return functionWrite.read();
 	}
 
@@ -618,7 +483,7 @@ implements L1OperationDispatcher
 	{
 		final L2SemanticValue semanticOuter = topFrame.outer(outerIndex);
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-			currentManifest.semanticValueToSynonym(semanticOuter);
+			generator.currentManifest().semanticValueToSynonym(semanticOuter);
 		if (synonym != null)
 		{
 			return synonym.defaultRegisterRead();
@@ -637,7 +502,8 @@ implements L1OperationDispatcher
 			new L2IntImmediateOperand(outerIndex),
 			functionRead,
 			outerWrite);
-		currentManifest.addBinding(semanticOuter, outerWrite.register());
+		generator.currentManifest().addBinding(
+			semanticOuter, outerWrite.register());
 		return outerWrite.read();
 	}
 
@@ -722,11 +588,7 @@ implements L1OperationDispatcher
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
-		if (currentBlock != null)
-		{
-			currentBlock.addInstruction(
-				new L2Instruction(currentBlock, operation, operands));
-		}
+		generator.addInstruction(operation, operands);
 	}
 
 	/**
@@ -738,10 +600,7 @@ implements L1OperationDispatcher
 	public void addInstruction (
 		final L2Instruction instruction)
 	{
-		if (currentBlock != null)
-		{
-			currentBlock.addInstruction(instruction);
-		}
+		generator.addInstruction(instruction);
 	}
 
 	/**
@@ -776,7 +635,7 @@ implements L1OperationDispatcher
 	{
 		final L2SemanticValue constant = L2SemanticValue.constant(value);
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-			currentManifest.semanticValueToSynonym(constant);
+			generator.currentManifest().semanticValueToSynonym(constant);
 		if (synonym != null)
 		{
 			return synonym.defaultRegisterRead();
@@ -790,7 +649,8 @@ implements L1OperationDispatcher
 			L2_MOVE_CONSTANT.instance,
 			new L2ConstantOperand(value),
 			registerWrite);
-		currentManifest.addBinding(constant, registerWrite.register());
+		generator.currentManifest().addBinding(
+			constant, registerWrite.register());
 		return registerWrite.read();
 	}
 
@@ -810,7 +670,7 @@ implements L1OperationDispatcher
 		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
 		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsInt();
 		final @Nullable L2Synonym<L2IntRegister, A_Number> unboxedSynonym =
-			currentManifest.semanticValueToSynonym(unboxedConstant);
+			generator.currentManifest().semanticValueToSynonym(unboxedConstant);
 		if (unboxedSynonym != null)
 		{
 			// It already exists unboxed.
@@ -823,7 +683,8 @@ implements L1OperationDispatcher
 			L2_MOVE_INT_CONSTANT.instance,
 			new L2IntImmediateOperand(value),
 			registerWrite);
-		currentManifest.addBinding(unboxedConstant, registerWrite.register());
+		generator.currentManifest().addBinding(
+			unboxedConstant, registerWrite.register());
 		return registerWrite.read();
 	}
 
@@ -843,7 +704,7 @@ implements L1OperationDispatcher
 		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
 		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsFloat();
 		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
-			currentManifest.semanticValueToSynonym(unboxedConstant);
+			generator.currentManifest().semanticValueToSynonym(unboxedConstant);
 		if (unboxedSynonym != null)
 		{
 			// It already exists unboxed.
@@ -856,7 +717,8 @@ implements L1OperationDispatcher
 			L2_MOVE_FLOAT_CONSTANT.instance,
 			new L2FloatImmediateOperand(value),
 			registerWrite);
-		currentManifest.addBinding(unboxedConstant, registerWrite.register());
+		generator.currentManifest().addBinding(
+			unboxedConstant, registerWrite.register());
 		return registerWrite.read();
 	}
 
@@ -876,7 +738,7 @@ implements L1OperationDispatcher
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
 	 *        succeeds. The {@link L2ValueManifest manifest} at this location
 	 *        will contain bindings for the unboxed {@code int}. {@linkplain
-	 *        #startBlock(L2BasicBlock) Start} this block if a {@code
+	 *        L2Generator#startBlock(L2BasicBlock) Start} this block if a {@code
 	 *        L2_JUMP_IF_UNBOX_INT} was needed.
 	 * @param onFailure
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
@@ -891,8 +753,8 @@ implements L1OperationDispatcher
 		final L2BasicBlock onFailure)
 		{
 		assert !restrictedType.typeIntersection(int32()).isBottom();
-		final @Nullable L2ReadIntOperand unboxed =
-			currentManifest.alreadyUnboxedInt(read);
+			final @Nullable L2ReadIntOperand unboxed =
+			generator.currentManifest().alreadyUnboxedInt(read);
 		if (unboxed != null)
 		{
 			return unboxed;
@@ -924,22 +786,23 @@ implements L1OperationDispatcher
 				L2_JUMP_IF_UNBOX_INT.instance,
 				read,
 				unboxedWriter,
-				new L2PcOperand(onSuccess, currentManifest),
-				new L2PcOperand(onFailure, currentManifest));
-			startBlock(onSuccess);
+				new L2PcOperand(onSuccess, generator.currentManifest()),
+				new L2PcOperand(onFailure, generator.currentManifest()));
+			generator.startBlock(onSuccess);
 		}
 		final L2Register<?> unboxedRegister = unboxedWriter.register();
 		// For each semantic value that the boxed register was bound to, bind
 		// the new register to a corresponding unboxed semantic value.
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
-			boxedSynonym = currentManifest.registerToSynonym(read.register());
+			final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
+			boxedSynonym = generator.currentManifest().registerToSynonym(
+				read.register());
 		if (boxedSynonym != null)
 		{
 			final Iterator<L2SemanticValue> iterator =
 				boxedSynonym.semanticValuesIterator();
 			while (iterator.hasNext())
 			{
-				currentManifest.addBinding(
+				generator.currentManifest().addBinding(
 					iterator.next().unboxedAsInt(), unboxedRegister);
 			}
 		}
@@ -960,7 +823,7 @@ implements L1OperationDispatcher
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
 	 *        succeeds. The {@link L2ValueManifest manifest} at this location
 	 *        will contain bindings for the unboxed {@code double}. {@linkplain
-	 *        #startBlock(L2BasicBlock) Start} this block if a {@code
+	 *        L2Generator#startBlock(L2BasicBlock) Start} this block if a {@code
 	 *        L2_JUMP_IF_UNBOX_FLOAT} was needed.
 	 * @param onFailure
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
@@ -976,7 +839,7 @@ implements L1OperationDispatcher
 	{
 		assert !restrictedType.typeIntersection(DOUBLE.o()).isBottom();
 		final @Nullable L2ReadFloatOperand unboxed =
-			currentManifest.alreadyUnboxedFloat(read);
+			generator.currentManifest().alreadyUnboxedFloat(read);
 		if (unboxed != null)
 		{
 			return unboxed;
@@ -1014,22 +877,23 @@ implements L1OperationDispatcher
 				L2_JUMP_IF_UNBOX_FLOAT.instance,
 				read,
 				unboxedWriter,
-				new L2PcOperand(onSuccess, currentManifest),
-				new L2PcOperand(onFailure, currentManifest));
-			startBlock(onSuccess);
+				new L2PcOperand(onSuccess, generator.currentManifest()),
+				new L2PcOperand(onFailure, generator.currentManifest()));
+			generator.startBlock(onSuccess);
 		}
 		final L2Register<?> unboxedRegister = unboxedWriter.register();
 		// For each semantic value that the boxed register was bound to, bind
 		// the new register to a corresponding unboxed semantic value.
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
-			boxedSynonym = currentManifest.registerToSynonym(read.register());
+			boxedSynonym = generator.currentManifest().registerToSynonym(
+				read.register());
 		if (boxedSynonym != null)
 		{
 			final Iterator<L2SemanticValue> iterator =
 				boxedSynonym.semanticValuesIterator();
 			while (iterator.hasNext())
 			{
-				currentManifest.addBinding(
+				generator.currentManifest().addBinding(
 					iterator.next().unboxedAsFloat(), unboxedRegister);
 			}
 		}
@@ -1052,7 +916,7 @@ implements L1OperationDispatcher
 		final A_Type restrictedType)
 	{
 		@Nullable L2ReadPointerOperand boxedRead =
-			currentManifest.alreadyBoxed(read);
+			generator.currentManifest().alreadyBoxed(read);
 		if (boxedRead != null)
 		{
 			return boxedRead;
@@ -1075,14 +939,15 @@ implements L1OperationDispatcher
 		// For each semantic value that the unboxed register was bound to, bind
 		// the new register to a corresponding boxed semantic value.
 		final @Nullable L2Synonym<L2IntRegister, A_Number>
-			unboxedSynonym = currentManifest.registerToSynonym(read.register());
+			unboxedSynonym = generator.currentManifest().registerToSynonym(
+				read.register());
 		if (unboxedSynonym != null)
 		{
 			final Iterator<L2SemanticValue> iterator =
 				unboxedSynonym.semanticValuesIterator();
 			while (iterator.hasNext())
 			{
-				currentManifest.addBinding(
+				generator.currentManifest().addBinding(
 					iterator.next().boxed(), boxedRegister);
 			}
 		}
@@ -1105,7 +970,7 @@ implements L1OperationDispatcher
 		final A_Type restrictedType)
 	{
 		@Nullable L2ReadPointerOperand boxedRead =
-			currentManifest.alreadyBoxed(read);
+			generator.currentManifest().alreadyBoxed(read);
 		if (boxedRead != null)
 		{
 			return boxedRead;
@@ -1128,14 +993,14 @@ implements L1OperationDispatcher
 		// For each semantic value that the unboxed register was bound to, bind
 		// the new register to a corresponding boxed semantic value.
 		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
-			currentManifest.registerToSynonym(read.register());
+			generator.currentManifest().registerToSynonym(read.register());
 		if (unboxedSynonym != null)
 		{
 			final Iterator<L2SemanticValue> iterator =
 				unboxedSynonym.semanticValuesIterator();
 			while (iterator.hasNext())
 			{
-				currentManifest.addBinding(
+				generator.currentManifest().addBinding(
 					iterator.next().boxed(), boxedRegister);
 			}
 		}
@@ -1156,7 +1021,8 @@ implements L1OperationDispatcher
 	{
 		addInstruction(L2_MOVE.instance, sourceRead, destinationWrite);
 		final @Nullable L2Synonym<?, ?> synonym =
-			currentManifest.registerToSynonym(sourceRead.register());
+			generator.currentManifest().registerToSynonym(
+				sourceRead.register());
 		if (synonym != null)
 		{
 			final Iterator<L2SemanticValue> iterator =
@@ -1164,7 +1030,7 @@ implements L1OperationDispatcher
 			if (iterator.hasNext())
 			{
 				// Ensure both registers end up in the same synonym.
-				currentManifest.addBinding(
+				generator.currentManifest().addBinding(
 					iterator.next(), destinationWrite.register());
 			}
 		}
@@ -1172,7 +1038,8 @@ implements L1OperationDispatcher
 		{
 			// Source didn't have a synonym, but perhaps destination does.
 			final @Nullable L2Synonym<?, ?> destinationSynonym =
-				currentManifest.registerToSynonym(destinationWrite.register());
+				generator.currentManifest().registerToSynonym(
+					destinationWrite.register());
 			if (destinationSynonym != null)
 			{
 				final Iterator<L2SemanticValue> iterator =
@@ -1180,7 +1047,7 @@ implements L1OperationDispatcher
 				if (iterator.hasNext())
 				{
 					// Ensure both registers end up in the same synonym.
-					currentManifest.addBinding(
+					generator.currentManifest().addBinding(
 						iterator.next(), sourceRead.register());
 				}
 			}
@@ -1189,9 +1056,9 @@ implements L1OperationDispatcher
 
 	/**
 	 * Generate code to ensure an immutable version of the given register is
-	 * written to the returned register.  Update the {@link #currentManifest} to
-	 * indicate the returned register should be used for all of the given
-	 * register's semantic values after this point.
+	 * written to the returned register.  Update the {@link
+	 * L2Generator#currentManifest()} to indicate the returned register should
+	 * be used for all of the given register's semantic values after this point.
 	 *
 	 * @param sourceRegister
 	 *        The register that was given.
@@ -1201,7 +1068,8 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand makeImmutable (
 		final L2ReadPointerOperand sourceRegister)
 	{
-		if (currentManifest.isAlreadyImmutable(sourceRegister.register()))
+		if (generator.currentManifest().isAlreadyImmutable(
+			sourceRegister.register()))
 		{
 			return sourceRegister;
 		}
@@ -1211,7 +1079,8 @@ implements L1OperationDispatcher
 			L2_MAKE_IMMUTABLE.instance,
 			sourceRegister,
 			destinationWrite);
-		currentManifest.introduceImmutable(sourceRegister, destinationWrite);
+		generator.currentManifest()
+			.introduceImmutable(sourceRegister, destinationWrite);
 		return destinationWrite.read();
 	}
 
@@ -1245,10 +1114,10 @@ implements L1OperationDispatcher
 	{
 		final L2WritePointerOperand newContinuationRegister =
 			newObjectRegisterWriter(restriction(mostGeneralContinuationType()));
-		final L2BasicBlock onReturnIntoReified = createBasicBlock(
-			"return into reified continuation");
-		final L2BasicBlock afterCreation = createBasicBlock(
-			"after creation of reified continuation");
+		final L2BasicBlock onReturnIntoReified =
+			generator.createBasicBlock("return into reified continuation");
+		final L2BasicBlock afterCreation = generator
+			.createBasicBlock("after creation of reified continuation");
 		// Create write-slots for when it returns into the reified continuation
 		// and explodes the slots into registers.  Also create undefinedSlots to
 		// indicate the registers hold nothing until after the explosion. Also
@@ -1272,7 +1141,8 @@ implements L1OperationDispatcher
 			{
 				final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
 					synonym = stripNull(
-						currentManifest.semanticValueToSynonym(semanticValue));
+						generator.currentManifest().semanticValueToSynonym(
+							semanticValue));
 				final L2ReadPointerOperand read = synonym.defaultRegisterRead();
 				readSlotsBefore.add(read);
 				final TypeRestriction<A_BasicObject> originalRestriction =
@@ -1303,19 +1173,19 @@ implements L1OperationDispatcher
 			new L2ReadVectorOperand<>(readSlotsBefore),
 			newContinuationRegister,
 			new L2PcOperand(onReturnIntoReified, new L2ValueManifest()),
-			new L2PcOperand(afterCreation, currentManifest),
+			new L2PcOperand(afterCreation, generator.currentManifest()),
 			new L2CommentOperand("Create a reification continuation."));
 
 		// Right after creating the continuation.
-		startBlock(afterCreation);
+		generator.startBlock(afterCreation);
 		addInstruction(
 			L2_RETURN_FROM_REIFICATION_HANDLER.instance,
 			new L2ReadVectorOperand<>(
 				singletonList(newContinuationRegister.read())));
 
 		// Here it's returning into the reified continuation.
-		startBlock(onReturnIntoReified);
-		currentManifest.clear();
+		generator.startBlock(onReturnIntoReified);
+		generator.currentManifest().clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
@@ -1334,7 +1204,7 @@ implements L1OperationDispatcher
 				{
 					// We know the slot contains a particular constant, so don't
 					// read it from the continuation.
-					currentManifest.addBinding(
+					generator.currentManifest().addBinding(
 						semanticSlot(i),
 						constantRegister(constant).register());
 				}
@@ -1345,7 +1215,7 @@ implements L1OperationDispatcher
 						popped,
 						new L2IntImmediateOperand(i),
 						writeSlot);
-					currentManifest.addBinding(
+					generator.currentManifest().addBinding(
 						semanticSlot(i),
 						writeSlot.register());
 				}
@@ -1354,21 +1224,13 @@ implements L1OperationDispatcher
 		for (final L2SemanticValue immutableSemanticValue : knownImmutables)
 		{
 			final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-				currentManifest.semanticValueToSynonym(immutableSemanticValue);
+				generator.currentManifest().semanticValueToSynonym(
+					immutableSemanticValue);
 			if (synonym != null)
 			{
 				synonym.setFlag(KNOWN_IMMUTABLE);
 			}
 		}
-	}
-
-	/**
-	 * Add an instruction that's not supposed to be reachable.
-	 */
-	@InnerAccess void addUnreachableCode ()
-	{
-		addInstruction(L2_JUMP.instance, unreachablePcOperand());
-		startBlock(createBasicBlock("an unreachable block"));
 	}
 
 	/**
@@ -1384,7 +1246,8 @@ implements L1OperationDispatcher
 		final L2BasicBlock targetBlock,
 		final PhiRestriction... phiRestrictions)
 	{
-		return new L2PcOperand(targetBlock, currentManifest, phiRestrictions);
+		return new L2PcOperand(
+			targetBlock, generator.currentManifest(), phiRestrictions);
 	}
 
 	/**
@@ -1477,9 +1340,9 @@ implements L1OperationDispatcher
 					+ typeToTest.traversed().descriptor().typeTag.name()
 						.replace("_TAG", "")
 					+ ")";
-			this.passCheckBasicBlock = createBasicBlock(
+			this.passCheckBasicBlock = generator.createBasicBlock(
 				"pass lookup test #" + shortTypeName);
-			this.failCheckBasicBlock = createBasicBlock(
+			this.failCheckBasicBlock = generator.createBasicBlock(
 				"fail lookup test #" + shortTypeName);
 		}
 	}
@@ -1567,7 +1430,7 @@ implements L1OperationDispatcher
 				// The VM says we can't actually get here.  Don't bother
 				// associating the return value with either the checked or
 				// unchecked return result L2SemanticSlot.
-				addUnreachableCode();
+				generator.addUnreachableCode();
 			}
 			else if (answerType.isSubtypeOf(expectedType))
 			{
@@ -1611,24 +1474,24 @@ implements L1OperationDispatcher
 			this.superUnionType = superUnionType;
 			this.isSuper = !superUnionType.isBottom();
 			this.quotedBundleName = bundle.message().atomName().toString();
-			this.onFallBackToSlowLookup = createBasicBlock(
+			this.onFallBackToSlowLookup = generator.createBasicBlock(
 				"fall back to slow lookup during " + quotedBundleName);
-			this.onReificationWithCheck = createBasicBlock(
+			this.onReificationWithCheck = generator.createBasicBlock(
 				"reify with check during " + quotedBundleName);
-			this.onReificationNoCheck = createBasicBlock(
-				"reify no check during " + quotedBundleName);
-			this.afterCallNoCheck = createBasicBlock(
-				isSuper
-					? "after super no-check call of " + quotedBundleName
-					: "after call no-check of " + quotedBundleName);
-			this.afterCallWithCheck = createBasicBlock(
-				isSuper
-					? "after super call with check of " + quotedBundleName
-					: "after call with check of " + quotedBundleName);
-			this.afterEverything = createBasicBlock(
-				isSuper
-					? "after entire super call of " + quotedBundleName
-					: "after entire call of " + quotedBundleName);
+			this.onReificationNoCheck = generator
+				.createBasicBlock("reify no check during " + quotedBundleName);
+			final String string2 = isSuper
+				? "after super no-check call of " + quotedBundleName
+				: "after call no-check of " + quotedBundleName;
+			this.afterCallNoCheck = generator.createBasicBlock(string2);
+			final String string1 = isSuper
+				? "after super call with check of " + quotedBundleName
+				: "after call with check of " + quotedBundleName;
+			this.afterCallWithCheck = generator.createBasicBlock(string1);
+			final String string = isSuper
+				? "after entire super call of " + quotedBundleName
+				: "after entire call of " + quotedBundleName;
+			this.afterEverything = generator.createBasicBlock(string);
 		}
 	}
 
@@ -1655,8 +1518,8 @@ implements L1OperationDispatcher
 		final CallSiteHelper callSiteHelper = new CallSiteHelper(
 			bundle, superUnionType, expectedType);
 		final A_Method method = bundle.bundleMethod();
-		translator.contingentValues =
-			translator.contingentValues.setWithElementCanDestroy(method, true);
+		generator.contingentValues =
+			generator.contingentValues.setWithElementCanDestroy(method, true);
 		final int nArgs = method.numArgs();
 		final List<L2ReadPointerOperand> arguments = new ArrayList<>(nArgs);
 		final List<A_Type> argumentTypes = new ArrayList<>(nArgs);
@@ -1750,8 +1613,8 @@ implements L1OperationDispatcher
 					// Every leaf and unexpanded internal node ends with an edge
 					// to afterCall* and/or onReification* and/or the
 					// unreachableBlock.
-					assert !currentlyReachable();
-					startBlock(memento.failCheckBasicBlock);
+					assert !generator.currentlyReachable();
+					generator.startBlock(memento.failCheckBasicBlock);
 					final L2ReadPointerOperand argBeforeTest =
 						memento.argumentBeforeComparison;
 					final L2ReadPointerOperand argUponFailure =
@@ -1773,7 +1636,7 @@ implements L1OperationDispatcher
 						memento.argumentIndexToTest - 1,
 						memento.argumentBeforeComparison);
 					// The leaves already end with jumps.
-					assert !currentlyReachable();
+					assert !generator.currentlyReachable();
 				}
 
 				@Override
@@ -1791,7 +1654,7 @@ implements L1OperationDispatcher
 				{
 					leafVisit(
 						expectedType, arguments, callSiteHelper, lookupResult);
-					assert !currentlyReachable();
+					assert !generator.currentlyReachable();
 				}
 			};
 			traverser.traverseEntireTree(tree);
@@ -1803,7 +1666,7 @@ implements L1OperationDispatcher
 				L2_JUMP.instance,
 				edgeTo(callSiteHelper.onFallBackToSlowLookup));
 		}
-		assert !currentlyReachable();
+		assert !generator.currentlyReachable();
 
 		// TODO MvG - I'm not sure this calculation is needed, since the phi
 		// for the result types should already produce a type union.
@@ -1859,16 +1722,16 @@ implements L1OperationDispatcher
 		// Clauses with no actual predecessors are not generated.
 
 		// #1: Default lookup.
-		startBlock(callSiteHelper.onFallBackToSlowLookup);
-		if (currentlyReachable())
+		generator.startBlock(callSiteHelper.onFallBackToSlowLookup);
+		if (generator.currentlyReachable())
 		{
 			generateSlowPolymorphicCall(
 				callSiteHelper, arguments, unionOfPossibleResults);
 		}
 
 		// #2: Reification with return check.
-		startBlock(callSiteHelper.onReificationWithCheck);
-		if (currentlyReachable())
+		generator.startBlock(callSiteHelper.onReificationWithCheck);
+		if (generator.currentlyReachable())
 		{
 			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
@@ -1881,8 +1744,8 @@ implements L1OperationDispatcher
 		}
 
 		// #3: Reification without return check.
-		startBlock(callSiteHelper.onReificationNoCheck);
-		if (currentlyReachable())
+		generator.startBlock(callSiteHelper.onReificationNoCheck);
+		if (generator.currentlyReachable())
 		{
 			reify(expectedType, TO_RETURN_INTO);
 			// Capture the value being returned into the on-ramp.
@@ -1895,8 +1758,8 @@ implements L1OperationDispatcher
 		}
 
 		// #4: After call with return check.
-		startBlock(callSiteHelper.afterCallWithCheck);
-		if (currentlyReachable())
+		generator.startBlock(callSiteHelper.afterCallWithCheck);
+		if (generator.currentlyReachable())
 		{
 			// The unchecked return value will have been put into the register
 			// bound to the L2SemanticSlot for the stackp and pc just after the
@@ -1909,12 +1772,12 @@ implements L1OperationDispatcher
 
 		// #5: After call without return check.
 		// Make the version of the stack with the unchecked value available.
-		startBlock(callSiteHelper.afterCallNoCheck);
-		if (currentlyReachable())
+		generator.startBlock(callSiteHelper.afterCallNoCheck);
+		if (generator.currentlyReachable())
 		{
 			// The value will have been put into a register bound to the
 			// L2SemanticSlot for the stackp and pc just after the call.
-			assert currentManifest.semanticValueToSynonym(
+			assert generator.currentManifest().semanticValueToSynonym(
 					topFrame.slot(stackp, instructionDecoder.pc()))
 				!= null;
 			addInstruction(
@@ -1923,7 +1786,7 @@ implements L1OperationDispatcher
 
 		// #6: After everything.  If it's possible to return a valid value from
 		// the call, this will be reachable.
-		startBlock(callSiteHelper.afterEverything);
+		generator.startBlock(callSiteHelper.afterEverything);
 	}
 
 	/**
@@ -1952,7 +1815,7 @@ implements L1OperationDispatcher
 		final CallSiteHelper callSiteHelper,
 		final A_Tuple solutions)
 	{
-		if (!currentlyReachable())
+		if (!generator.currentlyReachable())
 		{
 			return;
 		}
@@ -1967,7 +1830,7 @@ implements L1OperationDispatcher
 					expectedType,
 					true,
 					callSiteHelper);
-				assert !currentlyReachable();
+				assert !generator.currentlyReachable();
 				return;
 			}
 		}
@@ -2008,8 +1871,8 @@ implements L1OperationDispatcher
 			callSiteHelper, arguments, argumentIndexToTest, typeToTest);
 
 		// Prepare to generate the pass block, if reachable.
-		startBlock(memento.passCheckBasicBlock);
-		if (!currentlyReachable())
+		generator.startBlock(memento.passCheckBasicBlock);
+		if (!generator.currentlyReachable())
 		{
 			return memento;
 		}
@@ -2058,7 +1921,7 @@ implements L1OperationDispatcher
 				typeToTest,
 				arg,
 				callSiteHelper.branchLabelCounter.value++);
-		if (!currentlyReachable())
+		if (!generator.currentlyReachable())
 		{
 			// If no paths lead here, don't generate code.  This can happen when
 			// we short-circuit type-tests into unconditional jumps, due to the
@@ -2115,7 +1978,8 @@ implements L1OperationDispatcher
 					final L2BasicBlock nextCheckOrFail =
 						last
 							? memento.failCheckBasicBlock
-							: createBasicBlock("test next case of enumeration");
+							: generator.createBasicBlock(
+								"test next case of enumeration");
 					generateJumpIfEqualsConstant(
 						arg,
 						instance,
@@ -2127,7 +1991,7 @@ implements L1OperationDispatcher
 							arg.restrictedWithoutValue(instance)));
 					if (!last)
 					{
-						startBlock(nextCheckOrFail);
+						generator.startBlock(nextCheckOrFail);
 					}
 				}
 				return memento;
@@ -2332,8 +2196,9 @@ implements L1OperationDispatcher
 	 * depending on whether the returned value is guaranteed to satisfy the
 	 * expectedType or not.
 	 *
-	 * <p>The code generation position is never {@link #currentlyReachable()}
-	 * after this (Java) generate method runs.</p>
+	 * <p>The code generation position is never {@link
+	 * L2Generator#currentlyReachable()} after this (Java) generate method
+	 * runs.</p>
 	 *
 	 * <p>The final output from the entire polymorphic call will always be fully
 	 * strengthened to the intersection of the VM-guaranteed type and the
@@ -2450,7 +2315,7 @@ implements L1OperationDispatcher
 				}
 				if (generated)
 				{
-					assert !currentlyReachable();
+					assert !generator.currentlyReachable();
 					return;
 				}
 			}
@@ -2465,7 +2330,7 @@ implements L1OperationDispatcher
 		final @Nullable A_Function constantFunction =
 			(A_Function) functionToCallReg.constantOrNull();
 		final L2BasicBlock successBlock =
-			createBasicBlock("successful invocation");
+			generator.createBasicBlock("successful invocation");
 		if (constantFunction != null)
 		{
 			addInstruction(
@@ -2488,7 +2353,7 @@ implements L1OperationDispatcher
 					? callSiteHelper.onReificationNoCheck
 					: callSiteHelper.onReificationWithCheck));
 		}
-		startBlock(successBlock);
+		generator.startBlock(successBlock);
 		if (skipCheck)
 		{
 			addInstruction(
@@ -2511,7 +2376,7 @@ implements L1OperationDispatcher
 			addInstruction(
 				L2_JUMP.instance, edgeTo(callSiteHelper.afterCallWithCheck));
 		}
-		assert !currentlyReachable();
+		assert !generator.currentlyReachable();
 	}
 
 	/**
@@ -2533,7 +2398,7 @@ implements L1OperationDispatcher
 	private void generateReturnTypeCheck (final A_Type expectedType)
 	{
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-			currentManifest.semanticValueToSynonym(
+			generator.currentManifest().semanticValueToSynonym(
 				topFrame.slot(stackp, instructionDecoder.pc() - 1));
 		final L2ReadPointerOperand uncheckedValueReg =
 			stripNull(synonym).defaultRegisterRead();
@@ -2544,15 +2409,15 @@ implements L1OperationDispatcher
 			// only an erroneous semantic restriction, not a VM problem.
 			// NOTE that this test terminates a mutual recursion between this
 			// method and generateGeneralFunctionInvocation().
-			addUnreachableCode();
+			generator.addUnreachableCode();
 			return;
 		}
 
 		// Check the return value against the expectedType.
 		final L2BasicBlock passedCheck =
-			createBasicBlock("passed return check");
+			generator.createBasicBlock("passed return check");
 		final L2BasicBlock failedCheck =
-			createBasicBlock("failed return check");
+			generator.createBasicBlock("failed return check");
 		if (uncheckedValueReg.type().typeIntersection(expectedType).isBottom())
 		{
 			// It's impossible to return a valid value here, since the value's
@@ -2572,16 +2437,16 @@ implements L1OperationDispatcher
 				new L2ConstantOperand(expectedType),
 				new L2PcOperand(
 					passedCheck,
-					currentManifest,
+					generator.currentManifest(),
 					uncheckedValueReg.restrictedToType(expectedType)),
 				new L2PcOperand(
 					failedCheck,
-					currentManifest,
+					generator.currentManifest(),
 					uncheckedValueReg.restrictedWithoutType(expectedType)));
 		}
 
 		// The type check failed, so report it.
-		startBlock(failedCheck);
+		generator.startBlock(failedCheck);
 		final L2WritePointerOperand variableToHoldValueWrite =
 			newObjectRegisterWriter(restriction(variableTypeFor(ANY.o())));
 		addInstruction(
@@ -2589,7 +2454,7 @@ implements L1OperationDispatcher
 			new L2ConstantOperand(variableTypeFor(ANY.o())),
 			variableToHoldValueWrite);
 		final L2BasicBlock wroteVariable =
-			createBasicBlock("wrote offending value into variable");
+			generator.createBasicBlock("wrote offending value into variable");
 		addInstruction(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			variableToHoldValueWrite.read(),
@@ -2599,12 +2464,12 @@ implements L1OperationDispatcher
 
 		// Whether the set succeeded or failed doesn't really matter, although
 		// it should always succeed for this freshly created variable.
-		startBlock(wroteVariable);
+		generator.startBlock(wroteVariable);
 		// Recurse to generate the call to the failure handler.  Since it's
 		// bottom-valued, and can therefore skip the result check, the recursive
 		// call won't exceed two levels deep.
-		final L2BasicBlock onReificationInHandler = createBasicBlock(
-			"reification in failed return check handler");
+		final L2BasicBlock onReificationInHandler = generator
+			.createBasicBlock("reification in failed return check handler");
 		addInstruction(
 			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
@@ -2613,17 +2478,17 @@ implements L1OperationDispatcher
 					getReturningFunctionRegister(),
 					constantRegister(expectedType),
 					variableToHoldValueWrite.read())),
-			unreachablePcOperand(),
+			generator.unreachablePcOperand(),
 			edgeTo(onReificationInHandler));
 
 		// Reification has been requested while the call is in progress.
-		startBlock(onReificationInHandler);
+		generator.startBlock(onReificationInHandler);
 		reify(bottom(), TO_RETURN_INTO);
-		addUnreachableCode();
+		generator.addUnreachableCode();
 
 		// Generate the much more likely passed-check flow.
-		startBlock(passedCheck);
-		if (currentlyReachable())
+		generator.startBlock(passedCheck);
+		if (generator.currentlyReachable())
 		{
 			forceSlotRegister(
 				stackp,
@@ -2687,7 +2552,6 @@ implements L1OperationDispatcher
 			{
 				// Fold the primitive.  A foldable primitive must not
 				// require access to the enclosing function or its code.
-				final Interpreter interpreter = translator.interpreter;
 				final @Nullable A_Function savedFunction = interpreter.function;
 				interpreter.function = null;
 				final String savedDebugModeString = interpreter.debugModeString;
@@ -2754,7 +2618,7 @@ implements L1OperationDispatcher
 				narrowedArgTypes,
 				this,
 				callSiteHelper);
-		if (generated && currentlyReachable())
+		if (generated && generator.currentlyReachable())
 		{
 			// The top-of-stack was replaced, but it wasn't convenient to do
 			// a jump to the appropriate exit handlers.  Do that now.
@@ -2901,12 +2765,13 @@ implements L1OperationDispatcher
 		final A_Bundle bundle = callSiteHelper.bundle;
 		final A_Method method = bundle.bundleMethod();
 		final int nArgs = method.numArgs();
-		final L2BasicBlock lookupSucceeded = createBasicBlock(
+		final L2BasicBlock lookupSucceeded = generator.createBasicBlock(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName);
-		final L2BasicBlock lookupFailed = createBasicBlock(
+		final L2BasicBlock lookupFailed = generator.createBasicBlock(
 			"lookup failed for " + callSiteHelper.quotedBundleName);
-		final L2BasicBlock onReificationDuringFailure = createBasicBlock(
-			"reify in method lookup failure handler for "
+		final L2BasicBlock onReificationDuringFailure =
+			generator.createBasicBlock(
+				"reify in method lookup failure handler for "
 				+ callSiteHelper.quotedBundleName);
 		final L2WritePointerOperand errorCodeReg =
 			newObjectRegisterWriter(restriction(TOP.o()));
@@ -3023,7 +2888,7 @@ implements L1OperationDispatcher
 		// code.
 
 		// Emit the lookup failure case.
-		startBlock(lookupFailed);
+		generator.startBlock(lookupFailed);
 		final L2WritePointerOperand invalidSendReg =
 			newObjectRegisterWriter(
 				restriction(invalidMessageSendFunctionType));
@@ -3053,18 +2918,18 @@ implements L1OperationDispatcher
 					errorCodeReg.read(),
 					constantRegister(method),
 					argumentsTupleWrite.read())),
-			unreachablePcOperand(),
+			generator.unreachablePcOperand(),
 			edgeTo(onReificationDuringFailure));
 
 		// Reification has been requested while the failure call is in progress.
-		startBlock(onReificationDuringFailure);
+		generator.startBlock(onReificationDuringFailure);
 		reify(bottom(), TO_RETURN_INTO);
-		addUnreachableCode();
+		generator.addUnreachableCode();
 
 		// Now invoke the method definition's body.  We've already examined all
 		// possible method definition bodies to see if they all conform with the
 		// expectedType, and captured that in alwaysSkipResultCheck.
-		startBlock(lookupSucceeded);
+		generator.startBlock(lookupSucceeded);
 		generateGeneralFunctionInvocation(
 			functionReg.read(),
 			arguments,
@@ -3086,16 +2951,16 @@ implements L1OperationDispatcher
 	private void emitInterruptOffRamp ()
 	{
 		final L2BasicBlock serviceInterrupt =
-			createBasicBlock("service interrupt");
+			generator.createBasicBlock("service interrupt");
 		final L2BasicBlock merge =
-			createBasicBlock("merge after possible interrupt");
+			generator.createBasicBlock("merge after possible interrupt");
 
 		addInstruction(
 			L2_JUMP_IF_INTERRUPT.instance,
 			edgeTo(serviceInterrupt),
 			edgeTo(merge));
 
-		startBlock(serviceInterrupt);
+		generator.startBlock(serviceInterrupt);
 		// Service the interrupt:  Generate the reification instructions,
 		// ensuring that when returning into the resulting continuation, it will
 		// enter a block where the slot registers are the new ones we just
@@ -3103,24 +2968,25 @@ implements L1OperationDispatcher
 		// interrupt.
 
 		// Reify everybody else, starting at the caller.
-		final L2BasicBlock onReification = createBasicBlock("on reification");
+		final L2BasicBlock onReification =
+			generator.createBasicBlock("on reification");
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
 			new L2IntImmediateOperand(1),
 			new L2IntImmediateOperand(
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal()),
-			new L2PcOperand(onReification, currentManifest));
-		startBlock(onReification);
+			new L2PcOperand(onReification, generator.currentManifest()));
+		generator.startBlock(onReification);
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
 		reify(null, TO_RESUME);
 		addInstruction(
 			L2_JUMP.instance,
-			new L2PcOperand(merge, currentManifest));
+			new L2PcOperand(merge, generator.currentManifest()));
 		// Merge the flow (reified and continued, versus not reified).
-		startBlock(merge);
+		generator.startBlock(merge);
 		// And now... either we're back or we never left.
 	}
 
@@ -3146,11 +3012,12 @@ implements L1OperationDispatcher
 	{
 		assert getOperation.isVariableGet();
 		final L2BasicBlock success =
-			createBasicBlock("successfully read variable");
+			generator.createBasicBlock("successfully read variable");
 		final L2BasicBlock failure =
-			createBasicBlock("failed to read variable");
+			generator.createBasicBlock("failed to read variable");
 		final L2BasicBlock onReificationDuringFailure =
-			createBasicBlock("reify in read variable failure handler");
+			generator.createBasicBlock(
+				"reify in read variable failure handler");
 
 		// Emit the specified get-variable instruction variant.
 		final L2WritePointerOperand valueWrite =
@@ -3165,7 +3032,7 @@ implements L1OperationDispatcher
 		// Emit the failure path. Unbind the destination of the variable get in
 		// this case, since it won't have been populated (by definition,
 		// otherwise we wouldn't have failed).
-		startBlock(failure);
+		generator.startBlock(failure);
 		final L2WritePointerOperand unassignedReadFunction =
 			newObjectRegisterWriter(
 				restriction(unassignedVariableReadFunctionType));
@@ -3176,16 +3043,16 @@ implements L1OperationDispatcher
 			L2_INVOKE.instance,
 			unassignedReadFunction.read(),
 			new L2ReadVectorOperand<>(emptyList()),
-			unreachablePcOperand(),
+			generator.unreachablePcOperand(),
 			edgeTo(onReificationDuringFailure));
 
 		// Reification has been requested while the failure call is in progress.
-		startBlock(onReificationDuringFailure);
+		generator.startBlock(onReificationDuringFailure);
 		reify(bottom(), TO_RETURN_INTO);
-		addUnreachableCode();
+		generator.addUnreachableCode();
 
 		// End with the success path.
-		startBlock(success);
+		generator.startBlock(success);
 		return makeImmutable
 			? makeImmutable(valueWrite.read())
 			: valueWrite.read();
@@ -3211,10 +3078,12 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand newValue)
 	{
 		assert setOperation.isVariableSet();
-		final L2BasicBlock success = createBasicBlock("set local success");
-		final L2BasicBlock failure = createBasicBlock("set local failure");
+		final L2BasicBlock success =
+			generator.createBasicBlock("set local success");
+		final L2BasicBlock failure =
+			generator.createBasicBlock("set local failure");
 		final L2BasicBlock onReificationDuringFailure =
-			createBasicBlock("reify during set local failure");
+			generator.createBasicBlock("reify during set local failure");
 		// Emit the set-variable instruction.
 		addInstruction(
 			setOperation,
@@ -3224,7 +3093,7 @@ implements L1OperationDispatcher
 			edgeTo(failure));
 
 		// Emit the failure path.
-		startBlock(failure);
+		generator.startBlock(failure);
 		final L2WritePointerOperand observeFunction =
 			newObjectRegisterWriter(restriction(implicitObserveFunctionType));
 		addInstruction(
@@ -3250,7 +3119,7 @@ implements L1OperationDispatcher
 			edgeTo(success),
 			edgeTo(onReificationDuringFailure));
 
-		startBlock(onReificationDuringFailure);
+		generator.startBlock(onReificationDuringFailure);
 		reify(TOP.o(), TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
@@ -3258,21 +3127,7 @@ implements L1OperationDispatcher
 
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
-		startBlock(success);
-	}
-
-	/**
-	 * Create a new {@link L2BasicBlock}.  It's initially not connected to
-	 * anything, and is ignored if it is never actually added with {@link
-	 * #startBlock(L2BasicBlock)}.
-	 *
-	 * @param name The descriptive name of the new basic block.
-	 * @return The new {@link L2BasicBlock}.
-	 */
-	@SuppressWarnings("MethodMayBeStatic")
-	public L2BasicBlock createBasicBlock (final String name)
-	{
-		return new L2BasicBlock(name);
+		generator.startBlock(success);
 	}
 
 	/** Statistic for generating an L2Chunk's preamble. */
@@ -3294,8 +3149,8 @@ implements L1OperationDispatcher
 	void translateL1Instructions ()
 	{
 		final long timeAtStartOfTranslation = captureNanos();
-		initialBlock.makeIrremovable();
-		startBlock(initialBlock);
+		generator.initialBlock.makeIrremovable();
+		generator.startBlock(generator.initialBlock);
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)
 		{
@@ -3309,15 +3164,15 @@ implements L1OperationDispatcher
 		}
 		// Fallible primitives and non-primitives need this additional entry
 		// point.
-		afterOptionalInitialPrimitiveBlock =
-			createBasicBlock("after optional primitive");
-		afterOptionalInitialPrimitiveBlock.makeIrremovable();
+		generator.afterOptionalInitialPrimitiveBlock =
+			generator.createBasicBlock("after optional primitive");
+		generator.afterOptionalInitialPrimitiveBlock.makeIrremovable();
 		addInstruction(
 			L2_JUMP.instance,
-			edgeTo(afterOptionalInitialPrimitiveBlock));
+			edgeTo(generator.afterOptionalInitialPrimitiveBlock));
 
-		startBlock(afterOptionalInitialPrimitiveBlock);
-		currentManifest.clear();
+		generator.startBlock(generator.afterOptionalInitialPrimitiveBlock);
+		generator.currentManifest().clear();
 		// While it's true that invalidation may only take place when no Avail
 		// code is running (even when evicting old chunks), and it's also the
 		// case that invalidation causes the chunk to be disconnected from its
@@ -3333,7 +3188,7 @@ implements L1OperationDispatcher
 				"If invalid, reenter «default» at the beginning."));
 
 		// Do any reoptimization before capturing arguments.
-		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
+		if (generator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 		{
 			// Optimize it again if it's called frequently enough.
 			code.countdownToReoptimize(
@@ -3386,14 +3241,14 @@ implements L1OperationDispatcher
 			// Move the primitive failure value into the first local.  This
 			// doesn't need to support implicit observation, so no off-ramp
 			// is generated.
-			final L2BasicBlock success = createBasicBlock("success");
+			final L2BasicBlock success = generator.createBasicBlock("success");
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				readSlot(numArgs + 1),
 				getLatestReturnValue(code.localTypeAt(1).writeType()),
 				edgeTo(success),
-				unreachablePcOperand());
-			startBlock(success);
+				generator.unreachablePcOperand());
+			generator.startBlock(success);
 		}
 
 		// Nil the rest of the stack slots.
@@ -3408,7 +3263,7 @@ implements L1OperationDispatcher
 		emitInterruptOffRamp();
 
 		// Capture the time it took to generate the whole preamble.
-		final int interpreterIndex = translator.interpreter.interpreterIndex;
+		final int interpreterIndex = interpreter.interpreterIndex;
 		preambleGenerationStat.record(
 			captureNanos() - timeAtStartOfTranslation, interpreterIndex);
 
@@ -3425,15 +3280,16 @@ implements L1OperationDispatcher
 		// Generate the implicit return after the instruction sequence.
 		final L2ReadPointerOperand readResult = readSlot(stackp);
 		addInstruction(L2_RETURN.instance, readResult);
-		currentManifest.addBinding(topFrame.result(), readResult.register());
+		generator.currentManifest().addBinding(
+			topFrame.result(), readResult.register());
 		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
 
-		if (unreachableBlock != null
-			&& unreachableBlock.predecessorEdgesCount() > 0)
+		if (generator.unreachableBlock != null
+			&& generator.unreachableBlock.predecessorEdgesCount() > 0)
 		{
 			// Generate the unreachable block.
-			startBlock(unreachableBlock);
+			generator.startBlock(generator.unreachableBlock);
 			addInstruction(L2_UNREACHABLE_CODE.instance);
 		}
 	}
@@ -3535,6 +3391,94 @@ implements L1OperationDispatcher
 				unreachableBlock,
 				L2_UNREACHABLE_CODE.instance));
 		return controlFlowGraph;
+	}
+
+	/** Statistic for number of instructions in L2 translations. */
+	private static final Statistic translationSizeStat =
+		new Statistic("L2 instruction count", L2_TRANSLATION_VALUES);
+
+	/** Statistic for number of methods depended on by L2 translations. */
+	private static final Statistic translationDependenciesStat =
+		new Statistic("Number of methods depended upon", L2_TRANSLATION_VALUES);
+
+	/** Statistics about the naive L1 to L2 translation. */
+	private static final Statistic translateL1Stat =
+		new Statistic("L1 naive translation", L2_OPTIMIZATION_TIME);
+
+	/**
+	 * Translate the provided {@link A_RawFunction} to produce an optimized
+	 * {@link L2Chunk} that is then written back into the code for subsequent
+	 * executions.  Also update the {@link Interpreter}'s chunk and offset to
+	 * use this new chunk right away.  If the code was a primitive, make sure to
+	 * adjust the offset to just beyond its {@link L2_TRY_PRIMITIVE}
+	 * instruction, which must have <em>already</em> been attempted and failed
+	 * for us to have reached the {@link
+	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} that caused this
+	 * optimization to happen.
+	 *
+	 * @param code
+	 *        The {@link A_RawFunction} to optimize.
+	 * @param optimizationLevel
+	 *        How much optimization to attempt.
+	 * @param interpreter
+	 *        The {@link Interpreter} used for folding expressions, and to be
+	 *        updated with the new chunk and post-primitive offset.
+	 */
+	public static void translateToLevelTwo (
+		final A_RawFunction code,
+		final OptimizationLevel optimizationLevel,
+		final Interpreter interpreter)
+	{
+		final @Nullable A_Function savedFunction = interpreter.function;
+		final List<AvailObject> savedArguments =
+			new ArrayList<>(interpreter.argsBuffer);
+		final @Nullable AvailObject savedFailureValue =
+			interpreter.latestResultOrNull();
+
+		final L2Generator generator = new L2Generator(optimizationLevel);
+		final L1Translator translator =
+			new L1Translator(generator, interpreter, code);
+		translator.translate();
+
+		final L2Chunk chunk = generator.chunk();
+		interpreter.function = savedFunction;
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.addAll(savedArguments);
+		interpreter.latestResult(savedFailureValue);
+		translationSizeStat.record(
+			chunk.instructions.length,
+			interpreter.interpreterIndex);
+		translationDependenciesStat.record(
+			generator.contingentValues.setSize(),
+			interpreter.interpreterIndex);
+	}
+
+	/**
+	 * Translate the supplied {@link A_RawFunction} into a sequence of {@link
+	 * L2Instruction}s.  The optimization level specifies how hard to try to
+	 * optimize this method.  It is roughly equivalent to the level of inlining
+	 * to attempt, or the ratio of code expansion that is permitted. An
+	 * optimization level of zero is the bare minimum, which produces a naïve
+	 * translation to {@linkplain L2Chunk Level Two code}.  The translation may
+	 * include code to decrement a counter and reoptimize with greater effort
+	 * when the counter reaches zero.
+	 */
+	private void translate ()
+	{
+		final long beforeL1Naive = captureNanos();
+		translateL1Instructions();
+		translateL1Stat.record(
+			captureNanos() - beforeL1Naive,
+			interpreter.interpreterIndex);
+
+		generator.controlFlowGraph.optimize(interpreter);
+
+		final long beforeChunkGeneration = captureNanos();
+		generator.createChunk(code);
+		assert code.startingChunk() == generator.chunk();
+		finalGenerationStat.record(
+			captureNanos() - beforeChunkGeneration,
+			interpreter.interpreterIndex);
 	}
 
 	@Override
@@ -3789,16 +3733,17 @@ implements L1OperationDispatcher
 		// The initially constructed continuation is always immediately resumed,
 		// so this should never be observed.
 		stackp = Integer.MAX_VALUE;
-		final L2BasicBlock onReification = createBasicBlock("on reification");
+		final L2BasicBlock onReification =
+			generator.createBasicBlock("on reification");
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
 			new L2IntImmediateOperand(0),
 			new L2IntImmediateOperand(
 				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
-			new L2PcOperand(onReification, currentManifest));
+			new L2PcOperand(onReification, generator.currentManifest()));
 
-		startBlock(onReification);
+		generator.startBlock(onReification);
 		reify(null, UNREACHABLE);
 
 		// We just continued the reified continuation, having exploded the
@@ -3827,7 +3772,7 @@ implements L1OperationDispatcher
 				instructionDecoder.pc(),
 				restriction(continuationType, null));
 		final L2BasicBlock afterCreation =
-			createBasicBlock("after creating label");
+			generator.createBasicBlock("after creating label");
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
@@ -3836,12 +3781,12 @@ implements L1OperationDispatcher
 			new L2IntImmediateOperand(numSlots + 1),  // empty stack
 			new L2ReadVectorOperand<>(slotsForLabel),
 			destinationRegister,
-			new L2PcOperand(initialBlock, new L2ValueManifest()),
+			new L2PcOperand(generator.initialBlock, new L2ValueManifest()),
 			edgeTo(afterCreation),
 			new L2CommentOperand("Create a label continuation."));
 
 		// Continue, with the label having been pushed.
-		startBlock(afterCreation);
+		generator.startBlock(afterCreation);
 		// Freeze all fields of the new object, including its caller,
 		// function, and arguments.
 		addInstruction(

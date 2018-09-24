@@ -116,7 +116,7 @@ extends L2ConditionalJump
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		throw new UnsupportedOperationException();
 //		final int ifEqual = instruction.pcAt(0);

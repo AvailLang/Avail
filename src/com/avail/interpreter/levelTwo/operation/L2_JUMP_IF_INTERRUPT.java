@@ -80,7 +80,7 @@ extends L2ConditionalJump
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// If there's an interrupt then fall through, otherwise jump as
 		// indicated.  Neither transition directly affects registers, although

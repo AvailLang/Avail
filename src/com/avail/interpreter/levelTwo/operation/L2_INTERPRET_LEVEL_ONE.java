@@ -95,7 +95,7 @@ extends L2ControlFlowOperation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		// No real optimization should ever be done near this wordcode.
 		// Do nothing.

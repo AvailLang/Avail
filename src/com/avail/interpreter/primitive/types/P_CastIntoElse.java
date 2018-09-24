@@ -195,10 +195,10 @@ public final class P_CastIntoElse extends Primitive
 		final L2ReadPointerOperand castFunctionReg = arguments.get(1);
 		final L2ReadPointerOperand elseFunctionReg = arguments.get(2);
 
-		final L2BasicBlock castBlock = translator.createBasicBlock(
-			"cast type matched");
-		final L2BasicBlock elseBlock = translator.createBasicBlock(
-			"cast type did not match");
+		final L2BasicBlock castBlock =
+			translator.generator.createBasicBlock("cast type matched");
+		final L2BasicBlock elseBlock =
+			translator.generator.createBasicBlock("cast type did not match");
 
 		final @Nullable A_Type typeTest = exactArgumentTypeFor(castFunctionReg);
 		if (typeTest != null)
@@ -290,7 +290,7 @@ public final class P_CastIntoElse extends Primitive
 		// We couldn't skip the runtime type check, which takes us to either
 		// castBlock or elseBlock, after which we merge the control flow back.
 		// Start by generating the invocation of castFunction.
-		translator.startBlock(castBlock);
+		translator.generator.startBlock(castBlock);
 		translator.generateGeneralFunctionInvocation(
 			castFunctionReg,
 			singletonList(valueReg),
@@ -299,7 +299,7 @@ public final class P_CastIntoElse extends Primitive
 			callSiteHelper);
 
 		// Now deal with invoking the elseBlock instead.
-		translator.startBlock(elseBlock);
+		translator.generator.startBlock(elseBlock);
 		translator.generateGeneralFunctionInvocation(
 			elseFunctionReg,
 			emptyList(),

@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Inliner;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -93,11 +93,11 @@ extends L2Register<A_BasicObject>
 	@Override
 	public <R extends L2Register<A_BasicObject>>
 	R copyForTranslator (
-		final L1Translator translator,
+		final L2Generator generator,
 		final TypeRestriction<A_BasicObject> typeRestriction)
 	{
 		return cast(
-			new L2ObjectRegister(translator.nextUnique(), typeRestriction));
+			new L2ObjectRegister(generator.nextUnique(), typeRestriction));
 	}
 
 	@Override

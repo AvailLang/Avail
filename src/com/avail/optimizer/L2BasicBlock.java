@@ -338,12 +338,12 @@ public final class L2BasicBlock
 	 * the appropriate slotRegisters of the provided {@link L1Translator}.
 	 * </p>
 	 *
-	 * @param translator
-	 *        The {@link L1Translator} generating instructions.
+	 * @param generator
+	 *        The {@link L2Generator} generating instructions.
 	 */
-	void startIn (final L1Translator translator)
+	void startIn (final L2Generator generator)
 	{
-		translator.currentManifest.clear();
+		generator.currentManifest.clear();
 		if (isIrremovable())
 		{
 			// Irremovable blocks are entry points, and don't require any
@@ -358,8 +358,8 @@ public final class L2BasicBlock
 		{
 			manifests.add(predecessorEdge.manifest());
 		}
-		translator.currentManifest.populateFromIntersection(
-			manifests, translator);
+		generator.currentManifest.populateFromIntersection(
+			manifests, generator);
 	}
 
 	/**

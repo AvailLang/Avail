@@ -46,8 +46,8 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1Translator;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -94,7 +94,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
 		final List<L2ReadPointerOperand> outerRegs =
@@ -154,7 +154,7 @@ extends L2Operation
 		assert !intersection.isBottom();
 
 		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
-			translator.currentManifest().registerToSynonym(
+			translator.generator.currentManifest().registerToSynonym(
 				originalRegister.register());
 		if (synonym != null)
 		{

@@ -83,7 +83,7 @@ extends L2Operation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final int outerIndex = instruction.intImmediateAt(0);
 		final L2ReadPointerOperand functionReg =

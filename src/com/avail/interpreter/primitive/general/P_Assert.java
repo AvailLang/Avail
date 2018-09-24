@@ -178,10 +178,10 @@ public final class P_Assert extends Primitive
 		// branched control flow so that some of the computation of the message
 		// string and the reification state can be pushed into the rare failure
 		// path.
-		final L2BasicBlock failPath = translator.createBasicBlock(
-			"assertion failed");
-		final L2BasicBlock passPath = translator.createBasicBlock(
-			"after assertion");
+		final L2BasicBlock failPath =
+			translator.generator.createBasicBlock("assertion failed");
+		final L2BasicBlock passPath =
+			translator.generator.createBasicBlock("after assertion");
 
 		translator.addInstruction(
 			L2_JUMP_IF_EQUALS_CONSTANT.instance,
@@ -190,7 +190,7 @@ public final class P_Assert extends Primitive
 			translator.edgeTo(passPath),
 			translator.edgeTo(failPath));
 
-		translator.startBlock(failPath);
+		translator.generator.startBlock(failPath);
 		// Since this invocation will also be optimized, pass the constant false
 		// as the condition argument to avoid infinite recursion.
 		translator.generateGeneralFunctionInvocation(
@@ -203,7 +203,7 @@ public final class P_Assert extends Primitive
 			callSiteHelper);
 
 		// Happy case.  Just push nil and jump to a suitable exit point.
-		translator.startBlock(passPath);
+		translator.generator.startBlock(passPath);
 		callSiteHelper.useAnswer(translator.constantRegister(nil));
 		return true;
 	}

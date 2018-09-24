@@ -61,23 +61,6 @@ public final class L2ControlFlowGraph
 	public final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
 
 	/**
-	 * An {@link AtomicInteger} used to quickly generate unique integers which
-	 * serve to visually distinguish new registers.
-	 */
-	private int uniqueCounter = 0;
-
-	/**
-	 * Answer the next value from the unique counter.  This is only used to
-	 * distinguish registers for visual debugging.
-	 *
-	 * @return A int.
-	 */
-	int nextUnique ()
-	{
-		return uniqueCounter++;
-	}
-
-	/**
 	 * Begin code generation in the given block.
 	 *
 	 * @param block

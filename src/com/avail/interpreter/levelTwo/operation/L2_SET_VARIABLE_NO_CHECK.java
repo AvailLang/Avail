@@ -92,7 +92,7 @@ extends L2ControlFlowOperation
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets,
-		final L2Generator translator)
+		final L2Generator generator)
 	{
 		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
