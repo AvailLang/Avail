@@ -127,7 +127,7 @@ extends Primitive
 			varReg,
 			valueReg);
 		// We're now at the success position in the generated code.
-		callSiteHelper.useAnswer(translator.constantRegister(nil));
+		callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
 		return true;
 	}
 

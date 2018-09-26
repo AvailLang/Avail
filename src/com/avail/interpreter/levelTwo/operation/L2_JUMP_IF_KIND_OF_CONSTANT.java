@@ -88,7 +88,7 @@ extends L2ConditionalJump
 	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		// Eliminate tests due to type propagation.
 		final L2ReadPointerOperand valueReg =

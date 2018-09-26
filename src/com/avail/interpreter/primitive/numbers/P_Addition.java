@@ -55,10 +55,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -69,8 +67,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.exceptions.AvailErrorCode
-	.E_CANNOT_ADD_UNLIKE_INFINITIES;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -233,13 +230,13 @@ extends Primitive
 		final L2BasicBlock boxedAddition =
 			translator.generator
 				.createBasicBlock("fall back to boxed addition");
-		final L2ReadIntOperand a = translator.unboxIntoIntRegister(
+		final L2ReadIntOperand a = translator.generator.unboxIntoIntRegister(
 			arguments.get(0),
 			aType,
 			unboxedArg1Block,
 			boxedAddition);
 		// unboxedArg1Block has been started, if necessary.
-		final L2ReadIntOperand b = translator.unboxIntoIntRegister(
+		final L2ReadIntOperand b = translator.generator.unboxIntoIntRegister(
 			arguments.get(1),
 			bType,
 			unboxedAddition,
@@ -249,8 +246,8 @@ extends Primitive
 		// Emit the most efficient available unboxed arithmetic.
 		final A_Type returnType = returnTypeGuaranteedByVM(
 			rawFunction, argumentTypes);
-		final L2WriteIntOperand sum = translator.newIntRegisterWriter(
-			returnType, null);
+		final L2WriteIntOperand sum =
+			translator.generator.newIntRegisterWriter(returnType, null);
 		if (returnType.isSubtypeOf(int32()))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
@@ -261,7 +258,7 @@ extends Primitive
 				b,
 				sum);
 			final L2ReadPointerOperand boxed =
-				translator.box(sum.read(), returnType);
+				translator.generator.box(sum.read(), returnType);
 			callSiteHelper.useAnswer(boxed);
 		}
 		else
@@ -334,7 +331,7 @@ extends Primitive
 			// to arrange to box the result up again for delivery.
 			translator.generator.startBlock(boxUpSum);
 			final L2ReadPointerOperand boxed =
-				translator.box(sum.read(), returnType);
+				translator.generator.box(sum.read(), returnType);
 			callSiteHelper.useAnswer(boxed);
 
 			// Here we've failed at performing unboxed arithmetic, so we need to

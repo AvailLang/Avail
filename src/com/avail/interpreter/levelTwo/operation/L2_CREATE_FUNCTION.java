@@ -168,7 +168,8 @@ extends L2Operation
 		// value from the actual function.  Note that it's still guaranteed to
 		// have the strengthened type.
 		final L2WritePointerOperand tempReg =
-			translator.newObjectRegisterWriter(restriction(intersection));
+			translator.generator.newObjectRegisterWriter(
+				restriction(intersection));
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),

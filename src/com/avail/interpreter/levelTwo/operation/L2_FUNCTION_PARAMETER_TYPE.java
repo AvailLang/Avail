@@ -138,7 +138,7 @@ extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
@@ -178,13 +178,13 @@ extends L2Operation
 			// Replace this instruction with a constant move.
 			final A_Type paramType =
 				functionType.argsTupleType().typeAtIndex(paramIndex);
-			translator.addInstruction(
+			generator.addInstruction(
 				L2_MOVE_CONSTANT.instance,
 				new L2ConstantOperand(paramType),
 				outputParamTypeReg);
 			return true;
 		}
-		return super.regenerate(instruction, registerSet, translator);
+		return super.regenerate(instruction, registerSet, generator);
 	}
 
 	@Override

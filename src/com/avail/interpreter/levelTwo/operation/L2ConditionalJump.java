@@ -37,7 +37,7 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -158,8 +158,8 @@ extends L2ControlFlowOperation
 	 *        The {@link L2Instruction} being examined.
 	 * @param registerSet
 	 *        The {@link RegisterSet} at the current code position.
-	 * @param translator
-	 *        The {@link L1Translator} in which code (re)generation is taking
+	 * @param generator
+	 *        The {@link L2Generator} in which code (re)generation is taking
 	 *        place.
 	 * @return A {@link BranchReduction} indicating whether the branch direction
 	 *         can be statically decided.
@@ -167,7 +167,7 @@ extends L2ControlFlowOperation
 	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		return SometimesTaken;
 	}
@@ -176,31 +176,31 @@ extends L2ControlFlowOperation
 	public final boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		final BranchReduction reduction =
-			branchReduction(instruction, registerSet, translator);
+			branchReduction(instruction, registerSet, generator);
 		final List<L2PcOperand> edges = targetEdges(instruction);
 		assert edges.size() == 2;
 		switch (reduction)
 		{
 			case AlwaysTaken:
 			{
-				translator.addInstruction(
+				generator.addInstruction(
 					L2_JUMP.instance,
 					edges.get(0));
 				return true;
 			}
 			case NeverTaken:
 			{
-				translator.addInstruction(
+				generator.addInstruction(
 					L2_JUMP.instance,
 					edges.get(1));
 				return true;
 			}
 			case SometimesTaken:  // Fall-through
 		}
-		translator.addInstruction(instruction);
+		generator.addInstruction(instruction);
 		return false;
 	}
 

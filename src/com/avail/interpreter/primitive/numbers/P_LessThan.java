@@ -131,7 +131,8 @@ public final class P_LessThan extends Primitive
 		if (!canBeTrue || !canBeFalse)
 		{
 			callSiteHelper.useAnswer(
-				translator.constantRegister(objectFromBoolean(canBeTrue)));
+				translator.generator
+					.constantRegister(objectFromBoolean(canBeTrue)));
 			return true;
 		}
 		return super.tryToGenerateSpecialPrimitiveInvocation(

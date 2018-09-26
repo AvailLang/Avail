@@ -133,7 +133,8 @@ public final class P_Equality extends Primitive
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
-			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			callSiteHelper.useAnswer(
+				translator.generator.constantRegister(trueObject()));
 			return true;
 		}
 
@@ -143,7 +144,7 @@ public final class P_Equality extends Primitive
 		{
 			// The actual values cannot be equal at runtime.
 			callSiteHelper.useAnswer(
-				translator.constantRegister(falseObject()));
+				translator.generator.constantRegister(falseObject()));
 			return true;
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -153,7 +154,8 @@ public final class P_Equality extends Primitive
 			&& type1.instanceCount().equalsInt(1)
 			&& !type1.isInstanceMeta())
 		{
-			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			callSiteHelper.useAnswer(
+				translator.generator.constantRegister(trueObject()));
 			return true;
 		}
 

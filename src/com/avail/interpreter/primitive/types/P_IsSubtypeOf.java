@@ -125,7 +125,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				callSiteHelper.useAnswer(
-					translator.constantRegister(trueObject()));
+					translator.generator.constantRegister(trueObject()));
 				return true;
 			}
 		}
@@ -142,7 +142,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				callSiteHelper.useAnswer(
-					translator.constantRegister(falseObject()));
+					translator.generator.constantRegister(falseObject()));
 				return true;
 			}
 		}
@@ -152,7 +152,8 @@ public final class P_IsSubtypeOf extends Primitive
 			// ⊥ is a subtype of all other types.  We test this separately from
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
-			callSiteHelper.useAnswer(translator.constantRegister(trueObject()));
+			callSiteHelper.useAnswer(
+				translator.generator.constantRegister(trueObject()));
 			return true;
 		}
 

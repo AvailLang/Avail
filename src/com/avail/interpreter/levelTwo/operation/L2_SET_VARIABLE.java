@@ -118,7 +118,7 @@ extends L2ControlFlowOperation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
@@ -133,7 +133,7 @@ extends L2ControlFlowOperation
 		{
 			// Type propagation has strengthened the value's type enough to
 			// be able to avoid the check.
-			translator.addInstruction(
+			generator.addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				instruction.operand(0),
 				instruction.operand(1),
@@ -141,7 +141,7 @@ extends L2ControlFlowOperation
 				instruction.operand(3));
 			return true;
 		}
-		return super.regenerate(instruction, registerSet, translator);
+		return super.regenerate(instruction, registerSet, generator);
 	}
 
 	@Override

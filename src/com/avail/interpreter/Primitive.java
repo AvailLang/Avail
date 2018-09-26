@@ -1035,9 +1035,8 @@ implements IntegerEnumSlotDescriptionEnum
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
 		final L2WritePointerOperand writer =
-			translator.newObjectRegisterWriter(
-				restriction(
-					returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
+			translator.generator.newObjectRegisterWriter(restriction(
+				returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
 		translator.addInstruction(
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			new L2ConstantOperand(rawFunction),

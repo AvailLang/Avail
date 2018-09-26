@@ -273,7 +273,8 @@ public final class P_CastIntoElse extends Primitive
 			// the valueReg along the branches, since we don't statically know
 			// the type that it was compared to.
 			final L2WritePointerOperand parameterTypeWrite =
-				translator.newObjectRegisterWriter(restriction(anyMeta()));
+				translator.generator.newObjectRegisterWriter(
+					restriction(anyMeta()));
 			translator.addInstruction(
 				L2_FUNCTION_PARAMETER_TYPE.instance,
 				castFunctionReg,

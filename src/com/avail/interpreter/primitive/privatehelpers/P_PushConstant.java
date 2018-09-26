@@ -108,7 +108,8 @@ public final class P_PushConstant extends Primitive
 		final CallSiteHelper callSiteHelper)
 	{
 		final A_BasicObject constant = rawFunction.literalAt(1);
-		callSiteHelper.useAnswer(translator.constantRegister(constant));
+		callSiteHelper.useAnswer(
+			translator.generator.constantRegister(constant));
 		return true;
 	}
 }

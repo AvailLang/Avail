@@ -125,12 +125,12 @@ public final class P_GetGlobalVariableValue extends Primitive
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(
-				translator.constantRegister(variable.getValue()));
+				translator.generator.constantRegister(variable.getValue()));
 			return true;
 		}
 		final L2ReadPointerOperand valueReg = translator.emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
-			translator.constantRegister(variable),
+			translator.generator.constantRegister(variable),
 			false);
 		callSiteHelper.useAnswer(valueReg);
 		return true;

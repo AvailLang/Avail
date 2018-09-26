@@ -112,7 +112,7 @@ extends Primitive
 		{
 			// If the exact size of the tuple is known, then leverage that
 			// information to produce a constant.
-			unboxedValue = translator.constantIntRegister(
+			unboxedValue = translator.generator.constantIntRegister(
 				returnType.lowerBound().extractInt());
 		}
 		else
@@ -120,7 +120,7 @@ extends Primitive
 			// The exact size of the tuple isn't known, so generate code to
 			// extract it.
 			final L2WriteIntOperand writer =
-				translator.newIntRegisterWriter(returnType, null);
+				translator.generator.newIntRegisterWriter(returnType, null);
 			translator.addInstruction(
 				L2_TUPLE_SIZE.instance,
 				arguments.get(0),
@@ -128,7 +128,7 @@ extends Primitive
 			unboxedValue = writer.read();
 		}
 		final L2ReadPointerOperand boxed =
-			translator.box(unboxedValue, returnType);
+			translator.generator.box(unboxedValue, returnType);
 		callSiteHelper.useAnswer(boxed);
 		return true;
 	}

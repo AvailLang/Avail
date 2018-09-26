@@ -1,5 +1,5 @@
 /*
- * L2Inliner.java
+ * L2Retranslator.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -69,11 +69,11 @@ import static com.avail.utility.Casts.cast;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2Inliner
+public final class L2Retranslator
 {
 	/**
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
-	 * the enclosing {@link L2Inliner}.
+	 * the enclosing {@link L2Retranslator}.
 	 */
 	private class OperandInlineTransformer
 	implements L2OperandDispatcher
@@ -176,7 +176,7 @@ public final class L2Inliner
 			final TypeRestriction<A_Number> restriction =
 				oldRegister.restriction();
 			final L2WriteIntOperand writer =
-				targetTranslator.newIntRegisterWriter(
+				targetGenerator.newIntRegisterWriter(
 					restriction.type, restriction.constantOrNull);
 			final L2IntRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
@@ -192,7 +192,7 @@ public final class L2Inliner
 			final TypeRestriction<A_Number> restriction =
 				oldRegister.restriction();
 			final L2WriteFloatOperand writer =
-				targetTranslator.newFloatRegisterWriter(
+				targetGenerator.newFloatRegisterWriter(
 					restriction.type, restriction.constantOrNull);
 			final L2FloatRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
@@ -208,7 +208,7 @@ public final class L2Inliner
 			final TypeRestriction<A_BasicObject> restriction =
 				oldRegister.restriction();
 			final L2WritePointerOperand writer =
-				targetTranslator.newObjectRegisterWriter(restriction);
+				targetGenerator.newObjectRegisterWriter(restriction);
 			final L2ObjectRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -224,9 +224,9 @@ public final class L2Inliner
 			final R copiedRegister =
 				cast(
 					oldRegister.copyForTranslator(
-						targetTranslator.generator, oldRegister.restriction()));
+						targetGenerator, oldRegister.restriction()));
 			final L2WritePhiOperand<R, T> writer =
-				targetTranslator.generator.newPhiRegisterWriter(copiedRegister);
+				targetGenerator.newPhiRegisterWriter(copiedRegister);
 			final R newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -256,8 +256,8 @@ public final class L2Inliner
 		// Don't bother clearing the currentOperand field afterward.
 	}
 
-	/** The {@link L1Translator} on which to output the transformed L2 code. */
-	public final L1Translator targetTranslator;
+	/** The {@link L2Generator} on which to output the transformed L2 code. */
+	public final L2Generator targetGenerator;
 
 	/** The {@link Frame} representing the invocation being inlined. */
 	public Frame inlineFrame;
@@ -291,12 +291,10 @@ public final class L2Inliner
 	final Map<L2Register<?>, L2Register<?>> registerMap = new HashMap<>();
 
 	/**
-	 * Construct a new {@code L2Inliner}.
+	 * Construct a new {@code L2Retranslator}.
 	 *
-	 * @param targetTranslator
-	 *        The {@link L1Translator} on which to write new instructions,
-	 *        already set to the code generation position representing just
-	 *        prior to the invocation.
+	 * @param targetGenerator
+	 *        The {@link L2Generator} on which to write new instructions.
 	 * @param inlineFrame
 	 *        The {@link Frame} representing this call site.  The top frame in
 	 *        each manifest of the callee, including embedded inside other
@@ -306,16 +304,17 @@ public final class L2Inliner
 	 *        The {@link List} of {@link L2ReadPointerOperand}s corresponding to
 	 *        the arguments to this function invocation.
 	 */
-	L2Inliner (
-		final L1Translator targetTranslator,
+	L2Retranslator (
+		final L2Generator targetGenerator,
 		final Frame inlineFrame,
 		final List<L2ReadPointerOperand> arguments)
 	{
-		this.targetTranslator = targetTranslator;
+		this.targetGenerator = targetGenerator;
 		this.inlineFrame = inlineFrame;
 		this.arguments = new ArrayList<>(arguments);
 		// Seed the frameMap.
-		this.frameMap.put(targetTranslator.topFrame, inlineFrame);
+//TODO MvG: Figure out locus of responsibility for topFrame creation.
+// 		this.frameMap.put(this.targetGenerator.topFrame, inlineFrame);
 	}
 
 	/**
@@ -328,7 +327,7 @@ public final class L2Inliner
 	public L2BasicBlock mapBlock (final L2BasicBlock block)
 	{
 		return blockMap.computeIfAbsent(
-			block, b -> targetTranslator.generator.createBasicBlock(b.name()));
+			block, b -> targetGenerator.createBasicBlock(b.name()));
 	}
 
 	/**
@@ -351,7 +350,7 @@ public final class L2Inliner
 	 * Transform an {@link L2PcOperand}'s {@link L2ValueManifest} in preparation
 	 * for inlining.  The new manifest should take into account the bindings of
 	 * the old manifest, but shifted into a sub-{@link Frame}, combined with the
-	 * {@link #targetTranslator}'s {@link L2Generator#currentManifest}.
+	 * {@link #targetGenerator}'s {@link L2Generator#currentManifest}.
 	 *
 	 * @return The new {@link L2ValueManifest}.
 	 */
@@ -416,6 +415,6 @@ public final class L2Inliner
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
-		targetTranslator.addInstruction(operation, operands);
+		targetGenerator.addInstruction(operation, operands);
 	}
 }

@@ -165,7 +165,7 @@ public final class P_Assert extends Primitive
 		if (!falseObject().isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
-			callSiteHelper.useAnswer(translator.constantRegister(nil));
+			callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
 			return true;
 		}
 		if (!trueObject().isInstanceOf(conditionType))
@@ -196,7 +196,7 @@ public final class P_Assert extends Primitive
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
 			asList(
-				translator.constantRegister(falseObject()),
+				translator.generator.constantRegister(falseObject()),
 				arguments.get(1)),
 			functionToCallReg.type().returnType(),
 			true,
@@ -204,7 +204,7 @@ public final class P_Assert extends Primitive
 
 		// Happy case.  Just push nil and jump to a suitable exit point.
 		translator.generator.startBlock(passPath);
-		callSiteHelper.useAnswer(translator.constantRegister(nil));
+		callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
 		return true;
 	}
 }

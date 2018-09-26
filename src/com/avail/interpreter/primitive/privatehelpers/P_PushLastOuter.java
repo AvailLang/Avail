@@ -105,7 +105,7 @@ public final class P_PushLastOuter extends Primitive
 		if (constantFunction != null)
 		{
 			callSiteHelper.useAnswer(
-				translator.constantRegister(
+				translator.generator.constantRegister(
 					((A_Function) constantFunction).outerVarAt(1)));
 			return true;
 		}

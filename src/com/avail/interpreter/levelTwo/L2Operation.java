@@ -48,7 +48,7 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Inliner;
+import com.avail.optimizer.L2Retranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
@@ -324,7 +324,7 @@ public abstract class L2Operation
 
 	/**
 	 * Write the given instruction's equivalent effect through the given {@link
-	 * L2Inliner}.  The given {@link L2Instruction}'s {@linkplain
+	 * L2Retranslator}.  The given {@link L2Instruction}'s {@linkplain
 	 * L2Instruction#operation operation} must be the current receiver.
 	 *
 	 * @param instruction
@@ -333,17 +333,17 @@ public abstract class L2Operation
 	 * @param transformedOperands
 	 *        The operands of the instruction, already transformed for the
 	 *        inliner.
-	 * @param inliner
-	 *        The {@link L2Inliner} through which to write the instruction's
-	 *        equivalent effect.
+	 * @param retranslator
+	 *        The {@link L2Retranslator} through which to write the
+	 *        instruction's equivalent effect.
 	 */
 	public void emitTransformedInstruction (
 		final L2Instruction instruction,
 		final L2Operand[] transformedOperands,
-		final L2Inliner inliner)
+		final L2Retranslator retranslator)
 	{
 		assert instruction.operation() == this;
-		inliner.emitInstruction(this, transformedOperands);
+		retranslator.emitInstruction(this, transformedOperands);
 	}
 
 	/**
@@ -359,19 +359,19 @@ public abstract class L2Operation
 	 *        live registers upon arriving at this instruction.  This method
 	 *        should modify the registerSet in-place to indicate the effect on
 	 *        register types and values that this instruction will have.
-	 * @param translator
-	 *        The list of instructions to augment.
+	 * @param generator
+	 *        Where to write the replacement instruction.
 	 * @return Whether the regenerated instructions are different enough to
 	 *         warrant another pass of flow analysis.
 	 */
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		// By default just produce the same instruction.
 		assert instruction.operation() == this;
-		translator.addInstruction(instruction);
+		generator.addInstruction(instruction);
 		return false;
 	}
 
@@ -404,7 +404,8 @@ public abstract class L2Operation
 	{
 		assert instruction.operation() == this;
 		final L2WritePointerOperand writer =
-			translator.newObjectRegisterWriter(restriction(outerType));
+			translator.generator.newObjectRegisterWriter(
+				restriction(outerType));
 		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),

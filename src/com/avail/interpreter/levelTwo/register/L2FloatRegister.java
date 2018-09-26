@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Inliner;
+import com.avail.optimizer.L2Retranslator;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.utility.Casts.cast;
@@ -107,10 +107,10 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public L2FloatRegister copyForInliner (final L2Inliner inliner)
+	public L2FloatRegister copyForInliner (final L2Retranslator inliner)
 	{
 		return new L2FloatRegister(
-			inliner.targetTranslator.nextUnique(),
+			inliner.targetGenerator.nextUnique(),
 			restriction);
 	}
 

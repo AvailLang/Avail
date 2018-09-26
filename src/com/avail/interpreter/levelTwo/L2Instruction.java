@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Inliner;
+import com.avail.optimizer.L2Retranslator;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -550,13 +550,14 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Transform this instruction's operands for the given {@link L2Inliner}.
+	 * Transform this instruction's operands for the given {@link
+	 * L2Retranslator}.
 	 *
 	 * @param inliner
-	 *        The {@link L2Inliner} through which to write this instruction's
-	 *        equivalent effect.
+	 *        The {@link L2Retranslator} through which to write this
+	 *        instruction's equivalent effect.
 	 */
-	public L2Operand[] transformOperands (final L2Inliner inliner)
+	public L2Operand[] transformOperands (final L2Retranslator inliner)
 	{
 		final L2Operand[] newOperands = new L2Operand[operands().length];
 		for (int i = 0; i < newOperands.length; i++)
@@ -568,14 +569,14 @@ public final class L2Instruction
 
 	/**
 	 * Write the equivalent of this instruction through the given {@link
-	 * L2Inliner}.  Certain types of {@link L2Operation}s are transformed in
-	 * ways specific to inlining.
+	 * L2Retranslator}.  Certain types of {@link L2Operation}s are transformed
+	 * in ways specific to inlining.
 	 *
 	 * @param inliner
-	 *        The {@link L2Inliner} through which to write this instruction's
-	 *        equivalent effect.
+	 *        The {@link L2Retranslator} through which to write this
+	 *        instruction's equivalent effect.
 	 */
-	public void transformAndEmitOn (final L2Inliner inliner)
+	public void transformAndEmitOn (final L2Retranslator inliner)
 	{
 		operation().emitTransformedInstruction(
 			this, transformOperands(inliner), inliner);
