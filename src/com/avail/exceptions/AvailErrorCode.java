@@ -45,6 +45,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -191,7 +192,7 @@ public enum AvailErrorCode
 
 	/**
 	 * A size {@linkplain IntegerRangeTypeDescriptor range}'s lower bound must
-	 * be nonnegative (>=0).
+	 * be non-negative (>=0).
 	 */
 	E_NEGATIVE_SIZE (22),
 
@@ -829,20 +830,6 @@ public enum AvailErrorCode
 	 */
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS (508);
 
-	/** An array of all {@link AvailErrorCode} enumeration values. */
-	private static final AvailErrorCode[] all = values();
-
-	/**
-	 * Answer an array of all {@link AvailErrorCode} enumeration values.
-	 *
-	 * @return An array of all {@link AvailErrorCode} enum values.  Do not
-	 *         modify the array.
-	 */
-	public static AvailErrorCode[] all ()
-	{
-		return all;
-	}
-
 	/** The numeric error code. */
 	private final int code;
 
@@ -869,7 +856,7 @@ public enum AvailErrorCode
 	}
 
 	/**
-	 * Construct a new {@link AvailErrorCode} with the specified numeric error
+	 * Construct a new {@code AvailErrorCode} with the specified numeric error
 	 * code.
 	 *
 	 * @param code
@@ -881,8 +868,8 @@ public enum AvailErrorCode
 	}
 
 	/**
-	 * Can the {@linkplain AvailErrorCode error code} result from failure of an
-	 * {@link L1Operation}?
+	 * Can the {@code AvailErrorCode} result from failure of an {@link
+	 * L1Operation}?
 	 *
 	 * @return {@code true} if the error code can result from a failed
 	 *         instruction, {@code false} otherwise.
@@ -910,13 +897,13 @@ public enum AvailErrorCode
 	}
 
 	/**
-	 * Look up the {@link AvailErrorCode} with the given {@linkplain #code
+	 * Look up the {@code AvailErrorCode} with the given {@linkplain #code
 	 * numeric code}.
 	 *
 	 * @param numericCode The {@code int} to look up as a numeric code.
 	 * @return The error code, or {@code null} if not defined.
 	 */
-	public static AvailErrorCode byNumericCode (final int numericCode)
+	public static @Nullable AvailErrorCode byNumericCode (final int numericCode)
 	{
 		return byNumericCode.get(numericCode);
 	}

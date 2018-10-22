@@ -3950,6 +3950,23 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	<T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
+	{
+		// Only bother to acquire the monitor if it's shared.
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return supplier.get();
+			}
+		}
+		else
+		{
+			return supplier.get();
+		}
+	}
+
+	@Override
 	A_String o_ModuleName (final AvailObject object)
 	{
 		throw unsupportedOperationException();

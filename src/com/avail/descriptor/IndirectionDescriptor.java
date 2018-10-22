@@ -4015,6 +4015,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	<T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
+	{
+		return o_Traversed(object).lock(supplier);
+	}
+
+	@Override
 	A_String o_ModuleName (final AvailObject object)
 	{
 		return o_Traversed(object).moduleName();

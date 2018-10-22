@@ -5035,6 +5035,12 @@ implements
 		descriptor.o_Lock(this, critical);
 	}
 
+	@Override
+	public <T> T lock (final Supplier<T> supplier)
+	{
+		return descriptor.o_Lock(this, supplier);
+	}
+
 	/**
 	 * Answer the {@linkplain AvailLoader loader} bound to the {@linkplain
 	 * FiberDescriptor receiver}, or {@code null} if the receiver is not a

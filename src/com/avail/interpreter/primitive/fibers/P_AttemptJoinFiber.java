@@ -39,8 +39,6 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableOrNull;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -63,6 +61,16 @@ import static com.avail.utility.Nulls.stripNull;
  * answer right away; otherwise, record the current fiber as a joiner of the
  * specified fiber, and attempt to {@linkplain ExecutionState#PARKED park}.
  *
+ * <p>To avoid potential deadlock from having multiple fiber locks held by the
+ * same thread, we give best effort at removing this fiber from the joinee's set
+ * of joining fibers in the event of an unpark.  Similarly, a termination of the
+ * joinee may happen between adding this fiber to the set and transitioning this
+ * fiber to a parked state.  That will simply be dealt with as a spurious
+ * unpaark.  Note that in this case, the unpark logic should expect that a
+ * joining fiber </p>
+ *
+ * <p>It may also be the case that </p>
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_AttemptJoinFiber
@@ -82,46 +90,62 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Fiber joinee = interpreter.argument(0);
-		final Mutable<Boolean> shouldPark = new Mutable<>(false);
 		final A_Fiber current = interpreter.fiber();
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF);
 		}
-		joinee.lock(() ->
+		final boolean succeed = joinee.lock(() ->
 		{
-			if (!joinee.executionState().indicatesTermination())
+			if (joinee.executionState().indicatesTermination())
 			{
-				joinee.joiningFibers(
-					joinee.joiningFibers().setWithElementCanDestroy(
-						current, false));
-				shouldPark.value = true;
+				return true;
+			}
+			// Add to the joinee's set of joining fibers.  To avoid deadlock,
+			// this step is done while holding only the joinee's lock, which
+			// leads to the case where it's added as a joiner before attempting
+			// to park.  In this case, a sudden termination of the joinee will
+			// attempt to unpark the joiner, but it won't be in a parked state,
+			// so it will just get a permit.
+			//
+			// A second scenario is if the joiner gets a termination request. To
+			// avoid deadlock, there's a window between the unparking logic,
+			// which requires a lock on the joiner, and removing the joiner from
+			// the joinee, which requires a lock on the joinee.  To avoid both
+			// locks needing to be held at once, we do these steps separately.
+			// This leads to a rare case where the joinee terminates and unparks
+			// its joiners, this one included, even though it's technically no
+			// longer parked but still appears in the set.  This is treated as a
+			// spurious unpark.
+			//
+			// In that case, the unparking logic may notice that the joiner is
+			// no longer in the joinee's set – in fact, the set will have been
+			// replaced by nil.  The attempt to remove the joiner from the set
+			// is simply skipped in that case.
+			joinee.joiningFibers(
+				joinee.joiningFibers().setWithElementCanDestroy(
+					current, false));
+			return false;
+		});
+		if (succeed)
+		{
+			return interpreter.primitiveSuccess(nil);
+		}
+		return current.lock(() ->
+		{
+			// If permit is not available, then park this fiber.
+			if (current.getAndSetSynchronizationFlag(
+				PERMIT_UNAVAILABLE, true))
+			{
+				return interpreter.primitivePark(
+					stripNull(interpreter.function));
+			}
+			else
+			{
+				return interpreter.primitiveSuccess(nil);
 			}
 		});
-		final MutableOrNull<Result> result = new MutableOrNull<>();
-		if (shouldPark.value)
-		{
-			current.lock(() ->
-			{
-				// If permit is not available, then park this fiber.
-				if (current.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, true))
-				{
-					result.value = interpreter.primitivePark(
-						stripNull(interpreter.function));
-				}
-				else
-				{
-					result.value = interpreter.primitiveSuccess(nil);
-				}
-			});
-		}
-		else
-		{
-			result.value = interpreter.primitiveSuccess(nil);
-		}
-		return result.value();
 	}
 
 	@Override

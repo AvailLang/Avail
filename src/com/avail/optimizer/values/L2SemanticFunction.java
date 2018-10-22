@@ -40,11 +40,8 @@ import java.util.function.Function;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final class L2SemanticFunction
-extends L2SemanticValue
+extends L2FrameSpecificSemanticValue
 {
-	/** The frame for which this represents the current function. */
-	public final Frame frame;
-
 	/**
 	 * Create a new {@code L2SemanticFunction} semantic value.
 	 *
@@ -53,20 +50,20 @@ extends L2SemanticValue
 	 */
 	L2SemanticFunction (final Frame frame)
 	{
-		this.frame = frame;
+		super(frame);
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
 		return obj instanceof L2SemanticFunction
-			&& frame.equals(((L2SemanticFunction) obj).frame);
+			&& frame().equals(((L2SemanticFunction) obj).frame());
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame.hashCode() + 0xF1AE6003;
+		return frame().hashCode() + 0xF1AE6003;
 	}
 
 	@Override

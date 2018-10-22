@@ -55,13 +55,8 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class L2SemanticPrimitiveInvocation
-extends L2SemanticValue
+extends L2FrameSpecificSemanticValue
 {
-	/**
-	 * The {@link Frame} responsible for this invocation, or {@code null} for a
-	 * pure {@link Primitive}. */
-	private final @Nullable Frame frame;
-
 	/**
 	 * The program counter, or {@code 0} for pure {@link Primitive}s.
 	 */
@@ -103,7 +98,7 @@ extends L2SemanticValue
 		final Primitive primitive,
 		final List<L2Synonym<L2ObjectRegister, A_BasicObject>> argumentSynonyms)
 	{
-		this.frame = frame;
+		super(frame);
 		this.primitive = primitive;
 		this.argumentSynonyms = new ArrayList<>(argumentSynonyms);
 		this.pc = pc;

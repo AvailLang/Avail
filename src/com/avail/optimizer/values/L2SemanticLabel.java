@@ -30,8 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 
 import java.util.function.Function;
 
@@ -47,11 +46,8 @@ import java.util.function.Function;
  * semantic value doesn't have a notion of value or register <em>directly</em>
  * associated with it, only through a manifest.
  */
-final class L2SemanticLabel extends L2SemanticValue
+final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 {
-	/** The frame for which this is a {@code Label}. */
-	public final Frame frame;
-
 	/**
 	 * Create a new {@code L2SemanticLabel} semantic value.
 	 *
@@ -60,20 +56,20 @@ final class L2SemanticLabel extends L2SemanticValue
 	 */
 	L2SemanticLabel (final Frame frame)
 	{
-		this.frame = frame;
+		super(frame);
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
 		return obj instanceof L2SemanticLabel
-			&& frame.equals(((L2SemanticLabel) obj).frame);
+			&& frame().equals(((L2SemanticLabel) obj).frame());
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame.hashCode() ^ 0x3D9D8132;
+		return frame().hashCode() ^ 0x3D9D8132;
 	}
 
 	@Override

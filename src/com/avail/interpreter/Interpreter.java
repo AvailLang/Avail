@@ -47,6 +47,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.fibers.P_AttemptJoinFiber;
+import com.avail.interpreter.primitive.fibers.P_ParkCurrentFiber;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.StackReifier;
@@ -81,15 +82,11 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
-	.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.PERMIT_UNAVAILABLE;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag
-	.TRACE_VARIABLE_READS_BEFORE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag
-	.TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -343,16 +340,13 @@ public final class Interpreter
 				{
 					// Log to the fiber.
 					final StringBuilder log = runningFiber.debugLog();
-					synchronized (log)
+					Strings.tab(log, interpreter.unreifiedCallDepth);
+					if (log.length() > maxFiberLogLength)
 					{
-						Strings.tab(log, interpreter.unreifiedCallDepth);
-						if (log.length() > maxFiberLogLength)
-						{
-							log.delete(0, maxFiberLogLength >> 4);
-						}
-						log.append(MessageFormat.format(message, arguments));
-						log.append('\n');
+						log.delete(0, maxFiberLogLength >> 4);
 					}
+					log.append(MessageFormat.format(message, arguments));
+					log.append('\n');
 				}
 				// Ignore the bit of logging not tied to a specific fiber.
 				return;
@@ -892,7 +886,8 @@ public final class Interpreter
 		final AtomicBoolean once = new AtomicBoolean(false);
 		postExitContinuation(() ->
 			action.value(
-				result -> {
+				result ->
+				{
 					assert !once.getAndSet(true);
 					resumeFromSuccessfulPrimitive(
 						theRuntime,
@@ -1126,8 +1121,7 @@ public final class Interpreter
 	 * result.
 	 *
 	 * @param finalObject
-	 *        The fiber's result, or {@linkplain NilDescriptor#nil nil} if
-	 *        none.
+	 *        The fiber's result, or {@linkplain NilDescriptor#nil nil} if none.
 	 * @param state
 	 *        An {@linkplain ExecutionState execution state} that {@linkplain
 	 *        ExecutionState#indicatesTermination() indicates termination}.
@@ -1165,8 +1159,12 @@ public final class Interpreter
 		levelOneStepper.wipeRegisters();
 		postExitContinuation(() ->
 		{
-			final A_Set joining = aFiber.joiningFibers().makeShared();
-			aFiber.joiningFibers(nil);
+			final A_Set joining = aFiber.lock(() ->
+			{
+				final A_Set temp = aFiber.joiningFibers().makeShared();
+				aFiber.joiningFibers(nil);
+				return temp;
+			});
 			// Wake up all fibers trying to join this one.
 			for (final A_Fiber joiner : joining)
 			{
@@ -1177,13 +1175,27 @@ public final class Interpreter
 						PERMIT_UNAVAILABLE, false);
 					if (joiner.executionState() == PARKED)
 					{
-						// Wake it up.
+						// Unpark it, whether it's still parked because of an
+						// attempted join on this fiber, an attempted join on
+						// another fiber (due to a spurious wakeup and giving up
+						// on the first join), or a park (same).  A retry loop
+						// in the public joining methods should normally deal
+						// with spurious unparks, but there's no mechanism yet
+						// to eject the stale joiner from the set.
 						joiner.executionState(SUSPENDED);
-						Interpreter.resumeFromSuccessfulPrimitive(
-							currentRuntime(),
-							joiner,
-							P_AttemptJoinFiber.instance,
-							nil);
+						final Primitive suspended =
+							stripNull(
+								joiner.suspendingFunction().code().primitive());
+						assert suspended == P_AttemptJoinFiber.instance
+							|| suspended == P_ParkCurrentFiber.instance;
+						if (suspended == P_AttemptJoinFiber.instance)
+						{
+							Interpreter.resumeFromSuccessfulPrimitive(
+								currentRuntime(),
+								joiner,
+								suspended,
+								nil);
+						}
 					}
 				});
 			}

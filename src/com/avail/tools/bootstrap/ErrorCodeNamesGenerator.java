@@ -71,7 +71,7 @@ extends PropertiesFileGenerator
 		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialObjects();
 		A_Set allErrorCodes = emptySet();
-		for (final AvailErrorCode code : AvailErrorCode.all())
+		for (final AvailErrorCode code : AvailErrorCode.values())
 		{
 			if (!code.isCausedByInstructionFailure())
 			{
@@ -137,7 +137,7 @@ extends PropertiesFileGenerator
 		final PrintWriter writer)
 	{
 		final Set<String> keys = new HashSet<>();
-		for (final AvailErrorCode code : AvailErrorCode.all())
+		for (final AvailErrorCode code : AvailErrorCode.values())
 		{
 			if (code.nativeCode() > 0)
 			{
@@ -190,7 +190,7 @@ extends PropertiesFileGenerator
 	}
 
 	/**
-	 * Construct a new {@link ErrorCodeNamesGenerator}.
+	 * Construct a new {@code ErrorCodeNamesGenerator}.
 	 *
 	 * @param locale
 	 *        The target {@linkplain Locale locale}.

@@ -315,7 +315,7 @@ Public method "Join_" is
 [
 	joinee : fiber
 |
-	Until joinee has terminated	do [Attempt to join joinee;];
+	Until joinee has terminated do [Attempt to join joinee;];
 ];
 
 /**
@@ -336,7 +336,7 @@ Public method "Join_,then honor a termination request" is
 [
 	joinee : fiber
 |
-	Until joinee has terminated	do
+	Until joinee has terminated do
 	[
 		Attempt to join joinee;
 		Honor a termination request;

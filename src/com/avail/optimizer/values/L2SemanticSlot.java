@@ -43,11 +43,8 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final class L2SemanticSlot
-extends L2SemanticValue
+extends L2FrameSpecificSemanticValue
 {
-	/** The {@link Frame} for which this is a virtualized slot. */
-	private final Frame frame;
-
 	/** The one-based index of the slot in its {@link Frame}. */
 	private final int slotIndex;
 
@@ -78,7 +75,7 @@ extends L2SemanticValue
 		final int slotIndex,
 		final int pcAfter)
 	{
-		this.frame = frame;
+		super(frame);
 		this.slotIndex = slotIndex;
 		this.pcAfter = pcAfter;
 		int h = slotIndex * multiplier ^ pcAfter;
@@ -94,7 +91,7 @@ extends L2SemanticValue
 			return false;
 		}
 		final L2SemanticSlot slot = (L2SemanticSlot) obj;
-		return frame.equals(slot.frame)
+		return frame().equals(slot.frame())
 			&& slotIndex == slot.slotIndex
 			&& pcAfter == slot.pcAfter;
 	}
@@ -111,8 +108,8 @@ extends L2SemanticValue
 			semanticValueTransformer,
 		final Function<Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame)
+		final Frame newFrame = frameTransformer.apply(frame());
+		return newFrame.equals(frame())
 			? this
 			: new L2SemanticSlot(newFrame, slotIndex, pcAfter);
 	}

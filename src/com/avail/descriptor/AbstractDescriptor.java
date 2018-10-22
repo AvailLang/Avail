@@ -409,6 +409,14 @@ public abstract class AbstractDescriptor
 		return value >> 63;
 	}
 
+	/** A reusable empty array for when field checking is disabled. */
+	private static final ObjectSlotsEnum[][] emptyDebugObjectSlots =
+		new ObjectSlotsEnum[0][];
+
+	/** A reusable empty array for when field checking is disabled. */
+	private static final IntegerSlotsEnum[][] emptyDebugIntegerSlots =
+		new IntegerSlotsEnum[0][];
+
 	/**
 	 * Construct a new {@code AbstractDescriptor descriptor}.
 	 *
@@ -437,8 +445,9 @@ public abstract class AbstractDescriptor
 		final ObjectSlotsEnum [] objectSlots = objectSlotsEnumClass != null
 			? objectSlotsEnumClass.getEnumConstants()
 			: new ObjectSlotsEnum[0];
-		debugObjectSlots =
-			new ObjectSlotsEnum[max(objectSlots.length, 1)][];
+		debugObjectSlots = AvailObjectRepresentation.shouldCheckSlots
+			? new ObjectSlotsEnum[max(objectSlots.length, 1)][]
+			: emptyDebugObjectSlots;
 		hasVariableObjectSlots =
 			objectSlots.length > 0
 			&& objectSlots[objectSlots.length - 1].name().endsWith("_");
@@ -448,8 +457,9 @@ public abstract class AbstractDescriptor
 		final IntegerSlotsEnum [] integerSlots = integerSlotsEnumClass != null
 			? integerSlotsEnumClass.getEnumConstants()
 			: new IntegerSlotsEnum[0];
-		debugIntegerSlots =
-			new IntegerSlotsEnum [max(integerSlots.length, 1)][];
+		debugIntegerSlots  = AvailObjectRepresentation.shouldCheckSlots
+			? new IntegerSlotsEnum[max(integerSlots.length, 1)][]
+			: emptyDebugIntegerSlots;
 		hasVariableIntegerSlots =
 			integerSlots.length > 0
 			&& integerSlots[integerSlots.length - 1].name().endsWith("_");
@@ -595,7 +605,7 @@ public abstract class AbstractDescriptor
 			}
 		}
 
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields.toArray(new AvailObjectFieldHelper[0]);
 	}
 
 	/**
@@ -5715,6 +5725,16 @@ public abstract class AbstractDescriptor
 	abstract void o_Lock (
 		final AvailObject object,
 		final Continuation0 critical);
+
+	/**
+	 * @param object
+	 * @param supplier
+	 * @param <T>
+	 * @return
+	 */
+	abstract <T> T o_Lock (
+		final AvailObject object,
+		final Supplier<T> supplier);
 
 	/**
 	 * @param object

@@ -1347,6 +1347,28 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	<T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
+	{
+		assert canSafelyLock(object);
+		final A_Fiber lockedFiber = currentlyLockedFiber.get();
+		currentlyLockedFiber.set(object);
+		try
+		{
+			// A fiber always needs to acquire a lock, even if it's not mutable,
+			// as this prevents races between two threads where one is exiting a
+			// fiber and the other is resuming the same fiber.
+			synchronized (object)
+			{
+				return supplier.get();
+			}
+		}
+		finally
+		{
+			currentlyLockedFiber.set(lockedFiber);
+		}
+	}
+
 	/**
 	 * Look up the {@linkplain DeclarationPhraseDescriptor declaration} with the
 	 * given name in the current compiler scope.  This information is associated

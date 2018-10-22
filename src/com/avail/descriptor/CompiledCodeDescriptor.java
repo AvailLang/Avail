@@ -336,11 +336,14 @@ extends Descriptor
 		/** The offset into the array of the first nybblecode. */
 		public static final int baseIndexInArray = NYBBLECODES_.ordinal();
 
+		/** A reusable array of longs for initializing instances. */
+		private static final long[] emptyArray = new long[0];
+
 		/**
 		 * The actual longSlots field from the current {@link A_RawFunction}
 		 * being traced.
 		 */
-		long[] encodedInstructionsArray = new long[0];
+		long[] encodedInstructionsArray = emptyArray;
 
 		/**
 		 * The long index just after consuming the last nybble.

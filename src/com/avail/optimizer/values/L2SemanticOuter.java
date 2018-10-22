@@ -40,11 +40,8 @@ import static com.avail.descriptor.AvailObject.multiplier;
  * of some {@link Frame}.
  */
 final class L2SemanticOuter
-extends L2SemanticValue
+extends L2FrameSpecificSemanticValue
 {
-	/** The {@link Frame} for which this is an outer of its function. */
-	public final Frame frame;
-
 	/** The one-based index of the outer of the function. */
 	public final int outerIndex;
 
@@ -58,7 +55,7 @@ extends L2SemanticValue
 	 */
 	L2SemanticOuter (final Frame frame, final int outerIndex)
 	{
-		this.frame = frame;
+		super(frame);
 		this.outerIndex = outerIndex;
 	}
 
@@ -70,14 +67,14 @@ extends L2SemanticValue
 			return false;
 		}
 		final L2SemanticOuter outer = (L2SemanticOuter) obj;
-		return frame.equals(outer.frame)
+		return frame().equals(outer.frame())
 			&& outerIndex == outer.outerIndex;
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return (frame.hashCode() + outerIndex) * multiplier;
+		return (frame().hashCode() + outerIndex) * multiplier;
 	}
 
 	@Override

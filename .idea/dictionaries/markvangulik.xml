@@ -19,6 +19,7 @@
       <w>colorer</w>
       <w>contravariance</w>
       <w>covariantly</w>
+      <w>covary</w>
       <w>cyclicity</w>
       <w>decompilation</w>
       <w>deconstructor</w>
@@ -51,6 +52,7 @@
       <w>ints</w>
       <w>invalidations</w>
       <w>iterable</w>
+      <w>joinee</w>
       <w>leapt</w>
       <w>lexed</w>
       <w>lexing</w>
@@ -151,6 +153,7 @@
       <w>unreified</w>
       <w>unstarted</w>
       <w>unsummarized</w>
+      <w>untraced</w>
       <w>virtualized</w>
     </words>
   </dictionary>

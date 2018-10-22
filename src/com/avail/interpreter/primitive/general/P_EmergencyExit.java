@@ -48,6 +48,7 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -56,6 +57,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 
@@ -106,14 +108,13 @@ extends Primitive
 					errorMessageProducer));
 				if (errorMessageProducer.isInt())
 				{
-					final int intValue =
-						((A_Number)errorMessageProducer).extractInt();
-					if (intValue >= 0 &&
-						intValue < AvailErrorCode.all().length)
+					final A_Number errorNumber = cast(errorMessageProducer);
+					final int intValue = errorNumber.extractInt();
+					final @Nullable AvailErrorCode code =
+						AvailErrorCode.byNumericCode(intValue);
+					if (code != null)
 					{
-						builder.append(format(
-							" (= %s)",
-							AvailErrorCode.byNumericCode(intValue).name()));
+						builder.append(format(" (= %s)", code.name()));
 					}
 				}
 				for (final String frame : stack)

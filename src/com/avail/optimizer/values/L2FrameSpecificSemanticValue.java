@@ -1,19 +1,19 @@
 /*
- * L2SemanticResult.java
+ * L2FrameSpecificSemanticValue.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -31,54 +31,59 @@
  */
 package com.avail.optimizer.values;
 
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
- * A semantic value which represents the return value produced by the invocation
- * corresponding to a particular {@link Frame}.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * A semantic value which is specific to a {@link Frame}.
  */
-final class L2SemanticResult
-extends L2FrameSpecificSemanticValue
+abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 {
+	/** The frame in which this is a semantic value. */
+	public final @Nullable Frame frame;
+
 	/**
-	 * Create a new {@code L2SemanticResult} semantic value.
+	 * Create a new instance.
 	 *
 	 * @param frame
-	 *        The frame for which this represents the return result.
+	 *        The frame for which this is a semantic value.
 	 */
-	L2SemanticResult (final Frame frame)
+	L2FrameSpecificSemanticValue (final @Nullable Frame frame)
 	{
-		super(frame);
+		this.frame = frame;
+	}
+
+	/**
+	 * Answer the {@link Frame}, failing if it's null.
+	 *
+	 * @return The non-null frame.
+	 */
+	public final Frame frame ()
+	{
+		return stripNull(frame);
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		return obj instanceof L2SemanticResult
-			&& frame().equals(((L2SemanticResult) obj).frame());
+		return obj instanceof L2FrameSpecificSemanticValue
+			&& frame().equals(((L2FrameSpecificSemanticValue) obj).frame());
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame().hashCode() ^ 0x6ABDC9DB;
+		return frame().hashCode() ^ 0x3D9D8132;
 	}
 
 	@Override
-	public L2SemanticResult transform (
+	public abstract L2FrameSpecificSemanticValue transform (
 		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.apply(frame());
-		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
-	}
+		final Function<Frame, Frame> frameTransformer);
 
 	@Override
-	public String toString ()
-	{
-		return "Result of " + frame();
-	}
+	public abstract String toString ();
 }

@@ -65,6 +65,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.byPrimitiveNumberOrNull;
 import static com.avail.tools.bootstrap.Resources.*;
 import static com.avail.tools.bootstrap.Resources.Key.*;
 
@@ -74,6 +75,10 @@ import static com.avail.tools.bootstrap.Resources.Key.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings({
+	"DynamicRegexReplaceableByCompiledPattern",
+	"StringBufferReplaceableByString"
+})
 public final class BootstrapGenerator
 {
 	/** The Avail special objects. */
@@ -135,7 +140,7 @@ public final class BootstrapGenerator
 	 */
 	private String errorCodeName (final A_Number numericCode)
 	{
-		final AvailErrorCode code = AvailErrorCode.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
@@ -151,7 +156,7 @@ public final class BootstrapGenerator
 	 */
 	private String exceptionName (final A_Number numericCode)
 	{
-		final AvailErrorCode code = AvailErrorCode.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
@@ -350,15 +355,15 @@ public final class BootstrapGenerator
 		{
 			if (specialObjects.get(i) != null)
 			{
-				final String nonalphaKey = specialObjectKey(i);
-				if (!specialObjectBundle.containsKey(nonalphaKey)
-					|| specialObjectBundle.getString(nonalphaKey).isEmpty())
+				final String notAlphaKey = specialObjectKey(i);
+				if (!specialObjectBundle.containsKey(notAlphaKey)
+					|| specialObjectBundle.getString(notAlphaKey).isEmpty())
 				{
-					System.err.println("missing key/value: " + nonalphaKey);
+					System.err.println("missing key/value: " + notAlphaKey);
 					continue;
 				}
 				final String methodName =
-					specialObjectBundle.getString(nonalphaKey);
+					specialObjectBundle.getString(notAlphaKey);
 				final String typeKey = specialObjectTypeKey(i);
 				final String commentKey = specialObjectCommentKey(i);
 				if (specialObjectBundle.containsKey(commentKey))
@@ -400,7 +405,7 @@ public final class BootstrapGenerator
 		final List<Primitive> primitives = new ArrayList<>();
 		for (int i = 1; i <= Primitive.maxPrimitiveNumber(); i++)
 		{
-			final Primitive primitive = Primitive.byPrimitiveNumberOrNull(i);
+			final @Nullable Primitive primitive = byPrimitiveNumberOrNull(i);
 			if (primitive != null)
 			{
 				if (!primitive.hasFlag(Flag.Private)
@@ -555,7 +560,6 @@ public final class BootstrapGenerator
 		final Primitive primitive,
 		final boolean forSemanticRestriction)
 	{
-		final StringBuilder builder = new StringBuilder();
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type parameterTypes = functionType.argsTupleType();
 		final A_Type parameterCount = parameterTypes.sizeRange();
@@ -564,6 +568,7 @@ public final class BootstrapGenerator
 			: String.format(
 				"Expected %s to have a fixed parameter count",
 				primitive.getClass().getSimpleName());
+		final StringBuilder builder = new StringBuilder();
 		for (
 			int i = 1, end = parameterCount.lowerBound().extractInt();
 			i <= end;
@@ -755,7 +760,7 @@ public final class BootstrapGenerator
 		{
 			// Compute the number of template arguments.
 			final int primitiveArgCount = primitive.argCount();
-			final int templateArgCount = 2 + primitiveArgCount * 2 +
+			final int templateArgCount = 2 + (primitiveArgCount << 1) +
 				(primitive.hasFlag(Flag.CannotFail)
 				? 0
 				: (primitive.failureVariableType().isEnumeration()
@@ -791,12 +796,12 @@ public final class BootstrapGenerator
 					paramsType.typeAtIndex(i));
 			}
 			// …then the return type…
-			formatArgs[primitiveArgCount * 2 + 1] =
+			formatArgs[(primitiveArgCount << 1) + 1] =
 				primitive.blockTypeRestriction().returnType();
 			// …then the exceptions.
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
-				int raiseIndex = primitiveArgCount * 2 + 2;
+				int raiseIndex = (primitiveArgCount << 1) + 2;
 				final A_Type varType = primitive.failureVariableType();
 				if (varType.isEnumeration())
 				{
@@ -1247,7 +1252,7 @@ public final class BootstrapGenerator
 	private static List<AvailErrorCode> errorCodes ()
 	{
 		final List<AvailErrorCode> relevant = new ArrayList<>(100);
-		for (final AvailErrorCode code : AvailErrorCode.all())
+		for (final AvailErrorCode code : AvailErrorCode.values())
 		{
 			if (code.nativeCode() > 0)
 			{
@@ -1262,7 +1267,7 @@ public final class BootstrapGenerator
 	 * primitive error codes}.
 	 */
 	private final Map<String, AvailErrorCode> errorCodesByName =
-		new HashMap<>(AvailErrorCode.all().length);
+		new HashMap<>(AvailErrorCode.values().length);
 
 	/**
 	 * Answer a textual representation of the {@linkplain AvailErrorCode
@@ -1558,7 +1563,7 @@ public final class BootstrapGenerator
 	}
 
 	/**
-	 * Construct a new {@link BootstrapGenerator}.
+	 * Construct a new {@code BootstrapGenerator}.
 	 *
 	 * @param locale The target {@linkplain Locale locale}.
 	 */

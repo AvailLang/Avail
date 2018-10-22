@@ -163,9 +163,8 @@ implements Comparable<AvailTask>, Runnable
 			}
 			finally
 			{
-				// This is the first point at which *some other* Thread may
-				// have had a chance to resume the fiber and update its
-				// state.
+				// This is the first point at which *some other* Thread may have
+				// had a chance to resume the fiber and update its state.
 				final @Nullable Continuation0 postExit =
 					interpreter.postExitContinuation();
 				if (postExit != null)

@@ -46,6 +46,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * {@code A_BasicObject} is an interface that specifies all generally applicable
@@ -1094,6 +1095,18 @@ extends JSONFriendly
 	 * @param critical
 	 */
 	void lock (Continuation0 critical);
+
+	/**
+	 * Lock the fiber during evaluation of the {@link Supplier}, and return the
+	 * produced value.
+	 *
+	 * @param supplier
+	 *        The supplier to evaluate.
+	 * @param <T>
+	 *        The type of value to produce while holding the lock.
+	 * @return The produced value.
+	 */
+	<T> T lock (final Supplier<T> supplier);
 
 	/**
 	 * @return
