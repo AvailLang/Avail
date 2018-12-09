@@ -74,6 +74,7 @@ import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.lang.Math.min;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Read the requested number of bytes from the
@@ -270,7 +271,7 @@ extends Primitive
 				runtime,
 				newFiber,
 				succeed,
-				Collections.singletonList(concatenated));
+				singletonList(concatenated));
 			return interpreter.primitiveSuccess(newFiber);
 		}
 		// We began with buffer misses, and we can figure out how many...
@@ -345,7 +346,7 @@ extends Primitive
 						runtime,
 						newFiber,
 						succeed,
-						Collections.singletonList(bytesTuple));
+						singletonList(bytesTuple));
 				}
 
 				@Override
@@ -358,7 +359,7 @@ extends Primitive
 						runtime,
 						newFiber,
 						fail,
-						Collections.singletonList(
+						singletonList(
 							E_IO_ERROR.numericCode()));
 				}
 			});

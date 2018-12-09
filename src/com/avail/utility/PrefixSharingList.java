@@ -43,6 +43,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singletonList;
 
 /**
  * This is an implementation of an immutable {@link List} for which {@link
@@ -304,7 +305,7 @@ public final class PrefixSharingList<E>
 	{
 		if (allButLast.isEmpty())
 		{
-			return Collections.singletonList(lastElement);
+			return singletonList(lastElement);
 		}
 		return new PrefixSharingList<>(allButLast, lastElement);
 	}

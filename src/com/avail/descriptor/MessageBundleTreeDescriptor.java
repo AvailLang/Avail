@@ -43,6 +43,7 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
+import com.avail.interpreter.Interpreter;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.Mutable;
@@ -622,7 +623,6 @@ extends Descriptor
 			}
 
 			// Update my components.
-			final AvailThread thread = (AvailThread) Thread.currentThread();
 			for (final Entry entry : unclassified.mapIterable())
 			{
 				for (final Entry entry2 : entry.value().mapIterable())
@@ -662,7 +662,7 @@ extends Descriptor
 							final long timeAfter = AvailRuntime.captureNanos();
 							op.expandingStatisticInNanoseconds.record(
 								timeAfter - timeBefore,
-								thread.interpreter.interpreterIndex);
+								Interpreter.currentIndex());
 						}
 					}
 				}
@@ -829,9 +829,8 @@ extends Descriptor
 			// are no longer *any* successors.
 		}
 		final long timeAfter = AvailRuntime.captureNanos();
-		final AvailThread thread = (AvailThread) Thread.currentThread();
 		invalidationsStat.record(
-			timeAfter - timeBefore, thread.interpreter.interpreterIndex);
+			timeAfter - timeBefore, Interpreter.currentIndex());
 	}
 
 	@Override @AvailMethod

@@ -1302,70 +1302,60 @@ extends Descriptor
 		return object.mutableSlot(DEBUG_LOG).javaObjectNotNull();
 	}
 
-	/**
-	 * The currently locked {@linkplain FiberDescriptor fiber}, or {@code null}
-	 * if no fiber is currently locked. This information is used to detect
-	 * deadlocks between fibers.
-	 */
-	private static final ThreadLocal<A_Fiber> currentlyLockedFiber =
-		new ThreadLocal<>();
-
-	/**
-	 * Can the running {@linkplain Thread thread} safely lock the specified
-	 * fiber without potential for deadlock?
-	 *
-	 * @param fiber
-	 *        A fiber.
-	 * @return {@code true} if the current thread can safely lock the specified
-	 *         fiber, {@code false} otherwise.
-	 */
-	private static boolean canSafelyLock (final A_Fiber fiber)
-	{
-		final A_Fiber lockedFiber = currentlyLockedFiber.get();
-		return lockedFiber == null || lockedFiber == fiber;
-	}
-
 	@Override
 	void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
-		assert canSafelyLock(object);
-		final A_Fiber lockedFiber = currentlyLockedFiber.get();
-		currentlyLockedFiber.set(object);
-		try
+		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
+		if (interpreter != null)
 		{
-			// A fiber always needs to acquire a lock, even if it's not mutable,
-			// as this prevents races between two threads where one is exiting a
-			// fiber and the other is resuming the same fiber.
+			interpreter.lockFiberWhile(
+				object,
+				() ->
+				{
+					synchronized (object)
+					{
+						critical.value();
+						return Boolean.TRUE;
+					}
+				});
+		}
+		else
+		{
+			// It's not running an AvailThread, so don't bother detecting
+			// multiple nested fiber locks (which would suggest a deadlock
+			// hazard)..
 			synchronized (object)
 			{
 				critical.value();
 			}
-		}
-		finally
-		{
-			currentlyLockedFiber.set(lockedFiber);
 		}
 	}
 
 	@Override
 	<T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
 	{
-		assert canSafelyLock(object);
-		final A_Fiber lockedFiber = currentlyLockedFiber.get();
-		currentlyLockedFiber.set(object);
-		try
+		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
+		if (interpreter != null)
 		{
-			// A fiber always needs to acquire a lock, even if it's not mutable,
-			// as this prevents races between two threads where one is exiting a
-			// fiber and the other is resuming the same fiber.
+			return interpreter.lockFiberWhile(
+				object,
+				() ->
+				{
+					synchronized (object)
+					{
+						return supplier.get();
+					}
+				});
+		}
+		else
+		{
+			// It's not running an AvailThread, so don't bother detecting
+			// multiple nested fiber locks (which would suggest a deadlock
+			// hazard)..
 			synchronized (object)
 			{
 				return supplier.get();
 			}
-		}
-		finally
-		{
-			currentlyLockedFiber.set(lockedFiber);
 		}
 	}
 
@@ -1589,6 +1579,6 @@ extends Descriptor
 	 */
 	public static A_Fiber currentFiber ()
 	{
-		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
+		return Interpreter.current().fiber();
 	}
 }

@@ -1666,10 +1666,9 @@ public final class JVMTranslator
 		method.visitVarInsn(ILOAD, offsetLocal());
 		method.visitLookupSwitchInsn(badOffsetLabel, offsets, entries);
 		// Translate the instructions.
-		final Thread thread = Thread.currentThread();
-		final @Nullable Interpreter interpreter = thread instanceof AvailThread
-			? ((AvailThread) thread).interpreter
-			: null;
+		final @Nullable AvailThread thread = AvailThread.currentOrNull();
+		final @Nullable Interpreter interpreter =
+			thread != null ? thread.interpreter : null;
 		for (final L2Instruction instruction : instructions)
 		{
 			final Label label = labels.get(instruction.offset());
@@ -1865,11 +1864,9 @@ public final class JVMTranslator
 		 */
 		@InnerAccess static void executeAll (final JVMTranslator jvmTranslator)
 		{
-			final Thread thread = Thread.currentThread();
+			final @Nullable AvailThread thread = AvailThread.currentOrNull();
 			final @Nullable Interpreter interpreter =
-				thread instanceof AvailThread
-					? ((AvailThread) thread).interpreter
-					: null;
+				thread != null ? thread.interpreter : null;
 			for (final GenerationPhase phase : GenerationPhase.all)
 			{
 				final long before = AvailRuntime.captureNanos();

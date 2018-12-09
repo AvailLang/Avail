@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,6 +104,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -293,10 +295,9 @@ public final class Interpreter
 	{
 		if (logger.isLoggable(level))
 		{
-			final Thread thread = Thread.currentThread();
 			log(
-				thread instanceof AvailThread
-					? ((AvailThread) thread).interpreter.fiber
+				AvailThread.currentOrNull() != null
+					? Interpreter.current().fiber
 					: null,
 				logger,
 				level,
@@ -375,7 +376,57 @@ public final class Interpreter
 	 */
 	public static Interpreter current ()
 	{
-		return ((AvailThread) Thread.currentThread()).interpreter;
+		return AvailThread.current().interpreter;
+	}
+
+	/**
+	 * Answer the unique {@link #interpreterIndex} of the Avail interpreter
+	 * associated with the {@linkplain Thread#currentThread() current thread}.
+	 * If this thread is not an {@link AvailThread}, then fail.
+	 *
+	 * @return The current Avail {@link Interpreter}'s unique index.
+	 */
+	public static int currentIndex ()
+	{
+		return AvailThread.current().interpreter.interpreterIndex;
+	}
+
+	/**
+	 * The {@linkplain FiberDescriptor fiber} that is currently locked for this
+	 * interpreter, or {@code null} if no fiber is currently locked.  This
+	 * information is used to prevent multiple fibers from being locked
+	 * simultaneously within a thread, which can lead to deadlock.
+	 *
+	 * This does not have to be volatile or atomic, since only this interpreter
+	 * can access the field, and this interpreter can only be accessed from the
+	 * single dedicated AvailThread that it's permanently associated with.
+	 */
+	private @Nullable A_Fiber currentlyLockedFiber = null;
+
+	/**
+	 * Lock the specified fiber for the duration of evaluation of the provided
+	 * {@link Supplier}.  Answer the result produced by the supplier.
+	 *
+	 * @param aFiber The fiber to lock.
+	 * @param supplier What to execute while the fiber is locked
+	 * @param <T> The type of value that the supplier will return.
+	 * @return The value produced by the supplier.
+	 */
+	public <T> T lockFiberWhile (
+		final A_Fiber aFiber,
+		final Supplier<T> supplier)
+	{
+		final @Nullable A_Fiber previousFiber = currentlyLockedFiber;
+		assert previousFiber == null || previousFiber == aFiber;
+		currentlyLockedFiber = aFiber;
+		try
+		{
+			return supplier.get();
+		}
+		finally
+		{
+			currentlyLockedFiber = previousFiber;
+		}
 	}
 
 	/**
@@ -383,15 +434,15 @@ public final class Interpreter
 	 * Thread#currentThread() current thread}.  If this thread is not an {@link
 	 * AvailThread}, then answer {@code null}.
 	 *
-	 * @return The current Level Two interpreter, or {@code null} if the current
-	 *         thread is not an {@code AvailThread}.
+	 * @return The current Avail {@code Interpreter}, or {@code null} if the
+	 *         current {@link Thread} is not an {@link AvailThread}.
 	 */
 	public static @Nullable Interpreter currentOrNull ()
 	{
-		final Thread current = Thread.currentThread();
-		if (current instanceof AvailThread)
+		final @Nullable AvailThread current = AvailThread.currentOrNull();
+		if (current != null)
 		{
-			return ((AvailThread) current).interpreter;
+			return current.interpreter;
 		}
 		return null;
 	}
@@ -1186,16 +1237,17 @@ public final class Interpreter
 						final Primitive suspended =
 							stripNull(
 								joiner.suspendingFunction().code().primitive());
+						if (suspended == P_ParkCurrentFiber.instance)
+						{
+							System.out.println("### Found parked fiber ###");
+						}
 						assert suspended == P_AttemptJoinFiber.instance
 							|| suspended == P_ParkCurrentFiber.instance;
-						if (suspended == P_AttemptJoinFiber.instance)
-						{
-							Interpreter.resumeFromSuccessfulPrimitive(
-								currentRuntime(),
-								joiner,
-								suspended,
-								nil);
-						}
+						Interpreter.resumeFromSuccessfulPrimitive(
+							currentRuntime(),
+							joiner,
+							suspended,
+							nil);
 					}
 				});
 			}
@@ -2296,7 +2348,7 @@ public final class Interpreter
 			runtime,
 			fiber,
 			stringifierFunction,
-			Collections.singletonList(value));
+			singletonList(value));
 	}
 
 	/**

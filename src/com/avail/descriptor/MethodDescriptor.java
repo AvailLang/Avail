@@ -47,10 +47,9 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax
-	.P_ModuleHeaderPrefixCheckName;
-import com.avail.interpreter.primitive.bootstrap.syntax
-	.P_ModuleHeaderPseudoMacro;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleName;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleVersion;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -78,21 +77,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor
-	.newParsingPlan;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
-import static com.avail.descriptor.MethodDefinitionDescriptor
-	.newMethodDefinition;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
-	.CREATE_MACRO;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
-	.CREATE_METHOD;
+import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_MACRO;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_METHOD;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
@@ -100,13 +94,14 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleWithout;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -977,7 +972,7 @@ extends Descriptor
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				toList(object.slot(DEFINITIONS_TUPLE)),
+				TupleDescriptor.toList(object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);
 		object.setSlot(
@@ -985,7 +980,7 @@ extends Descriptor
 			identityPojo(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
+				TupleDescriptor.toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);
 		object.setSlot(
@@ -1201,7 +1196,7 @@ extends Descriptor
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
 			"Module…$§"
-				+ "«Versions«…$‡,»»"
+				+ "«Versions«…$§‡,»»"
 				+ '«'
 					+ "«Extends|Uses»!"
 					+ '«'
@@ -1216,8 +1211,9 @@ extends Descriptor
 				+ "«Pragma«…$‡,»»"
 				+ "Body",
 			CREATE_MACRO,
-			singletonList(
-				P_ModuleHeaderPrefixCheckName.instance),
+			asList(
+				P_ModuleHeaderPrefixCheckModuleName.instance,
+				P_ModuleHeaderPrefixCheckModuleVersion.instance),
 			P_ModuleHeaderPseudoMacro.instance);
 
 		/** The special atom. */
@@ -1349,7 +1345,7 @@ extends Descriptor
 						tupleFromList(
 							prefixFunctions.stream()
 								.map(p -> newPrimitiveFunction(p, nil, 0))
-								.collect(Collectors.toList())));
+								.collect(toList())));
 				}
 
 				try

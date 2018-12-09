@@ -68,6 +68,7 @@ import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@linkplain Group} is delimited by the {@linkplain
@@ -912,7 +913,7 @@ extends Expression
 				assert occurrence.isInstanceOfKind(
 					EXPRESSION_PHRASE.mostGeneralType());
 				final List<AvailObject> argumentNodes =
-					Collections.singletonList(occurrence);
+					singletonList(occurrence);
 				innerIterator = argumentNodes.iterator();
 			}
 			printGroupOccurrence(

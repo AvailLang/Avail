@@ -85,6 +85,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableSet;
+
 /**
  * A {@code AvailServer} manages an Avail environment.
  *
@@ -101,8 +104,7 @@ public final class AvailServer
 
 	/** The supported client protocol versions. */
 	public static final Set<Integer> supportedProtocolVersions =
-		Collections.unmodifiableSet(new HashSet<>(Collections.singletonList(
-			protocolVersion)));
+		unmodifiableSet(new HashSet<>(singletonList(protocolVersion)));
 
 	/** The {@linkplain AvailServerConfiguration configuration}. */
 	@InnerAccess final AvailServerConfiguration configuration;

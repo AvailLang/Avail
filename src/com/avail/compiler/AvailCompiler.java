@@ -32,7 +32,6 @@
 package com.avail.compiler;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -1805,10 +1804,9 @@ public final class AvailCompiler
 						latestPhrase,
 						bundleTree.latestBackwardJump());
 				final long timeAfter = AvailRuntime.captureNanos();
-				final AvailThread thread = (AvailThread) Thread.currentThread();
 				typeCheckArgumentStat.record(
 					timeAfter - timeBefore,
-					thread.interpreter.interpreterIndex);
+					Interpreter.currentIndex());
 				if (AvailRuntime.debugCompilerSteps)
 				{
 					System.out.println(
@@ -1988,14 +1986,12 @@ public final class AvailCompiler
 								marksSoFar,
 								continuation);
 							final long timeAfter = AvailRuntime.captureNanos();
-							final AvailThread thread =
-								(AvailThread) Thread.currentThread();
 							final Statistic stat = caseInsensitive
 								? matchTokenInsensitivelyStat
 								: matchTokenStat;
 							stat.record(
 								timeAfter - timeBefore,
-								thread.interpreter.interpreterIndex);
+								Interpreter.currentIndex());
 						}
 						assert foundOne;
 						if (!recognized && consumedAnything)
@@ -2451,10 +2447,9 @@ public final class AvailCompiler
 			consumedTokens,
 			continuation);
 		final long timeAfter = AvailRuntime.captureNanos();
-		final AvailThread thread = (AvailThread) Thread.currentThread();
 		op.parsingStatisticInNanoseconds.record(
 			timeAfter - timeBefore,
-			thread.interpreter.interpreterIndex);
+			Interpreter.currentIndex());
 	}
 
 	/**

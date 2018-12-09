@@ -33,8 +33,16 @@
 Module "ShouldFailDuplicateName"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
 Names
 	"cat",
 	"dog",
-	"cat"  /* Redundant, should be rejected. */
+	"cat",  /* Redundant, should be rejected. */
+	"ant",
+	"turnip",
+	"arabesque",
+	"aeolipile",
+	"no comma after this"
+	"whisper"
 Body

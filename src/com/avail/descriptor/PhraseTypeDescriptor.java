@@ -44,25 +44,18 @@ import java.util.List;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.ListPhraseTypeDescriptor
-	.createListNodeTypeNoCheck;
-import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots
-	.HASH_AND_MORE;
-import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
-import static com.avail.descriptor.PhraseTypeDescriptor.ObjectSlots
-	.EXPRESSION_TYPE;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeTypeNoCheck;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -953,6 +946,20 @@ extends TypeDescriptor
 
 	/** The {@link PhraseKind} of instances that use this descriptor. */
 	protected final PhraseKind kind;
+
+	/**
+	 * Constants that are phrase types.  These must be initialized only after
+	 * the {@code PhraseTypeDescriptor}s have been created.
+	 */
+	public static class Constants
+	{
+		/** The phrase type for string literals. */
+		public static final A_Type stringLiteralType =
+			LITERAL_PHRASE.create(
+				literalTokenType(
+					stringType())
+			).makeShared();
+	}
 
 	/**
 	 * Construct a new descriptor for this kind of phrase type.

@@ -34,6 +34,7 @@ package com.avail;
 
 import com.avail.interpreter.Interpreter;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
@@ -61,7 +62,7 @@ extends Thread
 	public final Interpreter interpreter;
 
 	/**
-	 * Construct a new {@link AvailThread}.
+	 * Construct a new {@code AvailThread}.
 	 *
 	 * @param runnable
 	 *        The {@code Runnable runnable} that the new thread should execute.
@@ -76,5 +77,39 @@ extends Thread
 		super(runnable, "AvailThread-" + interpreter.interpreterIndex);
 		this.runtime = interpreter.runtime();
 		this.interpreter = interpreter;
+	}
+
+	/**
+	 * Answer the current {@link Thread} strengthened to an {@code AvailThread},
+	 * or {@code null} if it isn't actually an {@code AvailThread}.
+	 *
+	 * @return The current {@code AvailThread}.
+	 */
+	public static @Nullable AvailThread currentOrNull ()
+	{
+		final Thread current = Thread.currentThread();
+		if (current instanceof AvailThread)
+		{
+			return (AvailThread) current;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Answer the current {@link Thread} strengthened to an {@code AvailThread},
+	 * or throw {@link ClassCastException} if it isn't actually an {@code
+	 * AvailThread}.
+	 *
+	 * @return The current {@code AvailThread}.
+	 * @throws ClassCastException
+	 *         If the current thread isn't an {@code AvailThread}.
+	 */
+	public static AvailThread current ()
+	throws ClassCastException
+	{
+		return (AvailThread) Thread.currentThread();
 	}
 }

@@ -75,6 +75,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Create a directory with the indicated name
@@ -177,7 +178,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					fail,
-					Collections.singletonList(
+					singletonList(
 						E_FILE_EXISTS.numericCode()));
 				return;
 			}
@@ -187,7 +188,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					fail,
-					Collections.singletonList(
+					singletonList(
 						E_PERMISSION_DENIED.numericCode()));
 				return;
 			}
@@ -197,7 +198,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					fail,
-					Collections.singletonList(E_IO_ERROR.numericCode()));
+					singletonList(E_IO_ERROR.numericCode()));
 				return;
 			}
 			Interpreter.runOutermostFunction(

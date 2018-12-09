@@ -41,16 +41,14 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-	.MODULE_HEADER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -126,16 +124,12 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		final A_Type stringTokenType =
-			LITERAL_PHRASE.create(
-				literalTokenType(
-					stringType()));
 		return functionType(
 			tupleFromArray(
 				/* Module name */
-				stringTokenType,
+				stringLiteralType,
 				/* Optional versions */
-				zeroOrOneList(zeroOrMoreList(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* All imports */
 				zeroOrMoreList(
 					list(
@@ -144,9 +138,10 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 						zeroOrMoreList(
 							list(
 								// Imported module name
-								stringTokenType,
+								stringLiteralType,
 								// Imported module versions
-								zeroOrOneList(zeroOrMoreList(stringTokenType)),
+								zeroOrOneList(
+									zeroOrMoreList(stringLiteralType)),
 								// Imported names
 								zeroOrOneList(
 									list(
@@ -156,19 +151,19 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 												LITERAL_PHRASE.create(
 													booleanType()),
 												// Name
-												stringTokenType,
+												stringLiteralType,
 												// Replacement name
 												zeroOrOneList(
-													stringTokenType))),
+													stringLiteralType))),
 										// Final ellipsis (import all the rest)
 										LITERAL_PHRASE.create(
 											booleanType()))))))),
 				/* Optional names */
-				zeroOrOneList(zeroOrMoreList(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* Optional entries */
-				zeroOrOneList(zeroOrMoreList(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* Optional pragma */
-				zeroOrOneList(zeroOrMoreList(stringTokenType))),
+				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			/* Shouldn't be invoked, so always fail. */
 			STATEMENT_PHRASE.mostGeneralType());
 	}

@@ -111,54 +111,53 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 	{
 		return functionType(
 			tuple(
-				/* Macro argument is a phrase. */
+				// Macro argument is a phrase.
 				LIST_PHRASE.create(
-						/* Optional arguments section. */
+					// Optional arguments section.
 					zeroOrOneOf(
-							/* Arguments are present. */
+						// Arguments are present.
 						oneOrMoreOf(
-								/* An argument. */
+							// An argument.
 							tupleTypeForTypes(
-									/* Argument name, a token. */
+								// Argument name, a token.
 								TOKEN.o(),
-									/* Argument type. */
+								// Argument type.
 								anyMeta())))),
-					/* Macro argument is a phrase. */
+				// Macro argument is a phrase.
 				LIST_PHRASE.create(
-						/* Optional primitive declaration. */
+					// Optional primitive declaration.
 					zeroOrOneOf(
-							/* Primitive declaration */
+						// Primitive declaration
 						tupleTypeForTypes(
-								/* Primitive name. */
+							// Primitive name.
 							TOKEN.o(),
-								/* Optional failure variable declaration. */
+							// Optional failure variable declaration.
 							zeroOrOneOf(
-									/* Primitive failure variable parts. */
+								// Primitive failure variable parts.
 								tupleTypeForTypes(
-										/* Primitive failure variable name token */
+									// Primitive failure variable name token
 									TOKEN.o(),
-										/* Primitive failure variable type */
+									// Primitive failure variable type
 									anyMeta()))))),
-					/* Macro argument is a phrase. */
+				// Macro argument is a phrase.
 				LIST_PHRASE.create(
-						/* Optional label declaration. */
+					// Optional label declaration.
 					zeroOrOneOf(
-							/* Label parts. */
+						// Label parts.
 						tupleTypeForTypes(
-								/* Label name */
+							// Label name
 							TOKEN.o(),
-								/* Optional label return type. */
+							// Optional label return type.
 							zeroOrOneOf(
-									/* Label return type. */
+								// Label return type.
 								topMeta())))),
-					/* Macro argument is a phrase. */
+				// Macro argument is a phrase.
 				LIST_PHRASE.create(
-						/* Statements and declarations so far. */
+					// Statements and declarations so far.
 					zeroOrMoreOf(
-							/* The "_!" mechanism wrapped each statement or
-							 * declaration inside a literal phrase, so expect a
-							 * phrase here instead of TOP.o().
-							 */
+						// The "_!" mechanism wrapped each statement or
+						// declaration inside a literal phrase, so expect a
+						// phrase here instead of TOP.o().
 						STATEMENT_PHRASE.mostGeneralType()))),
 			TOP.o());
 	}

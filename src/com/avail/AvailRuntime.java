@@ -213,7 +213,7 @@ public final class AvailRuntime
 	 */
 	public static AvailRuntime currentRuntime ()
 	{
-		return ((AvailThread) Thread.currentThread()).runtime;
+		return AvailThread.current().runtime;
 	}
 
 	/**

@@ -46,6 +46,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@code LookupTree} representing an incomplete search.  To further the
@@ -320,7 +321,7 @@ public class InternalLookupTree<
 		else
 		{
 			argumentPositionToTest = 0;
-			newPositiveKnownTypes = Collections.singletonList(bestSignature);
+			newPositiveKnownTypes = singletonList(bestSignature);
 			criterionSignature = bestSignature;
 			selectedTypeToTest = criterionSignature;
 			knownSignature = knownArgumentTypes.get(0);

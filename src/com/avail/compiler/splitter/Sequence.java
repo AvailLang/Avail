@@ -53,6 +53,7 @@ import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@code Sequence} is the juxtaposition of any number of other {@link
@@ -253,10 +254,11 @@ extends Expression
 					result.add(new ArrayList<>(currentRun));
 					currentRun.clear();
 				}
-				result.add(Collections.singletonList(
-					new Pair<>(
-						expression,
-						expression.isArgumentOrGroup() ? ++typeIndex : 0)));
+				result.add(
+					singletonList(
+						new Pair<>(
+							expression,
+							expression.isArgumentOrGroup() ? ++typeIndex : 0)));
 			}
 			else
 			{

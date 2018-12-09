@@ -80,6 +80,7 @@ import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive</strong>: Execute an attached external {@linkplain Process
@@ -185,7 +186,7 @@ extends Primitive
 			runtime,
 			newFiber,
 			fail,
-			Collections.singletonList(error.numericCode()));
+			singletonList(error.numericCode()));
 		return interpreter.primitiveSuccess(newFiber);
 	}
 

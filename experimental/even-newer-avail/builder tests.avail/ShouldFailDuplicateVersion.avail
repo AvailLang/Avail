@@ -1,5 +1,5 @@
 /*
- * ShouldFailPragmas.avail
+ * ShouldFailDuplicateName.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,12 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "ShouldFailPragmas"
-Versions "1.0.0 DEV 2014-04-28"
+Module "ShouldFailDuplicateVersion"
+Versions
+	"1.0.0 DEV 2014-04-28",
+	"1.0.0 DEV 2014-04-28"
 Uses
 	"Avail"
-Pragma
-	"someUnknownPragmaKey=253=Primitive_is_"
 Body
-
-

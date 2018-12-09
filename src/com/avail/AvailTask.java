@@ -247,7 +247,7 @@ implements Comparable<AvailTask>, Runnable
 	}
 
 	@Override
-	public final void run ()
+	public void run ()
 	{
 		try
 		{

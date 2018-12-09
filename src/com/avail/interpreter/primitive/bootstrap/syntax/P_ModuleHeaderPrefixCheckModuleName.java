@@ -1,5 +1,5 @@
 /*
- * P_ModuleHeaderPrefixCheckName.java
+ * P_ModuleHeaderPrefixCheckModuleName.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,25 +33,20 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.builder.ModuleName;
-import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.LITERAL_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.Private;
@@ -63,14 +58,14 @@ import static com.avail.interpreter.Primitive.Flag.Private;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_ModuleHeaderPrefixCheckName extends Primitive
+public final class P_ModuleHeaderPrefixCheckModuleName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_ModuleHeaderPrefixCheckName().init(
+		new P_ModuleHeaderPrefixCheckModuleName().init(
 			1, Private, Bootstrap);
 
 	@Override
@@ -102,14 +97,10 @@ public final class P_ModuleHeaderPrefixCheckName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		final A_Type stringTokenType =
-			LITERAL_PHRASE.create(
-				literalTokenType(
-					stringType()));
 		return functionType(
 			tupleFromArray(
 				/* Module name */
-				stringTokenType),
+				stringLiteralType),
 			TOP.o());
 	}
 }

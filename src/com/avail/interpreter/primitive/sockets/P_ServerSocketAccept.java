@@ -67,6 +67,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Accept an incoming connection on the
@@ -152,7 +153,7 @@ extends Primitive
 							runtime,
 							newFiber,
 							succeed,
-							Collections.singletonList(newHandle));
+							singletonList(newHandle));
 					}
 
 					@Override
@@ -165,7 +166,7 @@ extends Primitive
 							runtime,
 							newFiber,
 							fail,
-							Collections.singletonList(
+							singletonList(
 								E_IO_ERROR.numericCode()));
 					}
 				});
