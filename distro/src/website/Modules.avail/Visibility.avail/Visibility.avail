@@ -31,4 +31,5 @@
  */
 
 Module "Visibility"
+Uses "Avail" = ("whitespace lexer")
 Body

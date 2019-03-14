@@ -31,4 +31,5 @@
  */
 
 Module "Versions"
+Uses "Avail" = ("whitespace lexer")
 Body

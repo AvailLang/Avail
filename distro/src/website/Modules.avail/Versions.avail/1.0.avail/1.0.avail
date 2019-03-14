@@ -31,4 +31,5 @@
  */
 
 Module "1.0"
+Uses "Avail" = ("whitespace lexer")
 Body
