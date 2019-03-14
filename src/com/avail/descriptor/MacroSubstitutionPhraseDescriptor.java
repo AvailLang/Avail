@@ -302,6 +302,12 @@ extends PhraseDescriptor
 	}
 
 	@Override
+	A_Phrase o_LastExpression (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).lastExpression();
+	}
+
+	@Override
 	A_Phrase o_List (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).list();

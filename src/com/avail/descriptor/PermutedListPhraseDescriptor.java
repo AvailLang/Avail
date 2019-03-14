@@ -229,6 +229,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
+	A_Phrase o_LastExpression (final AvailObject object)
+	{
+		// DON'T transform the index.
+		return object.slot(LIST).lastExpression();
+	}
+
+	@Override
 	A_Phrase o_List (final AvailObject object)
 	{
 		return object.slot(LIST);

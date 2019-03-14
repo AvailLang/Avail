@@ -1,5 +1,5 @@
 /*
- * ShouldFailDuplicateVersion.avail
+ * ShouldFailDuplicateImportVersion.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,10 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "ShouldFailDuplicateVersion"
-Versions
-	"1.0.0 DEV 2014-04-28",
-	"1.0.0 DEV 2014-04-28"
+Module "ShouldFailDuplicateImportVersion"
+Versions "1.0.0 DEV 2014-04-28"
 Uses
 	"Avail"
+	(
+		"1.0.0 DEV 2014-04-28",
+		"Something newer",
+		"1.0.0 DEV 2014-04-28"
+	)
 Body

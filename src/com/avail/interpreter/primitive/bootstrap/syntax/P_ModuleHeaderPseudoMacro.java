@@ -45,14 +45,14 @@ import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpr
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.*;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -104,21 +104,6 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 							optionalEntries,
 							optionalPragmas)),
 					TOP.o())));
-	}
-
-	static A_Type zeroOrMoreList (final A_Type type)
-	{
-		return createListNodeType(LIST_PHRASE, zeroOrMoreOf(type));
-	}
-
-	static A_Type zeroOrOneList (final A_Type type)
-	{
-		return createListNodeType(LIST_PHRASE, zeroOrOneOf(type));
-	}
-
-	static A_Type list (final A_Type... types)
-	{
-		return createListNodeType(LIST_PHRASE, tupleTypeForTypes(types));
 	}
 
 	@Override

@@ -1066,10 +1066,6 @@ public final class AvailCompiler
 	 *        replacements.  This is especially useful for keeping track of how
 	 *        to transform references to prior declarations that have been
 	 *        transformed from local-scoped to module-scoped.
-	 * @param trackTasks
-	 *        Whether to track that this fiber is running, and when done, to run
-	 *        {@link CompilationContext#noMoreWorkUnits} if the queued/completed
-	 *        counts agree.
 	 * @param onSuccess
 	 *        What to do after success. Note that the result of executing the
 	 *        statement must be {@linkplain NilDescriptor#nil nil}, so there
@@ -1081,7 +1077,6 @@ public final class AvailCompiler
 		final ParserState afterStatement,
 		final A_Phrase expression,
 		final Map<A_Phrase, A_Phrase> declarationRemap,
-		final boolean trackTasks,
 		final Continuation0 onSuccess)
 	{
 		assert !expression.isMacroSubstitutionNode();
@@ -1129,7 +1124,7 @@ public final class AvailCompiler
 				replacement,
 				afterStatement.lexingState,
 				true,
-				trackTasks,
+				false,
 				ignored -> onSuccess.value(),
 				phraseFailure);
 			return;
@@ -1167,7 +1162,7 @@ public final class AvailCompiler
 					replacement.initializationExpression(),
 					afterStatement.lexingState,
 					false,
-					trackTasks,
+					false,
 					val ->
 					{
 						loader.stopRecordingEffects();
@@ -1293,7 +1288,7 @@ public final class AvailCompiler
 						replacement.initializationExpression(),
 						afterStatement.lexingState,
 						false,
-						trackTasks,
+						false,
 						val ->
 						{
 							var.setValue(val);
@@ -3820,7 +3815,7 @@ public final class AvailCompiler
 				tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o());
 		evaluateModuleStatementThen(
-			state, state, send, new HashMap<>(), false, success);
+			state, state, send, new HashMap<>(), success);
 	}
 
 	/**
@@ -3897,7 +3892,7 @@ public final class AvailCompiler
 					bodyLiteral)),
 			TOP.o());
 		evaluateModuleStatementThen(
-			state, state, send, new HashMap<>(), false, success);
+			state, state, send, new HashMap<>(), success);
 	}
 
 	/**
@@ -4009,7 +4004,6 @@ public final class AvailCompiler
 			state,
 			send,
 			new HashMap<>(),
-			false,
 			success);
 	}
 
@@ -4218,7 +4212,6 @@ public final class AvailCompiler
 								afterStatement,
 								statement,
 								declarationRemap,
-								false,
 								executeNextSimpleStatement);
 						});
 				}));
@@ -4501,7 +4494,7 @@ public final class AvailCompiler
 		final A_String moduleName = stringFromToken(moduleNameToken);
 		assert moduleName.asNativeString().equals(moduleName().localName());
 
-		// Module version section
+		// Module versions were already checked for duplicates
 		if (optionalVersions.tupleSize() > 0)
 		{
 			assert optionalVersions.tupleSize() == 1;
@@ -4509,13 +4502,7 @@ public final class AvailCompiler
 			{
 				final A_String versionString = stringFromToken(
 					versionStringToken);
-				if (header.versions.contains(versionString))
-				{
-					versionStringToken.nextLexingState()
-						.expected("version strings to be unique");
-					compilationContext.diagnostics.reportError();
-					return false;
-				}
+				assert !header.versions.contains(versionString);
 				header.versions.add(versionString);
 			}
 		}
@@ -4541,6 +4528,7 @@ public final class AvailCompiler
 
 				final A_Tuple optionalImportVersions = moduleImport.tupleAt(2);
 				assert optionalImportVersions.isTuple();
+
 				A_Set importVersions = emptySet();
 				if (optionalImportVersions.tupleSize() > 0)
 				{
@@ -4550,15 +4538,8 @@ public final class AvailCompiler
 					{
 						final A_String importVersionString =
 							stringFromToken(importVersionToken);
-						if (importVersions.hasElement(importVersionString))
-						{
-							importVersionToken
-								.nextLexingState()
-								.expected(
-									"module import versions to be unique");
-							compilationContext.diagnostics.reportError();
-							return false;
-						}
+						// Guaranteed by P_ModuleHeaderPrefixCheckImportVersion.
+						assert !importVersions.hasElement(importVersionString);
 						importVersions =
 							importVersions.setWithElementCanDestroy(
 								importVersionString, true);

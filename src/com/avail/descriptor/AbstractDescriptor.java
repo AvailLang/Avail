@@ -6437,6 +6437,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract A_Phrase o_LastExpression (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract MessageSplitter o_MessageSplitter (AvailObject object);
 
 	/**
@@ -6820,7 +6826,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+	abstract LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
 		final AvailObject object);
 
 	/**

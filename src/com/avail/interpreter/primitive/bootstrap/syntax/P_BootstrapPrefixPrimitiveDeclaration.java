@@ -98,13 +98,12 @@ extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		assert optionalPrimPhrase.expressionsSize() == 1;
-		final A_Phrase primPhrase = optionalPrimPhrase.expressionAt(1);
+		final A_Phrase primPhrase = optionalPrimPhrase.lastExpression();
 		final A_Phrase primNamePhrase = primPhrase.expressionAt(1);
 		if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
 			throw new AvailRejectedParseException(
-				"primitive specification to be a (compiler created) literal "
-				+ "keyword token");
+				"primitive specification to be a literal keyword token");
 		}
 		final A_String primName = primNamePhrase.token().string();
 		final @Nullable Primitive prim =
@@ -121,7 +120,7 @@ extends Primitive
 		if (optionalBlockArgumentsList.expressionsSize() == 1)
 		{
 			final A_Phrase blockArgumentsList =
-				optionalBlockArgumentsList.expressionAt(1);
+				optionalBlockArgumentsList.lastExpression();
 			assert blockArgumentsList.expressionsSize() >= 1;
 			for (final A_Phrase pair : blockArgumentsList.expressionsTuple())
 			{

@@ -4551,6 +4551,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Phrase o_LastExpression (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	MessageSplitter o_MessageSplitter (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4920,7 +4926,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+	LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();

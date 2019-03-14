@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion;
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleName;
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleVersion;
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
@@ -99,6 +100,7 @@ import static com.avail.descriptor.TupleDescriptor.tupleWithout;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -255,8 +257,9 @@ extends Descriptor
 	 * @see ObjectSlots#PRIVATE_TESTING_TREE
 	 * @see ObjectSlots#MACRO_TESTING_TREE
 	 */
-	public static final LookupTreeAdaptor<A_Definition, A_Tuple, Void>
-		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
+	public static final LookupTreeAdaptor<A_Definition, A_Tuple, Boolean>
+		runtimeDispatcher = new LookupTreeAdaptor<
+			A_Definition, A_Tuple, Boolean>()
 	{
 		@Override
 		public A_Type extractSignature (final A_Definition element)
@@ -267,7 +270,7 @@ extends Descriptor
 		@Override
 		public A_Tuple constructResult (
 			final List<? extends A_Definition> elements,
-			final Void ignored)
+			final Boolean ignored)
 		{
 			return tupleFromList(elements);
 		}
@@ -316,7 +319,7 @@ extends Descriptor
 		final int size =
 			object.definitionsTuple().tupleSize()
 			+ object.macroDefinitionsTuple().tupleSize();
-		aStream.append(Integer.toString(size));
+		aStream.append(size);
 		aStream.append(" definition");
 		if (size != 1)
 		{
@@ -557,10 +560,10 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple, Void> tree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple resultTuple =
-			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, null);
+			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, TRUE);
 		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
 
@@ -575,10 +578,10 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple, Void> tree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
-			runtimeDispatcher.lookupByValues(tree, argumentList, null);
+			runtimeDispatcher.lookupByValues(tree, argumentList, TRUE);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
@@ -600,10 +603,10 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple, Void> tree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
-			runtimeDispatcher.lookupByValues(tree, argumentPhraseTuple, null);
+			runtimeDispatcher.lookupByValues(tree, argumentPhraseTuple, TRUE);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
@@ -826,7 +829,7 @@ extends Descriptor
 	}
 
 	@Override
-	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+	LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
 		final AvailObject object)
 	{
 		return object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
@@ -897,15 +900,15 @@ extends Descriptor
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			identityPojo(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
 			runtimeDispatcher.createRoot(
-				emptyList(), initialTypes, null);
+				emptyList(), initialTypes, TRUE);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> macrosTree =
 			runtimeDispatcher.createRoot(
-				emptyList(), initialTypes, null);
+				emptyList(), initialTypes, TRUE);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
@@ -970,19 +973,19 @@ extends Descriptor
 		// Rebuild the roots of the lookup trees.
 		final int numArgs = object.slot(NUM_ARGS);
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
 			runtimeDispatcher.createRoot(
 				TupleDescriptor.toList(object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
-				null);
+				TRUE);
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> macrosTree =
 			runtimeDispatcher.createRoot(
 				TupleDescriptor.toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,
-				null);
+				TRUE);
 		object.setSlot(
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
@@ -1201,7 +1204,7 @@ extends Descriptor
 					+ "«Extends|Uses»!"
 					+ '«'
 						+ "…$"
-						+ "«(«…$‡,»)»"
+						+ "«(«…$§‡,»)»"
 						+ "«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»"
 						+ "‡,"
 					+ '»'
@@ -1213,7 +1216,8 @@ extends Descriptor
 			CREATE_MACRO,
 			asList(
 				P_ModuleHeaderPrefixCheckModuleName.instance,
-				P_ModuleHeaderPrefixCheckModuleVersion.instance),
+				P_ModuleHeaderPrefixCheckModuleVersion.instance,
+				P_ModuleHeaderPrefixCheckImportVersion.instance),
 			P_ModuleHeaderPseudoMacro.instance);
 
 		/** The special atom. */

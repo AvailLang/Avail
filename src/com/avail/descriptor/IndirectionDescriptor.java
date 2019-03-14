@@ -5094,7 +5094,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LookupTree<A_Definition, A_Tuple, Void> o_TestingTree (
+	LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
 		final AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
@@ -5130,5 +5130,11 @@ extends AbstractDescriptor
 	void o_ClearLexingState (final AvailObject object)
 	{
 		o_Traversed(object).clearLexingState();
+	}
+
+	@Override
+	A_Phrase o_LastExpression (final AvailObject object)
+	{
+		return o_Traversed(object).lastExpression();
 	}
 }

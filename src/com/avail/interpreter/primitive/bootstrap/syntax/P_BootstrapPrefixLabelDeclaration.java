@@ -107,7 +107,7 @@ extends Primitive
 		// of the label declaration, this function will only be invoked when
 		// there truly is a label declaration.
 		assert optionalLabelPhrase.expressionsSize() == 1;
-		final A_Phrase labelPairPhrase = optionalLabelPhrase.expressionAt(1);
+		final A_Phrase labelPairPhrase = optionalLabelPhrase.lastExpression();
 		assert labelPairPhrase.expressionsSize() == 2;
 		final A_Phrase labelNamePhrase = labelPairPhrase.expressionAt(1);
 		final A_Token labelName = labelNamePhrase.token().literal();
@@ -143,13 +143,13 @@ extends Primitive
 		{
 			assert optionalBlockArgumentsList.expressionsSize() == 1;
 			final A_Phrase blockArgumentsList =
-				optionalBlockArgumentsList.expressionAt(1);
+				optionalBlockArgumentsList.lastExpression();
 			assert blockArgumentsList.expressionsSize() >= 1;
 			for (final A_Phrase argumentPair :
 				blockArgumentsList.expressionsTuple())
 			{
 				assert argumentPair.expressionsSize() == 2;
-				final A_Phrase typePhrase = argumentPair.expressionAt(2);
+				final A_Phrase typePhrase = argumentPair.lastExpression();
 				assert typePhrase.isInstanceOfKind(
 					LITERAL_PHRASE.create(anyMeta()));
 				final A_Type argType = typePhrase.token().literal();

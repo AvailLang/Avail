@@ -361,7 +361,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
 			for (final A_Phrase exceptionTypePhrase
-				: optionalExceptionTypes.expressionAt(1).expressionsTuple())
+				: optionalExceptionTypes.lastExpression().expressionsTuple())
 			{
 				exceptionsSet = exceptionsSet.setWithElementCanDestroy(
 					exceptionTypePhrase.token().literal(), true);

@@ -313,5 +313,5 @@ extends A_ChunkDependable
 	 *
 	 * @return The method's type dispatch tree.
 	 */
-	LookupTree<A_Definition, A_Tuple, Void> testingTree ();
+	LookupTree<A_Definition, A_Tuple, Boolean> testingTree ();
 }

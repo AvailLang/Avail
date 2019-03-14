@@ -209,7 +209,7 @@ public enum PragmaKind
 				newListNode(tuple(syntheticLiteralNodeFor(atom))),
 				TOP.o());
 			compiler.evaluateModuleStatementThen(
-				state, state, send, new HashMap<>(), false, success);
+				state, state, send, new HashMap<>(), success);
 		}
 	},
 

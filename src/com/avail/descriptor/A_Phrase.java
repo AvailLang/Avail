@@ -217,6 +217,14 @@ extends A_BasicObject
 	boolean isMacroSubstitutionNode ();
 
 	/**
+	 * Extract the last expression of this list phrase.  The client must ensure
+	 * there is at least one, and that this is a list phrase.
+	 *
+	 * @return The last phrase of the list.
+	 */
+	A_Phrase lastExpression ();
+
+	/**
 	 * @return
 	 */
 	A_Phrase list ();

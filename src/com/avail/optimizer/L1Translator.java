@@ -88,7 +88,8 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -102,6 +103,7 @@ import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static com.avail.utility.Nulls.stripNull;
+import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -1021,21 +1023,22 @@ implements L1OperationDispatcher
 
 		// Determine which applicable definitions have already been expanded in
 		// the lookup tree.
-		final LookupTree<A_Definition, A_Tuple, Void> tree =
+		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			method.testingTree();
 		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
 
-		final LookupTreeTraverser<A_Definition, A_Tuple, Void, Boolean>
+		final LookupTreeTraverser<A_Definition, A_Tuple, Boolean, Boolean>
 			definitionCollector =
-				new LookupTreeTraverser<A_Definition, A_Tuple, Void, Boolean>(
-					MethodDescriptor.runtimeDispatcher, null, false)
+				new LookupTreeTraverser<
+						A_Definition, A_Tuple, Boolean, Boolean>(
+					MethodDescriptor.runtimeDispatcher, TRUE, false)
 		{
 			@Override
 			public Boolean visitPreInternalNode (
 				final int argumentIndex, final A_Type argumentType)
 			{
 				// Ignored.
-				return Boolean.TRUE;
+				return TRUE;
 			}
 
 			@Override
@@ -1069,10 +1072,10 @@ implements L1OperationDispatcher
 			// ambiguity, even though the argument's type restriction says it
 			// can't actually be ⊥'s type.
 			final LookupTreeTraverser<
-					A_Definition, A_Tuple, Void, InternalNodeMemento>
+					A_Definition, A_Tuple, Boolean, InternalNodeMemento>
 				traverser = new LookupTreeTraverser<
-						A_Definition, A_Tuple, Void, InternalNodeMemento>(
-					MethodDescriptor.runtimeDispatcher, null, false)
+						A_Definition, A_Tuple, Boolean, InternalNodeMemento>(
+					MethodDescriptor.runtimeDispatcher, TRUE, false)
 			{
 				@Override
 				public InternalNodeMemento visitPreInternalNode (

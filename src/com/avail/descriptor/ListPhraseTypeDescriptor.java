@@ -43,14 +43,16 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 
 /**
  * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
@@ -361,6 +363,63 @@ extends PhraseTypeDescriptor
 	}
 
 	/**
+	 * Create a list phrase type matching zero or more occurrences of arbitrary
+	 * phrases that yield the given type.
+	 *
+	 * @param type The type yielded by each element of the list phrase type.
+	 * @return A list phrase type.
+	 */
+	public static A_Type zeroOrMoreList (final A_Type type)
+	{
+		return createListNodeType(zeroOrMoreOf(type));
+	}
+
+	/**
+	 * Create a list phrase type matching zero or one occurrences of arbitrary
+	 * phrases that yield the given type.
+	 *
+	 * @param type The type yielded by each element of the list phrase type.
+	 * @return A list phrase type.
+	 */
+	public static A_Type zeroOrOneList (final A_Type type)
+	{
+		return createListNodeType(zeroOrOneOf(type));
+	}
+
+	/**
+	 * Given an array of types, create the most general list phrase type which
+	 * has a yield type matching those types as a tuple.
+	 *
+	 * @param types The array of types yielded by corresponding elements of the
+	 *              list phrase type.
+	 * @return A list phrase type.
+	 */
+	public static A_Type list (final A_Type... types)
+	{
+		return createListNodeType(tupleTypeForTypes(types));
+	}
+
+	/**
+	 * Given an array of types, create the most general list phrase type which
+	 * has a yield type matching those types as a tuple, but where the size can
+	 * vary from the given minimum size to the array's size.
+	 *
+	 * @param types The array of types yielded by corresponding elements of the
+	 *              list phrase type.
+	 * @return A list phrase type.
+	 */
+	public static A_Type listPrefix (
+		final int minimumSize,
+		final A_Type... types)
+	{
+		return createListNodeType(
+			tupleTypeForSizesTypesDefaultType(
+				inclusive(fromInt(minimumSize), fromInt(types.length)),
+				tupleFromArray(types),
+				bottom()));
+	}
+
+	/**
 	 * Create a list phrase type with the given yield type and the given tuple
 	 * type of expression types.  Canonize the resulting type by combining the
 	 * mutual element constraints.
@@ -396,7 +455,7 @@ extends PhraseTypeDescriptor
 				subexpressionsTupleType,
 				subexpressionType ->
 				{
-					assert subexpressionType != null;
+//					assert subexpressionType != null;
 					final AbstractDescriptor descriptorTraversed =
 						subexpressionType.traversed().descriptor;
 					assert descriptorTraversed
@@ -414,19 +473,14 @@ extends PhraseTypeDescriptor
 	/**
 	 * Create a list phrase type with the given tuple type of expression types.
 	 *
-	 * @param kind
-	 *        The {@link PhraseKind} to instantiate.  This must be {@link
-	 *        PhraseKind#LIST_PHRASE} or a subkind.
 	 * @param subexpressionsTupleType
 	 *        The tuple type of types of expression phrases that are the
 	 *        sub-phrases of the list phrase type.
 	 * @return A canonized list phrase type.
 	 */
 	public static A_Type createListNodeType (
-		final PhraseKind kind,
 		final A_Type subexpressionsTupleType)
 	{
-		assert kind.isSubkindOf(LIST_PHRASE);
 		assert subexpressionsTupleType.isTupleType();
 		final A_Type phraseTypesAsYields =
 			tupleTypeFromTupleOfTypes(
@@ -443,7 +497,7 @@ extends PhraseTypeDescriptor
 					return subexpressionType.expressionType();
 				});
 		return createListNodeTypeNoCheck(
-			kind, phraseTypesAsYields, subexpressionsTupleType);
+			LIST_PHRASE, phraseTypesAsYields, subexpressionsTupleType);
 	}
 
 	/**

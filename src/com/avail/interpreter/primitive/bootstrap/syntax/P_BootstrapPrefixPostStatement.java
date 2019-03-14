@@ -89,13 +89,11 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
-		// At this point the statements so far are a list phrase – not a sequence.
-		final int statementCountSoFar = statementsPhrase.expressionsSize();
+		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could
 		// only be invoked if there is at least one statement.
-		assert statementCountSoFar > 0;
 		final A_Phrase latestStatementLiteral =
-			statementsPhrase.expressionAt(statementCountSoFar);
+			statementsPhrase.lastExpression();
 		final A_Phrase latestStatement =
 			latestStatementLiteral.token().literal();
 		if (!latestStatement.expressionType().equals(TOP.o()))

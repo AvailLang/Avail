@@ -295,6 +295,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
+	A_Phrase o_LastExpression (final AvailObject object)
+	{
+		final A_Tuple tuple = object.slot(EXPRESSIONS_TUPLE);
+		return tuple.tupleAt(tuple.tupleSize());
+	}
+
+	@Override
 	void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)

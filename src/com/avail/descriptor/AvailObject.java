@@ -5651,6 +5651,11 @@ implements
 	}
 
 	@Override
+	public A_Phrase lastExpression () {
+		return descriptor.o_LastExpression(this);
+	};
+
+	@Override
 	public int parsingPc ()
 	{
 		return descriptor.o_ParsingPc(this);
@@ -6017,7 +6022,7 @@ implements
 	}
 
 	@Override
-	public LookupTree<A_Definition, A_Tuple, Void> testingTree ()
+	public LookupTree<A_Definition, A_Tuple, Boolean> testingTree ()
 	{
 		return descriptor.o_TestingTree(this);
 	}

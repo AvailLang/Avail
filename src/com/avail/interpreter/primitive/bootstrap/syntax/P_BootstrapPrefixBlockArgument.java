@@ -96,10 +96,9 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 
 		assert optionalBlockArgumentsList.expressionsSize() == 1;
 		final A_Phrase blockArgumentsList =
-			optionalBlockArgumentsList.expressionAt(1);
+			optionalBlockArgumentsList.lastExpression();
 		assert blockArgumentsList.expressionsSize() >= 1;
-		final A_Phrase lastPair = blockArgumentsList.expressionAt(
-			blockArgumentsList.expressionsSize());
+		final A_Phrase lastPair = blockArgumentsList.lastExpression();
 		assert lastPair.expressionsSize() == 2;
 		final A_Phrase namePhrase = lastPair.expressionAt(1);
 		final A_Phrase typePhrase = lastPair.expressionAt(2);
