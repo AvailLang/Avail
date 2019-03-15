@@ -104,7 +104,7 @@ public class XMLConfiguratorState<
 		new StringBuilder(1000);
 
 	/** Should the {@linkplain #accumulator} be collecting text? */
-	private boolean shouldAccumualate = false;
+	private boolean shouldAccumulate = false;
 
 	/**
 	 * Activate the text accumulator.
@@ -112,7 +112,7 @@ public class XMLConfiguratorState<
 	public void startAccumulator ()
 	{
 		accumulator.setLength(0);
-		shouldAccumualate = true;
+		shouldAccumulate = true;
 	}
 
 	/**
@@ -133,7 +133,7 @@ public class XMLConfiguratorState<
 		final int start,
 		final int length)
 	{
-		if (shouldAccumualate)
+		if (shouldAccumulate)
 		{
 			accumulator.append(buffer, start, length);
 		}
@@ -155,7 +155,7 @@ public class XMLConfiguratorState<
 	 */
 	public void stopAccumulator ()
 	{
-		shouldAccumualate = false;
+		shouldAccumulate = false;
 	}
 
 	/** The parse {@linkplain Deque stack}. */
@@ -199,7 +199,7 @@ public class XMLConfiguratorState<
 	 *
 	 * @return The parent element.
 	 */
-	public ElementType parentElement ()
+	public @Nullable ElementType parentElement ()
 	{
 		final ElementType thisElement = stack.pop();
 		try

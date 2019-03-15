@@ -98,8 +98,12 @@ implements Iterable<ModuleRoot>
 			builder.append(root.name());
 			builder.append("=");
 			builder.append(root.repository().fileName().getPath());
-			builder.append(",");
-			builder.append(root.sourceDirectory().getPath());
+			final @Nullable File sourceDirectory = root.sourceDirectory();
+			if (sourceDirectory != null)
+			{
+				builder.append(",");
+				builder.append(sourceDirectory.getPath());
+			}
 			first = false;
 		}
 		return builder.toString();
@@ -178,7 +182,7 @@ implements Iterable<ModuleRoot>
 			// If two paths are provided, then the first path need not reference
 			// an existing file. The second path, however, must reference a
 			// directory.
-			final File sourceDirectory =
+			final @Nullable File sourceDirectory =
 				paths.length == 2
 				? new File(paths[1])
 				: null;

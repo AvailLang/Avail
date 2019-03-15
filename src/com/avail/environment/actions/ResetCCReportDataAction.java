@@ -33,7 +33,6 @@
 package com.avail.environment.actions;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
 

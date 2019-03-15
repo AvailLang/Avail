@@ -110,7 +110,7 @@ Private method "private rename_to_replace existing_then_else_priority_" is
  *         }ᵀ]→⊤,
  *        What to do with the error code if renaming fails.
  * @param "optionalPriority" "byte?"
- *        The priority at which to launch the answerd {@type "fiber"}. If not
+ *        The priority at which to launch the answered {@type "fiber"}. If not
  *        specified, then default to the {@method "_'s⁇priority" priority} of
  *        the {@method "current fiber"}.
  * @returns "fiber→⊤"

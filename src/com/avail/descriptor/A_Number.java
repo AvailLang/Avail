@@ -434,7 +434,7 @@ extends A_BasicObject
 	/**
 	 * Answer whether this number is numerically equal to some finite integer.
 	 *
-	 * @return A boolean indicating finitude and a fractional part of zero.
+	 * @return A boolean indicating finiteness and a fractional part of zero.
 	 */
 	boolean isNumericallyIntegral ();
 

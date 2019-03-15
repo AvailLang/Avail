@@ -44,7 +44,14 @@ import com.avail.tools.compiler.Compiler;
 import com.avail.utility.configuration.Configuration;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.EnumSet;
@@ -149,11 +156,11 @@ implements Configuration
 	public ModuleNameResolver moduleNameResolver ()
 		throws FileNotFoundException, RenamesFileParserException
 	{
-		ModuleNameResolver resolver = moduleNameResolver;
+		@Nullable ModuleNameResolver resolver = moduleNameResolver;
 		if (resolver == null)
 		{
 			final Reader reader;
-			final String path = renamesFilePath;
+			final @Nullable String path = renamesFilePath;
 			if (path == null)
 			{
 				reader = new StringReader("");
@@ -276,7 +283,7 @@ implements Configuration
 	 * Instruct the compiler to generate Stacks documentation instead of
 	 * compiling Avail modules.
 	 */
-	public void setGenerateDocumenationFlag ()
+	public void setGenerateDocumentationFlag ()
 	{
 		generateDocumentation = true;
 	}

@@ -519,7 +519,7 @@ Semantic restriction "_(drop the⁇lowest«_»?)" is
 	[
 		Reject parse, expected:
 			format
-				"the mininum count (“①”) not to exceed the maximum number \
+				"the minimum count (“①”) not to exceed the maximum number \
 				\|(“②”) of members of the group"
 			with ⎣count⎦, ⎡members⎤
 	];

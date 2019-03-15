@@ -36,8 +36,6 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_KEYWORD_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 /**
  * A {@code RawKeywordTokenArgument} is an occurrence of {@linkplain

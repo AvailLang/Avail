@@ -38,7 +38,7 @@ import com.avail.utility.json.JSONWriter;
  * The Avail comment "@code" tag. This is used for code like syntax styles.
  *
  * THIS IS LIKELY NOT USED AS IT IS A TAG IN DESCRIPTION TEXT
- * DEPRICATED -- DELETE ME
+ * DEPRECATED -- DELETE ME
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

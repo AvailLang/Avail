@@ -47,9 +47,9 @@ public final class InlineKeywordStacksToken extends KeywordStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module the token appears in
@@ -57,11 +57,11 @@ public final class InlineKeywordStacksToken extends KeywordStacksToken
 	private InlineKeywordStacksToken (
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
+		final int position,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 
 	/**
@@ -70,9 +70,9 @@ public final class InlineKeywordStacksToken extends KeywordStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module the token appears in
@@ -81,11 +81,11 @@ public final class InlineKeywordStacksToken extends KeywordStacksToken
 	public static InlineKeywordStacksToken create (
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
+		final int position,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
 		return new InlineKeywordStacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+			string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 }

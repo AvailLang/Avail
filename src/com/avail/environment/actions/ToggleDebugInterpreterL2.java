@@ -46,6 +46,7 @@ import java.awt.event.ActionEvent;
 public final class ToggleDebugInterpreterL2
 extends AbstractWorkbenchAction
 {
+	@SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{

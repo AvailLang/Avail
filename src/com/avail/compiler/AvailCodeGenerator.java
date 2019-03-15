@@ -32,9 +32,48 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.instruction.*;
-import com.avail.descriptor.*;
+import com.avail.compiler.instruction.AvailCall;
+import com.avail.compiler.instruction.AvailCloseCode;
+import com.avail.compiler.instruction.AvailDuplicate;
+import com.avail.compiler.instruction.AvailGetLiteralVariable;
+import com.avail.compiler.instruction.AvailGetLocalVariable;
+import com.avail.compiler.instruction.AvailGetOuterVariable;
+import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.compiler.instruction.AvailInstructionWithIndex;
+import com.avail.compiler.instruction.AvailLabel;
+import com.avail.compiler.instruction.AvailMakeTuple;
+import com.avail.compiler.instruction.AvailPermute;
+import com.avail.compiler.instruction.AvailPop;
+import com.avail.compiler.instruction.AvailPushLabel;
+import com.avail.compiler.instruction.AvailPushLiteral;
+import com.avail.compiler.instruction.AvailPushLocalVariable;
+import com.avail.compiler.instruction.AvailPushOuterVariable;
+import com.avail.compiler.instruction.AvailSetLiteralVariable;
+import com.avail.compiler.instruction.AvailSetLocalConstant;
+import com.avail.compiler.instruction.AvailSetLocalVariable;
+import com.avail.compiler.instruction.AvailSetOuterVariable;
+import com.avail.compiler.instruction.AvailSuperCall;
+import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
@@ -57,19 +96,17 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
-import static com.avail.descriptor.DeclarationPhraseDescriptor
-	.DeclarationKind.LOCAL_CONSTANT;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static java.util.Arrays.asList;
 
@@ -92,7 +129,7 @@ public final class AvailCodeGenerator
 	 * A stack of {@link A_Tuple}s of {@link A_Token}s, representing successive
 	 * refinement while traversing downwards through the phrase tree.
 	 */
-	private Deque<A_Tuple> tokensStack = new ArrayDeque<>();
+	private final Deque<A_Tuple> tokensStack = new ArrayDeque<>();
 
 	/**
 	 * The {@link List} of argument {@linkplain A_Phrase declarations} that

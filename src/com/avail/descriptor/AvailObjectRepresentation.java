@@ -1075,7 +1075,7 @@ implements A_BasicObject
 				f.setAccessible(true);
 				unsafe = (Unsafe) f.get(null);
 			}
-			catch (NoSuchFieldException | IllegalAccessException e)
+			catch (final NoSuchFieldException | IllegalAccessException e)
 			{
 				throw new RuntimeException(e);
 			}

@@ -112,14 +112,14 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	public void addToImplementationGroup(
 		final ImplementationGroup implementationGroup)
 	{
-		implementationGroup.classImplemenataion(this);
+		implementationGroup.classImplementation(this);
 	}
 
 	@Override
 	public void addImplementationToImportModule (
 		final A_String name, final StacksImportModule importModule)
 	{
-		//Do nothing as new implentations can't be introduced for classes
+		//Do nothing as new implementations can't be introduced for classes
 
 	}
 

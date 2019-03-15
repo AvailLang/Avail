@@ -48,6 +48,14 @@ import java.util.regex.Pattern;
 public final class Strings
 {
 	/**
+	 * Forbid instantiation.
+	 */
+	private Strings ()
+	{
+		// No implementation required.
+	}
+
+	/**
 	 * Produce an escaped variant of the specified {@linkplain String string}.
 	 *
 	 * @param s
@@ -136,11 +144,11 @@ public final class Strings
 
 	static
 	{
-		String str = "";
+		final StringBuilder str = new StringBuilder();
 		for (int i = 0; i < tabs.length; i++)
 		{
-			tabs[i] = str;
-			str += "\t";
+			tabs[i] = str.toString();
+			str.append('\t');
 		}
 	}
 

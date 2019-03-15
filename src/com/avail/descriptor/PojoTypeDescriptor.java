@@ -67,22 +67,33 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.*;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.RawPojoDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor
-	.createUnfusedPojoType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
 
@@ -1208,7 +1219,7 @@ extends TypeDescriptor
 		ancestry.value = ancestry.value.mapAtPuttingCanDestroy(
 			javaClass, typeArgs, true);
 		// Recursively accumulate the class ancestry.
-		final Class<?> superclass = target.getSuperclass();
+		final @Nullable Class<?> superclass = target.getSuperclass();
 		if (superclass != null)
 		{
 			if (!canon.containsKey(superclass))
@@ -1358,7 +1369,6 @@ extends TypeDescriptor
 		}
 		for (final Class<?> superinterface : target.getInterfaces())
 		{
-			assert superinterface != null;
 			computeUnparameterizedAncestry(superinterface, ancestors, canon);
 		}
 	}

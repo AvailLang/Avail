@@ -34,7 +34,7 @@ package com.avail.tools.options;
 
 import com.avail.utility.evaluation.Continuation2;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@code DefaultOption} is the {@linkplain Option option} that an {@linkplain
@@ -64,6 +64,6 @@ extends GenericOption<OptionKeyType>
 		final String description,
 		final Continuation2<String, String> action)
 	{
-		super(optionKey, asList(""), description, action);
+		super(optionKey, singletonList(""), description, action);
 	}
 }

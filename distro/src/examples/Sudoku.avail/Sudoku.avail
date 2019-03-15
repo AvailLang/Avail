@@ -528,7 +528,7 @@ Private forward method
 	is [board, integer, [board]→⊤, $[]→board]→⊥;
 
 /**
- * Recurisvely solve the supplied {@type "board"}. Compute the {@method
+ * Recursively solve the supplied {@type "board"}. Compute the {@method
  * "_'s⁇optimal plays" optimal plays}. Play each logically mandated board, check
  * for a solved board, then {@method "Restart_with_" restart} the body. When
  * there are no forced moves, then recursively attempt the optional moves,

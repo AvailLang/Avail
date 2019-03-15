@@ -33,9 +33,29 @@
 package com.avail.interpreter.levelOne;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
+import com.avail.descriptor.MarkerPhraseDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.SuperCastPhraseDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -47,18 +67,34 @@ import java.util.function.Function;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newLabel;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.LiteralPhraseDescriptor.*;
+import static com.avail.descriptor.LiteralPhraseDescriptor.fromTokenForDecompiler;
+import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -509,7 +545,7 @@ public class L1Decompiler
 			}
 			final L1Decompiler decompiler = new L1Decompiler(
 				theCode,
-				theOuters.toArray(new A_Phrase[theOuters.size()]),
+				theOuters.toArray(new A_Phrase[0]),
 				tempGenerator);
 			pushExpression(decompiler.block());
 		}

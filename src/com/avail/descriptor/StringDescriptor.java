@@ -41,13 +41,10 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.function.IntFunction;
 
-import static com.avail.descriptor.ByteStringDescriptor
-	.mutableObjectFromNativeByteString;
+import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.mutableObjectFromNativeTwoByteString;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual

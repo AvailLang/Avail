@@ -1137,11 +1137,10 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	public boolean add (final byte[] record)
+	public void add (final byte[] record)
 	throws IndexedFileException
 	{
 		add(record, 0, record.length);
-		return true;
 	}
 
 	/**

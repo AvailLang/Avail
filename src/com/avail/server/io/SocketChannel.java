@@ -84,7 +84,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	 * @param transport
 	 *        The {@linkplain AsynchronousSocketChannel channel}.
 	 */
-	public SocketChannel (
+	SocketChannel (
 		final SocketAdapter adapter,
 		final AsynchronousSocketChannel transport)
 	{
@@ -111,7 +111,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	}
 
 	@Override
-	public void close () throws Exception
+	public void close ()
 	{
 		synchronized (sendQueue)
 		{

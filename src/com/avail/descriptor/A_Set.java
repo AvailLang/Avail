@@ -129,6 +129,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @return Whether the intersection of the receiver and otherSet is
 	 *         non-empty.
 	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	boolean setIntersects (
 		A_Set otherSet);
 

@@ -85,7 +85,9 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Unit tests for object serialization.
@@ -232,14 +234,14 @@ public final class SerializerTest
 		prepareToWrite();
 		serializer().serialize(object);
 		prepareToReadBack();
-		final A_BasicObject newObject = stripNull(deserializer().deserialize());
+		final AvailObject newObject = stripNull(deserializer().deserialize());
 		assertEquals(
 			0,
 			in().available(),
 			"Serialization stream was not fully emptied");
 		final @Nullable AvailObject objectAfter = deserializer().deserialize();
 		assert objectAfter == null;
-		return (AvailObject) newObject;
+		return newObject;
 	}
 
 	/**
@@ -362,6 +364,7 @@ public final class SerializerTest
 	 *
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	public void testRandomSimpleObjects ()
 	throws MalformedSerialStreamException

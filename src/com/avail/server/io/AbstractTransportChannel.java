@@ -36,8 +36,8 @@ import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 
+import javax.annotation.Nullable;
 import java.util.Deque;
 import java.util.LinkedList;
 
@@ -119,7 +119,6 @@ extends AvailServerChannel
 	 */
 	protected void beginTransmission (final Message message)
 	{
-		final Continuation1<Throwable> fail = null;
 		final TransportAdapter<T> adapter = adapter();
 		adapter.sendUserData(
 			this,
@@ -130,7 +129,7 @@ extends AvailServerChannel
 				public void value ()
 				{
 					final Message nextMessage;
-					final Pair<Message, Continuation0> pair;
+					final @Nullable Pair<Message, Continuation0> pair;
 					synchronized (sendQueue)
 					{
 						// The message remains on the queue during
@@ -159,7 +158,7 @@ extends AvailServerChannel
 							AbstractTransportChannel.this,
 							nextMessage,
 							this,
-							fail);
+							null);
 					}
 					// If a close is in progress, but awaiting the queue to
 					// empty, then finish the close.
@@ -175,7 +174,7 @@ extends AvailServerChannel
 					}
 				}
 			},
-			fail);
+			null);
 	}
 
 	@Override

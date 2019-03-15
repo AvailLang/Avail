@@ -163,11 +163,12 @@ public class LexingState
 	/**
 	 * Eventually invoke the given {@link Continuation1NotNull}s, each with the
 	 * given argument.  Track them as outstanding actions, ensuring {@link
-	 * CompilationContext#noMoreWorkUnits} is invoked only when all such queued
-	 * actions for the {@link CompilationContext} have completed.  Ensure the
-	 * queued count is increased prior to actually queueing any of the actions,
-	 * to ensure a hasty execution of a prefix of the tasks doesn't cause the
-	 * {@link CompilationContext#noMoreWorkUnits} to be executed prematurely.
+	 * CompilationContext#getNoMoreWorkUnits() noMoreWorkUnits} is invoked only
+	 * when all such queued actions for the {@link CompilationContext} have
+	 * completed.  Ensure the queued count is increased prior to actually
+	 * queueing any of the actions, to ensure a hasty execution of a prefix of
+	 * the tasks doesn't cause the {@code noMoreWorkUnits} to be executed
+	 * prematurely.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -188,8 +189,8 @@ public class LexingState
 	/**
 	 * Eventually invoke the given {@link Continuation1NotNull} with the given
 	 * argument.  Track it as an outstanding action, ensuring {@link
-	 * CompilationContext#noMoreWorkUnits} is invoked only when all such queued
-	 * actions have completed.
+	 * CompilationContext#getNoMoreWorkUnits() noMoreWorkUnits} is invoked only
+	 * when all such queued actions have completed.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -268,8 +269,8 @@ public class LexingState
 	 * The lexer filter functions have produced a tuple of applicable {@link
 	 * A_Lexer}s, so run them.  When they have all completed, there will be no
 	 * outstanding tasks for the relevant {@link CompilationContext}, so it will
-	 * automatically invoke {@link CompilationContext#noMoreWorkUnits}, allowing
-	 * parsing to continue.
+	 * automatically invoke {@link CompilationContext#getNoMoreWorkUnits()
+	 * noMoreWorkUnits}, allowing parsing to continue.
 	 *
 	 * @param applicableLexers
 	 *        The lexers that passed their filter functions.
@@ -389,8 +390,8 @@ public class LexingState
 	 * onFailure continuation, but not both.  However, immediately record the
 	 * fact that we're expecting one of these to be eventually invoked, and wrap
 	 * the continuations with code that will invoke {@link
-	 * CompilationContext#noMoreWorkUnits} when the number of outstanding tasks
-	 * reaches zero.
+	 * CompilationContext#getNoMoreWorkUnits() noMoreWorkUnits} when the number
+	 * of outstanding tasks reaches zero.
 	 *
 	 * @param fiber
 	 *        The {@link A_Fiber} to set up.

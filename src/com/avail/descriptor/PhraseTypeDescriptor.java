@@ -51,8 +51,16 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
@@ -406,6 +414,10 @@ extends TypeDescriptor
 		 * @param typeTag
 		 *        The type tag associated with phrases of this kind.
 		 */
+		@SuppressWarnings({
+			"OverridableMethodCallDuringObjectConstruction",
+			"OverriddenMethodCallDuringObjectConstruction"
+		})
 		PhraseKind (
 			final String jsonName,
 			final @Nullable PhraseKind parentKind,
@@ -914,6 +926,7 @@ extends TypeDescriptor
 	 * @return {@code true} if the list contains only statements, {@code false}
 	 *         otherwise.
 	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public static boolean containsOnlyStatements (
 		final List<A_Phrase> flat,
 		final A_Type resultType)
@@ -951,8 +964,16 @@ extends TypeDescriptor
 	 * Constants that are phrase types.  These must be initialized only after
 	 * the {@code PhraseTypeDescriptor}s have been created.
 	 */
-	public static class Constants
+	public static final class Constants
 	{
+		/**
+		 * Forbid instantiation.
+		 */
+		private Constants ()
+		{
+			// No implementation required.
+		}
+
 		/** The phrase type for string literals. */
 		public static final A_Type stringLiteralType =
 			LITERAL_PHRASE.create(

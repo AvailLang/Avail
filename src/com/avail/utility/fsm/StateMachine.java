@@ -34,6 +34,7 @@ package com.avail.utility.fsm;
 
 import com.avail.utility.evaluation.Continuation1;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.EnumMap;
 
@@ -248,8 +249,13 @@ public final class StateMachine<
 	{
 		while (true)
 		{
-			final StateType sourceState = executionContext.currentState();
-			final StateTransitionArc<
+			final @Nullable StateType sourceState =
+				executionContext.currentState();
+			if (sourceState == null)
+			{
+				return;
+			}
+			final @Nullable StateTransitionArc<
 					StateType,
 					EventType,
 					GuardKeyType,
@@ -302,20 +308,21 @@ public final class StateMachine<
 				context)
 		throws InvalidContextException, InvalidTransitionException
 	{
-		final StateType sourceState = context.currentState();
+		final @Nullable StateType sourceState = context.currentState();
 		if (sourceState == null)
 		{
 			throw new InvalidContextException(
 				"event " + event + " signaled on invalid context");
 		}
-		final StateSummary<
+		final @Nullable StateSummary<
 				StateType,
 				EventType,
 				GuardKeyType,
 				ActionKeyType,
 				MementoType>
 			summary = transitionTable.get(sourceState);
-		final StateTransitionArc<
+		assert summary != null;
+		final @Nullable StateTransitionArc<
 				StateType,
 				EventType,
 				GuardKeyType,

@@ -237,6 +237,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth--;
 	}
 
+	@SuppressWarnings("EmptyMethod")
 	@Override
 	public void L1Ext_doPermute ()
 	{

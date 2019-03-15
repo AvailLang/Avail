@@ -48,20 +48,29 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DoubleDescriptor.*;
+import static com.avail.descriptor.DoubleDescriptor.addDoubleAndIntegerCanDestroy;
+import static com.avail.descriptor.DoubleDescriptor.compareDoubleAndInteger;
+import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
-	.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.Mutability.IMMUTABLE;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.getExponent;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.scalb;
 import static java.util.Collections.singleton;
 
 /**

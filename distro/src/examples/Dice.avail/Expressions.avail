@@ -147,7 +147,7 @@ Method "“_”" is
 ] : string;
 
 /**
- * Intregrate the specified {@type "dice expression⁇outcome" dice outcomes}. The
+ * Integrate the specified {@type "dice expression⁇outcome" dice outcomes}. The
  * answer's {@method "_'s⁇detailed outcome" detail map} contains all die rolls.
  * The answer's {@method "_'s⁇result" result} is obtained by applying {@param
  * "merger"} to the {@method "_'s⁇result" results} of the arguments {@param

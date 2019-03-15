@@ -33,11 +33,77 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AbstractDefinitionDescriptor;
+import com.avail.descriptor.AssignmentPhraseDescriptor;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.DoubleDescriptor;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor;
+import com.avail.descriptor.FiberTypeDescriptor;
+import com.avail.descriptor.FirstOfSequencePhraseDescriptor;
+import com.avail.descriptor.FloatDescriptor;
+import com.avail.descriptor.ForwardDefinitionDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.InstanceMetaDescriptor;
+import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.ListPhraseTypeDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
+import com.avail.descriptor.LiteralTokenDescriptor;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.MacroDefinitionDescriptor;
+import com.avail.descriptor.MacroSubstitutionPhraseDescriptor;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MapTypeDescriptor;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MethodDefinitionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.PermutedListPhraseDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.ReadWriteVariableTypeDescriptor;
+import com.avail.descriptor.SendPhraseDescriptor;
+import com.avail.descriptor.SequencePhraseDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.SetTypeDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.SuperCastPhraseDescriptor;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.TokenTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.VariableTypeDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 
@@ -46,66 +112,60 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.AvailRuntime.specialObject;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.isInline;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor
-	.createAtomWithProperties;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.compiledCodeTypeForFunctionType;
-import static com.avail.descriptor.ContinuationDescriptor
-	.createContinuationWithFrame;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
-	.newExpressionAsStatement;
+import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.FirstOfSequencePhraseDescriptor
-	.newFirstOfSequenceNode;
+import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PermutedListPhraseDescriptor
-	.newPermutedListNode;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PojoTypeDescriptor.Types;
+import static com.avail.descriptor.PojoTypeDescriptor.fusedTypeFromAncestorMap;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.ReferencePhraseDescriptor
-	.referenceNodeFromUse;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoFromSerializationProxy;
-import static com.avail.descriptor.SelfPojoTypeDescriptor
-	.pojoSerializationProxy;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoFromSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoSerializationProxy;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
@@ -116,18 +176,30 @@ import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-	.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
-import static com.avail.serialization.SerializerOperandEncoding.*;
+import static com.avail.serialization.SerializerOperandEncoding.BIG_INTEGER_DATA;
+import static com.avail.serialization.SerializerOperandEncoding.BYTE;
+import static com.avail.serialization.SerializerOperandEncoding.BYTE_CHARACTER_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_ARBITRARY_CHARACTER_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_INT_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT;
+import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT_CHARACTER_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.GENERAL_MAP;
+import static com.avail.serialization.SerializerOperandEncoding.OBJECT_REFERENCE;
+import static com.avail.serialization.SerializerOperandEncoding.SIGNED_INT;
+import static com.avail.serialization.SerializerOperandEncoding.TUPLE_OF_OBJECTS;
+import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_BYTE_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_NYBBLE_TUPLE;
+import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_SHORT;
+import static com.avail.serialization.SerializerOperandEncoding.UNSIGNED_INT;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Double.doubleToRawLongBits;
 import static java.lang.Double.longBitsToDouble;

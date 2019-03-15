@@ -38,15 +38,13 @@ import com.avail.annotations.HideFieldInDebugger;
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.AvailObject
-	.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.Mutability.IMMUTABLE;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
-	.CUMULATIVE_SIZES_AREA_;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -854,6 +852,7 @@ extends TupleDescriptor
 			check(result);
 			return result;
 		}
+		//noinspection ConstantConditions
 		assert level1 < level2;
 		final int childCount2 = tuple2.childCount();
 		final A_Tuple oldFirst = tuple2.childAt(1);

@@ -90,7 +90,7 @@ extends AbstractWorkbenchAction
 					assert commands != null;
 					assert proceed != null;
 					final CompiledCommand[] array =
-						commands.toArray(new CompiledCommand[commands.size()]);
+						commands.toArray(new CompiledCommand[0]);
 					Arrays.sort(
 						array,
 						(o1, o2) ->

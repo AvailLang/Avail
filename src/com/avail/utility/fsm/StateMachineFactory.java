@@ -186,7 +186,6 @@ public final class StateMachineFactory<
 		final StateType state,
 		final ActionKeyType actionKey)
 	{
-		assert actionKey != null;
 		assert getSummary(state).getEntryActionKey() == null;
 
 		getSummary(state).setEntryActionKey(actionKey);
@@ -205,7 +204,6 @@ public final class StateMachineFactory<
 		final StateType state,
 		final ActionKeyType actionKey)
 	{
-		assert actionKey != null;
 		assert getSummary(state).getExitActionKey() == null;
 
 		getSummary(state).setExitActionKey(actionKey);
@@ -370,7 +368,7 @@ public final class StateMachineFactory<
 	private void validate () throws ValidationException
 	{
 		// Verify that an initial state was specified.
-		final StateType startState = initialState;
+		final @Nullable StateType startState = initialState;
 		if (startState == null)
 		{
 			throw new ValidationException("no start state is specified");
@@ -497,12 +495,14 @@ public final class StateMachineFactory<
 					actionKeysInvoked.add(arc.actionKey());
 				}
 			}
-			final ActionKeyType entryKey = getSummary(state).getEntryActionKey();
+			final @Nullable ActionKeyType entryKey =
+				getSummary(state).getEntryActionKey();
 			if (entryKey != null)
 			{
 				actionKeysInvoked.add(entryKey);
 			}
-			final ActionKeyType exitKey  = getSummary(state).getExitActionKey();
+			final @Nullable ActionKeyType exitKey =
+				getSummary(state).getExitActionKey();
 			if (exitKey != null)
 			{
 				actionKeysInvoked.add(exitKey);

@@ -653,7 +653,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	public String suffixString ()
 	{
 		final @Nullable AvailObject constant =
-			AvailObject.class.cast(constantOrNull);
+			(AvailObject) constantOrNull;
 		if (constant != null)
 		{
 			//noinspection DynamicRegexReplaceableByCompiledPattern
@@ -663,7 +663,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 		if (!type.equals(TOP.o()))
 		{
 			//noinspection DynamicRegexReplaceableByCompiledPattern
-			return ":" + AvailObject.class.cast(type).typeTag().name()
+			return ":" + ((AvailObject) type).typeTag().name()
 				.replace("_TAG", "");
 		}
 		return "";

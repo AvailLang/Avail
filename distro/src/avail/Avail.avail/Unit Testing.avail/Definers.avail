@@ -77,7 +77,7 @@ Private method "Remember the current module" is
 ];
 
 /**
- * Forget about the specifed {@type "unit test suite"}.
+ * Forget about the specified {@type "unit test suite"}.
  *
  * @method "Forget_"
  * @param "suite" "unit test suite"

@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
+import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.FUNCTION;
 
 /**
  * A {@code SemanticRestrictionDescriptor semantic restriction} holds a function

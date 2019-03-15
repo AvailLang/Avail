@@ -46,14 +46,21 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
 import static com.avail.descriptor.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
-import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.falseType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Compare two extended integers and answer

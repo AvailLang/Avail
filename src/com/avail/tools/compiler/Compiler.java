@@ -142,6 +142,14 @@ import java.io.PrintStream;
 public final class Compiler
 {
 	/**
+	 * Forbid instantiation.
+	 */
+	private Compiler ()
+	{
+		// No implementation required.
+	}
+
+	/**
 	 * Configure the {@code Compiler} to build the target {@linkplain
 	 * ModuleDescriptor module}.
 	 *

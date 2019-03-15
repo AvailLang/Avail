@@ -39,8 +39,7 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation
-	.PREPARE_TO_RUN_PREFIX_FUNCTION;
+import static com.avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION;
 import static com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION;
 
 /**

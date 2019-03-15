@@ -53,9 +53,22 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -228,10 +241,7 @@ public class Catalog
 					// Don't lose information already accumulated about this
 					// code point. (The equals operation only checks the code
 					// point, not any ancillary information!)
-					if (!codePoints.contains(info))
-					{
-						codePoints.add(info);
-					}
+					codePoints.add(info);
 				}
 			}
 		}
@@ -306,7 +316,7 @@ public class Catalog
 	 */
 	public synchronized Set<CharacterInfo> allCodePoints () throws IOException
 	{
-		Set<CharacterInfo> codePoints = allCodePoints;
+		@Nullable Set<CharacterInfo> codePoints = allCodePoints;
 		if (codePoints == null)
 		{
 			codePoints = new HashSet<>();
@@ -334,7 +344,7 @@ public class Catalog
 		final URL url = urlFor(info);
 		System.err.printf("Fetching content from %s…%n", url);
 		final URLConnection connection = url.openConnection();
-		String encoding = connection.getContentEncoding();
+		@Nullable String encoding = connection.getContentEncoding();
 		if (encoding == null)
 		{
 			encoding = "UTF-8";
@@ -390,6 +400,7 @@ public class Catalog
 				{
 					// Don't beat the crap out of the site. Don't do more than
 					// 20 requests per second.
+					//noinspection BusyWait
 					Thread.sleep(50);
 				}
 				catch (final InterruptedException e)
@@ -440,7 +451,7 @@ public class Catalog
 	public synchronized Set<CharacterInfo> allNonAsciiCodePoints ()
 		throws IOException
 	{
-		Set<CharacterInfo> codePoints = allNonAsciiCodePoints;
+		@Nullable Set<CharacterInfo> codePoints = allNonAsciiCodePoints;
 		if (codePoints == null)
 		{
 			codePoints = new TreeSet<>();
@@ -497,7 +508,7 @@ public class Catalog
 	public synchronized Set<CharacterInfo> allSymbolicCodePoints ()
 		throws IOException
 	{
-		Set<CharacterInfo> codePoints = allSymbolicCodePoints;
+		@Nullable Set<CharacterInfo> codePoints = allSymbolicCodePoints;
 		if (codePoints == null)
 		{
 			codePoints = new TreeSet<>();
@@ -547,7 +558,7 @@ public class Catalog
 	private Catalog (final @Nullable JSONData data)
 	{
 		final Set<CharacterInfo> set = new HashSet<>();
-		final JSONArray array = (JSONArray) data;
+		final @Nullable JSONArray array = (JSONArray) data;
 		if (array != null)
 		{
 			for (final JSONData element : array)
@@ -567,6 +578,7 @@ public class Catalog
 	public Catalog () throws IOException
 	{
 		// Populate all code point information.
+		//noinspection OverridableMethodCallDuringObjectConstruction
 		allCodePoints();
 	}
 
@@ -586,7 +598,7 @@ public class Catalog
 	public String toString ()
 	{
 		// Don't load the catalog!
-		final Set<CharacterInfo> codePoints = allCodePoints;
+		final @Nullable Set<CharacterInfo> codePoints = allCodePoints;
 		if (codePoints == null)
 		{
 			return "«empty catalog»";

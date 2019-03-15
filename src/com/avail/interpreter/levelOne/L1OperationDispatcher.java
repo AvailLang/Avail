@@ -69,7 +69,7 @@ public interface L1OperationDispatcher
 	/**
 	 * [n] - Push the argument (actual value) or local variable (the
 	 * variable itself) indexed by n. Since this is known to be the last use
-	 * (nondebugger) of the argument or local, void that slot of the current
+	 * (non-debugger) of the argument or local, void that slot of the current
 	 * continuation.
 	 */
 	void L1_doPushLastLocal();

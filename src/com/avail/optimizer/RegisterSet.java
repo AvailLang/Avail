@@ -40,8 +40,17 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -49,8 +58,8 @@ import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 
 /**
- * This class maintains register information during naive translation from level
- * one compiled code (nybblecodes) to level two wordcodes, known as {@linkplain
+ * This class maintains register information during naive translation from Level
+ * One compiled code (nybblecodes) to Level Two wordcodes, known as {@linkplain
  * L2Chunk chunks}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -549,8 +558,8 @@ public final class RegisterSet
 			final RegisterState otherState = other.stateForReading(reg);
 			// Merge in the type information, truncating type information about
 			// registers which are not known in both sources.
-			final A_Type type = state.type();
-			final A_Type otherType = otherState.type();
+			final @Nullable A_Type type = state.type();
+			final @Nullable A_Type otherType = otherState.type();
 			boolean entryChanged = false;
 			if (type != null)
 			{
@@ -573,8 +582,8 @@ public final class RegisterSet
 			}
 
 			// Only keep constant information where it agrees.
-			final AvailObject constant = state.constant();
-			final AvailObject otherConstant = otherState.constant();
+			final @Nullable AvailObject constant = state.constant();
+			final @Nullable AvailObject otherConstant = otherState.constant();
 			if (constant != null
 				&& (otherConstant == null || !otherConstant.equals(constant)))
 			{
@@ -662,7 +671,7 @@ public final class RegisterSet
 		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final AvailObject constant = entry.getValue().constant();
+			final @Nullable AvailObject constant = entry.getValue().constant();
 			if (constant != null)
 			{
 				formatter.format(
@@ -675,7 +684,7 @@ public final class RegisterSet
 		for (final Entry<L2Register<?>, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final A_Type type = entry.getValue().type();
+			final @Nullable A_Type type = entry.getValue().type();
 			if (type != null)
 			{
 				formatter.format(

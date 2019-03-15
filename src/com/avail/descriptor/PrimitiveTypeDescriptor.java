@@ -49,7 +49,11 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.all;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -133,7 +137,8 @@ extends TypeDescriptor
 	 */
 	private static Types extractEnum (final AvailObject object)
 	{
-		return ((PrimitiveTypeDescriptor) object.descriptor).primitiveType;
+		return stripNull(
+			((PrimitiveTypeDescriptor) object.descriptor).primitiveType);
 	}
 
 	/**
@@ -551,8 +556,8 @@ extends TypeDescriptor
 		super(
 			Mutability.SHARED,
 			typeTag,
-			ObjectSlots.class,
-			IntegerSlots.class);
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 		this.primitiveType = primitiveType;
 	}
 

@@ -51,8 +51,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
@@ -293,7 +299,7 @@ public class StacksCommentsModule
 				hashedName &= 0xFFFFFFFFL;
 
 				final StacksFilename filename = new StacksFilename(moduleName,
-					String.valueOf(hashedName) + "." + fileExtensionName);
+					hashedName + "." + fileExtensionName);
 
 				final ImplementationGroup privateGroup =
 					new ImplementationGroup(
@@ -312,7 +318,7 @@ public class StacksCommentsModule
 			hashedName &= 0xFFFFFFFFL;
 
 			final StacksFilename filename = new StacksFilename(moduleName,
-				String.valueOf(hashedName) + "." + fileExtensionName);
+				hashedName + "." + fileExtensionName);
 
 			final ImplementationGroup stickyGroup =
 				new ImplementationGroup(
@@ -431,7 +437,7 @@ public class StacksCommentsModule
 
 		populateExtendsFromUsesExtends();
 
-		final StringBuilder errorMessages = new StringBuilder().append("");
+		final StringBuilder errorMessages = new StringBuilder();
 		int errorCount = 0;
 
 		for (final A_Token aToken : commentTokens)
@@ -447,7 +453,7 @@ public class StacksCommentsModule
 					addImplementation(implementation);
 				}
 			}
-			catch (StacksScannerException | StacksCommentBuilderException e)
+			catch (final StacksScannerException | StacksCommentBuilderException e)
 			{
 				errorMessages.append(e.getMessage());
 				errorCount++;
@@ -1039,7 +1045,7 @@ public class StacksCommentsModule
 
 			long hashedName = nameToBeHashed.hash();
 			hashedName &= 0xFFFFFFFFL;
-			final String fileName = String.valueOf(hashedName) + "."
+			final String fileName = hashedName + "."
 				+ fileExtension;
 
 			namesToFileNames.put(pair.first(),
@@ -1084,7 +1090,7 @@ public class StacksCommentsModule
 
 			long hashedName = nameToBeHashed.hash();
 			hashedName &= 0xFFFFFFFFL;
-			final String fileName = String.valueOf(hashedName) + "."
+			final String fileName = hashedName + "."
 				+ fileExtension;
 
 			namesToFileNames.put(key,
@@ -1308,12 +1314,10 @@ public class StacksCommentsModule
 			final StacksErrorLog errorLog)
 		throws IOException
 	{
-		final StringBuilder newLogEntry = new StringBuilder()
-			.append("<h3>Internal Link Errors</h3>\n")
-			.append("<ol>\n");
-
+		final String newLogEntry = "<h3>Internal Link Errors</h3>\n"
+			+ "<ol>\n";
 		final ByteBuffer errorBuffer = ByteBuffer.wrap(
-			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+			newLogEntry.getBytes(StandardCharsets.UTF_8));
 		errorLog.addLogEntry(errorBuffer,0);
 
 		for (final A_String implementationName :
@@ -1332,11 +1336,8 @@ public class StacksCommentsModule
 			}
 		}
 
-		final StringBuilder closeLogEntry = new StringBuilder()
-			.append("</ol>\n");
-
 		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
-			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+			"</ol>\n".getBytes(StandardCharsets.UTF_8));
 		errorLog.addLogEntry(closeErrorBuffer,0);
 	}
 

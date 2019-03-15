@@ -45,28 +45,36 @@ import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter
-	.circledNumberCodePoint;
+import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.CHECK_AT_LEAST;
+import static com.avail.compiler.ParsingOperation.CHECK_AT_MOST;
+import static com.avail.compiler.ParsingOperation.CONCATENATE;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
-import static com.avail.compiler.splitter.WrapState.*;
+import static com.avail.compiler.splitter.WrapState.PUSHED_LIST;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.EXPRESSION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.LIST_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.singletonList;
 
@@ -139,7 +147,7 @@ extends Expression
 	 * @param afterDagger
 	 *        The {@link Sequence} after the double-dagger.
 	 */
-	public Group (
+	Group (
 		final int positionInName,
 		final Sequence beforeDagger,
 		final Sequence afterDagger)
@@ -159,7 +167,7 @@ extends Expression
 	 * @param beforeDagger
 	 *        The {@link Sequence} of {@link Expression}s in the group.
 	 */
-	public Group (
+	Group (
 		final int positionInName,
 		final MessageSplitter messageSplitter,
 		final Sequence beforeDagger)
@@ -397,13 +405,10 @@ extends Expression
 			 * $skip:
 			 */
 			generator.partialListsCount++;
-			final Label $skip = new Label();
-			final Label $exit = new Label();
-			final Label $exitCheckMin = new Label();
-			final Label $loopStart = new Label();
 			assert beforeDagger.arguments.size() == 1;
 			assert afterDagger.arguments.size() == 0;
 			boolean hasWrapped = false;
+			final Label $skip = new Label();
 			if (minSize == 0)
 			{
 				// If size zero is valid, branch to the special $skip label that
@@ -420,6 +425,7 @@ extends Expression
 				hasWrapped = true;
 			}
 			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
+			final Label $exit = new Label();
 			for (int index = 1; index < endOfVariation; index++)
 			{
 				final A_Type innerPhraseType =
@@ -463,6 +469,7 @@ extends Expression
 			{
 				generator.emitWrapped(this, endOfVariation - 1);
 			}
+			final Label $loopStart = new Label();
 			generator.emit($loopStart);
 			final A_Type innerPhraseType =
 				subexpressionsTupleType.defaultType();
@@ -475,6 +482,7 @@ extends Expression
 			if (endOfVariation < maxSize)
 			{
 				generator.flushDelayed();
+				final Label $exitCheckMin = new Label();
 				generator.emitBranchForward(
 					this, endOfVariation >= minSize ? $exit : $exitCheckMin);
 				if (maxInteger.isFinite())
@@ -555,13 +563,9 @@ extends Expression
 			 * discard the saved position from mark stack.
 			 * $skip:
 			 */
-			final Label $skip = new Label();
-			final Label $exit = new Label();
-			final Label $exitCheckMin = new Label();
-			final Label $mergedExit = new Label();
-			final Label $loopStart = new Label();
 			generator.flushDelayed();
 			boolean hasWrapped = false;
+			final Label $skip = new Label();
 			if (minSize == 0)
 			{
 				// If size zero is valid, branch to the special $skip label that
@@ -580,6 +584,7 @@ extends Expression
 				hasWrapped = true;
 			}
 			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
+			final Label $exit = new Label();
 			for (int index = 1; index < endOfVariation; index++)
 			{
 				if (index >= minSize)
@@ -614,13 +619,16 @@ extends Expression
 				generator.emitWrapped(this, endOfVariation - 1);
 			}
 			// The homogenous part of the tuple, one or more iterations.
+			final Label $loopStart = new Label();
 			generator.emit($loopStart);
 			final A_Type sublistPhraseType =
 				subexpressionsTupleType.typeAtIndex(endOfVariation);
 			emitDoubleWrappedBeforeDaggerOn(generator, sublistPhraseType);
 			generator.flushDelayed();
+			final Label $mergedExit = new Label();
 			if (endOfVariation < maxSize)
 			{
+				final Label $exitCheckMin = new Label();
 				generator.emitBranchForward(
 					this, endOfVariation >= minSize ? $exit : $exitCheckMin);
 				if (maxInteger.isFinite())

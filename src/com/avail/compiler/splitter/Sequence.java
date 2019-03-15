@@ -46,13 +46,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.CONCATENATE;
+import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
+import static com.avail.compiler.ParsingOperation.REVERSE_STACK;
 import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
-import static com.avail.compiler.splitter.WrapState.*;
+import static com.avail.compiler.splitter.WrapState.NEEDS_TO_PUSH_LIST;
+import static com.avail.compiler.splitter.WrapState.PUSHED_LIST;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
 import static java.util.Collections.singletonList;
 
 /**

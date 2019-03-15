@@ -36,7 +36,6 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
@@ -50,8 +49,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -75,7 +73,11 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelOne.L1Operation.*;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doCall;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doGetLocal;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doPushLiteral;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal;
 
 /**
  * <strong>Primitive:</strong> Given the specified {@linkplain

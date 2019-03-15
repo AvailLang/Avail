@@ -51,7 +51,9 @@ import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain

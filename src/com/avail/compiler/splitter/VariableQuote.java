@@ -33,7 +33,6 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.ReferencePhraseDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 
@@ -41,7 +40,9 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.PARSE_VARIABLE_REFERENCE;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

@@ -153,7 +153,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        another.
 	 */
 	@Override
-	final A_Type computeIntersectionWith (
+	A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -189,7 +189,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        and {@code another}.
 	 */
 	@Override
-	final A_Type computeUnionWith (
+	A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{

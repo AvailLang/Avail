@@ -41,7 +41,13 @@ import com.avail.tools.compiler.configuration.CompilerConfiguration;
 import com.avail.utility.configuration.Configuration;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 import static com.avail.utility.Nulls.stripNull;
@@ -92,7 +98,7 @@ implements Configuration
 	 */
 	public ModuleRoots availRoots ()
 	{
-		ModuleRoots roots = availRoots;
+		@Nullable ModuleRoots roots = availRoots;
 		if (roots == null)
 		{
 			roots = new ModuleRoots(availRootsPath);
@@ -142,11 +148,11 @@ implements Configuration
 	public ModuleNameResolver moduleNameResolver ()
 		throws FileNotFoundException, RenamesFileParserException
 	{
-		ModuleNameResolver resolver = moduleNameResolver;
+		@Nullable ModuleNameResolver resolver = moduleNameResolver;
 		if (resolver == null)
 		{
 			final Reader reader;
-			final String path = renamesFilePath;
+			final @Nullable String path = renamesFilePath;
 			if (path == null)
 			{
 				reader = new StringReader("");

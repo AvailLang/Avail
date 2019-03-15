@@ -570,6 +570,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	boolean isBinSubsetOf (A_Set potentialSuperset);
 
 	/**

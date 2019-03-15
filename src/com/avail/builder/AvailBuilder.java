@@ -42,7 +42,18 @@ import com.avail.compiler.ModuleImport;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CommentTokenDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
@@ -85,8 +96,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
@@ -95,10 +117,16 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.FiberDescriptor.*;
+import static com.avail.compiler.problems.ProblemType.EXECUTION;
+import static com.avail.compiler.problems.ProblemType.INTERNAL;
+import static com.avail.compiler.problems.ProblemType.PARSE;
+import static com.avail.compiler.problems.ProblemType.TRACE;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.FiberDescriptor.commandPriority;
+import static com.avail.descriptor.FiberDescriptor.loaderPriority;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
+import static com.avail.descriptor.FiberDescriptor.tracerPriority;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
@@ -1753,6 +1781,7 @@ public final class AvailBuilder
 			{
 				isLoaded = getLoadedModule(moduleName) != null;
 			}
+			//noinspection AssertWithSideEffects
 			assert isLoaded == runtime.includesModuleNamed(
 				stringFrom(moduleName.qualifiedName()));
 			if (isLoaded)
@@ -2264,7 +2293,7 @@ public final class AvailBuilder
 			final @Nullable A_Tuple tuple;
 			try
 			{
-				final byte[] bytes = version.getComments();
+				final @Nullable byte[] bytes = version.getComments();
 				assert bytes != null;
 				final ByteArrayInputStream in = validatedBytesFrom(bytes);
 				final Deserializer deserializer = new Deserializer(in, runtime);
@@ -2515,6 +2544,7 @@ public final class AvailBuilder
 			final int depth)
 		{
 			enter.value(this, depth);
+			@SuppressWarnings("WrapperTypeMayBePrimitive")
 			final Integer nextDepth = depth + 1;
 			for (final ModuleTree child : children)
 			{
@@ -2656,7 +2686,7 @@ public final class AvailBuilder
 			{
 				@SuppressWarnings("StringConcatenationMissingWhitespace")
 				final String outputString =
-					leadingPart + Integer.toString(sequence);
+					leadingPart + sequence;
 				if (!allocatedNames.contains(outputString))
 				{
 					allocatedNames.add(outputString);

@@ -275,7 +275,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 |
 	/* The first record is the header, but the rest are data records. */
 	dataRecords ::= records[2..];
-	/* Compure the metrics for each column of the table. */
+	/* Compute the metrics for each column of the table. */
 	metrics ::= column metrics for
 		(if showHeaders then [records] else [dataRecords]);
 
@@ -283,7 +283,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 	text : string := "";
 
 	/* If the headers are desired, then accumulate them into the text collector.
-	 * Also accumulate a seperator row.
+	 * Also accumulate a separator row.
 	 */
 	If showHeaders then
 	[

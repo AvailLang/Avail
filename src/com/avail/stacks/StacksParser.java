@@ -70,10 +70,10 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
-				builder.addStacksAliasTag(tagContentTokens,linkingFileMap);
+				builder.addStacksAliasTag(tagContentTokens, categories);
 			}
 		},
 		/**
@@ -85,7 +85,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws StacksCommentBuilderException
 			{
 				builder.addStacksAuthorTag(tagContentTokens);
@@ -102,10 +102,10 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
-				builder.addStacksCategoryTag(tagContentTokens,linkingFileMap);
+				builder.addStacksCategoryTag(tagContentTokens, categories);
 			}
 		},
 
@@ -118,7 +118,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 
@@ -136,7 +136,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksForbidTag(tagContentTokens);
@@ -151,7 +151,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksGlobalTag(tagContentTokens);
@@ -167,7 +167,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksMacroTag(tagContentTokens);
@@ -183,7 +183,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksMethodTag(tagContentTokens);
@@ -199,7 +199,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksModuleTag(tagContentTokens);
@@ -216,7 +216,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksParameterTag(tagContentTokens);
@@ -233,7 +233,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRaisesTag(tagContentTokens);
@@ -250,7 +250,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRestrictsTag(tagContentTokens);
@@ -267,7 +267,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksReturnsTag(tagContentTokens);
@@ -284,7 +284,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSeesTag(tagContentTokens);
@@ -301,7 +301,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksStickyTag(tagContentTokens);
@@ -318,7 +318,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSupertypeTag(tagContentTokens);
@@ -334,7 +334,7 @@ public final class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
-				 final LinkingFileMap linkingFileMap)
+				 final LinkingFileMap categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksTypeTag(tagContentTokens);
@@ -389,13 +389,13 @@ public final class StacksParser
 		 * 		The comment builder
 		 * @param tagContentTokens
 		 * 		The tokens contained in the indicated section.
-		 * @param catagories The holder for all categories presently available
+		 * @param categories The holder for all categories presently available
 		 * @throws ClassCastException
 		 * @throws StacksCommentBuilderException
 		 */
 		 abstract void addTokensToBuilder (
 			 CommentImplementationBuilder builder,
-			 ArrayList<AbstractStacksToken> tagContentTokens, LinkingFileMap catagories)
+			 ArrayList<AbstractStacksToken> tagContentTokens, LinkingFileMap categories)
 		 throws ClassCastException, StacksCommentBuilderException;
 	}
 

@@ -41,18 +41,15 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.RepeatedElementTupleDescriptor
-	.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.RepeatedElementTupleDescriptor
-	.IntegerSlots.SIZE;
-import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots
-	.ELEMENT;
-import static com.avail.descriptor.TreeTupleDescriptor
-	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.SIZE;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.generateTwoByteString;
+import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
 
 /**
  * {@code RepeatedElementTupleDescriptor} represents a tuple with a single

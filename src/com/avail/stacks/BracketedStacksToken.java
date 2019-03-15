@@ -77,6 +77,7 @@ public class BracketedStacksToken extends RegionStacksToken
 	{
 		super(string, lineNumber, position,
 			startOfTokenLinePosition, moduleName, '\"', '\"');
+		//noinspection ThisEscapedInObjectConstruction
 		this.subTokens = StacksBracketScanner.scanBracketString(this);
 	}
 	/**
@@ -236,15 +237,10 @@ public class BracketedStacksToken extends RegionStacksToken
 						return "";
 					}
 				}
-				final StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder
-					.append("<code>")
-					.append(links.get(0).lexeme())
-					//.append('<')
-					//.append('\\')
-					.append("</code>");
 
-				return stringBuilder.toString();
+				final String stringBuilder =
+					"<code>" + links.get(0).lexeme() + "</code>";
+				return stringBuilder;
 			}
 		},
 
@@ -316,15 +312,10 @@ public class BracketedStacksToken extends RegionStacksToken
 						return "";
 					}
 				}
-				final StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder
-					.append("<code>")
-					.append(links.get(0).lexeme())
-					//.append('<')
-					//.append('\\')
-					.append("</code>");
 
-				return stringBuilder.toString();
+				final String stringBuilder =
+					"<code>" + links.get(0).lexeme() + "</code>";
+				return stringBuilder;
 			}
 		},
 
@@ -371,21 +362,17 @@ public class BracketedStacksToken extends RegionStacksToken
 					{
 						final QuotedStacksToken link =
 							(QuotedStacksToken) links.get(0);
-						final StringBuilder stringBuilder = new StringBuilder();
-						stringBuilder
-							.append("<a href=")
-							.append('"')
-							.append(link.toJSON(
-								linkingFileMap, hashID, errorLog, jsonWriter))
-							.append('"')
-							.append('>');
 
-						stringBuilder.append(link.toJSON(linkingFileMap, hashID,
-							errorLog, jsonWriter));
-
-						return stringBuilder
-							.append("</a>")
-							.toString();
+						final String stringBuilder = "<a href="
+							+ '"'
+							+ link.toJSON(
+							linkingFileMap, hashID, errorLog, jsonWriter)
+							+ '"'
+							+ '>'
+							+ link.toJSON(linkingFileMap, hashID,
+							errorLog, jsonWriter)
+							+ "</a>";
+						return stringBuilder;
 
 					}
 					catch (final ClassCastException e)
@@ -505,10 +492,10 @@ public class BracketedStacksToken extends RegionStacksToken
 				}
 				//for links.size() >= 2
 
-					final StringBuilder linkBuilder = new StringBuilder();
-					final int listSize = links.size();
+				final int listSize = links.size();
 					if (listSize >= 2)
 					{
+						final StringBuilder linkBuilder = new StringBuilder();
 						for (int i = 1; i < listSize - 1; i++)
 						{
 							linkBuilder
@@ -551,15 +538,9 @@ public class BracketedStacksToken extends RegionStacksToken
 						return linkBuilder(link.lexeme(), linkingFileMap);
 					}
 
-					final StringBuilder stringBuilder = new StringBuilder();
-					stringBuilder
-						.append("<code>")
-						.append(links.get(0).lexeme())
-						//.append('<')
-						//.append('\\')
-						.append("</code>");
-
-					return stringBuilder.toString();
+				final String stringBuilder =
+					"<code>" + links.get(0).lexeme() + "</code>";
+				return stringBuilder;
 			}
 		},
 
@@ -631,15 +612,9 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}*/
 
-				final StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder
-					.append("<code>")
-					.append(links.get(0).lexeme())
-					//.append('<')
-					//.append('\\')
-					.append("</code>");
-
-				return stringBuilder.toString();
+				final String stringBuilder =
+					"<code>" + links.get(0).lexeme() + "</code>";
+				return stringBuilder;
 			}
 		},
 
@@ -712,15 +687,9 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}
 
-				final StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder
-					.append("<code>")
-					.append(links.get(0).lexeme())
-					//.append('<')
-					//.append('\\')
-					.append("</code>");
-
-				return stringBuilder.toString();
+				final String stringBuilder =
+					"<code>" + links.get(0).lexeme() + "</code>";
+				return stringBuilder;
 			}
 		},
 
@@ -866,16 +835,10 @@ public class BracketedStacksToken extends RegionStacksToken
 						{
 							return linkBuilder(link.lexeme(), linkingFileMap);
 						}
-						final StringBuilder stringBuilder =
-							new StringBuilder();
-						stringBuilder
-							.append("<code>")
-							.append(link.lexeme())
-							//.append('<')
-							//.append('\\')
-							.append("</code>");
 
-						return stringBuilder.toString();
+						final String stringBuilder =
+							"<code>" + link.lexeme() + "</code>";
+						return stringBuilder;
 					}
 					catch (final ClassCastException e)
 					{
@@ -898,10 +861,10 @@ public class BracketedStacksToken extends RegionStacksToken
 
 				//for links.size() >= 2
 
-				final StringBuilder linkBuilder = new StringBuilder();
 				final int listSize = links.size();
 				if (listSize >= 2)
 				{
+					final StringBuilder linkBuilder = new StringBuilder();
 					for (int i = 1; i < listSize - 1; i++)
 					{
 						linkBuilder
@@ -1020,20 +983,15 @@ public class BracketedStacksToken extends RegionStacksToken
 		 static String linkBuilder(final String aLexeme,
 				final LinkingFileMap linkingFileMap)
 		{
-			final StringBuilder stringBuilder =
-				new StringBuilder();
-			stringBuilder
-				.append("<a href=")
-				.append('"')
-				.append(linkingFileMap.internalLinks()
-					.get(aLexeme))
-				.append('"')
-				.append('>')
-				.append(aLexeme)
-				//.append('<')
-				//.append('\\')
-				.append("</a>");
-			return stringBuilder.toString();
+			final String stringBuilder = "<a href="
+				+ '"'
+				+ linkingFileMap.internalLinks()
+				.get(aLexeme)
+				+ '"'
+				+ '>'
+				+ aLexeme
+				+ "</a>";
+			return stringBuilder;
 		}
 
 		 /**
@@ -1047,19 +1005,15 @@ public class BracketedStacksToken extends RegionStacksToken
 		 static String linkBuilderNolink(final String aLexeme,
 				final LinkingFileMap linkingFileMap, final int hashID)
 		{
-			 final StringBuilder stringBuilder =
-					new StringBuilder();
-				stringBuilder.append("<a href=")
-					.append('"')
-					.append("#")
-					.append(aLexeme).append(hashID)
-					.append('"')
-					.append('>')
-					.append(aLexeme)
-					//.append('<')
-					//.append('\\')
-					.append("</a>");
-				return stringBuilder.toString();
+			final String stringBuilder = "<a href="
+				+ '"'
+				+ "#"
+				+ aLexeme + hashID
+				+ '"'
+				+ '>'
+				+ aLexeme
+				+ "</a>";
+			return stringBuilder;
 		}
 	}
 }

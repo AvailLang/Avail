@@ -42,8 +42,7 @@ import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 
-import static com.avail.descriptor.CompiledCodeDescriptor
-	.codeCoverageReportsThen;
+import static com.avail.descriptor.CompiledCodeDescriptor.codeCoverageReportsThen;
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**

@@ -107,7 +107,7 @@ Public method "_'s⁇next«value in»⁇_" is
 		Raise an incorrect-argument-type exception
 	];
 
-	/* The following algorithm is used to uniformally map values from the range
+	/* The following algorithm is used to uniformly map values from the range
 	 * onto pRNG's element type.  The algorithm
 	 */
 	rangeSize : natural number := cast ⎡range⎤ - ⎣range⎦ + 1

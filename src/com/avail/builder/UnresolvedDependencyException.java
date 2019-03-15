@@ -46,6 +46,7 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class UnresolvedDependencyException
 extends Exception
 {

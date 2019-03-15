@@ -299,7 +299,7 @@ Semantic restriction "_→tuple" is
 	anObjectType : object meta
 |
 	objectMap ::= anObjectType→map;
-	/* Note that we can't exploit instance types here, because coversion of an
+	/* Note that we can't exploit instance types here, because conversion of an
 	 * object type to a tuple is an unstable operation. Because we can't know
 	 * what keys and types the subtypes of the argument will contain, this is as
 	 * good as it gets.

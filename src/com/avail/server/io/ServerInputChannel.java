@@ -173,7 +173,7 @@ implements TextInputChannel
 		final List<Waiter> ready = new ArrayList<>();
 		synchronized (this)
 		{
-			final CharBuffer buffer = markBuffer;
+			final @Nullable CharBuffer buffer = markBuffer;
 			if (buffer == null)
 			{
 				throw new IOException();
@@ -263,7 +263,7 @@ implements TextInputChannel
 				buffer.append(content, position, position + size);
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
-				final CharBuffer mark = markBuffer;
+				final @Nullable CharBuffer mark = markBuffer;
 				if (mark != null)
 				{
 					try
@@ -287,7 +287,7 @@ implements TextInputChannel
 			// If data has been marked, then truncate the current message if
 			// necessary in order to keep positioning simple (by eliminating
 			// redundant data).
-			final CharBuffer mark = markBuffer;
+			final @Nullable CharBuffer mark = markBuffer;
 			if (mark != null && position != 0 && !messages.isEmpty())
 			{
 				final Message message = messages.removeFirst();
@@ -337,7 +337,7 @@ implements TextInputChannel
 				ready.add(waiter);
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
-				final CharBuffer mark = markBuffer;
+				final @Nullable CharBuffer mark = markBuffer;
 				if (mark != null)
 				{
 					try
@@ -354,7 +354,7 @@ implements TextInputChannel
 			}
 			if (position != contentLength)
 			{
-				final CharBuffer mark = markBuffer;
+				final @Nullable CharBuffer mark = markBuffer;
 				// If data has been marked, then truncate the current message if
 				// necessary in order to keep positioning simple (by eliminating
 				// redundant data). Reset the position.

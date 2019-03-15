@@ -42,10 +42,8 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots
-	.MARKER_VALUE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.MARKER_PHRASE;
+import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 

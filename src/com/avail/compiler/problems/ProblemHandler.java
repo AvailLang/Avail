@@ -44,6 +44,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class ProblemHandler
 {
 	/**

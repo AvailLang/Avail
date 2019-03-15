@@ -60,8 +60,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.emptyList;
@@ -96,7 +95,7 @@ public abstract class L2Operation
 	 * The {@linkplain L2NamedOperandType named operand types} that this
 	 * {@linkplain L2Operation operation} expects.
 	 */
-	protected L2NamedOperandType[] namedOperandTypes;
+	protected final L2NamedOperandType[] namedOperandTypes;
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
@@ -162,7 +161,7 @@ public abstract class L2Operation
 	 * @param registerSets
 	 *        A list of RegisterSets to update with information that this
 	 *        operation provides.
-	 * @param translator
+	 * @param generator
 	 *        The L2Generator for which to advance the type analysis.
 	 */
 	protected void propagateTypes (
@@ -182,12 +181,10 @@ public abstract class L2Operation
 	 * multiple possible successor instructions.
 	 *
 	 * @param instruction
-	 *            The L2Instruction containing this L2Operation.
+	 *        The L2Instruction containing this L2Operation.
 	 * @param registerSet
-	 *            A RegisterSet to supply with information about
-	 *            A list of RegisterSets to update with information that this
-	 *            operation provides.
-	 * @param translator
+	 *        A {@link RegisterSet} to supply with information.
+	 * @param generator
 	 *            The L2Generator for which to advance the type analysis.
 	 * @see #propagateTypes(L2Instruction, List, L2Generator)
 	 */
@@ -325,7 +322,7 @@ public abstract class L2Operation
 	/**
 	 * Write the given instruction's equivalent effect through the given {@link
 	 * L2Retranslator}.  The given {@link L2Instruction}'s {@linkplain
-	 * L2Instruction#operation operation} must be the current receiver.
+	 * L2Instruction#operation() operation} must be the current receiver.
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} for which to write an equivalent effect
@@ -384,7 +381,7 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *        The instruction that produced the function.  Its {@linkplain
-	 *        L2Instruction#operation operation} is the receiver.
+	 *        L2Instruction#operation() operation} is the receiver.
 	 * @param functionRegister
 	 *        The register holding the function after this instruction runs.
 	 * @param outerIndex
@@ -598,7 +595,7 @@ public abstract class L2Operation
 	 * Augment the array of operands with any that are supposed to be supplied
 	 * implicitly by this class.
 	 *
-	 * @param operands The origginal array of {@link L2Operand}s.
+	 * @param operands The original array of {@link L2Operand}s.
 	 * @return The augmented array of {@link L2Operand}s, which may be the same
 	 *         as the given array.
 	 */

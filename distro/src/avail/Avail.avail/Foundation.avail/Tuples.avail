@@ -1165,7 +1165,7 @@ Semantic restriction "map and filter_by_" is
  *        boolean.
  * @returns "boolean"
  *          {@method "true"} if {@param "predicate"} answers {@method "true"}
- *          for any element of {@apram "aTuple"}, {@method "false"} otherwise.
+ *          for any element of {@param "aTuple"}, {@method "false"} otherwise.
  * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "any of_satisfies_" is
@@ -4094,7 +4094,7 @@ Semantic restriction "_↑-=_" is
  *        The function to apply if {@param "start"} through {@param "end"} is not
  *        a valid range of {@param "aTuple"}.
  * @returns "any"
- *          The {@param "start"}-th throught the {@param "end"}-th elements of
+ *          The {@param "start"}-th through the {@param "end"}-th elements of
  *          {@param "aTuple"}, or the result of applying {@param "else"}
  *          (if {@param "index"} is invalid).
  * @category "Tuples" "Queries"
@@ -4323,7 +4323,7 @@ Private method "self overlap_" is
 ] : {tuple→natural number|};
 
 /**
- * Obtain the location of the start of the first occuring subtuple in a
+ * Obtain the location of the start of the first occurring subtuple in a
  * tuple.
  *
  * @method "first index of_in_"
@@ -4367,7 +4367,7 @@ Method "first index of_in_" is
  * Obtain the location of the start of the first occuring subtuple in a
  * tuple (a substring of a string).  The
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm"
- * Knuth-Moris-Pratt algorithm} is used for this implementation.
+ * Knuth-Morris-Pratt algorithm} is used for this implementation.
  */
 Method "first index of_in_" is
 [

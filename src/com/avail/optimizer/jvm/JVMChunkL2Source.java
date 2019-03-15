@@ -34,6 +34,7 @@ package com.avail.optimizer.jvm;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2ControlFlowGraph;
 
 import java.lang.annotation.ElementType;
@@ -46,8 +47,8 @@ import java.nio.file.Path;
  * {@code JVMChunkL2Source} captures an {@linkplain Path#isAbsolute() absolute}
  * {@linkplain Path path} to the {@link L2ControlFlowGraph} of the {@link
  * L2Chunk} that serves as the basis for the annotated {@linkplain
- * JVMChunk#runChunk(Interpreter) method}, making it available in generated
- * class files. This annotation is only attached if {@link
+ * ExecutableChunk#runChunk(Interpreter, int) method}, making it available in
+ * generated class files. This annotation is only attached if {@link
  * JVMTranslator#debugJVM} is enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -59,8 +60,8 @@ public @interface JVMChunkL2Source
 	/**
 	 * An {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the
 	 * {@link L2ControlFlowGraph} of the {@link L2Chunk} that serves as the
-	 * basis for the annotated {@linkplain JVMChunk#runChunk(Interpreter)
-	 * method}.
+	 * basis for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter,
+	 * int) method}.
 	 *
 	 * @return The path to the L2 source code.
 	 */

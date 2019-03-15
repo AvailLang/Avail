@@ -45,7 +45,7 @@ stacksApp.run(['$urlMatcherFactory', function($urlMatcherFactory) {
 stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$http,$window) {
 
     //The links to Avail methods and classes organized by Category
-	var categoriesURL = "/json/categories.json"
+	var categoriesURL = "/json/categories.json";
 	$scope.categories = {
 		content: []
 	};
@@ -66,7 +66,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
     
     //JSON file containing all the category comment descriptions parsed
     //from category comments. - TODO build UI to populate this information dynamically
-    var categoriesDescriptionsURL = "/json/categoriesDescriptions.json"
+    var categoriesDescriptionsURL = "/json/categoriesDescriptions.json";
 	$scope.categoriesDescriptions = {
 		content: []
 	};
@@ -80,7 +80,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
     
     //JSON file containing all the module comment descriptions parsed
     //from category comments. - TODO build UI to populate this information dynamically
-    var moduleDescriptionsURL = "/json/moduleDescriptions.json"
+    var moduleDescriptionsURL = "/json/moduleDescriptions.json";
 	$scope.moduleDescriptions = {
 		content: []
 	};
@@ -98,7 +98,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
 		var url = 'index.html#/method/'+link;
 		//about-avail/documentation/stacks/library-documentation/avail/Avail/IO/Files/Primitives/2623497882.json
 		$window.location = url;
-	}
+	};
 
 	$scope.goToDirectMethod = function() {
 		
@@ -110,7 +110,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
 			$window.location = url;
 		}
 		
-	}
+	};
 
 	$scope.search = '';
 	$scope.filterOnCategory = function(content) {

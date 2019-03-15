@@ -45,7 +45,9 @@ import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
 
-import static com.avail.utility.json.JSONWriter.JSONState.*;
+import static com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END;
+import static com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END;
+import static com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE;
 
 /**
  * A {@code JSONWriter} produces ASCII-only documents that adhere strictly to

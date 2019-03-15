@@ -51,7 +51,9 @@ import java.util.Set;
 import static com.avail.AvailRuntime.implicitObserveFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit

@@ -63,9 +63,10 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction
-	.restriction;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -134,7 +135,7 @@ public final class P_CastIntoElse extends Primitive
 		final L2ReadPointerOperand functionReg)
 	{
 		final @Nullable A_Function constantFunction =
-			A_Function.class.cast(functionReg.constantOrNull());
+			(A_Function) functionReg.constantOrNull();
 		if (constantFunction != null)
 		{
 			// Function is a constant.

@@ -46,10 +46,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-	.DECLARE_STRINGIFIER;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;

@@ -39,6 +39,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class AbstractStacksToken
 {
 
@@ -65,7 +66,7 @@ public abstract class AbstractStacksToken
 	/**
 	 * The position on the line where the token starts.
 	 */
-	final int startOfTokenLinePostion;
+	final int startOfTokenLinePosition;
 
 	/**
 	 * Is this a section token tag?
@@ -90,7 +91,7 @@ public abstract class AbstractStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module this token is in.
@@ -99,13 +100,13 @@ public abstract class AbstractStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
 		this.lexeme = string;
 		this.lineNumber = lineNumber;
 		this.position = position;
-		this.startOfTokenLinePostion = startOfTokenLinePostion;
+		this.startOfTokenLinePosition = startOfTokenLinePosition;
 		this.moduleName = moduleName;
 		this.isSectionToken = false;
 	}
@@ -125,11 +126,7 @@ public abstract class AbstractStacksToken
 	 */
 	public String quotedLexeme()
 	{
-		return new StringBuilder()
-	    	.append('"')
-	    	.append(lexeme)
-	    	.append('"')
-	    	.toString();
+		return "\"" + lexeme + '"';
 	}
 
 	/**
@@ -154,9 +151,9 @@ public abstract class AbstractStacksToken
 	 * Provide the token's string representation.
 	 * @return
 	 */
-	public int startOfTokenLinePostion()
+	public int startOfTokenLinePosition()
 	{
-		return startOfTokenLinePostion;
+		return startOfTokenLinePosition;
 	}
 
 	/**

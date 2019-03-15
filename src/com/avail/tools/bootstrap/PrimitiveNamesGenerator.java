@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.HashSet;
@@ -46,8 +47,14 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.Key.methodCommentParameterTemplate;
+import static com.avail.tools.bootstrap.Resources.Key.methodCommentRaisesTemplate;
+import static com.avail.tools.bootstrap.Resources.Key.methodCommentReturnsTemplate;
+import static com.avail.tools.bootstrap.Resources.Key.methodCommentTemplate;
+import static com.avail.tools.bootstrap.Resources.escape;
+import static com.avail.tools.bootstrap.Resources.primitiveCommentKey;
+import static com.avail.tools.bootstrap.Resources.primitiveParameterNameKey;
+import static com.avail.tools.bootstrap.Resources.primitivesBaseName;
 import static java.lang.String.format;
 
 /**
@@ -82,7 +89,7 @@ extends PropertiesFileGenerator
 			primitiveNumber <= Primitive.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
-			final Primitive primitive =
+			final @Nullable Primitive primitive =
 				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.Private))
 			{

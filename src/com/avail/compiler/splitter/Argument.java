@@ -40,7 +40,9 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.utility.Nulls.stripNull;
 

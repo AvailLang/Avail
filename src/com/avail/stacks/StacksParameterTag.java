@@ -109,16 +109,14 @@ public class StacksParameterTag extends AbstractStacksTag
 		final JSONWriter jsonWriter)
 	{
 		//The element id to link back to the param on the page
-		final StringBuilder elementID = new StringBuilder()
-			.append(paramName.lexeme())
-			.append(hashID);
-
 		jsonWriter.startObject();
 			jsonWriter.write("description");
 			paramDescription
 				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
 			jsonWriter.write("elementID");
-			jsonWriter.write(elementID.toString());
+		final String elementID = paramName.lexeme()
+			+ hashID;
+		jsonWriter.write(elementID);
 			jsonWriter.write("data");
 			jsonWriter.startArray();
 				jsonWriter.write(position);

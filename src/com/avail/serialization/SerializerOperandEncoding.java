@@ -50,16 +50,16 @@ import java.util.function.IntUnaryOperator;
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.createUninitializedInteger;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.intCount;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TwoByteStringDescriptor
-	.generateTwoByteString;
+import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
 import static com.avail.utility.Strings.increaseIndentation;
 
 /**

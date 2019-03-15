@@ -209,10 +209,7 @@ public abstract class StacksImportModule
 	 */
 	public void removeImplementation (final A_String key)
 	{
-		if (extendsMethodLeafNameToModuleName().containsKey(key))
-		{
-			extendsMethodLeafNameToModuleName().remove(key);
-		}
+		extendsMethodLeafNameToModuleName().remove(key);
 	}
 
 	/**
@@ -260,7 +257,7 @@ public abstract class StacksImportModule
 			long hashedName = nameToBeHashed.hash();
 			hashedName &= 0xFFFFFFFFL;
 			final String qualifiedName = moduleName + "/"
-				+ String.valueOf(hashedName) + ".json";
+				+ hashedName + ".json";
 			newMap.put(
 				qualifiedName,
 				new Pair<>(name.asNativeString(), entry.getValue()));

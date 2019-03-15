@@ -367,7 +367,7 @@ Special object "variable" is special object 7;
  *
  * @category "Primitives" "Types"
  * @type "variable meta"
- * @supertype "nontypes type"
+ * @supertype "nontype's type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
@@ -2084,7 +2084,7 @@ Special object "macro bundle key" is special object 154;
 
 /**
  * An atom property key that indicates the atom is for explicit subclassing of
- * ebject types.
+ * object types.
  *
  * @category "Primitives" "Constants"
  * @method "explicit subclassing key"

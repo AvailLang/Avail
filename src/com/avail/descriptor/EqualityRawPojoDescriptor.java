@@ -125,7 +125,7 @@ extends RawPojoDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final Object javaObject2 = javaObject;
+		final @Nullable Object javaObject2 = javaObject;
 		return javaObject2 == null
 			? 0xC44EEE95
 			: javaObject2.hashCode() ^ 0x59EEE44C;
@@ -171,7 +171,7 @@ extends RawPojoDescriptor
 		final int indent)
 	{
 		builder.append("equality raw pojo: ");
-		builder.append(String.valueOf(javaObject));
+		builder.append(javaObject);
 	}
 
 	/**

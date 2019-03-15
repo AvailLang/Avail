@@ -129,7 +129,7 @@ public class ModuleName
 	 */
 	public String rootRelativeName ()
 	{
-		String name = rootRelativeName;
+		@Nullable String name = rootRelativeName;
 		if (name == null)
 		{
 			final String[] components = qualifiedName.split("/");

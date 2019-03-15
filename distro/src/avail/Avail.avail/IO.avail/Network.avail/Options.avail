@@ -129,7 +129,7 @@ Public method "server socket option" is [_server_socket_option];
  *
  * For datagram sockets, the size of the receive buffer may also define the
  * maximum size of an inbound datagram. The network implementation may, or may
- * not, accept datagrams larger than the recevier buffer.
+ * not, accept datagrams larger than the receive buffer.
  *
  * For stream sockets used with TCP/IP, the size of the receive buffer may be
  * advertised to the remote peer as the size of the TCP receive window, or
@@ -163,7 +163,7 @@ Public method "receive buffer size" is [_so_rcvbuf];
  *
  * For stream sockets used with TCP/IP, the option determines whether a socket
  * address currently associated to a previous connection that is in the {@code
- * TIME_WAIT} state is eligble for reuse. Some network implementations may
+ * TIME_WAIT} state is eligible for reuse. Some network implementations may
  * ignore this option.
  *
  * The network implementation allows this option to be set before the socket is
@@ -235,7 +235,7 @@ Public method "keep alive" is [_so_keepalive];
 
 /**
  * Answer a socket option that represents whether the Nagle algorithm, for
- * controling TCP/IP congestion by coalescence of small packets, is disabled.
+ * controlling TCP/IP congestion by coalescence of small packets, is disabled.
  *
  * The value associated with the option must be a {@method "boolean"} that
  * describes the enablement of the option. This option should not be set to

@@ -51,6 +51,7 @@ extends AbstractWorkbenchTask
 	@Override
 	protected void executeTask () throws Exception
 	{
+		//noinspection CaughtExceptionImmediatelyRethrown
 		try
 		{
 			workbench.availBuilder.generateGraph(

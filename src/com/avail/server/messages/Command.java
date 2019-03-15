@@ -418,7 +418,7 @@ public enum Command
 				node = node.nextNodes.computeIfAbsent(
 					lowercase, k -> new TrieNode());
 			}
-			final Command existingCommand = node.command;
+			final @Nullable Command existingCommand = node.command;
 			assert existingCommand == null : format(
 				"Commands %s and %s have the same syntax!",
 				existingCommand.name(),
@@ -485,7 +485,7 @@ public enum Command
 		static List<CommandMessage> parseCommands (final String source)
 		{
 			final List<CommandMessage> parsedCommands = new ArrayList<>();
-			final Command simpleCommand = parseSimpleCommand(source);
+			final @Nullable Command simpleCommand = parseSimpleCommand(source);
 			if (simpleCommand != null)
 			{
 				parsedCommands.add(new SimpleCommandMessage(simpleCommand));
@@ -494,7 +494,8 @@ public enum Command
 			{
 				try
 				{
-					final CommandMessage commandMessage = command.parse(source);
+					final @Nullable CommandMessage commandMessage =
+						command.parse(source);
 					if (commandMessage != null)
 					{
 						parsedCommands.add(commandMessage);
@@ -517,8 +518,10 @@ public enum Command
 	 * parsing {@linkplain TrieNode#trie} (treating the tokenization of its
 	 * {@linkplain #name() name} on underscore boundaries as its syntax).
 	 */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	Command ()
 	{
+		//noinspection OverriddenMethodCallDuringObjectConstruction
 		if (!requiresSpecialParsing())
 		{
 			final String[] tokens = name().split("_");
@@ -568,7 +571,7 @@ public enum Command
 		}
 		if (parsedCommands.size() > 1)
 		{
-			@SuppressWarnings("resource")
+			//noinspection IOResourceOpenedButNotSafelyClosed
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				"ambiguous command: could be %s",

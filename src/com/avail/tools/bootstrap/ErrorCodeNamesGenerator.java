@@ -42,10 +42,19 @@ import com.avail.interpreter.Primitive.Flag;
 
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
+import static com.avail.tools.bootstrap.Resources.errorCodeKey;
+import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
+import static com.avail.tools.bootstrap.Resources.escape;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that

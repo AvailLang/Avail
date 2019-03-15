@@ -293,7 +293,7 @@ Private stable method "format sites for_" is
  * @param "vars" "{string→any|}"
  *        A map from format variables to their bindings.
  * @returns "string"
- *          The result of partially formatting the template usings the specified
+ *          The result of partially formatting the template using the specified
  *          bindings.
  * @category "Formatting" "Strings"
  */

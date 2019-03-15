@@ -47,14 +47,26 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 
-import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.CLEAR_REPOSITORIES;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.COMPILE_MODULES;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.DOCUMENTATION_PATH;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.GENERATE_DOCUMENTATION;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.HELP;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.QUIET;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.SHOW_STATISTICS;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.TARGET_MODULE_NAME;
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.VERBOSE_MODE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Provides the configuration for the command-line compiler. Specifies the
@@ -149,7 +161,7 @@ implements Configurator<CompilerConfiguration>
 
 		factory.addOption(new GenericOption<>(
 			AVAIL_RENAMES,
-			asList("availRenames"),
+			singletonList("availRenames"),
 			"The path to the renames file. This option overrides environment "
 				+ "variables.",
 			(keyword, renamesString) ->
@@ -161,7 +173,7 @@ implements Configurator<CompilerConfiguration>
 
 		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
-			asList("availRoots"),
+			singletonList("availRoots"),
 			"The Avail roots, as a semicolon (;) separated list of module root "
 				+ "specifications. Each module root specification comprises a "
 				+ "logical root name, then an equals (=), then a module root "
@@ -232,7 +244,7 @@ implements Configurator<CompilerConfiguration>
 						keyword + ": An argument was specified, but none " +
 							"are permitted.");
 				}
-				configuration.setGenerateDocumenationFlag();
+				configuration.setGenerateDocumentationFlag();
 			}));
 
 		factory.addOption(new GenericOption<>(
@@ -306,9 +318,8 @@ implements Configurator<CompilerConfiguration>
 					reports = EnumSet.noneOf(StatisticReport.class);
 					for (final String reportName : reportsArr)
 					{
-						final StatisticReport report =
+						final @Nullable StatisticReport report =
 							StatisticReport.reportFor(reportName);
-
 						// This will also catch the illegal use of "="
 						// without any items following.
 						if (report == null)

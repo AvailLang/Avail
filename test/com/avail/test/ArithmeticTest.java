@@ -219,6 +219,7 @@ public final class ArithmeticTest
 	 * Test {@link BigInteger} to {@linkplain IntegerDescriptor Avail integer}
 	 * conversion.
 	 */
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	public void testFromBigInteger ()
 	{

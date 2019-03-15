@@ -43,7 +43,7 @@ Names
 	"user principal",
 	"_'s⁇name",
 
-	/* File prinicpal accessors. */
+	/* File principal accessors. */
 	"_'s⁇owner(follow if symlink=_)",
 	"_'s⁇owner«(don't follow if symlink)»?",
 	"_'s⁇group(follow if symlink=_)",

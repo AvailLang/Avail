@@ -41,7 +41,20 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static com.avail.test.utility.json.TestJSONKeyValue.*;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMACOMPACTARRAY;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMAFALSE;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMAFLOAT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMALONG;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANINT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANOBJECT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANULL;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMASTRING;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMATRUE;
+import static com.avail.test.utility.json.TestJSONKeyValue.OBJINT;
+import static com.avail.test.utility.json.TestJSONKeyValue.OBJSTRING;
+import static com.avail.test.utility.json.TestJSONKeyValue.addObjectToWriter;
+import static com.avail.test.utility.json.TestJSONKeyValue.addToWriter;
+import static com.avail.test.utility.json.TestJSONKeyValue.test;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -101,6 +114,7 @@ public class JSONWriterTest
 		}
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Correctly built JSON")
 	void correctlyBuiltJSONTest ()

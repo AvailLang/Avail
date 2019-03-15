@@ -182,7 +182,7 @@ extends Descriptor
 		// for debugging anyway, so don't bother acquiring the lock. Coherence
 		// isn't important here.
 		builder.append("raw pojo: ");
-		builder.append(String.valueOf(javaObject));
+		builder.append(javaObject);
 	}
 
 	/**
@@ -212,7 +212,7 @@ extends Descriptor
 				FakeSlots.JAVA_OBJECT,
 				-1,
 				javaObject));
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields.toArray(new AvailObjectFieldHelper[0]);
 	}
 
 	/**

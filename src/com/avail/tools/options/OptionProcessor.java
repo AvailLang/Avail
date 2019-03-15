@@ -39,7 +39,13 @@ import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An {@code OptionProcessor} serves primarily to support command-line

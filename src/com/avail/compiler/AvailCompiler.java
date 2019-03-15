@@ -40,11 +40,54 @@ import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_DefinitionParsingPlan;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_ParsingPlanInProgress;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
+import com.avail.descriptor.MacroDefinitionDescriptor;
+import com.avail.descriptor.MacroSubstitutionPhraseDescriptor;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.descriptor.MethodDefinitionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
+import com.avail.descriptor.SemanticRestrictionDescriptor;
+import com.avail.descriptor.SendPhraseDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -84,7 +127,17 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -93,15 +146,26 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.decode;
+import static com.avail.compiler.ParsingOperation.distinctInstructions;
+import static com.avail.compiler.ParsingOperation.operand;
 import static com.avail.compiler.PragmaKind.pragmaKindByLexeme;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.ALL_TOKENS_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
@@ -118,17 +182,34 @@ import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSub
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapDescriptor.mapFromPairs;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_MODULE_VARIABLE;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.LEXER_DEFINER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -3726,49 +3807,49 @@ public final class AvailCompiler
 		final String propertyValue,
 		final Continuation0 success)
 	{
-		switch (propertyName)
+		if ("version".equals(propertyName))
 		{
-			case "version":
-				// Split the versions at commas.
-				final String[] versions = propertyValue.split(",");
-				for (int i = 0; i < versions.length; i++)
-				{
-					versions[i] = versions[i].trim();
-				}
-				// Put the required versions into a set.
-				A_Set requiredVersions = emptySet();
-				for (final String version : versions)
-				{
-					requiredVersions =
-						requiredVersions.setWithElementCanDestroy(
-							stringFrom(version),
-							true);
-				}
-				// Ask for the guaranteed versions.
-				final A_Set activeVersions = AvailRuntime.activeVersions();
-				// If the intersection of the sets is empty, then the module and
-				// the virtual machine are incompatible.
-				if (!requiredVersions.setIntersects(activeVersions))
-				{
-					state.expected(
-						format(
-							"Module and virtual machine are not compatible; "
-								+ "the virtual machine guarantees versions %s, "
-								+ "but the current module requires %s",
-							activeVersions,
-							requiredVersions));
-					return;
-				}
-				break;
-			default:
-				final Set<String> viableAssertions = new HashSet<>();
-				viableAssertions.add("version");
+			// Split the versions at commas.
+			final String[] versions = propertyValue.split(",");
+			for (int i = 0; i < versions.length; i++)
+			{
+				versions[i] = versions[i].trim();
+			}
+			// Put the required versions into a set.
+			A_Set requiredVersions = emptySet();
+			for (final String version : versions)
+			{
+				requiredVersions =
+					requiredVersions.setWithElementCanDestroy(
+						stringFrom(version),
+						true);
+			}
+			// Ask for the guaranteed versions.
+			final A_Set activeVersions = AvailRuntime.activeVersions();
+			// If the intersection of the sets is empty, then the module and
+			// the virtual machine are incompatible.
+			if (!requiredVersions.setIntersects(activeVersions))
+			{
 				state.expected(
 					format(
-						"Expected check pragma to assert one of the following "
-							+ "properties: %s",
-						viableAssertions));
+						"Module and virtual machine are not compatible; "
+							+ "the virtual machine guarantees versions %s, "
+							+ "but the current module requires %s",
+						activeVersions,
+						requiredVersions));
 				return;
+			}
+		}
+		else
+		{
+			final Set<String> viableAssertions = new HashSet<>();
+			viableAssertions.add("version");
+			state.expected(
+				format(
+					"Expected check pragma to assert one of the following "
+						+ "properties: %s",
+					viableAssertions));
+			return;
 		}
 		success.value();
 	}

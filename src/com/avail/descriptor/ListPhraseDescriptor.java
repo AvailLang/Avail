@@ -47,8 +47,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots
-	.EXPRESSIONS_TUPLE;
+import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE;
 import static com.avail.descriptor.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -118,7 +117,7 @@ extends PhraseDescriptor
 				types.add(expressionType);
 			}
 			tupleType = tupleTypeForTypes(
-				types.toArray(new A_Type[types.size()]));
+				types.toArray(new A_Type[0]));
 			object.setMutableSlot(TUPLE_TYPE, tupleType.makeShared());
 		}
 		return tupleType;

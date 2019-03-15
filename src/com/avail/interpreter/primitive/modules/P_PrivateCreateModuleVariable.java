@@ -48,7 +48,10 @@ import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableSharedGlobalDescriptor.createGlobal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
  * <strong>Primitive:</strong> Create a {@link VariableSharedGlobalDescriptor

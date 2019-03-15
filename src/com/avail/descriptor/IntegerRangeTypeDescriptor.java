@@ -46,10 +46,16 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.byteRange;
+import static com.avail.descriptor.PojoTypeDescriptor.intRange;
+import static com.avail.descriptor.PojoTypeDescriptor.longRange;
+import static com.avail.descriptor.PojoTypeDescriptor.shortRange;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
@@ -189,13 +195,9 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (superMaxObject.equals(subMaxObject)
-			&& possibleSub.upperInclusive()
-			&& !object.upperInclusive())
-		{
-			return false;
-		}
-		return true;
+		return !superMaxObject.equals(subMaxObject)
+			|| !possibleSub.upperInclusive()
+			|| object.upperInclusive();
 	}
 
 	@Override @AvailMethod
@@ -257,7 +259,7 @@ extends TypeDescriptor
 		final int anInt)
 	{
 		final A_Number lower = object.slot(LOWER_BOUND);
-		A_Number asInteger = null;
+		@Nullable A_Number asInteger = null;
 		if (lower.isInt())
 		{
 			if (anInt < lower.extractInt())
@@ -284,17 +286,11 @@ extends TypeDescriptor
 		final A_Number upper = object.slot(UPPER_BOUND);
 		if (upper.isInt())
 		{
-			if (anInt > upper.extractInt())
-			{
-				return false;
-			}
+			return anInt <= upper.extractInt();
 		}
 		else if (!upper.isFinite())
 		{
-			if (!upper.isPositive())
-			{
-				return false;
-			}
+			return upper.isPositive();
 		}
 		else
 		{
@@ -302,12 +298,8 @@ extends TypeDescriptor
 			{
 				asInteger = fromInt(anInt);
 			}
-			if (upper.lessThan(asInteger))
-			{
-				return false;
-			}
+			return !upper.lessThan(asInteger);
 		}
-		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe

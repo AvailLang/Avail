@@ -69,8 +69,8 @@ public enum StatisticReport
 	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),
 
 	/**
-	 * Statistics for {@link MessageBundleTreeDescriptor#o_Expand(AvailObject,
-	 * A_Module) expanding} ParsingOperations.
+	 * Statistics for {@linkplain AvailObject#expand(A_Module) expanding}
+	 * ParsingOperations.
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 

@@ -45,7 +45,9 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -90,12 +92,12 @@ extends Descriptor
 		/**
 		 * A tuple of integers that describe how to parse an invocation of this
 		 * method. The integers encode parsing instructions, many of which can
-		 * be executed en masse against a piece of Avail source code for
-		 * multiple potential methods. This is facilitated by the incremental
-		 * construction of a {@linkplain MessageBundleTreeDescriptor message
-		 * bundle tree}. The instructions are produced during analysis of the
-		 * method name by the {@link MessageSplitter}, which has a description
-		 * of the complete instruction set.
+		 * be executed <em>en masse</em> against a piece of Avail source code
+		 * for multiple potential methods. This is facilitated by the
+		 * incremental construction of a {@linkplain MessageBundleTreeDescriptor
+		 * message bundle tree}. The instructions are produced during analysis
+		 * of the method name by the {@link MessageSplitter}, which has a
+		 * description of the complete instruction set.
 		 */
 		PARSING_INSTRUCTIONS,
 	}
@@ -128,8 +130,9 @@ extends Descriptor
 	{
 		// Weaken the plan's type to make sure we're not sending something it
 		// won't understand.
-		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
-		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+		final List<AvailObjectFieldHelper> fields =
+			new ArrayList<>(Arrays.asList(
+				super.o_DescribeForDebugger(object)));
 		try
 		{
 			final A_Tuple instructionsTuple = object.parsingInstructions();
@@ -201,7 +204,7 @@ extends Descriptor
 				object,
 				FakeSlots.SYMBOLIC_INSTRUCTIONS,
 				-1,
-				descriptionsList.toArray(new String[descriptionsList.size()])));
+				descriptionsList.toArray(new String[0])));
 		}
 		catch (final Exception e)
 		{
@@ -216,7 +219,7 @@ extends Descriptor
 					line));
 			}
 		}
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields.toArray(new AvailObjectFieldHelper[0]);
 	}
 
 	@Override

@@ -35,6 +35,8 @@ package com.avail.exceptions;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 
+import javax.annotation.Nullable;
+
 /**
  * {@code AvailRuntimeException} is the root of the hierarchy of {@linkplain
  * RuntimeException runtime exceptions} that are specific to the implementation
@@ -95,7 +97,7 @@ extends RuntimeException
 	@Override
 	public String getMessage ()
 	{
-		String message = super.getMessage();
+		@Nullable String message = super.getMessage();
 		if (message == null)
 		{
 			message = errorCode.toString();

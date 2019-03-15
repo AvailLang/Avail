@@ -260,7 +260,7 @@ Method "_process_" is
 			/* The continuation bytes are invalid.  For now, decode under the
 			 * assumption that the leading byte correctly indicates the number
 			 * of continuation bytes, but one of the continuation bytes is
-			 * wrong.  Replace the sequence with the Unicode replacament
+			 * wrong.  Replace the sequence with the Unicode replacement
 			 * character (U+FFFD), and skip the leading and continuation bytes.
 			 */
 			out := eject out ++ "\(fffd)";

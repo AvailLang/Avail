@@ -53,7 +53,9 @@ public class EnvironmentConfigurationTest
 	public void testAssertionsEnabled ()
 	{
 		int x = 123;
+		//noinspection NestedAssignment,AssertWithSideEffects,ConstantConditions
 		assert ((x = 456) == 456);
+		//noinspection ConstantConditions
 		if (x != 456)
 		{
 			fail("Assertion checking was not enabled");

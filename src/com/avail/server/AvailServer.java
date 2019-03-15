@@ -56,7 +56,16 @@ import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
-import com.avail.server.messages.*;
+import com.avail.server.messages.Command;
+import com.avail.server.messages.CommandMessage;
+import com.avail.server.messages.CommandParseException;
+import com.avail.server.messages.LoadModuleCommandMessage;
+import com.avail.server.messages.Message;
+import com.avail.server.messages.RunEntryPointCommandMessage;
+import com.avail.server.messages.SimpleCommandMessage;
+import com.avail.server.messages.UnloadModuleCommandMessage;
+import com.avail.server.messages.UpgradeCommandMessage;
+import com.avail.server.messages.VersionCommandMessage;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
@@ -80,8 +89,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
@@ -294,7 +314,7 @@ public final class AvailServer
 	 *        transmitting this message.
 	 * @return A message.
 	 */
-	@InnerAccess Message newErrorMessage (
+	static @InnerAccess Message newErrorMessage (
 		final @Nullable CommandMessage command,
 		final String reason,
 		final boolean closeAfterSending)
@@ -339,7 +359,8 @@ public final class AvailServer
 	 *        response.
 	 * @return A message.
 	 */
-	@InnerAccess Message newSimpleSuccessMessage (final CommandMessage command)
+	static @InnerAccess Message newSimpleSuccessMessage (
+		final CommandMessage command)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
@@ -361,7 +382,7 @@ public final class AvailServer
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
-	@InnerAccess Message newSuccessMessage (
+	static @InnerAccess Message newSuccessMessage (
 		final CommandMessage command,
 		final Continuation1NotNull<JSONWriter> content)
 	{
@@ -387,7 +408,7 @@ public final class AvailServer
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
-	@InnerAccess Message newIOUpgradeRequestMessage (
+	static @InnerAccess Message newIOUpgradeRequestMessage (
 		final CommandMessage command,
 		final UUID uuid)
 	{
@@ -424,7 +445,7 @@ public final class AvailServer
 		{
 			case VERSION_NEGOTIATION:
 			{
-				final CommandMessage command = Command.VERSION.parse(
+				final @Nullable CommandMessage command = Command.VERSION.parse(
 					message.content());
 				if (command != null)
 				{
@@ -684,7 +705,7 @@ public final class AvailServer
 		 */
 		void addModule (final ModuleNode node)
 		{
-			List<ModuleNode> list = modules;
+			@Nullable List<ModuleNode> list = modules;
 			if (list == null)
 			{
 				list = new ArrayList<>();
@@ -704,7 +725,7 @@ public final class AvailServer
 		 */
 		void addResource (final ModuleNode node)
 		{
-			List<ModuleNode> list = resources;
+			@Nullable List<ModuleNode> list = resources;
 			if (list == null)
 			{
 				list = new ArrayList<>();
@@ -768,7 +789,7 @@ public final class AvailServer
 				writer.write("isRoot");
 				writer.write(true);
 			}
-			final List<ModuleNode> mods = modules;
+			final @Nullable List<ModuleNode> mods = modules;
 			final boolean isPackage = !isRoot && mods != null;
 			if (isPackage)
 			{
@@ -780,7 +801,7 @@ public final class AvailServer
 				writer.write("isResource");
 				writer.write(true);
 			}
-			final List<ModuleNode> res = resources;
+			final @Nullable List<ModuleNode> res = resources;
 			if (mods != null || res != null)
 			{
 				writer.write("state");
@@ -816,7 +837,7 @@ public final class AvailServer
 					writer.write(true);
 				}
 			}
-			final Throwable e = exception;
+			final @Nullable Throwable e = exception;
 			if (e != null)
 			{
 				writer.write("error");
@@ -983,7 +1004,7 @@ public final class AvailServer
 				{
 					final MutableOrNull<ModuleNode> tree =
 						new MutableOrNull<>();
-					final File directory = root.sourceDirectory();
+					final @Nullable File directory = root.sourceDirectory();
 					if (directory != null)
 					{
 						try

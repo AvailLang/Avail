@@ -76,6 +76,7 @@ public class LRUCache<K, V>
 	 */
 	private void lock ()
 	{
+		//noinspection LockAcquiredButNotSafelyReleased
 		lock.lock();
 	}
 
@@ -97,7 +98,7 @@ public class LRUCache<K, V>
 
 	/**
 	 * A {@code StrongCacheMap} subclasses {@link LinkedHashMap} to override
-	 * {@link #removeEldestEntry(Entry) removeEldestEntry}.
+	 * {@code removeEldestEntry}.
 	 */
 	private final class StrongCacheMap
 	extends LinkedHashMap<K, V>
@@ -196,7 +197,7 @@ public class LRUCache<K, V>
 
 	/**
 	 * A {@code SoftCacheMap} subclasses {@link LinkedHashMap} to override
-	 * {@link #removeEldestEntry(Entry) removeEldestEntry}.
+	 * {@code removeEldestEntry}.
 	 */
 	@InnerAccess final class SoftCacheMap
 	extends LinkedHashMap<K, SoftReference<V>>
@@ -214,7 +215,7 @@ public class LRUCache<K, V>
 		 * @param capacity The capacity of the {@linkplain
 		 *                 StrongCacheMap map}.
 		 */
-		public SoftCacheMap (final int capacity)
+		SoftCacheMap (final int capacity)
 		{
 			super(capacity, 0.75f, true);
 			this.capacity = capacity;
@@ -239,7 +240,7 @@ public class LRUCache<K, V>
 				softMap.remove(key);
 				keysBySoftReference.remove(reference);
 
-				final V referent = reference.get();
+				final @Nullable V referent = reference.get();
 				if (referent != null)
 				{
 					retire(key, referent);
@@ -341,7 +342,7 @@ public class LRUCache<K, V>
 		/**
 		 * Construct a new {@link ValueFuture}.
 		 */
-		public ValueFuture ()
+		ValueFuture ()
 		{
 			// No implementation required.
 		}
@@ -560,9 +561,11 @@ public class LRUCache<K, V>
 		checkInvariants();
 
 		Reference<? extends V> reference;
+		//noinspection NestedAssignment
 		while ((reference = defunctReferences.poll()) != null)
 		{
 			assert reference.get() == null;
+			//noinspection SuspiciousMethodCalls
 			final K key = keysBySoftReference.remove(reference);
 			if (key != null)
 			{
@@ -586,7 +589,7 @@ public class LRUCache<K, V>
 	 */
 	@InnerAccess void retire (final K key, final V referent)
 	{
-		final Continuation2<K, V> retire = retirementAction;
+		final @Nullable Continuation2<K, V> retire = retirementAction;
 		if (retire != null)
 		{
 			retire.value(key, referent);
@@ -627,7 +630,7 @@ public class LRUCache<K, V>
 			{
 				final K key = entry.getKey();
 				final SoftReference<V> reference = entry.getValue();
-				final V referent = reference.get();
+				final @Nullable V referent = reference.get();
 				if (referent != null)
 				{
 					retire(key, referent);
@@ -683,8 +686,9 @@ public class LRUCache<K, V>
 		{
 			expungeDefunctReferences();
 
-			V result = null;
+			@Nullable V result = null;
 			final SoftReference<V> reference = softMap.get(key);
+			//noinspection NestedAssignment
 			if (reference != null && (result = reference.get()) != null)
 			{
 				// Update the map containing strong references to the most
@@ -724,8 +728,6 @@ public class LRUCache<K, V>
 	 */
 	public @Nullable V get (final K key) throws RuntimeException
 	{
-		assert key != null;
-
 		lock();
 		try
 		{
@@ -735,8 +737,9 @@ public class LRUCache<K, V>
 			// defunct references from it.
 			expungeDefunctReferences();
 
-			SoftReference<V> reference = softMap.get(key);
-			V result = null;
+			@Nullable SoftReference<V> reference = softMap.get(key);
+			@Nullable V result = null;
+			//noinspection NestedAssignment
 			if (reference == null || (result = reference.get()) == null)
 			{
 				// We didn't find the desired value in the cache, so now we
@@ -879,7 +882,8 @@ public class LRUCache<K, V>
 
 			final SoftReference<V> reference = softMap.remove(key);
 			strongMap.remove(key);
-			V result = null;
+			@Nullable V result = null;
+			//noinspection NestedAssignment
 			if (reference != null && (result = reference.get()) != null)
 			{
 				retire(key, result);

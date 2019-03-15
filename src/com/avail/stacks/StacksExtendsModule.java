@@ -103,12 +103,13 @@ public class StacksExtendsModule extends StacksImportModule
 				return moduleNameToExtendsList().get(moduleNameToSearch);
 			}
 
-			for (final StacksExtendsModule extendsModule :
-				moduleNameToExtendsList().values())
-			{
-				return extendsModule
-					.getExtendsModule(moduleNameToSearch);
-			}
+			return moduleNameToExtendsList()
+				.values()
+				.stream()
+				.findFirst()
+				.map(extendsModule -> extendsModule
+					.getExtendsModule(moduleNameToSearch))
+				.orElse(null);
 		}
 		return null;
 	}

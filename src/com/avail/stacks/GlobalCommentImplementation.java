@@ -106,7 +106,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final StacksErrorLog errorLog,
 		final JSONWriter jsonWriter)
 	{
-		//DO NOTHING AS GLOBALS AREN'T WRITEN TO DOCUMENTATION
+		//DO NOTHING AS GLOBALS AREN'T WRITTEN TO DOCUMENTATION
 	}
 
 	@Override

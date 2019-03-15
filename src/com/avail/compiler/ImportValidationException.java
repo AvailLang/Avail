@@ -49,7 +49,7 @@ extends Exception
 	 * @param message
 	 *        A message suitable for use as a parse rejection.
 	 */
-	public ImportValidationException (final String message)
+	ImportValidationException (final String message)
 	{
 		super(message);
 	}

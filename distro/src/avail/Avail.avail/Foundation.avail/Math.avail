@@ -1122,7 +1122,7 @@ Stable method "log_of_" is
 Macro "π" is [`3.141592653589793` ("π") → literal phrase];
 
 /**
- * Helper for strengthening the result type of bitshifts.
+ * Helper for strengthening the result type of bit shifts.
  *
  * @method "_<<_"
  * @restricts "baseIntegerType" "integer's type"
@@ -1569,9 +1569,12 @@ Public stable method "nonpositive integer" is [(-∞..0]];
  *
  * @method "greatest common denominator of_and_"
  * @category "Mathematics" "Integers"
- * @param "input1" "integer" the first number of the pair to check.
- * @param "input2" "integer" the second number of the pair to check.
- * @returns "integer" the greates common denominator of the numbers.
+ * @param "input1" "integer"
+ *        The first number of the pair to check.
+ * @param "input2" "integer"
+ *        The second number of the pair to check.
+ * @returns "integer"
+ *          The greatest common denominator of the numbers.
  */
 
 Stable forward method "greatest common denominator of_and_" is
