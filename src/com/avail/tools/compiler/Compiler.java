@@ -235,7 +235,7 @@ public final class Compiler
 				(int) ((processedBytes * 1000) / totalBytes);
 			final float percent = perThousand / 10.0f;
 			globalStatus = String.format(
-				"Build Progress - %3.1f%%", percent);
+				"Build Progress - %4.1f%%", percent);
 			final VerbosityLevel level = configuration.verbosityLevel();
 			if (level.displayGlobalProgress() &&
 				!level.displayLocalProgress())

@@ -1,18 +1,15 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit" singleton="true">
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <option name="ALTERNATIVE_JRE_PATH" value="8" />
+  <configuration default="false" name="Avail Test" type="JUnit" factoryName="JUnit">
+    <module name="Avail" />
     <option name="PACKAGE_NAME" value="com.avail.test" />
-    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="com.avail.test.AvailTest" />
     <option name="METHOD_NAME" value="" />
-    <option name="TEST_OBJECT" value="package" />
+    <option name="TEST_OBJECT" value="class" />
     <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail" />
     <option name="PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
-    <option name="TEST_SEARCH_SCOPE">
-      <value defaultName="wholeProject" />
-    </option>
-    <dir value="$PROJECT_DIR$/test/com/avail/test" />
-    <method v="2" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
   </configuration>
 </component>

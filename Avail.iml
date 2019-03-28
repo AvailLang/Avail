@@ -11,10 +11,10 @@
       <excludeFolder url="file://$MODULE_DIR$/distro/Apps" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
-    <orderEntry type="library" scope="TEST" name="junit" level="project" />
-    <orderEntry type="library" name="annotations" level="project" />
-    <orderEntry type="module-library">
+    <orderEntry type="jdk" jdkName="8" jdkType="JavaSDK" />
+    <orderEntry type="library" exported="" scope="TEST" name="junit" level="project" />
+    <orderEntry type="library" exported="" name="annotations" level="project" />
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/libraries/asm-6.0.jar!/" />
@@ -23,7 +23,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/libraries/asm-analysis-6.0.jar!/" />
@@ -32,7 +32,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/libraries/asm-tree-6.0.jar!/" />
@@ -41,7 +41,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/libraries/asm-util-6.0.jar!/" />
