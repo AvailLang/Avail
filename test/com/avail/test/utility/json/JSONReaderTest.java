@@ -44,9 +44,26 @@ import org.junit.jupiter.api.function.Executable;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static com.avail.test.utility.json.TestJSONKeyValue.*;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMACOMPACTARRAY;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMADOUBLE;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMAFALSE;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMAFLOAT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMALONG;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANARRAY;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANINT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANOBJECT;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMANULL;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMASTRING;
+import static com.avail.test.utility.json.TestJSONKeyValue.IMATRUE;
+import static com.avail.test.utility.json.TestJSONKeyValue.OBJINT;
+import static com.avail.test.utility.json.TestJSONKeyValue.OBJSTRING;
+import static com.avail.test.utility.json.TestJSONKeyValue.addToBuilder;
+import static com.avail.test.utility.json.TestJSONKeyValue.test;
 import static com.avail.utility.Nulls.stripNull;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * A {@code JSONReaderTest} contains unit tests for the {@link JSONReader}.
@@ -130,6 +147,7 @@ public class JSONReaderTest
 		}
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("JSON payload (no superfluous whitespace) reads in correctly")
 	void correctCompactJSONTest ()
@@ -152,6 +170,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("JSON payload (superfluous whitespace) reads in correctly")
 	void correctSparseJSONTest ()
@@ -181,6 +200,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing comma")
 	void missingCommaJSONTest ()
@@ -195,6 +215,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing ':' between key-value pair")
 	void missingColonJSONTest ()
@@ -231,6 +252,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload does not escape String internal newline")
 	void missingEscapeWhitespaceJSONTest ()
@@ -248,6 +270,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing opening '{'")
 	void missingOpeningBraceJSONTest ()
@@ -260,6 +283,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing closing '}'")
 	void missingClosingBraceJSONTest ()
@@ -288,6 +312,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload premature close of object")
 	void prematureClosingBraceJSONTest ()
@@ -300,6 +325,7 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
+	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload array comma (,) after last value")
 	void malformedArrayJSONTest ()

@@ -98,6 +98,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 			categories,aliases, false);
 		this.forbids = forbids;
 		this.modules = new ArrayList<>();
+		//noinspection OverridableMethodCallDuringObjectConstruction
 		this.modules.add(signature().module());
 		this.hashID = stringFrom(signature.name()).hash();
 	}

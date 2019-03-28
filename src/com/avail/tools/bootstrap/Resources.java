@@ -48,6 +48,14 @@ import java.util.regex.Matcher;
 final class Resources
 {
 	/**
+	 * Forbid instantiation.
+	 */
+	private Resources ()
+	{
+		// No implementation required.
+	}
+
+	/**
 	 * The base name of the {@linkplain ResourceBundle resource bundle} that
 	 * contains the preamble.
 	 */
@@ -117,6 +125,7 @@ final class Resources
 	 */
 	public static String specialObjectKey (final int index)
 	{
+		//noinspection StringConcatenationMissingWhitespace
 		return "specialObject" + index;
 	}
 
@@ -195,6 +204,7 @@ final class Resources
 	public static String errorCodeKey (
 		final AvailErrorCode code)
 	{
+		//noinspection StringConcatenationMissingWhitespace
 		return "errorCode" + code.nativeCode();
 	}
 

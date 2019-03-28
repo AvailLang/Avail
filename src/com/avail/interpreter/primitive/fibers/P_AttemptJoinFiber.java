@@ -40,10 +40,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -66,7 +64,7 @@ import static com.avail.utility.Nulls.stripNull;
  * of joining fibers in the event of an unpark.  Similarly, a termination of the
  * joinee may happen between adding this fiber to the set and transitioning this
  * fiber to a parked state.  That will simply be dealt with as a spurious
- * unpaark.  Note that in this case, the unpark logic should expect that a
+ * unpark.  Note that in this case, the unpark logic should expect that a
  * joining fiber </p>
  *
  * <p>It may also be the case that </p>

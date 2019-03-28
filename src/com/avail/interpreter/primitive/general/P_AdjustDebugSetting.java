@@ -60,6 +60,7 @@ public final class P_AdjustDebugSetting extends Primitive
 		new P_AdjustDebugSetting().init(
 			1, Unknown, CannotFail);
 
+	@SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)

@@ -36,7 +36,28 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailIntegerValueHelper;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObjectFieldHelper;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.IntegerSlotsEnum;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.ObjectSlotsEnum;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
@@ -66,7 +87,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,24 +101,43 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.FiberDescriptor.*;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.ABORTED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.INTERRUPTED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.RUNNING;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.TERMINATED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberDescriptor.stringificationPriority;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME;
+import static com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL;
+import static com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME;
+import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
+import static com.avail.exceptions.AvailErrorCode.byNumericCode;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.CURRENT_FUNCTION;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.FRAMES;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.L2_INSTRUCTIONS;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.L2_OFFSET;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.LOADER;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import static com.avail.interpreter.Primitive.Result.FAILURE;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -235,7 +274,7 @@ public final class Interpreter
 	 * <p>Note that this only has an effect if one of the above debug flags is
 	 * set.</p>
 	 */
-	public static boolean debugIntoFiberDebugLog = true;
+	public static final boolean debugIntoFiberDebugLog = true;
 
 	/**
 	 * Whether to print debug information related to a specific problem being
@@ -1996,11 +2035,10 @@ public final class Interpreter
 	}
 
 	/**
-	 * Immediately throw a {@link StackReifier} with its {@link
-	 * StackReifier#actuallyReify} flag set to false.  This abandons the
-	 * Java stack (out to {@link #run()}) before running the
-	 * postReificationAction, which should set up the interpreter to continue
-	 * running.
+	 * Immediately throw a {@link StackReifier} with its {@code actuallyReify}
+	 * flag set to false.  This abandons the Java stack (out to {@link #run()})
+	 * before running the postReificationAction, which should set up the
+	 * interpreter to continue running.
 	 *
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this stack

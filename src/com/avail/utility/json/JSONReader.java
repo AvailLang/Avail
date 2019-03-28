@@ -349,8 +349,8 @@ implements Closeable
 	 */
 	private String readString () throws IOException, MalformedJSONException
 	{
-		final StringBuilder builder = new StringBuilder();
 		peekFor('"', null);
+		final StringBuilder builder = new StringBuilder();
 		while (!peekFor('"', null))
 		{
 			if (peekFor('\\', null))
@@ -446,7 +446,7 @@ implements Closeable
 		{
 			throw new MalformedJSONException();
 		}
-		return new JSONArray(list.toArray(new JSONData[list.size()]));
+		return new JSONArray(list.toArray(new JSONData[0]));
 	}
 
 	/**
@@ -476,7 +476,7 @@ implements Closeable
 			{
 				throw new MalformedJSONException();
 			}
-			final JSONData value = readData();
+			final @Nullable JSONData value = readData();
 			map.put(key, value);
 			skipWhitespace();
 		}
@@ -502,7 +502,7 @@ implements Closeable
 	{
 		skipWhitespace();
 		final int firstCodePoint = peekCodePoint();
-		final JSONData data;
+		final @Nullable JSONData data;
 		switch (firstCodePoint)
 		{
 			case -1:

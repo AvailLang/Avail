@@ -35,6 +35,7 @@ package com.avail.builder;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 import static com.avail.builder.ModuleNameResolver.availExtension;
@@ -57,7 +58,7 @@ extends ModuleName
 
 	private ModuleRoot moduleRoot ()
 	{
-		return moduleRoots.moduleRootFor(rootName());
+		return stripNull(moduleRoots.moduleRootFor(rootName()));
 	}
 
 	/**
@@ -144,7 +145,7 @@ extends ModuleName
 		final File ref = sourceReference();
 		assert ref.isFile();
 		final String fileName = ref.getName();
-		final File directoryName = ref.getParentFile();
+		final @Nullable File directoryName = ref.getParentFile();
 		this.isPackage = directoryName != null
 			&& fileName.equals(directoryName.getName());
 	}

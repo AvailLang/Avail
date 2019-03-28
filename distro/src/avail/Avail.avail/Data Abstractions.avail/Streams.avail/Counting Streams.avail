@@ -46,7 +46,7 @@ Body
 "maximum" is a new field atom;
 
 /**
- * A counting number stream is an immutable lazy list of arbitarily many
+ * A counting number stream is an immutable lazy list of arbitrarily many
  * numbers, each of which is a fixed distance from its neighbors.
  *
  * @type "counting number stream"
@@ -226,7 +226,7 @@ Semantic restriction "a counting stream from_to_" is
  *       this will be answered by the stream. If `delta < 0`, then no values
  *       smaller than this will be answered by the stream.
  * @param "delta" "number"
- *    delta - The amount by which successive values anwered by the stream will
+ *    delta - The amount by which successive values answered by the stream will
  *       differ.
  * @returns "stream of number"
  *    The requested stream.

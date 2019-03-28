@@ -52,24 +52,20 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.IntFunction;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.NybbleTupleDescriptor
-	.generateNybbleTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor
-	.generateObjectTupleFrom;
+import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ReverseTupleDescriptor.createReverseTuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SubrangeTupleDescriptor.createSubrange;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.TupleTypeDescriptor
-	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.max;

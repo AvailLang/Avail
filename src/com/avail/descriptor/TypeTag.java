@@ -36,6 +36,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * {@code TypeTag} is an enumeration that corresponds with the basic type
  * structure of Avail's type lattice.  Even though the type lattice contains an
@@ -154,6 +156,7 @@ public enum TypeTag
 		this.highOrdinal = ordinal();
 	}
 
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	TypeTag (final TypeTag parent)
 	{
 		assert parent.metaTag == null
@@ -169,6 +172,7 @@ public enum TypeTag
 		this.depth = parent.depth + 1;
 		this.parent = parent;
 		this.highOrdinal = ordinal();
+		//noinspection ThisEscapedInObjectConstruction
 		parent.addDescendant(this);
 		instance.metaTag = this;
 	}
@@ -184,10 +188,9 @@ public enum TypeTag
 		}
 	}
 
-	final TypeTag parent;
+	final @Nullable TypeTag parent;
 
-	@Nullable
-	private TypeTag metaTag;
+	private @Nullable TypeTag metaTag;
 
 	final int depth;
 
@@ -197,7 +200,7 @@ public enum TypeTag
 
 	public TypeTag metaTag ()
 	{
-		return metaTag;
+		return stripNull(metaTag);
 	}
 
 	public boolean isSubtagOf (final TypeTag otherTag)
@@ -206,36 +209,42 @@ public enum TypeTag
 			&& highOrdinal <= otherTag.highOrdinal;
 	}
 
+	@SuppressWarnings("TailRecursion")
 	TypeTag commonAncestorWith (final TypeTag other)
 	{
 		if (this == other)
 		{
 			return this;
 		}
+		final @Nullable TypeTag myParent = this.parent;
 		if (this.depth > other.depth)
 		{
-			return this.parent.commonAncestorWith(other);
+			assert myParent != null;
+			return myParent.commonAncestorWith(other);
 		}
+		final @Nullable TypeTag otherParent = other.parent;
 		if (other.depth > this.depth)
 		{
-			return other.parent.commonAncestorWith(this);
+			assert otherParent != null;
+			return otherParent.commonAncestorWith(this);
 		}
 		// Depths are equal.
+		assert myParent != null && otherParent != null;
 		assert this != UNKNOWN_TAG && other != UNKNOWN_TAG;
-		return this.parent.commonAncestorWith(other.parent);
+		return myParent.commonAncestorWith(otherParent);
 	}
 
 	static
 	{
-		for (TypeTag tag : TypeTag.values())
+		for (final TypeTag tag : TypeTag.values())
 		{
 			if (tag.metaTag == null && tag != UNKNOWN_TAG)
 			{
-				tag.metaTag = tag.parent.metaTag;
+				tag.metaTag = stripNull(tag.parent).metaTag;
 			}
 		}
 		BOTTOM_TYPE_TAG.highOrdinal = ANY_TYPE_TAG.ordinal();
-		for (TypeTag tag : TOP_TYPE_TAG.descendants)
+		for (final TypeTag tag : TOP_TYPE_TAG.descendants)
 		{
 			if (!tag.descendants.contains(BOTTOM_TYPE_TAG))
 			{

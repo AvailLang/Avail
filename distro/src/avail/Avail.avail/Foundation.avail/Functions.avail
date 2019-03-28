@@ -344,7 +344,7 @@ Semantic restriction "_(_,`…)" is
 /**
  * Partially evaluate a function, providing the last argument.  Produce a
  * function which takes the remaining arguments and evaluates the original
- * function with remaining argumenst combined with the last argument.
+ * function with remaining arguments combined with the last argument.
  *
  * @method "_(`…,_)"
  * @param "originalFunction" "expression phrase ⇒ function"

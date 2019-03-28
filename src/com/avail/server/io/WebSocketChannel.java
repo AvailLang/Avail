@@ -85,7 +85,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	 * @param transport
 	 *        The {@linkplain AsynchronousSocketChannel channel}.
 	 */
-	public WebSocketChannel (
+	WebSocketChannel (
 		final WebSocketAdapter adapter,
 		final AsynchronousSocketChannel transport)
 	{
@@ -126,7 +126,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	}
 
 	@Override
-	public void close () throws Exception
+	public void close ()
 	{
 		if (handshakeSucceeded)
 		{

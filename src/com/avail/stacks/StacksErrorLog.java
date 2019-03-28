@@ -107,6 +107,7 @@ public class StacksErrorLog
 				+ "strong, em {color:blue;}</style>\n"
 				+ "</head>\n<body>\n")
 				.getBytes(StandardCharsets.UTF_8));
+			//noinspection OverridableMethodCallDuringObjectConstruction
 			addLogEntry(openHTML,0);
 		}
 		catch (final IOException e)

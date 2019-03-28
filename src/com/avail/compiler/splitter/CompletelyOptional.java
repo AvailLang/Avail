@@ -40,11 +40,12 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCONSISTENT_ARGUMENT_REORDERING;
+import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
 
 /**
  * A {@code CompletelyOptional} is a special {@linkplain Expression

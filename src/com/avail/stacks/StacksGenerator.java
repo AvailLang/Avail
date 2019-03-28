@@ -93,7 +93,7 @@ public class StacksGenerator
 	final Path outputPath;
 
 	/**
-	 *  The location useds for storing any log files such as error-logs.
+	 *  The location used for storing any log files such as error-logs.
 	 */
 	public final Path logPath;
 
@@ -345,6 +345,6 @@ public class StacksGenerator
 		IO.close(channel);
 		IO.close(templateFile);
 
-		return new String(buf.array(), "UTF-8");
+		return new String(buf.array(), StandardCharsets.UTF_8);
 	}
 }

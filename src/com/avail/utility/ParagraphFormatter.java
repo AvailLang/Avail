@@ -128,7 +128,6 @@ public class ParagraphFormatter
 	public String format (final String str)
 	{
 		String input = str;
-		final StringBuilder output = new StringBuilder();
 
 		// Replace all line separators with the system standard.
 		final String nwln = System.getProperty("line.separator");
@@ -140,6 +139,7 @@ public class ParagraphFormatter
 
 		final int lineWidth = windowWidth - leftMargin - rightMargin;
 
+		final StringBuilder output = new StringBuilder();
 		while (!input.isEmpty())
 		{
 			// Get the next paragraph.

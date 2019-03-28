@@ -45,7 +45,21 @@ import com.avail.exceptions.MalformedMessageException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.BRANCH_FORWARD;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.JUMP_BACKWARD;
+import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.PARSE_PART;
+import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
+import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.decode;
+import static com.avail.compiler.ParsingOperation.distinctInstructions;
+import static com.avail.compiler.ParsingOperation.operand;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -57,8 +71,12 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 
 /**
@@ -72,6 +90,14 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
  */
 public final class MessageSplitterTest
 {
+	/**
+	 * Forbid instantiation.
+	 */
+	private MessageSplitterTest ()
+	{
+		// No implementation required.
+	}
+
 	/**
 	 * This is a helper class for building test cases.
 	 */
@@ -99,7 +125,7 @@ public final class MessageSplitterTest
 		 * @param tokens The expected substrings comprising the method name.
 		 * @param instructions The expected encoded parsing instructions.
 		 */
-		public Case (
+		Case (
 			final String message,
 			final String[] tokens,
 			final Integer[] instructions)

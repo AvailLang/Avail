@@ -1750,7 +1750,7 @@ Method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
 /**
  * Obtain a printed representation of the specified {@type "exception"}'s
  * cascaded stack summary, suitable for printing. Only summarize frames of the
- * outmost {@type "exception"} in the given range; all originating {@type
+ * outermost {@type "exception"} in the given range; all originating {@type
  * "exception"}s are fully summarized.
  *
  * @method "“_”(frames_of stack summary«,⁇renumbered starting at_»,⁇cascaded)"
@@ -1987,7 +1987,7 @@ Grammatical restriction "`$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅
  * this case without a final result.
  *
  * Note that the stack tuple must include a value for each stack slot required
- * by the continuation. The stack grows downward, and predecrements before
+ * by the continuation. The stack grows downward, and pre-decrements before
  * pushing, so the stack pointer should begin at the first invalid index.
  */
 syntheticBase ::=
@@ -2023,7 +2023,7 @@ noUnhandledExceptionHandler :=
 			++ "\nThe current fiber will be terminated.\n";
 		/* If the current fiber was launched in order to apply a semantic
 		 * restriction, run a macro, or run a macro prefix function, then reject
-		 * the current parse. Otherwise, emit the error message to the stardard
+		 * the current parse. Otherwise, emit the error message to the standard
 		 * error stream and terminate the current fiber.
 		 */
 		If current fiber can reject a parse then

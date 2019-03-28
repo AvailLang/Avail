@@ -48,10 +48,8 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
-	.JAVA_ANCESTORS;
-import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
-	.JAVA_CLASS;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 

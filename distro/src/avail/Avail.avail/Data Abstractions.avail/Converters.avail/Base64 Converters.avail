@@ -110,7 +110,7 @@ Private method "character_" is
  * Produce a sequence of Base64 characters that constitute the encoding of the
  * given sequence of {@type "byte"}s.
  *
- * @method "hextets from_"
+ * @method "characters from_"
  * @param "bytes" "byte*"
  * @returns "Base64 string"
  * @category "Data Abstractions" "Converters" "Codecs" "Base64"

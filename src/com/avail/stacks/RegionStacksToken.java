@@ -38,6 +38,7 @@ package com.avail.stacks;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class RegionStacksToken extends AbstractStacksToken
 {
 	/**
@@ -57,9 +58,9 @@ public abstract class RegionStacksToken extends AbstractStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param openRegionDelimiter
 	 * 		The character indicating the start of the region.
@@ -71,13 +72,13 @@ public abstract class RegionStacksToken extends AbstractStacksToken
 	public RegionStacksToken (
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
+		final int position,
+		final int startOfTokenLinePosition,
 		final String moduleName,
 		final char openRegionDelimiter,
 		final char closeRegionDelimiter)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
 		this.openRegionDelimiter = openRegionDelimiter;
 		this.closeRegionDelimiter = closeRegionDelimiter;
 

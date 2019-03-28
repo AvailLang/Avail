@@ -34,9 +34,31 @@ package com.avail.compiler;
 
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.ListPhraseDescriptor;
+import com.avail.descriptor.LiteralPhraseDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
+import com.avail.descriptor.ReferencePhraseDescriptor;
+import com.avail.descriptor.SendPhraseDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Describer;
 
@@ -54,24 +76,24 @@ import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PermutedListPhraseDescriptor
-	.newPermutedListNode;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.VARIABLE_USE_PHRASE;
-import static com.avail.descriptor.ReferencePhraseDescriptor
-	.referenceNodeFromUse;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.performance.StatisticReport
-	.EXPANDING_PARSING_INSTRUCTIONS;
-import static com.avail.performance.StatisticReport
-	.RUNNING_PARSING_INSTRUCTIONS;
-import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS;
+import static com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS;
+import static com.avail.utility.PrefixSharingList.append;
+import static com.avail.utility.PrefixSharingList.last;
+import static com.avail.utility.PrefixSharingList.withoutLast;
 import static com.avail.utility.StackPrinter.trace;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
@@ -326,7 +348,6 @@ public enum ParsingOperation
 				Con(
 					partialSubexpressionList,
 					solution ->
-					{
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTree,
@@ -342,8 +363,7 @@ public enum ParsingOperation
 							consumedStaticTokens,
 							append(argsSoFar, solution.phrase()),
 							marksSoFar,
-							continuation);
-					}));
+							continuation)));
 		}
 	},
 
@@ -392,7 +412,6 @@ public enum ParsingOperation
 				Con(
 					partialSubexpressionList,
 					solution ->
-					{
 						compiler.eventuallyParseRestOfSendNode(
 							solution.endState(),
 							successorTrees.tupleAt(1),
@@ -408,8 +427,7 @@ public enum ParsingOperation
 							consumedStaticTokens,
 							append(argsSoFar, solution.phrase()),
 							marksSoFar,
-							continuation);
-					}));
+							continuation)));
 		}
 	},
 
@@ -1104,10 +1122,10 @@ public enum ParsingOperation
 		},
 
 	/**
-	 * {@code 16*N+3} - Parse the Nth {@linkplain MessageSplitter#messageParts()
-	 * message part} of the current message. This will be a specific {@linkplain
-	 * TokenDescriptor token}. It should be matched case sensitively against the
-	 * source token.
+	 * {@code 16*N+3} - Parse the N<sup>th</sup> {@linkplain
+	 * MessageSplitter#messageParts() message part} of the current message. This
+	 * will be a specific {@linkplain TokenDescriptor token}. It should be
+	 * matched case sensitively against the source token.
 	 */
 	PARSE_PART(3, false, false)
 	{
@@ -1137,10 +1155,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+4} - Parse the Nth {@linkplain MessageSplitter#messagePartsList
-	 * message part} of the current message. This will be a specific {@linkplain
-	 * TokenDescriptor token}. It should be matched case insensitively against
-	 * the source token.
+	 * {@code 16*N+4} - Parse the N<sup>th</sup> {@linkplain
+	 * MessageSplitter#messageParts()}  message part} of the current message.
+	 * This will be a specific {@linkplain TokenDescriptor token}. It should be
+	 * matched case insensitively against the source token.
 	 */
 	PARSE_PART_CASE_INSENSITIVELY(4, false, false)
 	{
@@ -1170,8 +1188,9 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+5} - Apply grammatical restrictions to the Nth leaf argument
-	 * (underscore/ellipsis) of the current message, which is on the stack.
+	 * {@code 16*N+5} - Apply grammatical restrictions to the N<sup>th</sup>
+	 * leaf argument (underscore/ellipsis) of the current message, which is on
+	 * the stack.
 	 */
 	CHECK_ARGUMENT(5, true, true)
 	{
@@ -1336,15 +1355,16 @@ public enum ParsingOperation
 	/**
 	 * {@code 16*N+8} - A macro has been parsed up to a section checkpoint (§),
 	 * and a copy of the cleaned up parse stack has been pushed, so invoke the
-	 * Nth prefix function associated with the macro.  Consume the previously
-	 * pushed copy of the parse stack.  The current {@link ParserState}'s
-	 * {@linkplain ParserState#clientDataMap} is stashed in the new {@link
-	 * FiberDescriptor fiber}'s {@linkplain AvailObject#fiberGlobals()} and
-	 * retrieved afterward, so the prefix function and macros can alter the
-	 * scope or communicate with each other by manipulating this {@linkplain
-	 * MapDescriptor map}.  This technique prevents chatter between separate
-	 * fibers (i.e., parsing can still be done in parallel) and between separate
-	 * linguistic abstractions (the keys are atoms and are therefore modular).
+	 * N<sup>th</sup> prefix function associated with the macro.  Consume the
+	 * previously pushed copy of the parse stack.  The current {@link
+	 * ParserState}'s {@linkplain ParserState#clientDataMap} is stashed in the
+	 * new {@link FiberDescriptor fiber}'s {@linkplain
+	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
+	 * function and macros can alter the scope or communicate with each other by
+	 * manipulating this {@linkplain MapDescriptor map}.  This technique
+	 * prevents chatter between separate fibers (i.e., parsing can still be done
+	 * in parallel) and between separate linguistic abstractions (the keys are
+	 * atoms and are therefore modular).
 	 */
 	RUN_PREFIX_FUNCTION(8, false, true)
 	{
@@ -1814,7 +1834,7 @@ public enum ParsingOperation
 
 	/**
 	 * Assume that the instruction encodes an operand that represents a
-	 * {@linkplain MessageSplitter#messagePartsList message part} index: answer
+	 * {@linkplain MessageSplitter#messageParts() message part} index: answer
 	 * the operand.  Answer 0 if the operand does not represent a message part.
 	 *
 	 * @param instruction A coded instruction.

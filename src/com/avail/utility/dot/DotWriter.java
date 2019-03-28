@@ -100,7 +100,7 @@ public final class DotWriter
 	 * The number of characters to emit per line. Only applies to formatting
 	 * of block comments.
 	 */
-	@InnerAccess int charactersPerLine;
+	@InnerAccess final int charactersPerLine;
 
 	/**
 	 * The accumulator for the generated source code.

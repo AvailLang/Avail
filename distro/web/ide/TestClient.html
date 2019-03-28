@@ -540,7 +540,7 @@ textarea { background-color: white; }
 		};
 		ioChannel.onclose = function (e)
 		{
-			cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>')
+			cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>');
 			ioChannel = null;
 			wsInput.style.backgroundColor = 'white';
 		};

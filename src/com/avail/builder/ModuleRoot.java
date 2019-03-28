@@ -140,7 +140,7 @@ public final class ModuleRoot
 	{
 		writer.startArray();
 		writer.write(repository.fileName().getAbsolutePath());
-		final File dir = sourceDirectory;
+		final @Nullable File dir = sourceDirectory;
 		if (dir == null)
 		{
 			writer.writeNull();

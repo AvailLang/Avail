@@ -211,7 +211,7 @@ function presentUI ()
 			+ expression.val().slice(cursor));
 		placeCursor(expression, cursor + 1);
 		//expression.get(0).selectionStart = cursor + 1;
-	}
+	};
 
 	var unicodeSize = unicode.length;
 	var i = 0;

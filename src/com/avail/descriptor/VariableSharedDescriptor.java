@@ -55,7 +55,10 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.VALUE;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -161,7 +164,8 @@ extends VariableDescriptor
 	 */
 	protected static void recordWriteToSharedVariable ()
 	{
-		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
+		final @Nullable AvailLoader loader =
+			Interpreter.current().availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.statementCanBeSummarized(false);
@@ -177,7 +181,8 @@ extends VariableDescriptor
 	private static void recordReadFromSharedVariable (
 		final AvailObject object)
 	{
-		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
+		final @Nullable AvailLoader loader =
+			Interpreter.current().availLoaderOrNull();
 		if (loader != null
 			&& loader.statementCanBeSummarized()
 			&& !object.slot(VALUE).equalsNil()
@@ -384,7 +389,7 @@ extends VariableDescriptor
 			if (pojo.equalsNil())
 			{
 				chunkSet = Collections.newSetFromMap(
-					new WeakHashMap<L2Chunk, Boolean>());
+					new WeakHashMap<>());
 				object.setSlot(
 					DEPENDENT_CHUNKS_WEAK_SET_POJO,
 					identityPojo(chunkSet).makeShared());

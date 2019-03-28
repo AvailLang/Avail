@@ -68,7 +68,7 @@ Body
  *
  * As a type, abstract command node exists so that subtypes may refer to objects
  * similar to themselves. A subtype can refer to abstract command node rather
- * than its own type. At exeuction time, a value schematically described as an
+ * than its own type. At execution time, a value schematically described as an
  * abstract command node might actually be an instance of a more specific
  * subtype -- even the same type as included the reference.
  *

@@ -136,10 +136,7 @@ public class ImplementationGroup
 	{
 		if (categories.size() > 1)
 		{
-			if (categories.contains("Unclassified"))
-			{
-				categories.remove("Unclassified");
-			}
+			categories.remove("Unclassified");
 		}
 		return categories;
 	}
@@ -302,16 +299,16 @@ public class ImplementationGroup
 		return classImplementation;
 	}
 	/**
-	 * @param aClassImplemenataion the classImplementation to set
+	 * @param aClassImplementation the classImplementation to set
 	 */
-	public void classImplemenataion (
-		final ClassCommentImplementation aClassImplemenataion)
+	public void classImplementation (
+		final ClassCommentImplementation aClassImplementation)
 	{
-		this.classImplementation = aClassImplemenataion;
-		addAlias(aClassImplemenataion.signature().name());
+		this.classImplementation = aClassImplementation;
+		addAlias(aClassImplementation.signature().name());
 
 		for (final QuotedStacksToken category :
-			aClassImplemenataion.categories.get(0).categories())
+			aClassImplementation.categories.get(0).categories())
 		{
 			categories.add(category.lexeme());
 		}
@@ -350,7 +347,7 @@ public class ImplementationGroup
 	 * @param namingModule The name of the module where the implementation was
 	 * 		first named and exported from.
 	 * @param filename The name of the file that will represent this group.
-	 * @param isPrivate indicates whether or not this is a public methd
+	 * @param isPrivate indicates whether or not this is a public method
 	 */
 	public ImplementationGroup (final A_String name,
 		final String namingModule, final StacksFilename filename,
@@ -433,10 +430,7 @@ public class ImplementationGroup
 		jsonWriter.startObject();
 		if (categories.size() > 1)
 		{
-			if (categories.contains("Unclassified"))
-			{
-				categories.remove("Unclassified");
-			}
+			categories.remove("Unclassified");
 		}
 
 		if (!methods.isEmpty())
@@ -449,9 +443,8 @@ public class ImplementationGroup
 			{
 				final int listSize = grammaticalRestrictions.size();
 				final ArrayList<GrammaticalRestrictionCommentImplementation>
-					restrictions = new ArrayList
-					<>();
-				restrictions.addAll(grammaticalRestrictions.values());
+					restrictions = new ArrayList<>(
+						grammaticalRestrictions.values());
 				if (listSize > 1)
 				{
 					for (int i = 1; i < listSize; i++)
@@ -502,9 +495,8 @@ public class ImplementationGroup
 			{
 				final int listSize = grammaticalRestrictions.size();
 				final ArrayList<GrammaticalRestrictionCommentImplementation>
-					restrictions = new ArrayList
-					<>();
-				restrictions.addAll(grammaticalRestrictions.values());
+					restrictions = new ArrayList<>(
+						grammaticalRestrictions.values());
 				if (listSize > 1)
 				{
 					for (int i = 1; i < listSize; i++)

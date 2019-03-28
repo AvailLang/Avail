@@ -41,8 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -54,8 +53,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
  * MethodDescriptor method} associated with the given
- * {@linkplain AtomDescriptor true name}. This is generally only used when
- * Avail code is constructing Avail code in the metacircular compiler.
+ * {@linkplain AtomDescriptor true name}.
  */
 public final class P_MethodFromName extends Primitive
 {

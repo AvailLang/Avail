@@ -1342,7 +1342,7 @@ Public stable method "titlecase_" is
 ] : character;
 
 /**
- * Answer a titlecased variant of the specified string.
+ * Answer a title-cased variant of the specified string.
  *
  * @method "titlecase_"
  * @param "s" "string"

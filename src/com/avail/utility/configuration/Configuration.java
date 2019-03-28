@@ -38,6 +38,7 @@ package com.avail.utility.configuration;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("InterfaceMayBeAnnotatedFunctional")
 public interface Configuration
 {
 	/**

@@ -231,7 +231,7 @@ public final class OSXUtility
 					if (method.getName().equals(handlerMessage)
 						&& handler != null)
 					{
-						final Boolean s = handler.value(args[0]);
+						final @Nullable Boolean s = handler.value(args[0]);
 						success = Boolean.TRUE.equals(s);
 					}
 					else

@@ -32,6 +32,7 @@
 
 package com.avail.utility.configuration;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -149,7 +150,7 @@ public final class XMLDocumentModel<
 	{
 		assert elementClass.isEnum();
 		// Capture the elements of the enumeration.
-		ElementType[] elements = null;
+		@Nullable ElementType[] elements = null;
 		try
 		{
 			final Method valuesMethod = elementClass.getMethod("values");
@@ -169,7 +170,7 @@ public final class XMLDocumentModel<
 		// Initialize other data structures.
 		elementsByQName = new HashMap<>(elements.length);
 		allowedChildren = new HashMap<>(elements.length);
-		ElementType root = null;
+		@Nullable ElementType root = null;
 		for (final ElementType element : elements)
 		{
 			elementsByQName.put(element.qName(), element);

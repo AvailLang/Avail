@@ -90,23 +90,19 @@ public class StacksSeeTag extends AbstractStacksTag
 		final StacksErrorLog errorLog,
 		final JSONWriter jsonWriter)
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder
-			.append("<a class=")
-			.append('"')
-			.append("stacks i-code")
-			.append('"')
-			.append(" href=")
-			.append('"')
-			.append(thingToSee
-				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter))
-			.append('"')
-			.append(">")
-			.append(thingToSee.lexeme)
-			//.append('<')
-			//.append('\\')
-			.append("</a>");
 
-		return stringBuilder.toString();
+		final String stringBuilder = "<a class="
+			+ '"'
+			+ "stacks i-code"
+			+ '"'
+			+ " href="
+			+ '"'
+			+ thingToSee
+			.toJSON(linkingFileMap, hashID, errorLog, jsonWriter)
+			+ '"'
+			+ ">"
+			+ thingToSee.lexeme
+			+ "</a>";
+		return stringBuilder;
 	}
 }

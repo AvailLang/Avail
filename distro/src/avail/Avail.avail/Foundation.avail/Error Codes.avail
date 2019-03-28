@@ -113,7 +113,7 @@ Invoke
 		<1011, "object-instantiation-did-not-produce-instance">,
 		/* General. */
 		<1020, "invalid-argument">,
-		/* String formating. */
+		/* String formatting. */
 		<1021, "runaway-format-variable">,
 		<1022, "empty-format-variable">,
 		<1023, "invalid-format-metacharacter-escape">,

@@ -38,7 +38,7 @@ import com.avail.utility.MutableOrNull;
 import java.io.IOException;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that
@@ -105,7 +105,7 @@ extends GenericOption<OptionKeyType>
 	{
 		super(
 			optionKey,
-			asList("?"),
+			singletonList("?"),
 			"Display help text containing a description of the application "
 			+ "and an enumeration of its options.",
 			(keyword, value) ->

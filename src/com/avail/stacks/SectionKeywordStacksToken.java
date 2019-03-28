@@ -50,7 +50,7 @@ public final class SectionKeywordStacksToken extends KeywordStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module the token is in
@@ -59,10 +59,10 @@ public final class SectionKeywordStacksToken extends KeywordStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePostion,moduleName);
+		super(string, lineNumber, position, startOfTokenLinePosition,moduleName);
 		this.isSectionToken = true;
 	}
 

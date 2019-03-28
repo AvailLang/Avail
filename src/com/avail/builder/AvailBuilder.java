@@ -1752,6 +1752,7 @@ public final class AvailBuilder
 			{
 				isLoaded = getLoadedModule(moduleName) != null;
 			}
+			//noinspection AssertWithSideEffects
 			assert isLoaded == runtime.includesModuleNamed(
 				stringFrom(moduleName.qualifiedName()));
 			if (isLoaded)
@@ -2263,7 +2264,7 @@ public final class AvailBuilder
 			final @Nullable A_Tuple tuple;
 			try
 			{
-				final byte[] bytes = version.getComments();
+				final @Nullable byte[] bytes = version.getComments();
 				assert bytes != null;
 				final ByteArrayInputStream in = validatedBytesFrom(bytes);
 				final Deserializer deserializer = new Deserializer(in, runtime);
@@ -2514,6 +2515,7 @@ public final class AvailBuilder
 			final int depth)
 		{
 			enter.value(this, depth);
+			@SuppressWarnings("WrapperTypeMayBePrimitive")
 			final Integer nextDepth = depth + 1;
 			for (final ModuleTree child : children)
 			{
@@ -2655,7 +2657,7 @@ public final class AvailBuilder
 			{
 				@SuppressWarnings("StringConcatenationMissingWhitespace")
 				final String outputString =
-					leadingPart + Integer.toString(sequence);
+					leadingPart + sequence;
 				if (!allocatedNames.contains(outputString))
 				{
 					allocatedNames.add(outputString);

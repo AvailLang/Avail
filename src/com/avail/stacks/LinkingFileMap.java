@@ -47,7 +47,9 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 
 import static com.avail.utility.Strings.tabs;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * A holder for all categories in stacks
@@ -263,9 +265,7 @@ public class LinkingFileMap
 				jsonWriter.startArray();
 				for (final Pair<String,String> pair : pairs)
 				{
-					final String distinct = (
-						new StringBuilder().append(pair.first())
-						.append(pair.second())).toString();
+					final String distinct = pair.first() + pair.second();
 					final String relativeLink = pair.second().substring(1);
 					jsonWriter.startObject();
 					jsonWriter.write("methodName");

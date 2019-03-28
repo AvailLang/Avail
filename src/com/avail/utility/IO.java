@@ -50,6 +50,14 @@ import javax.annotation.Nullable;
 public final class IO
 {
 	/**
+	 * Forbid instantiation.
+	 */
+	private IO ()
+	{
+		// No implementation required.
+	}
+
+	/**
 	 * Attempt to {@linkplain AutoCloseable#close() close} the specified {@link
 	 * AutoCloseable resource}. Suppress any {@linkplain Exception exception}
 	 * thrown by the underlying {@code close} operation.

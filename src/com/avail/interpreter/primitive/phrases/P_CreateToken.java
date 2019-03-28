@@ -47,19 +47,25 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain TokenDescriptor token} with
@@ -86,7 +92,7 @@ extends Primitive
 	 * enumeration. It is keyed to the {@linkplain TokenType#ordinal() ordinal}
 	 * of a {@link TokenType}.
 	 */
-	public static A_Atom tokenTypeOrdinalKey = createSpecialAtom(
+	public static final A_Atom tokenTypeOrdinalKey = createSpecialAtom(
 		"token type ordinal key");
 
 	static

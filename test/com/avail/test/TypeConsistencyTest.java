@@ -33,9 +33,20 @@
 package com.avail.test;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TokenTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.Primitive.Result;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,18 +55,36 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.Types;
-import static com.avail.descriptor.FiberTypeDescriptor.*;
-import static com.avail.descriptor.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegersMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
@@ -65,15 +94,25 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments;
+import static com.avail.descriptor.PojoTypeDescriptor.selfTypeForClass;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setMeta;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.VariableTypeDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -1093,7 +1132,7 @@ public class TypeConsistencyTest
 			}
 			final Node newNode = new Node(
 				nodeName,
-				parents.toArray(new Node[parents.size()]))
+				parents.toArray(new Node[0]))
 			{
 				@Override
 				A_Type get ()
@@ -1166,7 +1205,7 @@ public class TypeConsistencyTest
 						node == null ? "BOTTOM" : node.name),
 					kind,
 					node,
-					ancestors.toArray(new Node[ancestors.size()]));
+					ancestors.toArray(new Node[0]));
 			}
 		}
 
@@ -1396,6 +1435,7 @@ public class TypeConsistencyTest
 			ancestors.addAll(Arrays.asList(supernodes));
 			allAncestors = Collections.unmodifiableSet(ancestors);
 			assert !allAncestors.contains(null);
+			//noinspection ThisEscapedInObjectConstruction
 			values.add(this);
 		}
 
@@ -1727,7 +1767,7 @@ public class TypeConsistencyTest
 	 * Test that the {@linkplain Node#supernodes declared} subtype relations
 	 * actually hold the way the graph says they should.
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testGraphModel ()
 	{
@@ -1757,7 +1797,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;x&sube;x
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeReflexivity ()
 	{
@@ -1783,7 +1823,7 @@ public class TypeConsistencyTest
 	 *     &rarr; x&sube;z)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeTransitivity ()
 	{
@@ -1812,7 +1852,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sub;y &rarr; &not;y&sub;x)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeAsymmetry ()
 	{
@@ -1836,7 +1876,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionClosure ()
 	{
@@ -1859,7 +1899,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cup;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionReflexivity ()
 	{
@@ -1879,7 +1919,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y = y&cup;x)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionCommutativity ()
 	{
@@ -1909,7 +1949,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionAssociativity ()
 	{
@@ -1950,7 +1990,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionClosure ()
 	{
@@ -1974,7 +2014,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cap;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionReflexivity ()
 	{
@@ -1994,7 +2034,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y = y&cap;x)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionCommutativity ()
 	{
@@ -2026,7 +2066,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cap;y)&cap;z = x&cap;(y&cap;z)
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionAssociativity ()
 	{
@@ -2153,7 +2193,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFiberResultCovariance ()
 	{
@@ -2172,7 +2212,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFunctionResultCovariance ()
 	{
@@ -2192,7 +2232,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTupleEntryCovariance ()
 	{
@@ -2211,7 +2251,7 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testAbstractPojoTypeParametersCovariance ()
 	{
@@ -2233,7 +2273,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFunctionArgumentContravariance ()
 	{
@@ -2256,7 +2296,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testMetacovariance ()
 	{
@@ -2277,7 +2317,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTypeUnionMetainvariance ()
 	{
@@ -2311,7 +2351,7 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))
 	 * </span>
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTypeIntersectionMetainvariance ()
 	{

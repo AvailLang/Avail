@@ -95,7 +95,7 @@ Body
  * partially written.
  *
  * To mitigate this cost, a best effort is made to perform aligned writes any
- * time this is possible.  Some libraries might read buffers premptively when
+ * time this is possible.  Some libraries might read buffers preemptively when
  * starting to write to a page, but Avail does not, under the assumption that by
  * the time the buffer is ready to be flushed, it is likely that the entire page
  * will be overwritten anyhow.

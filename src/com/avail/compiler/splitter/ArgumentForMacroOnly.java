@@ -35,7 +35,9 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListPhraseDescriptor;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.PARSE_TOP_VALUED_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
  * An {@code ArgumentForMacroOnly} is the translation of an {@linkplain

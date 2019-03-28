@@ -76,7 +76,7 @@ Public class "positionable iterator" extends iterator
  * specified {@type "iterator"} type and statically computed position type.
  *
  * We statically compute the position type, since passing something more
- * specific than the static type would lead to a violation of intravariance of
+ * specific than the static type would lead to a violation of contravariance of
  * the position type (technically just the contravariance aspect due to the need
  * to write to the position variable).
  *

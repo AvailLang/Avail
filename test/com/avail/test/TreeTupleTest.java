@@ -33,7 +33,18 @@
 package com.avail.test;
 
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteArrayTupleDescriptor;
+import com.avail.descriptor.ByteBufferTupleDescriptor;
+import com.avail.descriptor.ByteTupleDescriptor;
+import com.avail.descriptor.IntegerIntervalTupleDescriptor;
+import com.avail.descriptor.NybbleTupleDescriptor;
+import com.avail.descriptor.ObjectTupleDescriptor;
+import com.avail.descriptor.ReverseTupleDescriptor;
+import com.avail.descriptor.SmallIntegerIntervalTupleDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TreeTupleDescriptor;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -45,10 +56,8 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.ByteTupleDescriptor.mutableObjectOfSize;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor
-	.createInterval;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
-	.createSmallInterval;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
@@ -523,11 +532,11 @@ public class TreeTupleTest
 				2, fromCodePoint(411), false)
 			.makeImmutable();
 
-		final A_Tuple anObjectTupleReveresed = anObjectTuple.tupleReverse();
+		final A_Tuple anObjectTupleReversed = anObjectTuple.tupleReverse();
 		final A_Tuple aTreeTuple =
 			createTwoPartTreeTuple(byteString, anObjectTuple, 1, 0);
 		final A_Tuple aTreeTupleReversed =
-			createTwoPartTreeTuple(anObjectTupleReveresed, byteStringReversed, 1, 0);
+			createTwoPartTreeTuple(anObjectTupleReversed, byteStringReversed, 1, 0);
 		assert(aTreeTupleReversed.descriptor() instanceof TreeTupleDescriptor);
 
 		// Compare all the elements but not the tuples themselves, to avoid

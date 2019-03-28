@@ -32,6 +32,7 @@
 
 Module "HTML"
 Versions "3.2", "4.0", "4.01", "5.0"
+Extends "Avail" = ("whitespace lexer")
 Names
 	/* API goes here… */
 Body

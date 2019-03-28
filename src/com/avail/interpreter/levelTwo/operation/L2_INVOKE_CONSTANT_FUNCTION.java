@@ -47,12 +47,18 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-	.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.IFNULL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -60,12 +66,12 @@ import static org.objectweb.asm.Type.*;
  * (after reifying the stack).  It may also trigger reification of this frame by
  * Java-returning a {@link StackReifier} instead of null.
  *
- * <p>The return value can be picked up from {@link Interpreter#latestResult} in
- * a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.  Note that the
- * value that was returned has not been dynamically type-checked yet, so if its
- * validity can't be proven statically by the VM, the calling function should
- * check the type against its expectation (prior to the value getting captured
- * in any continuation).</p>
+ * <p>The return value can be picked up from {@link Interpreter#latestResult()
+ * latestResult} in a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.
+ * Note that the value that was returned has not been dynamically type-checked
+ * yet, so if its validity can't be proven statically by the VM, the calling
+ * function should check the type against its expectation (prior to the value
+ * getting captured in any continuation).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

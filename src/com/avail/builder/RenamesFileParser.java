@@ -396,9 +396,8 @@ public final class RenamesFileParser
 		{
 			@Override
 			Token scan (
-					final RenamesFileParser parser,
-					final int firstChar)
-				throws IOException
+				final RenamesFileParser parser,
+				final int firstChar)
 			{
 				return RenamesFileParser.scanRightArrow();
 			}
@@ -547,7 +546,7 @@ public final class RenamesFileParser
 		while (!atEnd())
 		{
 			final int c = nextCodePoint();
-			final Token token = actionFor(c).scan(this, c);
+			final @Nullable Token token = actionFor(c).scan(this, c);
 			if (token != null)
 			{
 				if (token.tokenType == TokenType.UNKNOWN)
@@ -626,6 +625,7 @@ public final class RenamesFileParser
 		throws IOException, RenamesFileParserException
 	{
 		Token token;
+		//noinspection NestedAssignment
 		while ((token = scan()).tokenType == TokenType.PATH)
 		{
 			if (token.lexeme.isEmpty())
@@ -653,7 +653,7 @@ public final class RenamesFileParser
 	public ModuleNameResolver parse ()
 		throws RenamesFileParserException
 	{
-		ModuleNameResolver theResolver = resolver;
+		@Nullable ModuleNameResolver theResolver = resolver;
 		if (theResolver == null)
 		{
 			theResolver = new ModuleNameResolver(roots);

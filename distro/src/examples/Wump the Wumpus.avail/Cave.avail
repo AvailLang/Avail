@@ -354,7 +354,7 @@ Public method "a cave" is
 	[
 		/* The method "_as_«with«_:=_‡,»»" produces a variant of an object that
 		 * is an instance of the target subtype. "unfinished room" has three
-		 * subtypes: "room", "entrace room", and "pit room". "entrance room"
+		 * subtypes: "room", "entrance room", and "pit room". "entrance room"
 		 * and "pit room" are explicit subtypes of "room"; they differ from
 		 * "room", and from each other, only by a newly obtained atom whose sole
 		 * purpose is to force distinction of the object types.

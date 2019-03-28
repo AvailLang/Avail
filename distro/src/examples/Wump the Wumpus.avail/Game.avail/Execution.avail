@@ -86,8 +86,9 @@ Names
 Body
 
 /**
- * Repeatly apply {@param "action"} until the {@type "Wump the Wumpus" game} is
- * over. The argument should be an implementation of the game's turn sequence.
+ * Repeatedly apply {@param "action"} until the {@type "Wump the Wumpus" game}
+ * is over. The argument should be an implementation of the game's turn
+ * sequence.
  *
  * @method "Until the game is over,do_"
  * @param "action" "[]→⊤"

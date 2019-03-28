@@ -175,7 +175,7 @@ public class StacksOutputFile
 					StandardOpenOption.TRUNCATE_EXISTING));
 		}
 		catch (
-			IllegalArgumentException
+			final IllegalArgumentException
 			| UnsupportedOperationException
 			| SecurityException
 			| IOException e)

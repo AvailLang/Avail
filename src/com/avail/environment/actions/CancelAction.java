@@ -53,7 +53,7 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final AbstractWorkbenchTask task = workbench.backgroundTask;
+		final @Nullable AbstractWorkbenchTask task = workbench.backgroundTask;
 		if (task != null)
 		{
 			task.cancel();

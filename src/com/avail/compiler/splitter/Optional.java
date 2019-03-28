@@ -45,12 +45,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -154,7 +156,6 @@ extends Expression
 		final boolean needsProgressCheck =
 			sequence.mightBeEmpty(emptyListPhraseType());
 		final Label $absent = new Label();
-		final Label $after = new Label();
 		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
@@ -165,6 +166,7 @@ extends Expression
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
+		final Label $after = new Label();
 		generator.emitJumpForward(this, $after);
 		generator.emit($absent);
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
@@ -192,7 +194,6 @@ extends Expression
 			sequence.mightBeEmpty(emptyListPhraseType());
 		generator.flushDelayed();
 		final Label $absent = new Label();
-		final Label $merge = new Label();
 		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
@@ -205,6 +206,7 @@ extends Expression
 		continuation.value();
 		generator.flushDelayed();
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
+		final Label $merge = new Label();
 		generator.emitJumpForward(this, $merge);
 		generator.emit($absent);
 		continuation.value();

@@ -40,6 +40,7 @@ import java.util.Map;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class KeywordStacksToken extends AbstractStacksToken
 {
 
@@ -52,7 +53,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module this token is in.
@@ -61,10 +62,10 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePostion, moduleName);
+		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 
 	/**
@@ -83,13 +84,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 		/**
@@ -100,13 +101,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -119,13 +120,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -137,13 +138,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return InlineKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -155,13 +156,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -174,13 +175,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -192,13 +193,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -210,13 +211,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return InlineKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -228,13 +229,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -246,13 +247,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -264,13 +265,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -283,13 +284,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -302,13 +303,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -321,13 +322,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -340,13 +341,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -359,13 +360,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -378,13 +379,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -397,13 +398,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		},
 
@@ -415,13 +416,13 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			@Override
 			KeywordStacksToken createToken(
 				final int lineNumber,
-				final int postion,
-				final int startOfTokenLinePostion,
+				final int position,
+				final int startOfTokenLinePosition,
 				final String moduleName)
 			{
 				return SectionKeywordStacksToken.create(
-					lexeme, lineNumber, postion,
-					startOfTokenLinePostion, moduleName);
+					lexeme, lineNumber, position,
+					startOfTokenLinePosition, moduleName);
 			}
 		};
 
@@ -471,9 +472,9 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		 * Create the appropriate keyword token
 		 * @param lineNumber
 		 * 		The line number where the token occurs/begins
-		 * @param postion
+		 * @param position
 		 * 		The absolute start position of the token
-		 * @param startOfTokenLinePostion
+		 * @param startOfTokenLinePosition
 		 * 		The position on the line where the token starts.
 		 * @param moduleName
 		 * 		The module the token appears in.
@@ -481,8 +482,8 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		 */
 		 abstract KeywordStacksToken createToken (
 			final int lineNumber,
-			final int postion,
-			final int startOfTokenLinePostion,
+			final int position,
+			final int startOfTokenLinePosition,
 			final String moduleName);
 	}
 
@@ -494,9 +495,9 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 	 * 		creation
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module the token appears in
@@ -506,19 +507,19 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 	public static AbstractStacksToken create(
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
+		final int position,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
 		final StacksKeyword keyword = StacksKeyword.keywordTable.get(string);
 		if (keyword == null)
 		{
 			return StacksToken.create(
-				string, lineNumber, postion,
-				startOfTokenLinePostion, moduleName);
+				string, lineNumber, position,
+				startOfTokenLinePosition, moduleName);
 		}
 
 		return keyword.createToken(
-			lineNumber, postion, startOfTokenLinePostion,moduleName);
+			lineNumber, position, startOfTokenLinePosition,moduleName);
 	}
 }

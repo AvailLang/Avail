@@ -64,7 +64,8 @@ extends L2Operand
 	R register;
 
 	/**
-	 * Answer the {@link L2Register}'s {@link L2Register#finalIndex finalIndex}.
+	 * Answer the {@link L2Register}'s {@link L2Register#finalIndex()
+	 * finalIndex}.
 	 *
 	 * @return The index of the register, computed during register coloring.
 	 */

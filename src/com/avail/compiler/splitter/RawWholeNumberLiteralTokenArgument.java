@@ -36,8 +36,6 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 
 /**
  * A {@code RawWholeNumberLiteralTokenArgument} is an occurrence of

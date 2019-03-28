@@ -56,7 +56,7 @@ Body
 naturalNumberVariable ::= ↑natural number;
 
 /**
- * A counting number reader is an immutable lazy list of arbitarily many
+ * A counting number reader is an immutable lazy list of arbitrarily many
  * numbers, each of which is a fixed distance from its neighbors.
  *
  * @type "counting number reader"
@@ -279,7 +279,7 @@ Semantic restriction "a counting reader from_to_" is
  *        < 0, then no values smaller than this will be answered by the
  *        reader.
  * @param "delta" "number"
- *        The amount by which successive values anwered by the reader will
+ *        The amount by which successive values answered by the reader will
  *        differ.
  * @returns "reader of number"
  *          The requested reader.

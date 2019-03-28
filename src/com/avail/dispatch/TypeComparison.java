@@ -156,7 +156,7 @@ public enum TypeComparison
 	 *        the arguments meet the current criterion.
 	 * @param ifFalseUndecidedDefinitions
 	 *        A list of definitions that will be undecided for some arguments if
-	 *        the aguments do not meet the current criterion.
+	 *        the arguments do not meet the current criterion.
 	 * @param subtypesHideSupertypes
 	 *        Whether an entry should makes another entry with a strictly weaker
 	 *        type ineligible.

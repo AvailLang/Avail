@@ -56,7 +56,8 @@ extends AbstractWorkbenchAction
 	{
 		assert workbench.backgroundTask == null;
 
-		final String selectedEntryPoint = workbench.selectedEntryPoint();
+		final @Nullable String selectedEntryPoint =
+			workbench.selectedEntryPoint();
 		if (selectedEntryPoint == null)
 		{
 			return;
@@ -86,7 +87,7 @@ extends AbstractWorkbenchAction
 		}
 		workbench.inputField.requestFocusInWindow();
 
-		final ResolvedModuleName moduleName =
+		final @Nullable ResolvedModuleName moduleName =
 			workbench.selectedEntryPointModule();
 		if (moduleName != null)
 		{

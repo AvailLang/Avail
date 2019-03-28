@@ -49,7 +49,7 @@ public class StacksToken extends AbstractStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The module the token appears in
@@ -58,10 +58,10 @@ public class StacksToken extends AbstractStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePostion, moduleName);
+		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class StacksToken extends AbstractStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The name of the module the token appears in
@@ -82,10 +82,10 @@ public class StacksToken extends AbstractStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
 		return new StacksToken(
-			string, lineNumber, position, startOfTokenLinePostion, moduleName);
+			string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 }

@@ -105,10 +105,6 @@ public class Pair<FirstType, SecondType>
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(first);
-		builder.append(',');
-		builder.append(second);
-		return builder.toString();
+		return first + "," + second;
 	}
 }

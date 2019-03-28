@@ -72,8 +72,8 @@ Private method "prettify_" is
 	base : natural number := 1;
 	While base ≤ |indices| do
 	[
-		/* Compute the run length of continguous line feeds at the
-		 * current index.
+		/* Compute the run length of contiguous line feeds at the current
+		 * index.
 		 */
 		run : whole number := 0;
 		While

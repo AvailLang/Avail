@@ -37,7 +37,26 @@ import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.PhiRestriction;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -84,9 +103,11 @@ public final class L2Retranslator
 		 */
 		@Nullable L2Operand currentOperand = null;
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2CommentOperand operand) { }
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2ConstantOperand operand) { }
 
@@ -97,9 +118,11 @@ public final class L2Retranslator
 			currentOperand = new L2InternalCounterOperand();
 		}
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2IntImmediateOperand operand) { }
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2FloatImmediateOperand operand) { }
 
@@ -121,6 +144,7 @@ public final class L2Retranslator
 				phiRestrictions);
 		}
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2PrimitiveOperand operand) { }
 
@@ -164,6 +188,7 @@ public final class L2Retranslator
 			currentOperand = new L2ReadVectorOperand<>(newElements);
 		}
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2SelectorOperand operand) { }
 
@@ -260,7 +285,7 @@ public final class L2Retranslator
 	public final L2Generator targetGenerator;
 
 	/** The {@link Frame} representing the invocation being inlined. */
-	public Frame inlineFrame;
+	public final Frame inlineFrame;
 
 	/** The registers providing arguments to the invocation being inlined. */
 	public final List<L2ReadPointerOperand> arguments;

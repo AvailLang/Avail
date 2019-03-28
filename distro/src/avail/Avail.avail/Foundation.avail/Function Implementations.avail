@@ -225,7 +225,7 @@ Public "L1 pop" is a new atom;
 
 /**
  * Push the current value of the specified outer {@type "variable"}. The outer
- * is part of the {@tyep "function"} being executed. Clear this outer variable
+ * is part of the {@type "function"} being executed. Clear this outer variable
  * if it is internally mutable. Raise a {@type
  * "cannot-read-unassigned-variable exception"} if the variable does not have a
  * value.
@@ -981,7 +981,7 @@ Public stable method "“_”(L1 instructions)" is
  *
  * @method "“_”(L1 instructions)"
  * @category "Disassembly" "Function Implementations"
- * @param "f" "functionn"
+ * @param "f" "function"
  *        The {@type "function"} to render.
  * @returns "string"
  *          The requested textual rendering.

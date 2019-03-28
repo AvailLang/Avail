@@ -1081,7 +1081,7 @@ Public method "Require:_'s⁇keeper is valid" is
  * @method "If|if_then_«else if_then_»«else_»?"
  * @param "firstPredicate" "boolean"
  *        The first predicate. This argument is a raw boolean rather than a
- *        function answering a boolean, because it must always be evalutated
+ *        function answering a boolean, because it must always be evaluated
  *        (and hence there is no point deferring its evaluation).
  * @param "firstThen" "[]→⊤"
  *        The action to perform if {@param "firstPredicate"} is {@method
@@ -1838,7 +1838,7 @@ Macro "Until_do_" is
  * @method "Do_while_"
  * @param "action" "[]→⊤"
  *        The function to apply once and then again whenever {@param
- *        "predicate"} answers {@pmethod "true"}.
+ *        "predicate"} answers {@method "true"}.
  * @param "predicate" "[]→boolean"
  *        The function that guards repeated application of {@param "action"}.
  * @returns "⊤"

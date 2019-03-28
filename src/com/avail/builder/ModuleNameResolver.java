@@ -255,7 +255,7 @@ public final class ModuleNameResolver
 		// If the root cannot be resolved, then neither can the
 		// module.
 		final String enclosingRoot = canonicalName.rootName();
-		ModuleRoot root = moduleRoots.moduleRootFor(enclosingRoot);
+		@Nullable ModuleRoot root = moduleRoots.moduleRootFor(enclosingRoot);
 		if (root == null)
 		{
 			return new ModuleNameResolutionResult(
@@ -296,8 +296,8 @@ public final class ModuleNameResolver
 
 		// If the source directory is available, then search the file system.
 		final ArrayList<ModuleName> checkedPaths = new ArrayList<>();
-		IndexedRepositoryManager repository = null;
-		File sourceFile = null;
+		@Nullable IndexedRepositoryManager repository = null;
+		@Nullable File sourceFile = null;
 		if (sourceDirectory != null)
 		{
 			assert !pathStack.isEmpty();
@@ -440,7 +440,7 @@ public final class ModuleNameResolver
 		 *
 		 * @param resolvedModule The module that was successfully resolved.
 		 */
-		public ModuleNameResolutionResult (
+		ModuleNameResolutionResult (
 			final ResolvedModuleName resolvedModule)
 		{
 			this.resolvedModule = resolvedModule;
@@ -457,7 +457,7 @@ public final class ModuleNameResolver
 		 *        The {@link UnresolvedDependencyException} that was thrown
 		 *        while resolving a module.
 		 */
-		public ModuleNameResolutionResult (
+		ModuleNameResolutionResult (
 			final UnresolvedDependencyException e)
 		{
 			this.resolvedModule = null;

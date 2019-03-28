@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
@@ -64,12 +63,23 @@ import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.IS_SOURCE_OF_CYCLE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.ALL_PLANS_IN_PROGRESS;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LATEST_BACKWARD_JUMP;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_ACTIONS;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_COMPLETE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_PREFILTER_MAP;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

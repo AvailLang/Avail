@@ -618,6 +618,7 @@ public final class L2ValueManifest
 					// ancestors, to support total redundancy elimination.
 					continue semanticValues;
 				}
+				//noinspection SuspiciousMethodCalls
 				commonRegisters.retainAll(otherSynonym.registersCopy());
 				sourceSynonyms.add(otherSynonym);
 				allImmutable &= otherSynonym.hasFlag(KNOWN_IMMUTABLE);

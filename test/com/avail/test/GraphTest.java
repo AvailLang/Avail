@@ -107,7 +107,7 @@ public class GraphTest
 	}
 
 	/**
-	 * Test: Check includeVertex().
+	 * Test: Check that includeVertex() works even if the element is present.
 	 */
 	@Test
 	public void testIncludeVertex ()

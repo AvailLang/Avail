@@ -142,10 +142,11 @@ import java.io.PrintStream;
 public final class Compiler
 {
 	/**
-	 * Do not instantiate this class.
+	 * Forbid instantiation.
 	 */
 	private Compiler ()
 	{
+		// No implementation required.
 	}
 
 	/**

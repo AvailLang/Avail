@@ -39,7 +39,9 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 
@@ -135,7 +137,6 @@ extends Expression
 		 * check progress and update saved position, or abort.
 		 * pop the parse position.
 		 */
-		final Label $after = new Label();
 		boolean needsProgressCheck = false;
 		for (final Expression alternative : alternatives)
 		{
@@ -144,6 +145,7 @@ extends Expression
 		}
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
+		final Label $after = new Label();
 		for (int i = 0; i < alternatives.size(); i++)
 		{
 			// Generate a branch to the next alternative unless this is the

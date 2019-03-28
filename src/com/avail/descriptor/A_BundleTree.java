@@ -101,7 +101,7 @@ extends A_BasicObject
 	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
 	 * specific token to be parsed.  These are organized as a map where each key
 	 * is the string form of an expected token, and the corresponding value is
-	 * the succesor {@link A_BundleTree bundle tree} representing the situation
+	 * the successor {@link A_BundleTree bundle tree} representing the situation
 	 * where a token matching the key was consumed.
 	 *
 	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
@@ -116,7 +116,7 @@ extends A_BasicObject
 	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
 	 * specific case-insensitive token to be parsed.  These are organized as a
 	 * map where each key is the lower-case string form of an expected
-	 * case-insensitive token, and the corresponding value is the succesor
+	 * case-insensitive token, and the corresponding value is the successor
 	 * {@link A_BundleTree bundle tree} representing the situation where a token
 	 * case-insensitively matching the key was consumed.
 	 *

@@ -49,8 +49,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

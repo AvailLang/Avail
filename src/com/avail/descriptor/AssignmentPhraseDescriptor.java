@@ -46,7 +46,9 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.IntegerSlots.IS_INLINE;
-import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.EXPRESSION;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.TOKENS;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.VARIABLE;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;

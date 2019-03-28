@@ -37,10 +37,39 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Character;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_DefinitionParsingPlan;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_GrammaticalRestriction;
+import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_ParsingPlanInProgress;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractDefinitionDescriptor;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DefinitionDescriptor;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.ForwardDefinitionDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.SemanticRestrictionDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
@@ -48,7 +77,16 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
-import com.avail.interpreter.primitive.bootstrap.lexing.*;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter;
 import com.avail.io.TextInterface;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
@@ -70,10 +108,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AbstractDefinitionDescriptor
-	.newAbstractDefinition;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.newAbstractDefinition;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.error;
@@ -81,31 +117,35 @@ import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
-import static com.avail.descriptor.ForwardDefinitionDescriptor
-	.newForwardDefinition;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.newForwardDefinition;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor
-	.newGrammaticalRestriction;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.newGrammaticalRestriction;
 import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
-import static com.avail.descriptor.MethodDefinitionDescriptor
-	.newMethodDefinition;
+import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor
-	.newPlanInProgress;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.AvailLoader.Phase.*;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE;
+import static com.avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED;
+import static com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES;
+import static com.avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS;
+import static com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE;
+import static com.avail.interpreter.AvailLoader.Phase.INITIALIZING;
+import static com.avail.interpreter.AvailLoader.Phase.UNLOADING;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level
@@ -521,6 +561,7 @@ public final class AvailLoader
 		/** The fully-loaded module is now being unloaded. */
 		UNLOADING;
 
+		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 		public boolean isExecuting ()
 		{
 			return this == EXECUTING_FOR_COMPILE || this == EXECUTING_FOR_LOAD;
@@ -660,7 +701,8 @@ public final class AvailLoader
 	 *
 	 * @param summarizable The new value of the flag.
 	 */
-	public void statementCanBeSummarized (final boolean summarizable)
+	public synchronized void statementCanBeSummarized (
+		final boolean summarizable)
 	{
 		if (determiningSummarizability)
 		{

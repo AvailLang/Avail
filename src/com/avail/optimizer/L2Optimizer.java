@@ -56,8 +56,18 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
@@ -640,7 +650,7 @@ public final class L2Optimizer
 	 * an existing register, then transform every instruction of this control
 	 * flow graph to use the new registers.  The new registers have a
 	 * {@link L2Register#uniqueValue} that's the same as its {@link
-	 * L2Register#finalIndex}.
+	 * L2Register#finalIndex() finalIndex}.
 	 */
 	@InnerAccess void replaceRegistersByColor ()
 	{

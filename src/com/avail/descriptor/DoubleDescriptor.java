@@ -41,10 +41,16 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.INDETERMINATE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.NEGATIVE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.POSITIVE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.ZERO;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.LONG_BITS;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.truncatedFromDouble;
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 
 /**
@@ -160,6 +166,7 @@ extends AbstractNumberDescriptor
 		// We now have an Avail integer representing the exact same quantity as
 		// floorD.
 		final Order integerOrder = integer.numericCompare(anInteger);
+		@SuppressWarnings("FloatingPointEquality")
 		final boolean isIntegral = aDouble == floorD;
 		if (!isIntegral && integerOrder == Order.EQUAL)
 		{
@@ -538,6 +545,7 @@ extends AbstractNumberDescriptor
 		{
 			return false;
 		}
+		//noinspection FloatingPointEquality
 		return Math.floor(value) == value;
 	}
 

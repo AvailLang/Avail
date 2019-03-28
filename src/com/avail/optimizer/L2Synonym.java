@@ -112,7 +112,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	}
 
 	/** The flags that are set for this synonym. */
-	public EnumSet<SynonymFlag> flags = EnumSet.noneOf(SynonymFlag.class);
+	public final EnumSet<SynonymFlag> flags = EnumSet.noneOf(SynonymFlag.class);
 
 	/**
 	 * Add a register to this synonym, meaning that at the point where the
@@ -390,5 +390,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 		defaultRegister = original.defaultRegister;
 		restriction = original.restriction;
 		flags.addAll(original.flags);
+		unboxedSynonym = null;
+		boxedSynonym = null;
 	}
 }

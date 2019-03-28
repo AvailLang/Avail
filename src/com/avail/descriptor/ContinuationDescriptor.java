@@ -47,8 +47,7 @@ import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
@@ -61,13 +60,17 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET_AND_OTHER;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.PROGRAM_COUNTER;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.STACK_POINTER;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.CALLER;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FRAME_AT_;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FUNCTION;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableDescriptor
-	.newVariableWithContentType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 
 /**

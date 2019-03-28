@@ -110,7 +110,7 @@ Body
 
 /**
  * @method "_'s⁇result"
- * @restricts "filber's type"
+ * @restricts "fiber's type"
  */
 Semantic restriction "_'s⁇result" is
 [
@@ -1236,7 +1236,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 /*
  * Answer a function that computes a body function.
  *
- * @method "mabody function(_,_)"
+ * @method "concurrent map body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  *        macro builds
  * @param "baseReturnType" "type" the base return type of the method

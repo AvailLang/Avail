@@ -54,8 +54,18 @@ import java.util.List;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptInlinePrimitive;
 import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptNonInlinePrimitive;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.IFNULL;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.POP2;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Expect the {@link AvailObject} (pointers) array and int array to still

@@ -183,7 +183,7 @@ extends Descriptor
 		final int indent)
 	{
 		builder.append(
-			String.valueOf(object.slot(RAW_POJO).<Object>javaObject()));
+			object.slot(RAW_POJO).<Object>javaObject());
 		builder.append(" ∈ ");
 		object.slot(KIND).printOnAvoidingIndent(builder, recursionMap, indent);
 	}

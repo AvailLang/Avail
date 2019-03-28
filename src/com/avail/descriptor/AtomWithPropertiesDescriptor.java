@@ -43,7 +43,9 @@ import java.util.WeakHashMap;
 
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.NAME;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 
@@ -210,8 +212,8 @@ extends AtomDescriptor
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
 		final Map<A_Atom, AvailObject> propertyMap =
 			propertyMapPojo.javaObjectNotNull();
-		final @Nullable A_BasicObject value = propertyMap.get(key);
-		return value == null ? nil : (AvailObject) value;
+		final @Nullable AvailObject value = propertyMap.get(key);
+		return value == null ? nil : value;
 	}
 
 	/**

@@ -166,7 +166,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        An enumeration.
 	 * @return The kind closest to the given enumeration.
 	 */
-	private final A_Type getSuperkind (final AvailObject object)
+	private A_Type getSuperkind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -325,7 +325,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	final A_Type computeIntersectionWith (
+	A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -413,7 +413,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	final A_Type computeUnionWith (
+	A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{

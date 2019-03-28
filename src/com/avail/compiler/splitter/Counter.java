@@ -44,12 +44,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.CONVERT;
+import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
+import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
+import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
-import static com.avail.exceptions.AvailErrorCode
-	.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -159,12 +163,11 @@ extends Expression
 		generator.flushDelayed();
 		final boolean needsProgressCheck =
 			group.beforeDagger.mightBeEmpty(phraseType);
-		final Label $loopStart = new Label();
-		final Label $loopExit = new Label();
-		final Label $loopSkip = new Label();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		generator.emit(this, EMPTY_LIST);
+		final Label $loopSkip = new Label();
 		generator.emitBranchForward(this, $loopSkip);
+		final Label $loopStart = new Label();
 		generator.emit($loopStart);
 		// Note that even though the Counter cannot contain anything that
 		// would push data, the Counter region must not contain a section
@@ -183,6 +186,7 @@ extends Expression
 		}
 		generator.emit(this, EMPTY_LIST);
 		generator.emit(this, APPEND_ARGUMENT);
+		final Label $loopExit = new Label();
 		generator.emitBranchForward(this, $loopExit);
 		for (final Expression expression : group.afterDagger.expressions)
 		{

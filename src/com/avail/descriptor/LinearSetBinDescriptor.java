@@ -43,7 +43,10 @@ import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
 import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedHashSetBin;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.Mutability.IMMUTABLE;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.values;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;
 
@@ -458,7 +461,7 @@ extends SetBinDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			for (final Mutability mut : Mutability.values())
+			for (final Mutability mut : values())
 			{
 				descriptors[target++] =
 					new LinearSetBinDescriptor(mut, level);

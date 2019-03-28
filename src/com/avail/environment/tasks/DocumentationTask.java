@@ -51,6 +51,7 @@ extends AbstractWorkbenchTask
 	@Override
 	protected void executeTask ()
 	{
+		//noinspection CaughtExceptionImmediatelyRethrown
 		try
 		{
 			workbench.availBuilder.generateDocumentation(

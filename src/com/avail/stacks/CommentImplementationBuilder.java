@@ -106,7 +106,6 @@ public final class CommentImplementationBuilder
 	 */
 	public void addStacksAuthorTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws StacksCommentBuilderException
 	{
 		authors.add(new StacksAuthorTag (tagContentTokens));
 	}
@@ -783,7 +782,7 @@ public final class CommentImplementationBuilder
 				{
 					final String errorMessage = String.format("\n<li><strong>%s"
 						+ "</strong><em> Line #: %d</em>: Malformed @sees "
-						+ "tag section; expected a semnatic link (bracketed "
+						+ "tag section; expected a semantic link (bracketed "
 						+ "{}) or quoted @sees content.</li>",
 						moduleLeafName,
 						commentStartLine());
@@ -985,7 +984,6 @@ public final class CommentImplementationBuilder
 		final String moduleName,
 		final int commentStartLine,
 		final LinkingFileMap linkingFileMap)
-			throws StacksCommentBuilderException
 	{
 		return new CommentImplementationBuilder (moduleName,
 			commentStartLine, linkingFileMap);

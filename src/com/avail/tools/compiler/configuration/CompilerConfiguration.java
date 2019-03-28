@@ -284,7 +284,7 @@ implements Configuration
 	 * Instruct the compiler to generate Stacks documentation instead of
 	 * compiling Avail modules.
 	 */
-	public void setGenerateDocumenationFlag ()
+	public void setGenerateDocumentationFlag ()
 	{
 		generateDocumentation = true;
 	}

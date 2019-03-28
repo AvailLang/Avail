@@ -169,7 +169,7 @@ Semantic restriction "_→tuple" is
 [
 	setType : set meta
 |
-	/* Note that we can't exploit instance types here, because coversion of a
+	/* Note that we can't exploit instance types here, because conversion of a
 	 * set to a tuple is an unstable operation.
 	 */
 	<<>, setType's element type… | ||setType||>
@@ -1366,7 +1366,7 @@ Public method "_⊅_" is
 /**
  * @method "_⊅_"
  * @restricts "set meta"
- * @retricts "set meta"
+ * @restricts "set meta"
  */
 Semantic restriction "_⊅_" is
 [

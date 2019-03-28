@@ -805,7 +805,7 @@ For each index from 2 to |prettyPowers| do
  * @param "name" "string"
  *        The name of the {@type "derived unit"}, e.g., newtons, hertz.
  * @param "symbol" "string"
- *        A symbol which represents the defined {@type "dervied unit"}.
+ *        A symbol which represents the defined {@type "derived unit"}.
  * @param "aUnit" "unit"
  *        An equivalent {@type "unit"}, usually obtained from a lexical
  *        expression.

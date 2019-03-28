@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -63,12 +64,12 @@ extends Control
 			final @Nullable String format,
 			final @Nullable ClassLoader loader,
 			final boolean reload)
-		throws IllegalAccessException, InstantiationException, IOException
+		throws IOException
 	{
 		assert format != null;
 		assert loader != null;
 		final String bundleName = toBundleName(baseName, locale);
-		ResourceBundle bundle = null;
+		@Nullable ResourceBundle bundle = null;
 		if (format.equals("java.class"))
 		{
 			try
@@ -111,7 +112,7 @@ extends Control
 						final InputStream is;
 						if (reload)
 						{
-							final URL url = loader.getResource(resourceName);
+							final @Nullable URL url = loader.getResource(resourceName);
 							if (url == null)
 							{
 								throw new IOException(
@@ -133,7 +134,8 @@ extends Control
 						{
 							is = loader.getResourceAsStream(resourceName);
 						}
-						return (Reader) new InputStreamReader(is, "UTF-8");
+						return (Reader) new InputStreamReader(
+							is, StandardCharsets.UTF_8);
 					});
 			}
 			catch (final PrivilegedActionException e)

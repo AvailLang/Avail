@@ -1030,7 +1030,6 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		final ClientRequest request,
 		final WebSocketChannel channel)
 	{
-		assert request != null;
 		// Process a GET request.
 		if (request.method == HttpRequestMethod.GET)
 		{

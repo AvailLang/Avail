@@ -38,6 +38,7 @@ package com.avail.utility.json;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class JSONException
 extends RuntimeException
 {

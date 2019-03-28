@@ -74,6 +74,7 @@ extends PublicCloneable<L2Operand>
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
 	 */
+	@SuppressWarnings("EmptyMethod")
 	public void instructionWasAdded (
 		final L2Instruction instruction)
 	{
@@ -87,6 +88,7 @@ extends PublicCloneable<L2Operand>
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
 	 */
+	@SuppressWarnings("EmptyMethod")
 	public void instructionWasRemoved (
 		final L2Instruction instruction)
 	{
@@ -104,7 +106,7 @@ extends PublicCloneable<L2Operand>
 	 * @param instruction
 	 *        The instruction containing this operand.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void replaceRegisters (
 		final Map<L2Register<?>, L2Register<?>> registerRemap,
 		final L2Instruction instruction)
@@ -117,7 +119,7 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param sourceRegisters The {@link List} to update.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addSourceRegistersTo (
 		final List<L2Register<?>> sourceRegisters)
 	{
@@ -129,7 +131,7 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param destinationRegisters The {@link List} to update.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addDestinationRegistersTo (
 		final List<L2Register<?>> destinationRegisters)
 	{

@@ -536,7 +536,7 @@ Public method
  * Sigh.
  *
  * Fortunately, we have the "fileExecutor" pool of threads in the VM for just
- * that purpose – synchronous I/O operations.  We accomodate opening files,
+ * that purpose – synchronous I/O operations.  We accommodate opening files,
  * renaming files and directories, and other similarly synchronous operations by
  * using the same dedicated pool.
  *
@@ -699,7 +699,7 @@ Public method "default directory access rights" is
  * @param "fail" "[{I/O-error code, permission-denied code}}ᵀ]→⊤"
  *        What to do with the error code if directory creation fails.
  * @param "optionalPriority" "byte?"
- *        The priority at which to launch the answerd {@type "fiber"}. If not
+ *        The priority at which to launch the answered {@type "fiber"}. If not
  *        specified, then default to the {@method "_'s⁇priority" priority} of
  *        the {@method "current fiber"}.
  * @returns "fiber→⊤"

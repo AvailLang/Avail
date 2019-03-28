@@ -271,7 +271,7 @@ Semantic restriction "private concatenate_" is
  *
  * @method "Require:_named_does not shadow"
  * @param "varRole" "nonempty string"
- *        A short description of the role of the proprosed variable, e.g.,
+ *        A short description of the role of the proposed variable, e.g.,
  *        "constant", "loop variable", etc.
  * @param "varName" "nonempty string"
  *        The proposed name of the new local.

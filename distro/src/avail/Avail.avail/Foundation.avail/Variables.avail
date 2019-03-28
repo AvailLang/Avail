@@ -420,7 +420,7 @@ Public method "_↑--" is
 Alias "_--" to "_↑--";
 
 /**
- * The autodecrement statement should accept only numeric variables.
+ * The auto-decrement statement should accept only numeric variables.
  *
  * @method "_↑--"
  * @restricts "(read number/write ⊥)'s type"
@@ -655,7 +655,7 @@ Public macro "«…‡,»::=_;" is
 	];
 	strongNameTokens ::=
 		cast nameTokens into [t : <<>, token…|natural number> | t];
-	/* Give the temporary tuple binding an untypeable name, so that the
+	/* Give the temporary tuple binding an untypable name, so that the
 	 * programmer can't refer to it. It doesn't matter if subsequent operations
 	 * shadow it.
 	 */

@@ -103,10 +103,7 @@ public class CommentSignature
 
 		if (!name().equals(nameOfGroup))
 		{
-			final StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder
-				.append(module()).append(": ").append(name());
-			jsonWriter.write(stringBuilder.toString());
+			jsonWriter.write(module() + ": " + name());
 		}
 		else
 		{

@@ -215,7 +215,7 @@ implements Configurator<CompilerConfiguration>
 				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
 				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
-				configuration.setGenerateDocumenationFlag();
+				configuration.setGenerateDocumentationFlag();
 			}));
 
 		factory.addOption(new GenericOption<>(

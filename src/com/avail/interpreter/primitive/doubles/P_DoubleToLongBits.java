@@ -44,7 +44,9 @@ import static com.avail.descriptor.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain DoubleDescriptor

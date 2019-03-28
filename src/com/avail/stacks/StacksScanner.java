@@ -185,6 +185,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @param moduleName
 	 *		The name of the module the comment is in.
 	 */
+	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
 	public StacksScanner (final A_Token commentToken, final String moduleName)
 	{
 		resetNewlineCount();
@@ -201,13 +202,13 @@ public class StacksScanner extends AbstractStacksScanner
 		this.outputTokens = new ArrayList<>(
 			tokenString().length() / 20);
 		this.commentEndsStandardly = tokenString().substring(
-			tokenString().length()-2,
-			tokenString().length()).equals("*/");
+			tokenString().length()-2
+		).equals("*/");
 		this.commentStartsStandardly =
 			tokenString().substring(0,3).equals("/**");
 		this.lineNumber(commentToken.lineNumber());
 		this.filePosition(commentToken.start());
-		this.startOfTokenLinePostion(0);
+		this.startOfTokenLinePosition(0);
 		this.sectionStartLocations = new ArrayList<>(9);
 		this.beingTokenized = new StringBuilder();
 	}
@@ -315,7 +316,8 @@ public class StacksScanner extends AbstractStacksScanner
 										scanner.lineNumber()),
 									scanner);
 							}
-							switch (c = scanner.next())
+							//noinspection NestedAssignment
+							switch (scanner.next())
 							{
 								case 'n':
 									scanner.beingTokenized().append('\n');
@@ -577,8 +579,8 @@ public class StacksScanner extends AbstractStacksScanner
 			{
 				final int startOfBracket = scanner.position();
 				final int startOfBracketLineNumber = scanner.lineNumber();
-				final int startOfBracketTokenLinePostion =
-					scanner.startOfTokenLinePostion();
+				final int startOfBracketTokenLinePosition =
+					scanner.startOfTokenLinePosition();
 
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
@@ -588,8 +590,8 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						scanner.position(startOfBracket);
 						scanner.lineNumber(startOfBracketLineNumber);
-						scanner.startOfTokenLinePostion(
-							startOfBracketTokenLinePostion);
+						scanner.startOfTokenLinePosition(
+							startOfBracketTokenLinePosition);
 						scanner.addCurrentToken();
 						return;
 					}
@@ -653,8 +655,8 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						scanner.position(startOfBracket);
 						scanner.lineNumber(startOfBracketLineNumber);
-						scanner.startOfTokenLinePostion(
-							startOfBracketTokenLinePostion);
+						scanner.startOfTokenLinePosition(
+							startOfBracketTokenLinePosition);
 						return;
 					}
 				}
@@ -782,18 +784,19 @@ public class StacksScanner extends AbstractStacksScanner
 				{
 					final int startLine = scanner.lineNumber();
 					int depth = 1;
-					while (true)
+					do
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(String.format(
-								"\n<li><strong>%s</strong><em> Line #: "
-								+ "%d</em>: Scanner Error: Expected a close "
-								+ "comment (*/) to correspond with the open "
-								+ "comment (/*) on line #%d</li>",
-								scanner.moduleLeafName(),
-								scanner.lineNumber(),
-								startLine),
+							throw new StacksScannerException(
+								String.format(
+									"\n<li><strong>%s</strong><em> Line #: "
+										+ "%d</em>: Scanner Error: Expected a close "
+										+ "comment (*/) to correspond with the open "
+										+ "comment (/*) on line #%d</li>",
+									scanner.moduleLeafName(),
+									scanner.lineNumber(),
+									startLine),
 								scanner);
 						}
 						if (scanner.peekFor('/') && scanner.peekFor('*'))
@@ -811,11 +814,8 @@ public class StacksScanner extends AbstractStacksScanner
 						{
 							scanner.next();
 						}
-						if (depth == 0)
-						{
-							break;
-						}
 					}
+					while (depth != 0);
 				}
 			}
 		},
@@ -845,7 +845,6 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksScannerException
 			{
 				// do nothing.
 			}
@@ -864,7 +863,6 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksScannerException
 			{
 				// do nothing
 			}
@@ -970,7 +968,7 @@ public class StacksScanner extends AbstractStacksScanner
 			htmltags,
 			position () + filePosition(),
 			lineNumber(),
-			startOfTokenLinePostion(),
+			startOfTokenLinePosition(),
 			moduleName);
 		outputTokens.add(token);
 	}

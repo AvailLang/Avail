@@ -36,7 +36,7 @@ import com.avail.utility.json.JSONWriter;
 
 /**
  * The "@restricts" tag in an Avail comment that represents the meta type of an
- * Avail method's paramater's type as used in a semantic restriction.
+ * Avail method's parameter's type as used in a semantic restriction.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

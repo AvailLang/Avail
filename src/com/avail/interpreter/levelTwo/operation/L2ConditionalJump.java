@@ -113,7 +113,7 @@ extends L2ControlFlowOperation
 	 * @param notSubtype
 	 *        Where to jump if the condition does not hold.
 	 */
-	protected void emitBranch (
+	protected static void emitBranch (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction,

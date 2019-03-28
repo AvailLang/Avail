@@ -45,7 +45,7 @@ public class PrefixTrie<T>
 	 *        The search text, the characters that will functionType the {@link
 	 *        PrefixNode}s.
 	 * @param content
-	 *        The {@link PrefixNode#content}.
+	 *        The {@linkplain PrefixNode#content() content}.
 	 */
 	public void addWord (
 		final String word,
@@ -99,7 +99,7 @@ public class PrefixTrie<T>
 
 	/**
 	 * Answer a {@link List} of {@link Pair}s of word and corresponding
-	 * {@link PrefixNode#content} in this {@link PrefixTrie}.
+	 * {@link PrefixNode#content() content} in this {@link PrefixTrie}.
 	 *
 	 * @return A list.
 	 */
@@ -108,7 +108,7 @@ public class PrefixTrie<T>
 		final List<NodeContent<T>> wordTemplates = new ArrayList<>();
 		root.words().forEach(word ->
 			{
-				final T nodeContent = searchNode(word).content();
+				final @Nullable T nodeContent = searchNode(word).content();
 				if (nodeContent != null)
 				{
 					wordTemplates.add(
@@ -121,7 +121,8 @@ public class PrefixTrie<T>
 
 	/**
 	 * A pairing of the {@link PrefixNode} word up to that node and the
-	 * {@linkplain PrefixNode#content} at the node.
+	 * {@linkplain PrefixNode#content() content} at the node.
+	 *
 	 * @param <T>
 	 *        The type of content contained in the node.
 	 */
@@ -143,7 +144,7 @@ public class PrefixTrie<T>
 		 * @param word
 		 *        The search word.
 		 * @param content
-		 *        The {@link PrefixNode#content}.
+		 *        The {@link PrefixNode#content() content}.
 		 */
 		NodeContent (
 			final String word,

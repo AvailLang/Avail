@@ -47,11 +47,9 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor
-	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor
-	.newMacroSubstitution;
+import static com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 
 /**

@@ -38,7 +38,6 @@ import com.avail.descriptor.A_Type;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;

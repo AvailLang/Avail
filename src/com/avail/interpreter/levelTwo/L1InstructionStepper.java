@@ -34,7 +34,16 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
@@ -65,13 +74,23 @@ import static com.avail.descriptor.ContinuationDescriptor.createContinuationWith
 import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.AFTER_REIFICATION;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -1006,14 +1025,14 @@ public final class L1InstructionStepper
 			final int savedPc = instructionDecoder.pc();
 			final int savedStackp = stackp;
 
-			final A_Variable reportedResult =
+			final AvailObject reportedResult =
 				newVariableWithContentType(Types.ANY.o());
 			reportedResult.setValueNoCheck(result);
 			final List<AvailObject> argsBuffer = interpreter.argsBuffer;
 			argsBuffer.clear();
 			argsBuffer.add((AvailObject) returner);
 			argsBuffer.add((AvailObject) expectedReturnType);
-			argsBuffer.add((AvailObject) reportedResult);
+			argsBuffer.add(reportedResult);
 			final @Nullable StackReifier reifier = interpreter.invokeFunction(
 				interpreter.runtime().resultDisagreedWithExpectedTypeFunction());
 			// The function has to be bottom-valued, so it can't ever actually

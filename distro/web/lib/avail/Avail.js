@@ -200,7 +200,7 @@ Avail.prototype.wsLog = function ()
 			'[WS#' + this.id + '] '
 			+ Array.prototype.slice.call(arguments).join(''));
 	}
-}
+};
 
 /**
  * Log an Avail debug message.
@@ -213,7 +213,7 @@ Avail.prototype.availLog = function ()
 			'[AV#' + this.id + '] '
 			+ Array.prototype.slice.call(arguments).join(''));
 	}
-}
+};
 
 /**
  * Establish a WebSocket connection to the Avail server.

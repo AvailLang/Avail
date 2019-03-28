@@ -40,9 +40,11 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION;
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-	.EXPRESSION_PHRASE;
+import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.CONVERT;
+import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT_IN_MODULE_SCOPE;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

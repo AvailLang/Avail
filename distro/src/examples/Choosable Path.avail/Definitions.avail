@@ -102,7 +102,7 @@ Private method "context type,initialization triples,and atom map given_and_" is
 	 */
 	For each quartet of booleanQuartets do
 	[
-		/* Use the positve form to name the field atom. */
+		/* Use the positive form to name the field atom. */
 		positive ::= quartet[1];
 		fieldAtom ::= atom for positive;
 		atomsByName := atomsByName + positive→fieldAtom;
@@ -403,12 +403,12 @@ Private method "Install non-boolean accessors for_given_and_" is
 	];
 ];
 
-/* The scene vault is given an untypeable name so that user code cannot
- * reference it. Only reflection can access it.
+/* The scene vault is given an untypable name so that user code cannot reference
+ * it. Only reflection can access it.
  */
 sceneVaultName ::= "\"the scene vault\"";
 
-/* The scene vault lock is given an untypeable name so that user code cannot
+/* The scene vault lock is given an untypable name so that user code cannot
  * reference it. Only reflection can access it.
  */
 sceneVaultLockName ::= "\"the scene vault lock\"";
@@ -1133,7 +1133,7 @@ Semantic restriction "target wrapper on_" is
 
 /**
  * Generate every valid {@type "scene transition"} constructor and its semantic
- * restriciton. This eliminates the boilerplate of hand-coding the sixteen
+ * restriction. This eliminates the boilerplate of hand-coding the sixteen
  * combinations of the four binary features of scene transition construction.
  *
  * @method "Generate scene transition constructors"

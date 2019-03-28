@@ -80,7 +80,7 @@ public abstract class AbstractStacksScanner
 	 * The place on the currently line where the token starts.
 	 * Always initialized to zero at creation of {@link StacksScanner scanner}.
 	 */
-	private int startOfTokenLinePostion;
+	private int startOfTokenLinePosition;
 
 	/**
 	 * The line number of the start of the token currently being parsed.
@@ -109,16 +109,16 @@ public abstract class AbstractStacksScanner
 	}
 
 	/**
-	 * Alter the scanner's startOfTokenLinePostion in the input String.
+	 * Alter the scanner's startOfTokenLinePosition in the input String.
 	 *
-	 * @param newStartOfTokenLinePostion
+	 * @param newStartOfTokenLinePosition
 	 *            The new position for this scanner as an index into the input
 	 *            String's chars current line.
 	 */
-	protected void startOfTokenLinePostion (
-		final int newStartOfTokenLinePostion)
+	protected void startOfTokenLinePosition (
+		final int newStartOfTokenLinePosition)
 	{
-		this.startOfTokenLinePostion = newStartOfTokenLinePostion;
+		this.startOfTokenLinePosition = newStartOfTokenLinePosition;
 	}
 
 	/**
@@ -126,16 +126,16 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The current character position on the line in the input String.
 	 */
-	protected int startOfTokenLinePostion ()
+	protected int startOfTokenLinePosition ()
 	{
-		return startOfTokenLinePostion;
+		return startOfTokenLinePosition;
 	}
 
 	/**
 	 * Alter the scanner's startOfToken in the input String.
 	 *
 	 * @param newStartOfToken
-	 *            The new startOftoken for this scanner as an index into the
+	 *            The new startOfToken for this scanner as an index into the
 	 *            input String.
 	 */
 	protected void startOfToken (final int newStartOfToken)
@@ -277,11 +277,11 @@ public abstract class AbstractStacksScanner
 	{
 		final String modName = moduleName;
 		int i = modName.length() - 1;
-		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' && i > -1)
+		while (i > -1 && modName.charAt(i) != '\\' && modName.charAt(i) != '/')
 		{
 			i--;
 		}
-		return modName.substring(i+1, modName.length());
+		return modName.substring(i+1);
 	}
 
 	/**
@@ -297,7 +297,7 @@ public abstract class AbstractStacksScanner
 			currentTokenString(),
 			position () + filePosition(),
 			lineNumber(),
-			startOfTokenLinePostion(),
+			startOfTokenLinePosition(),
 			moduleName);
 		outputTokens.add(token);
 	}
@@ -316,7 +316,7 @@ public abstract class AbstractStacksScanner
 			currentTokenString(),
 			lineNumber(),
 			position () + filePosition(),
-			startOfTokenLinePostion(),
+			startOfTokenLinePosition(),
 			moduleName);
 		outputTokens.add(token);
 	}
@@ -334,7 +334,7 @@ public abstract class AbstractStacksScanner
 			currentTokenString(),
 			position () + filePosition(),
 			lineNumber(),
-			startOfTokenLinePostion(),
+			startOfTokenLinePosition(),
 			moduleName);
 		outputTokens.add(token);
 	}
@@ -352,7 +352,7 @@ public abstract class AbstractStacksScanner
 			currentTokenString(),
 			position () + filePosition(),
 			lineNumber(),
-			startOfTokenLinePostion(),
+			startOfTokenLinePosition(),
 			moduleName);
 		outputTokens.add(token);
 		return token;
@@ -392,7 +392,7 @@ public abstract class AbstractStacksScanner
 		if (c == '\n')
 		{
 			lineNumber++;
-			startOfTokenLinePostion = 0;
+			startOfTokenLinePosition = 0;
 		}
 		return c;
 	}
@@ -500,7 +500,7 @@ public abstract class AbstractStacksScanner
 										scanner.lineNumber()),
 									scanner);
 							}
-							switch (c = scanner.next())
+							switch (scanner.next())
 							{
 								case 'n':
 									scanner.beingTokenized().append('\n');
@@ -762,8 +762,8 @@ public abstract class AbstractStacksScanner
 			{
 				final int startOfBracket = scanner.position();
 				final int startOfBracketLineNumber = scanner.lineNumber();
-				final int startOfBracketTokenLinePostion =
-					scanner.startOfTokenLinePostion();
+				final int startOfBracketTokenLinePosition =
+					scanner.startOfTokenLinePosition();
 
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
@@ -773,8 +773,8 @@ public abstract class AbstractStacksScanner
 					{
 						scanner.position(startOfBracket);
 						scanner.lineNumber(startOfBracketLineNumber);
-						scanner.startOfTokenLinePostion(
-							startOfBracketTokenLinePostion);
+						scanner.startOfTokenLinePosition(
+							startOfBracketTokenLinePosition);
 						scanner.addCurrentToken();
 						return;
 					}
@@ -797,8 +797,8 @@ public abstract class AbstractStacksScanner
 					{
 						scanner.position(startOfBracket);
 						scanner.lineNumber(startOfBracketLineNumber);
-						scanner.startOfTokenLinePostion(
-							startOfBracketTokenLinePostion);
+						scanner.startOfTokenLinePosition(
+							startOfBracketTokenLinePosition);
 						return;
 					}
 				}
@@ -875,15 +875,16 @@ public abstract class AbstractStacksScanner
 				{
 					final int startLine = scanner.lineNumber();
 					int depth = 1;
-					while (true)
+					do
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(String.format(
-								"\n<li><strong>%s</strong><em> Line #: "
-								+ "%d</em>: Scanner Error: Expected a close "
-								+ "comment (*/) to correspond with the open "
-								+ "comment (/*) on line #%d</li>",
+							throw new StacksScannerException(
+								String.format(
+									"\n<li><strong>%s</strong><em> Line #: "
+										+ "%d</em>: Scanner Error: Expected a close "
+										+ "comment (*/) to correspond with the open "
+										+ "comment (/*) on line #%d</li>",
 									scanner.obtainModuleSimpleName(),
 									scanner.lineNumber(),
 									startLine),
@@ -904,11 +905,8 @@ public abstract class AbstractStacksScanner
 						{
 							scanner.next();
 						}
-						if (depth == 0)
-						{
-							break;
-						}
 					}
+					while (depth != 0);
 				}
 			}
 		},
@@ -941,7 +939,6 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
 			{
 				// do nothing.
 			}
@@ -960,7 +957,6 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
 			{
 				// do nothing
 			}
