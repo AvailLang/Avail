@@ -47,14 +47,17 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 
+import static com.avail.performance.StatisticReport.reportFor;
 import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Provides the configuration for the command-line compiler. Specifies the
@@ -149,29 +152,27 @@ implements Configurator<CompilerConfiguration>
 
 		factory.addOption(new GenericOption<>(
 			AVAIL_RENAMES,
-			asList("availRenames"),
+			singletonList("availRenames"),
 			"The path to the renames file. This option overrides environment "
 				+ "variables.",
 			(keyword, renamesString) ->
 			{
-				assert renamesString != null;
 				processor.value().checkEncountered(AVAIL_RENAMES, 0);
 				configuration.setRenamesFilePath(renamesString);
 			}));
 
 		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
-			asList("availRoots"),
+			singletonList("availRoots"),
 			"The Avail roots, as a semicolon (;) separated list of module root "
 				+ "specifications. Each module root specification comprises a "
 				+ "logical root name, then an equals (=), then a module root "
-				+ "location. A module root location comprises the absolute path to "
-				+ "a binary module repository, then optionally a comma (,) and the "
-				+ "absolute path to a source package. This option overrides " +
-				"environment variables.",
+				+ "location. A module root location comprises the absolute "
+				+ "path to a binary module repository, then optionally a comma "
+				+ "(,) and the absolute path to a source package. This option "
+				+ "overrides environment variables.",
 			(keyword, rootsString) ->
 			{
-				assert rootsString != null;
 				processor.value().checkEncountered(AVAIL_ROOTS, 0);
 				configuration.setAvailRootsPath(rootsString);
 			}));
@@ -180,15 +181,9 @@ implements Configurator<CompilerConfiguration>
 			COMPILE_MODULES,
 			asList("c", "compile"),
 			"Compile the target module and its ancestors.",
-			(keyword, unused) ->
+			(keyword) ->
 			{
 				processor.value().checkEncountered(COMPILE_MODULES, 0);
-				if (unused != null)
-				{
-					throw new OptionProcessingException(
-						keyword + ": An argument was specified, but none " +
-							"are permitted.");
-				}
 				configuration.setCompileModulesFlag();
 			}));
 
@@ -196,21 +191,15 @@ implements Configurator<CompilerConfiguration>
 			CLEAR_REPOSITORIES,
 			asList("f", "clearRepositories"),
 			"Force removal of all repositories for which the Avail root path "
-				+ "has valid source directories specified. This option can be used "
-				+ "in isolation and will cause the repositories to be emptied. In "
-				+ "an invocation with a valid target module name, the repositories "
-				+ "will be cleared before compilation is attempted. Mutually "
-				+ "exclusive with -g.",
-			(keyword, unused) ->
+				+ "has valid source directories specified. This option can be "
+				+ "used in isolation and will cause the repositories to be "
+				+ "emptied. In an invocation with a valid target module name, "
+				+ "the repositories will be cleared before compilation is "
+				+ "attempted. Mutually exclusive with -g.",
+			(keyword) ->
 			{
 				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
 				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
-				if (unused != null)
-				{
-					throw new OptionProcessingException(
-						keyword + ": An argument was specified, but none " +
-							"are permitted.");
-				}
 				configuration.setClearRepositoriesFlag();
 			}));
 
@@ -219,19 +208,13 @@ implements Configurator<CompilerConfiguration>
 			asList("g", "generateDocumentation"),
 			"Generate Stacks documentation for the target module and its "
 				+ "ancestors. The relevant repositories must already contain "
-				+ "compilations for every module implied by the request. Mutually "
-				+ "exclusive with -f.",
-			(keyword, unused) ->
+				+ "compilations for every module implied by the request. "
+				+ "Mutually exclusive with -f.",
+			(keyword) ->
 			{
 				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
 				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
-				if (unused != null)
-				{
-					throw new OptionProcessingException(
-						keyword + ": An argument was specified, but none " +
-							"are permitted.");
-				}
 				configuration.setGenerateDocumenationFlag();
 			}));
 
@@ -243,7 +226,6 @@ implements Configurator<CompilerConfiguration>
 				+ "Requires -g.",
 			(keyword, pathString) ->
 			{
-				assert pathString != null;
 				processor.value().checkEncountered(DOCUMENTATION_PATH, 0);
 				final Path path;
 				try
@@ -264,15 +246,9 @@ implements Configurator<CompilerConfiguration>
 			QUIET,
 			asList("q", "quiet"),
 			"Mute all output originating from user code.",
-			(keyword, unused) ->
+			(keyword) ->
 			{
 				processor.value().checkEncountered(QUIET, 0);
-				if (unused != null)
-				{
-					throw new OptionProcessingException(
-						keyword + ": An argument was specified, but none " +
-							"are permitted.");
-				}
 				configuration.setQuietFlag();
 			}));
 
@@ -284,40 +260,42 @@ implements Configurator<CompilerConfiguration>
 				+ "categories, using a comma-separated list of keywords "
 				+ "( --showStatistics=#,# ). Requires -c.\n"
 				+ "\nPossible values in # include:"
-				+ "\nL2Operations - The most time-intensive level-two operations."
+				+ "\nL2Operations - The most time-intensive level-two "
+				+ "operations."
 				+ "\nDynamicLookups - The most time-intensive dynamic method "
 				+ "lookups."
-				+ "\nPrimitives - The primitives that are the most time-intensive "
-				+ "to run overall."
-				+ "\nPrimitiveReturnTypeChecks - The primitives that take the most "
-				+ "time checking return types.",
+				+ "\nPrimitives - The primitives that are the most "
+				+ "time-intensive to run overall."
+				+ "\nPrimitiveReturnTypeChecks - The primitives that take the "
+				+ "most time checking return types.",
+			(keyword) ->
+			{
+				processor.value().checkEncountered(SHOW_STATISTICS, 0);
+				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
+				final EnumSet<StatisticReport> reports =
+					EnumSet.allOf(StatisticReport.class);
+				configuration.setReports(reports);
+			},
 			(keyword, reportsString) ->
 			{
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
 				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
-				final EnumSet<StatisticReport> reports;
-				if (reportsString == null)
+				final String[] reportsArr = reportsString.split(",");
+				final EnumSet<StatisticReport> reports =
+					EnumSet.noneOf(StatisticReport.class);
+				for (final String reportName : reportsArr)
 				{
-					reports = EnumSet.allOf(StatisticReport.class);
-				}
-				else
-				{
-					final String[] reportsArr = reportsString.split(",");
-					reports = EnumSet.noneOf(StatisticReport.class);
-					for (final String reportName : reportsArr)
-					{
-						final StatisticReport report =
-							StatisticReport.reportFor(reportName);
+					final @Nullable StatisticReport report =
+						reportFor(reportName);
 
-						// This will also catch the illegal use of "="
-						// without any items following.
-						if (report == null)
-						{
-							throw new OptionProcessingException(
-								keyword + ": Illegal argument.");
-						}
-						reports.add(report);
+					// This will also catch the illegal use of "="
+					// without any items following.
+					if (report == null)
+					{
+						throw new OptionProcessingException(
+							keyword + ": Illegal argument.");
 					}
+					reports.add(report);
 				}
 				configuration.setReports(reports);
 			}));
@@ -332,35 +310,33 @@ implements Configurator<CompilerConfiguration>
 				+ "output. This is the default level for the compiler and is "
 				+ "used when the verboseMode option is not used."
 				+ "\n1 - The minimum verbosity level. The global progress and "
-				+ "any error messages will be output. This is the default level "
-				+ "for this option when a level is not specified."
+				+ "any error messages will be output. This is the default "
+				+ "level for this option when a level is not specified."
 				+ "\n2 - Global progress is output along with the local module "
 				+ "compilation progress and any error messages.",
+			(keyword) ->
+			{
+				processor.value().checkEncountered(VERBOSE_MODE, 0);
+				configuration.setVerbosityLevel(
+					VerbosityLevel.atLevel(1));
+			},
 			(keyword, verboseString) ->
 			{
 				processor.value().checkEncountered(VERBOSE_MODE, 0);
-				if (verboseString == null)
+				try
 				{
+					// This parseInt will (also) throw an exception if
+					// it tries to parse "" as a result of the illegal
+					// use of "=" without any items following.
+					final int level = Integer.parseInt(verboseString);
 					configuration.setVerbosityLevel(
-						VerbosityLevel.atLevel(1));
+						VerbosityLevel.atLevel(level));
 				}
-				else
+				catch (final NumberFormatException e)
 				{
-					try
-					{
-						// This parseInt will (also) throw an exception if
-						// it tries to parse "" as a result of the illegal
-						// use of "=" without any items following.
-						final int level = Integer.parseInt(verboseString);
-						configuration.setVerbosityLevel(
-							VerbosityLevel.atLevel(level));
-					}
-					catch (final NumberFormatException e)
-					{
-						throw new OptionProcessingException(
-							keyword + ": Illegal argument.",
-							e);
-					}
+					throw new OptionProcessingException(
+						keyword + ": Illegal argument.",
+						e);
 				}
 			}));
 
@@ -373,15 +349,14 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new DefaultOption<>(
 			TARGET_MODULE_NAME,
 			"The target module name for compilation and/or documentation "
-				+ "generation. The module is specified via a path relative to an "
-				+ "AVAIL_ROOTS root name. For example, if AVAIL_ROOTS specifies a "
-				+ "root named \"foo\" at path /usr/local/avail/stuff/, and module "
-				+ "\"frog\" is in the root directory as "
-				+ "/usr/local/avail/stuff/frog, the target module name would be "
-				+ "/foo/frog.",
+				+ "generation. The module is specified via a path relative to "
+				+ "an AVAIL_ROOTS root name. For example, if AVAIL_ROOTS "
+				+ "specifies a root named \"foo\" at path "
+				+ "/usr/local/avail/stuff/, and module \"frog\" is in the root "
+				+ "directory as /usr/local/avail/stuff/frog, the target module "
+				+ "name would be /foo/frog.",
 			(keyword, targetModuleString) ->
 			{
-				assert targetModuleString != null;
 				processor.value().checkEncountered(TARGET_MODULE_NAME, 0);
 				try
 				{
@@ -443,7 +418,7 @@ implements Configurator<CompilerConfiguration>
 	}
 
 	/**
-	 * Construct a new {@link CommandLineConfigurator}.
+	 * Construct a new {@code CommandLineConfigurator}.
 	 *
 	 * @param configuration
 	 *        The base {@linkplain CompilerConfiguration compiler
@@ -459,7 +434,7 @@ implements Configurator<CompilerConfiguration>
 		final Appendable helpStream)
 	{
 		this.configuration = configuration;
-		this.commandLineArguments = commandLineArguments;
+		this.commandLineArguments = commandLineArguments.clone();
 		this.helpStream = helpStream;
 	}
 }

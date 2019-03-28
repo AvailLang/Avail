@@ -32,9 +32,9 @@
 
 package com.avail.tools.options;
 
-import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * A {@code DefaultOption} is the {@linkplain Option option} that an {@linkplain
@@ -54,16 +54,16 @@ extends GenericOption<OptionKeyType>
 	 * @param optionKey
 	 *        The option key.
 	 * @param description
-	 *        A description of the {@linkplain DefaultOption option}.
+	 *        A description of the {@code DefaultOption}.
 	 * @param action
-	 *        The {@linkplain Continuation2 action} that should be performed
-	 *        upon setting of this {@linkplain DefaultOption option}.
+	 *        The {@linkplain Continuation2NotNull action} that should be
+	 *        performed upon setting of this {@code DefaultOption}.
 	 */
 	public DefaultOption (
 		final OptionKeyType optionKey,
 		final String description,
-		final Continuation2<String, String> action)
+		final Continuation2NotNull<String, String> action)
 	{
-		super(optionKey, asList(""), description, action);
+		super(optionKey, singletonList(""), description, action);
 	}
 }

@@ -48,7 +48,7 @@ import com.avail.utility.configuration.Configurator;
 import java.io.File;
 
 import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*;
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Provides the {@linkplain AvailServerConfiguration configuration} for the
@@ -112,18 +112,17 @@ implements Configurator<AvailServerConfiguration>
 			new OptionProcessorFactory<>(OptionKey.class);
 		factory.addOption(new GenericOption<>(
 			AVAIL_RENAMES,
-			asList("availRenames"),
+			singletonList("availRenames"),
 			"The path to the renames file. This option overrides environment "
 				+ "variables.",
 			(keyword, renamesString) ->
 			{
-				assert renamesString != null;
 				processor.value().checkEncountered(AVAIL_RENAMES, 0);
 				configuration.setRenamesFilePath(renamesString);
 			}));
 		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
-			asList("availRoots"),
+			singletonList("availRoots"),
 			"The Avail roots, as a semicolon (;) separated list of module root "
 				+ "specifications. Each module root specification comprises a "
 				+ "logical root name, then an equals (=), then a module root "
@@ -133,29 +132,26 @@ implements Configurator<AvailServerConfiguration>
 				"environment variables.",
 			(keyword, rootsString) ->
 			{
-				assert rootsString != null;
 				processor.value().checkEncountered(AVAIL_ROOTS, 0);
 				configuration.setAvailRootsPath(rootsString);
 			}));
 		factory.addOption(new GenericOption<>(
 			SERVER_AUTHORITY,
-			asList("serverAuthority"),
+			singletonList("serverAuthority"),
 			"The server authority, i.e., the name of the Avail server. If not "
 				+ "specified, then the server authority defaults to \"localhost\".",
 			(keyword, nameString) ->
 			{
-				assert nameString != null;
 				processor.value().checkEncountered(SERVER_AUTHORITY, 0);
 				configuration.setServerAuthority(nameString);
 			}));
 		factory.addOption(new GenericOption<>(
 			SERVER_PORT,
-			asList("serverPort"),
+			singletonList("serverPort"),
 			"The server port. If not specified, then the server port defaults "
 				+ "to 40000.",
 			(keyword, portString) ->
 			{
-				assert portString != null;
 				processor.value().checkEncountered(SERVER_PORT, 0);
 				final int port;
 				try
@@ -172,7 +168,7 @@ implements Configurator<AvailServerConfiguration>
 			}));
 		factory.addOption(new GenericOption<>(
 			DOCUMENT_ROOT,
-			asList("documentRoot"),
+			singletonList("documentRoot"),
 			"The document root, as a path to a directory. The document root "
 				+ "contains static files that should be served by the Avail "
 				+ "server. These files are available through GET requests under "
@@ -180,7 +176,6 @@ implements Configurator<AvailServerConfiguration>
 				+ "reject all such requests.",
 			(keyword, pathString) ->
 			{
-				assert pathString != null;
 				processor.value().checkEncountered(DOCUMENT_ROOT, 0);
 				configuration.setDocumentPath(pathString);
 			}));
@@ -252,7 +247,7 @@ implements Configurator<AvailServerConfiguration>
 		final Appendable helpStream)
 	{
 		this.configuration = configuration;
-		this.commandLineArguments = commandLineArguments;
+		this.commandLineArguments = commandLineArguments.clone();
 		this.helpStream = helpStream;
 	}
 }

@@ -114,7 +114,9 @@ public class GraphTest
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
 		tinyGraph.addVertex(5);
+		assertTrue(tinyGraph.includesVertex(5));
 		tinyGraph.includeVertex(5);
+		assertTrue(tinyGraph.includesVertex(5));
 	}
 
 	/**

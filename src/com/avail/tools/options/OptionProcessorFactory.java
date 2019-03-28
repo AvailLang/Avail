@@ -60,7 +60,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 		new HashSet<>();
 
 	/**
-	 * Construct a new <code>{@link OptionProcessorFactory}</code>.
+	 * Construct a new {@code OptionProcessorFactory}.
 	 *
 	 * @param optionKeyType The {@linkplain Class type} of option keys.
 	 */
@@ -147,7 +147,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 
 	/**
 	 * Create an instance of the {@linkplain OptionProcessor option processor}
-	 * described by the {@linkplain OptionProcessorFactory receiver}.
+	 * described by the receiver.
 	 *
 	 * @return The new validated {@linkplain OptionProcessor option processor}.
 	 * @throws ValidationException If validation fails.

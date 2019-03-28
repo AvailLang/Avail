@@ -85,7 +85,7 @@ implements Configurator<UnicodeConfiguration>
 	private final Appendable helpStream;
 
 	/**
-	 * Construct a new {@link CommandLineConfigurator}.
+	 * Construct a new {@code CommandLineConfigurator}.
 	 *
 	 * @param configuration
 	 *        The base {@linkplain UnicodeConfiguration configuration}.
@@ -100,7 +100,7 @@ implements Configurator<UnicodeConfiguration>
 		final Appendable helpStream)
 	{
 		this.configuration = configuration;
-		this.commandLineArguments = commandLineArguments;
+		this.commandLineArguments = commandLineArguments.clone();
 		this.helpStream = helpStream;
 	}
 
@@ -129,7 +129,6 @@ implements Configurator<UnicodeConfiguration>
 				+ "exists at this location, then it will be overwritten.",
 			(unused, pathString) ->
 			{
-				assert pathString != null;
 				processor.value().checkEncountered(TARGET_PATH, 0);
 				configuration.catalogPath = Paths.get(pathString);
 			}));

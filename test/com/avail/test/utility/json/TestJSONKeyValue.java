@@ -37,10 +37,7 @@ import com.avail.utility.json.JSONNumber;
 import com.avail.utility.json.JSONObject;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A {@code TestJSONKeyValue} is an enum used for creating static test data for
@@ -262,7 +259,7 @@ public enum TestJSONKeyValue
 			{
 				array[i] = ((JSONNumber) jsonArray.get(i)).getInt();
 			}
-			assertTrue(Arrays.equals(value, array));
+			assertArrayEquals(value, array);
 		}
 
 		@Override
@@ -304,7 +301,7 @@ public enum TestJSONKeyValue
 			{
 				array[i] = ((JSONNumber) jsonArray.get(i)).getInt();
 			}
-			assertTrue(Arrays.equals(value, array));
+			assertArrayEquals(value, array);
 		}
 
 		@Override

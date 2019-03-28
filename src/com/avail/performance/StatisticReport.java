@@ -32,9 +32,8 @@
 
 package com.avail.performance;
 
+import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MessageBundleTreeDescriptor;
 import com.avail.optimizer.StackReifier;
 import com.avail.utility.Pair;
 
@@ -69,8 +68,8 @@ public enum StatisticReport
 	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),
 
 	/**
-	 * Statistics for {@link MessageBundleTreeDescriptor#o_Expand(AvailObject,
-	 * A_Module) expanding} ParsingOperations.
+	 * Statistics for {@linkplain A_BundleTree#expand(A_Module) expanding}
+	 * ParsingOperations.
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 

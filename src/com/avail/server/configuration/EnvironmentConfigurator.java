@@ -104,7 +104,7 @@ implements Configurator<AvailServerConfiguration>
 	}
 
 	/**
-	 * Construct a new {@link EnvironmentConfigurator} for the specified
+	 * Construct a new {@code EnvironmentConfigurator} for the specified
 	 * {@linkplain AvailServerConfiguration configuration}.
 	 *
 	 * @param configuration

@@ -142,6 +142,13 @@ import java.io.PrintStream;
 public final class Compiler
 {
 	/**
+	 * Do not instantiate this class.
+	 */
+	private Compiler ()
+	{
+	}
+
+	/**
 	 * Configure the {@code Compiler} to build the target {@linkplain
 	 * ModuleDescriptor module}.
 	 *
@@ -274,9 +281,11 @@ public final class Compiler
 			configuration = configure(args);
 			resolver = configuration.moduleNameResolver();
 		}
-		catch (final ConfigurationException |
-					 FileNotFoundException |
-					 RenamesFileParserException e)
+		catch (
+			final
+				ConfigurationException |
+				FileNotFoundException |
+				RenamesFileParserException e)
 		{
 			// The command-line arguments were malformed, or
 			// The arguments specified a missing file, or

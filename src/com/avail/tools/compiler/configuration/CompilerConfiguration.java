@@ -44,7 +44,14 @@ import com.avail.tools.compiler.Compiler;
 import com.avail.utility.configuration.Configuration;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.EnumSet;
@@ -137,7 +144,7 @@ implements Configuration
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} correct
-	 * for the current {@linkplain CompilerConfiguration configuration}.
+	 * for the current {@code CompilerConfiguration configuration}.
 	 *
 	 * @return A module name resolver.
 	 * @throws FileNotFoundException
@@ -149,11 +156,11 @@ implements Configuration
 	public ModuleNameResolver moduleNameResolver ()
 		throws FileNotFoundException, RenamesFileParserException
 	{
-		ModuleNameResolver resolver = moduleNameResolver;
+		@Nullable ModuleNameResolver resolver = moduleNameResolver;
 		if (resolver == null)
 		{
 			final Reader reader;
-			final String path = renamesFilePath;
+			final @Nullable String path = renamesFilePath;
 			if (path == null)
 			{
 				reader = new StringReader("");
@@ -161,6 +168,7 @@ implements Configuration
 			else
 			{
 				final File file = new File(path);
+				//noinspection IOResourceOpenedButNotSafelyClosed
 				reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(file), StandardCharsets.UTF_8));
 			}
@@ -344,7 +352,7 @@ implements Configuration
 	 */
 	public EnumSet<StatisticReport> reports ()
 	{
-		return reports;
+		return reports.clone();
 	}
 
 	/**
@@ -355,7 +363,7 @@ implements Configuration
 	 */
 	public void setReports (final EnumSet<StatisticReport> reports)
 	{
-		this.reports = reports;
+		this.reports = reports.clone();
 	}
 
 	/**

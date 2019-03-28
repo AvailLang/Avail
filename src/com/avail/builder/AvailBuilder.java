@@ -96,8 +96,7 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom
-	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -667,7 +666,7 @@ public final class AvailBuilder
 			final ModuleCompilation compilation)
 		{
 			this.name = name;
-			this.sourceDigest = sourceDigest;
+			this.sourceDigest = sourceDigest.clone();
 			this.module = module;
 			this.version = version;
 			this.compilation = compilation;

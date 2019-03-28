@@ -104,7 +104,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 	EnumMap<OptionKeyType, MutableInt> timesEncountered;
 
 	/**
-	 * Construct a new <code>{@link OptionProcessor}</code>.
+	 * Construct a new {@code OptionProcessor}.
 	 *
 	 * @param optionKeyType
 	 *        The {@linkplain Class type} of option keys.
@@ -133,8 +133,8 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 	 * Perform the {@linkplain Continuation1 action} associated with the option
 	 * key bound to the specified keyword.
 	 *
-	 * @param keyword A potential keyword of the {@link OptionProcessor
-	 *                receiver}.
+	 * @param keyword
+	 *        A potential keyword of the {@code OptionProcessor receiver}.
 	 * @param argument The argument associated with the keyword, if any.
 	 * @throws UnrecognizedKeywordException
 	 *         If the specified keyword was unrecognized.
@@ -374,8 +374,8 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 
 	/**
 	 * Write the {@linkplain Option#description() descriptions} of the
-	 * {@linkplain Option options} defined by the {@linkplain OptionProcessor
-	 * option processor} into the specified {@link Appendable}.
+	 * {@linkplain Option options} defined by the {@code OptionProcessor option
+	 * processor} into the specified {@link Appendable}.
 	 *
 	 * @param appendable An {@link Appendable}.
 	 * @throws IOException

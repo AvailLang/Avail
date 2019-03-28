@@ -32,13 +32,15 @@
 
 package com.avail.tools.options;
 
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation2NotNull;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
 /**
- * An implementation of {@link Option} whose accessible state is initializable
+ * An implementation of {@link Option} whose accessible state is initialized
  * during construction.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -63,6 +65,7 @@ implements Option<OptionKeyType>
 	 */
 	private final LinkedHashSet<String> keywords = new LinkedHashSet<>();
 
+	@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 	@Override
 	public LinkedHashSet<String> keywords ()
 	{
@@ -83,7 +86,9 @@ implements Option<OptionKeyType>
 
 	/**
 	 * The {@linkplain Continuation2 action} that should be performed upon
-	 * setting of this {@linkplain GenericOption option}.
+	 * setting of this {@linkplain GenericOption option}.  The second parameter
+	 * <em>may</em> be required to be null or required to be not null, depending
+	 * on how this option was created.
 	 */
 	private final Continuation2<String, String> action;
 
@@ -94,26 +99,104 @@ implements Option<OptionKeyType>
 	}
 
 	/**
-	 * Construct a new <code>{@link GenericOption}</code>.
+	 * Construct a new {@code GenericOption} that takes a {@link String}
+	 * argument.
 	 *
 	 * @param optionKey
 	 *        The option key.
 	 * @param keywords
-	 *        The keywords that indicate this {@linkplain GenericOption option}.
+	 *        The keywords that indicate this {@code GenericOption}.
 	 * @param description
-	 *        A description of the {@linkplain GenericOption option}.
+	 *        A description of the {@code GenericOption}.
 	 * @param action
-	 *        The {@linkplain Continuation2 action} that should be performed
-	 *        upon setting of this {@linkplain GenericOption option}.
+	 *        The {@linkplain Continuation2NotNull action} that should be
+	 *        performed upon setting of this {@code GenericOption}.
 	 */
 	public GenericOption (
 		final OptionKeyType optionKey,
 		final Collection<String> keywords,
 		final String description,
-		final Continuation2<String, String> action)
+		final Continuation2NotNull<String, String> action)
 	{
 		this.optionKey   = optionKey;
-		this.action      = action;
+		this.action      = action::value;
+		this.description = description;
+		this.keywords.addAll(keywords);
+	}
+
+	/**
+	 * Construct a new {#code GenericOption} that takes no argument.
+	 *
+	 * @param optionKey
+	 *        The option key.
+	 * @param keywords
+	 *        The keywords that indicate this {@code GenericOption}.
+	 * @param description
+	 *        A description of the {@code GenericOption}.
+	 * @param action
+	 *        The {@linkplain Continuation1NotNull action} that should be
+	 *        performed upon setting of this {@code GenericOption}.
+	 */
+	public GenericOption (
+		final OptionKeyType optionKey,
+		final Collection<String> keywords,
+		final String description,
+		final Continuation1NotNull<String> action)
+	{
+		this.optionKey   = optionKey;
+		this.action      = (keyword, unused) ->
+		{
+			assert keyword != null;
+			if (unused != null)
+			{
+				throw new OptionProcessingException(
+					keyword + ": An argument was specified, but none " +
+						"are permitted.");
+			}
+			action.value(keyword);
+		};
+		this.description = description;
+		this.keywords.addAll(keywords);
+	}
+
+	/**
+	 * Construct a new {#code GenericOption} that takes no argument.
+	 *
+	 * @param optionKey
+	 *        The option key.
+	 * @param keywords
+	 *        The keywords that indicate this {@code GenericOption}.
+	 * @param description
+	 *        A description of the {@code GenericOption}.
+	 * @param action1
+	 *        The {@linkplain Continuation1NotNull action} that should be
+	 *        performed upon setting of this {@code GenericOption} with no
+	 *        argument.
+	 * @param action2
+	 *        The {@linkplain Continuation2NotNull action} that should be
+	 *        performed upon setting of this {@code GenericOption} with an
+	 *        argument.
+	 */
+	public GenericOption (
+		final OptionKeyType optionKey,
+		final Collection<String> keywords,
+		final String description,
+		final Continuation1NotNull<String> action1,
+		final Continuation2NotNull<String, String> action2)
+	{
+		this.optionKey   = optionKey;
+		this.action      = (keyword, optionalArgument) ->
+		{
+			assert keyword != null;
+			if (optionalArgument == null)
+			{
+				action1.value(keyword);
+			}
+			else
+			{
+				action2.value(keyword, optionalArgument);
+			}
+		};
 		this.description = description;
 		this.keywords.addAll(keywords);
 	}

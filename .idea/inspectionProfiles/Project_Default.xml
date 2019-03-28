@@ -29,7 +29,6 @@
     <inspection_tool class="BigDecimalEquals" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="BigDecimalLegacyMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="BusyWait" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="CStyleArrayDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CastConflictsWithInstanceof" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CastToIncompatibleInterface" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ChainedEquality" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -43,7 +42,6 @@
     <inspection_tool class="CollectionsFieldAccessReplaceableByMethodCall" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CompareToUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ComparisonOfShortAndChar" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ComparisonToNaN" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConditionSignal" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConfusingElse" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="reportWhenNoStatementFollow" value="false" />
@@ -141,7 +139,6 @@
     <inspection_tool class="InstanceofIncompatibleInterface" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="InstantiationOfUtilityClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IntLiteralMayBeLongLiteral" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="IntegerDivisionInFloatingPointContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IntegerMultiplicationImplicitCastToLong" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreNonOverflowingCompileTimeConstants" value="true" />
     </inspection_tool>
@@ -346,7 +343,7 @@
     <inspection_tool class="TestCaseInProductCode" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TestCaseWithConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TestMethodWithoutAssertion" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="assertionMethods" value="org.junit.Assert,assert.*|fail.*,junit.framework.Assert,assert.*|fail.*,org.mockito.Mockito,verify.*,org.mockito.InOrder,verify,org.junit.rules.ExpectedException,expect.*,org.hamcrest.MatcherAssert,assertThat,org.junit.jupiter.api.Assertions,.*" />
+      <option name="assertionMethods" value="org.junit.Assert,assert.*|fail.*,junit.framework.Assert,assert.*|fail.*,org.mockito.Mockito,verify.*,org.mockito.InOrder,verify,org.junit.rules.ExpectedException,expect.*,org.hamcrest.MatcherAssert,assertThat,org.junit.jupiter.api.Assertions,.*,java.lang.Object,test.*|assert.*|check.*" />
     </inspection_tool>
     <inspection_tool class="TextLabelInSwitchStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThisEscapedInConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -372,7 +369,6 @@
       <option name="ignoreReferencesNeedingImport" value="false" />
     </inspection_tool>
     <inspection_tool class="UnnecessarilyQualifiedStaticallyImportedElement" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="UnnecessaryCallToStringValueOf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryDefault" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryFullyQualifiedName" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreJavadoc" value="false" />
@@ -405,7 +401,6 @@
       <option name="ignoreClassesWithOnlyMain" value="false" />
     </inspection_tool>
     <inspection_tool class="VarargParameter" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="VariableNotUsedInsideIf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="VolatileArrayField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="VolatileLongOrDoubleField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitCalledOnCondition" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -418,7 +413,7 @@
       <option name="SUGGEST_PACKAGE_LOCAL_FOR_TOP_CLASSES" value="true" />
       <option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />
     </inspection_tool>
-    <inspection_tool class="unused" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="unused" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="LOCAL_VARIABLE" value="true" />
       <option name="FIELD" value="true" />
       <option name="METHOD" value="true" />

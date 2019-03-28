@@ -104,7 +104,7 @@ implements Configurator<CompilerConfiguration>
 	}
 
 	/**
-	 * Construct a new {@link EnvironmentConfigurator} for the specified
+	 * Construct a new {@code EnvironmentConfigurator} for the specified
 	 * {@linkplain CompilerConfiguration configuration}.
 	 *
 	 * @param configuration
