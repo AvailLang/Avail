@@ -1,19 +1,19 @@
 /*
- * L2Retranslator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L2Inliner.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,37 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.optimizer;
+package com.avail.optimizer.reoptimizer;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.PhiRestriction;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -83,16 +69,20 @@ import static com.avail.utility.Casts.cast;
  *     <li>allows stronger call-site types to narrow method lookups,</li>
  *     <li>exposes primitive cancellation patterns like &lt;x, y>[1] → x,</li>
  *     <li>exposes L1 instruction cancellation, like avoiding creation of
- *     closures and label continuations.</li>
+ *     closures and label continuations,</li>
+ *     <li>allows nearly all conditional and loop control flow to be expressed
+ *     as simple jumps,</li>
+ *     <li>exposes opportunities to operate on intermediate values in an unboxed
+ *     form.</li>
  * </ul>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2Retranslator
+public final class L2Inliner
 {
 	/**
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
-	 * the enclosing {@link L2Retranslator}.
+	 * the enclosing {@link L2Inliner}.
 	 */
 	private class OperandInlineTransformer
 	implements L2OperandDispatcher
@@ -292,7 +282,9 @@ public final class L2Retranslator
 
 	/**
 	 * The accumulated mapping from original {@link L2BasicBlock}s to their
-	 * replacements.
+	 * replacements.  When code splitting is implemented, the key of this
+	 * structure might be reworked as an &lt;{@link L2BasicBlock}, {@link
+	 * L2ValueManifest}&gt; pair.
 	 */
 	final Map<L2BasicBlock, L2BasicBlock> blockMap = new HashMap<>();
 
@@ -316,7 +308,7 @@ public final class L2Retranslator
 	final Map<L2Register<?>, L2Register<?>> registerMap = new HashMap<>();
 
 	/**
-	 * Construct a new {@code L2Retranslator}.
+	 * Construct a new {@code L2Inliner}.
 	 *
 	 * @param targetGenerator
 	 *        The {@link L2Generator} on which to write new instructions.
@@ -329,10 +321,16 @@ public final class L2Retranslator
 	 *        The {@link List} of {@link L2ReadPointerOperand}s corresponding to
 	 *        the arguments to this function invocation.
 	 */
-	L2Retranslator (
+	L2Inliner (
 		final L2Generator targetGenerator,
 		final Frame inlineFrame,
-		final List<L2ReadPointerOperand> arguments)
+		final L2Instruction invokeInstruction,
+		final A_RawFunction code,
+		final List<L2ReadPointerOperand> outers,
+		final List<L2ReadPointerOperand> arguments,
+		final L2ObjectRegister result,
+		final L2BasicBlock completionBlock,
+		final L2BasicBlock reificationBlock)
 	{
 		this.targetGenerator = targetGenerator;
 		this.inlineFrame = inlineFrame;
@@ -340,6 +338,21 @@ public final class L2Retranslator
 		// Seed the frameMap.
 //TODO MvG: Figure out locus of responsibility for topFrame creation.
 // 		this.frameMap.put(this.targetGenerator.topFrame, inlineFrame);
+	}
+
+	/**
+	 * Inline the supplied function invocation.
+	 */
+	void generateInline (
+		final L2Instruction invokeInstruction,
+		final A_RawFunction code,
+		final List<L2ObjectRegister> outers,
+		final List<L2ObjectRegister> arguments,
+		final L2ObjectRegister result,
+		final L2BasicBlock completionBlock,
+		final L2BasicBlock reificationBlock)
+	{
+
 	}
 
 	/**

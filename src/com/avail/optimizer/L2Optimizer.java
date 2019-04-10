@@ -78,6 +78,7 @@ import static java.util.Collections.disjoint;
 import static java.util.Collections.emptySet;
 
 /**
+ * An {@code L2Optimizer} optimizes its {@link L2ControlFlowGraph}.
  * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
  * connected via their successor and predecessor lists.
  *
@@ -771,7 +772,7 @@ public final class L2Optimizer
 	 * <p>The initial block should always come first.</p>
 	 *
 	 * <p>For now, use the simple heuristic of only placing a block if all its
-	 * predecessors have been placed (or if there are only cycle unplaced, pick
+	 * predecessors have been placed (or if there are only cycles unplaced, pick
 	 * one arbitrarily).</p>
 	 */
 	@InnerAccess void orderBlocks ()

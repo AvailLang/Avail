@@ -1408,61 +1408,18 @@ public final class JVMTranslator
 		final int failurePc = failure.targetBlock().offset();
 		if (offset == failurePc - 1)
 		{
-			// Reverse the condition to make it easier to insert counter
-			// maintenance:
-			//   jump if failed to logFailure
-			//   increment successCounter
-			//   jump to successPc
-			//   logFailure: increment failureCounter
-			//   (fall through to failurePc)
-			final Label logFailure = new Label();
-			method.visitJumpInsn(reverseOpcode(opcode), logFailure);
-			literal(method, successCounter);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(LongAdder.class),
-				"increment",
-				getMethodDescriptor(VOID_TYPE),
-				false);
-			method.visitJumpInsn(GOTO, labelFor(successPc));
-			method.visitLabel(logFailure);
-			literal(method, failureCounter);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(LongAdder.class),
-				"increment",
-				getMethodDescriptor(VOID_TYPE),
-				false);
+			generateBranch(
+				method, opcode, successCounter, failureCounter, successPc);
 			// Fall through to failurePc.
 		}
 		else
 		{
-			// Keep the condition the same to make it easier to insert counter
-			// maintenance.  Note that this form only falls through if the
-			// success label follows it, otherwise it has to jump.
-			//   jump if success to logSuccess
-			//   increment failureCounter
-			//   jump to failurePc
-			//   logSuccess: increment successCounter
-			//   (fall through or jump to successPc)
-			final Label logSuccess = new Label();
-			method.visitJumpInsn(opcode, logSuccess);
-			literal(method, failureCounter);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(LongAdder.class),
-				"increment",
-				getMethodDescriptor(VOID_TYPE),
-				false);
-			method.visitJumpInsn(GOTO, labelFor(failurePc));
-			method.visitLabel(logSuccess);
-			literal(method, successCounter);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(LongAdder.class),
-				"increment",
-				getMethodDescriptor(VOID_TYPE),
-				false);
+			generateBranch(
+				method,
+				reverseOpcode(opcode),
+				failureCounter,
+				successCounter,
+				failurePc);
 			// If the success branch targets the next instruction, fall through,
 			// otherwise jump to it.
 			if (offset != successPc - 1)
@@ -1470,6 +1427,62 @@ public final class JVMTranslator
 				method.visitJumpInsn(GOTO, labelFor(successPc));
 			}
 		}
+	}
+
+	/**
+	 * Generate a branch, with associated counter tracking.  The generated Java
+	 * bytecodes have this form:
+	 *
+	 * <pre>
+	 *     jump to notTakenStub if the given opcode's condition <em>fails</em>
+	 *     increment takenCounter
+	 *     jump to takenPc
+	 *     notTakenStub: increment notTakenCounter
+	 *     (fall through)
+	 *     notTakenPc:
+	 *     ...
+	 *     takenPc:
+	 *     ...
+	 * </pre>
+	 *
+	 * @param method
+	 *        The {@link MethodVisitor} on which to generate the branch.
+	 * @param branchOpcode
+	 *        The opcode to effect the branch.  This will be reversed internally
+	 *        to make it easier to increment the notTakenCounter before falling
+	 *        through.
+	 * @param takenCounter
+	 *        The {@link LongAdder} to increment when the branch is taken.
+	 * @param notTakenCounter
+	 *        The {@link LongAdder} to increment when the branch is not taken.
+	 * @param takenPc
+	 *        The L2 program counter to jump to if the branch is taken.
+	 */
+	private void generateBranch (
+		final MethodVisitor method,
+		final int branchOpcode,
+		final LongAdder takenCounter,
+		final LongAdder notTakenCounter,
+		final int takenPc)
+	{
+		final Label logNotTaken = new Label();
+		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken);
+		literal(method, takenCounter);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(LongAdder.class),
+			"increment",
+			getMethodDescriptor(VOID_TYPE),
+			false);
+		method.visitJumpInsn(GOTO, labelFor(takenPc));
+		method.visitLabel(logNotTaken);
+		literal(method, notTakenCounter);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(LongAdder.class),
+			"increment",
+			getMethodDescriptor(VOID_TYPE),
+			false);
 	}
 
 	/**

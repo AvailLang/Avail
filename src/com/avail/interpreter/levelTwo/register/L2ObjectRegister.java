@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Retranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.utility.Casts.cast;
@@ -110,7 +110,7 @@ extends L2Register<A_BasicObject>
 	}
 
 	@Override
-	public L2ObjectRegister copyForInliner (final L2Retranslator inliner)
+	public L2ObjectRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2ObjectRegister(
 			inliner.targetGenerator.nextUnique(), restriction);

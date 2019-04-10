@@ -160,19 +160,12 @@ public final class L2Generator
 		 * Unimplemented.  The idea is that at this level some inlining of
 		 * non-primitives will take place, emphasizing inlining of function
 		 * application.  Invocations of methods that take a literal function
-		 * should tend very strongly to get inlined, as the potential to
-		 * turn things like continuation-based conditionals and loops into mere
-		 * jumps is expected to be highly profitable.
+		 * should tend very strongly to get inlined, as the potential to turn
+		 * things like continuation-based conditionals and loops into mere jumps
+		 * is expected to be highly profitable.
 		 */
 		@Deprecated
-		CHASED_BLOCKS,
-
-		/**
-		 * At some point the CPU cost of interpreting the level two code will
-		 * exceed the cost of generating corresponding Java bytecodes.
-		 */
-		@Deprecated
-		NATIVE;
+		CHASED_BLOCKS;
 
 		/** An array of all {@link OptimizationLevel} enumeration values. */
 		private static final OptimizationLevel[] all = values();

@@ -118,8 +118,8 @@ public final class P_IfTrueThenElse extends Primitive
 		final CallSiteHelper callSiteHelper)
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
-		// the else function, instead.  The client will generate any needed
-		// type strengthening, so don't do it here.
+		// the else function, instead.  The client will generate any needed type
+		// strengthening, so don't do it here.
 		final L2ReadPointerOperand thenFunction = arguments.get(1);
 		translator.generateGeneralFunctionInvocation(
 			thenFunction,  // 'then' function

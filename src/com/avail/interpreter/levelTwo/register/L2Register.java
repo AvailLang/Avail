@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Retranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -325,10 +325,10 @@ public abstract class L2Register<T extends A_BasicObject>
 	 * the return type.
 	 *
 	 * @param inliner
-	 *        The {@link L2Retranslator} for which copying is requested.
+	 *        The {@link L2Inliner} for which copying is requested.
 	 * @return A copy of the receiver.
 	 */
-	public abstract L2Register<T> copyForInliner (final L2Retranslator inliner);
+	public abstract L2Register<T> copyForInliner (final L2Inliner inliner);
 
 	/**
 	 * Answer an {@link L2Operation} that implements a phi move for the

@@ -48,7 +48,7 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Retranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
@@ -321,7 +321,7 @@ public abstract class L2Operation
 
 	/**
 	 * Write the given instruction's equivalent effect through the given {@link
-	 * L2Retranslator}.  The given {@link L2Instruction}'s {@linkplain
+	 * L2Inliner}.  The given {@link L2Instruction}'s {@linkplain
 	 * L2Instruction#operation() operation} must be the current receiver.
 	 *
 	 * @param instruction
@@ -331,13 +331,13 @@ public abstract class L2Operation
 	 *        The operands of the instruction, already transformed for the
 	 *        inliner.
 	 * @param retranslator
-	 *        The {@link L2Retranslator} through which to write the
+	 *        The {@link L2Inliner} through which to write the
 	 *        instruction's equivalent effect.
 	 */
 	public void emitTransformedInstruction (
 		final L2Instruction instruction,
 		final L2Operand[] transformedOperands,
-		final L2Retranslator retranslator)
+		final L2Inliner retranslator)
 	{
 		assert instruction.operation() == this;
 		retranslator.emitInstruction(this, transformedOperands);

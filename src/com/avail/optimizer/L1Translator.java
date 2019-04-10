@@ -1764,7 +1764,7 @@ implements L1OperationDispatcher
 	 *
 	 * <p>The final output from the entire polymorphic call will always be fully
 	 * strengthened to the intersection of the VM-guaranteed type and the
-	 * expectedType</p>.
+	 * expectedType.</p>
 	 *
 	 * @param functionToCallReg
 	 *        The {@link L2ReadPointerOperand} containing the function to
@@ -1773,7 +1773,7 @@ implements L1OperationDispatcher
 	 *        The {@link List} of {@link L2ReadPointerOperand}s that supply
 	 *        arguments to the function.
 	 * @param givenGuaranteedResultType
- *            The type guaranteed by the VM to be returned by the call.
+	 *        The type guaranteed by the VM to be returned by the call.
 	 * @param tryToGenerateSpecialPrimitiveInvocation
 	 *        {@code true} if an attempt should be made to generate a customized
 	 *        {@link L2Instruction} sequence for a {@link Primitive} invocation,
@@ -1793,14 +1793,13 @@ implements L1OperationDispatcher
 
 		// Sanity check the number of arguments against the function.  The
 		// function type's acceptable arguments tuple type may be bottom,
-		// indicating the size is not known.  It may also be a singular
-		// integer range (e.g., [3..3]), indicating exactly how many
-		// arguments must be supplied.  If it's a variable size, then by
-		// the argument contravariance rules, it would require each (not
-		// just any) of those sizes on every call, which is a contradiction,
-		// although it's allowed as a denormalized uninstantiable type.  For
-		// now just treat a spread of sizes like bottom (i.e., the count is
-		// not known).
+		// indicating the size is not known.  It may also be a singular integer
+		// range (e.g., [3..3]), indicating exactly how many arguments must be
+		// supplied.  If it's a variable size, then by the argument
+		// contravariance rules, it would require each (not just any) of those
+		// sizes on every call, which is a contradiction, although it's allowed
+		// as a denormalized uninstantiable type.  For now just treat a spread
+		// of sizes like bottom (i.e., the count is not known).
 		final int argumentCount = arguments.size();
 		final A_Type sizeRange =
 			functionToCallReg.type().argsTupleType().sizeRange();
@@ -2104,11 +2103,13 @@ implements L1OperationDispatcher
 			final List<AvailObject> constants = new ArrayList<>(argumentCount);
 			for (final L2ReadPointerOperand regRead : arguments)
 			{
-				if (regRead.constantOrNull() == null)
+				final @Nullable A_BasicObject constant =
+					regRead.constantOrNull();
+				if (constant == null)
 				{
 					break;
 				}
-				constants.add((AvailObject) regRead.constantOrNull());
+				constants.add((AvailObject) constant);
 			}
 			if (constants.size() == argumentCount)
 			{

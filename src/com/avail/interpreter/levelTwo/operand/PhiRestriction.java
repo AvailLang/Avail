@@ -36,18 +36,16 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 /**
  * This mechanism allows type information for an {@link L2Register} to be
  * restricted along a branch. A good example is a type-testing instruction,
- * which narrows the type along the "pass" branch, but not along the "fail"
- * branch.  Eventually we may capture negative type information as well (e.g.,
- * "x isn't an integer or tuple here"), in which case we would separately narrow
- * the types for both branches.
+ * which narrows the type along the "pass" branch, and adds exclusions to the
+ * {@link TypeRestriction} along the "fail" branch.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 public final class PhiRestriction
 {
 	/**
-	 * The {@link L2Register} which is to be restricted along this
-	 * control flow branch.
+	 * The {@link L2Register} which is to be restricted along this control flow
+	 * branch.
 	 */
 	public final L2Register<?> register;
 

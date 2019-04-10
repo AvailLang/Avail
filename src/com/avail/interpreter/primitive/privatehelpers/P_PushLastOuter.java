@@ -120,12 +120,13 @@ public final class P_PushLastOuter extends Primitive
 			functionToCallReg.register().definitionSkippingMoves();
 		final A_Type returnType = functionToCallReg.type().returnType();
 		final L2ReadPointerOperand outerReg =
-			functionCreationInstruction.operation().extractFunctionOuterRegister(
-				functionCreationInstruction,
-				functionToCallReg,
-				1,
-				returnType,
-				translator);
+			functionCreationInstruction.operation()
+				.extractFunctionOuterRegister(
+					functionCreationInstruction,
+					functionToCallReg,
+					1,
+					returnType,
+					translator);
 		callSiteHelper.useAnswer(outerReg);
 		return true;
 	}

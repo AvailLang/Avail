@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Retranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.utility.Casts.cast;
@@ -106,7 +106,7 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public L2IntRegister copyForInliner (final L2Retranslator inliner)
+	public L2IntRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2IntRegister(
 			inliner.targetGenerator.nextUnique(),
