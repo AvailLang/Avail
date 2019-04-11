@@ -428,7 +428,7 @@ extends Descriptor
 	}
 
 	@Override
-	A_Continuation o_ReplacingCaller(
+	A_Continuation o_ReplacingCaller (
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
@@ -515,8 +515,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a mutable continuation with the specified fields.  Leave the stack
-	 * frame slots uninitialized.
+	 * Create a mutable continuation with the specified fields.  Fill the stack
+	 * frame slots with {@link NilDescriptor#nil}.
 	 *
 	 * @param function
 	 *            The function being invoked/resumed.
@@ -550,6 +550,7 @@ extends Descriptor
 		continuation.setSlot(STACK_POINTER, stackp);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
 		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
+		continuation.fillSlots(FRAME_AT_, 1, frameSize, nil);
 		return continuation;
 	}
 

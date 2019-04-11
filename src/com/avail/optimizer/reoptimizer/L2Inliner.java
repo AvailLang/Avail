@@ -388,7 +388,7 @@ public final class L2Inliner
 	 * Transform an {@link L2PcOperand}'s {@link L2ValueManifest} in preparation
 	 * for inlining.  The new manifest should take into account the bindings of
 	 * the old manifest, but shifted into a sub-{@link Frame}, combined with the
-	 * {@link #targetGenerator}'s {@link L2Generator#currentManifest}.
+	 * {@link #targetGenerator}'s {@link L2Generator#currentManifest()}.
 	 *
 	 * @return The new {@link L2ValueManifest}.
 	 */
