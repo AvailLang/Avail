@@ -32,9 +32,12 @@
 
 package com.avail.optimizer.reoptimizer;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,6 +48,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
@@ -57,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.utility.Casts.cast;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -272,13 +277,37 @@ public final class L2Inliner
 	}
 
 	/** The {@link L2Generator} on which to output the transformed L2 code. */
-	public final L2Generator targetGenerator;
+	@InnerAccess final L2Generator targetGenerator;
 
 	/** The {@link Frame} representing the invocation being inlined. */
-	public final Frame inlineFrame;
+	@InnerAccess final Frame inlineFrame;
+
+	/** The invoke-like {@link L2Instruction} being inlined. */
+	@InnerAccess final L2Instruction invokeInstruction;
+
+	/** The {@link A_RawFunction} being inlined. */
+	@InnerAccess final A_RawFunction code;
+
+	/** The registers providing values captured by the closure being inlined. */
+	@InnerAccess final List<L2ReadPointerOperand> outers;
 
 	/** The registers providing arguments to the invocation being inlined. */
-	public final List<L2ReadPointerOperand> arguments;
+	@InnerAccess final List<L2ReadPointerOperand> arguments;
+
+	/** The register to write the result of the inlined call into. */
+	@InnerAccess final L2WritePointerOperand result;
+
+	/**
+	 * The {@link L2BasicBlock} that should be reached when the inlined call
+	 * completes successfully.
+	 */
+	@InnerAccess final L2BasicBlock completionBlock;
+
+	/**
+	 * The {@link L2BasicBlock} that should be reached when reification happens
+	 * during the inlined call.
+	 */
+	@InnerAccess final L2BasicBlock reificationBlock;
 
 	/**
 	 * The accumulated mapping from original {@link L2BasicBlock}s to their
@@ -286,20 +315,20 @@ public final class L2Inliner
 	 * structure might be reworked as an &lt;{@link L2BasicBlock}, {@link
 	 * L2ValueManifest}&gt; pair.
 	 */
-	final Map<L2BasicBlock, L2BasicBlock> blockMap = new HashMap<>();
+	private final Map<L2BasicBlock, L2BasicBlock> blockMap = new HashMap<>();
 
 	/**
 	 * The accumulated mapping from original {@link L2SemanticValue}s to their
 	 * replacements.
 	 */
-	final Map<L2SemanticValue, L2SemanticValue> semanticValueMap =
+	private final Map<L2SemanticValue, L2SemanticValue> semanticValueMap =
 		new HashMap<>();
 
 	/**
 	 * The accumulated mapping from original {@link Frame}s to their
 	 * replacements.
 	 */
-	final Map<Frame, Frame> frameMap = new HashMap<>();
+	private final Map<Frame, Frame> frameMap = new HashMap<>();
 
 	/**
 	 * The accumulated mapping from original {@link L2Register}s to their
@@ -328,31 +357,65 @@ public final class L2Inliner
 		final A_RawFunction code,
 		final List<L2ReadPointerOperand> outers,
 		final List<L2ReadPointerOperand> arguments,
-		final L2ObjectRegister result,
+		final L2WritePointerOperand result,
 		final L2BasicBlock completionBlock,
 		final L2BasicBlock reificationBlock)
 	{
 		this.targetGenerator = targetGenerator;
 		this.inlineFrame = inlineFrame;
-		this.arguments = new ArrayList<>(arguments);
-		// Seed the frameMap.
-//TODO MvG: Figure out locus of responsibility for topFrame creation.
-// 		this.frameMap.put(this.targetGenerator.topFrame, inlineFrame);
+		this.invokeInstruction = invokeInstruction;
+		this.code = code;
+		this.outers = unmodifiableList(outers);
+		this.arguments = unmodifiableList(arguments);
+		this.result = result;
+		this.completionBlock = completionBlock;
+		this.reificationBlock = reificationBlock;
+
+		// TODO MvG – Seed the frameMap.
+ 		// this.frameMap.put(topFrame, inlineFrame);
 	}
 
 	/**
 	 * Inline the supplied function invocation.
 	 */
-	void generateInline (
-		final L2Instruction invokeInstruction,
-		final A_RawFunction code,
-		final List<L2ObjectRegister> outers,
-		final List<L2ObjectRegister> arguments,
-		final L2ObjectRegister result,
-		final L2BasicBlock completionBlock,
-		final L2BasicBlock reificationBlock)
+	void generateInline ()
 	{
+		// TODO MvG - Implement.  Scan code's chunk's CFG's blocks in order,
+		// verifying that predecessor blocks have all run before starting each
+		// new one.  Scan all instructions within the block.  Remember to update
+		// the dependency in the targetGenerator to include anything the inlined
+		// chunk depended on.
 
+		final L2Chunk inlinedChunk = code.startingChunk();
+		// Caller must ensure the code being inlined is L2-optimized and valid.
+		assert inlinedChunk != L2Chunk.unoptimizedChunk;
+		assert inlinedChunk.isValid();
+		assert targetGenerator.currentlyReachable()
+			: "Inlined code is not reachable!";
+		final L2ControlFlowGraph graph = inlinedChunk.controlFlowGraph();
+		for (final L2BasicBlock block : graph.basicBlockOrder)
+		{
+			final L2BasicBlock newBlock = mapBlock(block);
+			targetGenerator.startBlock(newBlock);
+			if (targetGenerator.currentlyReachable())
+			{
+				for (final L2Instruction instruction : block.instructions())
+				{
+					instruction.transformAndEmitOn(this);
+				}
+			}
+		}
+		// Add the inlined chunk's dependencies.
+		for (final A_ChunkDependable dependency
+			: inlinedChunk.contingentValues())
+		{
+			targetGenerator.addContingentValue(dependency);
+		}
+
+
+
+
+		assert false;
 	}
 
 	/**
@@ -454,5 +517,16 @@ public final class L2Inliner
 		final L2Operand... operands)
 	{
 		targetGenerator.addInstruction(operation, operands);
+	}
+
+	/**
+	 * Generate a number unique within the {@link #targetGenerator}.
+	 *
+	 * @return An {@code int} that the targetGenerator had not previously
+	 *         produced.
+	 */
+	public int nextUnique ()
+	{
+		return targetGenerator.nextUnique();
 	}
 }

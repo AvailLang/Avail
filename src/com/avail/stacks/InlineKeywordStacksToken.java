@@ -61,11 +61,17 @@ public final class InlineKeywordStacksToken extends KeywordStacksToken
 		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
+		super(
+			string,
+			lineNumber,
+			position,
+			startOfTokenLinePosition,
+			moduleName,
+			false);
 	}
 
 	/**
-	 * Construct a new {@link InlineKeywordStacksToken}.
+	 * Construct a new {@code InlineKeywordStacksToken}.
 	 * @param string
 	 * 		The string to be tokenized.
 	 * @param lineNumber

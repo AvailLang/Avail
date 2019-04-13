@@ -197,17 +197,15 @@ extends A_ChunkDependable
 
 	/**
 	 * Add a {@linkplain VariableAccessReactor write reactor} to the {@linkplain
-	 * VariableDescriptor variable} and associate it with the specified
-	 * key (for subsequent removal).
+	 * VariableDescriptor variable} and associate it with the specified key (for
+	 * subsequent removal).
 	 *
 	 * @param key
 	 *        An {@linkplain AtomDescriptor atom}.
 	 * @param reactor
 	 *        A write reactor.
-	 * @return The target variable (possibly {@linkplain Mutability#SHARED
-	 *         shared} now).
 	 */
-	A_Variable addWriteReactor (
+	void addWriteReactor (
 		final A_Atom key,
 		final VariableAccessReactor reactor);
 

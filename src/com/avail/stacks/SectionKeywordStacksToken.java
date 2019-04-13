@@ -42,7 +42,7 @@ public final class SectionKeywordStacksToken extends KeywordStacksToken
 {
 
 	/**
-	 * Construct a new {@link SectionKeywordStacksToken}.
+	 * Construct a new {@code SectionKeywordStacksToken}.
 	 *
 	 * @param string
 	 * 		The string to be tokenized.
@@ -62,8 +62,13 @@ public final class SectionKeywordStacksToken extends KeywordStacksToken
 		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePosition,moduleName);
-		this.isSectionToken = true;
+		super(
+			string,
+			lineNumber,
+			position,
+			startOfTokenLinePosition,
+			moduleName,
+			true);
 	}
 
 	/**

@@ -33,14 +33,7 @@
 package com.avail.optimizer;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -821,8 +814,7 @@ public final class L2Generator
 			L2_MAKE_IMMUTABLE.instance,
 			sourceRegister,
 			destinationWrite);
-		currentManifest()
-			.introduceImmutable(sourceRegister, destinationWrite);
+		currentManifest().introduceImmutable(sourceRegister, destinationWrite);
 		return destinationWrite.read();
 	}
 
@@ -933,6 +925,20 @@ public final class L2Generator
 		{
 			currentBlock.addInstruction(instruction);
 		}
+	}
+
+	/**
+	 * Record the fact that the chunk being created depends on the given {@link
+	 * A_ChunkDependable}.  If that {@code A_ChunkDependable} changes, the chunk
+	 * will be invalidated.
+	 *
+	 * @param contingentValue
+	 *        The {@link AvailObject} that the chunk will be contingent on.
+	 */
+	public void addContingentValue (final A_ChunkDependable contingentValue)
+	{
+		contingentValues =
+			contingentValues.setWithElementCanDestroy(contingentValue, true);
 	}
 
 	/**

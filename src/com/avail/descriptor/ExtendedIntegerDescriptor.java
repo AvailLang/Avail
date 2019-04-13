@@ -55,7 +55,7 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ExtendedIntegerDescriptor}.
+	 * Construct a new {@code ExtendedIntegerDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

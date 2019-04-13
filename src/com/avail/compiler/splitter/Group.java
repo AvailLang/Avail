@@ -39,7 +39,6 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.SignatureException;
 
@@ -48,20 +47,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.CHECK_AT_LEAST;
-import static com.avail.compiler.ParsingOperation.CHECK_AT_MOST;
-import static com.avail.compiler.ParsingOperation.CONCATENATE;
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
 import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
-import static com.avail.compiler.splitter.WrapState.PUSHED_LIST;
-import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
-import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST;
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
@@ -72,9 +61,7 @@ import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PH
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.singletonList;
 
@@ -138,7 +125,7 @@ extends Expression
 	private int maximumCardinality = Integer.MAX_VALUE;
 
 	/**
-	 * Construct a new {@link Group} having a double-dagger (‡).
+	 * Construct a new {@code Group} having a double-dagger (‡).
 	 *
 	 * @param positionInName
 	 *        The position of the group in the message name.
@@ -159,7 +146,7 @@ extends Expression
 	}
 
 	/**
-	 * Construct a new {@link Group} that does not contain a double-dagger
+	 * Construct a new {@code Group} that does not contain a double-dagger
 	 * (‡).
 	 *
 	 * @param positionInName
@@ -204,15 +191,11 @@ extends Expression
 	}
 
 	/**
-	 * Set the maximum number of times this group may occur.
-	 *
-	 * @param max
-	 *        My new maximum cardinality, or {@link Integer#MAX_VALUE} to
-	 *        stand for {@link InfinityDescriptor#positiveInfinity()}.
+	 * Set the maximum number of times this group may occur to 1.
 	 */
-	void maximumCardinality (final int max)
+	void beOptional ()
 	{
-		maximumCardinality = max;
+		maximumCardinality = 1;
 	}
 
 	/**

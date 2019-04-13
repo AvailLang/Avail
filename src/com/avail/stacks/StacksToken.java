@@ -61,7 +61,13 @@ public class StacksToken extends AbstractStacksToken
 		final int startOfTokenLinePosition,
 		final String moduleName)
 	{
-		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
+		super(
+			string,
+			lineNumber,
+			position,
+			startOfTokenLinePosition,
+			moduleName,
+			false);
 	}
 
 	/**

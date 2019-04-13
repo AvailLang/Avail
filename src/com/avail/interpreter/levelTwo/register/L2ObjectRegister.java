@@ -113,7 +113,7 @@ extends L2Register<A_BasicObject>
 	public L2ObjectRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2ObjectRegister(
-			inliner.targetGenerator.nextUnique(), restriction);
+			inliner.nextUnique(), restriction);
 	}
 
 	@Override

@@ -45,27 +45,36 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 {
 
 	/**
-	 * Construct a new {@link KeywordStacksToken}.
+	 * Construct a new {@code KeywordStacksToken}.
 	 *
 	 * @param string
-	 * 		The string to be tokenized.
+	 * 		  The string to be tokenized.
 	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
+	 * 		  The line number where the token occurs/begins
 	 * @param position
-	 * 		The absolute start position of the token
+	 * 		  The absolute start position of the token
 	 * @param startOfTokenLinePosition
-	 * 		The position on the line where the token starts.
+	 * 		  The position on the line where the token starts.
 	 * @param moduleName
-	 * 		The module this token is in.
+	 * 		  The module this token is in.
+	 * @param isSectionToken
+	 *        Whether the token is a section (§) indicator.
 	 */
 	public KeywordStacksToken (
 		final String string,
 		final int lineNumber,
 		final int position,
 		final int startOfTokenLinePosition,
-		final String moduleName)
+		final String moduleName,
+		final boolean isSectionToken)
 	{
-		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
+		super(
+			string,
+			lineNumber,
+			position,
+			startOfTokenLinePosition,
+			moduleName,
+			isSectionToken);
 	}
 
 	/**

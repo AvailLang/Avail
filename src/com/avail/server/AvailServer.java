@@ -43,6 +43,7 @@ import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -56,25 +57,15 @@ import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
-import com.avail.server.messages.Command;
-import com.avail.server.messages.CommandMessage;
-import com.avail.server.messages.CommandParseException;
-import com.avail.server.messages.LoadModuleCommandMessage;
-import com.avail.server.messages.Message;
-import com.avail.server.messages.RunEntryPointCommandMessage;
-import com.avail.server.messages.SimpleCommandMessage;
-import com.avail.server.messages.UnloadModuleCommandMessage;
-import com.avail.server.messages.UpgradeCommandMessage;
-import com.avail.server.messages.VersionCommandMessage;
+import com.avail.server.messages.*;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation3;
+import com.avail.utility.evaluation.Continuation2NotNull;
+import com.avail.utility.evaluation.Continuation3NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -89,19 +80,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
@@ -174,7 +154,7 @@ public final class AvailServer
 	}
 
 	/**
-	 * Construct a new {@link AvailServer} that manages the given {@linkplain
+	 * Construct a new {@code AvailServer} that manages the given {@linkplain
 	 * AvailRuntime Avail runtime}.
 	 *
 	 * @param configuration
@@ -192,23 +172,25 @@ public final class AvailServer
 	}
 
 	/**
-	 * The catalog of pending upgrade requests, as a {@linkplain Map map}
-	 * from {@link UUID}s to the {@linkplain Continuation3 continuations} that
+	 * The catalog of pending upgrade requests, as a {@linkplain Map map} from
+	 * {@link UUID}s to the {@linkplain Continuation3NotNull continuations} that
 	 * should be invoked to proceed after the client has satisfied an upgrade
 	 * request. The continuation is invoked with the upgraded {@linkplain
 	 * AvailServerChannel channel}, the {@code UUID}, and another {@linkplain
-	 * Continuation0 continuation} that permits the {@linkplain AvailServer
-	 * server} to continue processing {@linkplain Message messages} for the
-	 * upgraded channel.
+	 * Continuation0 continuation} that permits the {@code AvailServer} to
+	 * continue processing {@linkplain Message messages} for the upgraded
+	 * channel.
 	 */
-	private final Map<
-			UUID,
-			Continuation3<AvailServerChannel, UUID, Continuation0>>
+	private final Map
+			<
+				UUID,
+				Continuation3NotNull<AvailServerChannel, UUID, Continuation0>
+			>
 		pendingUpgrades = new HashMap<>();
 
 	/**
-	 * Record an upgrade request issued by this {@linkplain AvailServer server}
-	 * in response to a {@linkplain Command command}.
+	 * Record an upgrade request issued by this {@code AvailServer} in response
+	 * to a {@linkplain Command command}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} that requested the
@@ -222,8 +204,9 @@ public final class AvailServer
 	public void recordUpgradeRequest (
 		final AvailServerChannel channel,
 		final UUID uuid,
-		final Continuation3<
-			AvailServerChannel, UUID, Continuation0> continuation)
+		final Continuation3NotNull
+				<AvailServerChannel, UUID, Continuation0>
+			continuation)
 	{
 		synchronized (pendingUpgrades)
 		{
@@ -344,7 +327,7 @@ public final class AvailServer
 	 *        The reason for the failure.
 	 * @return A message.
 	 */
-	@InnerAccess Message newErrorMessage (
+	@InnerAccess static Message newErrorMessage (
 		final @Nullable CommandMessage command,
 		final String reason)
 	{
@@ -359,7 +342,7 @@ public final class AvailServer
 	 *        response.
 	 * @return A message.
 	 */
-	static @InnerAccess Message newSimpleSuccessMessage (
+	@InnerAccess static Message newSimpleSuccessMessage (
 		final CommandMessage command)
 	{
 		final JSONWriter writer = new JSONWriter();
@@ -382,7 +365,7 @@ public final class AvailServer
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
-	static @InnerAccess Message newSuccessMessage (
+	@InnerAccess static Message newSuccessMessage (
 		final CommandMessage command,
 		final Continuation1NotNull<JSONWriter> content)
 	{
@@ -408,7 +391,7 @@ public final class AvailServer
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
-	static @InnerAccess Message newIOUpgradeRequestMessage (
+	@InnerAccess static Message newIOUpgradeRequestMessage (
 		final CommandMessage command,
 		final UUID uuid)
 	{
@@ -432,11 +415,10 @@ public final class AvailServer
 	 * @param channel
 	 *        The channel on which the message was received.
 	 * @param receiveNext
-	 *        How to receive the next message from the channel (when the
-	 *        {@linkplain AvailServer server} has processed this message
-	 *        sufficiently).
+	 *        How to receive the next message from the channel (when the {@code
+	 *        AvailServer} has processed this message sufficiently).
 	 */
-	public void receiveMessageThen (
+	public static void receiveMessageThen (
 		final Message message,
 		final AvailServerChannel channel,
 		final Continuation0 receiveNext)
@@ -523,11 +505,10 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#VERSION VERSION} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
-	public void negotiateVersionThen (
+	public static void negotiateVersionThen (
 		final AvailServerChannel channel,
 		final VersionCommandMessage command,
 		final Continuation0 continuation)
@@ -571,7 +552,7 @@ public final class AvailServer
 
 	/**
 	 * List syntax guides for all of the {@linkplain Command commands}
-	 * understood by the {@linkplain AvailServer server}.
+	 * understood by the {@code AvailServer}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -579,11 +560,10 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#COMMANDS COMMANDS} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
-	public void commandsThen (
+	public static void commandsThen (
 		final AvailServerChannel channel,
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
@@ -619,9 +599,8 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#MODULE_ROOTS MODULE_ROOTS} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void moduleRootsThen (
 		final AvailServerChannel channel,
@@ -645,9 +624,8 @@ public final class AvailServer
 	 *        A {@link Command#MODULE_ROOT_PATHS MODULE_ROOT_PATHS} command
 	 *        message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void moduleRootPathsThen (
 		final AvailServerChannel channel,
@@ -670,9 +648,8 @@ public final class AvailServer
 	 *        A {@link Command#MODULE_ROOT_PATHS MODULE_ROOT_PATHS} command
 	 *        message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void moduleRootsPathThen (
 		final AvailServerChannel channel,
@@ -698,7 +675,7 @@ public final class AvailServer
 		@Nullable List<ModuleNode> modules;
 
 		/**
-		 * Add the specified {@linkplain ModuleNode node} as a module.
+		 * Add the specified {@code ModuleNode} as a module.
 		 *
 		 * @param node
 		 *        The child node.
@@ -718,7 +695,7 @@ public final class AvailServer
 		@Nullable List<ModuleNode> resources;
 
 		/**
-		 * Add the specified {@linkplain ModuleNode node} as a resource.
+		 * Add the specified {@code ModuleNode} as a resource.
 		 *
 		 * @param node
 		 *        The child node.
@@ -742,7 +719,7 @@ public final class AvailServer
 
 		/**
 		 * Set the {@linkplain Throwable exception} that prevented evaluation of
-		 * this {@linkplain ModuleNode node}.
+		 * this {@code ModuleNode}.
 		 *
 		 * @param exception
 		 *        An exception.
@@ -753,7 +730,7 @@ public final class AvailServer
 		}
 
 		/**
-		 * Construct a new {@link ModuleNode}.
+		 * Construct a new {@code ModuleNode}.
 		 *
 		 * @param name
 		 *        The name.
@@ -764,8 +741,8 @@ public final class AvailServer
 		}
 
 		/**
-		 * Recursively write the {@linkplain ModuleNode receiver} to the
-		 * supplied {@link JSONWriter}.
+		 * Recursively write the {@code ModuleNode} to the supplied {@link
+		 * JSONWriter}.
 		 *
 		 * @param isRoot
 		 *        {@code true} if the receiver represents a {@linkplain
@@ -847,8 +824,7 @@ public final class AvailServer
 		}
 
 		/**
-		 * Write the {@linkplain ModuleNode receiver} to the supplied {@link
-		 * JSONWriter}.
+		 * Write the {@code ModuleNode} to the supplied {@link JSONWriter}.
 		 *
 		 * @param writer
 		 *        A {@code JSONWriter}.
@@ -984,9 +960,8 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#SOURCE_MODULES SOURCE_MODULES} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void sourceModulesThen (
 		final AvailServerChannel channel,
@@ -1038,9 +1013,8 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#ENTRY_POINTS ENTRY_POINTS} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void entryPointsThen (
 		final AvailServerChannel channel,
@@ -1096,9 +1070,8 @@ public final class AvailServer
 	 *        A {@link Command#CLEAR_REPOSITORIES CLEAR_REPOSITORIES} command
 	 *        message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void clearRepositoriesThen (
 		final AvailServerChannel channel,
@@ -1133,9 +1106,8 @@ public final class AvailServer
 	 *        An {@link Command#UPGRADE UPGRADE} {@linkplain
 	 *        UpgradeCommandMessage command message}.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void upgradeThen (
 		final AvailServerChannel channel,
@@ -1149,7 +1121,9 @@ public final class AvailServer
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
-		final Continuation3<AvailServerChannel, UUID, Continuation0> upgrader;
+		final @Nullable Continuation3NotNull
+				<AvailServerChannel, UUID, Continuation0>
+			upgrader;
 		synchronized (pendingUpgrades)
 		{
 			upgrader = pendingUpgrades.remove(command.uuid());
@@ -1177,14 +1151,13 @@ public final class AvailServer
 	 *        What to do after the upgrades have been completed by the client.
 	 *        The argument is the upgraded channel.
 	 * @param afterEnqueuing
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	private void requestUpgradesThen (
 		final AvailServerChannel channel,
 		final CommandMessage command,
-		final Continuation1<AvailServerChannel> afterUpgraded,
+		final Continuation1NotNull<AvailServerChannel> afterUpgraded,
 		final Continuation0 afterEnqueuing)
 	{
 		final UUID uuid = UUID.randomUUID();
@@ -1193,8 +1166,6 @@ public final class AvailServer
 			uuid,
 			(upgradedChannel, receivedUUID, resumeUpgrader) ->
 			{
-				assert upgradedChannel != null;
-				assert resumeUpgrader != null;
 				assert uuid.equals(receivedUUID);
 				upgradedChannel.upgradeToIOChannel();
 				resumeUpgrader.value();
@@ -1208,7 +1179,7 @@ public final class AvailServer
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
 	 * support {@linkplain AvailBuilder#buildTarget(ModuleName,
-	 * CompilerProgressReporter, Continuation2) module loading}.
+	 * CompilerProgressReporter, GlobalProgressReporter) module loading}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1217,9 +1188,8 @@ public final class AvailServer
 	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
 	 *        LoadModuleCommandMessage command message}.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void requestUpgradesForLoadModuleThen (
 		final AvailServerChannel channel,
@@ -1321,9 +1291,6 @@ public final class AvailServer
 			command.target(),
 			(name, moduleSize, position) ->
 			{
-				assert name != null;
-				assert moduleSize != null;
-				assert position != null;
 				final JSONWriter writer = new JSONWriter();
 				writer.startObject();
 				writer.write("module");
@@ -1338,8 +1305,6 @@ public final class AvailServer
 			},
 			(bytesSoFar, totalBytes) ->
 			{
-				assert bytesSoFar != null;
-				assert totalBytes != null;
 				final JSONWriter writer = new JSONWriter();
 				writer.startObject();
 				writer.write("bytesSoFar");
@@ -1373,9 +1338,8 @@ public final class AvailServer
 	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
 	 *        LoadModuleCommandMessage command message}.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void requestUpgradesForUnloadModuleThen (
 		final AvailServerChannel channel,
@@ -1418,9 +1382,8 @@ public final class AvailServer
 	 *        An {@link Command#UNLOAD_ALL_MODULES UNLOAD_ALL_MODULES}
 	 *        {@linkplain SimpleCommandMessage command message}.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void requestUpgradesForUnloadAllModulesThen (
 		final AvailServerChannel channel,
@@ -1474,8 +1437,9 @@ public final class AvailServer
 
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
-	 * support {@linkplain AvailBuilder#attemptCommand(String, Continuation2,
-	 * Continuation2, Continuation0) builder} command execution}.
+	 * support {@linkplain AvailBuilder#attemptCommand(String,
+	 * Continuation2NotNull, Continuation2NotNull, Continuation0) builder}
+	 * command execution}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1484,9 +1448,8 @@ public final class AvailServer
 	 *        A {@link Command#RUN_ENTRY_POINT RUN_ENTRY_POINT} {@linkplain
 	 *        RunEntryPointCommandMessage command message}.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void requestUpgradesForRunThen (
 		final AvailServerChannel channel,
@@ -1528,8 +1491,6 @@ public final class AvailServer
 			},
 			(value, cleanup) ->
 			{
-				assert value != null;
-				assert cleanup != null;
 				if (value.equalsNil())
 				{
 					final Message message = newSuccessMessage(
@@ -1583,9 +1544,8 @@ public final class AvailServer
 	 * @param command
 	 *        A {@link Command#ALL_FIBERS ALL_FIBERS} command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        {@linkplain AvailServer server} wishes to begin receiving messages
-	 *        again).
+	 *        What to do when sufficient processing has occurred (and the {@code
+	 *        AvailServer} wishes to begin receiving messages again).
 	 */
 	public void allFibersThen (
 		final AvailServerChannel channel,
@@ -1615,7 +1575,7 @@ public final class AvailServer
 
 	/**
 	 * Obtain the {@linkplain AvailServerConfiguration configuration} of the
-	 * {@linkplain AvailServer Avail server}.
+	 * {@code AvailServer}.
 	 *
 	 * @param args
 	 *        The command-line arguments.

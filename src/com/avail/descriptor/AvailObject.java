@@ -403,33 +403,19 @@ implements
 	 */
 	void assertObjectUnreachableIfMutable ()
 	{
-		assertObjectUnreachableIfMutableExcept(nil);
-	}
-
-	/**
-	 * Set up the object to report nice obvious errors if anyone ever accesses
-	 * it again.
-	 *
-	 * @param exceptMe
-	 *            An optional sub-object not to destroy even if it's mutable.
-	 */
-	void assertObjectUnreachableIfMutableExcept (
-		final AvailObject exceptMe)
-	{
-
 		checkValidAddress();
 		if (!descriptor().isMutable())
 		{
 			return;
 		}
-		if (sameAddressAs(exceptMe))
+		if (sameAddressAs(nil))
 		{
 			error("What happened?  This object is also the excluded one.");
 		}
 
 		// Recursively invoke the iterator on the subobjects of self...
 		final AvailSubobjectVisitor vis =
-			new MarkUnreachableSubobjectVisitor(exceptMe);
+			new MarkUnreachableSubobjectVisitor(nil);
 		scanSubobjects(vis);
 		destroy();
 	}
@@ -5396,11 +5382,11 @@ implements
 	}
 
 	@Override
-	public A_Variable addWriteReactor (
+	public void addWriteReactor (
 		final A_Atom key,
 		final VariableAccessReactor reactor)
 	{
-		return descriptor.o_AddWriteReactor(this, key, reactor);
+		descriptor.o_AddWriteReactor(this, key, reactor);
 	}
 
 	@Override

@@ -36,6 +36,8 @@ import com.avail.server.AvailServer;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.evaluation.Continuation0;
 
+import static com.avail.server.AvailServer.commandsThen;
+
 /**
  * A {@code SimpleCommandMessage} contains no state beyond the style of
  * {@linkplain Command command}.
@@ -55,7 +57,7 @@ extends CommandMessage
 	}
 
 	/**
-	 * Construct a new {@link SimpleCommandMessage}.
+	 * Construct a new {@code SimpleCommandMessage}.
 	 *
 	 * @param command
 	 *        The {@linkplain Command command}.
@@ -74,7 +76,7 @@ extends CommandMessage
 		switch (command)
 		{
 			case COMMANDS:
-				server.commandsThen(channel, this, continuation);
+				commandsThen(channel, this, continuation);
 				break;
 			case MODULE_ROOTS:
 				server.moduleRootsThen(channel, this, continuation);

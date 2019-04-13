@@ -35,27 +35,7 @@ package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.MacroDefinitionDescriptor;
-import com.avail.descriptor.MethodDefinitionDescriptor;
-import com.avail.descriptor.PhraseTypeDescriptor;
-import com.avail.descriptor.SendPhraseDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -69,50 +49,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOLLAR_SIGN;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.SECTION_SIGN;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.SINGLE_DAGGER;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.TILDE;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR;
+import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.*;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.exceptions.AvailErrorCode.E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS;
-import static com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION;
-import static com.avail.exceptions.AvailErrorCode.E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS;
-import static com.avail.exceptions.AvailErrorCode.E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE;
-import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_USE_OF_DOUBLE_DAGGER;
-import static com.avail.exceptions.AvailErrorCode.E_METHOD_NAME_IS_NOT_CANONICAL;
-import static com.avail.exceptions.AvailErrorCode.E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS;
-import static com.avail.exceptions.AvailErrorCode.E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_TILDE_MUST_NOT_FOLLOW_ARGUMENT;
-import static com.avail.exceptions.AvailErrorCode.E_UNBALANCED_GUILLEMETS;
-import static com.avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT;
-import static com.avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS;
+import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -724,7 +668,6 @@ public final class MessageSplitter
 			final Expression expression = expressions.get(pc - 1);
 			zeroBasedPosition = expression.positionInName - 1;
 		}
-		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final String annotatedString =
 			string.substring(0, zeroBasedPosition)
 				+ CompilerDiagnostics.errorIndicatorSymbol
@@ -1207,7 +1150,7 @@ public final class MessageSplitter
 						}
 						if (subgroup.underscoreCount() > 0)
 						{
-							subgroup.maximumCardinality(1);
+							subgroup.beOptional();
 						}
 						else
 						{
@@ -1505,15 +1448,15 @@ public final class MessageSplitter
 	 * for a message like this.
 	 *
 	 * @param functionType
-	 *            A function type.
+	 *        A function type.
 	 * @param sectionNumber
-	 *            The {@link SectionCheckpoint}'s subscript if this is a check
-	 *            of a {@linkplain MacroDefinitionDescriptor macro}'s,
-	 *            {@linkplain A_Definition#prefixFunctions() prefix function},
-	 *            otherwise any value past the total {@link
-	 *            #numberOfSectionCheckpoints} for a method or macro body.
+	 *        The {@link SectionCheckpoint}'s subscript if this is a check of a
+	 *        {@linkplain MacroDefinitionDescriptor macro}'s, {@linkplain
+	 *        A_Definition#prefixFunctions() prefix function}, otherwise any
+	 *        value past the total {@link #numberOfSectionCheckpoints} for a
+	 *        method or macro body.
 	 * @throws SignatureException
-	 *            If the function type is inappropriate for the method name.
+	 *         If the function type is inappropriate for the method name.
 	 */
 	private void checkImplementationSignature (
 		final A_Type functionType,

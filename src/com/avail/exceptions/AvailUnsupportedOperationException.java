@@ -52,7 +52,7 @@ extends RuntimeException
 	private static final long serialVersionUID = 2275923459723009067L;
 
 	/**
-	 * Construct a new {@link AvailUnsupportedOperationException}.
+	 * Construct a new {@code AvailUnsupportedOperationException}.
 	 *
 	 * @param descriptorClass
 	 *        The {@linkplain AbstractDescriptor descriptor}'s {@linkplain

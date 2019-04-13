@@ -78,7 +78,13 @@ public abstract class RegionStacksToken extends AbstractStacksToken
 		final char openRegionDelimiter,
 		final char closeRegionDelimiter)
 	{
-		super(string, lineNumber, position, startOfTokenLinePosition, moduleName);
+		super(
+			string,
+			lineNumber,
+			position,
+			startOfTokenLinePosition,
+			moduleName,
+			false);
 		this.openRegionDelimiter = openRegionDelimiter;
 		this.closeRegionDelimiter = closeRegionDelimiter;
 

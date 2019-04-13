@@ -41,6 +41,8 @@ import javax.annotation.Nullable;
 import java.util.Deque;
 import java.util.LinkedList;
 
+import static com.avail.server.AvailServer.receiveMessageThen;
+
 /**
  * An {@code AbstractTransportChannel} represents an abstract connection between
  * an {@link AvailServer} and a {@link TransportAdapter}. It encapsulates the
@@ -251,8 +253,7 @@ extends AvailServerChannel
 	protected void beginReceiving (final Message message)
 	{
 		final int maxQueueDepth = maximumReceiveQueueDepth();
-		final AvailServer server = adapter().server();
-		server.receiveMessageThen(
+		receiveMessageThen(
 			message,
 			this,
 			new Continuation0()
@@ -283,7 +284,7 @@ extends AvailServerChannel
 					// Process the next message.
 					if (nextMessage != null)
 					{
-						server.receiveMessageThen(
+						receiveMessageThen(
 							nextMessage,
 							AbstractTransportChannel.this,
 							this);

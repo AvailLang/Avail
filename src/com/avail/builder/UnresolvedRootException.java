@@ -66,7 +66,7 @@ extends UnresolvedDependencyException
 	}
 
 	/**
-	 * Construct a new {@link UnresolvedRootException}.
+	 * Construct a new {@code UnresolvedRootException}.
 	 *
 	 * @param referringModuleName
 	 *        The name of the module whose dependency graph resolution

@@ -6149,7 +6149,7 @@ public abstract class AbstractDescriptor
 	 * @param reactor
 	 * @return
 	 */
-	abstract A_Variable o_AddWriteReactor (
+	abstract void o_AddWriteReactor (
 		AvailObject object,
 		A_Atom key,
 		VariableAccessReactor reactor);

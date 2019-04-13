@@ -349,8 +349,10 @@ extends Expression
 					run.get(runSize - 1).first().isArgumentOrGroup();
 				final int permutationSize =
 					runSize + (lastElementPushed ? 0 : -1);
-				generator.emitIf(
-					permutationSize > 1, this, REVERSE_STACK, permutationSize);
+				if (permutationSize > 1)
+				{
+					generator.emit(this, REVERSE_STACK, permutationSize);
+				}
 			}
 		}
 	}

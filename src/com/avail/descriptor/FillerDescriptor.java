@@ -52,7 +52,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link FillerDescriptor}.
+	 * Construct a new {@code FillerDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

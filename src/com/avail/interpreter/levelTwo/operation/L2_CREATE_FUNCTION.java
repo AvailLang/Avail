@@ -57,20 +57,11 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 import static com.avail.utility.Strings.increaseIndentation;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Synthesize a new {@link FunctionDescriptor function} from the provided
@@ -246,34 +237,91 @@ extends L2Operation
 		final int numOuters = outerRegs.size();
 		assert numOuters == code.numOuters();
 
-		// :: function = createExceptOuters(code, numOuters);
 		translator.literal(method, code);
-		translator.intConstant(method, numOuters);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(FunctionDescriptor.class),
-			"createExceptOuters",
-			getMethodDescriptor(
-				getType(A_Function.class),
-				getType(A_RawFunction.class),
-				INT_TYPE),
-			false);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		for (int i = 0; i < numOuters; i++)
+		switch (numOuters)
 		{
-			// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
-			method.visitInsn(DUP);
-			translator.intConstant(method, i + 1);
-			translator.load(method, outerRegs.get(i).register());
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(A_Function.class),
-				"outerVarAtPut",
-				getMethodDescriptor(
-					VOID_TYPE,
-					INT_TYPE,
-					getType(AvailObject.class)),
-				true);
+			case 1:
+			{
+				translator.load(method, outerRegs.get(0).register());
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(FunctionDescriptor.class),
+					"createWithOuters1", // overload for 1 outer
+					getMethodDescriptor(
+						getType(AvailObject.class),
+						getType(A_RawFunction.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			case 2:
+			{
+				translator.load(method, outerRegs.get(0).register());
+				translator.load(method, outerRegs.get(1).register());
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(FunctionDescriptor.class),
+					"createWithOuters2", // overload for 2 outers
+					getMethodDescriptor(
+						getType(AvailObject.class),
+						getType(A_RawFunction.class),
+						getType(AvailObject.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			case 3:
+			{
+				translator.load(method, outerRegs.get(0).register());
+				translator.load(method, outerRegs.get(1).register());
+				translator.load(method, outerRegs.get(2).register());
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(FunctionDescriptor.class),
+					"createWithOuters3", // overload for 3 outers
+					getMethodDescriptor(
+						getType(AvailObject.class),
+						getType(A_RawFunction.class),
+						getType(AvailObject.class),
+						getType(AvailObject.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			default:
+			{
+				// :: function = createExceptOuters(code, numOuters);
+				translator.intConstant(method, numOuters);
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(FunctionDescriptor.class),
+					"createExceptOuters",
+					getMethodDescriptor(
+						getType(AvailObject.class),
+						getType(A_RawFunction.class),
+						INT_TYPE),
+					false);
+//				method.visitTypeInsn(
+//					CHECKCAST,
+//					getInternalName(AvailObject.class));
+				for (int i = 0; i < numOuters; i++)
+				{
+					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
+					method.visitInsn(DUP);
+					translator.intConstant(method, i + 1);
+					translator.load(method, outerRegs.get(i).register());
+					method.visitMethodInsn(
+						INVOKEINTERFACE,
+						getInternalName(A_Function.class),
+						"outerVarAtPut",
+						getMethodDescriptor(
+							VOID_TYPE,
+							INT_TYPE,
+							getType(AvailObject.class)),
+						true);
+				}
+				break;
+			}
 		}
 		// :: newFunction = function;
 		translator.store(method, newFunctionReg);

@@ -44,42 +44,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.environment.actions.AboutAction;
-import com.avail.environment.actions.BuildAction;
-import com.avail.environment.actions.CancelAction;
-import com.avail.environment.actions.CleanAction;
-import com.avail.environment.actions.CleanModuleAction;
-import com.avail.environment.actions.ClearTranscriptAction;
-import com.avail.environment.actions.CreateProgramAction;
-import com.avail.environment.actions.ExamineCompilationAction;
-import com.avail.environment.actions.ExamineRepositoryAction;
-import com.avail.environment.actions.GenerateDocumentationAction;
-import com.avail.environment.actions.GenerateGraphAction;
-import com.avail.environment.actions.InsertEntryPointAction;
-import com.avail.environment.actions.ParserIntegrityCheckAction;
-import com.avail.environment.actions.PreferencesAction;
-import com.avail.environment.actions.RefreshAction;
-import com.avail.environment.actions.ResetCCReportDataAction;
-import com.avail.environment.actions.ResetVMReportDataAction;
-import com.avail.environment.actions.RetrieveNextCommand;
-import com.avail.environment.actions.RetrievePreviousCommand;
-import com.avail.environment.actions.SetDocumentationPathAction;
-import com.avail.environment.actions.ShowCCReportAction;
-import com.avail.environment.actions.ShowVMReportAction;
-import com.avail.environment.actions.SubmitInputAction;
-import com.avail.environment.actions.ToggleDebugInterpreterL1;
-import com.avail.environment.actions.ToggleDebugInterpreterL2;
-import com.avail.environment.actions.ToggleDebugInterpreterPrimitives;
-import com.avail.environment.actions.ToggleDebugJVM;
-import com.avail.environment.actions.ToggleDebugWorkUnits;
-import com.avail.environment.actions.ToggleFastLoaderAction;
-import com.avail.environment.actions.ToggleL2SanityCheck;
-import com.avail.environment.actions.TraceCompilerAction;
-import com.avail.environment.actions.TraceLoadedStatementsAction;
-import com.avail.environment.actions.TraceMacrosAction;
-import com.avail.environment.actions.TraceSummarizeStatementsAction;
-import com.avail.environment.actions.UnloadAction;
-import com.avail.environment.actions.UnloadAllAction;
+import com.avail.environment.actions.*;
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
 import com.avail.environment.nodes.EntryPointModuleNode;
 import com.avail.environment.nodes.EntryPointNode;
@@ -120,18 +85,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -142,18 +96,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.*;
 import java.util.Queue;
-import java.util.TimerTask;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -163,13 +109,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static com.avail.builder.ModuleNameResolver.availExtension;
-import static com.avail.environment.AvailWorkbench.StreamStyle.BUILD_PROGRESS;
-import static com.avail.environment.AvailWorkbench.StreamStyle.COMMAND;
-import static com.avail.environment.AvailWorkbench.StreamStyle.ERR;
-import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
-import static com.avail.environment.AvailWorkbench.StreamStyle.IN_ECHO;
-import static com.avail.environment.AvailWorkbench.StreamStyle.OUT;
-import static com.avail.environment.AvailWorkbench.StreamStyle.values;
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
@@ -200,7 +140,6 @@ extends JFrame
 
 	public static String resource (final String localResourceName)
 	{
-		//noinspection StringConcatenationMissingWhitespace
 		return resourcePrefix + localResourceName;
 	}
 
@@ -3072,7 +3011,8 @@ extends JFrame
 		@Nullable Reader reader = null;
 		try
 		{
-			final String renames = System.getProperty("availRenames", null);
+			final @Nullable String renames =
+				System.getProperty("availRenames", null);
 			if (renames == null)
 			{
 				// Load the renames from preferences further down.

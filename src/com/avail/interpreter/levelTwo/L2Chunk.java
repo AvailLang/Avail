@@ -34,17 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
@@ -80,10 +70,7 @@ import java.util.logging.Level;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -764,6 +751,25 @@ implements ExecutableChunk
 		this.controlFlowGraph = controlFlowGraph;
 		this.contingentValues = contingentValues;
 		this.executableChunk = executableChunk;
+	}
+
+	/**
+	 * Answer this chunk's control flow graph.  Do not modify it.
+	 *
+	 * @return This chunk's {@link L2ControlFlowGraph}.
+	 */
+	public L2ControlFlowGraph controlFlowGraph ()
+	{
+		return controlFlowGraph;
+	}
+
+	/**
+	 * Answer my {@link A_Set} of {@link A_ChunkDependable}s, each of which will
+	 * invalidate this chunk if they change.
+	 */
+	public A_Set contingentValues ()
+	{
+		return contingentValues;
 	}
 
 	/**

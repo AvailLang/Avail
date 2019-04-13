@@ -82,6 +82,7 @@ import static org.objectweb.asm.Type.getType;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("Duplicates")
 public final class L2_INVOKE
 extends L2ControlFlowOperation
 {
@@ -143,6 +144,108 @@ extends L2ControlFlowOperation
 	}
 
 	/**
+	 * Perform the actual {@link A_Function function} invocation with zero
+	 * arguments.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 * @param calledFunction
+	 *        The function to call.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public static @Nullable StackReifier invoke0 (
+		final Interpreter interpreter,
+		final A_Function calledFunction)
+	{
+		final A_Function savedFunction = stripNull(interpreter.function);
+		final L2Chunk savedChunk = stripNull(interpreter.chunk);
+
+		interpreter.argsBuffer.clear();
+		interpreter.function = calledFunction;
+		interpreter.chunk = calledFunction.code().startingChunk();
+		interpreter.offset = 0;
+		final @Nullable StackReifier reifier = interpreter.runChunk();
+		interpreter.function = savedFunction;
+		interpreter.chunk = savedChunk;
+		interpreter.returnNow = false;
+		assert !interpreter.exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with a single
+	 * argument.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param arg1
+	 *        The sole argument to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public static @Nullable StackReifier invoke1 (
+		final Interpreter interpreter,
+		final A_Function calledFunction,
+		final AvailObject arg1)
+	{
+		final A_Function savedFunction = stripNull(interpreter.function);
+		final L2Chunk savedChunk = stripNull(interpreter.chunk);
+
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.add(arg1);
+		interpreter.function = calledFunction;
+		interpreter.chunk = calledFunction.code().startingChunk();
+		interpreter.offset = 0;
+		final @Nullable StackReifier reifier = interpreter.runChunk();
+		interpreter.function = savedFunction;
+		interpreter.chunk = savedChunk;
+		interpreter.returnNow = false;
+		assert !interpreter.exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with exactly
+	 * two arguments.
+	 *
+	 * @param interpreter
+	 *        The {@link Interpreter}.
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param arg1
+	 *        The first argument to the function.
+	 * @param arg2
+	 *        The second argument to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public static @Nullable StackReifier invoke2 (
+		final Interpreter interpreter,
+		final A_Function calledFunction,
+		final AvailObject arg1,
+		final AvailObject arg2)
+	{
+		final A_Function savedFunction = stripNull(interpreter.function);
+		final L2Chunk savedChunk = stripNull(interpreter.chunk);
+
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.add(arg1);
+		interpreter.argsBuffer.add(arg2);
+		interpreter.function = calledFunction;
+		interpreter.chunk = calledFunction.code().startingChunk();
+		interpreter.offset = 0;
+		final @Nullable StackReifier reifier = interpreter.runChunk();
+		interpreter.function = savedFunction;
+		interpreter.chunk = savedChunk;
+		interpreter.returnNow = false;
+		assert !interpreter.exitNow;
+		return reifier;
+	}
+
+	/**
 	 * Perform the actual {@link A_Function function} invocation.
 	 *
 	 * @param interpreter
@@ -194,17 +297,70 @@ extends L2ControlFlowOperation
 		// ::   args)
 		translator.loadInterpreter(method);
 		translator.load(method, calledFunctionReg);
-		translator.objectArray(method, argsRegsList, AvailObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_INVOKE.class),
-			"invoke",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(Interpreter.class),
-				getType(A_Function.class),
-				getType(AvailObject[].class)),
-			false);
+		// Generate special code for common cases of 0, 1, or 2 arguments.
+		switch (argsRegsList.size())
+		{
+			case 0:
+			{
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(L2_INVOKE.class),
+					"invoke0",
+					getMethodDescriptor(
+						getType(StackReifier.class),
+						getType(Interpreter.class),
+						getType(A_Function.class)),
+					false);
+				break;
+			}
+			case 1:
+			{
+				translator.load(method, argsRegsList.get(0).register());
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(L2_INVOKE.class),
+					"invoke1",
+					getMethodDescriptor(
+						getType(StackReifier.class),
+						getType(Interpreter.class),
+						getType(A_Function.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			case 2:
+			{
+				translator.load(method, argsRegsList.get(0).register());
+				translator.load(method, argsRegsList.get(1).register());
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(L2_INVOKE.class),
+					"invoke2",
+					getMethodDescriptor(
+						getType(StackReifier.class),
+						getType(Interpreter.class),
+						getType(A_Function.class),
+						getType(AvailObject.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			default:
+			{
+				translator.objectArray(method, argsRegsList, AvailObject.class);
+				method.visitMethodInsn(
+					INVOKESTATIC,
+					getInternalName(L2_INVOKE.class),
+					"invoke",
+					getMethodDescriptor(
+						getType(StackReifier.class),
+						getType(Interpreter.class),
+						getType(A_Function.class),
+						getType(AvailObject[].class)),
+					false);
+				break;
+			}
+		}
 		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: if (reifier != null) goto onNormalReturn;

@@ -71,7 +71,7 @@ public abstract class AbstractStacksToken
 	/**
 	 * Is this a section token tag?
 	 */
-	boolean isSectionToken;
+	final boolean isSectionToken;
 
 	/**
 	 *
@@ -84,31 +84,34 @@ public abstract class AbstractStacksToken
 	}
 
 	/**
-	 * Construct a new {@link AbstractStacksToken}.
+	 * Construct a new {@code AbstractStacksToken}.
 	 * @param string
-	 * 		The string to be tokenized.
+	 * 		  The string to be tokenized.
 	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
+	 * 		  The line number where the token occurs/begins
 	 * @param position
-	 * 		The absolute start position of the token
+	 * 		  The absolute start position of the token
 	 * @param startOfTokenLinePosition
-	 * 		The position on the line where the token starts.
+	 * 		  The position on the line where the token starts.
 	 * @param moduleName
-	 * 		The module this token is in.
+	 * 		  The module this token is in.
+	 * @param isSectionToken
+	 *        Whether this is a section (§) token.
 	 */
 	public AbstractStacksToken (
 		final String string,
 		final int lineNumber,
 		final int position,
 		final int startOfTokenLinePosition,
-		final String moduleName)
+		final String moduleName,
+		final boolean isSectionToken)
 	{
 		this.lexeme = string;
 		this.lineNumber = lineNumber;
 		this.position = position;
 		this.startOfTokenLinePosition = startOfTokenLinePosition;
 		this.moduleName = moduleName;
-		this.isSectionToken = false;
+		this.isSectionToken = isSectionToken;
 	}
 
 	/**

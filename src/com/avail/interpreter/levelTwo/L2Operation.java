@@ -306,8 +306,8 @@ public abstract class L2Operation
 
 	/**
 	 * This is the operation for the given instruction, which was just added to
-	 * its basic block.  Note that the operands have not yet been given the
-	 * opportunity
+	 * its basic block.  Do any post-processing appropriate for having added
+	 * the instruction.
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.

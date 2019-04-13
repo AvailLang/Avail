@@ -40,6 +40,7 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
@@ -51,7 +52,6 @@ import com.avail.tools.compiler.configuration.EnvironmentConfigurator;
 import com.avail.tools.compiler.configuration.VerbosityLevel;
 import com.avail.utility.NullOutputStream;
 import com.avail.utility.configuration.ConfigurationException;
-import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -186,10 +186,6 @@ public final class Compiler
 	{
 		return (module, moduleSize, position) ->
 		{
-			assert module != null;
-			assert moduleSize != null;
-			assert position != null;
-
 			final int percent = (int) ((position * 100) / moduleSize);
 			String modName = module.qualifiedName();
 			final int maxModuleNameLength = 61;
@@ -218,19 +214,16 @@ public final class Compiler
 	@InnerAccess static volatile String globalStatus = "";
 
 	/**
-	 * @param configuration The configuration from which to read the verbosity
-	 *                      level.
+	 * @param configuration
+	 *        The configuration from which to read the verbosity level.
 	 * @return A global tracker to store information about the progress on
 	 *         all modules to be compiled.
 	 */
-	private static Continuation2<Long, Long> globalTracker(
+	private static GlobalProgressReporter globalTracker(
 		final CompilerConfiguration configuration)
 	{
 		return (processedBytes, totalBytes) ->
 		{
-			assert processedBytes != null;
-			assert totalBytes != null;
-
 			final int perThousand =
 				(int) ((processedBytes * 1000) / totalBytes);
 			final float percent = perThousand / 10.0f;

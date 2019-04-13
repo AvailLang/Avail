@@ -1079,8 +1079,7 @@ implements L1OperationDispatcher
 		final CallSiteHelper callSiteHelper = new CallSiteHelper(
 			bundle, superUnionType, expectedType);
 		final A_Method method = bundle.bundleMethod();
-		generator.contingentValues =
-			generator.contingentValues.setWithElementCanDestroy(method, true);
+		generator.addContingentValue(method);
 		final int nArgs = method.numArgs();
 		final List<L2ReadPointerOperand> arguments = new ArrayList<>(nArgs);
 		final List<A_Type> argumentTypes = new ArrayList<>(nArgs);

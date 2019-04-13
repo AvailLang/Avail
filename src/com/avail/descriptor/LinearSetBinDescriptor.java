@@ -43,11 +43,7 @@ import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
 import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedHashSetBin;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
-import static com.avail.descriptor.Mutability.values;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.Mutability.*;
 import static java.lang.Long.bitCount;
 
 /**
@@ -188,7 +184,7 @@ extends SetBinDescriptor
 			}
 			final int newLocalSize = bitCount(bitVector);
 			result = createInitializedHashSetBin(
-				myLevel, newLocalSize, 0, 0, bitVector, nil);
+				myLevel, newLocalSize, bitVector);
 			result.setBinAddingElementHashLevelCanDestroy(
 				elementObject, elementObjectHash, myLevel, true);
 			for (int i = 1; i <= oldSize; i++)
@@ -432,7 +428,7 @@ extends SetBinDescriptor
 	}
 
 	/**
-	 * Construct a new {@link LinearSetBinDescriptor}.
+	 * Construct a new {@code LinearSetBinDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

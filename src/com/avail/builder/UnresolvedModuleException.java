@@ -34,6 +34,8 @@ package com.avail.builder;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * UnresolvedModuleException is a type of UnresolvedDependencyException that is
@@ -55,7 +57,7 @@ extends UnresolvedDependencyException
 	/**
 	 * The list of the places the unresolved module could have been.
 	 */
-	private final ArrayList<ModuleName> acceptablePaths;
+	private final List<ModuleName> acceptablePaths;
 
 	/**
 	 * Answer the list of the places the unresolved module could have been.
@@ -63,25 +65,28 @@ extends UnresolvedDependencyException
 	 * @return A {@linkplain ArrayList} list of the {@linkplain ModuleName
 	 *         module names}
 	 */
-	public ArrayList<ModuleName> acceptablePaths()
+	public List<ModuleName> acceptablePaths()
 	{
 		return acceptablePaths;
 	}
 
 	/**
-	 * Construct a new {@link UnresolvedModuleException}.
+	 * Construct a new {@code UnresolvedModuleException}.
 	 *
-	 * @param referringModuleName The name of the module which contained the invalid module
-	 *            reference.
-	 * @param unresolvedModuleName The name of the module which could not be resolved.
-	 * @param acceptablePaths The list of places the module could have been.
+	 * @param referringModuleName
+	 *        The name of the module which contained the invalid module
+	 *        reference.
+	 * @param unresolvedModuleName
+	 *        The name of the module which could not be resolved.
+	 * @param acceptablePaths
+	 *        The list of places the module could have been.
 	 */
 	UnresolvedModuleException (
 		final @Nullable ResolvedModuleName referringModuleName,
 		final String unresolvedModuleName,
-		final ArrayList<ModuleName> acceptablePaths)
+		final List<ModuleName> acceptablePaths)
 	{
 		super(referringModuleName, unresolvedModuleName);
-		this.acceptablePaths = acceptablePaths;
+		this.acceptablePaths = Collections.unmodifiableList(acceptablePaths);
 	}
 }

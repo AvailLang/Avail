@@ -4382,12 +4382,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Variable o_AddWriteReactor (
+	void o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
 		final VariableAccessReactor reactor)
 	{
-		return o_Traversed(object).addWriteReactor(key, reactor);
+		o_Traversed(object).addWriteReactor(key, reactor);
 	}
 
 	@Override

@@ -191,25 +191,6 @@ class InstructionGenerator
 	}
 
 	/**
-	 * Emit a {@link ParsingOperation} that takes an integer operand, but only
-	 * if the condition is true.
-	 *
-	 * @param operation
-	 *        The {@link ParsingOperation} to emit with its operand.
-	 */
-	final void emitIf (
-		final boolean condition,
-		final Expression expression,
-		final ParsingOperation operation,
-		final int operand)
-	{
-		if (condition)
-		{
-			emit(expression, operation, operand);
-		}
-	}
-
-	/**
 	 * Emit a {@link ParsingOperation} that takes a {@link Label} operand.
 	 *
 	 * @param operation

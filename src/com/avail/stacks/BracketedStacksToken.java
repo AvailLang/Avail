@@ -238,9 +238,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}
 
-				final String stringBuilder =
-					"<code>" + links.get(0).lexeme() + "</code>";
-				return stringBuilder;
+				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		},
 
@@ -313,9 +311,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}
 
-				final String stringBuilder =
-					"<code>" + links.get(0).lexeme() + "</code>";
-				return stringBuilder;
+				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		},
 
@@ -363,7 +359,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						final QuotedStacksToken link =
 							(QuotedStacksToken) links.get(0);
 
-						final String stringBuilder = "<a href="
+						return "<a href="
 							+ '"'
 							+ link.toJSON(
 							linkingFileMap, hashID, errorLog, jsonWriter)
@@ -372,7 +368,6 @@ public class BracketedStacksToken extends RegionStacksToken
 							+ link.toJSON(linkingFileMap, hashID,
 							errorLog, jsonWriter)
 							+ "</a>";
-						return stringBuilder;
 
 					}
 					catch (final ClassCastException e)
@@ -538,9 +533,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						return linkBuilder(link.lexeme(), linkingFileMap);
 					}
 
-				final String stringBuilder =
-					"<code>" + links.get(0).lexeme() + "</code>";
-				return stringBuilder;
+				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		},
 
@@ -612,9 +605,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}*/
 
-				final String stringBuilder =
-					"<code>" + links.get(0).lexeme() + "</code>";
-				return stringBuilder;
+				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		},
 
@@ -687,9 +678,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}
 
-				final String stringBuilder =
-					"<code>" + links.get(0).lexeme() + "</code>";
-				return stringBuilder;
+				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		},
 
@@ -836,9 +825,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							return linkBuilder(link.lexeme(), linkingFileMap);
 						}
 
-						final String stringBuilder =
-							"<code>" + link.lexeme() + "</code>";
-						return stringBuilder;
+						return "<code>" + link.lexeme() + "</code>";
 					}
 					catch (final ClassCastException e)
 					{
@@ -983,7 +970,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		 static String linkBuilder(final String aLexeme,
 				final LinkingFileMap linkingFileMap)
 		{
-			final String stringBuilder = "<a href="
+			return "<a href="
 				+ '"'
 				+ linkingFileMap.internalLinks()
 				.get(aLexeme)
@@ -991,7 +978,6 @@ public class BracketedStacksToken extends RegionStacksToken
 				+ '>'
 				+ aLexeme
 				+ "</a>";
-			return stringBuilder;
 		}
 
 		 /**
@@ -1005,7 +991,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		 static String linkBuilderNolink(final String aLexeme,
 				final LinkingFileMap linkingFileMap, final int hashID)
 		{
-			final String stringBuilder = "<a href="
+			return "<a href="
 				+ '"'
 				+ "#"
 				+ aLexeme + hashID
@@ -1013,7 +999,6 @@ public class BracketedStacksToken extends RegionStacksToken
 				+ '>'
 				+ aLexeme
 				+ "</a>";
-			return stringBuilder;
 		}
 	}
 }

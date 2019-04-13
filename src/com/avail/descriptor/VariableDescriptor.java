@@ -538,7 +538,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Variable o_AddWriteReactor (
+	void o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
 		final VariableAccessReactor reactor)
@@ -554,7 +554,6 @@ extends Descriptor
 			rawPojo.javaObjectNotNull();
 		discardInvalidWriteReactors(writeReactors);
 		writeReactors.put(key, reactor);
-		return object;
 	}
 
 	@Override @AvailMethod

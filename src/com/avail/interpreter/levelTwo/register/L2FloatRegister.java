@@ -110,7 +110,7 @@ extends L2Register<A_Number>
 	public L2FloatRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2FloatRegister(
-			inliner.targetGenerator.nextUnique(),
+			inliner.nextUnique(),
 			restriction);
 	}
 

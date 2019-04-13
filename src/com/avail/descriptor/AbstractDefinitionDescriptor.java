@@ -37,9 +37,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
 
 
 /**
@@ -171,7 +169,7 @@ extends DefinitionDescriptor
 	}
 
 	/**
-	 * Construct a new {@link AbstractDefinitionDescriptor}.
+	 * Construct a new {@code AbstractDefinitionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

@@ -34,10 +34,10 @@ package com.avail.environment.tasks;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
-import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Continuation3;
 
 import java.awt.*;
@@ -72,14 +72,7 @@ extends AbstractWorkbenchTask
 	 */
 	private CompilerProgressReporter compilerProgressReporter ()
 	{
-		return (moduleName, moduleSize, position) ->
-		{
-			assert moduleName != null;
-			assert moduleSize != null;
-			assert position != null;
-			workbench.eventuallyUpdatePerModuleProgress(
-				moduleName, moduleSize, position);
-		};
+		return workbench::eventuallyUpdatePerModuleProgress;
 	}
 
 	/**
@@ -87,15 +80,9 @@ extends AbstractWorkbenchTask
 	 *
 	 * @return A global tracker.
 	 */
-	private Continuation2<Long, Long> globalTracker ()
+	private GlobalProgressReporter globalTracker ()
 	{
-		return (position, globalCodeSize) ->
-		{
-			assert position != null;
-			assert globalCodeSize != null;
-			workbench.eventuallyUpdateBuildProgress(
-				position, globalCodeSize);
-		};
+		return workbench::eventuallyUpdateBuildProgress;
 	}
 
 	@Override

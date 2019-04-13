@@ -106,6 +106,7 @@ import java.util.stream.Collectors;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.AALOAD;
@@ -894,7 +895,7 @@ public final class JVMTranslator
 		final List<LiteralAccessor> accessors =
 			literals.values().stream()
 				.filter(accessor -> accessor.setter != null)
-				.collect(Collectors.toList());
+				.collect(toList());
 		if (!accessors.isEmpty())
 		{
 			// :: «generated JVMChunk».class.getClassLoader().parameters

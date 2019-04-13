@@ -109,7 +109,7 @@ extends L2Register<A_Number>
 	public L2IntRegister copyForInliner (final L2Inliner inliner)
 	{
 		return new L2IntRegister(
-			inliner.targetGenerator.nextUnique(),
+			inliner.nextUnique(),
 			restriction);
 	}
 

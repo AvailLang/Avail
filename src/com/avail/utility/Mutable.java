@@ -40,8 +40,8 @@ package com.avail.utility;
  * analysis.
  * <p>
  * Say there's a variable called {@code outer} of type {@code Foo},
- * and you want to read and write it tuple within an inner class's methods.
- * Simply change its definition tuple "{@code Foo outer;}" to
+ * and you want to read and write it from within an inner class's methods.
+ * Simply change its definition from "{@code Foo outer;}" to
  * "{@code Mutable<Foo> outer = new Mutable<Foo>();}" and change
  * all references to {@code outer} to be references to
  * {@code outer.value} instead.

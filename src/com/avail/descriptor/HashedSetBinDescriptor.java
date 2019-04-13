@@ -629,27 +629,17 @@ extends SetBinDescriptor
 	 *        The tree level at which this hashed bin occurs.
 	 * @param localSize
 	 *        The number of slots to allocate.
-	 * @param totalSize
-	 *        The number of elements recursively within me.
-	 * @param hash
-	 *        The hash of this bin.
 	 * @param bitVector
 	 *        The bit vector indicating which hash values are present.
-	 * @param unionKindOrNil
-	 *        Either nil or the kind that is nearest to the union of the
-	 *        elements' types.
 	 * @return A new hashed set bin with empty linear sub-bins.
 	 */
 	static AvailObject createInitializedHashSetBin (
 		final byte level,
 		final int localSize,
-		final int totalSize,
-		final int hash,
-		final long bitVector,
-		final A_Type unionKindOrNil)
+		final long bitVector)
 	{
 		final AvailObject instance = createUninitializedHashedSetBin(
-			level, localSize, totalSize, hash, bitVector, unionKindOrNil);
+			level, localSize, 0, 0, bitVector, nil);
 		instance.fillSlots(
 			BIN_ELEMENT_AT_,
 			1,

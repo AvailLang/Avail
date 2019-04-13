@@ -47,7 +47,7 @@ public class StacksSeeTag extends AbstractStacksTag
 	private final RegionStacksToken thingToSee;
 
 	/**
-	 * Construct a new {@link StacksSeeTag}.
+	 * Construct a new {@code StacksSeeTag}.
 	 *
 	 * @param thingToSee
 	 * 		The thing that should be 'seen'
@@ -91,7 +91,7 @@ public class StacksSeeTag extends AbstractStacksTag
 		final JSONWriter jsonWriter)
 	{
 
-		final String stringBuilder = "<a class="
+		return "<a class="
 			+ '"'
 			+ "stacks i-code"
 			+ '"'
@@ -103,6 +103,5 @@ public class StacksSeeTag extends AbstractStacksTag
 			+ ">"
 			+ thingToSee.lexeme
 			+ "</a>";
-		return stringBuilder;
 	}
 }

@@ -35,6 +35,8 @@ package com.avail.server.messages;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.evaluation.Continuation0;
 
+import static com.avail.server.AvailServer.negotiateVersionThen;
+
 /**
  * A {@code VersionCommandMessage} represents a {@link Command#VERSION
  * VERSION} {@linkplain Command command}, and carries the requested protocol
@@ -59,7 +61,7 @@ extends CommandMessage
 	}
 
 	/**
-	 * Construct a new {@link VersionCommandMessage}.
+	 * Construct a new {@code VersionCommandMessage}.
 	 *
 	 * @param version
 	 *        The requested protocol version.
@@ -80,7 +82,6 @@ extends CommandMessage
 		final AvailServerChannel channel,
 		final Continuation0 continuation)
 	{
-		channel.server().negotiateVersionThen(
-			channel, this, continuation);
+		negotiateVersionThen(channel, this, continuation);
 	}
 }

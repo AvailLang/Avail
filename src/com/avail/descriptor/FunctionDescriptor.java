@@ -371,7 +371,7 @@ extends Descriptor
 	 * @return A function without its outer variables initialized.
 	 */
 	@ReferencedInGeneratedCode
-	public static A_Function createExceptOuters (
+	public static AvailObject createExceptOuters (
 		final A_RawFunction code,
 		final int outersCount)
 	{
@@ -379,6 +379,66 @@ extends Descriptor
 		final AvailObject object = mutable.create(outersCount);
 		object.setSlot(CODE, code);
 		return object;
+	}
+
+	/**
+	 * Construct a function with the given code and one outer variable.
+	 *
+	 * @param code The code with which to build the function.
+	 * @param outer1 The sole outer variable that will be enclosed.
+	 * @return A function with its outer variable initialized.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject createWithOuters1 (
+		final A_RawFunction code,
+		final AvailObject outer1)
+	{
+		final AvailObject function = createExceptOuters(code, 1);
+		function.setSlot(OUTER_VAR_AT_, 1, outer1);
+		return function;
+	}
+
+	/**
+	 * Construct a function with the given code and two outer variables.
+	 *
+	 * @param code The code with which to build the function.
+	 * @param outer1 The first outer variable that will be enclosed.
+	 * @param outer2 The second outer variable that will be enclosed.
+	 * @return A function with its outer variables initialized.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject createWithOuters2 (
+		final A_RawFunction code,
+		final AvailObject outer1,
+		final AvailObject outer2)
+	{
+		final AvailObject function = createExceptOuters(code, 2);
+		function.setSlot(OUTER_VAR_AT_, 1, outer1);
+		function.setSlot(OUTER_VAR_AT_, 2, outer2);
+		return function;
+	}
+
+	/**
+	 * Construct a function with the given code and three outer variables.
+	 *
+	 * @param code The code with which to build the function.
+	 * @param outer1 The first outer variable that will be enclosed.
+	 * @param outer2 The second outer variable that will be enclosed.
+	 * @param outer3 The first outer variable that will be enclosed.
+	 * @return A function with its outer variables initialized.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject createWithOuters3 (
+		final A_RawFunction code,
+		final AvailObject outer1,
+		final AvailObject outer2,
+		final AvailObject outer3)
+	{
+		final AvailObject function = createExceptOuters(code, 3);
+		function.setSlot(OUTER_VAR_AT_, 1, outer1);
+		function.setSlot(OUTER_VAR_AT_, 2, outer2);
+		function.setSlot(OUTER_VAR_AT_, 3, outer3);
+		return function;
 	}
 
 	/**

@@ -43,11 +43,11 @@ import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
-import com.avail.utility.evaluation.Continuation2;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,11 +71,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Semaphore;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Build the Avail standard library and run all Avail test units.
@@ -315,13 +311,10 @@ public class AvailTest
 	 *
 	 * @return A global tracker.
 	 */
-	private static Continuation2<Long, Long> globalTracker ()
+	private static GlobalProgressReporter globalTracker ()
 	{
 		return (processedBytes, totalBytes) ->
 		{
-			assert processedBytes != null;
-			assert totalBytes != null;
-
 			final int perThousand =
 				(int) ((processedBytes * 1000) / totalBytes);
 			final float percent = perThousand / 10.0f;
@@ -340,10 +333,6 @@ public class AvailTest
 	{
 		return (module, moduleSize, position) ->
 		{
-			assert module != null;
-			assert moduleSize != null;
-			assert position != null;
-
 			final int percent = (int) ((position * 100) / moduleSize);
 			String modName = module.qualifiedName();
 			final int maxModuleNameLength = 61;
@@ -362,7 +351,7 @@ public class AvailTest
 			{
 				final int statusLength = status.length();
 				final String finalStatus =
-					position.equals(moduleSize)
+					position == moduleSize
 						? "\n"
 						: String.format(
 							"%s\033[%dD\033[K",
@@ -440,22 +429,13 @@ public class AvailTest
 		final Mutable<Boolean> ok = new Mutable<>(false);
 		builder.attemptCommand(
 			"Run all tests",
-			(commands, proceed) ->
-			{
-				assert commands != null;
-				assert proceed != null;
-				proceed.value(commands.get(0));
-			},
+			(commands, proceed) -> proceed.value(commands.get(0)),
 			(result, cleanup) ->
-			{
-				assert result != null;
-				assert cleanup != null;
 				cleanup.value(() ->
 				{
 					ok.value = true;
 					semaphore.release();
-				});
-			},
+				}),
 			semaphore::release
 		);
 		semaphore.acquireUninterruptibly();

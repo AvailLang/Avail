@@ -36,6 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.FiberTerminationException;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
@@ -1503,8 +1504,7 @@ public final class AvailBuilder
 			// Recurse in parallel into each import.
 			for (final String localImport : importNames)
 			{
-				final ModuleName importName =
-					moduleName.asSibling(localImport);
+				final ModuleName importName = moduleName.asSibling(localImport);
 				scheduleTraceModuleImports(importName, moduleName, newSet);
 			}
 		}
@@ -1627,7 +1627,7 @@ public final class AvailBuilder
 		 * <li>the global size (in bytes) of all modules that will be
 		 * built.</li>
 		 */
-		@InnerAccess final Continuation2<Long, Long> globalTracker;
+		@InnerAccess final GlobalProgressReporter globalTracker;
 
 		/**
 		 * Construct a new {@code BuildLoader}.
@@ -1644,7 +1644,7 @@ public final class AvailBuilder
 		 *        <li>the size of the module in bytes.</li>
 		 *        </ol>
 		 * @param globalTracker
-		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        A {@link GlobalProgressReporter} that accepts
 		 *        <ol>
 		 *        <li>the number of bytes globally processed, and</li>
 		 *        <li>the global size (in bytes) of all modules that will be
@@ -1653,7 +1653,7 @@ public final class AvailBuilder
 		 */
 		@InnerAccess BuildLoader (
 			final CompilerProgressReporter localTracker,
-			final Continuation2<Long, Long> globalTracker)
+			final GlobalProgressReporter globalTracker)
 		{
 			this.localTracker = localTracker;
 			this.globalTracker = globalTracker;
@@ -2119,8 +2119,6 @@ public final class AvailBuilder
 				(moduleName2, moduleSize, position) ->
 				{
 					assert moduleName.equals(moduleName2);
-					assert moduleSize != null;
-					assert position != null;
 					localTracker.value(moduleName, moduleSize, position);
 					globalTracker.value(
 						bytesCompiled.addAndGet(position - lastPosition.value),
@@ -2465,10 +2463,7 @@ public final class AvailBuilder
 		 *
 		 * @return A {@link String} suitable for use as a label.
 		 */
-		@SuppressWarnings({
-			"DynamicRegexReplaceableByCompiledPattern",
-			"StringConcatenationMissingWhitespace"
-		})
+		@SuppressWarnings({"DynamicRegexReplaceableByCompiledPattern"})
 		String safeLabel ()
 		{
 			final String addendum = label.charAt(label.length() - 1) == '\\'
@@ -2893,7 +2888,7 @@ public final class AvailBuilder
 	 *        <li>the most recently compiled {@linkplain A_Phrase phrase}.</li>
 	 *        </ol>
 	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        A {@link GlobalProgressReporter} that accepts
 	 *        <ol>
 	 *        <li>the number of bytes globally processed, and</li>
 	 *        <li>the global size (in bytes) of all modules that will be
@@ -2903,7 +2898,7 @@ public final class AvailBuilder
 	public void buildTarget (
 		final ModuleName target,
 		final CompilerProgressReporter localTracker,
-		final Continuation2<Long, Long> globalTracker)
+		final GlobalProgressReporter globalTracker)
 	{
 		clearShouldStopBuild();
 		new BuildUnloader().unloadModified();
@@ -3101,11 +3096,11 @@ public final class AvailBuilder
 	 */
 	public void attemptCommand (
 		final String command,
-		final Continuation2<
+		final Continuation2NotNull<
 				List<CompiledCommand>,
 				Continuation1NotNull<CompiledCommand>>
 			onAmbiguity,
-		final Continuation2<
+		final Continuation2NotNull<
 				AvailObject,
 				Continuation1NotNull<Continuation0>>
 			onSuccess,
@@ -3148,11 +3143,11 @@ public final class AvailBuilder
 	 */
 	@InnerAccess void scheduleAttemptCommand (
 		final String command,
-		final Continuation2<
+		final Continuation2NotNull<
 				List<CompiledCommand>,
 				Continuation1NotNull<CompiledCommand>>
 			onAmbiguity,
-		final Continuation2<
+		final Continuation2NotNull<
 				AvailObject,
 				Continuation1NotNull<Continuation0>>
 			onSuccess,
@@ -3403,11 +3398,11 @@ public final class AvailBuilder
 	@InnerAccess void processParsedCommand (
 		final Map<LoadedModule, List<A_Phrase>> solutions,
 		final Map<LoadedModule, List<Problem>> problems,
-		final Continuation2<
+		final Continuation2NotNull<
 				List<CompiledCommand>,
 				Continuation1NotNull<CompiledCommand>>
 			onAmbiguity,
-		final Continuation2<
+		final Continuation2NotNull<
 				AvailObject,
 				Continuation1NotNull<Continuation0>>
 			onSuccess,

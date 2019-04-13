@@ -450,7 +450,7 @@ extends VariableDescriptor
 		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	@Override @AvailMethod
-	A_Variable o_AddWriteReactor (
+	void o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
 		final VariableAccessReactor reactor)
@@ -458,7 +458,7 @@ extends VariableDescriptor
 		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
-			return super.o_AddWriteReactor(object, key, reactor);
+			super.o_AddWriteReactor(object, key, reactor);
 		}
 	}
 

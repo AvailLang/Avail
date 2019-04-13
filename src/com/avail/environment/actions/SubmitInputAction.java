@@ -87,8 +87,6 @@ extends AbstractWorkbenchAction
 				string,
 				(commands, proceed) ->
 				{
-					assert commands != null;
-					assert proceed != null;
 					final CompiledCommand[] array =
 						commands.toArray(new CompiledCommand[0]);
 					Arrays.sort(
@@ -116,7 +114,6 @@ extends AbstractWorkbenchAction
 				},
 				(result, cleanup) ->
 				{
-					assert cleanup != null;
 					final Continuation0 afterward = () ->
 					{
 						workbench.isRunning = false;
@@ -134,7 +131,6 @@ extends AbstractWorkbenchAction
 							workbench.setEnablements();
 						});
 					};
-					assert result != null;
 					if (result.equalsNil())
 					{
 						cleanup.value(afterward);

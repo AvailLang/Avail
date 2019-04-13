@@ -370,8 +370,6 @@ extends VariableSharedDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param typeTag
-	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *        The Java {@link Class} which is a subclass of {@link
 	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
@@ -386,12 +384,15 @@ extends VariableSharedDescriptor
 	 */
 	protected VariableSharedGlobalDescriptor (
 		final Mutability mutability,
-		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass,
 		final boolean writeOnce)
 	{
-		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.VARIABLE_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 		this.writeOnce = writeOnce;
 	}
 
@@ -402,7 +403,6 @@ extends VariableSharedDescriptor
 	private static final VariableSharedGlobalDescriptor mutableInitial =
 		new VariableSharedGlobalDescriptor(
 			Mutability.MUTABLE,
-			TypeTag.VARIABLE_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class,
 			false);
@@ -411,7 +411,6 @@ extends VariableSharedDescriptor
 	static final VariableSharedGlobalDescriptor shared =
 		new VariableSharedGlobalDescriptor(
 			Mutability.SHARED,
-			TypeTag.VARIABLE_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class,
 			false);
@@ -423,7 +422,6 @@ extends VariableSharedDescriptor
 	private static final VariableSharedGlobalDescriptor sharedWriteOnce =
 		new VariableSharedGlobalDescriptor(
 			Mutability.SHARED,
-			TypeTag.VARIABLE_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class,
 			true);
