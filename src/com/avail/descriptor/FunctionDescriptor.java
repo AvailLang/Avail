@@ -36,7 +36,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -58,6 +57,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -95,10 +95,9 @@ extends Descriptor
 		A_Phrase phrase = code.originatingPhrase();
 		if (phrase.equalsNil())
 		{
-			phrase = L1Decompiler.parse((A_Function) object);
+			phrase = decompile(object.code());
 		}
-		phrase.printOnAvoidingIndent(
-			aStream, recursionMap, indent + 1);
+		phrase.printOnAvoidingIndent(aStream, recursionMap, indent + 1);
 	}
 
 	@Override

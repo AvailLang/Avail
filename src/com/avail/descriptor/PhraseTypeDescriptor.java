@@ -405,7 +405,7 @@ extends TypeDescriptor
 		final TypeTag typeTag;
 
 		/**
-		 * Construct a new {@link PhraseKind}.
+		 * Construct a new {@code PhraseKind}.
 		 *
 		 * @param jsonName
 		 *        The JSON name of this type.
@@ -505,12 +505,12 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer the {@link PhraseKind} that is the nearest common ancestor
+		 * Answer the {@code PhraseKind} that is the nearest common ancestor
 		 * to both the receiver and the argument.  Compute it rather than look
 		 * it up, since this is used to populate the lookup table.
 		 *
-		 * @param other The other {@link PhraseKind}.
-		 * @return The nearest common ancestor (a {@link PhraseKind}).
+		 * @param other The other {@code PhraseKind}.
+		 * @return The nearest common ancestor (a {@code PhraseKind}).
 		 */
 		private PhraseKind computeCommonAncestorWith (
 			final PhraseKind other)
@@ -533,12 +533,12 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer the {@link PhraseKind} that is the nearest common ancestor
+		 * Answer the {@code PhraseKind} that is the nearest common ancestor
 		 * to both the receiver and the argument.  Only use this after static
 		 * initialization has completed.
 		 *
-		 * @param other The other {@link PhraseKind}.
-		 * @return The nearest common ancestor (a {@link PhraseKind}).
+		 * @param other The other {@code PhraseKind}.
+		 * @return The nearest common ancestor (a {@code PhraseKind}).
 		 */
 		public final PhraseKind commonAncestorWith (
 			final PhraseKind other)
@@ -547,13 +547,13 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer the {@link PhraseKind} that is the nearest common descendant
+		 * Answer the {@code PhraseKind} that is the nearest common descendant
 		 * to both the receiver and the argument.  Only use this after static
 		 * initialization has completed.
 		 *
 		 * @param other
-		 *        The other {@link PhraseKind}.
-		 * @return The nearest common descendant (a {@link PhraseKind}), or
+		 *        The other {@code PhraseKind}.
+		 * @return The nearest common descendant (a {@code PhraseKind}), or
 		 *         {@code null} if there are no common descendants.
 		 */
 		public final @Nullable PhraseKind commonDescendantWith (
@@ -562,26 +562,26 @@ extends TypeDescriptor
 			return commonDescendants[ordinal() * all.length + other.ordinal()];
 		}
 
-		/** An array of all {@link PhraseKind} enumeration values. */
+		/** An array of all {@code PhraseKind} enumeration values. */
 		private static final PhraseKind[] all = values();
 
 		/**
-		 * Answer an array of all {@link PhraseKind} enumeration values.
+		 * Answer an array of all {@code PhraseKind} enumeration values.
 		 *
-		 * @return An array of all {@link PhraseKind} enum values.  Do not
+		 * @return An array of all {@code PhraseKind} enum values.  Do not
 		 *         modify the array.
 		 */
 		public static PhraseKind[] all ()
 		{
-			return all;
+			return all.clone();
 		}
 
 		/**
-		 * Answer the {@link PhraseKind} enumeration value having the given
+		 * Answer the {@code PhraseKind} enumeration value having the given
 		 * ordinal {@code int}.  The supplied ordinal must be valid.
 		 *
 		 * @param ordinal The ordinal to look up.
-		 * @return The indicated {@link PhraseKind}.
+		 * @return The indicated {@code PhraseKind}.
 		 */
 		public static PhraseKind lookup (final int ordinal)
 		{
@@ -647,7 +647,7 @@ extends TypeDescriptor
 
 		/**
 		 * Answer whether this is a subkind of (or equal to) the specified
-		 * {@link PhraseKind}.
+		 * {@code PhraseKind}.
 		 *
 		 * @param purportedParent The kind that may be the ancestor.
 		 * @return Whether the receiver descends from the argument.
@@ -684,10 +684,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * {@linkplain PhraseTypeDescriptor phrase types} are equal when they
-	 * are of the same kind and have the same expression type.
-	 * </p>
+	 * <p>Phrase types are equal when they are of the same kind and have the
+	 * same expression type.</p>
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -698,10 +696,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * {@linkplain PhraseTypeDescriptor phrase types} are equal when they
-	 * are of the same kind and have the same expression type.
-	 * </p>
+	 * <p>Phrase types are equal when they are of the same kind and have the
+	 * same expression type.</p>
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsPhraseType (
@@ -957,7 +953,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/** The {@link PhraseKind} of instances that use this descriptor. */
+	/** The {@code PhraseKind} of instances that use this descriptor. */
 	protected final PhraseKind kind;
 
 	/**
@@ -986,17 +982,17 @@ extends TypeDescriptor
 	 * Construct a new descriptor for this kind of phrase type.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param kind
-	 *            The {@link PhraseKind} of the new descriptor.
+	 *        The {@code PhraseKind} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's object slots layout,
+	 *        or null if there are no integer slots.
 	 */
 	protected PhraseTypeDescriptor (
 		final Mutability mutability,

@@ -33,29 +33,9 @@
 package com.avail.interpreter.levelOne;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.DeclarationPhraseDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ListPhraseDescriptor;
-import com.avail.descriptor.LiteralPhraseDescriptor;
-import com.avail.descriptor.MarkerPhraseDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SuperCastPhraseDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -67,34 +47,18 @@ import java.util.function.Function;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newLabel;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
 import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.LiteralPhraseDescriptor.fromTokenForDecompiler;
-import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
-import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralPhraseDescriptor.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -103,7 +67,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
 import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
@@ -399,7 +363,7 @@ public class L1Decompiler
 		public final A_Phrase marker = newMarkerNode(fromInt(ordinal()));
 	}
 
-	private class DecompilerDispatcher implements L1OperationDispatcher
+	@InnerAccess class DecompilerDispatcher implements L1OperationDispatcher
 	{
 		@Override
 		public void L1_doCall ()
@@ -654,31 +618,26 @@ public class L1Decompiler
 		@Override
 		public void L1_doSetOuter ()
 		{
-			final A_Phrase outerExpr =
-				outers[instructionDecoder.getOperand() - 1];
-			final A_Phrase outerDeclaration;
-			if (outerExpr.isInstanceOfKind(LITERAL_PHRASE.mostGeneralType()))
+			final A_Phrase outer = outers[instructionDecoder.getOperand() - 1];
+			final A_Phrase declaration;
+			if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				// Writing into a synthetic literal (a byproduct of decompiling
 				// a block without decompiling its outer scopes).
-				final A_Token token = outerExpr.token();
-				final A_BasicObject variableObject = token.literal();
-				assert variableObject.isInstanceOfKind(
-					mostGeneralVariableType());
-				outerDeclaration =
+				final A_Token token = outer.token();
+				final A_Variable variableObject = token.literal();
+				declaration =
 					newModuleVariable(token, variableObject, nil, nil);
 			}
 			else
 			{
-				assert outerExpr.isInstanceOfKind(
-					REFERENCE_PHRASE.mostGeneralType());
-				outerDeclaration = outerExpr.variable().declaration();
+				assert outer.phraseKindIsUnder(VARIABLE_USE_PHRASE);
+				declaration = outer.declaration();
 			}
-			final A_Phrase variableUse =
-				newUse(outerDeclaration.token(), outerDeclaration);
+			final A_Phrase use = newUse(declaration.token(), declaration);
 			final A_Phrase valueExpr = popExpression();
 			final A_Phrase assignmentNode =
-				newAssignment(variableUse, valueExpr, emptyTuple(), false);
+				newAssignment(use, valueExpr, emptyTuple(), false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -739,7 +698,8 @@ public class L1Decompiler
 				pushExpression(outer);
 				return;
 			}
-			final A_Phrase declaration = outer.variable().declaration();
+			assert outer.phraseKindIsUnder(VARIABLE_USE_PHRASE);
+			final A_Phrase declaration = outer.declaration();
 			final A_Phrase use = newUse(declaration.token(), declaration);
 			pushExpression(use);
 		}
@@ -989,81 +949,55 @@ public class L1Decompiler
 	}
 
 	/**
-	 * Parse the given statically constructed function.  It treats outer
-	 * variables as literals.  Answer the resulting {@linkplain
-	 * BlockPhraseDescriptor block}.
+	 * Decompile the given {@link A_RawFunction}.  It treats outer variables as
+	 * private {@linkplain A_Atom atom} literals.  Answer the resulting
+	 * {@linkplain BlockPhraseDescriptor block}.
 	 *
-	 * @param aFunction The function to decompile.
+	 * @param code
+	 *        The {@link A_RawFunction} to decompile.
 	 * @return The {@linkplain BlockPhraseDescriptor block} that is the
-	 *         decompilation of the provided function.
+	 *         decompilation of the provided raw function.
 	 */
-	public static A_Phrase parse (final A_Function aFunction)
+	public static A_Phrase decompile (final A_RawFunction code)
 	{
 		final Map<String, Integer> counts = new HashMap<>();
 		final Function<String, String> generator =
 			prefix ->
 			{
-				Integer newCount = counts.get(prefix);
+				@Nullable Integer newCount = counts.get(prefix);
 				newCount = newCount == null ? 1 : newCount + 1;
 				counts.put(prefix, newCount);
-				//noinspection StringConcatenationMissingWhitespace
 				return prefix + newCount;
 			};
-		// Synthesize fake outers as literals to allow decompilation.
-		final int outerCount = aFunction.numOuterVars();
+		// Synthesize fake outers to allow decompilation.
+		final int outerCount = code.numOuters();
 		final A_Phrase[] functionOuters = new A_Phrase[outerCount];
 		for (int i = 1; i <= outerCount; i++)
 		{
-			final A_Token token = literalToken(
-				stringFrom("Outer#" + i),
-				0,
-				0,
-				aFunction.outerVarAt(i));
-			functionOuters[i - 1] = fromTokenForDecompiler(token);
+			functionOuters[i - 1] =
+				outerPhraseForDecompiler(i, code.outerTypeAt(i));
 		}
 		final L1Decompiler decompiler = new L1Decompiler(
-			aFunction.code(), functionOuters, generator);
+			code, functionOuters, generator);
 		return decompiler.block();
 	}
 
 	/**
-	 * Parse the given statically constructed function.  It treats outer
-	 * variables as private {@linkplain A_Atom atom} literals.  Answer the
-	 * resulting {@linkplain BlockPhraseDescriptor block}.
+	 * Create a suitable dummy phrase to indicate an outer variable which is
+	 * defined in a scope outside the scope of decompilation.
 	 *
-	 * @param aRawFunction
-	 *        The function to decompile.
-	 * @return The {@linkplain BlockPhraseDescriptor block} that is the
-	 *         decompilation of the provided function.
+	 * @param outerIndex The index of the outer.
+	 * @param type The type of the outer.
+	 * @return A variable reference phrase.
 	 */
-	public static A_Phrase parse (final A_RawFunction aRawFunction)
+	public static A_Phrase outerPhraseForDecompiler (
+		final int outerIndex,
+		final A_Type type)
 	{
-		final Map<String, Integer> counts = new HashMap<>();
-		final Function<String, String> generator =
-			prefix ->
-			{
-				Integer newCount = counts.get(prefix);
-				newCount = newCount == null ? 1 : newCount + 1;
-				counts.put(prefix, newCount);
-				//noinspection StringConcatenationMissingWhitespace
-				return prefix + newCount;
-			};
-		// Synthesize fake outers as literals to allow decompilation.
-		final int outerCount = aRawFunction.numOuters();
-		final A_Phrase[] functionOuters = new A_Phrase[outerCount];
-		for (int i = 1; i <= outerCount; i++)
-		{
-			final A_Variable var =
-				newVariableWithOuterType(mostGeneralVariableType());
-			final A_Token token = literalToken(
-				stringFrom("Outer#" + i),
-				0,
-				0,
-				var);
-			functionOuters[i - 1] = fromTokenForDecompiler(token);
-		}
-		final L1Decompiler decompiler = new L1Decompiler(
-			aRawFunction, functionOuters, generator);
-		return decompiler.block();
+		final A_String name = stringFrom("Outer#" + outerIndex);
+		final A_Variable var =
+			newVariableWithOuterType(variableTypeFor(type));
+		final A_Token token = literalToken(name, 0, 0, var);
+		return fromTokenForDecompiler(token);
 	}
 }

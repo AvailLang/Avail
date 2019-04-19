@@ -893,6 +893,12 @@ extends PhraseDescriptor
 	}
 
 	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": " + object.phraseKind();
+	}
+
+	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
@@ -1131,7 +1137,7 @@ extends PhraseDescriptor
 	 *        initialize this module variable.
 	 * @return The new module variable declaration.
 	 */
-	public static A_Phrase newModuleVariable(
+	public static A_Phrase newModuleVariable (
 		final A_Token token,
 		final A_BasicObject literalVariable,
 		final A_Phrase typeExpression,
@@ -1160,7 +1166,7 @@ extends PhraseDescriptor
 	 *        The expression used to initialize this module constant.
 	 * @return The new module constant declaration.
 	 */
-	public static A_Phrase newModuleConstant(
+	public static A_Phrase newModuleConstant (
 		final A_Token token,
 		final A_BasicObject literalVariable,
 		final A_Phrase initializationExpression)

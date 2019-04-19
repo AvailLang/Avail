@@ -57,6 +57,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -806,9 +807,10 @@ public final class MessageSplitter
 							i <= limit;
 							i++)
 						{
-							messagePartsList.add((A_String)
-								(messageName.copyTupleFromToCanDestroy(
-									i, i, false)));
+							messagePartsList.add(
+								cast(
+									messageName.copyTupleFromToCanDestroy(
+										i, i, false)));
 							messagePartPositions.add(i);
 						}
 					}

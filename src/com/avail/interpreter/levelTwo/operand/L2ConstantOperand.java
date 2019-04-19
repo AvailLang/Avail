@@ -33,13 +33,12 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelOne.L1Decompiler;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
+import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link
@@ -87,7 +86,7 @@ extends L2Operand
 		builder.append("$(");
 		if (object.isInstanceOf(mostGeneralCompiledCodeType()))
 		{
-			builder.append(L1Decompiler.parse((A_RawFunction) object));
+			builder.append(decompile(object));
 		}
 		else
 		{

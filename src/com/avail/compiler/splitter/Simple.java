@@ -60,8 +60,8 @@ extends Expression
 	final int tokenIndex;
 
 	/**
-	 * Construct a new {@linkplain Simple simple expression} representing a
-	 * specific token expected in the input.
+	 * Construct a new {@code Simple} expression representing a specific token
+	 * expected in the input.
 	 *
 	 * @param tokenIndex
 	 *        The one-based index of the token within the {@link

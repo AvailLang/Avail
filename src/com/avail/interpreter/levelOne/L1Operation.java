@@ -461,6 +461,7 @@ public enum L1Operation
 	 *
 	 * @return The kinds of operands this operation expects.
 	 */
+	@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 	public L1OperandType [] operandTypes ()
 	{
 		return operandTypes;

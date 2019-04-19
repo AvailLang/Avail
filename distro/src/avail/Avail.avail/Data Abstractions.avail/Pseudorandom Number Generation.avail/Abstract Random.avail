@@ -113,10 +113,10 @@ Public method "_'s⁇next«value in»⁇_" is
 	rangeSize : natural number := cast ⎡range⎤ - ⎣range⎦ + 1
 		into [n : natural number | n];
 
-	rngSize ::= cast ⎡rng's element type⎤ -  ⎣rng's element type⎦ + 1
+	rngSize ::= cast ⎡rng's element type⎤ - ⎣rng's element type⎦ + 1
 		into [n : natural number | n];
 
-	bitCount : whole number:= cast ((log 2 of rngSize)→extended integer)
+	bitCount : whole number:= cast (log 2 of rngSize) → extended integer
 		into [w: whole number | w];
 
 	/* Calculate the number of values from pRNG are required to ensure that
@@ -127,7 +127,7 @@ Public method "_'s⁇next«value in»⁇_" is
 	 * the task is (2^n)^m.  We will need to acquire m numbers from rng to
 	 * construct our final value through bit shifting.
 	 */
-	requiredValueCount ::= ⎡⎡(log 2 of rangeSize)⎤ ÷ bitCount⎤→extended integer;
+	requiredValueCount ::= ⎡⎡log 2 of rangeSize⎤ ÷ bitCount⎤ → extended integer;
 
 	/* There will always be at least 1 roll required.  If the result of
 	 * requiredValueCount is less than 1, we need to choose 1
