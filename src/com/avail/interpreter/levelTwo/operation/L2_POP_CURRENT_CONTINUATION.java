@@ -119,8 +119,7 @@ extends L2Operation
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"reifiedContinuation",
-			getDescriptor(A_Continuation.class));
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+			getDescriptor(AvailObject.class));
 		method.visitInsn(DUP);
 		// :: interpreter.reifiedContinuation = continuation.caller();
 		method.visitMethodInsn(
@@ -129,6 +128,7 @@ extends L2Operation
 			"caller",
 			getMethodDescriptor(getType(A_Continuation.class)),
 			true);
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.loadInterpreter(method);
 		// Stack order is: reifiedContinuation caller interpreter ->
 		// Need: reifiedContinuation interpreter caller ->
@@ -137,7 +137,7 @@ extends L2Operation
 			PUTFIELD,
 			getInternalName(Interpreter.class),
 			"reifiedContinuation",
-			getDescriptor(A_Continuation.class));
+			getDescriptor(AvailObject.class));
 		// :: target = continuation;
 		translator.store(method, targetReg);
 	}

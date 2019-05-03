@@ -33,25 +33,8 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_SemanticRestriction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
@@ -65,66 +48,9 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.PhiRestriction;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_VARIABLE;
-import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
-import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
-import com.avail.interpreter.levelTwo.operation.L2_EXTRACT_CONTINUATION_SLOT;
-import com.avail.interpreter.levelTwo.operation.L2_GET_ARGUMENT;
-import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_SEND_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE;
-import com.avail.interpreter.levelTwo.operation.L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
-import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE_CLEARING;
-import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
-import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
-import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES;
-import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES;
-import com.avail.interpreter.levelTwo.operation.L2_MAKE_SUBOBJECTS_IMMUTABLE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
-import com.avail.interpreter.levelTwo.operation.L2_POP_CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1;
-import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL;
-import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_INTERRUPT;
-import com.avail.interpreter.levelTwo.operation.L2_REIFY;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
-import com.avail.interpreter.levelTwo.operation.L2_RETURN;
-import com.avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
-import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_TYPE_UNION;
-import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
@@ -145,10 +71,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
-import static com.avail.AvailRuntime.captureNanos;
-import static com.avail.AvailRuntime.implicitObserveFunctionType;
-import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
-import static com.avail.AvailRuntime.unassignedVariableReadFunctionType;
+import static com.avail.AvailRuntime.*;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
@@ -173,14 +96,9 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
-import static com.avail.optimizer.L2Generator.OptimizationLevel;
-import static com.avail.optimizer.L2Generator.finalGenerationStat;
-import static com.avail.optimizer.L2Generator.maxExpandedEqualityChecks;
-import static com.avail.optimizer.L2Generator.maxPolymorphismToInlineDispatch;
+import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
@@ -341,11 +259,11 @@ implements L1OperationDispatcher
 	 */
 	private L2ReadPointerOperand readSlot (final int slotIndex)
 	{
-		final L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final L2Synonym synonym =
 			stripNull(
 				generator.currentManifest().semanticValueToSynonym(
 					semanticSlot(slotIndex)));
-		return synonym.defaultRegisterRead();
+		return stripNull(synonym.defaultObjectRead());
 	}
 
 	/**
@@ -366,7 +284,7 @@ implements L1OperationDispatcher
 	private L2WritePointerOperand writeSlot (
 		final int slotIndex,
 		final int effectivePc,
-		final TypeRestriction<A_BasicObject> restriction)
+		final TypeRestriction restriction)
 	{
 		// Create a new semantic slot at the current pc, representing this
 		// newly written value.
@@ -415,14 +333,12 @@ implements L1OperationDispatcher
 	 * @param register
 	 *        The {@link L2Register} that should now be considered the current
 	 *        register representing that slot.
-	 * @param <T>
-	 *        The {@link A_BasicObject} that constrains the register's type.
 	 */
-	@InnerAccess <T extends A_BasicObject> void forceSlotRegister (
+	@InnerAccess void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
-		final L2Register<T> register,
-		final TypeRestriction<T> restriction)
+		final L2Register register,
+		final TypeRestriction restriction)
 	{
 		// Create a new L2SemanticSlot at the effective pc, representing this
 		// newly written value.
@@ -430,7 +346,7 @@ implements L1OperationDispatcher
 			topFrame.slot(slotIndex, effectivePc);
 		semanticSlots[slotIndex - 1] = semanticValue;
 		generator.currentManifest().addBinding(semanticValue, register);
-		final @Nullable L2Synonym<L2Register<T>, T> synonym =
+		final @Nullable L2Synonym synonym =
 			generator.currentManifest().registerToSynonym(register);
 		assert synonym != null;
 		synonym.setRestriction(restriction);
@@ -468,12 +384,13 @@ implements L1OperationDispatcher
 	private L2ReadPointerOperand getCurrentFunction ()
 	{
 		final L2SemanticValue semanticFunction = topFrame.function();
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final @Nullable L2Synonym synonym =
 			generator.currentManifest().semanticValueToSynonym(
 				semanticFunction);
 		if (synonym != null)
 		{
-			return synonym.defaultRegisterRead();
+			// The current function can't be an int or float.
+			return stripNull(synonym.defaultObjectRead());
 		}
 		// We have to get it into a register.
 		if (exactFunctionOrNull != null)
@@ -501,11 +418,16 @@ implements L1OperationDispatcher
 		final A_Type outerType)
 	{
 		final L2SemanticValue semanticOuter = topFrame.outer(outerIndex);
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final @Nullable L2Synonym synonym =
 			generator.currentManifest().semanticValueToSynonym(semanticOuter);
 		if (synonym != null)
 		{
-			return synonym.defaultRegisterRead();
+			final @Nullable L2ReadPointerOperand read =
+				synonym.defaultObjectRead();
+			if (read != null)
+			{
+				return read;
+			}
 		}
 		if (outerType.instanceCount().equalsInt(1)
 			&& !outerType.isInstanceMeta())
@@ -677,8 +599,8 @@ implements L1OperationDispatcher
 				restriction(mostGeneralContinuationType()));
 		final L2BasicBlock onReturnIntoReified =
 			generator.createBasicBlock("return into reified continuation");
-		final L2BasicBlock afterCreation = generator
-			.createBasicBlock("after creation of reified continuation");
+		final L2BasicBlock afterCreation = generator.createBasicBlock(
+			"after creation of reified continuation");
 		// Create write-slots for when it returns into the reified continuation
 		// and explodes the slots into registers.  Also create undefinedSlots to
 		// indicate the registers hold nothing until after the explosion. Also
@@ -701,13 +623,14 @@ implements L1OperationDispatcher
 			}
 			else
 			{
-				final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
-					synonym = stripNull(
+				final @Nullable L2Synonym synonym =
+					stripNull(
 						generator.currentManifest().semanticValueToSynonym(
 							semanticValue));
-				final L2ReadPointerOperand read = synonym.defaultRegisterRead();
+				final L2ReadPointerOperand read =
+					stripNull(synonym.defaultObjectRead());
 				readSlotsBefore.add(read);
-				final TypeRestriction<A_BasicObject> originalRestriction =
+				final TypeRestriction originalRestriction =
 					read.restriction();
 				final L2WritePointerOperand slotWriter =
 					generator.newObjectRegisterWriter(originalRestriction);
@@ -778,14 +701,13 @@ implements L1OperationDispatcher
 						new L2IntImmediateOperand(i),
 						writeSlot);
 					generator.currentManifest().addBinding(
-						semanticSlot(i),
-						writeSlot.register());
+						semanticSlot(i), writeSlot.register());
 				}
 			}
 		}
 		for (final L2SemanticValue immutableSemanticValue : knownImmutables)
 		{
-			final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+			final @Nullable L2Synonym synonym =
 				generator.currentManifest().semanticValueToSynonym(
 					immutableSemanticValue);
 			if (synonym != null)
@@ -1062,8 +984,7 @@ implements L1OperationDispatcher
 	 * super-directed multimethod invocation.
 	 *
 	 * @param bundle
-	 *        The {@linkplain MessageBundleDescriptor message bundle} to
-	 *        invoke.
+	 *        The {@linkplain MessageBundleDescriptor message bundle} to invoke.
 	 * @param expectedType
 	 *        The expected return {@linkplain TypeDescriptor type}.
 	 * @param superUnionType
@@ -1887,7 +1808,7 @@ implements L1OperationDispatcher
 		final boolean skipCheck =
 			guaranteedResultType.isSubtypeOf(callSiteHelper.expectedType);
 		final @Nullable A_Function constantFunction =
-			(A_Function) functionToCallReg.constantOrNull();
+			functionToCallReg.constantOrNull();
 		final L2BasicBlock successBlock =
 			generator.createBasicBlock("successful invocation");
 		if (constantFunction != null)
@@ -1956,11 +1877,11 @@ implements L1OperationDispatcher
 	 */
 	private void generateReturnTypeCheck (final A_Type expectedType)
 	{
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final L2Synonym synonym = stripNull(
 			generator.currentManifest().semanticValueToSynonym(
-				topFrame.slot(stackp, instructionDecoder.pc() - 1));
+				topFrame.slot(stackp, instructionDecoder.pc() - 1)));
 		final L2ReadPointerOperand uncheckedValueReg =
-			stripNull(synonym).defaultRegisterRead();
+			stripNull(synonym.defaultObjectRead());
 		if (uncheckedValueReg.type().isBottom())
 		{
 			// Bottom has no instances, so we can't get here.  It would be wrong
@@ -2028,8 +1949,9 @@ implements L1OperationDispatcher
 		// Recurse to generate the call to the failure handler.  Since it's
 		// bottom-valued, and can therefore skip the result check, the recursive
 		// call won't exceed two levels deep.
-		final L2BasicBlock onReificationInHandler = generator
-			.createBasicBlock("reification in failed return check handler");
+		final L2BasicBlock onReificationInHandler =
+			generator.createBasicBlock(
+				"reification in failed return check handler");
 		addInstruction(
 			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
@@ -2102,13 +2024,12 @@ implements L1OperationDispatcher
 			final List<AvailObject> constants = new ArrayList<>(argumentCount);
 			for (final L2ReadPointerOperand regRead : arguments)
 			{
-				final @Nullable A_BasicObject constant =
-					regRead.constantOrNull();
+				final @Nullable AvailObject constant = regRead.constantOrNull();
 				if (constant == null)
 				{
 					break;
 				}
-				constants.add((AvailObject) constant);
+				constants.add(constant);
 			}
 			if (constants.size() == argumentCount)
 			{
@@ -2202,7 +2123,7 @@ implements L1OperationDispatcher
 		final L2ReadPointerOperand functionToCallReg)
 	{
 		final @Nullable A_Function functionIfKnown =
-			(A_Function) functionToCallReg.constantOrNull();
+			functionToCallReg.constantOrNull();
 		if (functionIfKnown != null)
 		{
 			// The exact function is known.

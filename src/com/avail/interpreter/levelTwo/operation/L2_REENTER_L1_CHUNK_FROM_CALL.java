@@ -120,7 +120,7 @@ extends L2Operation
 		}
 		final A_Continuation continuation =
 			stripNull(interpreter.reifiedContinuation);
-		interpreter.reifiedContinuation = continuation.caller();
+		interpreter.reifiedContinuation = (AvailObject) continuation.caller();
 		final AvailObject returnValue = interpreter.latestResult();
 
 		final A_Function returneeFunction = stripNull(interpreter.function);

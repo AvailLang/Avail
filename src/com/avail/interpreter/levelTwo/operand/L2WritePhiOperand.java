@@ -32,10 +32,11 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
+
+import static com.avail.utility.Casts.cast;
 
 /**
  * An {@code L2WritePhiOperand} is an operand of type {@link
@@ -44,8 +45,8 @@ import com.avail.interpreter.levelTwo.register.L2Register;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2WritePhiOperand<R extends L2Register<T>, T extends A_BasicObject>
-extends L2WriteOperand<R, T>
+public class L2WritePhiOperand<R extends L2Register>
+extends L2WriteOperand<R>
 {
 	/**
 	 * Construct a new {@code L2WritePhiOperand} for the specified {@link
@@ -65,11 +66,10 @@ extends L2WriteOperand<R, T>
 		return L2OperandType.WRITE_PHI;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public final L2ReadOperand<R, T> read ()
+	public final L2ReadOperand<R> read ()
 	{
-		return (L2ReadOperand<R, T>) register.read(register.restriction());
+		return cast(register.read(register.restriction()));
 	}
 
 	@Override

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -57,31 +56,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.PRIMITIVE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Casts.cast;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.DUP2;
-import static org.objectweb.asm.Opcodes.DUP2_X2;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IF_ACMPNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Opcodes.POP2;
-import static org.objectweb.asm.Opcodes.SWAP;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -213,10 +191,7 @@ extends L2Operation
 		assert this == instruction.operation();
 //		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final L2PrimitiveOperand primitive = cast(instruction.operand(1));
-		final L2ReadVectorOperand<
-				L2ReadPointerOperand,
-				L2ObjectRegister,
-				A_BasicObject>
+		final L2ReadVectorOperand<L2ReadPointerOperand, L2ObjectRegister>
 			argumentsVector = cast(instruction.operand(2));
 		final L2ObjectRegister resultReg =
 			instruction.writeObjectRegisterAt(3).register();

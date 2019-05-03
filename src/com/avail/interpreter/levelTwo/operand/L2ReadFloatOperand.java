@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
@@ -48,7 +47,7 @@ import javax.annotation.Nullable;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2ReadFloatOperand
-extends L2ReadOperand<L2FloatRegister, A_Number>
+extends L2ReadOperand<L2FloatRegister>
 {
 	@Override
 	public L2OperandType operandType ()
@@ -68,7 +67,7 @@ extends L2ReadOperand<L2FloatRegister, A_Number>
 	 */
 	public L2ReadFloatOperand (
 		final L2FloatRegister register,
-		final @Nullable TypeRestriction<A_Number> restriction)
+		final @Nullable TypeRestriction restriction)
 	{
 		super(register, restriction);
 	}

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -53,7 +52,7 @@ import static com.avail.utility.Casts.cast;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ObjectRegister
-extends L2Register<A_BasicObject>
+extends L2Register
 {
 	@Override
 	public RegisterKind registerKind ()
@@ -72,14 +71,14 @@ extends L2Register<A_BasicObject>
 	 */
 	public L2ObjectRegister (
 		final int debugValue,
-		final TypeRestriction<A_BasicObject> restriction)
+		final TypeRestriction restriction)
 	{
 		super(debugValue, restriction);
 	}
 
 	@Override
 	public L2ReadPointerOperand read (
-		final TypeRestriction<A_BasicObject> typeRestriction)
+		final TypeRestriction typeRestriction)
 	{
 		return new L2ReadPointerOperand(this, restriction);
 	}
@@ -91,10 +90,9 @@ extends L2Register<A_BasicObject>
 	}
 
 	@Override
-	public <R extends L2Register<A_BasicObject>>
-	R copyForTranslator (
+	public <R extends L2Register> R copyForTranslator (
 		final L2Generator generator,
-		final TypeRestriction<A_BasicObject> typeRestriction)
+		final TypeRestriction typeRestriction)
 	{
 		return cast(
 			new L2ObjectRegister(generator.nextUnique(), typeRestriction));

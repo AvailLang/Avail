@@ -7,8 +7,5 @@
     </list>
     <pattern value="com.avail.interpreter.Primitive" hierarchically="true" />
   </component>
-  <component name="MacroExpansionManager">
-    <option name="directoryName" value="IyfpEFqF" />
-  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
 </project>

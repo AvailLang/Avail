@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -48,7 +47,7 @@ import javax.annotation.Nullable;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2ReadPointerOperand
-extends L2ReadOperand<L2ObjectRegister, A_BasicObject>
+extends L2ReadOperand<L2ObjectRegister>
 {
 	@Override
 	public L2OperandType operandType ()
@@ -68,7 +67,7 @@ extends L2ReadOperand<L2ObjectRegister, A_BasicObject>
 	 */
 	public L2ReadPointerOperand (
 		final L2ObjectRegister register,
-		final @Nullable TypeRestriction<A_BasicObject> restriction)
+		final @Nullable TypeRestriction restriction)
 	{
 		super(register, restriction);
 	}

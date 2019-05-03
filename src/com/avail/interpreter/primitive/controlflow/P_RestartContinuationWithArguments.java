@@ -129,7 +129,7 @@ extends Primitive
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.reifiedContinuation = originalCon.caller();
+		interpreter.reifiedContinuation = (AvailObject) originalCon.caller();
 		interpreter.function = originalCon.function();
 		interpreter.chunk = code.startingChunk();
 		interpreter.offset = 0;

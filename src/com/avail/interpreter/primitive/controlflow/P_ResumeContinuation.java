@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -42,11 +43,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
 /**
@@ -76,7 +73,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Continuation con = interpreter.argument(0);
+		final AvailObject con = interpreter.argument(0);
 
 		interpreter.reifiedContinuation = con;
 		interpreter.function = con.function();

@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -45,19 +44,15 @@ import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Restart the given {@link A_Continuation continuation}, which already has the
@@ -123,43 +118,6 @@ extends L2ControlFlowOperation
 		builder.append(continuationReg);
 	}
 
-	/**
-	 * Obtain an appropriate {@link StackReifier} for restarting the specified
-	 * {@linkplain A_Continuation continuation}.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param continuation
-	 *        The continuation to restart.
-	 * @return The requested {@code StackReifier}.
-	 */
-	@SuppressWarnings("unused")
-	@ReferencedInGeneratedCode
-	public static StackReifier reifierToRestart (
-		final Interpreter interpreter,
-		final A_Continuation continuation)
-	{
-		return interpreter.abandonStackThen(
-			ABANDON_BEFORE_RESTART_IN_L2.statistic,
-			() ->
-			{
-				final A_Function function = continuation.function();
-				final int numArgs = function.code().numArgs();
-				interpreter.argsBuffer.clear();
-				for (int i = 1; i <= numArgs; i++)
-				{
-					interpreter.argsBuffer.add(
-						continuation.argOrLocalOrStackAt(i));
-				}
-				interpreter.reifiedContinuation = continuation.caller();
-				interpreter.function = function;
-				interpreter.chunk = continuation.levelTwoChunk();
-				interpreter.offset = continuation.levelTwoOffset();
-				interpreter.returnNow = false;
-				interpreter.latestResult(null);
-			});
-	}
-
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -169,17 +127,15 @@ extends L2ControlFlowOperation
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0).register();
 
-		// :: return L2_RESTART_CONTINUATION.reifierToRestart(
-		// ::    interpreter, continuation);
+		// :: return interpreter.reifierToRestart(continuation);
 		translator.loadInterpreter(method);
 		translator.load(method, continuationReg);
 		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_RESTART_CONTINUATION.class),
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
 			"reifierToRestart",
 			getMethodDescriptor(
 				getType(StackReifier.class),
-				getType(Interpreter.class),
 				getType(A_Continuation.class)),
 			false);
 		method.visitInsn(ARETURN);

@@ -36,28 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailIntegerValueHelper;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.AvailObjectFieldHelper;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
@@ -66,6 +45,7 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.fibers.P_AttemptJoinFiber;
 import com.avail.interpreter.primitive.fibers.P_ParkCurrentFiber;
@@ -87,6 +67,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,43 +82,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.ABORTED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.INTERRUPTED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.RUNNING;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.TERMINATED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
+import static com.avail.descriptor.FiberDescriptor.*;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.newFiber;
-import static com.avail.descriptor.FiberDescriptor.stringificationPriority;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME;
-import static com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL;
-import static com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME;
-import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
-import static com.avail.exceptions.AvailErrorCode.byNumericCode;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.CURRENT_FUNCTION;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.FRAMES;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.L2_INSTRUCTIONS;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.L2_OFFSET;
-import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.LOADER;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-import static com.avail.interpreter.Primitive.Result.FAILURE;
-import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -391,6 +354,7 @@ public final class Interpreter
 				// Ignore the bit of logging not tied to a specific fiber.
 				return;
 			}
+			@SuppressWarnings("StringBufferReplaceableByString")
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
@@ -401,7 +365,6 @@ public final class Interpreter
 				affectedFiber != null
 					? format("%6d ", affectedFiber.uniqueId())
 					: "?????? ");
-			//noinspection StringConcatenationMissingWhitespace
 			logger.log(level, builder + message, arguments);
 		}
 	}
@@ -423,7 +386,7 @@ public final class Interpreter
 	 * associated with the {@linkplain Thread#currentThread() current thread}.
 	 * If this thread is not an {@link AvailThread}, then fail.
 	 *
-	 * @return The current Avail {@link Interpreter}'s unique index.
+	 * @return The current Avail {@code Interpreter}'s unique index.
 	 */
 	public static int currentIndex ()
 	{
@@ -891,7 +854,6 @@ public final class Interpreter
 		latestResult = (AvailObject) newResult;
 		if (debugL2)
 		{
-			//noinspection StringConcatenationMissingWhitespace
 			log(
 				loggerDebugL2,
 				Level.INFO,
@@ -1427,9 +1389,13 @@ public final class Interpreter
 		return success;
 	}
 
-	/** The (bottom) portion of the call stack that has been reified. */
+	/**
+	 * The (bottom) portion of the call stack that has been reified.  This must
+	 * always be either an {@link A_Continuation} or {@code null}, but it's
+	 * typed as {@link AvailObject} to avoid potential JVM runtime checks.
+	 */
 	@ReferencedInGeneratedCode
-	public @Nullable A_Continuation reifiedContinuation = null;
+	public @Nullable AvailObject reifiedContinuation = null;
 
 	/**
 	 * The number of stack frames that reification would transform into
@@ -1624,7 +1590,7 @@ public final class Interpreter
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_CatchException.instance.primitiveNumber;
-		A_Continuation continuation = stripNull(reifiedContinuation);
+		AvailObject continuation = stripNull(reifiedContinuation);
 		int depth = 0;
 		while (!continuation.equalsNil())
 		{
@@ -1674,7 +1640,7 @@ public final class Interpreter
 					}
 				}
 			}
-			continuation = continuation.caller();
+			continuation = (AvailObject) continuation.caller();
 			depth++;
 		}
 		// If no handler was found, then return the unhandled exception.
@@ -1776,6 +1742,309 @@ public final class Interpreter
 			depth++;
 		}
 		return primitiveFailure(E_NO_HANDLER_FRAME);
+	}
+
+	/**
+	 * Check if the current chunk is still valid.  If so, return {@code true}.
+	 * Otherwise, set the current chunk to the {@link L2Chunk#unoptimizedChunk},
+	 * set the offset to the specified offset within that chunk, and return
+	 * {@code false}.
+	 *
+	 * @param offsetInDefaultChunkIfInvalid
+	 *        The offset within the {@link L2Chunk#unoptimizedChunk} to resume
+	 *        execution at if the current chunk is found to be invalid.
+	 * @return Whether the current chunk is still {@link L2Chunk#isValid()
+	 *         valid} (i.e., has not been invalidated by a code change).
+	 */
+	@ReferencedInGeneratedCode
+	public boolean checkValidity (
+		final int offsetInDefaultChunkIfInvalid)
+	{
+		assert chunk != null;
+		if (!chunk.isValid())
+		{
+			chunk = L2Chunk.unoptimizedChunk;
+			offset = offsetInDefaultChunkIfInvalid;
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * Obtain an appropriate {@link StackReifier} for restarting the specified
+	 * {@linkplain A_Continuation continuation}.
+	 *
+	 * @param continuation
+	 *        The {@link A_Continuation} to restart.
+	 * @return The requested {@code StackReifier}.
+	 */
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public StackReifier reifierToRestart (
+		final A_Continuation continuation)
+	{
+		return abandonStackThen(
+			ABANDON_BEFORE_RESTART_IN_L2.statistic,
+			() ->
+			{
+				final A_Function whichFunction = continuation.function();
+				final int numArgs = whichFunction.code().numArgs();
+				argsBuffer.clear();
+				for (int i = 1; i <= numArgs; i++)
+				{
+					argsBuffer.add(
+						continuation.argOrLocalOrStackAt(i));
+				}
+				reifiedContinuation = (AvailObject) continuation.caller();
+				function = whichFunction;
+				chunk = continuation.levelTwoChunk();
+				offset = continuation.levelTwoOffset();
+				returnNow = false;
+				latestResult(null);
+			});
+	}
+
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public StackReifier reify (
+		final boolean actuallyReify,
+		final boolean processInterrupt,
+		final int categoryIndex)
+	{
+		if (processInterrupt)
+		{
+			// Reify-and-interrupt.
+			return new StackReifier(
+				actuallyReify,
+				unreifiedCallDepth(),
+				StatisticCategory.lookup(categoryIndex).statistic,
+				() ->
+				{
+					returnNow = false;
+					processInterrupt(stripNull(reifiedContinuation));
+				});
+		}
+		else
+		{
+			// Capture the interpreter's state, reify the frames, and as an
+			// after-reification action, restore the interpreter's state.
+			final A_Function savedFunction = stripNull(function);
+			final boolean newReturnNow = returnNow;
+			final @Nullable AvailObject newReturnValue =
+				newReturnNow ? latestResult() : null;
+
+			// Reify-and-continue.  The current frame is also reified.
+			return new StackReifier(
+				actuallyReify,
+				unreifiedCallDepth(),
+				StatisticCategory.lookup(categoryIndex).statistic,
+				() ->
+				{
+					final A_Continuation continuation =
+						stripNull(reifiedContinuation);
+					function = savedFunction;
+					chunk = continuation.levelTwoChunk();
+					offset = continuation.levelTwoOffset();
+					returnNow = newReturnNow;
+					latestResult(newReturnValue);
+					// Return into the Interpreter's run loop.
+				});
+		}
+	}
+
+	/**
+	 * Obtain an appropriate {@link StackReifier} for restarting the specified
+	 * {@linkplain A_Continuation continuation} with the given arguments.
+	 *
+	 * @param continuation
+	 *        The continuation to restart.
+	 * @param arguments
+	 *        The arguments with which to restart the continuation.
+	 * @return The requested {@code StackReifier}.
+	 */
+	@SuppressWarnings("unused")
+	@ReferencedInGeneratedCode
+	public StackReifier reifierToRestartWithArguments (
+		final A_Continuation continuation,
+		final AvailObject[] arguments)
+	{
+		return abandonStackThen(
+			ABANDON_BEFORE_RESTART_IN_L2.statistic,
+			() ->
+			{
+				final A_Function whichFunction = continuation.function();
+				final int numArgs = whichFunction.code().numArgs();
+				assert arguments.length == numArgs;
+				argsBuffer.clear();
+				Collections.addAll(argsBuffer, arguments);
+				reifiedContinuation = (AvailObject) continuation.caller();
+				function = whichFunction;
+				chunk = continuation.levelTwoChunk();
+				offset = continuation.levelTwoOffset();
+				returnNow = false;
+				latestResult(null);
+			});
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with zero
+	 * arguments.
+	 *
+	 * @param calledFunction
+	 *        The function to call.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier invoke0 (
+		final A_Function calledFunction)
+	{
+		final A_Function savedFunction = stripNull(function);
+		final L2Chunk savedChunk = stripNull(chunk);
+
+		argsBuffer.clear();
+		function = calledFunction;
+		chunk = calledFunction.code().startingChunk();
+		offset = 0;
+		final @Nullable StackReifier reifier = runChunk();
+		function = savedFunction;
+		chunk = savedChunk;
+		returnNow = false;
+		assert !exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with a single
+	 * argument.
+	 *
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param arg1
+	 *        The sole argument to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier invoke1 (
+		final A_Function calledFunction,
+		final AvailObject arg1)
+	{
+		final A_Function savedFunction = stripNull(function);
+		final L2Chunk savedChunk = stripNull(chunk);
+
+		argsBuffer.clear();
+		argsBuffer.add(arg1);
+		function = calledFunction;
+		chunk = calledFunction.code().startingChunk();
+		offset = 0;
+		final @Nullable StackReifier reifier = runChunk();
+		function = savedFunction;
+		chunk = savedChunk;
+		returnNow = false;
+		assert !exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with exactly
+	 * two arguments.
+	 *
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param arg1
+	 *        The first argument to the function.
+	 * @param arg2
+	 *        The second argument to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier invoke2 (
+		final A_Function calledFunction,
+		final AvailObject arg1,
+		final AvailObject arg2)
+	{
+		final A_Function savedFunction = stripNull(function);
+		final L2Chunk savedChunk = stripNull(chunk);
+
+		argsBuffer.clear();
+		argsBuffer.add(arg1);
+		argsBuffer.add(arg2);
+		function = calledFunction;
+		chunk = calledFunction.code().startingChunk();
+		offset = 0;
+		final @Nullable StackReifier reifier = runChunk();
+		function = savedFunction;
+		chunk = savedChunk;
+		returnNow = false;
+		assert !exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation with exactly
+	 * three arguments.
+	 *
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param arg1
+	 *        The first argument to the function.
+	 * @param arg2
+	 *        The second argument to the function.
+	 * @param arg3
+	 *        The third argument to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier invoke3 (
+		final A_Function calledFunction,
+		final AvailObject arg1,
+		final AvailObject arg2,
+		final AvailObject arg3)
+	{
+		final A_Function savedFunction = stripNull(function);
+		final L2Chunk savedChunk = stripNull(chunk);
+
+		argsBuffer.clear();
+		argsBuffer.add(arg1);
+		argsBuffer.add(arg2);
+		argsBuffer.add(arg3);
+		function = calledFunction;
+		chunk = calledFunction.code().startingChunk();
+		offset = 0;
+		final @Nullable StackReifier reifier = runChunk();
+		function = savedFunction;
+		chunk = savedChunk;
+		returnNow = false;
+		assert !exitNow;
+		return reifier;
+	}
+
+	/**
+	 * Perform the actual {@link A_Function function} invocation.
+	 *
+	 * @param calledFunction
+	 *        The function to call.
+	 * @param args
+	 *        The {@linkplain AvailObject arguments} to the function.
+	 * @return The {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier invoke (
+		final A_Function calledFunction,
+		final AvailObject[] args)
+	{
+		final A_Function savedFunction = stripNull(function);
+		final L2Chunk savedChunk = stripNull(chunk);
+
+		argsBuffer.clear();
+		Collections.addAll(argsBuffer, args);
+		function = calledFunction;
+		chunk = calledFunction.code().startingChunk();
+		offset = 0;
+		final @Nullable StackReifier reifier = runChunk();
+		function = savedFunction;
+		chunk = savedChunk;
+		returnNow = false;
+		assert !exitNow;
+		return reifier;
 	}
 
 	/**
@@ -2206,7 +2475,7 @@ public final class Interpreter
 				assert !con.equalsNil();
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
-				interpreter.reifiedContinuation = con;
+				interpreter.reifiedContinuation = (AvailObject) con;
 				interpreter.function = con.function();
 				interpreter.latestResult(null);
 				interpreter.chunk = con.levelTwoChunk();
@@ -2252,7 +2521,7 @@ public final class Interpreter
 				assert aFiber.executionState() == RUNNING;
 
 				final A_Continuation continuation = aFiber.continuation();
-				interpreter.reifiedContinuation = continuation;
+				interpreter.reifiedContinuation = (AvailObject) continuation;
 				interpreter.latestResult(result);
 				interpreter.returningFunction = aFiber.suspendingFunction();
 				interpreter.exitNow = false;
@@ -2317,7 +2586,8 @@ public final class Interpreter
 				assert prim.hasFlag(CanSuspend);
 				assert args.size() == code.numArgs();
 				assert interpreter.reifiedContinuation == null;
-				interpreter.reifiedContinuation = aFiber.continuation();
+				interpreter.reifiedContinuation =
+					(AvailObject) aFiber.continuation();
 				aFiber.continuation(nil);
 				interpreter.function = failureFunction;
 				interpreter.argsBuffer.clear();

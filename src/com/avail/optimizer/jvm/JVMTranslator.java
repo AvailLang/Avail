@@ -45,24 +45,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -101,7 +84,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
@@ -109,81 +91,8 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-import static org.objectweb.asm.Opcodes.AALOAD;
-import static org.objectweb.asm.Opcodes.AASTORE;
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_MANDATED;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ANEWARRAY;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.ATHROW;
-import static org.objectweb.asm.Opcodes.BIPUSH;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.DCONST_0;
-import static org.objectweb.asm.Opcodes.DCONST_1;
-import static org.objectweb.asm.Opcodes.DLOAD;
-import static org.objectweb.asm.Opcodes.DSTORE;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.FCONST_0;
-import static org.objectweb.asm.Opcodes.FCONST_1;
-import static org.objectweb.asm.Opcodes.FCONST_2;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.I2D;
-import static org.objectweb.asm.Opcodes.I2F;
-import static org.objectweb.asm.Opcodes.I2L;
-import static org.objectweb.asm.Opcodes.IASTORE;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.ICONST_1;
-import static org.objectweb.asm.Opcodes.ICONST_2;
-import static org.objectweb.asm.Opcodes.ICONST_3;
-import static org.objectweb.asm.Opcodes.ICONST_4;
-import static org.objectweb.asm.Opcodes.ICONST_5;
-import static org.objectweb.asm.Opcodes.ICONST_M1;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.IFGE;
-import static org.objectweb.asm.Opcodes.IFGT;
-import static org.objectweb.asm.Opcodes.IFLE;
-import static org.objectweb.asm.Opcodes.IFLT;
-import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.IFNONNULL;
-import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.IF_ACMPEQ;
-import static org.objectweb.asm.Opcodes.IF_ACMPNE;
-import static org.objectweb.asm.Opcodes.IF_ICMPEQ;
-import static org.objectweb.asm.Opcodes.IF_ICMPGE;
-import static org.objectweb.asm.Opcodes.IF_ICMPGT;
-import static org.objectweb.asm.Opcodes.IF_ICMPLE;
-import static org.objectweb.asm.Opcodes.IF_ICMPLT;
-import static org.objectweb.asm.Opcodes.IF_ICMPNE;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.ISTORE;
-import static org.objectweb.asm.Opcodes.L2D;
-import static org.objectweb.asm.Opcodes.LCONST_0;
-import static org.objectweb.asm.Opcodes.LCONST_1;
-import static org.objectweb.asm.Opcodes.NEWARRAY;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.objectweb.asm.Opcodes.PUTSTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
-import static org.objectweb.asm.Opcodes.SIPUSH;
-import static org.objectweb.asm.Opcodes.T_INT;
-import static org.objectweb.asm.Opcodes.V1_8;
-import static org.objectweb.asm.Type.DOUBLE_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * A {@code JVMTranslator} converts a single {@link L2Chunk} into a {@link
@@ -390,7 +299,7 @@ public final class JVMTranslator
 		"OverloadedMethodsWithSameNumberOfParameters"
 	})
 	@Deprecated
-	public void literal (final MethodVisitor method, final L2Register<?> reg)
+	public void literal (final MethodVisitor method, final L2Register reg)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -418,7 +327,7 @@ public final class JVMTranslator
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	@InnerAccess final Map<L2Register<?>, Integer> locals = new HashMap<>();
+	@InnerAccess final Map<L2Register, Integer> locals = new HashMap<>();
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -557,7 +466,7 @@ public final class JVMTranslator
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private class JVMTranslationPreparer
+	@InnerAccess class JVMTranslationPreparer
 	implements L2OperandDispatcher
 	{
 		/**
@@ -650,12 +559,11 @@ public final class JVMTranslator
 
 		@Override
 		public <
-			RR extends L2ReadOperand<R, T>,
-			R extends L2Register<T>,
-			T extends A_BasicObject>
-		void doOperand (final L2ReadVectorOperand<RR, R, T> vector)
+			RR extends L2ReadOperand<R>,
+			R extends L2Register>
+		void doOperand (final L2ReadVectorOperand<RR, R> vector)
 		{
-			for (final L2ReadOperand<?, ?> operand : vector.elements())
+			for (final L2ReadOperand<?> operand : vector.elements())
 			{
 				locals.computeIfAbsent(
 					operand.register(),
@@ -694,8 +602,8 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public <R extends L2Register<T>, T extends A_BasicObject> void
-			doOperand (final L2WritePhiOperand<R, T> operand)
+		public <R extends L2Register>
+		void doOperand (final L2WritePhiOperand<R> operand)
 		{
 			assert false
 				: "L2 code generation should not have left any "
@@ -1796,9 +1704,9 @@ public final class JVMTranslator
 		// register names. At present, we just claim that every variable is live
 		// from the beginning of the method until the badOffsetLabel, but we can
 		// always tighten this up later if we care.
-		for (final Entry<L2Register<?>, Integer> entry : locals.entrySet())
+		for (final Entry<L2Register, Integer> entry : locals.entrySet())
 		{
-			final L2Register<?> register = entry.getKey();
+			final L2Register register = entry.getKey();
 			final int local = entry.getValue();
 			final boolean isIntRegister = register instanceof L2IntRegister;
 			//noinspection StringConcatenationMissingWhitespace

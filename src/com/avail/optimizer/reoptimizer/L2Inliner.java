@@ -33,9 +33,7 @@
 package com.avail.optimizer.reoptimizer;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -89,7 +87,7 @@ public final class L2Inliner
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
 	 * the enclosing {@link L2Inliner}.
 	 */
-	private class OperandInlineTransformer
+	@InnerAccess class OperandInlineTransformer
 	implements L2OperandDispatcher
 	{
 		/**
@@ -168,10 +166,9 @@ public final class L2Inliner
 
 		@Override
 		public <
-			RR extends L2ReadOperand<R, T>,
-			R extends L2Register<T>,
-			T extends A_BasicObject>
-		void doOperand (final L2ReadVectorOperand<RR, R, T> operand)
+			RR extends L2ReadOperand<R>,
+			R extends L2Register>
+		void doOperand (final L2ReadVectorOperand<RR, R> operand)
 		{
 			final List<RR> oldElements = operand.elements();
 			final List<RR> newElements = new ArrayList<>(oldElements.size());
@@ -193,11 +190,10 @@ public final class L2Inliner
 			// Writes should always be encountered before reads, and only once.
 			final L2IntRegister oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction<A_Number> restriction =
+			final TypeRestriction restriction =
 				oldRegister.restriction();
 			final L2WriteIntOperand writer =
-				targetGenerator.newIntRegisterWriter(
-					restriction.type, restriction.constantOrNull);
+				targetGenerator.newIntRegisterWriter(restriction);
 			final L2IntRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -209,11 +205,10 @@ public final class L2Inliner
 			// Writes should always be encountered before reads, and only once.
 			final L2FloatRegister oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction<A_Number> restriction =
+			final TypeRestriction restriction =
 				oldRegister.restriction();
 			final L2WriteFloatOperand writer =
-				targetGenerator.newFloatRegisterWriter(
-					restriction.type, restriction.constantOrNull);
+				targetGenerator.newFloatRegisterWriter(restriction);
 			final L2FloatRegister newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
 			currentOperand = writer;
@@ -225,7 +220,7 @@ public final class L2Inliner
 			// Writes should always be encountered before reads, and only once.
 			final L2ObjectRegister oldRegister = operand.register();
 			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction<A_BasicObject> restriction =
+			final TypeRestriction restriction =
 				oldRegister.restriction();
 			final L2WritePointerOperand writer =
 				targetGenerator.newObjectRegisterWriter(restriction);
@@ -235,8 +230,8 @@ public final class L2Inliner
 		}
 
 		@Override
-		public <R extends L2Register<T>, T extends A_BasicObject> void
-			doOperand (final L2WritePhiOperand<R, T> operand)
+		public <R extends L2Register>
+		void doOperand (final L2WritePhiOperand<R> operand)
 		{
 			// Writes should always be encountered before reads, and only once.
 			final R oldRegister = operand.register();
@@ -245,7 +240,7 @@ public final class L2Inliner
 				cast(
 					oldRegister.copyForTranslator(
 						targetGenerator, oldRegister.restriction()));
-			final L2WritePhiOperand<R, T> writer =
+			final L2WritePhiOperand<R> writer =
 				targetGenerator.newPhiRegisterWriter(copiedRegister);
 			final R newRegister = writer.register();
 			registerMap.put(oldRegister, newRegister);
@@ -334,7 +329,7 @@ public final class L2Inliner
 	 * The accumulated mapping from original {@link L2Register}s to their
 	 * replacements.
 	 */
-	final Map<L2Register<?>, L2Register<?>> registerMap = new HashMap<>();
+	final Map<L2Register, L2Register> registerMap = new HashMap<>();
 
 	/**
 	 * Construct a new {@code L2Inliner}.
@@ -439,7 +434,7 @@ public final class L2Inliner
 	 * @return The looked up or created-and-stored {@link L2Register}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <R extends L2Register<?>> R mapRegister (final R register)
+	public <R extends L2Register> R mapRegister (final R register)
 	{
 		final R copy = (R) registerMap.computeIfAbsent(
 			register, r -> r.copyForInliner(this));

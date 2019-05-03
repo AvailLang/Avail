@@ -35,6 +35,7 @@ package com.avail.optimizer;
 import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -124,7 +125,7 @@ public final class StackReifier
 	}
 
 	/**
-	 * Answer whether this {@link StackReifier} should cause reification (rather
+	 * Answer whether this {@code StackReifier} should cause reification (rather
 	 * than just clearing the Java stack).
 	 */
 	public boolean actuallyReify ()
@@ -142,7 +143,7 @@ public final class StackReifier
 	 *        the outermost execution frame.
 	 * @return The fully assembled reified continuation.
 	 */
-	public A_Continuation assembleContinuation (
+	public AvailObject assembleContinuation (
 		final A_Continuation alreadyReifiedContinuation)
 	{
 		assert continuationsNewestFirst.size() == expectedDepth;
@@ -158,7 +159,7 @@ public final class StackReifier
 			current = next.replacingCaller(current);
 		}
 		continuationsNewestFirst.clear();
-		return current;
+		return (AvailObject) current;
 	}
 
 	/**
@@ -185,7 +186,7 @@ public final class StackReifier
 	 * have been reified.
 	 *
 	 * @return The post-reification action, captured when this
-	 *         {@link StackReifier} was created.
+	 *         {@code StackReifier} was created.
 	 */
 	public Continuation0 postReificationAction ()
 	{

@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -43,21 +44,19 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
  * operands.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param <R>
  *        The subclass of {@link L2Register}.
- * @param <T>
- *        The type for {@link TypeRestriction}s.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class L2ReadOperand<
-	R extends L2Register<T>,
-	T extends A_BasicObject>
+public abstract class L2ReadOperand<R extends L2Register>
 extends L2Operand
 {
 	/**
@@ -70,7 +69,7 @@ extends L2Operand
 	 * this register is guaranteed to satisfy. This supplements the more basic
 	 * type restriction already present in the {@link L2IntRegister} itself.
 	 */
-	private final TypeRestriction<T> restriction;
+	private final TypeRestriction restriction;
 
 	/**
 	 * Construct a new {@code L2ReadOperand} for the specified {@link
@@ -84,7 +83,7 @@ extends L2Operand
 	 */
 	L2ReadOperand (
 		final R register,
-		final @Nullable TypeRestriction<T> restriction)
+		final @Nullable TypeRestriction restriction)
 	{
 		this.register = register;
 		this.restriction =
@@ -119,7 +118,7 @@ extends L2Operand
 	 *
 	 * @return A {@link TypeRestriction}.
 	 */
-	public final TypeRestriction<T> restriction ()
+	public final TypeRestriction restriction ()
 	{
 		return restriction;
 	}
@@ -142,9 +141,9 @@ extends L2Operand
 	 * @return The exact {@link A_BasicObject} that's known to be in this
 	 *         register, or else {@code null}.
 	 */
-	public final @Nullable T constantOrNull ()
+	public final @Nullable AvailObject constantOrNull ()
 	{
-		return restriction.constantOrNull;
+		return cast(restriction.constantOrNull);
 	}
 
 	@Override
@@ -159,25 +158,24 @@ extends L2Operand
 		register.removeUse(instruction);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public final void replaceRegisters (
-		final Map<L2Register<?>, L2Register<?>> registerRemap,
+		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
-		final @Nullable L2Register<?> replacement = registerRemap.get(register);
+		final @Nullable R replacement = cast(registerRemap.get(register));
 		if (replacement == null || replacement == register)
 		{
 			return;
 		}
 		register.removeUse(instruction);
 		replacement.addUse(instruction);
-		register = (R) register.getClass().cast(replacement);
+		register = replacement;
 	}
 
 	@Override
 	public final void addSourceRegistersTo (
-		final List<L2Register<?>> sourceRegisters)
+		final List<L2Register> sourceRegisters)
 	{
 		sourceRegisters.add(register);
 	}
@@ -218,7 +216,8 @@ extends L2Operand
 	 * @param restrictedConstant
 	 *        The exact value that the register will hold along this branch.
 	 */
-	public final PhiRestriction restrictedToValue (final T restrictedConstant)
+	public final PhiRestriction restrictedToValue (
+		final A_BasicObject restrictedConstant)
 	{
 		final @Nullable A_Type type = type();
 		assert restrictedConstant.isInstanceOf(type)
@@ -240,7 +239,7 @@ extends L2Operand
 	 *        branch.
 	 */
 	public final PhiRestriction restrictedWithoutValue (
-		final T excludedConstant)
+		final A_BasicObject excludedConstant)
 	{
 		return new PhiRestriction(
 			register,

@@ -32,17 +32,22 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -54,14 +59,104 @@ import java.util.Set;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <T>
- *        The type for {@link TypeRestriction}s.
  */
-public abstract class L2Register<T extends A_BasicObject>
+public abstract class L2Register
 {
 	public enum RegisterKind
 	{
-		OBJECT, INTEGER, FLOAT;
+		/**
+		 * The kind of register that holds an {@link AvailObject}.
+		 */
+		OBJECT
+		{
+			@Override
+			public @Nullable L2ReadPointerOperand getDefaultRegister (
+				final L2Synonym synonym)
+			{
+				return synonym.defaultObjectRead();
+			}
+
+			@Override
+			public Set<L2ObjectRegister> getRegistersCopy (
+				final L2Synonym synonym)
+			{
+				return synonym.objectRegistersCopy();
+			}
+		},
+
+		/**
+		 * The kind of register that holds an {@code int}.
+		 */
+		INTEGER
+		{
+			@Override
+			public @Nullable L2ReadIntOperand getDefaultRegister (
+			final L2Synonym synonym)
+			{
+				return synonym.defaultIntRead();
+			}
+
+			@Override
+			public Set<L2IntRegister> getRegistersCopy (
+				final L2Synonym synonym)
+			{
+				return synonym.intRegistersCopy();
+			}
+		},
+
+		/**
+		 * The kind of register that holds a {@code double}.
+		 */
+		FLOAT
+		{
+			@Override
+			public @Nullable L2ReadFloatOperand getDefaultRegister (
+				final L2Synonym synonym)
+			{
+				return synonym.defaultFloatRead();
+			}
+
+			@Override
+			public Set<L2FloatRegister> getRegistersCopy (
+				final L2Synonym synonym)
+			{
+				return synonym.floatRegistersCopy();
+			}
+		},
+
+//		/**
+//		 * The kind of register that holds the value of some variable prior to
+//		 * the variable having escaped, if ever.
+// 		 */
+//		UNESCAPED_VARIABLE_VALUE
+//		{
+//
+//		}
+		;
+
+		/**
+		 * Extract an {@link L2ReadOperand} for the default {@link L2Register}
+		 * of this kind from the given {@link L2Synonym}.
+		 *
+		 * @param synonym
+		 *        The {@link L2Synonym} from which to request a default
+		 *        register.
+		 * @return A read of the default register, if one exists, otherwise
+		 *         {@code null}.
+		 */
+		public abstract @Nullable L2ReadOperand<?> getDefaultRegister (
+			L2Synonym synonym);
+
+		/**
+		 * Extract the set of {@link L2Register}s of this kind from the given
+		 * {@link L2Synonym}.
+		 *
+		 * @param synonym
+		 *        The {@link L2Synonym} from which to request registers.
+		 * @return The {@link L2Synonym}'s set of registers of this kind.
+		 */
+		public abstract Set<? extends L2Register> getRegistersCopy (
+			L2Synonym synonym);
 
 		/** Don't modify this array. */
 		public static final RegisterKind[] all = values();
@@ -128,14 +223,14 @@ public abstract class L2Register<T extends A_BasicObject>
 	/**
 	 * The {@link TypeRestriction} that constrains this register's content.
 	 */
-	protected final TypeRestriction<T> restriction;
+	protected final TypeRestriction restriction;
 
 	/**
 	 * Answer this register's basic {@link TypeRestriction}.
 	 *
 	 * @return A {@link TypeRestriction}.
 	 */
-	public final TypeRestriction<T> restriction ()
+	public final TypeRestriction restriction ()
 	{
 		return restriction;
 	}
@@ -151,7 +246,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 */
 	public L2Register (
 		final int debugValue,
-		final TypeRestriction<T> restriction)
+		final TypeRestriction restriction)
 	{
 		this.uniqueValue = debugValue;
 		this.restriction = restriction;
@@ -165,15 +260,15 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *        The {@code TypeRestriction}.
 	 * @return The requested {@code L2ReadOperand}.
 	 */
-	public abstract L2ReadOperand<? extends L2Register<T>, T> read (
-		TypeRestriction<T> typeRestriction);
+	public abstract L2ReadOperand<? extends L2Register> read (
+		TypeRestriction typeRestriction);
 
 	/**
 	 * Create an appropriate {@link L2WriteOperand} for this register.
 	 *
 	 * @return The requested {@code L2WriteOperand}.
 	 */
-	public abstract L2WriteOperand<? extends L2Register<T>, T> write ();
+	public abstract L2WriteOperand<? extends L2Register> write ();
 
 	/**
 	 * The instructions that assigns to this register. While the {@link
@@ -228,7 +323,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 */
 	public L2Instruction definitionSkippingMoves ()
 	{
-		L2Register<?> other = this;
+		L2Register other = this;
 		while (true)
 		{
 			assert other.definitions.size() == 1;
@@ -236,7 +331,7 @@ public abstract class L2Register<T extends A_BasicObject>
 				other.definitions.iterator().next();
 			if (definition.operation().isMove())
 			{
-				final List<L2Register<?>> sources =
+				final List<L2Register> sources =
 					definition.sourceRegisters();
 				assert sources.size() == 1;
 				other = sources.get(0);
@@ -308,9 +403,9 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *        The {@link TypeRestriction}.
 	 * @return The new {@code L2Register}.
 	 */
-	public abstract <R extends L2Register<T>> R copyForTranslator (
+	public abstract <R extends L2Register> R copyForTranslator (
 		final L2Generator generator,
-		final TypeRestriction<T> typeRestriction);
+		final TypeRestriction typeRestriction);
 
 	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
@@ -318,7 +413,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *
 	 * @return The new {@code L2Register}.
 	 */
-	public abstract L2Register<T> copyAfterColoring ();
+	public abstract L2Register copyAfterColoring ();
 
 	/**
 	 * Answer a copy of the receiver. Subclasses can be covariantly stronger in
@@ -328,7 +423,7 @@ public abstract class L2Register<T extends A_BasicObject>
 	 *        The {@link L2Inliner} for which copying is requested.
 	 * @return A copy of the receiver.
 	 */
-	public abstract L2Register<T> copyForInliner (final L2Inliner inliner);
+	public abstract L2Register copyForInliner (final L2Inliner inliner);
 
 	/**
 	 * Answer an {@link L2Operation} that implements a phi move for the

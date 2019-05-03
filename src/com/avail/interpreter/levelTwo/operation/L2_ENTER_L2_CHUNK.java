@@ -117,41 +117,19 @@ extends L2Operation
 	{
 		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
 
-		// :: if (!chunk.isValid()) {
+		// :: if (!checkValidity()) {
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		translator.literal(method, offsetInUnoptimizedChunk);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
-			getInternalName(L2Chunk.class),
-			"isValid",
-			getMethodDescriptor(BOOLEAN_TYPE),
+			getInternalName(Interpreter.class),
+			"checkValidity",
+			getMethodDescriptor(
+				BOOLEAN_TYPE,
+				INT_TYPE),
 			false);
 		final Label isValidLabel = new Label();
 		method.visitJumpInsn(IFNE, isValidLabel);
-		// ::    interpreter.chunk = L2Chunk.unoptimizedChunk;
-		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
-		method.visitFieldInsn(
-			GETSTATIC,
-			getInternalName(L2Chunk.class),
-			"unoptimizedChunk",
-			getDescriptor(L2Chunk.class));
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
-		// ::    interpreter.offset = offsetInUnoptimizedChunk;
-		translator.literal(method, offsetInUnoptimizedChunk);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"offset",
-			INT_TYPE.getDescriptor());
 		// ::    return null;
 		method.visitInsn(ACONST_NULL);
 		method.visitInsn(ARETURN);

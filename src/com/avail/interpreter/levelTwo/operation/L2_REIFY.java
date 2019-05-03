@@ -32,9 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
@@ -43,26 +40,19 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
@@ -149,6 +139,7 @@ extends L2ControlFlowOperation
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
+		//noinspection DynamicRegexReplaceableByCompiledPattern
 		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
 		if (actuallyReify || processInterrupt)
 		{
@@ -179,56 +170,6 @@ extends L2ControlFlowOperation
 		}
 	}
 
-	@SuppressWarnings("unused")
-	@ReferencedInGeneratedCode
-	public static StackReifier reify (
-		final Interpreter interpreter,
-		final boolean actuallyReify,
-		final boolean processInterrupt,
-		final int categoryIndex)
-	{
-		if (processInterrupt)
-		{
-			// Reify-and-interrupt.
-			return new StackReifier(
-				actuallyReify,
-				interpreter.unreifiedCallDepth(),
-				StatisticCategory.lookup(categoryIndex).statistic,
-				() ->
-				{
-					interpreter.returnNow = false;
-					interpreter.processInterrupt(
-						stripNull(interpreter.reifiedContinuation));
-				});
-		}
-		else
-		{
-			// Capture the interpreter's state, reify the frames, and as an
-			// after-reification action, restore the interpreter's state.
-			final A_Function savedFunction = stripNull(interpreter.function);
-			final boolean newReturnNow = interpreter.returnNow;
-			final @Nullable AvailObject newReturnValue =
-				newReturnNow ? interpreter.latestResult() : null;
-
-			// Reify-and-continue.  The current frame is also reified.
-			return new StackReifier(
-				actuallyReify,
-				interpreter.unreifiedCallDepth(),
-				StatisticCategory.lookup(categoryIndex).statistic,
-				() ->
-				{
-					final A_Continuation continuation =
-						stripNull(interpreter.reifiedContinuation);
-					interpreter.function = savedFunction;
-					interpreter.chunk = continuation.levelTwoChunk();
-					interpreter.offset = continuation.levelTwoOffset();
-					interpreter.returnNow = newReturnNow;
-					interpreter.latestResult(newReturnValue);
-					// Return into the Interpreter's run loop.
-				});
-		}
-	}
-
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -240,19 +181,18 @@ extends L2ControlFlowOperation
 		final int categoryIndex = instruction.intImmediateAt(2);
 		final L2PcOperand reify = instruction.pcAt(3);
 
-		// :: reifier = L2_REIFY.reify(
-		// ::    interpreter, actuallyReify, categoryIndex);
+		// :: reifier = interpreter.reify(
+		// ::    actuallyReify, processInterrupt, categoryIndex);
 		translator.loadInterpreter(method);
 		translator.literal(method, actuallyReify);
 		translator.literal(method, processInterrupt);
 		translator.literal(method, categoryIndex);
 		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_REIFY.class),
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
 			"reify",
 			getMethodDescriptor(
 				getType(StackReifier.class),
-				getType(Interpreter.class),
 				BOOLEAN_TYPE,
 				BOOLEAN_TYPE,
 				INT_TYPE),

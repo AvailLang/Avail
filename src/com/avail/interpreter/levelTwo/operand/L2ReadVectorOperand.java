@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -51,15 +50,14 @@ import static java.util.Collections.unmodifiableList;
  * L2ReadOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <RR>
+ *        A subclass of {@link L2ReadOperand}&lt;R>.
  * @param <R>
- *        A subclass of L2Register&lt;T>
- * @param <T>
- *        A subclass of {@link L2ReadOperand}.
+ *        A subclass of L2Register
  */
 public class L2ReadVectorOperand<
-	RR extends L2ReadOperand<R, T>,
-	R extends L2Register<T>,
-	T extends A_BasicObject>
+	RR extends L2ReadOperand<R>,
+	R extends L2Register>
 extends L2Operand
 {
 	/**
@@ -82,7 +80,7 @@ extends L2Operand
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
-	public L2ReadVectorOperand<RR, R, T> clone ()
+	public L2ReadVectorOperand<RR, R> clone ()
 	{
 		final List<RR> clonedElements = new ArrayList<>(elements.size());
 		for (final RR element : elements)
@@ -135,7 +133,7 @@ extends L2Operand
 
 	@Override
 	public void replaceRegisters (
-		final Map<L2Register<?>, L2Register<?>> registerRemap,
+		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
 		for (final RR read : elements)
@@ -145,7 +143,7 @@ extends L2Operand
 	}
 
 	@Override
-	public void addSourceRegistersTo (final List<L2Register<?>> sourceRegisters)
+	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
 	{
 		for (final RR read : elements)
 		{
@@ -166,7 +164,7 @@ extends L2Operand
 				builder.append(", ");
 			}
 			builder.append(read.register());
-			final TypeRestriction<?> restriction = read.restriction();
+			final TypeRestriction restriction = read.restriction();
 			if (restriction.constantOrNull == null)
 			{
 				// Don't redundantly print restriction information for

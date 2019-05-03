@@ -49,16 +49,7 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -149,31 +140,16 @@ extends L2ControlFlowOperation
 		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 		final L2PcOperand onReification = instruction.pcAt(3);
 
-		// :: reifier = L2_INVOKE.invoke(
-		// ::   interpreter,
+		// :: reifier = interpreter.invoke(
 		// ::   calledFunction,
 		// ::   args)
 		translator.loadInterpreter(method);
 		translator.literal(method, calledFunction);
-		translator.objectArray(method, argsRegsList, AvailObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_INVOKE.class),
-			"invoke",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(Interpreter.class),
-				getType(A_Function.class),
-				getType(AvailObject[].class)),
-			false);
-		method.visitInsn(DUP);
-		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		// :: if (reifier != null) goto onNormalReturn;
-		// :: else goto onReification;
-		translator.branch(
+		L2_INVOKE.generatePushArgumentsAndInvoke(
+			translator,
 			method,
 			instruction,
-			IFNULL,
+			argsRegsList,
 			onNormalReturn,
 			onReification);
 	}

@@ -48,8 +48,8 @@ import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
@@ -64,7 +64,6 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
-import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> {@linkplain FunctionDescriptor Function}
@@ -154,46 +153,66 @@ extends Primitive
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type functionType = argumentTypes.get(0);
-		final A_Type functionReturnType =
-			functionType.isSubtypeOf(mostGeneralFunctionType())
-				? functionType.returnType()
-				: TOP.o();
-		if (functionType.instanceCount().equalsInt(1)
-			&& !functionReturnType.isInstanceMeta())
+		final A_Type argTupleType = argumentTypes.get(1);
+		final A_Type paramsType = functionType.argsTupleType();
+		final boolean fixedSize = argTupleType.sizeRange().upperBound().equals(
+			argTupleType.sizeRange().lowerBound());
+		if (fixedSize
+			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
+			&& argTupleType.isSubtypeOf(paramsType))
 		{
-			final A_Function function = functionType.instance();
-			final A_RawFunction code = function.code();
-			final @Nullable Primitive primitive = code.primitive();
-			if (primitive != null)
+			// The argument types are hereby guaranteed to be compatible.
+			// Therefore the invoke itself will succeed, so we can rely on the
+			// invoked function's return type at least.  See if we can do even
+			// better if we know the exact function being invoked.
+			if (functionType.instanceCount().equalsInt(1))
 			{
-				// See if the primitive function would always succeed with the
-				// arguments that would be supplied to it.
-				final int primArgCount = primitive.argCount();
-				final A_Type primArgTupleType = argumentTypes.get(1);
-				final A_Type primArgTupleTypeSizes =
-					primArgTupleType.sizeRange();
-				if (primArgTupleTypeSizes.lowerBound().equalsInt(primArgCount)
-					&& primArgTupleTypeSizes.upperBound().equalsInt(
-						primArgCount))
+				// The actual function being invoked is known.
+				final A_Function function = functionType.instance();
+				final A_RawFunction code = function.code();
+				final @Nullable Primitive primitive = code.primitive();
+				if (primitive != null)
 				{
-					final List<A_Type> argTypes =
-						IntStream.rangeClosed(1, primitive.argCount())
-							.mapToObj(primArgTupleType::typeAtIndex)
-							.collect(toList());
-					final Fallibility fallibility =
-						primitive.fallibilityForArgumentTypes(argTypes);
-					if (fallibility == CallSiteCannotFail)
+					// The function being invoked is itself a primitive. Dig
+					// deeper to find out whether that primitive would itself
+					// always succeed, and if so, what type it guarantees.
+					final int primArgCount = primitive.argCount();
+					final A_Type primArgSizes = argTupleType.sizeRange();
+					if (primArgSizes.lowerBound().equalsInt(primArgCount)
+						&& primArgSizes.upperBound().equalsInt(primArgCount))
 					{
-						// The invocation of this primitive will always succeed.
-						// Ask the primitive what type it guarantees to return.
-						return primitive.returnTypeGuaranteedByVM(
-							code, argTypes);
+						final List<A_Type> innerArgTypes =
+							new ArrayList<>(primArgCount);
+						for (int i = 1; i <= primArgCount; i++)
+						{
+							innerArgTypes.add(argTupleType.typeAtIndex(i));
+						}
+						final Fallibility fallibility =
+							primitive.fallibilityForArgumentTypes(
+								innerArgTypes);
+						if (fallibility == CallSiteCannotFail)
+						{
+							// The inner invocation of the primitive function
+							// will always succeed. Ask the primitive what type
+							// it guarantees to return.
+							return primitive.returnTypeGuaranteedByVM(
+								code, innerArgTypes);
+						}
+						// The inner primitive might fail, and its failure code
+						// can return something as general as the primitive
+						// function's return type.
+						return functionType.returnType();
 					}
+					// The invocation of the inner function might not have the
+					// right number of arguments. Fall through.
 				}
+				// The invoked inner function is not a primitive. Fall through.
 			}
-			return functionReturnType;
+			// The exact function being invoked is not known. Fall through.
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes);
+		// The arguments that will be supplied to the inner function might not
+		// have the right count.
+		return functionType.returnType();
 	}
 
 	/**

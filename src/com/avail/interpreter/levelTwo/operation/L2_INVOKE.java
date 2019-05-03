@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -44,27 +43,16 @@ import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -82,7 +70,6 @@ import static org.objectweb.asm.Type.getType;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("Duplicates")
 public final class L2_INVOKE
 extends L2ControlFlowOperation
 {
@@ -143,141 +130,6 @@ extends L2ControlFlowOperation
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
-	/**
-	 * Perform the actual {@link A_Function function} invocation with zero
-	 * arguments.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param calledFunction
-	 *        The function to call.
-	 * @return The {@link StackReifier}, if any.
-	 */
-	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier invoke0 (
-		final Interpreter interpreter,
-		final A_Function calledFunction)
-	{
-		final A_Function savedFunction = stripNull(interpreter.function);
-		final L2Chunk savedChunk = stripNull(interpreter.chunk);
-
-		interpreter.argsBuffer.clear();
-		interpreter.function = calledFunction;
-		interpreter.chunk = calledFunction.code().startingChunk();
-		interpreter.offset = 0;
-		final @Nullable StackReifier reifier = interpreter.runChunk();
-		interpreter.function = savedFunction;
-		interpreter.chunk = savedChunk;
-		interpreter.returnNow = false;
-		assert !interpreter.exitNow;
-		return reifier;
-	}
-
-	/**
-	 * Perform the actual {@link A_Function function} invocation with a single
-	 * argument.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param calledFunction
-	 *        The function to call.
-	 * @param arg1
-	 *        The sole argument to the function.
-	 * @return The {@link StackReifier}, if any.
-	 */
-	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier invoke1 (
-		final Interpreter interpreter,
-		final A_Function calledFunction,
-		final AvailObject arg1)
-	{
-		final A_Function savedFunction = stripNull(interpreter.function);
-		final L2Chunk savedChunk = stripNull(interpreter.chunk);
-
-		interpreter.argsBuffer.clear();
-		interpreter.argsBuffer.add(arg1);
-		interpreter.function = calledFunction;
-		interpreter.chunk = calledFunction.code().startingChunk();
-		interpreter.offset = 0;
-		final @Nullable StackReifier reifier = interpreter.runChunk();
-		interpreter.function = savedFunction;
-		interpreter.chunk = savedChunk;
-		interpreter.returnNow = false;
-		assert !interpreter.exitNow;
-		return reifier;
-	}
-
-	/**
-	 * Perform the actual {@link A_Function function} invocation with exactly
-	 * two arguments.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param calledFunction
-	 *        The function to call.
-	 * @param arg1
-	 *        The first argument to the function.
-	 * @param arg2
-	 *        The second argument to the function.
-	 * @return The {@link StackReifier}, if any.
-	 */
-	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier invoke2 (
-		final Interpreter interpreter,
-		final A_Function calledFunction,
-		final AvailObject arg1,
-		final AvailObject arg2)
-	{
-		final A_Function savedFunction = stripNull(interpreter.function);
-		final L2Chunk savedChunk = stripNull(interpreter.chunk);
-
-		interpreter.argsBuffer.clear();
-		interpreter.argsBuffer.add(arg1);
-		interpreter.argsBuffer.add(arg2);
-		interpreter.function = calledFunction;
-		interpreter.chunk = calledFunction.code().startingChunk();
-		interpreter.offset = 0;
-		final @Nullable StackReifier reifier = interpreter.runChunk();
-		interpreter.function = savedFunction;
-		interpreter.chunk = savedChunk;
-		interpreter.returnNow = false;
-		assert !interpreter.exitNow;
-		return reifier;
-	}
-
-	/**
-	 * Perform the actual {@link A_Function function} invocation.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param calledFunction
-	 *        The function to call.
-	 * @param args
-	 *        The {@linkplain AvailObject arguments} to the function.
-	 * @return The {@link StackReifier}, if any.
-	 */
-	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier invoke (
-		final Interpreter interpreter,
-		final A_Function calledFunction,
-		final AvailObject[] args)
-	{
-		final A_Function savedFunction = stripNull(interpreter.function);
-		final L2Chunk savedChunk = stripNull(interpreter.chunk);
-
-		interpreter.argsBuffer.clear();
-		Collections.addAll(interpreter.argsBuffer, args);
-		interpreter.function = calledFunction;
-		interpreter.chunk = calledFunction.code().startingChunk();
-		interpreter.offset = 0;
-		final @Nullable StackReifier reifier = interpreter.runChunk();
-		interpreter.function = savedFunction;
-		interpreter.chunk = savedChunk;
-		interpreter.returnNow = false;
-		assert !interpreter.exitNow;
-		return reifier;
-	}
-
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -291,24 +143,56 @@ extends L2ControlFlowOperation
 		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 		final L2PcOperand onReification = instruction.pcAt(3);
 
-		// :: reifier = L2_INVOKE.invoke(
-		// ::   interpreter,
+		// :: reifier = interpreter.invoke(
 		// ::   calledFunction,
 		// ::   args)
 		translator.loadInterpreter(method);
 		translator.load(method, calledFunctionReg);
-		// Generate special code for common cases of 0, 1, or 2 arguments.
+		generatePushArgumentsAndInvoke(
+			translator,
+			method,
+			instruction,
+			argsRegsList,
+			onNormalReturn,
+			onReification);
+	}
+
+	/**
+	 * Generate code to push the arguments and invoke.  This expects the
+	 * interpreter and function to have been pushed already.
+	 *
+	 * @param translator
+	 *        The translator on which to generate the invocation.
+	 * @param method
+	 *        The {@link MethodVisitor} controlling the method being written.
+	 * @param instruction
+	 *        The {@link L2Instruction} being translated.
+	 * @param argsRegsList
+	 *        The {@link List} of {@link L2ReadPointerOperand} arguments.
+	 * @param onNormalReturn
+	 *        Where to jump if the call completes.
+	 * @param onReification
+	 *        Where to jump if reification is requested during the call.
+	 */
+	static void generatePushArgumentsAndInvoke (
+		final JVMTranslator translator,
+		final MethodVisitor method,
+		final L2Instruction instruction,
+		final List<L2ReadPointerOperand> argsRegsList,
+		final L2PcOperand onNormalReturn,
+		final L2PcOperand onReification)
+	{
+		// Generate special code for common cases of 0-3 arguments.
 		switch (argsRegsList.size())
 		{
 			case 0:
 			{
 				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(L2_INVOKE.class),
+					INVOKEVIRTUAL,
+					getInternalName(Interpreter.class),
 					"invoke0",
 					getMethodDescriptor(
 						getType(StackReifier.class),
-						getType(Interpreter.class),
 						getType(A_Function.class)),
 					false);
 				break;
@@ -317,12 +201,11 @@ extends L2ControlFlowOperation
 			{
 				translator.load(method, argsRegsList.get(0).register());
 				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(L2_INVOKE.class),
+					INVOKEVIRTUAL,
+					getInternalName(Interpreter.class),
 					"invoke1",
 					getMethodDescriptor(
 						getType(StackReifier.class),
-						getType(Interpreter.class),
 						getType(A_Function.class),
 						getType(AvailObject.class)),
 					false);
@@ -333,13 +216,30 @@ extends L2ControlFlowOperation
 				translator.load(method, argsRegsList.get(0).register());
 				translator.load(method, argsRegsList.get(1).register());
 				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(L2_INVOKE.class),
+					INVOKEVIRTUAL,
+					getInternalName(Interpreter.class),
 					"invoke2",
 					getMethodDescriptor(
 						getType(StackReifier.class),
-						getType(Interpreter.class),
 						getType(A_Function.class),
+						getType(AvailObject.class),
+						getType(AvailObject.class)),
+					false);
+				break;
+			}
+			case 3:
+			{
+				translator.load(method, argsRegsList.get(0).register());
+				translator.load(method, argsRegsList.get(1).register());
+				translator.load(method, argsRegsList.get(2).register());
+				method.visitMethodInsn(
+					INVOKEVIRTUAL,
+					getInternalName(Interpreter.class),
+					"invoke3",
+					getMethodDescriptor(
+						getType(StackReifier.class),
+						getType(A_Function.class),
+						getType(AvailObject.class),
 						getType(AvailObject.class),
 						getType(AvailObject.class)),
 					false);
@@ -349,12 +249,11 @@ extends L2ControlFlowOperation
 			{
 				translator.objectArray(method, argsRegsList, AvailObject.class);
 				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(L2_INVOKE.class),
+					INVOKEVIRTUAL,
+					getInternalName(Interpreter.class),
 					"invoke",
 					getMethodDescriptor(
 						getType(StackReifier.class),
-						getType(Interpreter.class),
 						getType(A_Function.class),
 						getType(AvailObject[].class)),
 					false);

@@ -38,6 +38,15 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
@@ -51,8 +60,10 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 
 /**
  * <strong>Primitive:</strong> Look up an element in the {@linkplain
@@ -118,6 +129,12 @@ public final class P_TupleAt extends Primitive
 	}
 
 	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS));
+	}
+
+	@Override
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
@@ -129,14 +146,62 @@ public final class P_TupleAt extends Primitive
 		if (subscripts.lowerBound().greaterOrEqual(one())
 			&& subscripts.upperBound().lessOrEqual(minTupleSize))
 		{
-			return Fallibility.CallSiteCannotFail;
+			return CallSiteCannotFail;
 		}
 		return super.fallibilityForArgumentTypes(argumentTypes);
 	}
 
 	@Override
-	protected A_Type privateFailureVariableType ()
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
 	{
-		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS));
+		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+		{
+			// We can't guarantee success, so fall back to a regular call site.
+			return false;
+		}
+		// The primitive cannot fail at this site.
+		final L2ReadPointerOperand tupleReg = arguments.get(0);
+		final L2ReadPointerOperand subscriptReg = arguments.get(1);
+		final A_Type subscriptType = subscriptReg.type();
+		final A_Number lower = subscriptType.lowerBound();
+		final A_Number upper = subscriptType.upperBound();
+		final L2WritePointerOperand writer =
+			translator.generator.newObjectRegisterWriter(
+				restriction(
+					returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
+		if (lower.equals(upper))
+		{
+			// The subscript is a constant.
+			final int subscriptInt = lower.extractInt();
+			translator.addInstruction(
+				L2_TUPLE_AT_CONSTANT.instance,
+				tupleReg,
+				new L2IntImmediateOperand(subscriptInt),
+				writer);
+			callSiteHelper.useAnswer(writer.read());
+			return true;
+		}
+		// The subscript isn't a constant, but it's known to be in range.
+		final L2BasicBlock subscriptConversionFailure =
+			translator.generator.createBasicBlock("Should be unreachable");
+		final L2ReadIntOperand subscriptIntReg =
+			translator.generator.readIntRegister(
+				subscriptReg.register(),
+				subscriptReg.restriction(),
+				subscriptConversionFailure);
+		assert subscriptConversionFailure.predecessorEdgesCount() == 0;
+		translator.addInstruction(
+			L2_TUPLE_AT_NO_FAIL.instance,
+			tupleReg,
+			subscriptIntReg,
+			writer);
+		callSiteHelper.useAnswer(writer.read());
+		return true;
 	}
 }

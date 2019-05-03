@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -45,17 +44,13 @@ import java.util.Map;
  * {@code L2WriteOperand} abstracts the capabilities of actual register write
  * operands.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param <R>
  *        The subclass of {@link L2Register}.
- * @param <T>
- *        The type for {@link TypeRestriction}s.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class L2WriteOperand<
-	R extends L2Register<T>,
-	T extends A_BasicObject>
+public abstract class L2WriteOperand<R extends L2Register>
 extends L2Operand
 {
 	/**
@@ -102,7 +97,7 @@ extends L2Operand
 	 *
 	 * @return The new {@link L2ReadOperand}.
 	 */
-	public abstract L2ReadOperand<R, T> read ();
+	public abstract L2ReadOperand<R> read ();
 
 	@Override
 	public final void instructionWasAdded (final L2Instruction instruction)
@@ -119,10 +114,10 @@ extends L2Operand
 	@SuppressWarnings("unchecked")
 	@Override
 	public final void replaceRegisters (
-		final Map<L2Register<?>, L2Register<?>> registerRemap,
+		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
-		final @Nullable L2Register<?> replacement = registerRemap.get(register);
+		final @Nullable L2Register replacement = registerRemap.get(register);
 		if (replacement == null || replacement == register)
 		{
 			return;
@@ -134,7 +129,7 @@ extends L2Operand
 
 	@Override
 	public final void addDestinationRegistersTo (
-		final List<L2Register<?>> destinationRegisters)
+		final List<L2Register> destinationRegisters)
 	{
 		destinationRegisters.add(register);
 	}
@@ -145,7 +140,7 @@ extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append('→');
 		builder.append(register);
-		final TypeRestriction<?> restriction = register.restriction();
+		final TypeRestriction restriction = register.restriction();
 		if (restriction.constantOrNull == null)
 		{
 			// Don't redundantly print restriction information for constants.

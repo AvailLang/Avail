@@ -70,10 +70,8 @@ import static java.util.Collections.emptySet;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <T>
- *        The best type for exact values.
  */
-public final class TypeRestriction<T extends A_BasicObject>
+public final class TypeRestriction
 {
 	/**
 	 * The type of value that known to be in this register if this control
@@ -82,15 +80,15 @@ public final class TypeRestriction<T extends A_BasicObject>
 	public final A_Type type;
 
 	/**
-	 * The exact value that is known to be in this register if this control
-	 * flow path is taken, or {@code null} if unknown.
+	 * The exact value that is known to be in this register if this control flow
+	 * path is taken, or {@code null} if unknown.
 	 */
-	public final @Nullable T constantOrNull;
+	public final @Nullable AvailObject constantOrNull;
 
 	/**
 	 * The set of types that are specifically excluded.  A value that satisfies
 	 * one of these types does not satisfy this type restriction.  For the
-	 * purpose of canonicalization, these types are all subtypes of the
+	 * purpose of canonicalization, these types are all proper subtypes of the
 	 * restriction's {@link #type}.  The {@link #constantOrNull}, if non-null,
 	 * must not be a member of any of these types.
 	 */
@@ -103,7 +101,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 * {@link #type}, and must not contain the {@link #constantOrNull}, if
 	 * non-null.
 	 */
-	public final Set<T> excludedValues;
+	public final Set<A_BasicObject> excludedValues;
 
 	/**
 	 * Create a {@code TypeRestriction} from the already-canonicalized
@@ -119,18 +117,17 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 * @param excludedValues
 	 *        A set of values to consider excluded.
 	 */
-	@SuppressWarnings("unchecked")
 	private TypeRestriction (
 		final A_Type type,
-		final @Nullable T constantOrNull,
+		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> excludedTypes,
-		final Set<T> excludedValues)
+		final Set<A_BasicObject> excludedValues)
 	{
 		// Make the Avail objects immutable.  They'll be made Shared if they
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable();
 		this.constantOrNull = (constantOrNull != null)
-			? (T) constantOrNull.makeImmutable()
+			? constantOrNull.makeImmutable()
 			: null;
 
 		final int typesSize = excludedTypes.size();
@@ -156,31 +153,22 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 * The {@link TypeRestriction} for a register that holds {@link
 	 * NilDescriptor#nil}.
 	 */
-	private static final TypeRestriction<A_BasicObject> nilRestriction =
-		new TypeRestriction<>(
-			TOP.o(), nil, emptySet(), emptySet());
+	private static final TypeRestriction nilRestriction =
+		new TypeRestriction(TOP.o(), nil, emptySet(), emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that has any value whatsoever,
 	 * including {@link NilDescriptor#nil}.
 	 */
-	private static final TypeRestriction<A_BasicObject> topRestriction =
-		new TypeRestriction<>(
-			TOP.o(),
-			null,
-			emptySet(),
-			emptySet());
+	private static final TypeRestriction topRestriction =
+		new TypeRestriction(TOP.o(), null, emptySet(), emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that cannot hold any value.
 	 * This can be useful for cleanly dealing with unreachable code.
 	 */
-	private static final TypeRestriction<A_BasicObject> bottomRestriction =
-		new TypeRestriction<>(
-			bottom(),
-			null,
-			emptySet(),
-			emptySet());
+	private static final TypeRestriction bottomRestriction =
+		new TypeRestriction(bottom(), null, emptySet(), emptySet());
 
 	/**
 	 * The {@link TypeRestriction} for a register that can only hold the value
@@ -188,19 +176,14 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 * point in the type system, in that multiple otherwise unrelated type
 	 * hierarchies share the (uninstantiable) type bottom as a descendant.
 	 */
-	private static final TypeRestriction<A_BasicObject> bottomTypeRestriction =
-		new TypeRestriction<>(
-			instanceMeta(bottom()),
-			bottom(),
-			emptySet(),
-			emptySet());
+	private static final TypeRestriction bottomTypeRestriction =
+		new TypeRestriction(
+			instanceMeta(bottom()), bottom(), emptySet(), emptySet());
 
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction} from the already
 	 * mutually consistent, canonical arguments.
 	 *
-	 * @param <T>
-	 *        The best type for exact values.
 	 * @param givenType
 	 *        The Avail type that constrains some value somewhere.
 	 * @param givenConstantOrNull
@@ -212,12 +195,11 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        A set of values to consider excluded.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	@SuppressWarnings("unchecked")
-	private static <T extends A_BasicObject> TypeRestriction<T> fromCanonical (
-			final A_Type givenType,
-			final @Nullable T givenConstantOrNull,
-			final Set<A_Type> givenExcludedTypes,
-			final Set<T> givenExcludedValues)
+	private static TypeRestriction fromCanonical (
+		final A_Type givenType,
+		final @Nullable A_BasicObject givenConstantOrNull,
+		final Set<A_Type> givenExcludedTypes,
+		final Set<A_BasicObject> givenExcludedValues)
 	{
 		if (givenConstantOrNull != null)
 		{
@@ -226,7 +208,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 			// bottomRestriction, which is the impossible restriction.
 			if (givenConstantOrNull.equalsNil())
 			{
-				return (TypeRestriction<T>) nilRestriction;
+				return nilRestriction;
 			}
 			assert givenConstantOrNull.isInstanceOf(givenType);
 			assert !givenExcludedValues.contains(givenConstantOrNull);
@@ -234,7 +216,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 				givenConstantOrNull::isInstanceOf);
 			// No reason to exclude it, so use the constant.  We can safely
 			// omit the excluded types and values as part of canonicalization.
-			return new TypeRestriction<>(
+			return new TypeRestriction(
 				instanceTypeOrMetaOn(givenConstantOrNull),
 				givenConstantOrNull,
 				emptySet(),
@@ -244,7 +226,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 		// Not a known constant.
 		if (givenType.equals(TOP.o()))
 		{
-			return (TypeRestriction<T>) topRestriction;
+			return topRestriction;
 		}
 		if (givenType.instanceCount().equalsInt(1))
 		{
@@ -252,25 +234,20 @@ public final class TypeRestriction<T extends A_BasicObject>
 			if (instance.equals(bottom()))
 			{
 				// Special case: bottom's type has one instance, bottom.
-				return (TypeRestriction<T>) bottomTypeRestriction;
+				return bottomTypeRestriction;
 			}
 			// Ensure it's a meta, otherwise it should have been canonicalized
 			// to provide a known constant.
 			assert givenType.isInstanceMeta();
 		}
-		return new TypeRestriction<>(
-			givenType,
-			null,
-			emptySet(),
-			emptySet());
+		return new TypeRestriction(
+			givenType, null, emptySet(), emptySet());
 	}
 
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction}, canonicalizing the
 	 * arguments.
 	 *
-	 * @param <T>
-	 *        The best type for exact values.
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
 	 * @param constantOrNull
@@ -282,12 +259,11 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        A set of values to consider excluded.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	@SuppressWarnings("unchecked")
-	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
+	public static TypeRestriction restriction (
 		final A_Type type,
-		final @Nullable T constantOrNull,
+		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> givenExcludedTypes,
-		final Set<T> givenExcludedValues)
+		final Set<A_BasicObject> givenExcludedValues)
 	{
 		if (constantOrNull == null
 			&& type.isEnumeration()
@@ -297,7 +273,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 			// (or bottom's type, which has only one instance, bottom).  See if
 			// excluding disallowed types and values happens to leave exactly
 			// zero or one possibility.
-			final Set<T> instances = toSet(type.instances());
+			final Set<A_BasicObject> instances = toSet(type.instances());
 			instances.removeAll(givenExcludedValues);
 			instances.removeIf(
 				instance -> givenExcludedTypes.stream().anyMatch(
@@ -306,11 +282,11 @@ public final class TypeRestriction<T extends A_BasicObject>
 			{
 				case 0:
 				{
-					return (TypeRestriction<T>) bottomRestriction;
+					return bottomRestriction;
 				}
 				case 1:
 				{
-					final T instance = instances.iterator().next();
+					final A_BasicObject instance = instances.iterator().next();
 					return fromCanonical(
 						instanceTypeOrMetaOn(instance),
 						instance,
@@ -321,7 +297,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 				{
 					// We've already applied the full effect of the excluded
 					// types and values to the given type.
-					return new TypeRestriction<>(
+					return new TypeRestriction(
 						enumerationWith(setFromCollection(instances)),
 						null,
 						emptySet(),
@@ -336,23 +312,23 @@ public final class TypeRestriction<T extends A_BasicObject>
 			// bottomRestriction, which is the impossible restriction.
 			if (constantOrNull.equalsNil())
 			{
-				return (TypeRestriction<T>) nilRestriction;
+				return nilRestriction;
 			}
 			if (!constantOrNull.isInstanceOf(type)
 				|| givenExcludedValues.contains(constantOrNull))
 			{
-				return (TypeRestriction<T>) bottomRestriction;
+				return bottomRestriction;
 			}
 			for (final A_Type excludedType : givenExcludedTypes)
 			{
 				if (constantOrNull.isInstanceOf(excludedType))
 				{
-					return (TypeRestriction<T>) bottomRestriction;
+					return bottomRestriction;
 				}
 			}
 			// No reason to exclude it, so use the constant.  We can safely
 			// omit the excluded types and values as part of canonicalization.
-			return new TypeRestriction<>(
+			return new TypeRestriction(
 				instanceTypeOrMetaOn(constantOrNull),
 				constantOrNull,
 				emptySet(),
@@ -362,13 +338,14 @@ public final class TypeRestriction<T extends A_BasicObject>
 		// Are we excluding the base type?
 		if (givenExcludedTypes.stream().anyMatch(type::isSubtypeOf))
 		{
-			return (TypeRestriction<T>) bottomRestriction;
+			return bottomRestriction;
 		}
 
 		// Eliminate excluded types that are proper subtypes of other excluded
 		// types.  Note: this reduction is O(n^2) in the number of excluded
 		// types.  We could use a LookupTree to speed this up.
-		final Set<T> excludedValues = new HashSet<>(givenExcludedValues);
+		final Set<A_BasicObject> excludedValues =
+			new HashSet<>(givenExcludedValues);
 		final Set<A_Type> excludedTypes = givenExcludedTypes.stream()
 			.map(type::typeIntersection)
 			.collect(Collectors.toCollection(HashSet::new));
@@ -382,7 +359,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 					// values.
 					for (final AvailObject v : t.instances())
 					{
-						excludedValues.add((T) v);
+						excludedValues.add(v);
 					}
 				}
 				else if (excludedTypes.stream().anyMatch(
@@ -402,7 +379,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 			&& excludedTypes.isEmpty()
 			&& excludedValues.isEmpty())
 		{
-			return (TypeRestriction<T>) topRestriction;
+			return topRestriction;
 		}
 
 		return fromCanonical(type, null, excludedTypes, excludedValues);
@@ -411,8 +388,6 @@ public final class TypeRestriction<T extends A_BasicObject>
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction}.
 	 *
-	 * @param <T>
-	 *        The best type for exact values.
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
 	 * @param constantOrNull
@@ -420,9 +395,9 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        must equal.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
+	public static TypeRestriction restriction (
 		final A_Type type,
-		final @Nullable T constantOrNull)
+		final @Nullable A_BasicObject constantOrNull)
 	{
 		return restriction(type, constantOrNull, emptySet(), emptySet());
 	}
@@ -431,13 +406,11 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 * Create or reuse an immutable {@code TypeRestriction}, for which no
 	 * constant information is provided (but might be deduced from the type).
 	 *
-	 * @param <T>
-	 *        The best type for exact values.
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	public static <T extends A_BasicObject> TypeRestriction<T> restriction (
+	public static TypeRestriction restriction (
 		final A_Type type)
 	{
 		return restriction(type, null, emptySet(), emptySet());
@@ -453,8 +426,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        produce the output restriction.
 	 * @return The new type restriction.
 	 */
-	@SuppressWarnings("unchecked")
-	public TypeRestriction<T> union (final TypeRestriction<T> other)
+	public TypeRestriction union (final TypeRestriction other)
 	{
 		if (constantOrNull != null
 			&& other.constantOrNull != null
@@ -462,7 +434,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 		{
 			// The two restrictions are for the same constant value.
 			return constantOrNull.equalsNil()
-				? (TypeRestriction<T>) nilRestriction
+				? nilRestriction
 				: restriction(
 					instanceTypeOrMetaOn(constantOrNull), constantOrNull);
 		}
@@ -483,8 +455,8 @@ public final class TypeRestriction<T extends A_BasicObject>
 		}
 		// Figure out which excluded constants are also excluded in the other
 		// restriction.
-		final Set<T> newExcludedValues = new HashSet<>();
-		for (final T value : excludedValues)
+		final Set<A_BasicObject> newExcludedValues = new HashSet<>();
+		for (final A_BasicObject value : excludedValues)
 		{
 			if (other.excludedValues.contains(value)
 				|| other.excludedTypes.stream().anyMatch(value::isInstanceOf))
@@ -492,7 +464,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 				newExcludedValues.add(value);
 			}
 		}
-		for (final T value : other.excludedValues)
+		for (final A_BasicObject value : other.excludedValues)
 		{
 			if (excludedTypes.stream().anyMatch(value::isInstanceOf))
 			{
@@ -517,8 +489,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        produce the intersected restriction.
 	 * @return The new type restriction.
 	 */
-	@SuppressWarnings("unchecked")
-	public TypeRestriction<T> intersection (final TypeRestriction<T> other)
+	public TypeRestriction intersection (final TypeRestriction other)
 	{
 		if (constantOrNull != null
 			&& other.constantOrNull != null
@@ -526,11 +497,12 @@ public final class TypeRestriction<T extends A_BasicObject>
 		{
 			// The restrictions are both constant, but disagree, so the
 			// intersection is empty.
-			return (TypeRestriction<T>) bottomRestriction;
+			return bottomRestriction;
 		}
 		final Set<A_Type> unionOfExcludedTypes = new HashSet<>(excludedTypes);
 		unionOfExcludedTypes.addAll(other.excludedTypes);
-		final Set<T> unionOfExcludedValues = new HashSet<>(excludedValues);
+		final Set<A_BasicObject> unionOfExcludedValues =
+			new HashSet<>(excludedValues);
 		unionOfExcludedValues.addAll(other.excludedValues);
 		return restriction(
 			type.typeIntersection(other.type),
@@ -550,8 +522,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        intersected restriction.
 	 * @return The new type restriction.
 	 */
-	@SuppressWarnings("unchecked")
-	public TypeRestriction<T> intersectionWithType (
+	public TypeRestriction intersectionWithType (
 		final A_Type typeToIntersect)
 	{
 		return restriction(
@@ -571,7 +542,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        TypeRestriction}.
 	 * @return The new type restriction.
 	 */
-	public TypeRestriction<T> minusType (final A_Type typeToExclude)
+	public TypeRestriction minusType (final A_Type typeToExclude)
 	{
 		final Set<A_Type> augmentedExcludedTypes = new HashSet<>(excludedTypes);
 		augmentedExcludedTypes.add(typeToExclude);
@@ -593,9 +564,10 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        TypeRestriction}.
 	 * @return The new type restriction.
 	 */
-	public TypeRestriction<T> minusValue (final T valueToExclude)
+	public TypeRestriction minusValue (final A_BasicObject valueToExclude)
 	{
-		final Set<T> augmentedExcludedValues = new HashSet<>(excludedValues);
+		final Set<A_BasicObject> augmentedExcludedValues =
+			new HashSet<>(excludedValues);
 		augmentedExcludedValues.add(valueToExclude);
 		return restriction(
 			type,
@@ -613,7 +585,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 *        The other type restriction.
 	 * @return Whether the receiver is a specialization of the argument.
 	 */
-	public boolean isStrongerThan (final TypeRestriction<T> other)
+	public boolean isStrongerThan (final TypeRestriction other)
 	{
 		if (!type.isSubtypeOf(other.type))
 		{
@@ -629,7 +601,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 			}
 		}
 		// I also have to exclude every value excluded by the argument.
-		for (final T otherExcludedValue : other.excludedValues)
+		for (final A_BasicObject otherExcludedValue : other.excludedValues)
 		{
 			if (!excludedValues.contains(otherExcludedValue)
 				&& excludedTypes.stream().noneMatch(
@@ -652,8 +624,7 @@ public final class TypeRestriction<T extends A_BasicObject>
 	 */
 	public String suffixString ()
 	{
-		final @Nullable AvailObject constant =
-			(AvailObject) constantOrNull;
+		final @Nullable AvailObject constant = constantOrNull;
 		if (constant != null)
 		{
 			//noinspection DynamicRegexReplaceableByCompiledPattern

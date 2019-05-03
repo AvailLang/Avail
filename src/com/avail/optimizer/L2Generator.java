@@ -33,44 +33,20 @@
 package com.avail.optimizer;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_BOX_FLOAT;
-import com.avail.interpreter.levelTwo.operation.L2_BOX_INT;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT;
-import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT;
-import com.avail.interpreter.levelTwo.operation.L2_UNBOX_INT;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -80,7 +56,6 @@ import com.avail.performance.Statistic;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
@@ -92,6 +67,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
@@ -288,8 +264,8 @@ public final class L2Generator
 	 * @return The new register write operand.
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
-	public <R extends L2Register<T>, T extends A_BasicObject>
-	L2WritePhiOperand<R, T> newPhiRegisterWriter (final R register)
+	public <R extends L2Register, T extends A_BasicObject>
+	L2WritePhiOperand<R> newPhiRegisterWriter (final R register)
 	{
 		return new L2WritePhiOperand<>(register);
 	}
@@ -304,7 +280,7 @@ public final class L2Generator
 	 * @return The new register write operand.
 	 */
 	public L2WritePointerOperand newObjectRegisterWriter (
-		final TypeRestriction<A_BasicObject> restriction)
+		final TypeRestriction restriction)
 	{
 		return new L2WritePointerOperand(
 			new L2ObjectRegister(nextUnique(), restriction));
@@ -312,43 +288,34 @@ public final class L2Generator
 
 	/**
 	 * Allocate a new {@link L2IntRegister}.  Answer an {@link
-	 * L2WriteIntOperand} that writes to it, using the given type and optional
-	 * constant value information.
+	 * L2WriteIntOperand} that writes to it, using the given {@link
+	 * TypeRestriction}.
 	 *
-	 * @param type
-	 *        The type of value that the register can hold.
-	 * @param constantOrNull
-	 *        The exact value in the register, or {@code null} if not known
-	 *        statically.
+	 * @param restriction
+	 *        The initial {@link TypeRestriction} for the new register.
 	 * @return The new register write operand.
 	 */
 	public L2WriteIntOperand newIntRegisterWriter (
-		final A_Type type,
-		final @Nullable A_Number constantOrNull)
+		final TypeRestriction restriction)
 	{
 		return new L2WriteIntOperand(
-			new L2IntRegister(nextUnique(), restriction(type, constantOrNull)));
+			new L2IntRegister(nextUnique(), restriction));
 	}
 
 	/**
 	 * Allocate a new {@link L2FloatRegister}.  Answer an {@link
-	 * L2WriteFloatOperand} that writes to it, using the given type and optional
-	 * constant value information.
+	 * L2WriteFloatOperand} that writes to it, using the given {@link
+	 * TypeRestriction}.
 	 *
-	 * @param type
-	 *        The type of value that the register can hold.
-	 * @param constantOrNull
-	 *        The exact value in the register, or {@code null} if not known
-	 *        statically.
+	 * @param restriction
+	 *        The initial {@link TypeRestriction} for the new register.
 	 * @return The new register write operand.
 	 */
 	public L2WriteFloatOperand newFloatRegisterWriter (
-		final A_Type type,
-		final @Nullable A_Number constantOrNull)
+		final TypeRestriction restriction)
 	{
 		return new L2WriteFloatOperand(
-			new L2FloatRegister(
-				nextUnique(), restriction(type, constantOrNull)));
+			new L2FloatRegister(nextUnique(), restriction));
 	}
 
 	/**
@@ -364,12 +331,19 @@ public final class L2Generator
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
 		final L2SemanticValue constant = L2SemanticValue.constant(value);
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final @Nullable L2Synonym synonym =
 			currentManifest().semanticValueToSynonym(constant);
 		if (synonym != null)
 		{
-			return synonym.defaultRegisterRead();
+			synonym.setFlag(KNOWN_IMMUTABLE);
+			final @Nullable L2ReadPointerOperand read =
+				synonym.defaultObjectRead();
+			if (read != null)
+			{
+				return read;
+			}
 		}
+		// The constant is not available in boxed form in any register.
 		final A_Type type = value.equalsNil()
 			? TOP.o()
 			: instanceTypeOrMetaOn(value);
@@ -379,8 +353,9 @@ public final class L2Generator
 			L2_MOVE_CONSTANT.instance,
 			new L2ConstantOperand(value),
 			registerWrite);
-		currentManifest().addBinding(
-			constant, registerWrite.register());
+		currentManifest().addBinding(constant, registerWrite.register());
+		stripNull(currentManifest().semanticValueToSynonym(constant))
+			.setFlag(KNOWN_IMMUTABLE);
 		return registerWrite.read();
 	}
 
@@ -398,348 +373,313 @@ public final class L2Generator
 	{
 		final A_Number boxed = fromInt(value);
 		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
-		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsInt();
-		final @Nullable L2Synonym<L2IntRegister, A_Number> unboxedSynonym =
-			currentManifest().semanticValueToSynonym(unboxedConstant);
-		if (unboxedSynonym != null)
+		final @Nullable L2Synonym synonym =
+			currentManifest().semanticValueToSynonym(boxedConstant);
+		if (synonym != null)
 		{
-			// It already exists unboxed.
-			return unboxedSynonym.defaultRegisterRead();
+			final @Nullable L2ReadIntOperand read = synonym.defaultIntRead();
+			if (read != null)
+			{
+				return read;
+			}
 		}
-		// Create an int register and move the constant int into it.
+		// The constant is not available in unboxed form in any int register.
 		final L2WriteIntOperand registerWrite =
-			newIntRegisterWriter(instanceType(boxed), boxed);
+			newIntRegisterWriter(restriction(instanceType(boxed), boxed));
 		addInstruction(
 			L2_MOVE_INT_CONSTANT.instance,
 			new L2IntImmediateOperand(value),
 			registerWrite);
 		currentManifest().addBinding(
-			unboxedConstant, registerWrite.register());
+			boxedConstant, registerWrite.register());
 		return registerWrite.read();
 	}
 
 	/**
-	 * Write a constant value into a new double register.  Answer an {@link
-	 * L2ReadFloatOperand} for that register. If another register has already
+	 * Write a constant value into a new float register.  Answer an {@link
+	 * L2ReadFloatOperand} for that register.  If another register has already
 	 * been assigned the same value within the same {@link L2BasicBlock}, just
 	 * use that instead of emitting another constant-move.
 	 *
 	 * @param value
-	 *        The immediate double to write to a new double register.
+	 *        The immediate {@code double} to write to a new float register.
 	 * @return The {@link L2ReadFloatOperand} for the new register.
 	 */
 	public L2ReadFloatOperand constantFloatRegister (final double value)
 	{
 		final A_Number boxed = fromDouble(value);
 		final L2SemanticValue boxedConstant = L2SemanticValue.constant(boxed);
-		final L2SemanticValue unboxedConstant = boxedConstant.unboxedAsFloat();
-		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
-			currentManifest().semanticValueToSynonym(unboxedConstant);
-		if (unboxedSynonym != null)
+		final @Nullable L2Synonym synonym =
+			currentManifest().semanticValueToSynonym(boxedConstant);
+		if (synonym!= null)
 		{
-			// It already exists unboxed.
-			return unboxedSynonym.defaultRegisterRead();
+			final @Nullable L2ReadFloatOperand read =
+				synonym.defaultFloatRead();
+			if (read != null)
+			{
+				return read;
+			}
 		}
-		// Create a float register and move the constant into it.
+		// The constant is not available in unboxed form in any float register.
 		final L2WriteFloatOperand registerWrite =
-			newFloatRegisterWriter(instanceType(boxed), boxed);
+			newFloatRegisterWriter(restriction(instanceType(boxed), boxed));
 		addInstruction(
 			L2_MOVE_FLOAT_CONSTANT.instance,
 			new L2FloatImmediateOperand(value),
 			registerWrite);
 		currentManifest().addBinding(
-			unboxedConstant, registerWrite.register());
+			boxedConstant, registerWrite.register());
 		return registerWrite.read();
 	}
 
 	/**
-	 * Write an unboxed {@code int} value into a new {@link L2IntRegister}, if
-	 * necessary, but prefer to answer an existing register that already has an
-	 * appropriate value. Use the most efficient technique available, based on
-	 * the supplied type information.
+	 * Return an {@link L2ReadPointerOperand} for the given synonym, restricted
+	 * to the specified type.  The type restriction must have been proven by the
+	 * VM, and requires no tests or failure cases.  If the synonym only has an
+	 * unboxed form, generate code to box it.
 	 *
-	 * @param read
-	 *        The boxed {@link L2ReadPointerOperand}.
-	 * @param restrictedType
-	 *        The restricted {@linkplain A_Type type} for the reader, which is
-	 *        required to intersect {@link
-	 *        IntegerRangeTypeDescriptor#int32() int32()}.
-	 * @param onSuccess
-	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
-	 *        succeeds. The {@link L2ValueManifest manifest} at this location
-	 *        will contain bindings for the unboxed {@code int}. {@linkplain
-	 *        L2Generator#startBlock(L2BasicBlock) Start} this block if a {@code
-	 *        L2_JUMP_IF_UNBOX_INT} was needed.
+	 * @param register
+	 *        The {@link L2Register} (any variety) for which to produce a read
+	 *        of the boxed value.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to apply to the resulting read.
+	 * @return The requested {@link L2ReadPointerOperand}.
+	 */
+	public L2ReadPointerOperand readBoxedRegister (
+		final L2Register register,
+		final TypeRestriction restriction)
+	{
+		final L2ValueManifest manifest = currentManifest();
+		final @Nullable L2Synonym synonym =
+			manifest.forceSynonymForRegister(register);
+		final @Nullable L2ReadPointerOperand objectRead =
+			synonym.defaultObjectRead();
+		if (objectRead != null)
+		{
+			return objectRead.register().read(restriction);
+		}
+		final L2WritePointerOperand boxedWriter =
+			newObjectRegisterWriter(restriction);
+		// It's not available in boxed form yet.
+		final @Nullable L2ReadIntOperand intRead = synonym.defaultIntRead();
+		if (intRead != null)
+		{
+			// Box it from the int value.
+			addInstruction(L2_BOX_INT.instance, intRead, boxedWriter);
+			currentManifest().linkEqualRegisters(
+				intRead.register(), boxedWriter.register());
+		}
+		else
+		{
+			final @Nullable L2ReadFloatOperand floatRead =
+				synonym.defaultFloatRead();
+			assert floatRead != null : "Synonym was not boxed, int, or float";
+			// Box it from the float value.
+			addInstruction(L2_BOX_FLOAT.instance, floatRead, boxedWriter);
+			currentManifest().linkEqualRegisters(
+				floatRead.register(), boxedWriter.register());
+		}
+		return boxedWriter.register().read(restriction);
+	}
+
+	/**
+	 * Return an {@link L2ReadIntOperand} for the given {@link L2Register} (of
+	 * any variety), restricted to the specified type.  The type restriction
+	 * must have been proven by the VM.  If the register's synonym only has a
+	 * boxed form, generate code to unbox it.
+	 *
+	 * <p>In the case that unboxing may fail, a branch to the supplied onFailure
+	 * {@link L2BasicBlock} will be generated. If the unboxing cannot fail (or
+	 * if a corresponding {@link L2IntRegister} already exists), no branch will
+	 * lead to onFailure, which can be determined by the client by testing
+	 * {@link L2BasicBlock#currentlyReachable()}.</p>
+	 *
+	 * <p>In any case, the generation position after this call is along the
+	 * success path.  This may itself be unreachable in the event that the
+	 * unboxing will <em>always</em> fail.</p>
+	 *
+	 * @param register
+	 *        The {@link L2Register} to read as an unboxed int.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to use for the {@link
+	 *        L2ReadIntOperand}.
 	 * @param onFailure
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_INT}
 	 *        fails. The manifest at this location will not contain bindings for
 	 *        the unboxed {@code int} (since unboxing was not possible).
 	 * @return The unboxed {@link L2ReadIntOperand}.
 	 */
-	public L2ReadIntOperand unboxIntoIntRegister (
-		final L2ReadPointerOperand read,
-		final A_Type restrictedType,
-		final L2BasicBlock onSuccess,
+	public L2ReadIntOperand readIntRegister (
+		final L2Register register,
+		final TypeRestriction restriction,
 		final L2BasicBlock onFailure)
 	{
-		assert !restrictedType.typeIntersection(int32()).isBottom();
-		final @Nullable L2ReadIntOperand unboxed =
-			currentManifest().alreadyUnboxedInt(read);
-		if (unboxed != null)
+		assert !restriction.type.typeIntersection(int32()).isBottom();
+		final L2ValueManifest manifest = currentManifest();
+		final @Nullable L2Synonym synonym =
+			manifest.forceSynonymForRegister(register);
+		final @Nullable L2ReadIntOperand intRead = synonym.defaultIntRead();
+		if (intRead != null)
 		{
-			return unboxed;
+			return intRead.register().read(restriction);
 		}
-		final L2WriteIntOperand unboxedWriter;
-		if (read.constantOrNull() != null)
+		// It's not available as an unboxed int yet.
+		final @Nullable L2ReadPointerOperand objectRead =
+			synonym.defaultObjectRead();
+		if (objectRead == null
+			|| objectRead.type().typeIntersection(int32()).isBottom())
 		{
-			// The reader is a constant.
-			final A_Number value = (A_Number) stripNull(read.constantOrNull());
-			unboxedWriter =
-				newIntRegisterWriter(instanceType(value), value);
+			// It's not available unboxed as an int, and it's not available
+			// boxed.  The only other possibility is that it's some other
+			// unboxed value, which can't be an int, so it should always fail.
+			// This clause is also used if there was a boxed form, but the type
+			// ensured it couldn't be an int32.
 			addInstruction(
-				L2_MOVE_INT_CONSTANT.instance,
-				new L2IntImmediateOperand(value.extractInt()),
-				unboxedWriter);
-		}
-		else if (restrictedType.isSubtypeOf(int32()))
-		{
-			// The reader is guaranteed to be unboxable.
-			unboxedWriter =
-				newIntRegisterWriter(restrictedType, null);
-			addInstruction(L2_UNBOX_INT.instance, read, unboxedWriter);
-		}
-		else
-		{
-			// The reader may be unboxable. Copy the manifest for the success
-			// case, adding unboxed variants for the unboxed reader. Do not add
-			// these bindings to the failure case.
-			unboxedWriter =
-				newIntRegisterWriter(restrictedType, null);
-			addInstruction(
-				L2_JUMP_IF_UNBOX_INT.instance,
-				read,
-				unboxedWriter,
-				new L2PcOperand(onSuccess, currentManifest()),
+				L2_JUMP.instance,
 				new L2PcOperand(onFailure, currentManifest()));
-			startBlock(onSuccess);
+			// Return a dummy, which should get suppressed or optimized away.
+			return constantIntRegister(-999);
 		}
-		final L2Register<?> unboxedRegister = unboxedWriter.register();
-		// For each semantic value that the boxed register was bound to, bind
-		// the new register to a corresponding unboxed semantic value.
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
-			boxedSynonym = currentManifest().registerToSynonym(
-			read.register());
-		if (boxedSynonym != null)
+		if (objectRead.type().isSubtypeOf(int32()))
 		{
-			final Iterator<L2SemanticValue> iterator =
-				boxedSynonym.semanticValuesIterator();
-			while (iterator.hasNext())
+			// It can be infallibly converted.
+			final @Nullable AvailObject constant = objectRead.constantOrNull();
+			if (constant != null)
 			{
-				currentManifest().addBinding(
-					iterator.next().unboxedAsInt(), unboxedRegister);
+				// The boxed value is a constant within int32, so create an
+				// equivalent int constant register.
+				return constantIntRegister(constant.extractInt());
 			}
+			final L2WriteIntOperand intWriter =
+				newIntRegisterWriter(restriction);
+			addInstruction(
+				L2_UNBOX_INT.instance,
+				objectRead,
+				intWriter);
+			currentManifest().linkEqualRegisters(
+				objectRead.register(), intWriter.register());
+			return intWriter.register().read(restriction);
 		}
-		return stripNull(unboxedWriter.read());
+		// Conversion may succeed or fail at runtime.
+		final L2BasicBlock onSuccess = createBasicBlock("successfully unboxed");
+		final L2WriteIntOperand intWriter = newIntRegisterWriter(restriction);
+		addInstruction(
+			L2_JUMP_IF_UNBOX_INT.instance,
+			objectRead,
+			intWriter,
+			new L2PcOperand(
+				onSuccess,
+				currentManifest(),
+				intWriter.read().restrictedToType(int32())),
+			new L2PcOperand(
+				onFailure,
+				currentManifest(),
+				intWriter.read().restrictedWithoutType(int32())));
+		startBlock(onSuccess);
+		currentManifest().linkEqualRegisters(
+			objectRead.register(), intWriter.register());
+		return intWriter.register().read(restriction);
 	}
 
 	/**
-	 * Write an unboxed {@code double} value into a new {@link L2FloatRegister},
-	 * if necessary, but prefer to answer an existing register that already has
-	 * an appropriate value.
+	 * Return an {@link L2ReadFloatOperand} for the given {@link L2Register} (of
+	 * any variety), restricted to the specified type.  The type restriction
+	 * must have been proven by the VM.  If the register's synonym only has a
+	 * boxed form, generate code to unbox it.
 	 *
-	 * @param read
-	 *        The boxed {@link L2ReadPointerOperand}.
-	 * @param restrictedType
-	 *        The restricted {@linkplain A_Type type} for the reader, which is
-	 *        required to intersect {@link Types#DOUBLE DOUBLE}.
-	 * @param onSuccess
-	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
-	 *        succeeds. The {@link L2ValueManifest manifest} at this location
-	 *        will contain bindings for the unboxed {@code double}. {@linkplain
-	 *        L2Generator#startBlock(L2BasicBlock) Start} this block if a {@code
-	 *        L2_JUMP_IF_UNBOX_FLOAT} was needed.
+	 * <p>In the case that unboxing may fail, a branch to the supplied onFailure
+	 * {@link L2BasicBlock} will be generated. If the unboxing cannot fail (or
+	 * if a corresponding {@link L2FloatRegister}  already exists), no branch
+	 * will lead to onFailure, which can be determined by the client by testing
+	 * {@link L2BasicBlock#currentlyReachable()}. </p>
+	 *
+	 * <p>In any case, the generation position after this call is along the
+	 * success path.  This may itself be unreachable in the event the unboxing
+	 * will always fail.</p>
+	 *
+	 * @param register
+	 *        The {@link L2Register} to read as an unboxed double.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to use for the {@link
+	 *        L2ReadFloatOperand}.
 	 * @param onFailure
 	 *        Where to jump in the event that an {@link L2_JUMP_IF_UNBOX_FLOAT}
 	 *        fails. The manifest at this location will not contain bindings for
-	 *        the unboxed {@code double} (since unboxing was not possible).
+	 *        the unboxed {@code int} (since unboxing was not possible).
 	 * @return The unboxed {@link L2ReadFloatOperand}.
 	 */
-	public L2ReadFloatOperand unboxIntoFloatRegister (
-		final L2ReadPointerOperand read,
-		final A_Type restrictedType,
-		final L2BasicBlock onSuccess,
+	public L2ReadFloatOperand readFloatRegister (
+		final L2Register register,
+		final TypeRestriction restriction,
 		final L2BasicBlock onFailure)
 	{
-		assert !restrictedType.typeIntersection(DOUBLE.o()).isBottom();
-		final @Nullable L2ReadFloatOperand unboxed =
-			currentManifest().alreadyUnboxedFloat(read);
-		if (unboxed != null)
+		assert !restriction.type.typeIntersection(int32()).isBottom();
+		final L2ValueManifest manifest = currentManifest();
+		final @Nullable L2Synonym synonym =
+			manifest.forceSynonymForRegister(register);
+		final @Nullable L2ReadFloatOperand floatRead =
+			synonym.defaultFloatRead();
+		if (floatRead != null)
 		{
-			return unboxed;
+			return floatRead.register().read(restriction);
 		}
-		final L2WriteFloatOperand unboxedWriter;
-		if (read.constantOrNull() != null)
+		// It's not available as an unboxed double yet.
+		final @Nullable L2ReadPointerOperand objectRead =
+			synonym.defaultObjectRead();
+		if (objectRead == null
+			|| objectRead.type().typeIntersection(DOUBLE.o()).isBottom())
 		{
-			// The reader is a constant.
-			final A_Number value =
-				(A_Number) stripNull(read.constantOrNull());
-			unboxedWriter =
-				newFloatRegisterWriter(instanceType(value), value);
+			// It's not available unboxed as a double, and it's not available
+			// boxed.  The only other possibility is that it's some other
+			// unboxed value, which can't be a double, so it should always fail.
+			// This clause is also used if there was a boxed form, but the type
+			// ensured it couldn't be a double.
 			addInstruction(
-				L2_MOVE_FLOAT_CONSTANT.instance,
-				new L2FloatImmediateOperand(value.extractDouble()),
-				unboxedWriter);
+				L2_JUMP.instance,
+				new L2PcOperand(onFailure, currentManifest()));
+			// Return a dummy, which should get suppressed or optimized away.
+			return constantFloatRegister(-99.9);
 		}
-		else if (restrictedType.isSubtypeOf(DOUBLE.o()))
+		if (objectRead.type().isSubtypeOf(DOUBLE.o()))
 		{
-			// The reader is guaranteed to be unboxable. Create unboxed
-			// variants for each relevant semantic value.
-			unboxedWriter =
-				newFloatRegisterWriter(restrictedType, null);
+			// It can be infallibly converted.
+			final @Nullable AvailObject constant = objectRead.constantOrNull();
+			if (constant != null)
+			{
+				// The boxed value is a constant double, so create an
+				// equivalent double constant register.
+				return constantFloatRegister(constant.extractDouble());
+			}
+			final L2WriteFloatOperand floatWriter =
+				newFloatRegisterWriter(restriction);
 			addInstruction(
 				L2_UNBOX_FLOAT.instance,
-				read,
-				unboxedWriter);
+				objectRead,
+				floatWriter);
+			currentManifest().linkEqualRegisters(
+				objectRead.register(), floatWriter.register());
+			return floatWriter.register().read(restriction);
 		}
-		else
-		{
-			// The reader may be unboxable. Copy the manifest for the
-			// success case, adding unboxed variants for the unboxed
-			// reader. Do not add these bindings to the failure case.
-			unboxedWriter =
-				newFloatRegisterWriter(restrictedType, null);
-			addInstruction(
-				L2_JUMP_IF_UNBOX_FLOAT.instance,
-				read,
-				unboxedWriter,
-				new L2PcOperand(onSuccess, currentManifest()),
-				new L2PcOperand(onFailure, currentManifest()));
-			startBlock(onSuccess);
-		}
-		final L2Register<?> unboxedRegister = unboxedWriter.register();
-		// For each semantic value that the boxed register was bound to, bind
-		// the new register to a corresponding unboxed semantic value.
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject>
-			boxedSynonym = currentManifest().registerToSynonym(
-			read.register());
-		if (boxedSynonym != null)
-		{
-			final Iterator<L2SemanticValue> iterator =
-				boxedSynonym.semanticValuesIterator();
-			while (iterator.hasNext())
-			{
-				currentManifest().addBinding(
-					iterator.next().unboxedAsFloat(), unboxedRegister);
-			}
-		}
-		return stripNull(unboxedWriter.read());
-	}
-
-	/**
-	 * Write a boxed {@code int} value into a new {@link L2ObjectRegister}, if
-	 * necessary, but prefer to answer an existing register that already has an
-	 * appropriate value.
-	 *
-	 * @param read
-	 *        The boxed {@link L2ReadIntOperand}.
-	 * @param restrictedType
-	 *        The restricted {@linkplain A_Type type} for the reader.
-	 * @return The boxed {@link L2ReadPointerOperand}.
-	 */
-	public L2ReadPointerOperand box (
-		final L2ReadIntOperand read,
-		final A_Type restrictedType)
-	{
-		@Nullable L2ReadPointerOperand boxedRead =
-			currentManifest().alreadyBoxed(read);
-		if (boxedRead != null)
-		{
-			return boxedRead;
-		}
-		if (read.constantOrNull() != null)
-		{
-			// The reader is a constant.
-			boxedRead = constantRegister(stripNull(read.constantOrNull()));
-		}
-		else
-		{
-			// The read must be boxed.
-			final L2WritePointerOperand boxedWriter =
-				newObjectRegisterWriter(restriction(restrictedType));
-			addInstruction(L2_BOX_INT.instance, read, boxedWriter);
-			boxedRead = boxedWriter.read();
-		}
-
-		final L2Register<?> boxedRegister = boxedRead.register();
-		// For each semantic value that the unboxed register was bound to, bind
-		// the new register to a corresponding boxed semantic value.
-		final @Nullable L2Synonym<L2IntRegister, A_Number>
-			unboxedSynonym = currentManifest().registerToSynonym(
-			read.register());
-		if (unboxedSynonym != null)
-		{
-			final Iterator<L2SemanticValue> iterator =
-				unboxedSynonym.semanticValuesIterator();
-			while (iterator.hasNext())
-			{
-				currentManifest().addBinding(
-					iterator.next().boxed(), boxedRegister);
-			}
-		}
-		return boxedRead;
-	}
-
-	/**
-	 * Write a boxed {@code double} value into a new {@link L2ObjectRegister},
-	 * if necessary, but prefer to answer an existing register that already has
-	 * an appropriate value.
-	 *
-	 * @param read
-	 *        The boxed {@link L2ReadFloatOperand}.
-	 * @param restrictedType
-	 *        The restricted {@linkplain A_Type type} for the reader.
-	 * @return The boxed {@link L2ReadPointerOperand}.
-	 */
-	public L2ReadPointerOperand box (
-		final L2ReadFloatOperand read,
-		final A_Type restrictedType)
-	{
-		@Nullable L2ReadPointerOperand boxedRead =
-			currentManifest().alreadyBoxed(read);
-		if (boxedRead != null)
-		{
-			return boxedRead;
-		}
-		if (read.constantOrNull() != null)
-		{
-			// The reader is a constant.
-			boxedRead = constantRegister(stripNull(read.constantOrNull()));
-		}
-		else
-		{
-			// The read must be boxed.
-			final L2WritePointerOperand boxedWriter =
-				newObjectRegisterWriter(restriction(restrictedType));
-			addInstruction(L2_BOX_FLOAT.instance, read, boxedWriter);
-			boxedRead = boxedWriter.read();
-		}
-
-		final L2Register<?> boxedRegister = boxedRead.register();
-		// For each semantic value that the unboxed register was bound to, bind
-		// the new register to a corresponding boxed semantic value.
-		final @Nullable L2Synonym<L2FloatRegister, A_Number> unboxedSynonym =
-			currentManifest().registerToSynonym(read.register());
-		if (unboxedSynonym != null)
-		{
-			final Iterator<L2SemanticValue> iterator =
-				unboxedSynonym.semanticValuesIterator();
-			while (iterator.hasNext())
-			{
-				currentManifest().addBinding(
-					iterator.next().boxed(), boxedRegister);
-			}
-		}
-		return boxedRead;
+		// Conversion may succeed or fail at runtime.
+		final L2BasicBlock onSuccess = createBasicBlock("successfully unboxed");
+		final L2WriteFloatOperand floatWriter =
+			newFloatRegisterWriter(restriction);
+		addInstruction(
+			L2_JUMP_IF_UNBOX_INT.instance,
+			objectRead,
+			floatWriter,
+			new L2PcOperand(
+				onSuccess,
+				currentManifest(),
+				floatWriter.read().restrictedToType(DOUBLE.o())),
+			new L2PcOperand(
+				onFailure,
+				currentManifest(),
+				floatWriter.read().restrictedWithoutType(DOUBLE.o())));
+		startBlock(onSuccess);
+		currentManifest().linkEqualRegisters(
+			objectRead.register(), floatWriter.register());
+		return floatWriter.register().read(restriction);
 	}
 
 	/**
@@ -755,38 +695,8 @@ public final class L2Generator
 		final L2WritePointerOperand destinationWrite)
 	{
 		addInstruction(L2_MOVE.instance, sourceRead, destinationWrite);
-		final @Nullable L2Synonym<?, ?> synonym =
-			currentManifest().registerToSynonym(
-				sourceRead.register());
-		if (synonym != null)
-		{
-			final Iterator<L2SemanticValue> iterator =
-				synonym.semanticValuesIterator();
-			if (iterator.hasNext())
-			{
-				// Ensure both registers end up in the same synonym.
-				currentManifest().addBinding(
-					iterator.next(), destinationWrite.register());
-			}
-		}
-		else
-		{
-			// Source didn't have a synonym, but perhaps destination does.
-			final @Nullable L2Synonym<?, ?> destinationSynonym =
-				currentManifest().registerToSynonym(
-					destinationWrite.register());
-			if (destinationSynonym != null)
-			{
-				final Iterator<L2SemanticValue> iterator =
-					destinationSynonym.semanticValuesIterator();
-				if (iterator.hasNext())
-				{
-					// Ensure both registers end up in the same synonym.
-					currentManifest().addBinding(
-						iterator.next(), sourceRead.register());
-				}
-			}
-		}
+		currentManifest().linkEqualRegisters(
+			sourceRead.register(), destinationWrite.register());
 	}
 
 	/**
@@ -1057,13 +967,12 @@ public final class L2Generator
 
 		@Override
 		public <
-			RR extends L2ReadOperand<R, T>,
-			R extends L2Register<T>,
-			T extends A_BasicObject>
+			RR extends L2ReadOperand<R>,
+			R extends L2Register>
 		void
-			doOperand (final L2ReadVectorOperand<RR, R, T> operand)
+			doOperand (final L2ReadVectorOperand<RR, R> operand)
 		{
-			for (final L2ReadOperand<?, ?> register : operand.elements())
+			for (final L2ReadOperand<?> register : operand.elements())
 			{
 				objectMax = max(objectMax, register.finalIndex());
 			}
@@ -1091,10 +1000,10 @@ public final class L2Generator
 		}
 
 		@Override
-		public <R extends L2Register<T>, T extends A_BasicObject> void
-			doOperand (final L2WritePhiOperand<R, T> operand)
+		public <R extends L2Register>
+		void doOperand (final L2WritePhiOperand<R> operand)
 		{
-			final L2Register<?> register = operand.register();
+			final L2Register register = operand.register();
 			if (register instanceof L2ObjectRegister)
 			{
 				objectMax = max(objectMax, operand.finalIndex());

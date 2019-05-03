@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -45,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2WritePointerOperand
-extends L2WriteOperand<L2ObjectRegister, A_BasicObject>
+extends L2WriteOperand<L2ObjectRegister>
 {
 	@Override
 	public L2OperandType operandType ()

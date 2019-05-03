@@ -135,7 +135,7 @@ public final class P_CastIntoElse extends Primitive
 		final L2ReadPointerOperand functionReg)
 	{
 		final @Nullable A_Function constantFunction =
-			(A_Function) functionReg.constantOrNull();
+			functionReg.constantOrNull();
 		if (constantFunction != null)
 		{
 			// Function is a constant.

@@ -40,11 +40,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -87,7 +89,7 @@ public class InternalLookupTree<
 	private @Nullable LookupTree<Element, Result, AdaptorMemento> ifCheckFails;
 
 	/**
-	 * Construct a new {@link InternalLookupTree}.  It is constructed lazily
+	 * Construct a new {@code InternalLookupTree}.  It is constructed lazily
 	 * at first.  An attempt to lookup that reaches this node will cause
 	 * it to be expanded locally.
 	 *
@@ -219,6 +221,116 @@ public class InternalLookupTree<
 		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
 		final AdaptorMemento memento)
 	{
+		assert argumentTypeToTest == null;
+		// To reduce duplication of the same tests, any argument that has the
+		// same type in all definitions, but has not been proven yet, should be
+		// selected first.
+		if (adaptor.testsArgumentPositions()
+			&& positiveElements.isEmpty()
+			&& undecidedElements.size() > 1)
+		{
+			final int numArgs =
+				adaptor.extractSignature(undecidedElements.get(0))
+					.sizeRange().lowerBound().extractInt();
+			@Nullable List<A_Type> commonArgTypes = null;
+			for (final Element element : undecidedElements)
+			{
+				final A_Type argsTupleType = adaptor.extractSignature(element);
+				final A_Tuple argTypesTuple =
+					argsTupleType.tupleOfTypesFromTo(1, numArgs);
+				final List<A_Type> argTypes = toList(argTypesTuple);
+				if (commonArgTypes == null)
+				{
+					commonArgTypes = argTypes;
+				}
+				else
+				{
+					for (int i = 0; i < numArgs; i++)
+					{
+						final A_Type commonArgType = commonArgTypes.get(i);
+						if (commonArgType != null
+							&& !commonArgType.equals(argTypes.get(i)))
+						{
+							commonArgTypes.set(i, null);
+						}
+					}
+				}
+			}
+			assert commonArgTypes != null;
+			for (int argNumber = 0; argNumber < numArgs; argNumber++)
+			{
+				final @Nullable A_Type commonType =
+					commonArgTypes.get(argNumber);
+				if (commonType != null
+					&& !knownArgumentTypes.get(argNumber)
+						.isSubtypeOf(commonType))
+				{
+					// Everybody needs this argument to satisfy this exact type,
+					// but the argument isn't known to satisfy it yet.  This
+					// test will be required by every traversal, so rather than
+					// have duplicates near the leaves, test it as early as
+					// possible.
+					argumentPositionToTest = argNumber + 1;
+
+					final A_Type oldArgType = knownArgumentTypes.get(argNumber);
+					final A_Type replacementArgType =
+						commonType.typeIntersection(oldArgType);
+					// Sanity check:  Make sure we at least improve type
+					// knowledge in the positive case.
+					assert !replacementArgType.equals(oldArgType);
+
+					final List<A_Type> newPositiveKnownTypes =
+						new ArrayList<>(knownArgumentTypes);
+					newPositiveKnownTypes.set(argNumber, replacementArgType);
+					final A_Type criterionSignature = tupleTypeForTypes(
+						newPositiveKnownTypes.toArray(new A_Type[numArgs]));
+					final A_Type knownSignature = tupleTypeForTypes(
+						knownArgumentTypes.toArray(new A_Type[numArgs]));
+
+					// The true case keeps everybody, perhaps making some of
+					// them certain, but the false case is always empty, since
+					// every element required this test to be true.
+					final List<Element> positiveIfTrue =
+						new ArrayList<>(positiveElements);
+					final List<Element> undecidedIfTrue = new ArrayList<>();
+					final List<Element> undecidedIfFalse = new ArrayList<>();
+					for (final Element undecidedElement : undecidedElements)
+					{
+						// We need to synthesize a tuple type with the knowledge
+						// we currently have about the element types.
+						final TypeComparison comparison = adaptor.compareTypes(
+							criterionSignature,
+							adaptor.extractSignature(undecidedElement)
+								.typeIntersection(knownSignature));
+						comparison.applyEffect(
+							undecidedElement,
+							positiveIfTrue,
+							undecidedIfTrue,
+							undecidedIfFalse,
+							adaptor.subtypesHideSupertypes());
+					}
+					assert undecidedIfFalse.isEmpty();
+					ifCheckHolds = adaptor.createTree(
+						positiveIfTrue,
+						undecidedIfTrue,
+						newPositiveKnownTypes,
+						memento);
+					ifCheckFails = adaptor.createTree(
+						emptyList(),
+						emptyList(),
+						knownArgumentTypes,
+						memento);
+					// This is a volatile write, so all previous writes had to
+					// precede it. If another process runs expandIfNecessary(),
+					// it will either see null for this field, or see non-null
+					// and be guaranteed that all subsequent reads will see all
+					// the previous writes.
+					argumentTypeToTest = commonType;
+					return;
+				}
+			}
+		}
+
 		// Choose a signature to test that guarantees it eliminates the most
 		// undecided definitions, regardless of whether the test passes or
 		// fails.  If the larger of the two cases (success or failure of the

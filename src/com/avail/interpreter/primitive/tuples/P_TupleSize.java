@@ -53,9 +53,8 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 
 /**
  * <strong>Primitive:</strong> Answer the size of the {@linkplain
@@ -106,6 +105,8 @@ extends Primitive
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
+		final L2ReadPointerOperand tupleReg = arguments.get(0);
+
 		final A_Type returnType = returnTypeGuaranteedByVM(
 			rawFunction, argumentTypes);
 //		assert returnType.isSubtypeOf(int32());
@@ -122,15 +123,17 @@ extends Primitive
 			// The exact size of the tuple isn't known, so generate code to
 			// extract it.
 			final L2WriteIntOperand writer =
-				translator.generator.newIntRegisterWriter(returnType, null);
+				translator.generator.newIntRegisterWriter(
+					restriction(returnType));
 			translator.addInstruction(
 				L2_TUPLE_SIZE.instance,
-				arguments.get(0),
+				tupleReg,
 				writer);
 			unboxedValue = writer.read();
 		}
 		final L2ReadPointerOperand boxed =
-			translator.generator.box(unboxedValue, returnType);
+			translator.generator.readBoxedRegister(
+				unboxedValue.register(), restriction(returnType));
 		callSiteHelper.useAnswer(boxed);
 		return true;
 	}

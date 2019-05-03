@@ -31,75 +31,65 @@
  */
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Number;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code L2Synonym} is a set of {@link L2Register}s and {@link
  * L2SemanticValue}s.  The {@link L2ValueManifest} at each instruction includes
- * a set of synonyms which partition the potentially live registers and semantic
- * values.
- *
- * @param <R>
- *        The {@link L2Register} subclass for this synonym.
- * @param <T>
- *        The {@link A_BasicObject} subclass that bounds {@link
- *        TypeRestriction}s for this synonym's registers.
+ * a set of synonyms which partition the potentially both the live registers and
+ * semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
+public final class L2Synonym
 {
-	/** The set of equivalent {@link L2Register}s. */
-	private final Set<R> registers;
-
-	/** The {@link L2SemanticValue}s. */
-	private final Set<L2SemanticValue> semanticValues;
+	/**
+	 * The set of all {@link L2Register}s that hold this same value, whether
+	 * boxed or unboxed.
+	 */
+	private final Set<L2Register> registers;
 
 	/**
-	 * One of the registers, chosen to increase stability and perhaps reduce
-	 * register pressure.
+	 * The default register of each {@link RegisterKind}, or {@code null} if
+	 * there are no bound registers of that kind.
 	 */
-	private @Nullable R defaultRegister;
+	private final EnumMap<RegisterKind, L2Register> defaultRegisters;
+
+	/**
+	 * The {@link L2SemanticValue}s for which this synonym's registers hold the
+	 * (same) value.
+	 */
+	private final Set<L2SemanticValue> semanticValues;
 
 	/**
 	 * The current type restriction, which applies to all the included
 	 * registers, since they hold the same value.
 	 */
-	private TypeRestriction<T> restriction;
-
-	/**
-	 * The {@link L2Synonym}, if any, that holds the boxed version of this
-	 * unboxed (int or float) synonym.
-	 */
-	public @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> boxedSynonym =
-		null;
-
-	/**
-	 * The {@link L2Synonym}, if any, that holds the unboxed (int or float)
-	 * version of this boxed synonym.
-	 */
-	public @Nullable L2Synonym<? extends L2Register<A_Number>, A_Number>
-		unboxedSynonym = null;
+	private TypeRestriction restriction;
 
 	/** Flags that can be set or cleared for this synonym. */
 	public enum SynonymFlag
@@ -122,13 +112,11 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 *
 	 * @param register The {@link L2Register} to add.
 	 */
-	public void addRegister (final R register)
+	public void addRegister (final L2Register register)
 	{
 		registers.add(register);
-		if (defaultRegister == null)
-		{
-			defaultRegister = register;
-		}
+		defaultRegisters.putIfAbsent(register.registerKind(), register);
+		restriction = restriction.intersection(register.restriction());
 	}
 
 	/**
@@ -158,7 +146,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 * alter the underlying collection via the iterator, nor alter the synonym
 	 * while the iterator is still in use.
 	 */
-	public Iterator<R> registersIterator ()
+	public Iterator<L2Register> registersIterator ()
 	{
 		return registers.iterator();
 	}
@@ -166,9 +154,57 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	/**
 	 * Answer a copy of the set of {@link L2Register}s of this synonym.
 	 */
-	public Set<R> registersCopy ()
+	public Set<L2Register> registersCopy ()
 	{
 		return new HashSet<>(registers);
+	}
+
+	/**
+	 * Answer a copy of the set of {@link L2ObjectRegister}s of this synonym.
+	 */
+	public Set<L2ObjectRegister> objectRegistersCopy ()
+	{
+		final Set<L2ObjectRegister> result = new HashSet<>();
+		for (final L2Register r : registers)
+		{
+			if (r instanceof L2ObjectRegister)
+			{
+				result.add(cast(r));
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Answer a copy of the set of {@link L2IntRegister}s of this synonym.
+	 */
+	public Set<L2IntRegister> intRegistersCopy ()
+	{
+		final Set<L2IntRegister> result = new HashSet<>();
+		for (final L2Register r : registers)
+		{
+			if (r instanceof L2IntRegister)
+			{
+				result.add(cast(r));
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Answer a copy of the set of {@link L2FloatRegister}s of this synonym.
+	 */
+	public Set<L2FloatRegister> floatRegistersCopy ()
+	{
+		final Set<L2FloatRegister> result = new HashSet<>();
+		for (final L2Register r : registers)
+		{
+			if (r instanceof L2FloatRegister)
+			{
+				result.add(cast(r));
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -190,24 +226,58 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	}
 
 	/**
-	 * Answer an {@link L2ReadOperand} for this synonym, which is required to
-	 * contain at least one register.
+	 * Answer an {@link L2ReadPointerOperand} for this synonym, if there is a
+	 * boxed object register already available.
 	 */
-	public <RR extends L2ReadOperand<R, T>> RR defaultRegisterRead ()
+	public @Nullable L2ReadPointerOperand defaultObjectRead ()
 	{
-		return cast(stripNull(defaultRegister).read(restriction));
+		final @Nullable L2Register register = defaultRegisters.get(OBJECT);
+		if (register == null)
+		{
+			return null;
+		}
+		return stripNull((L2ObjectRegister) register).read(restriction);
 	}
 
 	/**
-	 * Change which register should be used by default for this synonym.  This
-	 * affects code generation, and can for force a particular register to be
-	 * used, say, to avoid eliminating an intervening {@link L2_MAKE_IMMUTABLE}.
-	 *
-	 * @param register The new default register for this synonym.
+	 * Answer an {@link L2ReadIntOperand} for this synonym, if there is an
+	 * unboxed int register already available.
 	 */
-	public void replaceDefaultRegister (final L2Register<?> register)
+	public @Nullable L2ReadIntOperand defaultIntRead ()
 	{
-		defaultRegister = cast(register);
+		final @Nullable L2Register register = defaultRegisters.get(INTEGER);
+		if (register == null)
+		{
+			return null;
+		}
+		return stripNull((L2IntRegister) register).read(restriction);
+	}
+
+	/**
+	 * Answer an {@link L2ReadFloatOperand} for this synonym, if there is an
+	 * unboxed float register already available.
+	 */
+	public @Nullable L2ReadFloatOperand defaultFloatRead ()
+	{
+		final @Nullable L2Register register = defaultRegisters.get(FLOAT);
+		if (register == null)
+		{
+			return null;
+		}
+		return stripNull((L2FloatRegister) register).read(restriction);
+	}
+
+	/**
+	 * Change which {@link L2ObjectRegister} should be used by default for this
+	 * synonym. This affects code generation, and can for force a particular
+	 * register to be used, say, to avoid eliminating an intervening {@link
+	 * L2_MAKE_IMMUTABLE}.
+	 *
+	 * @param register The new default object register for this synonym.
+	 */
+	public void replaceDefaultObjectRegister (final L2ObjectRegister register)
+	{
+		defaultRegisters.put(OBJECT, register);
 	}
 
 	/**
@@ -215,7 +285,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 *
 	 * @return The {@link TypeRestriction}.
 	 */
-	public TypeRestriction<T> restriction ()
+	public TypeRestriction restriction ()
 	{
 		return restriction;
 	}
@@ -228,7 +298,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 * @param newRestriction
 	 *        The new {@link TypeRestriction} for this synonym.
 	 */
-	public void setRestriction (final TypeRestriction<T> newRestriction)
+	public void setRestriction (final TypeRestriction newRestriction)
 	{
 		restriction = newRestriction;
 	}
@@ -271,7 +341,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 * @param other Another synonym to compare.
 	 * @return Whether the receiver is strictly bigger.
 	 */
-	public boolean biggerThan (final L2Synonym<R, T> other)
+	public boolean biggerThan (final L2Synonym other)
 	{
 		return registers.size() + semanticValues.size()
 			> other.registers.size() + other.semanticValues.size();
@@ -288,10 +358,9 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 *        The replacement synonym for each occurrence of the original.
 	 * @return The replacement synonym, or the receiver if unchanged.
 	 */
-	public <R2 extends L2Register<T2>, T2 extends A_BasicObject>
-	L2Synonym<R, T> transformInnerSynonym (
-		final L2Synonym<R2, T2> original,
-		final L2Synonym<R2, T2> replacement)
+	public L2Synonym transformInnerSynonym (
+		final L2Synonym original,
+		final L2Synonym replacement)
 	{
 		if (this == original)
 		{
@@ -307,7 +376,8 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 			if (semanticValue != transformedSemanticValue)
 			{
 				// At least one semantic value needs to be rewritten.
-				final L2Synonym<R, T> newSynonym = new L2Synonym<>();
+				final L2Synonym newSynonym =
+					new L2Synonym(original.restriction);
 				newSynonym.registers.addAll(registers);
 				for (final L2SemanticValue value : semanticValues)
 				{
@@ -320,8 +390,7 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 							: value.transformInnerSynonym(
 								original, replacement));
 				}
-				newSynonym.defaultRegister = defaultRegister;
-				newSynonym.restriction = restriction;
+				newSynonym.defaultRegisters.putAll(defaultRegisters);
 				return newSynonym;
 			}
 		}
@@ -337,11 +406,11 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	 *        How to transform each {@link L2SemanticValue}.
 	 * @return The transformed synonym, or the original if there was no change.
 	 */
-	public L2Synonym<R, T> transform (
+	public L2Synonym transform (
 		final Function<L2SemanticValue, L2SemanticValue>
 			semanticValueTransformer)
 	{
-		final L2Synonym<R, T> newSynonym = new L2Synonym<>();
+		final L2Synonym newSynonym = new L2Synonym(restriction);
 		newSynonym.registers.addAll(registers);
 		boolean changed = false;
 		for (final L2SemanticValue semanticValue : semanticValues)
@@ -355,42 +424,28 @@ public final class L2Synonym<R extends L2Register<T>, T extends A_BasicObject>
 	}
 
 	/**
-	 * Extract the {@link #unboxedSynonym}, strengthening its type as needed.
+	 * Create an empty synonym, starting with the given {@link TypeRestriction}.
 	 *
-	 * @param <R2>
-	 *        The {@link L2Register} type of the resulting synonym.
-	 * @param <T2>
-	 *        The content class of the resulting synonym.
-	 * @return The unboxed synonym or {@code null}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that constrains the new synonym.
 	 */
-	public @Nullable <R2 extends L2Register<T2>, T2 extends A_BasicObject>
-	L2Synonym<R2, T2> unboxedSynonym ()
-	{
-		return cast(unboxedSynonym);
-	}
-
-	/**
-	 * Create an empty synonym.
-	 */
-	public L2Synonym ()
+	public L2Synonym (final TypeRestriction restriction)
 	{
 		registers = new HashSet<>();
 		semanticValues = new HashSet<>();
-		defaultRegister = null;
-		restriction = TypeRestriction.restriction(TOP.o());
+		defaultRegisters = new EnumMap<>(RegisterKind.class);
+		this.restriction = restriction;
 	}
 
 	/**
 	 * Copy a synonym.
 	 */
-	public L2Synonym (final L2Synonym<R, T> original)
+	public L2Synonym (final L2Synonym original)
 	{
 		registers = new HashSet<>(original.registers);
 		semanticValues = new HashSet<>(original.semanticValues);
-		defaultRegister = original.defaultRegister;
+		defaultRegisters = new EnumMap<>(original.defaultRegisters);
 		restriction = original.restriction;
 		flags.addAll(original.flags);
-		unboxedSynonym = null;
-		boxedSynonym = null;
 	}
 }

@@ -153,14 +153,14 @@ extends L2Operation
 		intersection = intersection.typeIntersection(originalRegister.type());
 		assert !intersection.isBottom();
 
-		final @Nullable L2Synonym<L2ObjectRegister, A_BasicObject> synonym =
+		final @Nullable L2Synonym synonym =
 			translator.generator.currentManifest().registerToSynonym(
 				originalRegister.register());
 		if (synonym != null)
 		{
 			// The register that supplied the outer value is still live.  Use it
 			// directly, which may allow the function creation to be elided.
-			return synonym.defaultRegisterRead().register().read(
+			return synonym.defaultObjectRead().register().read(
 				restriction(intersection));
 		}
 

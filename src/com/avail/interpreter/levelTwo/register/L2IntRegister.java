@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
@@ -51,7 +50,7 @@ import static com.avail.utility.Casts.cast;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2IntRegister
-extends L2Register<A_Number>
+extends L2Register
 {
 	@Override
 	public RegisterKind registerKind ()
@@ -70,14 +69,14 @@ extends L2Register<A_Number>
 	 */
 	public L2IntRegister (
 		final int debugValue,
-		final TypeRestriction<A_Number> restriction)
+		final TypeRestriction restriction)
 	{
 		super(debugValue, restriction);
 	}
 
 	@Override
 	public L2ReadIntOperand read (
-		final TypeRestriction<A_Number> typeRestriction)
+		final TypeRestriction typeRestriction)
 	{
 		return new L2ReadIntOperand(this, typeRestriction);
 	}
@@ -89,9 +88,9 @@ extends L2Register<A_Number>
 	}
 
 	@Override
-	public <R extends L2Register<A_Number>> R copyForTranslator (
+	public <R extends L2Register> R copyForTranslator (
 		final L2Generator generator,
-		final TypeRestriction<A_Number> typeRestriction)
+		final TypeRestriction typeRestriction)
 	{
 		return cast(new L2IntRegister(generator.nextUnique(), typeRestriction));
 	}

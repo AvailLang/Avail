@@ -74,9 +74,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.SELECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.getInternalName;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
@@ -251,7 +249,7 @@ extends L2ControlFlowOperation
 		final L2Instruction instruction)
 	{
 		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadPointerOperand> argTypeRegs =
+		final List<L2ReadPointerOperand> argRegs =
 			instruction.readVectorRegisterAt(1);
 		final L2ObjectRegister functionReg =
 			instruction.writeObjectRegisterAt(2).register();
@@ -272,7 +270,7 @@ extends L2ControlFlowOperation
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method);
 		translator.literal(method, bundle);
-		translator.objectArray(method, argTypeRegs, AvailObject.class);
+		translator.objectArray(method, argRegs, AvailObject.class);
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(L2_LOOKUP_BY_VALUES.class),
@@ -299,6 +297,9 @@ extends L2ControlFlowOperation
 			"numericCode",
 			getMethodDescriptor(getType(A_Number.class)),
 			false);
+		method.visitTypeInsn(
+			CHECKCAST,
+			getInternalName(AvailObject.class));
 		translator.store(method, errorCodeReg);
 		// ::    goto lookupFailed;
 		translator.jump(method, instruction, lookupFailed);

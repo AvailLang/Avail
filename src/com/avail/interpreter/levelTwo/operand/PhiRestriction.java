@@ -47,12 +47,12 @@ public final class PhiRestriction
 	 * The {@link L2Register} which is to be restricted along this control flow
 	 * branch.
 	 */
-	public final L2Register<?> register;
+	public final L2Register register;
 
 	/**
 	 * The new {@link TypeRestriction} for the register along the affected edge.
 	 */
-	public final TypeRestriction<?> typeRestriction;
+	public final TypeRestriction typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
@@ -65,8 +65,8 @@ public final class PhiRestriction
 	 *        affected edge.
 	 */
 	public PhiRestriction (
-		final L2Register<?> register,
-		final TypeRestriction<?> typeRestriction)
+		final L2Register register,
+		final TypeRestriction typeRestriction)
 	{
 		this.register = register;
 		this.typeRestriction = typeRestriction;

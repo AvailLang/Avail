@@ -107,7 +107,7 @@ extends L2Operation
 	{
 		final A_Continuation continuation =
 			stripNull(interpreter.reifiedContinuation);
-		interpreter.reifiedContinuation = continuation.caller();
+		interpreter.reifiedContinuation = (AvailObject) continuation.caller();
 		if (debugL1)
 		{
 			Interpreter.log(

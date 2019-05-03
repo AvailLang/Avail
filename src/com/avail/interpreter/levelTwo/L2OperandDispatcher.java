@@ -32,27 +32,10 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
@@ -154,10 +137,9 @@ public interface L2OperandDispatcher
 	 *        An {@link L2ReadVectorOperand}.
 	 */
 	<
-		RR extends L2ReadOperand<R, T>,
-		R extends L2Register<T>,
-		T extends A_BasicObject>
-	void doOperand (final L2ReadVectorOperand<RR, R, T> operand);
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
+	void doOperand (final L2ReadVectorOperand<RR, R> operand);
 
 	/**
 	 * Process an operand which is a literal {@link A_Bundle} which the
@@ -198,6 +180,6 @@ public interface L2OperandDispatcher
 	 * @param operand
 	 *        An {@link L2WritePhiOperand}.
 	 */
-	<R extends L2Register<T>, T extends A_BasicObject> void doOperand (
-		final L2WritePhiOperand<R, T> operand);
+	<R extends L2Register> void doOperand (
+		final L2WritePhiOperand<R> operand);
 }

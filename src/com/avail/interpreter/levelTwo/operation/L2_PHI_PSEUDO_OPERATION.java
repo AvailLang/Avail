@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -100,16 +99,15 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final List<? extends L2ReadOperand<?, A_BasicObject>> inputRegs =
+		final List<? extends L2ReadOperand<?>> inputRegs =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePhiOperand<?, ?> destinationReg =
+		final L2WritePhiOperand<?> destinationReg =
 			instruction.writePhiRegisterAt(1);
 
-		final Iterator<? extends L2ReadOperand<?, A_BasicObject>> iterator =
+		final Iterator<? extends L2ReadOperand<?>> iterator =
 			inputRegs.iterator();
 		assert iterator.hasNext();
-		TypeRestriction<A_BasicObject> restriction =
-			iterator.next().restriction();
+		TypeRestriction restriction = iterator.next().restriction();
 		while (iterator.hasNext())
 		{
 			restriction = restriction.union(iterator.next().restriction());
@@ -152,24 +150,25 @@ extends L2Operation
 	 * @param inputIndex
 	 *        The index to remove.
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static L2Instruction withoutIndex (
+	public static <
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
+	L2Instruction withoutIndex (
 		final L2Instruction instruction,
 		final int inputIndex)
 	{
 		assert instruction.operation() == instance;
-		final List<? extends L2ReadOperand<?, ?>> oldSources =
+		final List<? extends RR> oldSources =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePhiOperand<?, ?> destinationReg =
+		final L2WritePhiOperand<?> destinationReg =
 			instruction.writePhiRegisterAt(1);
 
-		final List<L2ReadOperand<?, ?>> newSources =
-			new ArrayList<>(oldSources);
+		final List<RR> newSources = new ArrayList<>(oldSources);
 		newSources.remove(inputIndex);
 
-		final Iterator<L2ReadOperand<?, ?>> iterator = newSources.iterator();
+		final Iterator<RR> iterator = newSources.iterator();
 		assert iterator.hasNext();
-		final L2Register<?> register = iterator.next().register();
+		final L2Register register = iterator.next().register();
 		boolean onlyOneRegister = true;
 		while (iterator.hasNext())
 		{
@@ -191,7 +190,7 @@ extends L2Operation
 		return new L2Instruction(
 			instruction.basicBlock,
 			L2_PHI_PSEUDO_OPERATION.instance,
-			new L2ReadVectorOperand(newSources),
+			new L2ReadVectorOperand<>(newSources),
 			destinationReg);
 	}
 
@@ -209,11 +208,11 @@ extends L2Operation
 	 */
 	public static List<L2BasicBlock> predecessorBlocksForUseOf (
 		final L2Instruction instruction,
-		final L2Register<?> usedRegister)
+		final L2Register usedRegister)
 	{
 		assert instruction.operation() == instance;
 
-		final List<? extends L2ReadOperand<?, ?>> sources =
+		final List<? extends L2ReadOperand<?>> sources =
 			instruction.readVectorRegisterAt(0);
 		assert sources.size() == instruction.basicBlock.predecessorEdgesCount();
 		final Iterator<L2PcOperand> predecessorEdgesIterator =
@@ -242,7 +241,7 @@ extends L2Operation
 	 *        The instruction to examine.  It must be a phi operation.
 	 * @return The instruction's destination {@link L2WritePhiOperand}.
 	 */
-	public static <U extends L2WritePhiOperand<?, ?>>
+	public static <U extends L2WritePhiOperand<?>>
 	U destinationRegisterWrite (final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
@@ -259,9 +258,8 @@ extends L2Operation
 	 * @return The instruction's list of sources.
 	 */
 	public static <
-		RR extends L2ReadOperand<R, T>,
-		R extends L2Register<T>,
-		T extends A_BasicObject>
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
 	List<RR> sourceRegisterReads (
 		final L2Instruction instruction)
 	{
@@ -276,8 +274,7 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2Operand vector = instruction.operand(0);
-		final L2Register<?> target =
-			instruction.writePhiRegisterAt(1).register();
+		final L2Register target = instruction.writePhiRegisterAt(1).register();
 		builder.append("ϕ ");
 		builder.append(target);
 		builder.append(" ← ");

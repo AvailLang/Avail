@@ -208,7 +208,7 @@ extends L2Operation
 					// Push the continuation from above onto the reified stack.
 					interpreter.returnNow = false;
 					interpreter.reifiedContinuation =
-						continuation.replacingCaller(
+						(AvailObject) continuation.replacingCaller(
 							stripNull(interpreter.reifiedContinuation));
 					interpreter.processInterrupt(
 						interpreter.reifiedContinuation);

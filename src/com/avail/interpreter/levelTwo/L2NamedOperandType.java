@@ -105,7 +105,7 @@ public class L2NamedOperandType
 		/**
 		 * Indicates that a {@link L2OperandType PC} codes for an on-ramp.
 		 */
-		ON_RAMP
+		ON_RAMP;
 	}
 
 	/**

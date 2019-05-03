@@ -30,11 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2Synonym;
 
 import javax.annotation.Nullable;
@@ -71,8 +68,7 @@ extends L2FrameSpecificSemanticValue
 	 * The {@link List} of {@link L2Synonym}s that represent the arguments to
 	 * the invocation of the primitive.
 	 */
-	private final List<L2Synonym<L2ObjectRegister, A_BasicObject>>
-		argumentSynonyms;
+	private final List<L2Synonym> argumentSynonyms;
 
 	/**
 	 * The hash value of the receiver, computed during construction.
@@ -96,7 +92,7 @@ extends L2FrameSpecificSemanticValue
 		final @Nullable Frame frame,
 		final int pc,
 		final Primitive primitive,
-		final List<L2Synonym<L2ObjectRegister, A_BasicObject>> argumentSynonyms)
+		final List<L2Synonym> argumentSynonyms)
 	{
 		super(frame);
 		this.primitive = primitive;
@@ -107,7 +103,7 @@ extends L2FrameSpecificSemanticValue
 		h += frame == null ? 0x78296C0C : frame.hashCode();
 		h ^= pc;
 		h *= multiplier;
-		for (final L2Synonym<?, ?> argument : argumentSynonyms)
+		for (final L2Synonym argument : argumentSynonyms)
 		{
 			h ^= argument.hashCode();
 			h *= multiplier;
@@ -147,14 +143,14 @@ extends L2FrameSpecificSemanticValue
 		builder.append(primitive.name());
 		builder.append('(');
 		boolean first = true;
-		for (final L2Synonym<?, ?> arg : argumentSynonyms)
+		for (final L2Synonym arg : argumentSynonyms)
 		{
 			if (!first)
 			{
 				builder.append(", ");
 			}
 			builder.append("syn(");
-			builder.append(arg.defaultRegisterRead());
+			builder.append(arg.defaultObjectRead());
 			builder.append(")");
 			first = false;
 		}
@@ -169,9 +165,9 @@ extends L2FrameSpecificSemanticValue
 		final Function<Frame, Frame> frameTransformer)
 	{
 		final int numArgs = argumentSynonyms.size();
-		final List<L2Synonym<L2ObjectRegister, A_BasicObject>> newArguments =
+		final List<L2Synonym> newArguments =
 			new ArrayList<>(numArgs);
-		for (final L2Synonym<L2ObjectRegister, A_BasicObject> argument :
+		for (final L2Synonym argument :
 			argumentSynonyms)
 		{
 			newArguments.add(argument.transform(semanticValueTransformer));
@@ -191,21 +187,19 @@ extends L2FrameSpecificSemanticValue
 	}
 
 	@Override
-	public <R extends L2Register<T>, T extends A_BasicObject>
-	L2SemanticValue transformInnerSynonym (
-		final L2Synonym<R, T> original,
-		final L2Synonym<R, T> replacement)
+	public L2SemanticValue transformInnerSynonym (
+		final L2Synonym original,
+		final L2Synonym replacement)
 	{
 		// My arguments are synonyms, and they may contain additional semantic
 		// values that are also synonyms.
-		@Nullable List<L2Synonym<L2ObjectRegister, A_BasicObject>>
+		@Nullable List<L2Synonym>
 			newArguments = null;
 		final int argCount = argumentSynonyms.size();
 		for (int i = 0; i < argCount; i++)
 		{
-			final L2Synonym<L2ObjectRegister, A_BasicObject> oldSynonym =
-				argumentSynonyms.get(i);
-			final L2Synonym<L2ObjectRegister, A_BasicObject> newSynonym =
+			final L2Synonym oldSynonym = argumentSynonyms.get(i);
+			final L2Synonym newSynonym =
 				oldSynonym.transformInnerSynonym(original, replacement);
 			if (oldSynonym != newSynonym)
 			{

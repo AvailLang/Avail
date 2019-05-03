@@ -406,6 +406,10 @@ public class L2ControlFlowGraphVisualizer
 		final L2BasicBlock targetBlock,
 		final GraphWriter writer)
 	{
+		final boolean isTargetTheUnreachableBlock =
+			targetBlock.instructions().stream()
+				.anyMatch(
+					instr -> instr.operation() == L2_UNREACHABLE_CODE.instance);
 		final Iterator<L2PcOperand> iterator =
 			targetBlock.predecessorEdgesIterator();
 		while (iterator.hasNext())
@@ -459,7 +463,7 @@ public class L2ControlFlowGraphVisualizer
 					builder.setLength(builder.length() - 2);
 					builder.append("</b><br/>");
 				}
-				final Set<L2Register<?>> notAlwaysLiveInRegisters =
+				final Set<L2Register> notAlwaysLiveInRegisters =
 					new HashSet<>(edge.sometimesLiveInRegisters);
 				notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
 				if (!notAlwaysLiveInRegisters.isEmpty())
@@ -480,7 +484,7 @@ public class L2ControlFlowGraphVisualizer
 			if (visualizeManifest)
 			{
 				final L2ValueManifest manifest = edge.manifest();
-				final List<L2Synonym<?, ?>> synonyms =
+				final List<L2Synonym> synonyms =
 					new ArrayList<>(manifest.synonyms());
 				if (!synonyms.isEmpty())
 				{
@@ -493,7 +497,7 @@ public class L2ControlFlowGraphVisualizer
 						synonym ->
 						{
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							final Iterator<? extends L2Register<?>> registers =
+							final Iterator<? extends L2Register> registers =
 								synonym.registersIterator();
 							while (registers.hasNext())
 							{
@@ -536,23 +540,31 @@ public class L2ControlFlowGraphVisualizer
 						: node(basicBlockName(targetBlock)),
 					attr ->
 					{
-						final @Nullable Purpose purpose = type.purpose();
-						assert purpose != null;
-						switch (purpose)
+						if (isTargetTheUnreachableBlock)
 						{
-							case SUCCESS:
-								// Nothing. The default styling will be fine.
-								break;
-							case FAILURE:
-								attr.attribute("color", "#e54545");
-								break;
-							case OFF_RAMP:
-								attr.attribute("style", "dashed");
-								break;
-							case ON_RAMP:
-								attr.attribute("style", "dashed");
-								attr.attribute("color", "#6aaf6a");
-								break;
+							attr.attribute("color", "#a0a0a0");
+							attr.attribute("style", "dotted");
+						}
+						else
+						{
+							final @Nullable Purpose purpose = type.purpose();
+							assert purpose != null;
+							switch (purpose)
+							{
+								case SUCCESS:
+									// Nothing. The default styling will be fine.
+									break;
+								case FAILURE:
+									attr.attribute("color", "#e54545");
+									break;
+								case OFF_RAMP:
+									attr.attribute("style", "dashed");
+									break;
+								case ON_RAMP:
+									attr.attribute("style", "dashed");
+									attr.attribute("color", "#6aaf6a");
+									break;
+							}
 						}
 						attr.attribute("label", builder.toString());
 					});

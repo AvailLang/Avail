@@ -33,36 +33,19 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.PhiRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.reoptimizer.L2Inliner;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
@@ -71,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -113,12 +97,12 @@ public final class L2Instruction
 	/**
 	 * The source {@link L2Register}s.
 	 */
-	@InnerAccess final List<L2Register<?>> sourceRegisters = new ArrayList<>();
+	@InnerAccess final List<L2Register> sourceRegisters = new ArrayList<>();
 
 	/**
 	 * The destination {@link L2Register}s.
 	 */
-	@InnerAccess final List<L2Register<?>> destinationRegisters =
+	@InnerAccess final List<L2Register> destinationRegisters =
 		new ArrayList<>();
 
 	/**
@@ -134,6 +118,7 @@ public final class L2Instruction
 	 */
 	public L2Operand[] operands ()
 	{
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return operands;
 	}
 
@@ -226,7 +211,7 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
-	public List<L2Register<?>> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return sourceRegisters;
@@ -238,7 +223,7 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register}s.
 	 */
-	public List<L2Register<?>> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return destinationRegisters;
@@ -298,11 +283,10 @@ public final class L2Instruction
 	 *        L2Register}s having the same {@link L2Register#registerKind()}.
 	 */
 	public void replaceRegisters (
-		final Map<L2Register<?>, L2Register<?>> registerRemap)
+		final Map<L2Register, L2Register> registerRemap)
 	{
-		final List<L2Register<?>> sourcesBefore =
-			new ArrayList<>(sourceRegisters);
-		final List<L2Register<?>> destinationsBefore =
+		final List<L2Register> sourcesBefore = new ArrayList<>(sourceRegisters);
+		final List<L2Register> destinationsBefore =
 			new ArrayList<>(destinationRegisters);
 		operandsDo(operand -> operand.replaceRegisters(registerRemap, this));
 		sourceRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
@@ -533,21 +517,17 @@ public final class L2Instruction
 	 *        The type of {@link L2ReadOperand}s in this vector.
 	 * @param <R>
 	 *        The type of {@link L2Register}s in this vector.
-	 * @param <T>
-	 *        The type of values in the registers.
 	 * @param operandIndex
 	 *        Which operand holds a read of a register vector.
 	 * @return The list of {@link L2ReadPointerOperand}s.
 	 */
-	@SuppressWarnings("unchecked")
 	public <
-		RR extends L2ReadOperand<R, T>,
-		R extends L2Register<T>,
-		T extends A_BasicObject>
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
 	List<RR> readVectorRegisterAt (final int operandIndex)
 	{
-		return (
-			(L2ReadVectorOperand<RR, R, T>) operand(operandIndex)).elements();
+		final L2ReadVectorOperand<RR, R> operand = cast(operand(operandIndex));
+		return operand.elements();
 	}
 
 	/**
@@ -559,7 +539,7 @@ public final class L2Instruction
 	 * @return The specified {@code L2WritePhiOperand}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <U extends L2WritePhiOperand<?, ?>> U writePhiRegisterAt (
+	public <U extends L2WritePhiOperand<?>> U writePhiRegisterAt (
 		final int operandIndex)
 	{
 		return (U) operand(operandIndex);

@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -45,6 +46,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
@@ -104,6 +106,7 @@ extends L2Operation
 			getInternalName(Interpreter.class),
 			"returningFunction",
 			getDescriptor(A_Function.class));
+		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, targetReg);
 	}
 }

@@ -343,7 +343,7 @@ public final class L2BasicBlock
 	 */
 	void startIn (final L2Generator generator)
 	{
-		generator.currentManifest.clear();
+		generator.currentManifest().clear();
 		if (isIrremovable())
 		{
 			// Irremovable blocks are entry points, and don't require any
@@ -358,7 +358,7 @@ public final class L2BasicBlock
 		{
 			manifests.add(predecessorEdge.manifest());
 		}
-		generator.currentManifest.populateFromIntersection(
+		generator.currentManifest().populateFromIntersection(
 			manifests, generator);
 	}
 

@@ -87,7 +87,7 @@ public final class P_ExitContinuationWithResult extends Primitive
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE);
 		}
 
-		interpreter.reifiedContinuation = con.caller();
+		interpreter.reifiedContinuation = (AvailObject) con.caller();
 		interpreter.function = null;
 		interpreter.chunk = null;
 		interpreter.offset = Integer.MAX_VALUE;

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_Number;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
@@ -45,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2WriteFloatOperand
-extends L2WriteOperand<L2FloatRegister, A_Number>
+extends L2WriteOperand<L2FloatRegister>
 {
 	@Override
 	public L2OperandType operandType ()

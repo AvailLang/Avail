@@ -32,10 +32,11 @@
 package com.avail.optimizer.values;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.Primitive;
 import com.avail.optimizer.L2Synonym;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -45,53 +46,43 @@ import java.util.function.Function;
  * sequence of L2 instructions, or the result of a non-primitive call to another
  * function.
  */
-@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2SemanticValue
 {
 	/**
 	 * Answer the semantic value representing a particular constant value.
 	 *
-	 * @param value The actual Avail value.
+	 * @param value
+	 * 	The actual Avail value.
 	 * @return A {@link L2SemanticConstant} representing the constant.
 	 */
 	public static L2SemanticValue constant (final A_BasicObject value)
 	{
-		return new L2SemanticConstant(value);
+		return new L2SemanticConstant(value.makeImmutable());
 	}
 
 	/**
-	 * Answer the semantic value like the receiver, but wrapped to qualify that
-	 * it's been unboxed as an {@code int}.
+	 * Answer a semantic value representing invocation of a stable primitive.
 	 *
-	 * @return The {@link L2SemanticUnboxedInt}.
+	 * @param frame
+	 *        The {@link Frame} for which the primitive was executed.
+	 * @param pc
+	 *        The Level One program counter at which the primitive was executed.
+	 * @param primitive
+	 *        The {@link Primitive} that was executed.
+	 * @param argumentSynonyms
+	 *        {@link L2Synonym}s that supplied the arguments to the primitive.
+	 * @return The semantic value representing the primitive invocation.
 	 */
-	public L2SemanticUnboxedInt unboxedAsInt ()
+	public static L2SemanticPrimitiveInvocation primitiveInvocation (
+		final @Nullable Frame frame,
+		final int pc,
+		final Primitive primitive,
+		final List<L2Synonym> argumentSynonyms)
 	{
-		return new L2SemanticUnboxedInt(this);
+		return new L2SemanticPrimitiveInvocation(
+			frame, pc, primitive, argumentSynonyms);
 	}
 
-	/**
-	 * Answer the semantic value like the receiver, but wrapped to qualify that
-	 * it's been unboxed as a {@code double}.
-	 *
-	 * @return The {@link L2SemanticUnboxedFloat}.
-	 */
-	public L2SemanticUnboxedFloat unboxedAsFloat ()
-	{
-		return new L2SemanticUnboxedFloat(this);
-	}
-
-	/**
-	 * Answer the semantic value like the receiver, but boxed.  Subclasses
-	 * should override if they represent unboxed values.
-	 *
-	 * @return The {@code L2SemanticValue}.
-	 */
-	public L2SemanticValue boxed ()
-	{
-		throw new UnsupportedOperationException(
-			"Semantic value is already boxed.");
-	}
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
@@ -119,41 +110,13 @@ public abstract class L2SemanticValue
 	 *        The {@link L2Synonym} to look for recursively.
 	 * @param replacement
 	 *        The {@link L2Synonym} to replace each occurrence of the original.
-	 * @param <R>
-	 *        The {@link L2Register} subclass for registers of either synonym.
-	 * @param <T>
-	 *        The {@link A_BasicObject} subclass for {@link TypeRestriction}s of
-	 *        the registers.
 	 * @return Either the receiver if no transformation was needed, or semantic
 	 *         value to replace the receiver.
 	 */
-	public <R extends L2Register<T>, T extends A_BasicObject>
-	L2SemanticValue transformInnerSynonym (
-		final L2Synonym<R, T> original,
-		final L2Synonym<R, T> replacement)
+	public L2SemanticValue transformInnerSynonym (
+		final L2Synonym original,
+		final L2Synonym replacement)
 	{
 		return this;
-	}
-
-	/**
-	 * Is the receiver an unboxed {@code int}?
-	 *
-	 * @return {@code true} if the receiver is an unboxed {@code int}, {@code
-	 *         false} otherwise.
-	 */
-	public boolean isUnboxedInt ()
-	{
-		return false;
-	}
-
-	/**
-	 * Is the receiver an unboxed {@code double}?
-	 *
-	 * @return {@code true} if the receiver is an unboxed {@code double}, {@code
-	 *         false} otherwise.
-	 */
-	public boolean isUnboxedFloat ()
-	{
-		return false;
 	}
 }

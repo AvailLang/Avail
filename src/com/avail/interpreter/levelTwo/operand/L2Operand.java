@@ -108,7 +108,7 @@ extends PublicCloneable<L2Operand>
 	 */
 	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void replaceRegisters (
-		final Map<L2Register<?>, L2Register<?>> registerRemap,
+		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
 		// By default do nothing.
@@ -121,7 +121,7 @@ extends PublicCloneable<L2Operand>
 	 */
 	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addSourceRegistersTo (
-		final List<L2Register<?>> sourceRegisters)
+		final List<L2Register> sourceRegisters)
 	{
 		// Do nothing by default.
 	}
@@ -133,7 +133,7 @@ extends PublicCloneable<L2Operand>
 	 */
 	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addDestinationRegistersTo (
-		final List<L2Register<?>> destinationRegisters)
+		final List<L2Register> destinationRegisters)
 	{
 		// Do nothing by default.
 	}

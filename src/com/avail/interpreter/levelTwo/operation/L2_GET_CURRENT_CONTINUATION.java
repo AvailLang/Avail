@@ -108,8 +108,7 @@ extends L2Operation
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"reifiedContinuation",
-			getDescriptor(A_Continuation.class));
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+			getDescriptor(AvailObject.class));
 		translator.store(method, targetReg);
 	}
 }

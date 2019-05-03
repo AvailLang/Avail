@@ -225,7 +225,7 @@ extends L2Operation
 				// stack here, and resume the continuation.
 				assert primitive.hasFlag(CanSwitchContinuations);
 
-				final A_Continuation newContinuation =
+				final AvailObject newContinuation =
 					stripNull(interpreter.reifiedContinuation);
 				final @Nullable A_Function newFunction = interpreter.function;
 				final @Nullable L2Chunk newChunk = interpreter.chunk;

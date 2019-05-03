@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
@@ -56,18 +55,8 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
@@ -193,7 +182,7 @@ public final class L2Optimizer
 			if (!neededInstructions.contains(instruction))
 			{
 				neededInstructions.add(instruction);
-				for (final L2Register<?> sourceRegister
+				for (final L2Register sourceRegister
 					: instruction.sourceRegisters())
 				{
 					// Assume all definitions are needed, regardless of control
@@ -301,7 +290,7 @@ public final class L2Optimizer
 			workSet.remove(block);
 			// Take the union of the outbound edges' sometimes-live registers.
 			// Also find the intersection of those edges' always-live registers.
-			final Set<L2Register<?>> alwaysLive = new HashSet<>();
+			final Set<L2Register> alwaysLive = new HashSet<>();
 			if (block.successorEdgesCount() > 0)
 			{
 				// Before processing instructions in reverse order, the
@@ -312,7 +301,7 @@ public final class L2Optimizer
 				alwaysLive.addAll(
 					block.successorEdgeAt(0).alwaysLiveInRegisters);
 			}
-			final Set<L2Register<?>> sometimesLive = new HashSet<>();
+			final Set<L2Register> sometimesLive = new HashSet<>();
 			final Iterator<L2PcOperand> successorsIterator =
 				block.successorEdgesIterator();
 			while (successorsIterator.hasNext())
@@ -348,9 +337,9 @@ public final class L2Optimizer
 			while (iterator.hasNext())
 			{
 				final L2PcOperand edge = iterator.next();
-				final Set<L2Register<?>> edgeAlwaysLiveIn =
+				final Set<L2Register> edgeAlwaysLiveIn =
 					new HashSet<>(alwaysLive);
-				final Set<L2Register<?>> edgeSometimesLiveIn =
+				final Set<L2Register> edgeSometimesLiveIn =
 					new HashSet<>(sometimesLive);
 				// Add just the registers used along this edge.
 				for (int i = lastPhiIndex; i >= 0; i--)
@@ -361,10 +350,10 @@ public final class L2Optimizer
 						phiInstruction.destinationRegisters());
 					edgeAlwaysLiveIn.removeAll(
 						phiInstruction.destinationRegisters());
-					final List<? extends L2ReadOperand<?, ?>> sources =
+					final List<? extends L2ReadOperand<?>> sources =
 						L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(
 							phiInstruction);
-					final L2Register<?> source =
+					final L2Register source =
 						sources.get(edgeIndex).register();
 					edgeSometimesLiveIn.add(source);
 					edgeAlwaysLiveIn.add(source);
@@ -420,7 +409,7 @@ public final class L2Optimizer
 			{
 				// Copy the instructions list, since instructions may be removed
 				// from it as we iterate.
-				final Set<L2Register<?>> registersConsumedLaterInBlock =
+				final Set<L2Register> registersConsumedLaterInBlock =
 					new HashSet<>();
 				final List<L2Instruction> instructions =
 					new ArrayList<>(block.instructions());
@@ -491,7 +480,7 @@ public final class L2Optimizer
 	 */
 	private static @Nullable List<L2PcOperand> successorEdgesToMoveThrough (
 		final L2Instruction instruction,
-		final Set<L2Register<?>> registersConsumedLaterInSameBlock)
+		final Set<L2Register> registersConsumedLaterInSameBlock)
 	{
 		if (instruction.hasSideEffect()
 			|| instruction.altersControlFlow()
@@ -500,7 +489,7 @@ public final class L2Optimizer
 		{
 			return null;
 		}
-		final List<L2Register<?>> written = instruction.destinationRegisters();
+		final List<L2Register> written = instruction.destinationRegisters();
 		assert !written.isEmpty()
 			: "Every instruction should either have side effects or write to "
 			+ "at least one register";
@@ -578,10 +567,10 @@ public final class L2Optimizer
 					// them, if any.
 					break;
 				}
-				final L2WritePhiOperand<?, ?> targetWriter =
+				final L2WritePhiOperand<?> targetWriter =
 					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
 						instruction);
-				final List<L2Register<?>> phiSources =
+				final List<L2Register> phiSources =
 					instruction.sourceRegisters();
 				final int fanIn = block.predecessorEdgesCount();
 				assert fanIn == phiSources.size();
@@ -595,13 +584,12 @@ public final class L2Optimizer
 						predecessor.instructions();
 					assert predecessor.finalInstruction().operation()
 						instanceof L2_JUMP;
-					final L2Register<?> sourceReg = phiSources.get(i);
+					final L2Register sourceReg = phiSources.get(i);
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
 							sourceReg.phiMoveOperation(),
-							sourceReg.read(
-								(TypeRestriction) sourceReg.restriction()),
+							sourceReg.read(sourceReg.restriction()),
 							targetWriter.register().write());
 					instructions.add(instructions.size() - 1, move);
 					move.justAdded();
@@ -657,16 +645,16 @@ public final class L2Optimizer
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
-		final EnumMap<RegisterKind, Map<Integer, L2Register<?>>> byKindAndIndex
+		final EnumMap<RegisterKind, Map<Integer, L2Register>> byKindAndIndex
 			= new EnumMap<>(RegisterKind.class);
-		final Map<L2Register<?>, L2Register<?>> remap = new HashMap<>();
+		final Map<L2Register, L2Register> remap = new HashMap<>();
 		// Also collect all the old registers.
-		final HashSet<L2Register<?>> oldRegisters = new HashSet<>();
+		final HashSet<L2Register> oldRegisters = new HashSet<>();
 		blocks.forEach(
 			block -> block.instructions().forEach(
 				instruction ->
 				{
-					final Consumer<L2Register<?>> action = reg ->
+					final Consumer<L2Register> action = reg ->
 					{
 						remap.put(
 							reg,
@@ -871,16 +859,16 @@ public final class L2Optimizer
 		}
 
 		void readRegister (
-			final L2Register<?> register,
-			final ToIntFunction<L2Register<?>> registerIdFunction)
+			final L2Register register,
+			final ToIntFunction<L2Register> registerIdFunction)
 		{
 			assert liveRegistersByKind[register.registerKind().ordinal()]
 				.get(registerIdFunction.applyAsInt(register));
 		}
 
 		void writeRegister (
-			final L2Register<?> register,
-			final ToIntFunction<L2Register<?>> registerIdFunction)
+			final L2Register register,
+			final ToIntFunction<L2Register> registerIdFunction)
 		{
 			liveRegistersByKind[register.registerKind().ordinal()]
 				.set(registerIdFunction.applyAsInt(register));
@@ -943,8 +931,8 @@ public final class L2Optimizer
 	 */
 	private void checkBlocksAndInstructions ()
 	{
-		final Map<L2Register<?>, Set<L2Instruction>> uses = new HashMap<>();
-		final Map<L2Register<?>, Set<L2Instruction>> definitions = new
+		final Map<L2Register, Set<L2Instruction>> uses = new HashMap<>();
+		final Map<L2Register, Set<L2Instruction>> definitions = new
 			HashMap<>();
 		blocks.forEach(
 			block -> block.instructions().forEach(
@@ -959,9 +947,9 @@ public final class L2Optimizer
 								reg, r -> new HashSet<>())
 							.add(instruction));
 				}));
-		final Set<L2Register<?>> mentionedRegs = new HashSet<>(uses.keySet());
+		final Set<L2Register> mentionedRegs = new HashSet<>(uses.keySet());
 		mentionedRegs.addAll(definitions.keySet());
-		for (final L2Register<?> reg : mentionedRegs)
+		for (final L2Register reg : mentionedRegs)
 		{
 			assert uses.getOrDefault(reg, emptySet()).equals(reg.uses());
 			assert definitions.getOrDefault(reg, emptySet()).equals(
@@ -986,7 +974,7 @@ public final class L2Optimizer
 						assert added;
 						if (operand instanceof L2ReadVectorOperand)
 						{
-							final L2ReadVectorOperand<?, ?, ?> vector =
+							final L2ReadVectorOperand<?, ?> vector =
 								cast(operand);
 							vector.elements().forEach(
 								read ->
@@ -1048,7 +1036,7 @@ public final class L2Optimizer
 	 *        register uses to be treated differently.
 	 */
 	private void checkRegistersAreInitialized (
-		final ToIntFunction<L2Register<?>> registerIdFunction)
+		final ToIntFunction<L2Register> registerIdFunction)
 	{
 		final Deque<Pair<L2BasicBlock, UsedRegisters>> blocksToCheck =
 			new ArrayDeque<>();
@@ -1087,12 +1075,12 @@ public final class L2Optimizer
 				}
 				if (!instruction.operation().isPhi())
 				{
-					for (final L2Register<?> register :
+					for (final L2Register register :
 						instruction.sourceRegisters())
 					{
 						workingSet.readRegister(register, registerIdFunction);
 					}
-					for (final L2Register<?> register :
+					for (final L2Register register :
 						instruction.destinationRegisters())
 					{
 						workingSet.writeRegister(register, registerIdFunction);
@@ -1123,7 +1111,7 @@ public final class L2Optimizer
 						// All the phis are at the start of the block.
 						break;
 					}
-					final L2Register<?> phiSource =
+					final L2Register phiSource =
 						phiInTarget.sourceRegisters().get(predecessorIndex);
 					workingCopy.readRegister(phiSource, registerIdFunction);
 					workingCopy.writeRegister(
@@ -1256,8 +1244,7 @@ public final class L2Optimizer
 
 		/**
 		 * Every L2PcOperand that leads to an L2_JUMP should now be redirected
-		 * to the target of the jump (transitively, if the jump leads to
-		 * another
+		 * to the target of the jump (transitively, if the jump leads to another
 		 * jump).  We specifically do this after inserting phi moves to ensure
 		 * we don't jump past irremovable phi moves.
 		 */
