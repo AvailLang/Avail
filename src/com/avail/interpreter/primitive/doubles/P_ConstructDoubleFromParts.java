@@ -83,7 +83,6 @@ extends Primitive
 		// convert. This is less efficient than doing the work ourselves, but
 		// gives us the opportunity to leverage well-tested and tuned Java
 		// library code.
-		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final String numeral =
 			integerPart.string().asNativeString()
 			+ "."

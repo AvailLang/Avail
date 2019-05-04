@@ -371,7 +371,6 @@ extends VariableDescriptor
 	 * Record the fact that the chunk indexed by aChunkIndex depends on this
 	 * object not changing.
 	 */
-	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	void o_AddDependentChunk (
 		final AvailObject object,
@@ -388,8 +387,7 @@ extends VariableDescriptor
 			final Set<L2Chunk> chunkSet;
 			if (pojo.equalsNil())
 			{
-				chunkSet = Collections.newSetFromMap(
-					new WeakHashMap<>());
+				chunkSet = Collections.newSetFromMap(new WeakHashMap<>());
 				object.setSlot(
 					DEPENDENT_CHUNKS_WEAK_SET_POJO,
 					identityPojo(chunkSet).makeShared());

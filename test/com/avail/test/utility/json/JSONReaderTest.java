@@ -101,7 +101,7 @@ public class JSONReaderTest
 					+ "IOException:\n%s",
 				sb));
 		}
-		return null; // Shouldn't get here
+		throw new UnsupportedOperationException();  // Shouldn't get here
 	}
 
 	/**
@@ -147,7 +147,6 @@ public class JSONReaderTest
 		}
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("JSON payload (no superfluous whitespace) reads in correctly")
 	void correctCompactJSONTest ()
@@ -170,7 +169,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("JSON payload (superfluous whitespace) reads in correctly")
 	void correctSparseJSONTest ()
@@ -200,7 +198,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing comma")
 	void missingCommaJSONTest ()
@@ -215,7 +212,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing ':' between key-value pair")
 	void missingColonJSONTest ()
@@ -252,7 +248,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload does not escape String internal newline")
 	void missingEscapeWhitespaceJSONTest ()
@@ -270,7 +265,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing opening '{'")
 	void missingOpeningBraceJSONTest ()
@@ -283,7 +277,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload missing closing '}'")
 	void missingClosingBraceJSONTest ()
@@ -312,7 +305,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload premature close of object")
 	void prematureClosingBraceJSONTest ()
@@ -325,7 +317,6 @@ public class JSONReaderTest
 		displayTestPayload(sb);
 	}
 
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	@DisplayName("Test Failure: JSON payload array comma (,) after last value")
 	void malformedArrayJSONTest ()

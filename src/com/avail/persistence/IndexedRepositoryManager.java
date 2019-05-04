@@ -913,7 +913,6 @@ public class IndexedRepositoryManager implements Closeable
 		 */
 		public void putModuleHeader (final byte[] bytes)
 		{
-			//noinspection Duplicates
 			lockWhile(
 				lock,
 				() ->
@@ -958,7 +957,6 @@ public class IndexedRepositoryManager implements Closeable
 		 */
 		public void putComments (final byte[] bytes)
 		{
-			//noinspection Duplicates
 			lockWhile(
 				lock,
 				() ->

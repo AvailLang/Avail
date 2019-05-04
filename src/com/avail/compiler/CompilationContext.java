@@ -247,7 +247,6 @@ public class CompilationContext
 				hashCode() + " SetNoMoreWorkUnits:\n\t" + trace.trim());
 		}
 		final AtomicBoolean ran = new AtomicBoolean(false);
-		//noinspection NonAtomicOperationOnVolatileField
 		this.noMoreWorkUnits = newNoMoreWorkUnits == null
 			? null
 			: () ->

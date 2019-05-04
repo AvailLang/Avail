@@ -2481,6 +2481,7 @@ extends AbstractDescriptor
 		// immutable descendants).
 		if (isMutable())
 		{
+			//noinspection NonAtomicOperationOnVolatileField
 			object.descriptor = object.descriptor.immutable();
 			object.makeSubobjectsImmutable();
 		}
@@ -2495,6 +2496,7 @@ extends AbstractDescriptor
 		// shared descendants).
 		if (!isShared())
 		{
+			//noinspection NonAtomicOperationOnVolatileField
 			object.descriptor = object.descriptor.shared();
 			object.makeSubobjectsShared();
 		}

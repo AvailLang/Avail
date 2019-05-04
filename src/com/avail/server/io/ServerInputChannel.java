@@ -205,7 +205,7 @@ implements TextInputChannel
 			// position.
 			if (position != contentLength)
 			{
-				assert waiters.isEmpty();
+				// assert waiters.isEmpty();
 				final Message message = new Message(content);
 				messages.addFirst(message);
 			}

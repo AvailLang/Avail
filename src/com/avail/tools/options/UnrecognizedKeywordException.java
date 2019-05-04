@@ -56,7 +56,7 @@ extends OptionProcessingException
 	}
 
 	/**
-	 * Construct a new <code>{@link UnrecognizedKeywordException}</code>.
+	 * Construct a new {@code UnrecognizedKeywordException}.
 	 *
 	 * @param keyword The unrecognized keyword.
 	 */

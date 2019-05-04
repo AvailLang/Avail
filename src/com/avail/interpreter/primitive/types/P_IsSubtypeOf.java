@@ -119,8 +119,7 @@ public final class P_IsSubtypeOf extends Primitive
 		final A_Type xType = xMeta.instance();
 		final A_Type yType = yMeta.instance();
 
-		final @Nullable A_Type constantYType =
-			(A_Type) yTypeReg.constantOrNull();
+		final @Nullable A_Type constantYType = yTypeReg.constantOrNull();
 		if (constantYType != null)
 		{
 			assert constantYType.isSubtypeOf(yType);
@@ -134,8 +133,7 @@ public final class P_IsSubtypeOf extends Primitive
 			}
 		}
 
-		final @Nullable A_Type constantXType =
-			(A_Type) xTypeReg.constantOrNull();
+		final @Nullable A_Type constantXType = xTypeReg.constantOrNull();
 		if (constantXType != null)
 		{
 			assert constantXType.isSubtypeOf(xType);

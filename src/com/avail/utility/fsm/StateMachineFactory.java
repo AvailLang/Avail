@@ -54,60 +54,60 @@ import static com.avail.utility.Nulls.stripNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <StateType>
+ * @param <State>
  *        The type of states (an {@link Enum}).
- * @param <EventType>
+ * @param <Event>
  *        The type of events (an {@link Enum}).
- * @param <GuardKeyType>
+ * @param <GuardKey>
  *        The type of guard keys (an {@link Enum}).
- * @param <ActionKeyType>
+ * @param <ActionKey>
  *        The type of action keys (an {@link Enum}).
- * @param <MementoType>
+ * @param <Memento>
  *        The type of memento.
  */
 public final class StateMachineFactory<
-	StateType extends Enum<StateType>,
-	EventType extends Enum<EventType>,
-	GuardKeyType extends Enum<GuardKeyType>,
-	ActionKeyType extends Enum<ActionKeyType>,
-	MementoType>
+	State extends Enum<State>,
+	Event extends Enum<Event>,
+	GuardKey extends Enum<GuardKey>,
+	ActionKey extends Enum<ActionKey>,
+	Memento>
 {
 	/** A state's {@linkplain Class type}. */
-	private final Class<StateType> stateType;
+	private final Class<State> stateType;
 
 	/** An event's {@linkplain Class type}. */
-	private final Class<EventType> eventType;
+	private final Class<Event> eventType;
 
 	/** An action key's {@linkplain Class type}. */
-	private final Class<ActionKeyType> actionKeyType;
+	private final Class<ActionKey> actionKeyType;
 
 	/** A guard key's {@linkplain Class type}. */
-	private final Class<GuardKeyType> guardKeyType;
+	private final Class<GuardKey> guardKeyType;
 
 	/** The mapping from guard keys to {@linkplain Transformer1 guards}. */
 	private final EnumMap<
-		GuardKeyType, Transformer1<? super MementoType, Boolean>> guardMap;
+		GuardKey, Transformer1<? super Memento, Boolean>> guardMap;
 
 	/** The mapping from action keys to {@linkplain Continuation1 actions}. */
 	private final EnumMap<
-		ActionKeyType, Continuation1<? super MementoType>> actionMap;
+		ActionKey, Continuation1<? super Memento>> actionMap;
 
 	/**
 	 * The complete transition table, a {@linkplain EnumMap map} from states to
 	 * {@linkplain StateSummary state summaries}.
 	 */
 	private final EnumMap<
-			StateType,
+		State,
 			StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>
+				State,
+				Event,
+				GuardKey,
+				ActionKey,
+				Memento>>
 		summaries;
 
 	/**
-	 * Construct a new {@link StateMachineFactory} primed to create a new
+	 * Construct a new {@code StateMachineFactory} primed to create a new
 	 * instance of the specified kind of {@link StateMachine state machine}.
 	 *
 	 * @param stateType
@@ -120,10 +120,10 @@ public final class StateMachineFactory<
 	 *        The kind of action keys.
 	 */
 	public StateMachineFactory (
-		final Class<StateType> stateType,
-		final Class<EventType> eventType,
-		final Class<GuardKeyType> guardKeyType,
-		final Class<ActionKeyType> actionKeyType)
+		final Class<State> stateType,
+		final Class<Event> eventType,
+		final Class<GuardKey> guardKeyType,
+		final Class<ActionKey> actionKeyType)
 	{
 		this.stateType = stateType;
 		this.eventType = eventType;
@@ -137,7 +137,8 @@ public final class StateMachineFactory<
 	/**
 	 * The initial state of the target {@linkplain StateMachine state machine}.
 	 */
-	private @Nullable StateType initialState;
+	private @Nullable
+	State initialState;
 
 	/**
 	 * Record the canonical initial state of the target {@link StateMachine
@@ -146,7 +147,7 @@ public final class StateMachineFactory<
 	 * @param initialState
 	 *        The initial state.
 	 */
-	public void setInitialState (final StateType initialState)
+	public void setInitialState (final State initialState)
 	{
 		this.initialState = initialState;
 	}
@@ -160,13 +161,8 @@ public final class StateMachineFactory<
 	 * @return The state's {@linkplain StateSummary summary}.
 	 */
 	private
-	StateSummary<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType>
-		getSummary (final StateType state)
+	StateSummary<State, Event, GuardKey, ActionKey, Memento>
+		getSummary (final State state)
 	{
 
 		return summaries.computeIfAbsent(
@@ -183,8 +179,8 @@ public final class StateMachineFactory<
 	 *        An action key that specifies an {@linkplain Continuation1 action}.
 	 */
 	public void setEntryAction (
-		final StateType state,
-		final ActionKeyType actionKey)
+		final State state,
+		final ActionKey actionKey)
 	{
 		assert getSummary(state).getEntryActionKey() == null;
 
@@ -201,8 +197,8 @@ public final class StateMachineFactory<
 	 *        An action key that specifies an {@linkplain Continuation1 action}.
 	 */
 	public void setExitAction (
-		final StateType state,
-		final ActionKeyType actionKey)
+		final State state,
+		final ActionKey actionKey)
 	{
 		assert getSummary(state).getExitActionKey() == null;
 
@@ -231,21 +227,17 @@ public final class StateMachineFactory<
 	 *        The ending state.
 	 */
 	public void addTransition (
-		final StateType startState,
-		final @Nullable EventType event,
-		final @Nullable GuardKeyType guardKey,
-		final @Nullable ActionKeyType actionKey,
-		final StateType endState)
+		final State startState,
+		final @Nullable Event event,
+		final @Nullable GuardKey guardKey,
+		final @Nullable ActionKey actionKey,
+		final State endState)
 	{
-		// Remove assertion after is fully implemented.
+		// Remove assertion after it's fully implemented.
 		assert event != null;
 		getSummary(startState).addTransitionArc(
 			event,
-			new StateTransitionArc<>(
-				event,
-				guardKey,
-				actionKey,
-				endState));
+			new StateTransitionArc<>(event, guardKey, actionKey, endState));
 	}
 
 	/**
@@ -266,18 +258,14 @@ public final class StateMachineFactory<
 	 *        The ending state.
 	 */
 	public void addAutomaticTransition (
-		final StateType startState,
-		final @Nullable GuardKeyType guardKey,
-		final @Nullable ActionKeyType actionKey,
-		final StateType endState)
+		final State startState,
+		final @Nullable GuardKey guardKey,
+		final @Nullable ActionKey actionKey,
+		final State endState)
 	{
 		getSummary(startState).addTransitionArc(
 			null,
-			new StateTransitionArc<>(
-				null,
-				guardKey,
-				actionKey,
-				endState));
+			new StateTransitionArc<>(null, guardKey, actionKey, endState));
 	}
 
 	/**
@@ -287,8 +275,8 @@ public final class StateMachineFactory<
 	 * @param guard The guard to perform.
 	 */
 	public void defineGuard (
-		final GuardKeyType guardKey,
-		final Transformer1<? super MementoType, Boolean> guard)
+		final GuardKey guardKey,
+		final Transformer1<? super Memento, Boolean> guard)
 	{
 		assert !guardMap.containsKey(guardKey);
 		guardMap.put(guardKey, guard);
@@ -303,8 +291,8 @@ public final class StateMachineFactory<
 	 *        The {@linkplain Continuation1 action} to perform.
 	 */
 	public void defineAction (
-		final ActionKeyType actionKey,
-		final Continuation1<? super MementoType> action)
+		final ActionKey actionKey,
+		final Continuation1<? super Memento> action)
 	{
 		assert !actionMap.containsKey(actionKey);
 		actionMap.put(actionKey, action);
@@ -322,22 +310,17 @@ public final class StateMachineFactory<
 	 *        The reachability vector.
 	 */
 	private void recursivelyReachState (
-		final StateType state,
-		final EnumSet<StateType> reachable)
+		final State state,
+		final EnumSet<State> reachable)
 	{
 		if (!reachable.contains(state))
 		{
 			reachable.add(state);
 			for (final StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+					State, Event, GuardKey, ActionKey, Memento>
 				arc : getSummary(state).allTransitionArcs())
 			{
-				recursivelyReachState(
-					arc.stateAfterTransition(), reachable);
+				recursivelyReachState(arc.stateAfterTransition(), reachable);
 			}
 		}
 	}
@@ -368,14 +351,14 @@ public final class StateMachineFactory<
 	private void validate () throws ValidationException
 	{
 		// Verify that an initial state was specified.
-		final @Nullable StateType startState = initialState;
+		final @Nullable State startState = initialState;
 		if (startState == null)
 		{
 			throw new ValidationException("no start state is specified");
 		}
 
 		// Verify that every state is reachable.
-		final EnumSet<StateType> statesReached = EnumSet.noneOf(stateType);
+		final EnumSet<State> statesReached = EnumSet.noneOf(stateType);
 		recursivelyReachState(startState, statesReached);
 		if (statesReached.size() != stateType.getEnumConstants().length)
 		{
@@ -386,8 +369,8 @@ public final class StateMachineFactory<
 		}
 
 		// Verify that every event is handled by at least one transition.
-		final EnumSet<EventType> eventsHandled = EnumSet.noneOf(eventType);
-		for (final StateType state : stateType.getEnumConstants())
+		final EnumSet<Event> eventsHandled = EnumSet.noneOf(eventType);
+		for (final State state : stateType.getEnumConstants())
 		{
 			eventsHandled.addAll(getSummary(state).transitionEvents());
 		}
@@ -410,16 +393,12 @@ public final class StateMachineFactory<
 		}
 
 		// Verify that every guard key is invoked.
-		final EnumSet<GuardKeyType> guardKeysInvoked =
+		final EnumSet<GuardKey> guardKeysInvoked =
 			EnumSet.noneOf(guardKeyType);
-		for (final StateType state : stateType.getEnumConstants())
+		for (final State state : stateType.getEnumConstants())
 		{
 			for (final StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+					State, Event, GuardKey, ActionKey, Memento>
 				arc : getSummary(state).allTransitionArcs())
 			{
 				if (arc.guardKey() != null)
@@ -438,18 +417,14 @@ public final class StateMachineFactory<
 
 		// Verify that an unguarded transition for an event from a state is
 		// the last-added transition for that event/state combination.
-		for (final StateType state : stateType.getEnumConstants())
+		for (final State state : stateType.getEnumConstants())
 		{
 			// Allow null element in the following set to handle the
 			// automatic transitions.
-			final Set<EventType> unguardedArcsFound =
+			final Set<Event> unguardedArcsFound =
 				new HashSet<>();
 			for (final StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+					State, Event, GuardKey, ActionKey, Memento>
 				arc : getSummary(state).allTransitionArcs())
 			{
 				if (unguardedArcsFound.contains(arc.triggeringEvent()))
@@ -458,7 +433,8 @@ public final class StateMachineFactory<
 						"state " + state
 						+ " has an unreachable arc for event "
 						+ arc.triggeringEvent()
-						+ " due to a previous unguarded arc for the same event");
+						+ " due to a previous unguarded arc for the same "
+						+ "event");
 				}
 				if (arc.guardKey() == null)
 				{
@@ -478,16 +454,12 @@ public final class StateMachineFactory<
 		}
 
 		// Verify that every action key is invoked.
-		final EnumSet<ActionKeyType> actionKeysInvoked =
+		final EnumSet<ActionKey> actionKeysInvoked =
 			EnumSet.noneOf(actionKeyType);
-		for (final StateType state : stateType.getEnumConstants())
+		for (final State state : stateType.getEnumConstants())
 		{
 			for (final StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+					State, Event, GuardKey, ActionKey, Memento>
 				arc : getSummary(state).allTransitionArcs())
 			{
 				if (arc.actionKey() != null)
@@ -495,13 +467,13 @@ public final class StateMachineFactory<
 					actionKeysInvoked.add(arc.actionKey());
 				}
 			}
-			final @Nullable ActionKeyType entryKey =
+			final @Nullable ActionKey entryKey =
 				getSummary(state).getEntryActionKey();
 			if (entryKey != null)
 			{
 				actionKeysInvoked.add(entryKey);
 			}
-			final @Nullable ActionKeyType exitKey =
+			final @Nullable ActionKey exitKey =
 				getSummary(state).getExitActionKey();
 			if (exitKey != null)
 			{
@@ -519,38 +491,23 @@ public final class StateMachineFactory<
 
 	/**
 	 * Create an instance of the {@linkplain StateMachine finite state machine}
-	 * described by the {@linkplain StateMachineFactory receiver}.
+	 * described by the {@code StateMachineFactory}.
 	 *
 	 * @return The new validated {@linkplain StateMachine state machine}.
 	 * @throws ValidationException
 	 *         If validation fails.
 	 */
-	public
-	StateMachine<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType>
-		createStateMachine () throws ValidationException
+	public StateMachine<State, Event, GuardKey, ActionKey, Memento>
+		createStateMachine ()
+	throws ValidationException
 	{
 		validate();
-		for (final StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+		for (final StateSummary<State, Event, GuardKey, ActionKey, Memento>
 			summary : summaries.values())
 		{
-			summary.populateGuardsAndActions(
-				guardMap,
-				actionMap);
+			summary.populateGuardsAndActions(guardMap, actionMap);
 		}
-		final StateType startState = stripNull(initialState);
-		return new StateMachine<>(
-			startState,
-			actionKeyType,
-			summaries.values());
+		final State startState = stripNull(initialState);
+		return new StateMachine<>(startState, summaries.values());
 	}
 }

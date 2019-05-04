@@ -98,7 +98,6 @@ extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_String filename = interpreter.argument(0);
 		final A_Atom followSymlinks = interpreter.argument(1);
-		final AvailRuntime runtime = currentRuntime();
 		final Path path;
 		try
 		{

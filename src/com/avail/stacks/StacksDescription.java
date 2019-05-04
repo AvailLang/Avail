@@ -35,6 +35,7 @@ package com.avail.stacks;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A collection of {@linkplain AbstractStacksToken tokens} that make up a
@@ -47,7 +48,7 @@ public class StacksDescription
 	/**
 	 * The tokens that make up a description in a comment.
 	 */
-	final ArrayList<AbstractStacksToken> descriptionTokens;
+	final List<AbstractStacksToken> descriptionTokens;
 
 	/**
 	 * Construct a new {@link StacksDescription}.
@@ -56,7 +57,7 @@ public class StacksDescription
 	 *
 	 */
 	public StacksDescription (
-		final ArrayList<AbstractStacksToken> descriptionTokens)
+		final List<AbstractStacksToken> descriptionTokens)
 	{
 		this.descriptionTokens = descriptionTokens;
 	}
@@ -79,9 +80,9 @@ public class StacksDescription
 		{
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder
-					.append(descriptionTokens.get(i).toJSON(linkingFileMap,
-						hashID, errorLog, jsonWriter));
+				stringBuilder.append(
+					descriptionTokens.get(i).toJSON(
+						linkingFileMap, hashID, errorLog, jsonWriter));
 
 				switch (descriptionTokens.get(i + 1).lexeme()) {
 					case ".":
@@ -95,9 +96,9 @@ public class StacksDescription
 						stringBuilder.append(" ");
 				}
 			}
-			stringBuilder
-				.append(descriptionTokens.get(listSize - 1)
-					.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+			stringBuilder.append(
+				descriptionTokens.get(listSize - 1).toJSON(
+					linkingFileMap, hashID, errorLog, jsonWriter));
 		}
 		jsonWriter.write(stringBuilder.toString());
 	}

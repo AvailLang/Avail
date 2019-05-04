@@ -77,7 +77,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	}
 
 	/**
-	 * Construct a new {@link SocketChannel}.
+	 * Construct a new {@code SocketChannel}.
 	 *
 	 * @param adapter
 	 *        The {@link SocketAdapter}.
@@ -117,7 +117,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 		{
 			if (!sendQueue.isEmpty())
 			{
-				closeAfterEmptyingSendQueue = true;
+				closeAfterEmptyingSendQueue();
 			}
 			else
 			{

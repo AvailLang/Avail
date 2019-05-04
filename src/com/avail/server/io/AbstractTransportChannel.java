@@ -92,7 +92,7 @@ extends AvailServerChannel
 	 * Should the {@linkplain AbstractTransportChannel channel} close after
 	 * emptying the {@linkplain #sendQueue message queue}?
 	 */
-	protected boolean closeAfterEmptyingSendQueue = false;
+	private boolean shouldCloseAfterEmptyingSendQueue = false;
 
 	/**
 	 * A {@linkplain Deque queue} of {@linkplain Pair pairs} of {@linkplain
@@ -103,6 +103,25 @@ extends AvailServerChannel
 	 */
 	protected final Deque<Pair<Message, Continuation0>> senders =
 		new LinkedList<>();
+
+	/**
+	 * Request that this channel should be closed after emptying its send queue.
+	 */
+	protected void closeAfterEmptyingSendQueue ()
+	{
+		shouldCloseAfterEmptyingSendQueue = true;
+	}
+
+	/**
+	 * Answer whether this channel should be closed after emptying its send
+	 * queue.
+	 *
+	 * @return A {@code boolean}.
+	 */
+	protected boolean shouldCloseAfterEmptyingSendQueue ()
+	{
+		return shouldCloseAfterEmptyingSendQueue;
+	}
 
 	/**
 	 * Answer the maximum send queue depth for the message queue.
@@ -164,10 +183,17 @@ extends AvailServerChannel
 					}
 					// If a close is in progress, but awaiting the queue to
 					// empty, then finish the close.
-					else if (closeAfterEmptyingSendQueue)
+					else
 					{
-						adapter.sendClose(AbstractTransportChannel.this);
-						return;
+						synchronized (sendQueue)
+						{
+							if (shouldCloseAfterEmptyingSendQueue())
+							{
+								adapter.sendClose(
+									AbstractTransportChannel.this);
+								return;
+							}
+						}
 					}
 					// Proceed the paused client.
 					if (pair != null)

@@ -36,7 +36,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.TokenDescriptor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -53,25 +52,19 @@ public final class StacksBracketScanner extends AbstractStacksScanner
 	private final String moduleLeafName;
 
 	/**
-	 * Construct a new {@link StacksBracketScanner}.
-	 * @param bracketToken
+	 * Construct a new {@code StacksBracketScanner}.
 	 *
+	 * @param bracketToken A {@link BracketedStacksToken}.
 	 */
 	private StacksBracketScanner (final BracketedStacksToken bracketToken)
 	{
-		this.moduleName = bracketToken.moduleName;
+		super(bracketToken.moduleName);
 		this.moduleLeafName =
 			moduleName.substring(moduleName.lastIndexOf(' ') + 1);
-
-		final String bracketString =
-			bracketToken.lexeme();
-		this.tokenString(bracketString);
-		this.outputTokens = new ArrayList<>(
-			tokenString().length() / 20);
+		this.tokenString(bracketToken.lexeme());
 		this.lineNumber(bracketToken.lineNumber());
 		this.filePosition(bracketToken.position());
 		this.position(1);
-		this.beingTokenized = new StringBuilder();
 	}
 
 	/**
@@ -110,7 +103,7 @@ public final class StacksBracketScanner extends AbstractStacksScanner
 	 * Scan the already-specified {@link String} to produce {@linkplain
 	 * #outputTokens tokens}.
 	 *
-	 * @throws StacksScannerException
+	 * @throws StacksScannerException If a scanning exception happens.
 	 */
 	private void scan ()
 		throws StacksScannerException

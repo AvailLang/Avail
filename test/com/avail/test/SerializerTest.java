@@ -364,7 +364,6 @@ public final class SerializerTest
 	 *
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	@SuppressWarnings("JUnitTestMethodWithNoAssertions")
 	@Test
 	public void testRandomSimpleObjects ()
 	throws MalformedSerialStreamException

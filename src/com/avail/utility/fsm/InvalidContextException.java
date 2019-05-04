@@ -45,7 +45,7 @@ extends RuntimeException
 	private static final long serialVersionUID = -2481013688117392484L;
 
 	/**
-	 * Construct a new {@link InvalidContextException}.
+	 * Construct a new {@code InvalidContextException}.
 	 */
 	InvalidContextException ()
 	{
@@ -53,7 +53,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link InvalidContextException}.
+	 * Construct a new {@code InvalidContextException}.
 	 *
 	 * @param message
 	 *        A (hopefully) informative message describing the invalid

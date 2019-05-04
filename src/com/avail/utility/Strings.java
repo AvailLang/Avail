@@ -266,7 +266,6 @@ public final class Strings
 		{
 			final ByteArrayOutputStream traceBytes =
 				new ByteArrayOutputStream();
-			@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 			final PrintStream trace = new PrintStream(
 				traceBytes, true, StandardCharsets.UTF_8.name());
 			e.printStackTrace(trace);

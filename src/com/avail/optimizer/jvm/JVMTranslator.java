@@ -789,7 +789,6 @@ public final class JVMTranslator
 		}
 		method.visitCode();
 		// :: «generated JVMChunk».class.getClassLoader()
-		//noinspection StringConcatenationMissingWhitespace
 		method.visitLdcInsn(getType("L" + classInternalName + ";"));
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
@@ -807,7 +806,6 @@ public final class JVMTranslator
 		if (!accessors.isEmpty())
 		{
 			// :: «generated JVMChunk».class.getClassLoader().parameters
-			//noinspection StringConcatenationMissingWhitespace
 			method.visitInsn(DUP);
 			method.visitFieldInsn(
 				GETFIELD,
@@ -1709,7 +1707,6 @@ public final class JVMTranslator
 			final L2Register register = entry.getKey();
 			final int local = entry.getValue();
 			final boolean isIntRegister = register instanceof L2IntRegister;
-			//noinspection StringConcatenationMissingWhitespace
 			method.visitLocalVariable(
 				register.namePrefix() + local,
 				isIntRegister

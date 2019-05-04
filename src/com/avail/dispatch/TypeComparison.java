@@ -55,8 +55,7 @@ public enum TypeComparison
 			final Element undecidedDefinition,
 			final List<? super Element> ifTruePositiveDefinitions,
 			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions,
-			final boolean subtypesHideSupertypes)
+			final List<? super Element> ifFalseUndecidedDefinitions)
 		{
 			ifTruePositiveDefinitions.add(undecidedDefinition);
 		}
@@ -72,8 +71,7 @@ public enum TypeComparison
 			final Element undecidedDefinition,
 			final List<? super Element> ifTruePositiveDefinitions,
 			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions,
-			final boolean subtypesHideSupertypes)
+			final List<? super Element> ifFalseUndecidedDefinitions)
 		{
 			ifTruePositiveDefinitions.add(undecidedDefinition);
 			ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -90,8 +88,7 @@ public enum TypeComparison
 			final Element undecidedDefinition,
 			final List<? super Element> ifTruePositiveDefinitions,
 			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions,
-			final boolean subtypesHideSupertypes)
+			final List<? super Element> ifFalseUndecidedDefinitions)
 		{
 			ifTrueUndecidedDefinitions.add(undecidedDefinition);
 		}
@@ -110,8 +107,7 @@ public enum TypeComparison
 			final Element undecidedDefinition,
 			final List<? super Element> ifTruePositiveDefinitions,
 			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions,
-			final boolean subtypesHideSupertypes)
+			final List<? super Element> ifFalseUndecidedDefinitions)
 		{
 			ifTrueUndecidedDefinitions.add(undecidedDefinition);
 			ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -134,8 +130,7 @@ public enum TypeComparison
 			final Element undecidedDefinition,
 			final List<? super Element> ifTruePositiveDefinitions,
 			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions,
-			final boolean subtypesHideSupertypes)
+			final List<? super Element> ifFalseUndecidedDefinitions)
 		{
 			ifFalseUndecidedDefinitions.add(undecidedDefinition);
 		}
@@ -157,16 +152,12 @@ public enum TypeComparison
 	 * @param ifFalseUndecidedDefinitions
 	 *        A list of definitions that will be undecided for some arguments if
 	 *        the arguments do not meet the current criterion.
-	 * @param subtypesHideSupertypes
-	 *        Whether an entry should makes another entry with a strictly weaker
-	 *        type ineligible.
 	 */
 	public abstract <Element extends A_BasicObject> void applyEffect (
 		final Element undecidedDefinition,
 		final List<? super Element> ifTruePositiveDefinitions,
 		final List<? super Element> ifTrueUndecidedDefinitions,
-		final List<? super Element> ifFalseUndecidedDefinitions,
-		final boolean subtypesHideSupertypes);
+		final List<? super Element> ifFalseUndecidedDefinitions);
 
 	/**
 	 * Compare two types extracted from {@link

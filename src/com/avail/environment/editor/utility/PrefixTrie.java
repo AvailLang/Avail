@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * A {@code PrefixTrie} is trie of {@link PrefixNode}s.
  *
@@ -39,7 +41,7 @@ public class PrefixTrie<T>
 	private final Object lock = new Object();
 
 	/**
-	 * Add a template to this {@link PrefixTrie}.
+	 * Add a template to this {@code PrefixTrie}.
 	 *
 	 * @param word
 	 *        The search text, the characters that will functionType the {@link
@@ -99,7 +101,7 @@ public class PrefixTrie<T>
 
 	/**
 	 * Answer a {@link List} of {@link Pair}s of word and corresponding
-	 * {@link PrefixNode#content() content} in this {@link PrefixTrie}.
+	 * {@link PrefixNode#content() content} in this {@code PrefixTrie}.
 	 *
 	 * @return A list.
 	 */
@@ -108,7 +110,8 @@ public class PrefixTrie<T>
 		final List<NodeContent<T>> wordTemplates = new ArrayList<>();
 		root.words().forEach(word ->
 			{
-				final @Nullable T nodeContent = searchNode(word).content();
+				final @Nullable T nodeContent =
+					stripNull(searchNode(word)).content();
 				if (nodeContent != null)
 				{
 					wordTemplates.add(
@@ -139,7 +142,7 @@ public class PrefixTrie<T>
 		public final T content;
 
 		/**
-		 * Construct a {@link NodeContent}.
+		 * Construct a {@code NodeContent}.
 		 *
 		 * @param word
 		 *        The search word.

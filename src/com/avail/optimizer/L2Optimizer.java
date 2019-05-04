@@ -551,7 +551,6 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	@InnerAccess void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)

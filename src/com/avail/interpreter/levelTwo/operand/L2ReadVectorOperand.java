@@ -103,7 +103,6 @@ extends L2Operand
 	 */
 	public List<RR> elements ()
 	{
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return elements;
 	}
 

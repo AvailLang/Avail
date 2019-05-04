@@ -121,7 +121,6 @@ extends Primitive
 		final A_String filename = interpreter.argument(0);
 		final A_Set ordinals = interpreter.argument(1);
 		final A_Atom followSymlinks = interpreter.argument(2);
-		final AvailRuntime runtime = currentRuntime();
 		final Path path;
 		try
 		{

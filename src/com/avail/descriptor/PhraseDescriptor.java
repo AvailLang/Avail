@@ -307,9 +307,9 @@ extends Descriptor
 		final @Nullable A_Phrase parent);
 
 	/**
-	 * Visit the entire tree with the given {@linkplain Continuation3 block},
-	 * children before parents.  The block takes three arguments: the phrase,
-	 * its parent, and the list of enclosing block phrases.
+	 * Visit the entire tree with the given {@linkplain Continuation2 block},
+	 * children before parents.  The block takes two arguments: the phrase and
+	 * its parent.
 	 *
 	 * @param object
 	 *        The current {@link A_Phrase}.

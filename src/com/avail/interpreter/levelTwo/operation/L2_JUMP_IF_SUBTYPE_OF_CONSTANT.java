@@ -145,7 +145,6 @@ extends L2ConditionalJump
 //		final RegisterSet notSubtypeSet = registerSets.get(1);
 
 		assert isSubtypeSet.hasTypeAt(typeReg.register());
-		//noinspection StatementWithEmptyBody
 		if (isSubtypeSet.hasConstantAt(typeReg.register()))
 		{
 			// The *exact* type is already known.  Don't weaken it by recording

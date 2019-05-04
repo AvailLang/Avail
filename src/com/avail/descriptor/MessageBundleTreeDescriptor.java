@@ -752,17 +752,10 @@ extends Descriptor
 						break;
 					}
 					case CHECK_ARGUMENT:
-					{
-						// This is one of the instructions we're interested in.
-						// Let's keep things simple and invalidate this entire
-						// bundle tree.
-						invalidate(object);
-						break;
-					}
 					case TYPE_CHECK_ARGUMENT:
 					{
-						// It might be expensive to visit each relevant
-						// successor, so just invalidate the entire bundle tree.
+						// Keep it simple and invalidate this entire bundle
+						// tree.
 						invalidate(object);
 						break;
 					}

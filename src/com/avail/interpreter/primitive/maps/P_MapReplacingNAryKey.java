@@ -165,18 +165,18 @@ extends Primitive
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newValue, true);
 		}
-		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
+		final AvailObject targetElement = targetMap.mapAt(targetIndex);
 		if (targetElement.isTuple())
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
-				(A_Tuple)targetElement, pathTuple, pathIndex + 1, newValue);
+				targetElement, pathTuple, pathIndex + 1, newValue);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
 		}
 		else if (targetElement.isMap())
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
-				(A_Map)targetElement, pathTuple, pathIndex + 1, newValue);
+				targetElement, pathTuple, pathIndex + 1, newValue);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newMap, true);
 		}

@@ -89,7 +89,7 @@ implements Iterable<Entry<String, JSONData>>
 	}
 
 	/**
-	 * Does the {@link JSONObject} include a binding for the specified key?
+	 * Does the {@code JSONObject} include a binding for the specified key?
 	 *
 	 * @param k
 	 *        The key.

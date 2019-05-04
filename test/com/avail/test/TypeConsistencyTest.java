@@ -1767,7 +1767,6 @@ public class TypeConsistencyTest
 	 * Test that the {@linkplain Node#supernodes declared} subtype relations
 	 * actually hold the way the graph says they should.
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testGraphModel ()
 	{
@@ -1797,7 +1796,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;x&sube;x
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeReflexivity ()
 	{
@@ -1823,7 +1821,6 @@ public class TypeConsistencyTest
 	 *     &rarr; x&sube;z)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeTransitivity ()
 	{
@@ -1852,7 +1849,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sub;y &rarr; &not;y&sub;x)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testSubtypeAsymmetry ()
 	{
@@ -1876,7 +1872,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionClosure ()
 	{
@@ -1899,7 +1894,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cup;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionReflexivity ()
 	{
@@ -1919,7 +1913,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y = y&cup;x)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionCommutativity ()
 	{
@@ -1949,7 +1942,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testUnionAssociativity ()
 	{
@@ -1990,7 +1982,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionClosure ()
 	{
@@ -2014,7 +2005,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x&isin;T</sub>&thinsp;(x&cap;x&thinsp;=&thinsp;x)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionReflexivity ()
 	{
@@ -2034,7 +2024,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y = y&cap;x)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionCommutativity ()
 	{
@@ -2066,7 +2055,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cap;y)&cap;z = x&cap;(y&cap;z)
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testIntersectionAssociativity ()
 	{
@@ -2193,7 +2181,6 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFiberResultCovariance ()
 	{
@@ -2212,7 +2199,6 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFunctionResultCovariance ()
 	{
@@ -2232,7 +2218,6 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTupleEntryCovariance ()
 	{
@@ -2251,7 +2236,6 @@ public class TypeConsistencyTest
 	 *
 	 * @see #checkCovariance(TypeRelation)
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testAbstractPojoTypeParametersCovariance ()
 	{
@@ -2273,7 +2257,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testFunctionArgumentContravariance ()
 	{
@@ -2296,7 +2279,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testMetacovariance ()
 	{
@@ -2317,7 +2299,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTypeUnionMetainvariance ()
 	{
@@ -2351,7 +2332,6 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))
 	 * </span>
 	 */
-	@SuppressWarnings({"WeakerAccess", "JUnitTestMethodWithNoAssertions"})
 	@Test
 	public void testTypeIntersectionMetainvariance ()
 	{

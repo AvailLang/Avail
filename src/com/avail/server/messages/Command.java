@@ -513,7 +513,7 @@ public enum Command
 	}
 
 	/**
-	 * Construct a new {@link Command}. If it doesn't {@linkplain
+	 * Construct a new {@code Command}. If it doesn't {@linkplain
 	 * #requiresSpecialParsing() require special parsing}, then add it to the
 	 * parsing {@linkplain TrieNode#trie} (treating the tokenization of its
 	 * {@linkplain #name() name} on underscore boundaries as its syntax).
@@ -533,20 +533,6 @@ public enum Command
 			this.syntax = null;
 			TrieNode.addSpeciallyParsedCommand(this);
 		}
-	}
-
-	/**
-	 * Construct a new {@link Command} and add it to the parsing {@linkplain
-	 * TrieNode#trie}.
-	 *
-	 * @param syntax
-	 *        The tokenized syntax of the command.
-	 */
-	Command (final String... syntax)
-	{
-		assert !requiresSpecialParsing();
-		this.syntax = syntax;
-		TrieNode.addCommand(this, syntax);
 	}
 
 	/**

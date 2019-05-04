@@ -381,7 +381,6 @@ extends PojoTypeDescriptor
 		return emptyMap();
 	}
 
-	@SuppressWarnings("StatementWithEmptyBody")
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,

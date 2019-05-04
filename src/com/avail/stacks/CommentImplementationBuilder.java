@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 /**
@@ -184,7 +185,7 @@ public final class CommentImplementationBuilder
 	 * @throws ClassCastException
 	 */
 	public void addStacksCommentDescription(
-		 final ArrayList<AbstractStacksToken> list)
+		 final List<AbstractStacksToken> list)
 			 throws ClassCastException
 	{
 		description = new StacksDescription(list);

@@ -37,6 +37,7 @@ import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.CommentTokenDescriptor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The basics of a Stacks scanner.
@@ -59,7 +60,7 @@ public abstract class AbstractStacksScanner
 	/**
 	 * The tokens that have been parsed so far.
 	 */
-	public ArrayList<AbstractStacksToken> outputTokens;
+	public List<AbstractStacksToken> outputTokens;
 
 	/**
 	 * The current position in the input string.
@@ -86,6 +87,24 @@ public abstract class AbstractStacksScanner
 	 * The line number of the start of the token currently being parsed.
 	 */
 	private int lineNumber;
+
+	/**
+	 * A {@link StringBuilder} used for tokenization.
+	 */
+	StringBuilder beingTokenized = new StringBuilder();
+
+	/**
+	 * Create an {@code AbstractStacksScanner}.
+	 *
+	 * @param moduleName
+	 *        The name of the module being scanned.
+	 */
+	AbstractStacksScanner (
+		final String moduleName)
+	{
+		this.moduleName = moduleName;
+		this.outputTokens = new ArrayList<>(100);
+	}
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -198,22 +217,11 @@ public abstract class AbstractStacksScanner
 		return startOfToken;
 	}
 
-	/**
-	 *
-	 */
-	StringBuilder beingTokenized;
-
-	/**
-	 * @return
-	 */
 	public StringBuilder beingTokenized ()
 	{
 		return beingTokenized;
 	}
 
-	/**
-	 *
-	 */
 	public void resetBeingTokenized ()
 	{
 		beingTokenized = new StringBuilder();
@@ -307,7 +315,6 @@ public abstract class AbstractStacksScanner
 	 * token}.
 	 *
 	 * @return The newly added token.
-	 * @throws StacksScannerException
 	 */
 	@InnerAccess
 	void addBracketedToken () throws StacksScannerException
@@ -728,7 +735,7 @@ public abstract class AbstractStacksScanner
 							scanner.lineNumber()),
 						scanner);
 					}
-					assert digitCount >= 1 && digitCount <= 6;
+					assert digitCount >= 1;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
 						throw new StacksScannerException(
@@ -953,7 +960,7 @@ public abstract class AbstractStacksScanner
 		 * Treat it as whitespace even though Unicode says it isn't.
 		 * </p>
 		 */
-		ZEROWIDTHWHITESPACE ()
+		ZERO_WIDTH_WHITESPACE()
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
@@ -973,7 +980,7 @@ public abstract class AbstractStacksScanner
 			throws StacksScannerException;
 
 		/**
-		 * Figure out the {@link ScannerAction} to invoke for the specified code
+		 * Figure out the {@code ScannerAction} to invoke for the specified code
 		 * point. The argument may be any Unicode code point, including those in
 		 * the Supplemental Planes.
 		 *
@@ -1031,7 +1038,7 @@ public abstract class AbstractStacksScanner
 		dispatchTable['"'] = (byte) ScannerAction.DOUBLE_QUOTE.ordinal();
 		dispatchTable['/'] = (byte) ScannerAction.SLASH.ordinal();
 		dispatchTable['\uFEFF'] =
-			(byte) ScannerAction.ZEROWIDTHWHITESPACE.ordinal();
+			(byte) ScannerAction.ZERO_WIDTH_WHITESPACE.ordinal();
 		dispatchTable['@'] = (byte) ScannerAction.KEYWORD_START.ordinal();
 		}
 }

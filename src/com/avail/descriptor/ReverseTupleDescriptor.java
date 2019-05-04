@@ -269,9 +269,8 @@ extends TupleDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		assert 1 <= start && start <= end + 1;
 		final int tupleSize = object.tupleSize();
-		assert 0 <= end && end <= tupleSize;
+		assert 1 <= start && start <= end + 1 && end <= tupleSize;
 		final int subrangeSize = end - start + 1;
 		if (subrangeSize == 0)
 		{

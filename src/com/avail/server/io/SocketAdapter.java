@@ -86,7 +86,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	@InnerAccess final AsynchronousServerSocketChannel serverChannel;
 
 	/**
-	 * Construct a new {@link SocketAdapter} for the specified {@linkplain
+	 * Construct a new {@code SocketAdapter} for the specified {@linkplain
 	 * AvailServer server} that listens on the specified {@linkplain
 	 * InetSocketAddress socket address}.
 	 *

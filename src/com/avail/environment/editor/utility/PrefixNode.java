@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import static java.util.Collections.unmodifiableList;
+
 /**
  * A {@code PrefixNode} is a node in a {@link PrefixTrie}.
  *
@@ -55,7 +57,7 @@ public class PrefixNode<T>
 	private List<String> words = new ArrayList<>();
 
 	/**
-	 * Add a word to this {@link PrefixNode}.
+	 * Add a word to this {@code PrefixNode}.
 	 *
 	 * @param word
 	 *        The word to add.
@@ -71,17 +73,20 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Answer the {@link #words} from this {@link PrefixNode}.
+	 * Answer the {@link #words} from this {@code PrefixNode}.
 	 *
 	 * @return A {@link List}.
 	 */
 	public final List<String> words ()
 	{
-		return words;
+		synchronized (lock)
+		{
+			return unmodifiableList(words);
+		}
 	}
 
 	/**
-	 * Add a word to this {@link PrefixNode}.
+	 * Add a word to this {@code PrefixNode}.
 	 *
 	 * @param word
 	 *        The word branch to add.
@@ -114,7 +119,7 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Search the {@link PrefixTrie} starting at this {@link PrefixNode}.
+	 * Search the {@link PrefixTrie} starting at this {@code PrefixNode}.
 	 *
 	 * @param word
 	 *        The word to search.
@@ -136,13 +141,13 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Search the {@link PrefixTrie} starting at this {@link PrefixNode}. Add
+	 * Search the {@link PrefixTrie} starting at this {@code PrefixNode}. Add
 	 * visited nodes to the consumer.
 	 *
 	 * @param word
 	 *        The word to search.
 	 * @param acceptEachNode
-	 *        A {@link Consumer} that accepts a {@link PrefixNode}.
+	 *        A {@link Consumer} that accepts a {@code PrefixNode}.
 	 */
 	public @Nullable PrefixNode<T> searchTrie (
 		final String word,
@@ -164,11 +169,11 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Answer the next {@link PrefixNode} for the given character.
+	 * Answer the next {@code PrefixNode} for the given character.
 	 *
 	 * @param c
 	 *        The char to get.
-	 * @return A {@link PrefixNode} if it exists; {@code null} otherwise.
+	 * @return A {@code PrefixNode} if it exists; {@code null} otherwise.
 	 */
 	public @Nullable PrefixNode<T> nextNodeFor (final char c)
 	{
@@ -176,7 +181,7 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Construct an empty {@link PrefixNode}.
+	 * Construct an empty {@code PrefixNode}.
 	 *
 	 * @param depth
 	 *        Record its depth in the trie.

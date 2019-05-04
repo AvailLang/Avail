@@ -1200,7 +1200,6 @@ public final class Interpreter
 		exitNow = true;
 		if (debugL2)
 		{
-			//noinspection StringConcatenationMissingWhitespace
 			log(
 				loggerDebugL2,
 				Level.INFO,

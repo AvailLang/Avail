@@ -203,11 +203,11 @@ extends Primitive
 		{
 			throw new AvailException(E_KEY_NOT_FOUND);
 		}
-		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
+		final AvailObject targetElement = targetMap.mapAt(targetIndex);
 		if (targetElement.isTuple())
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
-				(A_Tuple)targetElement, pathTuple, headLastIndex,
+				targetElement, pathTuple, headLastIndex,
 				tailFirstIndex, pathIndex + 1, newValues);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
@@ -215,7 +215,7 @@ extends Primitive
 		else if (targetElement.isMap())
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
-				(A_Map)targetElement, pathTuple, headLastIndex, tailFirstIndex,
+				targetElement, pathTuple, headLastIndex, tailFirstIndex,
 				pathIndex + 1, newValues);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newMap, true);

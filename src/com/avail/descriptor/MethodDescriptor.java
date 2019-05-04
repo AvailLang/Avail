@@ -338,7 +338,6 @@ extends Descriptor
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	void o_AddDependentChunk (
 		final AvailObject object,

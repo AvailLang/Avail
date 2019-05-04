@@ -46,7 +46,7 @@ extends RuntimeException
 	private static final long serialVersionUID = -7627928027143297507L;
 
 	/**
-	 * Construct a new <code>{@link ValidationException}</code>.
+	 * Construct a new {@code ValidationException}.
 	 */
 	ValidationException ()
 	{
@@ -54,7 +54,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link ValidationException}>.
+	 * Construct a new {@code ValidationException}>.
 	 *
 	 * @param message
 	 *        A (hopefully) informative message explaining why the {@linkplain
@@ -67,7 +67,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link ValidationException}.
+	 * Construct a new {@code ValidationException}.
 	 *
 	 * @param cause
 	 *        The original {@linkplain Throwable exception} which caused the new
@@ -79,7 +79,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new <code>{@link ValidationException}</code>.
+	 * Construct a new {@code ValidationException}.
 	 *
 	 * @param message
 	 *        A (hopefully) informative message explaining why the {@linkplain

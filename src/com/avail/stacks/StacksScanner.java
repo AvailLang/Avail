@@ -188,6 +188,7 @@ public class StacksScanner extends AbstractStacksScanner
 	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
 	public StacksScanner (final A_Token commentToken, final String moduleName)
 	{
+		super(moduleName);
 		resetNewlineCount();
 		hasHTMLTagFalse();
 		addedParagraphHTMLTagFalse();
@@ -198,9 +199,6 @@ public class StacksScanner extends AbstractStacksScanner
 			commentToken.string().asNativeString();
 		tokenString(commentString);
 		this.commentStartLine = commentToken.lineNumber();
-		this.moduleName = moduleName;
-		this.outputTokens = new ArrayList<>(
-			tokenString().length() / 20);
 		this.commentEndsStandardly = tokenString().substring(
 			tokenString().length()-2
 		).equals("*/");
@@ -210,7 +208,6 @@ public class StacksScanner extends AbstractStacksScanner
 		this.filePosition(commentToken.start());
 		this.startOfTokenLinePosition(0);
 		this.sectionStartLocations = new ArrayList<>(9);
-		this.beingTokenized = new StringBuilder();
 	}
 
 	/**
@@ -316,7 +313,6 @@ public class StacksScanner extends AbstractStacksScanner
 										scanner.lineNumber()),
 									scanner);
 							}
-							//noinspection NestedAssignment
 							switch (scanner.next())
 							{
 								case 'n':

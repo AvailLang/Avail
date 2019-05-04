@@ -70,7 +70,6 @@ extends AbstractWorkbenchAction
 		final JPanel panel = new JPanel(new BorderLayout(20, 20));
 		panel.setBorder(new EmptyBorder(30, 50, 30, 50));
 
-		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final ImageIcon logo = new ImageIcon(
 			this.getClass().getResource(
 				resourcePrefix + "Avail-logo-about.png"));
@@ -110,7 +109,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link AboutAction}.
+	 * Construct a new {@code AboutAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.

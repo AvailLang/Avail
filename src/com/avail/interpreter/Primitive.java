@@ -766,7 +766,6 @@ implements IntegerEnumSlotDescriptionEnum
 		// Register this instance.
 		assert holder.primitive == null;
 		holder.primitive = this;
-		//noinspection StringConcatenationMissingWhitespace
 		runningNanos = new Statistic(
 			(hasFlag(CanInline) ? "" : "[NOT INLINE]")
 				+ getClass().getSimpleName()

@@ -203,7 +203,6 @@ public final class P_BootstrapLexerStringBody extends Primitive
 					break;
 			}
 		}
-		assert !scanner.hasNext();
 		// TODO MvG - Indicate where the quoted string started, to make it
 		// easier to figure out where the end-quote is missing.
 		throw new AvailRejectedParseException(

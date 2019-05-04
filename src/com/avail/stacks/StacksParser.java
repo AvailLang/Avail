@@ -86,7 +86,6 @@ public final class StacksParser
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens,
 				 final LinkingFileMap categories)
-					 throws StacksCommentBuilderException
 			{
 				builder.addStacksAuthorTag(tagContentTokens);
 			}
@@ -402,13 +401,13 @@ public final class StacksParser
 	/**
 	 *  The tokens to be parsed.
 	 */
-	private final ArrayList<AbstractStacksToken> tokens;
+	private final List<AbstractStacksToken> tokens;
 
 	/**
 	 * The index locations where a new {@link SectionKeywordStacksToken section}
 	 * begins in in the token list to be parsed.
 	 */
-	final ArrayList<Integer> sectionStartLocations;
+	final List<Integer> sectionStartLocations;
 
 	/**
 	 * The name of the module the comment originates from.
@@ -435,12 +434,11 @@ public final class StacksParser
 	 * @throws StacksCommentBuilderException
 	 */
 	private StacksParser (
-		final ArrayList<AbstractStacksToken> tokens,
-		final ArrayList<Integer> sectionStartLocations,
+		final List<AbstractStacksToken> tokens,
+		final List<Integer> sectionStartLocations,
 		final String moduleName,
 		final int commentStartLine,
 		final LinkingFileMap linkingFileMap)
-			throws StacksCommentBuilderException
 	{
 		this.tokens = tokens;
 		this.sectionStartLocations = sectionStartLocations;
@@ -454,7 +452,7 @@ public final class StacksParser
 	/**
 	 * @return the tokens
 	 */
-	public ArrayList<AbstractStacksToken> tokens ()
+	public List<AbstractStacksToken> tokens ()
 	{
 		return tokens;
 	}
@@ -489,8 +487,8 @@ public final class StacksParser
 	 * @throws StacksCommentBuilderException if the builder fails.
 	 */
 	public static AbstractCommentImplementation parseCommentString (
-		final ArrayList<AbstractStacksToken> tokens,
-		final ArrayList<Integer> sectionStartLocations,
+		final List<AbstractStacksToken> tokens,
+		final List<Integer> sectionStartLocations,
 		final String string,
 		final int commentStartLine, final LinkingFileMap linkingFileMap)
 		throws StacksCommentBuilderException
@@ -515,7 +513,7 @@ public final class StacksParser
 
 		if (sectionStartLocations.get(0) != 0)
 		{
-			final ArrayList<AbstractStacksToken> description =
+			final List<AbstractStacksToken> description =
 				new ArrayList<>(tokens()
 					.subList(0, sectionStartLocations
 						.get(currentSectionStartLocationsIndex)));

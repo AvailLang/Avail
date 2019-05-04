@@ -78,7 +78,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	}
 
 	/**
-	 * Construct a new {@link WebSocketChannel}.
+	 * Construct a new {@code WebSocketChannel}.
 	 *
 	 * @param adapter
 	 *        The {@link WebSocketAdapter}.
@@ -134,7 +134,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 			{
 				if (!sendQueue.isEmpty())
 				{
-					closeAfterEmptyingSendQueue = true;
+					closeAfterEmptyingSendQueue();
 				}
 				else
 				{

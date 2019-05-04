@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -59,6 +58,7 @@ import java.util.Set;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -160,7 +160,7 @@ extends L2Operation
 		{
 			// The register that supplied the outer value is still live.  Use it
 			// directly, which may allow the function creation to be elided.
-			return synonym.defaultObjectRead().register().read(
+			return stripNull(synonym.defaultObjectRead()).register().read(
 				restriction(intersection));
 		}
 

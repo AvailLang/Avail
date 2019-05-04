@@ -105,7 +105,7 @@ public abstract class Problem
 	private final Object [] arguments;
 
 	/**
-	 * Construct a new {@link Problem}.
+	 * Construct a new {@code Problem}.
 	 *
 	 * @param moduleName
 	 *        The name of the module in which the problem was encountered, or
@@ -137,7 +137,7 @@ public abstract class Problem
 		this.characterInFile = characterInFile;
 		this.type = type;
 		this.messagePattern = messagePattern;
-		this.arguments = arguments;
+		this.arguments = arguments.clone();
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class Problem
 
 	/**
 	 * Give up compilation.  Note that either {@link #continueCompilation()} or
-	 * this method must be invoked by code handling {@link Problem}s.
+	 * this method must be invoked by code handling {@code Problem}s.
 	 */
 	protected abstract void abortCompilation ();
 

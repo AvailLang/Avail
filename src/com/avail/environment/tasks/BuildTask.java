@@ -39,6 +39,7 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.utility.evaluation.Continuation3;
+import jdk.nashorn.internal.objects.Global;
 
 import java.awt.*;
 
@@ -76,7 +77,7 @@ extends AbstractWorkbenchTask
 	}
 
 	/**
-	 * Answer a suitable {@linkplain Continuation3 global tracker}.
+	 * Answer a suitable {@linkplain GlobalProgressReporter global tracker}.
 	 *
 	 * @return A global tracker.
 	 */

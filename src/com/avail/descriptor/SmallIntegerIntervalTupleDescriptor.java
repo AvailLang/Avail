@@ -341,9 +341,8 @@ extends NumericTupleDescriptor
 		final boolean canDestroy)
 	{
 		// Ensure parameters are in bounds
-		assert 1 <= start && start <= end + 1;
 		final int oldSize = object.slot(SIZE);
-		assert 0 <= end && end <= oldSize;
+		assert 1 <= start && start <= end + 1 && end <= oldSize;
 		final int newSize = end - start + 1;
 		if (newSize == oldSize)
 		{

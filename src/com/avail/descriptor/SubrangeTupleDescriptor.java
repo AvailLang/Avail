@@ -321,8 +321,8 @@ extends TupleDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		assert 1 <= start && start <= end + 1;
-		assert 0 <= end && end <= object.slot(SIZE);
+		final int oldSize = object.slot(SIZE);
+		assert 1 <= start && start <= end + 1 && end <= oldSize;
 		final int newSize = end - start + 1;
 		if (newSize == 0)
 		{

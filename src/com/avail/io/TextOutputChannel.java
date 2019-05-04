@@ -50,8 +50,8 @@ public interface TextOutputChannel
 extends AsynchronousChannel
 {
 	/**
-	 * Writes a sequence of characters to this {@linkplain TextOutputChannel
-	 * channel} from the given {@linkplain CharBuffer buffer}.
+	 * Writes a sequence of characters to this {@code TextOutputChannel} from
+	 * the given {@linkplain CharBuffer buffer}.
 	 *
 	 * <p>This method initiates an asynchronous write operation to write a
 	 * sequence of characters to this channel from the given buffer. The
@@ -99,8 +99,8 @@ extends AsynchronousChannel
 		CompletionHandler<Integer, A> handler);
 
 	/**
-	 * Writes a sequence of characters to this {@linkplain TextOutputChannel
-	 * channel} from the given {@linkplain String string}.
+	 * Writes a sequence of characters to this {@code TextOutputChannel} from
+	 * the given {@linkplain String string}.
 	 *
 	 * <p>This method initiates an series of asynchronous write operations to
 	 * write a sequence of characters to this channel from the given string. The

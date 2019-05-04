@@ -35,6 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -100,7 +101,7 @@ public final class P_PushLastOuter extends Primitive
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final @Nullable A_BasicObject constantFunction =
+		final @Nullable AvailObject constantFunction =
 			functionToCallReg.constantOrNull();
 
 		// Check for the rare case that the exact function is known (noting that
@@ -109,7 +110,7 @@ public final class P_PushLastOuter extends Primitive
 		{
 			callSiteHelper.useAnswer(
 				translator.generator.constantRegister(
-					((A_Function) constantFunction).outerVarAt(1)));
+					constantFunction.outerVarAt(1)));
 			return true;
 		}
 

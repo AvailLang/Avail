@@ -89,39 +89,39 @@ import java.util.EnumMap;
  * simultaneously execute on the same FSM.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <StateType>
+ * @param <State>
  *        The kind of states.
- * @param <EventType>
+ * @param <Event>
  *        The kind of events.
- * @param <ActionKeyType>
+ * @param <ActionKey>
  *        The kind of action keys.
- * @param <GuardKeyType>
+ * @param <GuardKey>
  *        The kind of guard keys.
- * @param <MementoType>
+ * @param <Memento>
  *        The kind of argument that {@linkplain Continuation1 actions} will
  *        receive.
  * @see <a href="http://en.wikipedia.org/wiki/Finite-state_machine">
  *      Finite state machine</a>
  */
 public final class StateMachine<
-	StateType extends Enum<StateType>,
-	EventType extends Enum<EventType>,
-	GuardKeyType extends Enum<GuardKeyType>,
-	ActionKeyType extends Enum<ActionKeyType>,
-	MementoType>
+	State extends Enum<State>,
+	Event extends Enum<Event>,
+	GuardKey extends Enum<GuardKey>,
+	ActionKey extends Enum<ActionKey>,
+	Memento>
 {
 	/**
 	 * The state in which to start a new {@linkplain ExecutionContext state
 	 * machine context}.
 	 */
-	private final StateType initialState;
+	private final State initialState;
 
 	/**
-	 * Answer this {@linkplain StateMachine state machine}'s initial state.
+	 * Answer this {@code StateMachine}'s initial state.
 	 *
 	 * @return The initial state.
 	 */
-	StateType initialState ()
+	State initialState ()
 	{
 		return initialState;
 	}
@@ -131,13 +131,7 @@ public final class StateMachine<
 	 * {@linkplain StateSummary state summaries}.
 	 */
 	private final EnumMap<
-			StateType,
-			StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>
+			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>>
 		transitionTable;
 
 	/**
@@ -148,79 +142,50 @@ public final class StateMachine<
 	 * @param summary A {@linkplain StateSummary state summary}.
 	 */
 	private void addStateSummary (
-		final StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
-			summary)
+		final StateSummary<State, Event, GuardKey, ActionKey, Memento> summary)
 	{
 		assert !transitionTable.containsKey(summary.state());
 		transitionTable.put(summary.state(), summary);
 	}
 
 	/**
-	 * Construct a new {@link StateMachine}.
+	 * Construct a new {@code StateMachine}.
 	 *
 	 * @param initialState
 	 *        The state in which a new {@link ExecutionContext context} will
 	 *        start.
-	 * @param actionKeyType
-	 *        The action key class.
 	 * @param summaries
 	 *        The collection of {@link StateSummary state summaries}.
 	 */
 	StateMachine (
-		final StateType initialState,
-		final Class<ActionKeyType> actionKeyType,
+		final State initialState,
 		final Collection<
-			StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>> summaries)
+				StateSummary<State, Event, GuardKey, ActionKey, Memento>>
+			summaries)
 	{
 		this.initialState    = initialState;
 		this.transitionTable = new EnumMap<>(initialState.getDeclaringClass());
-		for (final StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType> summary : summaries)
+		for (final StateSummary<State, Event, GuardKey, ActionKey, Memento>
+			summary : summaries)
 		{
 			addStateSummary(summary);
 		}
 	}
 
 	/**
-	 * Create a {@linkplain ExecutionContext context} for executing
-	 * this {@linkplain StateMachine state machine}.
+	 * Create a {@linkplain ExecutionContext context} for executing this {@code
+	 * StateMachine}.
 	 *
 	 * @param memento
 	 *        The memento to pass to each {@linkplain Continuation1 action}.
 	 * @return A new {@linkplain ExecutionContext execution context}.
 	 */
-	public ExecutionContext<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType>
+	public ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
 		createExecutionContext (
-			final MementoType memento)
+			final Memento memento)
 	{
-		final ExecutionContext<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
-			context = new ExecutionContext<>(
-			this,
-			memento);
+		final ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
+			context = new ExecutionContext<>(this, memento);
 
 		synchronized (context)
 		{
@@ -239,35 +204,26 @@ public final class StateMachine<
 	 *        The {@linkplain ExecutionContext execution context} to advance.
 	 */
 	private void followAutomaticTransitions (
-		final ExecutionContext<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+		final ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
 			executionContext)
 	{
 		while (true)
 		{
-			final @Nullable StateType sourceState =
+			final @Nullable State sourceState =
 				executionContext.currentState();
 			if (sourceState == null)
 			{
 				return;
 			}
 			final @Nullable StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+					State, Event, GuardKey, ActionKey, Memento>
 				arc = transitionTable.get(sourceState).getTransitionArc(
 					null, executionContext);
 			if (arc == null)
 			{
 				return;
 			}
-			final StateType targetState = arc.stateAfterTransition();
+			final State targetState = arc.stateAfterTransition();
 			executionContext.executeAction(
 				transitionTable.get(sourceState).getExitAction());
 			executionContext.justSetState(null);
@@ -298,36 +254,22 @@ public final class StateMachine<
 	 *         specified event.
 	 */
 	void handleEvent (
-			final EventType event,
-			final ExecutionContext<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+			final Event event,
+			final ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
 				context)
 		throws InvalidContextException, InvalidTransitionException
 	{
-		final @Nullable StateType sourceState = context.currentState();
+		final @Nullable State sourceState = context.currentState();
 		if (sourceState == null)
 		{
 			throw new InvalidContextException(
 				"event " + event + " signaled on invalid context");
 		}
-		final @Nullable StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+		final @Nullable StateSummary<State, Event, GuardKey, ActionKey, Memento>
 			summary = transitionTable.get(sourceState);
 		assert summary != null;
 		final @Nullable StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+				State, Event, GuardKey, ActionKey, Memento>
 			arc = summary.getTransitionArc(event, context);
 		if (arc == null)
 		{
@@ -336,7 +278,7 @@ public final class StateMachine<
 				+ "\" could not transition on event \"" + event +"\"");
 		}
 
-		final StateType targetState = arc.stateAfterTransition();
+		final State targetState = arc.stateAfterTransition();
 		context.executeAction(summary.getExitAction());
 		context.justSetState(null);
 		context.executeAction(arc.action());

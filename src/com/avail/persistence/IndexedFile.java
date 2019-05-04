@@ -1564,7 +1564,6 @@ public abstract class IndexedFile
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <F extends IndexedFile> F newFile (
 		final Class<F> subclass,
 		final File fileReference,

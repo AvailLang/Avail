@@ -204,7 +204,9 @@ public class CompilerDiagnostics
 
 		lockWhile(
 			liveTokensLock.writeLock(),
-			() -> liveTokens = new ArrayList<>(100));
+			() -> {
+				liveTokens = new ArrayList<>(100);
+			});
 	}
 
 	/**
@@ -338,7 +340,6 @@ public class CompilerDiagnostics
 					expectations.get(position);
 				if (innerMap == null)
 				{
-					//noinspection ConstantConditions
 					if (expectationsIndexHeap.size() == expectationsCountToTrack
 						&& position < expectationsIndexHeap.peek())
 					{

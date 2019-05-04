@@ -1606,7 +1606,7 @@ public final class AvailBuilder
 	class BuildLoader
 	{
 		/**
-		 * A {@linkplain Continuation4 continuation} that is updated to show
+		 * A {@linkplain CompilerProgressReporter} that is updated to show
 		 * progress while compiling or loading a module.  It accepts:
 		 * <ol>
 		 * <li>the name of the module currently undergoing {@linkplain
@@ -2463,7 +2463,7 @@ public final class AvailBuilder
 		 *
 		 * @return A {@link String} suitable for use as a label.
 		 */
-		@SuppressWarnings({"DynamicRegexReplaceableByCompiledPattern"})
+		@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 		String safeLabel ()
 		{
 			final String addendum = label.charAt(label.length() - 1) == '\\'
@@ -2650,9 +2650,7 @@ public final class AvailBuilder
 			int sequence = 2;
 			while (true)
 			{
-				@SuppressWarnings("StringConcatenationMissingWhitespace")
-				final String outputString =
-					leadingPart + sequence;
+				final String outputString = leadingPart + sequence;
 				if (!allocatedNames.contains(outputString))
 				{
 					allocatedNames.add(outputString);

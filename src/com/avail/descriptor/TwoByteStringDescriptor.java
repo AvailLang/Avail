@@ -98,12 +98,6 @@ extends StringDescriptor
 			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
 				== HASH_AND_MORE.ordinal();
 		}
-
-		static
-		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
-		}
 	}
 
 	/**
@@ -475,9 +469,8 @@ extends StringDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		assert 1 <= start && start <= end + 1;
 		final int tupleSize = object.tupleSize();
-		assert 0 <= end && end <= tupleSize;
+		assert 1 <= start && start <= end + 1 && end <= tupleSize;
 		final int size = end - start + 1;
 		if (size > 0 && size < tupleSize && size <= maximumCopySize)
 		{

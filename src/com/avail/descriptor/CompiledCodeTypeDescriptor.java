@@ -235,15 +235,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain CompiledCodeTypeDescriptor compiled code type} based
-	 * on the passed {@linkplain FunctionTypeDescriptor function type}. Ignore
-	 * the function type's exception set.
+	 * Create a compiled code type based on the passed {@linkplain
+	 * FunctionTypeDescriptor function type}. Ignore the function type's
+	 * exception set.
 	 *
 	 * @param functionType
 	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *        base the new {@linkplain CompiledCodeTypeDescriptor compiled code
-	 *        type}.
-	 * @return A new {@linkplain CompiledCodeTypeDescriptor compiled code type}.
+	 *        base the new compiled code type.
+	 * @return A new compiled code type.
 	 */
 	public static AvailObject compiledCodeTypeForFunctionType (final A_BasicObject functionType)
 	{
@@ -254,7 +253,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link CompiledCodeTypeDescriptor}.
+	 * Construct a new {@code CompiledCodeTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -303,11 +302,10 @@ extends TypeDescriptor
 		compiledCodeTypeForFunctionType(mostGeneralFunctionType()).makeShared();
 
 	/**
-	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
-	 * code type}.
+	 * Answer the most general compiled code type.
 	 *
-	 * @return A {@linkplain CompiledCodeTypeDescriptor compiled code type}
-	 *         which has no supertypes that are themselves compiled code types.
+	 * @return A compiled code type which has no supertypes that are themselves
+	 *         compiled code types.
 	 */
 	public static A_Type mostGeneralCompiledCodeType ()
 	{

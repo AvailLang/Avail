@@ -88,7 +88,6 @@ public final class P_ExtractSubtuple extends Primitive
 		final int endInt = end.extractInt();
 		if (startInt < 1
 			|| startInt > endInt + 1
-			|| endInt < 0
 			|| endInt > tuple.tupleSize())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);

@@ -44,7 +44,7 @@ extends RuntimeException
 	private static final long serialVersionUID = 8401610016972089929L;
 
 	/**
-	 * Construct a new <code>{@link InvalidTransitionException}</code>.
+	 * Construct a new {@code InvalidTransitionException}.
 	 */
 	InvalidTransitionException ()
 	{
@@ -52,7 +52,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link InvalidTransitionException}.
+	 * Construct a new {@code InvalidTransitionException}.
 	 *
 	 * @param message
 	 *        A (hopefully) informative message describing the invalid

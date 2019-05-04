@@ -36,21 +36,7 @@ import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.DefinitionDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -73,29 +59,29 @@ public enum L2OperandType
 	/**
 	 * An {@link L2ConstantOperand} holds a specific AvailObject.
 	 */
-	CONSTANT(false, false),
+	CONSTANT,
 
 	/**
 	 * An {@link L2IntImmediateOperand} holds an {@code int} value.
 	 */
-	INT_IMMEDIATE(false, false),
+	INT_IMMEDIATE,
 
 	/**
 	 * An {@link L2FloatImmediateOperand} holds a {@code double} value.
 	 */
-	FLOAT_IMMEDIATE(false, false),
+	FLOAT_IMMEDIATE,
 
 	/**
 	 * An {@link L2PcOperand} holds an offset into the chunk's instructions,
 	 * presumably for the purpose of branching there at some time and under some
 	 * condition.
 	 */
-	PC(false, false),
+	PC,
 
 	/**
 	 * An {@link L2PrimitiveOperand} holds a {@link Primitive} to be invoked.
 	 */
-	PRIMITIVE(false, false),
+	PRIMITIVE,
 
 	/**
 	 * Like a {@link #CONSTANT}, the {@link L2SelectorOperand} holds the actual
@@ -103,96 +89,69 @@ public enum L2OperandType
 	 * L2Chunk} depends on this bundle, invalidating itself if its {@link
 	 * DefinitionDescriptor definitions} change.
 	 */
-	SELECTOR(false, false),
+	SELECTOR,
 
 	/**
 	 * The {@link L2ReadPointerOperand} holds the {@link L2ObjectRegister} that
 	 * will be read.
 	 */
-	READ_POINTER(true, false),
+	READ_POINTER,
 
 	/**
 	 * The {@link L2WritePointerOperand} holds the {@link L2ObjectRegister} that
 	 * will be written (but not read).
 	 */
-	WRITE_POINTER(false, true),
+	WRITE_POINTER,
 
 	/**
 	 * The {@link L2ReadIntOperand} holds the {@link L2IntRegister} that
 	 * will be read.
 	 */
-	READ_INT(true, false),
+	READ_INT,
 
 	/**
 	 * The {@link L2WriteIntOperand} holds the {@link L2IntRegister} that
 	 * will be written (but not read).
 	 */
-	WRITE_INT(false, true),
+	WRITE_INT,
 
 	/**
 	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
 	 * will be read.
 	 */
-	READ_FLOAT(true, false),
+	READ_FLOAT,
 
 	/**
 	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
 	 * will be written (but not read).
 	 */
-	WRITE_FLOAT(false, true),
+	WRITE_FLOAT,
 
 	/**
 	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
 	 * L2ReadPointerOperand}s which will be read.
 	 */
-	READ_VECTOR(true, false),
+	READ_VECTOR,
 
 	/**
 	 * The {@link L2WritePhiOperand} holds the {@link L2Register} that will be
 	 * written (but not read).
 	 */
-	WRITE_PHI(false, true),
+	WRITE_PHI,
 
 	/**
 	 * The {@link L2InternalCounterOperand} holds a {@link LongAdder} that will
 	 * be incremented when a specific condition happens, such as taking or not
 	 * taking a branch.
 	 */
-	INTERNAL_COUNTER(true, false),
+	INTERNAL_COUNTER,
 
 	/**
 	 * The {@link L2CommentOperand} holds descriptive text that does not affect
 	 * analysis or execution of level two code.  It is for diagnostic purposes
 	 * only.
 	 */
-	COMMENT(false, false);
-
-	/**
-	 * Whether the receiver is to be treated as a source of information.
-	 */
-	public final boolean isSource;
-
-	/**
-	 * Whether the receiver is to be treated as a destination for information.
-	 */
-	public final boolean isDestination;
-
-	/**
-	 * Construct a new {@code L2OperandType}.  Remember, this is an enum, so
-	 * the only constructor calls are in the enum member definitions.
-	 *
-	 * @param isSource
-	 *        Whether I represent a (potential) read from a register.
-	 * @param isDestination
-	 *        Whether I represent a write to a register.  If I am also to be
-	 *        considered a read, then it is treated as a <em>potential</em>
-	 *        write.
-	 */
-	L2OperandType (final boolean isSource, final boolean isDestination)
-	{
-		this.isSource = isSource;
-		this.isDestination = isDestination;
-	}
+	COMMENT;
 
 	/**
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link

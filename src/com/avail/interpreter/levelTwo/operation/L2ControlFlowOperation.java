@@ -51,7 +51,6 @@ import java.util.List;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@SuppressWarnings("AbstractClassWithoutAbstractMethods")
 public abstract class L2ControlFlowOperation extends L2Operation
 {
 	/**

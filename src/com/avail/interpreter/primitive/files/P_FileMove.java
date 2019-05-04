@@ -95,7 +95,6 @@ extends Primitive
 		final A_String source = interpreter.argument(0);
 		final A_String destination = interpreter.argument(1);
 		final A_Atom overwrite = interpreter.argument(2);
-		final AvailRuntime runtime = currentRuntime();
 		final Path sourcePath;
 		final Path destinationPath;
 		try

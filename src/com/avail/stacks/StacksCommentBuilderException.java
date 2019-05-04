@@ -60,7 +60,7 @@ public class StacksCommentBuilderException extends Exception
 	}
 
 	/**
-	 * Construct a new {@link StacksCommentBuilderException}.
+	 * Construct a new {@code StacksCommentBuilderException}.
 	 *
 	 * @param message
 	 * 		The error message.

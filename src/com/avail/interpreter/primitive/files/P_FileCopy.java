@@ -103,7 +103,6 @@ extends Primitive
 		final A_Atom followSymlinks = interpreter.argument(2);
 		final A_Atom replace = interpreter.argument(3);
 		final A_Atom copyAttributes = interpreter.argument(4);
-		final AvailRuntime runtime = currentRuntime();
 		final Path sourcePath;
 		final Path destinationPath;
 		try

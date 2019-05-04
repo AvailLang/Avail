@@ -94,7 +94,6 @@ extends Primitive
 		final A_String filename = interpreter.argument(0);
 		final A_String userName = interpreter.argument(1);
 		final A_Atom followSymlinks = interpreter.argument(2);
-		final AvailRuntime runtime = currentRuntime();
 		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		final Path path;
 		try

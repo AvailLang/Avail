@@ -110,7 +110,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 		final CallSiteHelper callSiteHelper)
 	{
 		final @Nullable A_Function function =
-			(A_Function) functionToCallReg.constantOrNull();
+			functionToCallReg.constantOrNull();
 		if (function == null)
 		{
 			// We have to know the specific function to know what variable to

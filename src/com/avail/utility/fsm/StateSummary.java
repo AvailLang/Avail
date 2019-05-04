@@ -46,36 +46,35 @@ import java.util.Map;
  * The complete runtime representation of a state.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <EventType>
+ * @param <Event>
  *        The event type.
- * @param <GuardKeyType>
+ * @param <GuardKey>
  *        The guard key type.
- * @param <ActionKeyType>
+ * @param <ActionKey>
  *        The action key type.
- * @param <StateType>
+ * @param <State>
  *        The state type.
- * @param <MementoType>
+ * @param <Memento>
  *        The type of memento passed to guards and actions.
  */
 final class StateSummary<
-	StateType extends Enum<StateType>,
-	EventType extends Enum<EventType>,
-	GuardKeyType extends Enum<GuardKeyType>,
-	ActionKeyType extends Enum<ActionKeyType>,
-	MementoType>
+	State extends Enum<State>,
+	Event extends Enum<Event>,
+	GuardKey extends Enum<GuardKey>,
+	ActionKey extends Enum<ActionKey>,
+	Memento>
 {
 	/**
 	 * The state for which the receiver is a {@linkplain StateSummary summary}.
 	 */
-	private final StateType state;
+	private final State state;
 
 	/**
-	 * Answer the state for which the receiver is a {@link StateSummary
-	 * summary}.
+	 * Answer the state for which the receiver is a {@code StateSummary}.
 	 *
 	 * @return A state.
 	 */
-	StateType state ()
+	State state ()
 	{
 		return state;
 	}
@@ -84,7 +83,8 @@ final class StateSummary<
 	 * The action key whose {@linkplain Continuation1 action} should be invoked
 	 * when entering a particular state.
 	 */
-	private @Nullable ActionKeyType entryActionKey;
+	private @Nullable
+	ActionKey entryActionKey;
 
 	/**
 	 * Answer the action key whose {@linkplain Continuation1 action} should be
@@ -92,7 +92,8 @@ final class StateSummary<
 	 *
 	 * @return The action key for the <em>entry</em> action.
 	 */
-	@Nullable ActionKeyType getEntryActionKey ()
+	@Nullable
+	ActionKey getEntryActionKey ()
 	{
 		return entryActionKey;
 	}
@@ -104,7 +105,7 @@ final class StateSummary<
 	 * @param actionKey
 	 *        An action key.
 	 */
-	void setEntryActionKey (final ActionKeyType actionKey)
+	void setEntryActionKey (final ActionKey actionKey)
 	{
 		assert entryActionKey == null;
 		entryActionKey = actionKey;
@@ -113,7 +114,7 @@ final class StateSummary<
 	/**
 	 * The {@linkplain Continuation1 action} to perform upon entering my state.
 	 */
-	private @Nullable Continuation1<? super MementoType> entryAction;
+	private @Nullable Continuation1<? super Memento> entryAction;
 
 	/**
 	 * Get the {@linkplain Continuation1 action} to perform upon entering my
@@ -121,7 +122,7 @@ final class StateSummary<
 	 *
 	 * @return The action to perform upon entry.
 	 */
-	@Nullable Continuation1<? super MementoType> getEntryAction ()
+	@Nullable Continuation1<? super Memento> getEntryAction ()
 	{
 		return entryAction;
 	}
@@ -130,7 +131,8 @@ final class StateSummary<
 	 * The action key whose {@linkplain Continuation1 action} should be invoked
 	 * when exiting a particular state.
 	 */
-	private @Nullable ActionKeyType exitActionKey;
+	private @Nullable
+	ActionKey exitActionKey;
 
 	/**
 	 * Answer the action key whose {@linkplain Continuation1 action} should be
@@ -138,7 +140,8 @@ final class StateSummary<
 	 *
 	 * @return The action key for the <em>exit</em> action.
 	 */
-	@Nullable ActionKeyType getExitActionKey ()
+	@Nullable
+	ActionKey getExitActionKey ()
 	{
 		return exitActionKey;
 	}
@@ -149,7 +152,7 @@ final class StateSummary<
 	 *
 	 * @param actionKey An action key.
 	 */
-	void setExitActionKey (final ActionKeyType actionKey)
+	void setExitActionKey (final ActionKey actionKey)
 	{
 		assert exitActionKey == null;
 		exitActionKey = actionKey;
@@ -158,7 +161,7 @@ final class StateSummary<
 	/**
 	 * The {@linkplain Continuation1 action} to perform upon exiting my state.
 	 */
-	private @Nullable Continuation1<? super MementoType> exitAction;
+	private @Nullable Continuation1<? super Memento> exitAction;
 
 	/**
 	 * Get the {@linkplain Continuation1 action} to perform upon exiting my
@@ -166,35 +169,25 @@ final class StateSummary<
 	 *
 	 * @return The action to perform upon exit.
 	 */
-	@Nullable Continuation1<? super MementoType> getExitAction ()
+	@Nullable Continuation1<? super Memento> getExitAction ()
 	{
 		return exitAction;
 	}
 
 	/** The transition table. */
 	private final EnumMap<
-			EventType,
+			Event,
 			Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>>
+				StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>>
 		transitionTable;
 
 	/** The automatic transitions list. */
 	private final Collection<
-			StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>
+			StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 		automaticTransitionTable;
 
 	/**
-	 * Construct a new {@link StateSummary} which does nothing on entry and exit
+	 * Construct a new {@code StateSummary} which does nothing on entry and exit
 	 * of a state. Also include no automatic transitions.
 	 *
 	 * @param state
@@ -203,8 +196,8 @@ final class StateSummary<
 	 *        The {@linkplain Class type} of events.
 	 */
 	StateSummary (
-		final StateType state,
-		final Class<EventType> eventType)
+		final State state,
+		final Class<Event> eventType)
 	{
 		this.state = state;
 		transitionTable = new EnumMap<>(eventType);
@@ -217,24 +210,18 @@ final class StateSummary<
 	 * respectively.
 	 *
 	 * @param guardMap
-	 *        The mapping from GuardKeyType to guard.
+	 *        The mapping from GuardKey to guard.
 	 * @param actionMap
-	 *        The mapping from ActionKeyType to action.
+	 *        The mapping from ActionKey to action.
 	 */
 	void populateGuardsAndActions (
-		final Map<GuardKeyType, Transformer1<? super MementoType, Boolean>>
-			guardMap,
-		final Map<ActionKeyType, Continuation1<? super MementoType>>
-			actionMap)
+		final Map<GuardKey, Transformer1<? super Memento, Boolean>> guardMap,
+		final Map<ActionKey, Continuation1<? super Memento>> actionMap)
 	{
 		entryAction = actionMap.get(entryActionKey);
 		exitAction = actionMap.get(exitActionKey);
 		for (final StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+				State, Event, GuardKey, ActionKey, Memento>
 			transition : allTransitionArcs())
 		{
 			transition.populateGuardsAndActions(guardMap, actionMap);
@@ -251,22 +238,12 @@ final class StateSummary<
 	 *        A {@linkplain StateTransitionArc state transition arc}.
 	 */
 	void addTransitionArc (
-		final @Nullable EventType event,
-		final StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
+		final @Nullable Event event,
+		final StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>
 			arc)
 	{
 		final Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>
+				StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 			collection;
 		if (event == null)
 		{
@@ -286,42 +263,27 @@ final class StateSummary<
 	 *
 	 * @return A {@linkplain Collection collection} of events.
 	 */
-	Collection<EventType> transitionEvents ()
+	Collection<Event> transitionEvents ()
 	{
 		return transitionTable.keySet();
 	}
 
 	/**
 	 * Obtain all {@linkplain StateTransitionArc state transition arcs} for the
-	 * {@linkplain StateSummary summary}'s state.
+	 * {@code StateSummary}'s state.
 	 *
 	 * @return A {@linkplain Collection collection} of {@link StateTransitionArc
 	 *         state transition arcs}.
 	 */
 	Collection<
-			StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>
+			StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 		allTransitionArcs ()
 	{
 		final Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>
+				StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 			aggregate = new ArrayList<>();
 		for (final Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>
+				StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 			transitionArcs : transitionTable.values())
 		{
 			aggregate.addAll(transitionArcs);
@@ -345,29 +307,14 @@ final class StateSummary<
 	 * @return A {@linkplain StateTransitionArc state transition arc}, or null
 	 *         if none are applicable.
 	 */
-	@Nullable StateTransitionArc<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType>
+	@Nullable StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>
 		getTransitionArc (
-			final @Nullable EventType event,
-			final ExecutionContext<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+			final @Nullable Event event,
+			final ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
 				executionContext)
 	{
 		final Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>
+				StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>>
 			transitions;
 		if (event == null)
 		{
@@ -382,12 +329,7 @@ final class StateSummary<
 			}
 		}
 		for (
-			final StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>
+			final StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>
 				transition : transitions)
 		{
 			if (executionContext.testGuard(transition.guard()))

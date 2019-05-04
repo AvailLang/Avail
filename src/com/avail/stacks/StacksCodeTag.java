@@ -51,7 +51,7 @@ public class StacksCodeTag extends AbstractStacksTag
 	private final AbstractStacksToken codeStyledText;
 
 	/**
-	 * Construct a new {@link StacksCodeTag}.
+	 * Construct a new {@code StacksCodeTag}.
 	 *
 	 * @param codeStyledText
 	 * 		The text that is intended to be styled as code.  Can either be

@@ -1942,7 +1942,9 @@ extends JFrame
 		}
 		lockWhile(
 			perModuleProgressLock.writeLock(),
-			() -> perModuleStatusTextSize = string.length());
+			() -> {
+				perModuleStatusTextSize = string.length();
+			});
 	}
 
 	/** The user-specific {@link Preferences} for this application to use. */

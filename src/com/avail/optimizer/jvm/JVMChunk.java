@@ -94,8 +94,8 @@ implements ExecutableChunk
 	@ReferencedInGeneratedCode
 	protected static RuntimeException badOffset (final int offset)
 	{
-		throw new RuntimeException(String.format(
-			"bad offset %d", offset));
+		throw new RuntimeException(
+			String.format("bad offset %d", offset));
 	}
 
 	/**

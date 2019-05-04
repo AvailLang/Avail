@@ -42,33 +42,35 @@ import java.util.Map;
  * transition arc.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <StateType>
+ * @param <State>
  *        The type of the new state.
- * @param <EventType>
+ * @param <Event>
  *        The type of the triggering event.
- * @param <GuardKeyType>
+ * @param <GuardKey>
  *        The type of guard keys.
- * @param <ActionKeyType>
+ * @param <ActionKey>
  *        The type of action keys.
- * @param <MementoType>
+ * @param <Memento>
  *        The type of object passed to guards and actions.
  */
 final class StateTransitionArc<
-	StateType extends Enum<StateType>,
-	EventType extends Enum<EventType>,
-	GuardKeyType extends Enum<GuardKeyType>,
-	ActionKeyType extends Enum<ActionKeyType>,
-	MementoType>
+	State extends Enum<State>,
+	Event extends Enum<Event>,
+	GuardKey extends Enum<GuardKey>,
+	ActionKey extends Enum<ActionKey>,
+	Memento>
 {
 	/** The event upon whose receipt the transition will occur. */
-	private final @Nullable EventType event;
+	private final @Nullable
+	Event event;
 
 	/**
 	 * Answer the event upon whose receipt the transition will occur.
 	 *
 	 * @return An event.
 	 */
-	@Nullable EventType triggeringEvent ()
+	@Nullable
+	Event triggeringEvent ()
 	{
 		return event;
 	}
@@ -77,7 +79,8 @@ final class StateTransitionArc<
 	 * The guard key whose bound {@linkplain Transformer1 guard} will be
 	 * performed to determine if a transition can be taken.
 	 */
-	private final @Nullable GuardKeyType guardKey;
+	private final @Nullable
+	GuardKey guardKey;
 
 	/**
 	 * Answer the guard key whose bound {@linkplain Transformer1 guard} will be
@@ -85,7 +88,8 @@ final class StateTransitionArc<
 	 *
 	 * @return A guard key.
 	 */
-	@Nullable GuardKeyType guardKey ()
+	@Nullable
+	GuardKey guardKey ()
 	{
 		return guardKey;
 	}
@@ -94,7 +98,7 @@ final class StateTransitionArc<
 	 * The actual {@linkplain Transformer1 guard} that will be performed to
 	 * determine if a transition can be taken.
 	 */
-	private @Nullable Transformer1<? super MementoType, Boolean> guard;
+	private @Nullable Transformer1<? super Memento, Boolean> guard;
 
 	/**
 	 * Answer the {@linkplain Transformer1 guard} that will be performed to
@@ -102,7 +106,7 @@ final class StateTransitionArc<
 	 *
 	 * @return A {@linkplain Transformer1 guard}.
 	 */
-	@Nullable Transformer1<? super MementoType, Boolean> guard ()
+	@Nullable Transformer1<? super Memento, Boolean> guard ()
 	{
 		return guard;
 	}
@@ -111,7 +115,8 @@ final class StateTransitionArc<
 	 * The action key whose bound {@linkplain Continuation1 action} will be
 	 * performed during transition.
 	 */
-	private final @Nullable ActionKeyType actionKey;
+	private final @Nullable
+	ActionKey actionKey;
 
 	/**
 	 * Answer the action key whose bound {@linkplain Continuation1 action} will
@@ -119,7 +124,8 @@ final class StateTransitionArc<
 	 *
 	 * @return An action key.
 	 */
-	@Nullable ActionKeyType actionKey ()
+	@Nullable
+	ActionKey actionKey ()
 	{
 		return actionKey;
 	}
@@ -128,7 +134,7 @@ final class StateTransitionArc<
 	 * The actual {@linkplain Continuation1 action} that will be performed
 	 * during transition.
 	 */
-	private @Nullable Continuation1<? super MementoType> action;
+	private @Nullable Continuation1<? super Memento> action;
 
 	/**
 	 * Answer the {@linkplain Continuation1 action} that will be performed
@@ -136,26 +142,26 @@ final class StateTransitionArc<
 	 *
 	 * @return An {@linkplain Continuation1 action}.
 	 */
-	@Nullable Continuation1<? super MementoType> action ()
+	@Nullable Continuation1<? super Memento> action ()
 	{
 		return action;
 	}
 
 	/** The new state to which a transition will occur. */
-	private final StateType newState;
+	private final State newState;
 
 	/**
 	 * Answer the new state to which a transition will occur.
 	 *
 	 * @return A state.
 	 */
-	StateType stateAfterTransition ()
+	State stateAfterTransition ()
 	{
 		return newState;
 	}
 
 	/**
-	 * Construct a new {@link StateTransitionArc}.
+	 * Construct a new {@code StateTransitionArc}.
 	 *
 	 * @param event
 	 *        An event, possibly {@code null}.
@@ -166,10 +172,10 @@ final class StateTransitionArc<
 	 * @param newState A state.
 	 */
 	StateTransitionArc (
-		final @Nullable EventType event,
-		final @Nullable GuardKeyType guardKey,
-		final @Nullable ActionKeyType actionKey,
-		final StateType newState)
+		final @Nullable Event event,
+		final @Nullable GuardKey guardKey,
+		final @Nullable ActionKey actionKey,
+		final State newState)
 	{
 		this.event     = event;
 		this.newState  = newState;
@@ -183,14 +189,14 @@ final class StateTransitionArc<
 	 * respectively.
 	 *
 	 * @param guardMap
-	 *        The mapping from GuardKeyType to guard.
+	 *        The mapping from GuardKey to guard.
 	 * @param actionMap
-	 *        The mapping from ActionKeyType to action.
+	 *        The mapping from ActionKey to action.
 	 */
 	void populateGuardsAndActions (
-		final Map<GuardKeyType, Transformer1<? super MementoType, Boolean>>
+		final Map<GuardKey, Transformer1<? super Memento, Boolean>>
 			guardMap,
-		final Map<ActionKeyType, Continuation1<? super MementoType>>
+		final Map<ActionKey, Continuation1<? super Memento>>
 			actionMap)
 	{
 		guard = guardMap.get(guardKey);

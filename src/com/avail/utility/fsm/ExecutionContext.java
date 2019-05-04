@@ -55,54 +55,46 @@ import static com.avail.utility.Nulls.stripNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <StateType> The state type.
- * @param <EventType> The event type.
- * @param <GuardKeyType> The guard key type.
- * @param <ActionKeyType> The action key type.
- * @param <MementoType> The memento type.
+ * @param <State> The state type.
+ * @param <Event> The event type.
+ * @param <GuardKey> The guard key type.
+ * @param <ActionKey> The action key type.
+ * @param <Memento> The memento type.
  */
 public final class ExecutionContext <
-	StateType extends Enum<StateType>,
-	EventType extends Enum<EventType>,
-	GuardKeyType extends Enum<GuardKeyType>,
-	ActionKeyType extends Enum<ActionKeyType>,
-	MementoType>
+	State extends Enum<State>,
+	Event extends Enum<Event>,
+	GuardKey extends Enum<GuardKey>,
+	ActionKey extends Enum<ActionKey>,
+	Memento>
 {
 	/** The {@linkplain StateMachine state machine}. */
-	private final StateMachine<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType>
+	private final StateMachine<State, Event, GuardKey, ActionKey, Memento>
 		machine;
 
 	/** The current state. */
-	private @Nullable StateType currentState;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private @Nullable State currentState;
 
 	/**
 	 * The memento to pass to each {@linkplain Continuation1 action} that runs.
 	 */
-	private final MementoType memento;
+	private final Memento memento;
 
 	/**
-	 * Construct a new {@link ExecutionContext}.
+	 * Construct a new {@code ExecutionContext}.
 	 *
 	 * @param stateMachine
 	 *        The {@linkplain StateMachine state machine} to instantiate as an
-	 *        {@linkplain ExecutionContext execution context}.
+	 *        {@code ExecutionContext}.
 	 * @param memento
 	 *        The object which should be passed to all {@linkplain Continuation1
 	 *        actions}.
 	 */
 	ExecutionContext (
-		final StateMachine<
-			StateType,
-			EventType,
-			GuardKeyType,
-			ActionKeyType,
-			MementoType> stateMachine,
-		final MementoType memento)
+		final StateMachine<State, Event, GuardKey, ActionKey, Memento>
+			stateMachine,
+		final Memento memento)
 	{
 		this.machine = stateMachine;
 		this.currentState = stateMachine.initialState();
@@ -116,18 +108,18 @@ public final class ExecutionContext <
 	 * @param state
 	 *        The new current state.
 	 */
-	void justSetState (final @Nullable StateType state)
+	void justSetState (final @Nullable State state)
 	{
 		currentState = state;
 	}
 
 	/**
 	 * Answer the current state. This is only legal for a {@linkplain Thread
-	 * thread} synchronized with the {@linkplain ExecutionContext receiver}.
+	 * thread} synchronized with the {@code ExecutionContext}.
 	 *
 	 * @return The current state.
 	 */
-	public @Nullable StateType currentState ()
+	public @Nullable State currentState ()
 	{
 		assert Thread.holdsLock(this);
 		return currentState;
@@ -142,7 +134,7 @@ public final class ExecutionContext <
 	 * @return Whether the guard is satisfied.
 	 */
 	boolean testGuard (
-		final @Nullable Transformer1<? super MementoType, Boolean> guard)
+		final @Nullable Transformer1<? super Memento, Boolean> guard)
 	{
 		if (guard == null)
 		{
@@ -159,7 +151,7 @@ public final class ExecutionContext <
 	 *        if no action should be performed.
 	 */
 	void executeAction (
-		final @Nullable Continuation1<? super MementoType> action)
+		final @Nullable Continuation1<? super Memento> action)
 	{
 		if (action != null)
 		{
@@ -172,14 +164,14 @@ public final class ExecutionContext <
 	 *
 	 * @param event An event.
 	 * @throws InvalidContextException
-	 *         If the {@linkplain ExecutionContext context} was rendered invalid
-	 *         by an {@linkplain Exception exception} thrown during a previous
-	 *         state transition.
+	 *         If the {@code ExecutionContext} was rendered invalid by an
+	 *         {@linkplain Exception exception} thrown during a previous state
+	 *         transition.
 	 * @throws InvalidTransitionException
 	 *         If the current states does not have a transition on the
 	 *         specified event.
 	 */
-	public synchronized void handleEvent (final EventType event)
+	public synchronized void handleEvent (final Event event)
 		throws InvalidContextException, InvalidTransitionException
 	{
 		machine.handleEvent(event, this);

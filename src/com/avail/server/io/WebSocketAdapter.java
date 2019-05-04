@@ -847,7 +847,6 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			{
 				throw new RuntimeException("SHA-1 not available", e);
 			}
-			@SuppressWarnings("StringConcatenationMissingWhitespace")
 			final String stringKey = DatatypeConverter.printBase64Binary(key)
 				+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 			final byte[] acceptBytes =

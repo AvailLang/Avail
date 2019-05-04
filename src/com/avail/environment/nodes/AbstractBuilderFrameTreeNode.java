@@ -127,7 +127,6 @@ extends DefaultMutableTreeNode
 				{
 					assert key != null;
 					final String iconResourceName = key.first();
-					@SuppressWarnings("StringConcatenationMissingWhitespace")
 					final String path = AvailWorkbench.resourcePrefix
 						+ iconResourceName + ".png";
 					final Class<?> thisClass = this.getClass();

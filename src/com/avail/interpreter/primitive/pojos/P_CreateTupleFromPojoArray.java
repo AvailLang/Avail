@@ -76,8 +76,10 @@ extends Primitive
 		final AvailObject array = interpreter.argument(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
 		array.lock(() ->
+		{
 			tuple.value = tupleFromArray(
-				array.<AvailObject[]>javaObjectNotNull()));
+				array.<AvailObject[]>javaObjectNotNull());
+		});
 		return interpreter.primitiveSuccess(tuple.value());
 	}
 

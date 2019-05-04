@@ -306,8 +306,7 @@ public class InternalLookupTree<
 							undecidedElement,
 							positiveIfTrue,
 							undecidedIfTrue,
-							undecidedIfFalse,
-							adaptor.subtypesHideSupertypes());
+							undecidedIfFalse);
 					}
 					assert undecidedIfFalse.isEmpty();
 					ifCheckHolds = adaptor.createTree(
@@ -454,8 +453,7 @@ public class InternalLookupTree<
 				undecidedElement,
 				positiveIfTrue,
 				undecidedIfTrue,
-				undecidedIfFalse,
-				adaptor.subtypesHideSupertypes());
+				undecidedIfFalse);
 		}
 		ifCheckHolds = adaptor.createTree(
 			positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes, memento);

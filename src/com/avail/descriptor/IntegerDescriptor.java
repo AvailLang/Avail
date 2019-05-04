@@ -668,7 +668,7 @@ extends ExtendedIntegerDescriptor
 					}
 				}
 			}
-			object.descriptor = descriptorFor(MUTABLE, size);
+			object.descriptor = mutableFor(size);
 		}
 	}
 
@@ -929,8 +929,8 @@ extends ExtendedIntegerDescriptor
 				output.setIntSlot(RAW_LONG_SLOTS_, 1, (int) quotient);
 				output.setIntSlot(RAW_LONG_SLOTS_, 2, (int) (quotient >> 32L));
 				// Distinguish between a long-sized and int-sized integer.
-				output.descriptor = descriptorFor(
-					MUTABLE, quotient == (int) quotient ? 1 : 2);
+				output.descriptor = mutableFor(
+					quotient == (int) quotient ? 1 : 2);
 				return output;
 			}
 			return fromLong(quotient);
@@ -2173,7 +2173,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject createUninitializedInteger (final int size)
 	{
-		final IntegerDescriptor descriptor = descriptorFor(MUTABLE, size);
+		final IntegerDescriptor descriptor = mutableFor(size);
 		return descriptor.create((size + 1) >> 1);
 	}
 
@@ -2215,22 +2215,19 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * Answer the descriptor that has the specified mutability flag and is
-	 * suitable to describe an integer with the given number of int slots.
+	 * Answer the mutable descriptor that is suitable to describe an integer
+	 * with the given number of int slots.
 	 *
-	 * @param flag
-	 *        Whether the requested descriptor should be mutable.
 	 * @param size
 	 *        How many int slots are in the large integer to be represented by
 	 *        the descriptor.
 	 * @return An {@code IntegerDescriptor} suitable for representing an integer
 	 *         of the given mutability and int slot count.
 	 */
-	private static IntegerDescriptor descriptorFor (
-		final Mutability flag,
+	private static IntegerDescriptor mutableFor (
 		final int size)
 	{
-		return descriptors[(size & 1) * 3 + flag.ordinal()];
+		return descriptors[(size & 1) * 3];
 	}
 
 	@Override

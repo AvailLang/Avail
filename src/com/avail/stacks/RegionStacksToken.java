@@ -52,7 +52,7 @@ public abstract class RegionStacksToken extends AbstractStacksToken
 	final char closeRegionDelimiter;
 
 	/**
-	 * Construct a new {@link RegionStacksToken}.
+	 * Construct a new {@code RegionStacksToken}.
 	 *
 	 * @param string
 	 * 		The string to be tokenized.
