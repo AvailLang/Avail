@@ -167,7 +167,8 @@ public final class P_Assert extends Primitive
 		if (!falseObject().isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
-			callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
+			callSiteHelper.useAnswer(
+				translator.generator.constantRegister(nil));
 			return true;
 		}
 		if (!trueObject().isInstanceOf(conditionType))

@@ -418,7 +418,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link AtomDescriptor}.
+	 * Construct a new {@code AtomDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
@@ -698,7 +698,7 @@ extends Descriptor
 		public final A_Atom atom;
 
 		/**
-		 * Create a {@link SpecialAtom} with the given name.
+		 * Create a {@code SpecialAtom} with the given name.
 		 *
 		 * @param name The name of the atom to be created.
 		 */
@@ -708,10 +708,12 @@ extends Descriptor
 		}
 
 		/**
-		 * Create a {@link SpecialAtom} to hold the given already constructed
+		 * Create a {@code SpecialAtom} to hold the given already constructed
 		 * {@link A_Atom}.
 		 *
-		 * @param atom The actual atom to be held by this {@link SpecialAtom}.
+		 * @param atom
+		 *        The actual {@link A_Atom} to be held by this {@code
+		 *        SpecialAtom}.
 		 */
 		SpecialAtom (final A_Atom atom)
 		{

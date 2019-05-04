@@ -1,19 +1,19 @@
 /*
- * P_CastIntoElse.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * P_CastInto.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -56,68 +56,56 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
-import static java.util.Collections.emptyList;
+import static java.util.Collections.list;
 import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> If the second argument, a {@linkplain A_Function
  * function}, accepts the first argument as its parameter, do the invocation.
- * Otherwise invoke the third argument, a zero-argument function.
+ * Otherwise fail the primitive.
  */
-public final class P_CastIntoElse extends Primitive
+public final class P_CastInto extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_CastIntoElse().init(
-			3, Invokes, CanInline, CannotFail);
+		new P_CastInto().init(
+			2, Invokes, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(3);
+		interpreter.checkArgumentCount(2);
 		final AvailObject value = interpreter.argument(0);
 		final A_Function castFunction = interpreter.argument(1);
-		final A_Function elseFunction = interpreter.argument(2);
 
-		interpreter.argsBuffer.clear();
 		if (value.isInstanceOf(
 			castFunction.code().functionType().argsTupleType().typeAtIndex(1)))
 		{
 			// "Jump" into the castFunction, to keep this frame from showing up.
+			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add(value);
 			interpreter.function = castFunction;
 			return Result.READY_TO_INVOKE;
 		}
-		// "Jump" into the elseFunction, to keep this frame from showing up.
-		interpreter.function = elseFunction;
-		return Result.READY_TO_INVOKE;
-	}
-
-	@Override
-	public A_Type returnTypeGuaranteedByVM (
-		final A_RawFunction rawFunction,
-		final List<? extends A_Type> argumentTypes)
-	{
-		// Keep it simple.
-		final A_Type castFunctionType = argumentTypes.get(1);
-		final A_Type elseFunctionType = argumentTypes.get(2);
-		return castFunctionType.returnType().typeUnion(
-			elseFunctionType.returnType());
+		// Fail the primitive.
+		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 	}
 
 	@Override
@@ -129,11 +117,53 @@ public final class P_CastIntoElse extends Primitive
 				functionType(
 					tuple(
 						bottom()),
-					TOP.o()),
-				functionType(
-					emptyTuple(),
 					TOP.o())),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE));
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final A_RawFunction rawFunction,
+		final List<? extends A_Type> argumentTypes)
+	{
+		// Keep it simple.  In theory, if we could show that the cast would not
+		// fail, and that the function was a primitive, we could ask the
+		// primitive what it would produce.
+		final A_Type castFunctionType = argumentTypes.get(1);
+		return castFunctionType.returnType();
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type valueType = argumentTypes.get(0);
+		final A_Type castFunctionType = argumentTypes.get(1);
+
+		// Only deal with a constant castFunction for now, otherwise assume it
+		// could either succeed or fail.
+		if (castFunctionType.instanceCount().equalsInt(1))
+		{
+			final A_Function function = castFunctionType.instance();
+			final A_RawFunction code = function.code();
+			final A_Type argType =
+				code.functionType().argsTupleType().typeAtIndex(1);
+			if (valueType.isSubtypeOf(argType))
+			{
+				return CallSiteCannotFail;
+			}
+			if (valueType.typeIntersection(argType).isBottom())
+			{
+				return CallSiteMustFail;
+			}
+		}
+		return CallSiteCanFail;
 	}
 
 	@Override
@@ -145,13 +175,12 @@ public final class P_CastIntoElse extends Primitive
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		// Inline the invocation of this P_CastIntoElse primitive, such that it
+		// Inline the invocation of this P_CastInto primitive, such that it
 		// does a type test for the type being cast to, then either invokes the
 		// first block with the value being cast or the second block with no
 		// arguments.
 		final L2ReadPointerOperand valueReg = arguments.get(0);
 		final L2ReadPointerOperand castFunctionReg = arguments.get(1);
-		final L2ReadPointerOperand elseFunctionReg = arguments.get(2);
 
 		final L2BasicBlock castBlock =
 			translator.generator.createBasicBlock("cast type matched");
@@ -164,11 +193,10 @@ public final class P_CastIntoElse extends Primitive
 			// By tracing where the castBlock came from, we were able to
 			// determine the exact type to compare the value against.  This is
 			// the usual case for casts, typically where the castBlock phrase is
-			// simply a function closure.  First see if we can eliminate the
-			// runtime test entirely.
-			boolean bypassTesting = true;
-			final boolean passedTest;
+			// simply a block phrase.  First see if we can eliminate the runtime
+			// test entirely.
 			final @Nullable A_BasicObject constant = valueReg.constantOrNull();
+			final @Nullable Boolean passedTest;
 			if (constant != null)
 			{
 				passedTest = constant.isInstanceOf(typeTest);
@@ -183,12 +211,11 @@ public final class P_CastIntoElse extends Primitive
 			}
 			else
 			{
-				bypassTesting = false;
-				passedTest = false;  // Keep compiler happy below.
+				passedTest = null;
 			}
-			if (bypassTesting)
+			if (passedTest != null)
 			{
-				// Run the castBlock or elseBlock without having to do the
+				// Go to the castBlock or elseBlock without having to do the
 				// runtime type test (since we just did it).  Don't do a type
 				// check on the result, because the client will deal with it.
 				if (passedTest)
@@ -199,16 +226,18 @@ public final class P_CastIntoElse extends Primitive
 						castFunctionReg.type().returnType(),
 						true,
 						callSiteHelper);
+					return true;
 				}
-				else
-				{
-					translator.generateGeneralFunctionInvocation(
-						elseFunctionReg,
-						emptyList(),
-						elseFunctionReg.type().returnType(),
-						true,
-						callSiteHelper);
-				}
+				// In theory we could skip the check, but for simplicity just
+				// generate a regular invocation.  We expect the primitive to
+				// always fail, however.
+				super.tryToGenerateSpecialPrimitiveInvocation(
+					functionToCallReg,
+					rawFunction,
+					arguments,
+					argumentTypes,
+					translator,
+					callSiteHelper);
 				return true;
 			}
 
@@ -257,16 +286,18 @@ public final class P_CastIntoElse extends Primitive
 			true,
 			callSiteHelper);
 
-		// Now deal with invoking the elseBlock instead.
+		// Now deal with invoking the elseBlock instead.  For simplicity, just
+		// invoke this primitive function, and the redundant type test will
+		// always fail.
 		translator.generator.startBlock(elseBlock);
 		translator.generateGeneralFunctionInvocation(
-			elseFunctionReg,
-			emptyList(),
-			elseFunctionReg.type().returnType(),
-			true,
+			functionToCallReg,
+			arguments,
+			castFunctionReg.type().returnType(),
+			false,
 			callSiteHelper);
-
 		return true;
+
 	}
 
 	/**
@@ -276,9 +307,9 @@ public final class P_CastIntoElse extends Primitive
 	 *
 	 * @param functionReg
 	 *        The register that holds the intoFunction.
-	 * @return Either null or an exact type to compare the value against in
-	 *         order to determine whether the intoBlock or the elseBlock will be
-	 *         invoked.
+	 * @return Either {@code null} or an exact {@link A_Type} to compare the
+	 *         value against in order to determine whether the intoBlock will be
+	 *         invoked (versus the failure code).
 	 */
 	private static @Nullable A_Type exactArgumentTypeFor (
 		final L2ReadPointerOperand functionReg)

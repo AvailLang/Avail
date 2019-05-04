@@ -801,10 +801,10 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
-	 * {@linkplain SetDescriptor set} with at least two instances. The set
-	 * must have already been normalized, such that at most one of the elements
-	 * is itself a {@linkplain TypeDescriptor type}.
+	 * Construct an enumeration type from a {@linkplain SetDescriptor set} with
+	 * at least two instances. The set must have already been normalized, such
+	 * that at most one of the elements is itself a {@linkplain TypeDescriptor
+	 * type}.
 	 *
 	 * @param normalizedSet The set of instances.
 	 * @return The resulting enumeration.
@@ -819,7 +819,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link EnumerationTypeDescriptor}.
+	 * Construct a new {@code EnumerationTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
@@ -880,8 +880,7 @@ extends AbstractEnumerationTypeDescriptor
 	static
 	{
 		final A_Set set = set(trueObject(), falseObject());
-		booleanObject =
-			enumerationWith(set).makeShared();
+		booleanObject = enumerationWith(set).makeShared();
 		trueType = instanceTypeOrMetaOn(trueObject()).makeShared();
 		falseType = instanceTypeOrMetaOn(falseObject()).makeShared();
 	}
@@ -889,8 +888,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Return Avail's boolean type.
 	 *
-	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
-	 *         acts as Avail's boolean type.
+	 * @return The enumeration {@link A_Type} that acts as Avail's boolean type.
 	 */
 	public static A_Type booleanType ()
 	{

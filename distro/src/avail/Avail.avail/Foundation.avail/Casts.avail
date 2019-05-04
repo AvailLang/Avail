@@ -123,18 +123,10 @@ Public method "Cast|cast_into_" is
 	value : any,
 	accept : [⊥]→⊤
 |
-	valueType ::= value's type;
-	paramType ::= accept's type[1];
-	if valueType ⊆ paramType then
-	[
-		accept(value);
-	]
-	else
-	[
-		Raise a bad-cast exception with
-			source type ::= valueType,
-			destination type ::= paramType
-	];
+	Primitive CastInto (failureCode : natural number);
+	Raise a bad-cast exception with
+		source type ::= value's type,
+		destination type ::= accept's type[1]
 ] : ⊤;
 
 /**
