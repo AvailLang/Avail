@@ -38,6 +38,15 @@ import com.avail.descriptor.A_Type;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT;
+import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
@@ -48,9 +57,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -60,6 +67,7 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
 
 /**
  * <strong>Primitive:</strong> Multiply two extended integers.
@@ -207,5 +215,97 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY));
+	}
+
+	@Override
+	public boolean tryToGenerateSpecialPrimitiveInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final A_RawFunction rawFunction,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator,
+		final CallSiteHelper callSiteHelper)
+	{
+		final L2ReadPointerOperand a = arguments.get(0);
+		final L2ReadPointerOperand b = arguments.get(1);
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
+
+		// If either of the argument types does not intersect with int32, then
+		// fall back to the primitive invocation.
+		if (aType.typeIntersection(int32()).isBottom() ||
+			bType.typeIntersection(int32()).isBottom())
+		{
+			return false;
+		}
+
+		// Attempt to unbox the arguments.
+		final L2Generator generator = translator.generator;
+		final L2BasicBlock fallback = generator.createBasicBlock(
+			"fall back to boxed multiplication");
+		final L2ReadIntOperand intA = generator.readIntRegister(
+			a.register(), a.restriction(), fallback);
+		final L2ReadIntOperand intB = generator.readIntRegister(
+			b.register(), b.restriction(), fallback);
+		final A_Type returnType = returnTypeGuaranteedByVM(
+			rawFunction, argumentTypes);
+		if (generator.currentlyReachable())
+		{
+			// The happy path is reachable.  Generate the most efficient
+			// available unboxed arithmetic.
+			final L2WriteIntOperand product =
+				generator.newIntRegisterWriter(restriction(returnType));
+			if (returnType.isSubtypeOf(int32()))
+			{
+				// The result is guaranteed not to overflow, so emit an
+				// instruction that won't bother with an overflow check.  Note
+				// that both the unboxed and boxed registers end up in the same
+				// synonym, so subsequent uses of the result might use either
+				// register, depending whether an unboxed value is desired.
+				translator.addInstruction(
+					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS.instance,
+					intA,
+					intB,
+					product);
+			}
+			else
+			{
+				// The result could exceed an int32.
+				final L2BasicBlock success =
+					generator.createBasicBlock("product is in range");
+				translator.addInstruction(
+					L2_MULTIPLY_INT_BY_INT.instance,
+					intA,
+					intB,
+					product,
+					translator.edgeTo(
+						success,
+						product.read().restrictedToType(int32())),
+					translator.edgeTo(
+						fallback,
+						product.read().restrictedWithoutType(int32())));
+				generator.startBlock(success);
+			}
+			// Even though we're just using the boxed value again, the unboxed
+			// form is also still available for use by subsequent primitives,
+			// which could allow the boxing instruction to evaporate.
+			final L2ReadPointerOperand boxed = generator.readBoxedRegister(
+				product.register(), restriction(returnType));
+			callSiteHelper.useAnswer(boxed);
+		}
+		if (fallback.predecessorEdgesCount() > 0)
+		{
+			// The fallback block is reachable, so generate the slow case within
+			// it.  Fallback may happen from conversion of non-int32 arguments,
+			// or from int32 overflow calculating the product.
+			generator.startBlock(fallback);
+			translator.generateGeneralFunctionInvocation(
+				functionToCallReg,
+				arguments,
+				returnType,
+				false,
+				callSiteHelper);
+		}
+		return true;
 	}
 }
