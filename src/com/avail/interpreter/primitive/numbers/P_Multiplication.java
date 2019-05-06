@@ -49,14 +49,17 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -68,6 +71,8 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> Multiply two extended integers.
@@ -115,23 +120,26 @@ extends Primitive
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);
 
+		aType.makeImmutable();
+		bType.makeImmutable();
+
 		if (aType.isEnumeration() && bType.isEnumeration())
 		{
-			final A_Set aInstances = aType.instances();
-			final A_Set bInstances = bType.instances();
+			final A_Set aValues = aType.instances();
+			final A_Set bValues = bType.instances();
 			// Compute the Cartesian product as an enumeration if there will
 			// be few enough entries.
-			if (aInstances.setSize() * (long) bInstances.setSize() < 100)
+			if (aValues.setSize() * (long) bValues.setSize() < 100)
 			{
 				A_Set answers = emptySet();
-				for (final A_Number aInstance : aInstances)
+				for (final A_Number aValue : aValues)
 				{
-					for (final A_Number bInstance : bInstances)
+					for (final A_Number bValue : bValues)
 					{
 						try
 						{
 							answers = answers.setWithElementCanDestroy(
-								aInstance.timesCanDestroy(bInstance, false),
+								aValue.timesCanDestroy(bValue, false),
 								false);
 						}
 						catch (final ArithmeticException e)
@@ -141,49 +149,125 @@ extends Primitive
 						}
 					}
 				}
-				return
-					enumerationWith(answers);
+				return enumerationWith(answers);
 			}
 		}
 		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
 		{
-			// Don't bother computing a precise bound except for positive
-			// multiplications.  A semantic restriction can certainly do
-			// better than this, and at some future time it may be
-			// profitable to compute an exact bound for this primitive for
-			// all extended integer multiplications.
-			final A_Number zero = zero();
-			if (aType.lowerBound().greaterOrEqual(zero)
-				&& bType.lowerBound().greaterOrEqual(zero))
-			{
-				try
-				{
-					final A_Number low =
-						aType.lowerBound().timesCanDestroy(
-							bType.lowerBound(), false);
-					final A_Number high =
-						aType.upperBound().timesCanDestroy(
-							bType.upperBound(), false);
-					final boolean highInclusive =
-						aType.upperInclusive()
-							&& bType.upperInclusive();
-					return integerRangeType(low, true, high, highInclusive);
-				}
-				catch (final ArithmeticException e)
-				{
-					// Fall-through to general case.
-				}
-			}
-			if (aType.isSubtypeOf(integers()) && bType.isSubtypeOf(integers()))
-			{
-				// integer × integer is always integer.
-				return integers();
-			}
-			// Otherwise one multiplicand might be infinity, so to keep the
-			// logic simple just include both infinities.
-			return extendedIntegers();
+			return new BoundCalculator(aType, bType).process();
 		}
 		return binaryNumericOperationTypeBound(aType, bType);
+	}
+
+	/** A helper class for computing precise bounds. */
+	public static final class BoundCalculator
+	{
+		/** The input ranges. */
+		private final A_Type aType, bType;
+
+		/** Accumulate the range. */
+		private A_Type union = bottom();
+
+		/** The infinities that should be included in the result. */
+		private final Set<A_Number> includedInfinities = new HashSet<>(2);
+
+		/** Partition the integers by sign. */
+		private static final List<A_Type> interestingRanges = asList(
+			inclusive(negativeInfinity(), negativeOne()),
+			inclusive(zero(), zero()),
+			inclusive(one(), positiveInfinity()));
+
+		/**
+		 * Partition the integer range into negatives, zero, and positives,
+		 * omitting any empty regions.
+		 */
+		private static List<A_Type> split (final A_Type type)
+		{
+			return interestingRanges.stream()
+				.map(type::typeIntersection)
+				.filter(subrange -> !subrange.isBottom())
+				.collect(toList());
+		}
+
+		/**
+		 * Given an element from aType and an element from bType, extend the
+		 * union to include their product, while also capturing information
+		 * about whether an infinity should be included in the result.
+		 *
+		 * @param a
+		 *        An extended integer from {@link #aType}, not necessarily
+		 *        inclusive.
+		 * @param b
+		 *        An extended integer from {@link #bType}, not necessarily
+		 *        inclusive.
+		 */
+		private void processPair (final A_Number a, final A_Number b)
+		{
+			if ((!a.equalsInt(0) || b.isFinite())
+				&& (!b.equalsInt(0) || a.isFinite()))
+			{
+				// It's not 0 × ±∞, so include this product in the range.
+				// Always include infinities for now, and trim them out later.
+				final A_Number product = a.timesCanDestroy(b, false);
+				product.makeImmutable();
+				union = union.typeUnion(inclusive(product, product));
+				if (!product.isFinite()
+					&& a.isInstanceOf(aType)
+					&& b.isInstanceOf(bType))
+				{
+					// Both inputs are inclusive, and the product is infinite.
+					// Include the product in the output.
+					includedInfinities.add(product);
+				}
+			}
+		}
+
+		/**
+		 * Set up a new {@code BoundCalculator} for computing the bound of the
+		 * product of elements from two integer range types.
+		 *
+		 * @param aType An integer range type.
+		 * @param bType Another integer range type.
+		 */
+		BoundCalculator (final A_Type aType, final A_Type bType)
+		{
+			this.aType = aType;
+			this.bType = bType;
+		}
+
+		/**
+		 * Compute the bound for the product of the two integer range types that
+		 * were supplied to the constructor.
+		 *
+		 * @return The bound of the product.
+		 */
+		A_Type process ()
+		{
+			final List<A_Type> aRanges = split(aType);
+			final List<A_Type> bRanges = split(bType);
+			for (final A_Type aRange : aRanges)
+			{
+				final A_Number aMin = aRange.lowerBound();
+				final A_Number aMax = aRange.upperBound();
+				for (final A_Type bRange : bRanges)
+				{
+					final A_Number bMin = bRange.lowerBound();
+					final A_Number bMax = bRange.upperBound();
+					processPair(aMin, bMin);
+					processPair(aMin, bMax);
+					processPair(aMax, bMin);
+					processPair(aMax, bMax);
+				}
+			}
+			// Trim off the infinities for now...
+			union = union.typeIntersection(integers());
+			// ...and add them back if needed.
+			for (final A_Number infinity : includedInfinities)
+			{
+				union = union.typeUnion(inclusive(infinity, infinity));
+			}
+			return union;
+		}
 	}
 
 	@Override
