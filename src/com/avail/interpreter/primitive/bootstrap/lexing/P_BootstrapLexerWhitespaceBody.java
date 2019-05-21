@@ -91,7 +91,7 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 			position++;
 		}
 		final A_Token token = newToken(
-			(A_String) source.copyTupleFromToCanDestroy(
+			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
 			lineNumberInteger.extractInt(),

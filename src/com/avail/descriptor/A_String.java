@@ -49,4 +49,23 @@ extends A_Tuple
 	 * @return The corresponding Java string.
 	 */
 	String asNativeString ();
+
+	/**
+	 * Even though {@link #copyTupleFromToCanDestroy(int, int, boolean)} would
+	 * perform the same activity, this method returns the stronger {@code
+	 * A_String} type as a convenience, when the code knows it's working on
+	 * strings.
+	 *
+	 * @param start
+	 *        The start of the range to extract.
+	 * @param end
+	 *        The end of the range to extract.
+	 * @param canDestroy
+	 *        Whether the original object may be destroyed if mutable.
+	 * @return The substring.
+	 */
+	A_String copyStringFromToCanDestroy (
+		final int start,
+		final int end,
+		final boolean canDestroy);
 }

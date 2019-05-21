@@ -353,19 +353,22 @@ extends Primitive
 						final List<A_Tuple> parts = new ArrayList<>(3);
 						if (offsetInBuffer > 1)
 						{
-							parts.add(tuple.copyTupleFromToCanDestroy(
-								1, offsetInBuffer - 1, false));
+							parts.add(
+								tuple.copyTupleFromToCanDestroy(
+									1, offsetInBuffer - 1, false));
 						}
-						parts.add(bytes.copyTupleFromToCanDestroy(
-							subscriptInTuple,
-							subscriptInTuple + consumedThisTime - 1,
-							false));
+						parts.add(
+							bytes.copyTupleFromToCanDestroy(
+								subscriptInTuple,
+								subscriptInTuple + consumedThisTime - 1,
+								false));
 						final int endInBuffer =
 							offsetInBuffer + consumedThisTime - 1;
 						if (endInBuffer < alignment)
 						{
-							parts.add(tuple.copyTupleFromToCanDestroy(
-								endInBuffer + 1, alignment, false));
+							parts.add(
+								tuple.copyTupleFromToCanDestroy(
+									endInBuffer + 1, alignment, false));
 						}
 						assert parts.size() > 1;
 						tuple = parts.remove(0);

@@ -119,12 +119,11 @@ extends Primitive
 			{
 				throw new AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
-			final A_Tuple head = targetTuple
-				.copyTupleFromToCanDestroy(1, headLastIndex, true);
+			final A_Tuple head = targetTuple.copyTupleFromToCanDestroy(
+				1, headLastIndex, true);
 			A_Tuple newTuple = head.concatenateWith(newValues, true);
-			final A_Tuple tail = targetTuple
-				.copyTupleFromToCanDestroy(tailFirstIndex,
-					targetTuple.tupleSize(), true);
+			final A_Tuple tail = targetTuple.copyTupleFromToCanDestroy(
+				tailFirstIndex, targetTuple.tupleSize(), true);
 			newTuple = newTuple.concatenateWith(tail, true);
 			return newTuple;
 

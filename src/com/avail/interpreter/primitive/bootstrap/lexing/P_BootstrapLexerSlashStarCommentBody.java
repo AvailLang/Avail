@@ -125,7 +125,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 
 		// A comment was successfully parsed.
 		final A_Token token = newCommentToken(
-			(A_String) source.copyTupleFromToCanDestroy(
+			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
 			startingLineNumber.extractInt());

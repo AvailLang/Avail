@@ -764,18 +764,18 @@ public class CompilerDiagnostics
 
 		// Insert the problem location indicators...
 		int sourcePosition = startOfFirstLine;
-		final List<A_Tuple> parts = new ArrayList<>(10);
+		final List<A_String> parts = new ArrayList<>(10);
 		for (final ProblemsAtPosition eachProblem : ascending)
 		{
 			final int newPosition = eachProblem.position();
 			parts.add(
-				source.copyTupleFromToCanDestroy(
+				source.copyStringFromToCanDestroy(
 					sourcePosition, newPosition - 1, false));
 			parts.add(stringFrom(eachProblem.indicator));
 			sourcePosition = newPosition;
 		}
 		parts.add(
-			source.copyTupleFromToCanDestroy(
+			source.copyStringFromToCanDestroy(
 				sourcePosition, startOfSecondNextLine - 1, false));
 		// Ensure the last character is a newline.
 		A_Tuple unnumbered =

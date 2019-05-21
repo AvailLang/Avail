@@ -82,7 +82,7 @@ extends Primitive
 		final int startPosition = sourcePositionInteger.extractInt();
 		final int digitCount = countDigits(source, startPosition);
 
-		final A_String string = (A_String) source.copyTupleFromToCanDestroy(
+		final A_String string = source.copyStringFromToCanDestroy(
 			startPosition, startPosition + digitCount - 1, false);
 		final A_Number number =
 			readInteger(string, 1, digitCount);

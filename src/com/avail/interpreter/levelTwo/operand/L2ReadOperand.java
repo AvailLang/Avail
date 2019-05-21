@@ -143,7 +143,7 @@ extends L2Operand
 	 */
 	public final @Nullable AvailObject constantOrNull ()
 	{
-		return nullableCast(restriction.constantOrNull);
+		return restriction.constantOrNull;
 	}
 
 	@Override

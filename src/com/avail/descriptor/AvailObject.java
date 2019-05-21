@@ -88,6 +88,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -1302,6 +1303,29 @@ implements
 			start,
 			end,
 			canDestroy);
+	}
+
+	/**
+	 * A convenience method that exposes the fact that a subtuple of a string is
+	 * also a string.
+	 *
+	 * @param start
+	 *        The start of the range to extract.
+	 * @param end
+	 *        The end of the range to extract.
+	 * @param canDestroy
+	 *        Whether the original object may be destroyed if mutable.
+	 * @return The substring.
+	 */
+	@Override
+	public A_String copyStringFromToCanDestroy (
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		return cast(
+			descriptor.o_CopyTupleFromToCanDestroy(
+				this, start, end, canDestroy));
 	}
 
 	@Override

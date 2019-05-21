@@ -93,7 +93,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			{
 				case '\"':
 					final A_Token token = literalToken(
-						(A_String) source.copyTupleFromToCanDestroy(
+						source.copyStringFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
 						startPosition,
 						startLineNumber,

@@ -41,16 +41,8 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -585,7 +577,7 @@ public final class RegisterSet
 			final @Nullable AvailObject constant = state.constant();
 			final @Nullable AvailObject otherConstant = otherState.constant();
 			if (constant != null
-				&& (otherConstant == null || !otherConstant.equals(constant)))
+				&& (!Objects.equals(otherConstant, constant)))
 			{
 				// They disagree, so it's not really a constant here.
 				entryChanged = true;

@@ -120,12 +120,12 @@ public class ParserState
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 			getClass().getSimpleName(),
 			lexingState.position,
-			((A_String)source.copyTupleFromToCanDestroy(
+			(source.copyStringFromToCanDestroy(
 				max(lexingState.position - 20, 1),
 				max(lexingState.position - 1, 0),
 				false)).asNativeString(),
 			CompilerDiagnostics.errorIndicatorSymbol,
-			((A_String)source.copyTupleFromToCanDestroy(
+			(source.copyStringFromToCanDestroy(
 				min(lexingState.position, source.tupleSize() + 1),
 				min(lexingState.position + 20, source.tupleSize()),
 				false)).asNativeString(),
@@ -143,7 +143,7 @@ public class ParserState
 		{
 			return "(end)";
 		}
-		final A_String nearbyText = (A_String)source.copyTupleFromToCanDestroy(
+		final A_String nearbyText = source.copyStringFromToCanDestroy(
 			lexingState.position,
 			min(lexingState.position + 20, source.tupleSize()),
 			false);

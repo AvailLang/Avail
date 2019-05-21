@@ -705,7 +705,7 @@ public final class MessageSplitter
 					// Problem is before the space.  Stuff the rest of the input
 					// in as a final token to make diagnostics look right.
 					messagePartsList.add(
-						(A_String)messageName.copyTupleFromToCanDestroy(
+						messageName.copyStringFromToCanDestroy(
 							position, messageName.tupleSize(), false));
 					messagePartPositions.add(position);
 					messagePartPosition = messagePartsList.size() - 1;
@@ -725,7 +725,7 @@ public final class MessageSplitter
 					{
 						// Problem is after the space.
 						messagePartsList.add(
-							(A_String)messageName.copyTupleFromToCanDestroy(
+							messageName.copyStringFromToCanDestroy(
 								position, messageName.tupleSize(), false));
 						messagePartPositions.add(position);
 						messagePartPosition = messagePartsList.size();
@@ -749,8 +749,8 @@ public final class MessageSplitter
 					// We didn't find an underscore, so we need to deal with the
 					// backquote in the usual way.
 					messagePartsList.add(
-						(A_String)(messageName.copyTupleFromToCanDestroy(
-							position, position, false)));
+						messageName.copyStringFromToCanDestroy(
+							position, position, false));
 					messagePartPositions.add(position);
 					position++;
 				}
@@ -808,9 +808,8 @@ public final class MessageSplitter
 							i++)
 						{
 							messagePartsList.add(
-								cast(
-									messageName.copyTupleFromToCanDestroy(
-										i, i, false)));
+								messageName.copyStringFromToCanDestroy(
+									i, i, false));
 							messagePartPositions.add(i);
 						}
 					}
@@ -819,8 +818,8 @@ public final class MessageSplitter
 			else if (isUnderscoreOrSpaceOrOperator(ch))
 			{
 				messagePartsList.add(
-					(A_String)(messageName.copyTupleFromToCanDestroy(
-						position, position, false)));
+					messageName.copyStringFromToCanDestroy(
+						position, position, false));
 				messagePartPositions.add(position);
 				position++;
 			}
@@ -864,7 +863,7 @@ public final class MessageSplitter
 				else
 				{
 					messagePartsList.add(
-						(A_String)messageName.copyTupleFromToCanDestroy(
+						messageName.copyStringFromToCanDestroy(
 							start, position - 1, false));
 				}
 			}
@@ -1564,12 +1563,10 @@ public final class MessageSplitter
 								messagePartPosition - 1)
 							: messageName.tupleSize() + 1
 						: 0;
-				final A_String before =
-					(A_String)messageName.copyTupleFromToCanDestroy(
-						1, characterIndex - 1, false);
-				final A_String after =
-					(A_String)messageName.copyTupleFromToCanDestroy(
-						characterIndex, messageName.tupleSize(), false);
+				final A_String before = messageName.copyStringFromToCanDestroy(
+					1, characterIndex - 1, false);
+				final A_String after = messageName.copyStringFromToCanDestroy(
+					characterIndex, messageName.tupleSize(), false);
 				builder.append(before.asNativeString());
 				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
 				builder.append(after.asNativeString());
