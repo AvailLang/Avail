@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Casts.nullableCast;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
@@ -143,7 +143,7 @@ extends L2Operand
 	 */
 	public final @Nullable AvailObject constantOrNull ()
 	{
-		return cast(restriction.constantOrNull);
+		return nullableCast(restriction.constantOrNull);
 	}
 
 	@Override
@@ -163,7 +163,8 @@ extends L2Operand
 		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction instruction)
 	{
-		final @Nullable R replacement = cast(registerRemap.get(register));
+		final @Nullable R replacement =
+			nullableCast(registerRemap.get(register));
 		if (replacement == null || replacement == register)
 		{
 			return;

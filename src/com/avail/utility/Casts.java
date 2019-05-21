@@ -32,8 +32,6 @@
 
 package com.avail.utility;
 
-import org.jetbrains.annotations.Contract;
-
 import javax.annotation.Nullable;
 
 /**
@@ -47,13 +45,19 @@ public final class Casts
 	/**
 	 * When you know better, this bypasses static type-safety, while leaving
 	 * dynamic type-safety intact, other than generics and nulls.
-	 *
-	 * Note that it also uses IntelliJ's contract mechanism for null
-	 * propagation and purity.
 	 */
-	@Contract(value = "null -> null; !null -> !null", pure = true)
 	@SuppressWarnings("unchecked")
-	public static @Nullable <I, O> O cast (final @Nullable I value)
+	public static <I, O> O cast (final I value)
+	{
+		return (O) value;
+	}
+
+	/**
+	 * When you know better, this bypasses static type-safety, while leaving
+	 * dynamic type-safety intact, other than generics and nulls.
+	 */
+	@SuppressWarnings("unchecked")
+	public static @Nullable <I, O> O nullableCast (final @Nullable I value)
 	{
 		return (O) value;
 	}

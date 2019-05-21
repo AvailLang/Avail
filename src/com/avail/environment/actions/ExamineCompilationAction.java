@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -91,7 +92,7 @@ extends AbstractWorkbenchAction
 					}
 					final Object[] compilationsArray = compilations.toArray();
 					final @Nullable ModuleCompilation selectedCompilation =
-						Casts.cast(
+						nullableCast(
 							JOptionPane.showInputDialog(
 								workbench,
 								"Select module compilation to examine",

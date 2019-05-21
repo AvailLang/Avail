@@ -32,8 +32,7 @@
 
 package com.avail.utility;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
@@ -55,7 +54,7 @@ public final class Nulls
 	 *        The type of the input value.
 	 * @return The value.
 	 */
-	public static <X> @NotNull X stripNull (final @Nullable X x)
+	public static @Nonnull <X> X stripNull (final @Nullable X x)
 	{
 		assert x != null;
 		return x;
@@ -74,9 +73,9 @@ public final class Nulls
 	 *        The type of the input value.
 	 * @return The value.
 	 */
-	public static <X> @NotNull X stripNull (
+	public static @Nonnull <X> X stripNull (
 		final @Nullable X x,
-		final @NotNull String failMessage)
+		final @Nonnull String failMessage)
 	{
 		assert x != null : failMessage;
 		return x;
@@ -97,9 +96,9 @@ public final class Nulls
 	 *        The type of {@link Throwable} to be thrown if the value is null.
 	 * @return The value.
 	 */
-	public static <X, T extends Throwable> @NotNull X stripNull (
+	public static @Nonnull <X, T extends Throwable> X stripNull (
 		final @Nullable X x,
-		final @NotNull Supplier<T> throwableSupplier)
+		final @Nonnull Supplier<T> throwableSupplier)
 	throws T
 	{
 		if (x == null)
