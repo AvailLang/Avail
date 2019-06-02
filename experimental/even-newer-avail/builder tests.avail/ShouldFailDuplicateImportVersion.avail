@@ -31,12 +31,12 @@
  */
 
 Module "ShouldFailDuplicateImportVersion"
-Versions "1.0.0 DEV 2014-04-28"
+Versions "1.1.0 DEV 2019-05-21"
 Uses
 	"Avail"
 	(
-		"1.0.0 DEV 2014-04-28",
+		"1.1.0 DEV 2019-05-21",
 		"Something newer",
-		"1.0.0 DEV 2014-04-28"
+		"1.1.0 DEV 2019-05-21"
 	)
 Body

@@ -86,11 +86,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		if (!loader.phase().isExecuting())
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION);
-		}
 		final A_Module module = loader.module();
 		module.addUnloadFunction(unloadFunction);
 		loader.recordEffect(
@@ -109,7 +104,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION));
+		return enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }
