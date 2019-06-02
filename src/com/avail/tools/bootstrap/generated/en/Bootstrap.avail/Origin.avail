@@ -73,7 +73,7 @@ Names
 	"…$",
 	"…#"
 Pragma
-	"check=version=1.0.0 DEV 2014-04-28",
+	"check=version=1.0.0 DEV 2019-05-21",
 	"lexer=BootstrapLexerWhitespaceFilter,BootstrapLexerWhitespaceBody=whitespace lexer",
 	"lexer=BootstrapLexerSlashStarCommentFilter,BootstrapLexerSlashStarCommentBody=comment lexer",
 	"lexer=BootstrapLexerStringFilter,BootstrapLexerStringBody=string token lexer",
