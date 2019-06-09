@@ -202,7 +202,7 @@ Private method "_is visitable object value" is
 [
 	value : atom
 |
-	¬explicit subclassing key ∈ value
+	¬value is special ∧ ¬explicit subclassing key ∈ value
 ];
 
 Private method "_'s⁇visitable components" is
