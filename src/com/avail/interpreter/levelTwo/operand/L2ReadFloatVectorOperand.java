@@ -1,19 +1,19 @@
 /*
- * L2WritePhiOperand.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L2ReadFloatVectorOperand.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -34,42 +34,56 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+
+import java.util.List;
 
 import static com.avail.utility.Casts.cast;
+import static java.util.stream.Collectors.toList;
 
 /**
- * An {@code L2WritePhiOperand} is an operand of type {@link
- * L2OperandType#WRITE_PHI}.  It holds the actual {@link L2Register}
- * that is to be accessed.
+ * An {@code L2ReadFloatVectorOperand} is an operand of type {@link
+ * L2OperandType#READ_FLOAT_VECTOR}. It holds a {@link List} of {@link
+ * L2ReadFloatOperand}s.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2WritePhiOperand<R extends L2Register>
-extends L2WriteOperand<R>
+public class L2ReadFloatVectorOperand
+extends L2ReadVectorOperand<L2ReadFloatOperand, L2FloatRegister>
 {
 	/**
-	 * Construct a new {@code L2WritePhiOperand} for the specified {@link
-	 * L2Register} at the same time.
+	 * Construct a new {@code L2ReadFloatVectorOperand} with the specified {@link
+	 * List} of {@link L2ReadFloatOperand}s.
 	 *
-	 * @param register
-	 *        The type of the value that will be written to this register.
+	 * @param elements
+	 *        The list of {@link L2ReadFloatOperand}s.
 	 */
-	public L2WritePhiOperand (final R register)
+	public L2ReadFloatVectorOperand (
+		final List<L2ReadFloatOperand> elements)
 	{
-		super(register);
+		super(elements);
+	}
+
+	@Override
+	public L2ReadFloatVectorOperand clone ()
+	{
+		return new L2ReadFloatVectorOperand(
+			elements.stream()
+				.<L2ReadFloatOperand>map(read -> cast(read.clone()))
+				.collect(toList()));
+	}
+
+	@Override
+	public L2ReadFloatVectorOperand clone (
+		final List<L2ReadFloatOperand> replacementElements)
+	{
+		return new L2ReadFloatVectorOperand(replacementElements);
 	}
 
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.WRITE_PHI;
-	}
-
-	@Override
-	public final L2ReadOperand<R> read ()
-	{
-		return cast(register.read(register.restriction()));
+		return L2OperandType.READ_FLOAT_VECTOR;
 	}
 
 	@Override

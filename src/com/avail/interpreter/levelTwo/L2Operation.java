@@ -39,18 +39,18 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.reoptimizer.L2Inliner;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.reoptimizer.L2Inliner;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
@@ -60,7 +60,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.emptyList;
@@ -311,12 +312,18 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active at this instruction.
 	 */
-	public void instructionWasAdded (final L2Instruction instruction)
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
 	{
 		assert !isEntryPoint(instruction)
 				|| instruction.basicBlock.instructions().get(0) == instruction
 			: "Entry point instruction must be at start of a block";
+		instruction.operandsDo(
+			operand -> operand.instructionWasAdded(instruction, manifest));
 	}
 
 	/**
@@ -388,27 +395,27 @@ public abstract class L2Operation
 	 *        The one-based outer index to extract from the function.
 	 * @param outerType
 	 *        The type of value that must be in that outer.
-	 * @param translator
-	 *        The {@link L1Translator} into which to write the new code.
-	 * @return The {@link L2ReadPointerOperand} holding the outer value.
+	 * @param generator
+	 *        The {@link L2Generator} into which to write the new code.
+	 * @return The {@link L2ReadBoxedOperand} holding the outer value.
 	 */
-	public L2ReadPointerOperand extractFunctionOuterRegister (
+	public L2ReadBoxedOperand extractFunctionOuter (
 		final L2Instruction instruction,
-		final L2ReadPointerOperand functionRegister,
+		final L2ReadBoxedOperand functionRegister,
 		final int outerIndex,
 		final A_Type outerType,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		assert instruction.operation() == this;
-		final L2WritePointerOperand writer =
-			translator.generator.newObjectRegisterWriter(
-				restriction(outerType));
-		translator.addInstruction(
+		final L2WriteBoxedOperand writer =
+			generator.boxedWriteTemp(
+				restrictionForType(outerType, BOXED));
+		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer);
-		return writer.read();
+		return generator.readBoxed(writer.semanticValue());
 	}
 
 	/**
@@ -440,7 +447,7 @@ public abstract class L2Operation
 	 *         isn't an attempt to run a primitive.
 	 */
 	@SuppressWarnings("unused")
-	public @Nullable L2WritePointerOperand primitiveResultRegister (
+	public @Nullable L2WriteBoxedOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == this;
@@ -466,7 +473,7 @@ public abstract class L2Operation
 	}
 
 	@Override
-	public final String toString ()
+	public String toString ()
 	{
 		// Skip the L2_ prefix, as it is redundant in context.
 		return name().substring(3);

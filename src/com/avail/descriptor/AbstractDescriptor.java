@@ -65,6 +65,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
@@ -86,16 +87,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -1787,12 +1779,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
+	 * @param argRestrictions
 	 * @return
 	 */
 	abstract boolean o_CouldEverBeInvokedWith (
 		AvailObject object,
-		List<? extends A_Type> argTypes);
+		List<? extends TypeRestriction> argRestrictions);
 
 	/**
 	 * Answer a fiber's internal debug log.
@@ -1946,12 +1938,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
+	 * @param argRestrictions
 	 * @return
 	 */
 	abstract List<A_Definition> o_DefinitionsAtOrBelow (
 		AvailObject object,
-		List<? extends A_Type> argTypes);
+		List<? extends TypeRestriction> argRestrictions);
 
 	/**
 	 * @param object
@@ -4061,8 +4053,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @return
 	 */
-	abstract void o_MakeSubobjectsImmutable (AvailObject object);
+	abstract AvailObject o_MakeSubobjectsImmutable (AvailObject object);
 
 	/**
 	 * @param object
@@ -6242,6 +6235,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract boolean o_IsVacuousType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract boolean o_IsTop (AvailObject object);
 
 	/**
@@ -6409,13 +6408,11 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param argumentPhraseTuple
-	 * @return A_Definition
-	 * @throws MethodDefinitionException
+	 * @return A_Tuple
 	 */
-	abstract A_Definition o_LookupMacroByPhraseTuple (
+	abstract A_Tuple o_LookupMacroByPhraseTuple (
 		AvailObject object,
-		A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException;
+		A_Tuple argumentPhraseTuple);
 
 	/**
 	 * @param object

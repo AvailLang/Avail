@@ -40,9 +40,9 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
@@ -54,14 +54,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Given an input register containing a function (not a function type), extract
@@ -79,9 +74,9 @@ extends L2Operation
 	private L2_FUNCTION_PARAMETER_TYPE ()
 	{
 		super(
-			READ_POINTER.is("function"),
+			READ_BOXED.is("function"),
 			INT_IMMEDIATE.is("parameter index"),
-			WRITE_POINTER.is("parameter type"));
+			WRITE_BOXED.is("parameter type"));
 	}
 
 	/**
@@ -96,11 +91,11 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand functionReg =
+			instruction.readBoxedRegisterAt(0);
 		final int paramIndex = instruction.intImmediateAt(1);
-		final L2WritePointerOperand outputParamTypeReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2WriteBoxedOperand outputParamTypeReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
@@ -144,11 +139,11 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand functionReg =
+			instruction.readBoxedRegisterAt(0);
 		final int paramIndex = instruction.intImmediateAt(1);
-		final L2WritePointerOperand outputParamTypeReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2WriteBoxedOperand outputParamTypeReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		@Nullable A_Type functionType = null;
 		if (registerSet.hasConstantAt(functionReg.register()))
@@ -166,7 +161,7 @@ extends L2Operation
 			{
 				// Exactly one instruction provides the function.
 				final L2Instruction closeInstruction = sources.get(0);
-				if (closeInstruction.operation() instanceof L2_CREATE_FUNCTION)
+				if (closeInstruction.operation() == L2_CREATE_FUNCTION.instance)
 				{
 					// The creation of the function is visible.  We can get to
 					// the code, which gives a precise functionType (a kind, not
@@ -198,10 +193,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand function = instruction.readObjectRegisterAt(0);
+		final L2Operand function = instruction.readBoxedRegisterAt(0);
 		final int paramIndex = instruction.intImmediateAt(1);
-		final L2ObjectRegister outputParamTypeReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String outputParamTypeReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -219,11 +214,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister functionReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final int paramIndex = instruction.intImmediateAt(1);
-		final L2ObjectRegister outputParamTypeReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister outputParamTypeReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)

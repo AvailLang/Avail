@@ -31,15 +31,10 @@
  */
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.values.Frame;
@@ -47,19 +42,21 @@ import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.OBJECT;
-import static com.avail.optimizer.L2Synonym.SynonymFlag.KNOWN_IMMUTABLE;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L2ValueManifest} maintains information about which {@link
@@ -77,337 +74,334 @@ import static com.avail.utility.Nulls.stripNull;
  */
 public final class L2ValueManifest
 {
-	/** The synonyms keyed by registers. */
-	private final Map<L2Register, L2Synonym> registerToSynonym;
+	/** The synonyms keyed by semantic values. */
+	private final Map<L2SemanticValue, L2Synonym> semanticValueToSynonym =
+		new HashMap<>();
 
-	/** The synonyms keyed by semantic values */
-	private final Map<L2SemanticValue, L2Synonym> semanticValueToSynonym;
+	/**
+	 * The {@link TypeRestriction}s currently in force on this manifest's {@link
+	 * L2Synonym}s.
+	 */
+	private final Map<L2Synonym, TypeRestriction> synonymRestrictions =
+		new HashMap<>();
+
+	/**
+	 * A map from each {@link L2Synonym} to a {@link List} of {@link
+	 * L2WriteOperand}s that are operands of instructions that act as
+	 * definitions of the synonym's semantic values.
+	 */
+	private final Map<L2Synonym, List<L2WriteOperand<?>>> definitions =
+		new HashMap<>();
 
 	/** Create a new, empty manifest. */
 	public L2ValueManifest ()
 	{
-		registerToSynonym = new HashMap<>();
-		semanticValueToSynonym = new HashMap<>();
+		// Nothing else to initialize.
 	}
 
 	/**
-	 * Copy an existing manifest.
+	 * Copy an existing manifest.  Also intersect the {@link TypeRestriction}s
+	 * with the information in the given {@link PhiRestriction}s.
+	 *
+	 * <p>As a notational convenience, if a {@link PhiRestriction} was
+	 * constructed with {@link L2ReadOperand#inaccessible()}, the corresponding
+	 * semantic value should be *excluded* as invalid.</p>
 	 *
 	 * @param originalManifest
 	 * 	      The original manifest.
+	 * @param phiRestrictions
+	 *        Additional register type and value restrictions to apply along
+	 *        this control flow edge.
 	 */
-	public L2ValueManifest (final L2ValueManifest originalManifest)
+	public L2ValueManifest (
+		final L2ValueManifest originalManifest,
+		final PhiRestriction... phiRestrictions)
 	{
-		registerToSynonym = new HashMap<>();
-		semanticValueToSynonym = new HashMap<>();
-		final Map<L2Synonym, L2Synonym> synonymMap =
-			new HashMap<>();
-		for (final Entry<L2Register, L2Synonym> entry :
-			originalManifest.registerToSynonym.entrySet())
-		{
-			registerToSynonym.put(
-				entry.getKey(),
-				synonymMap.computeIfAbsent(entry.getValue(), L2Synonym::new));
-		}
-		for (final Entry<L2SemanticValue, L2Synonym> entry :
-			originalManifest.semanticValueToSynonym.entrySet())
-		{
-			semanticValueToSynonym.put(
-				entry.getKey(),
-				synonymMap.computeIfAbsent(entry.getValue(), L2Synonym::new));
-		}
+		semanticValueToSynonym.putAll(originalManifest.semanticValueToSynonym);
+		synonymRestrictions.putAll(originalManifest.synonymRestrictions);
+		originalManifest.definitions.forEach(
+			(synonym, list) -> definitions.put(synonym, new ArrayList<>(list)));
+		Arrays.stream(phiRestrictions)
+			.forEach(
+				phiRestriction ->
+				{
+					if (phiRestriction.typeRestriction == null)
+					{
+						// Bottom was given explicitly as the phi restriction,
+						// which is an indication to remove this register as
+						// unassigned along this path.  Note that we should only
+						// remove the semantic value, not the whole synonym.
+						removeSemanticValue(phiRestriction.semanticValue);
+					}
+					else
+					{
+						synonymRestrictions.merge(
+							semanticValueToSynonym.get(
+								phiRestriction.semanticValue),
+							phiRestriction.typeRestriction,
+							TypeRestriction::intersection);
+					}
+				});
 	}
 
 	/**
-	 * Look up the given semantic value, answering an {@link L2Synonym} that's
-	 * bound to it, if any, otherwise {@code null}.
+	 * Exclude the given {@link L2SemanticValue} from this manifest.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that should no longer be mentioned by
+	 *        this manifest.
+	 */
+	public void removeSemanticValue (
+		final L2SemanticValue semanticValue)
+	{
+		if (!hasSemanticValue(semanticValue))
+		{
+			// It already isn't mentioned.
+			return;
+		}
+		final L2Synonym oldSynonym = semanticValueToSynonym(semanticValue);
+		final TypeRestriction oldRestriction =
+			synonymRestrictions.get(oldSynonym);
+		final List<L2WriteOperand<?>> oldDefinitions =
+			definitions.get(oldSynonym);
+		// Erase the old synonym.
+		final Set<L2SemanticValue> values =
+			new HashSet<>(oldSynonym.semanticValues());
+		semanticValueToSynonym.keySet().removeAll(values);
+		synonymRestrictions.remove(oldSynonym);
+		definitions.remove(oldSynonym);
+
+		values.remove(semanticValue);
+		if (values.isEmpty())
+		{
+			// The synonym was a singleton.
+			return;
+		}
+		final L2Synonym newSynonym = new L2Synonym(values);
+		values.forEach(sv -> semanticValueToSynonym.put(sv, newSynonym));
+		synonymRestrictions.put(newSynonym, oldRestriction);
+		definitions.put(newSynonym, oldDefinitions);
+	}
+
+	/**
+	 * Answer whether the {@link L2SemanticValue} is known to this manifest.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue}.
+	 * @return Whether there is a register known to be holding this value.
+	 */
+	public boolean hasSemanticValue (
+		final L2SemanticValue semanticValue)
+	{
+		return semanticValueToSynonym.containsKey(semanticValue);
+	}
+
+	/**
+	 * Look up the given {@link L2SemanticValue}, answering the {@link
+	 * L2Synonym} that's bound to it.  Fail if it's not found.
 	 *
 	 * @param semanticValue
 	 *        The semantic value to look up.
 	 * @return The {@link L2Synonym} bound to that semantic value.
 	 */
-	public @Nullable <R extends L2Register, T extends A_BasicObject>
-	L2Synonym semanticValueToSynonym (final L2SemanticValue semanticValue)
+	public L2Synonym semanticValueToSynonym (
+		final L2SemanticValue semanticValue)
 	{
-		return cast(semanticValueToSynonym.get(semanticValue));
+		return stripNull(semanticValueToSynonym.get(semanticValue));
 	}
 
 	/**
-	 * Look up the given register, answering the {@link L2Synonym} that it's
-	 * associated with, if any, otherwise {@code null}.
+	 * Capture information about a new {@link L2Synonym} and its {@link
+	 * TypeRestriction}.  It's an error if any of the semantic values of the
+	 * synonym are already bound to other synonyms in this manifest.
 	 *
-	 * @param register
-	 *        The {@link L2Register} to look up.
-	 * @return The {@link L2Synonym} that it is currently a member of.
+	 * @param freshSynonym
+	 *        The new {@link L2Synonym} to record.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to constrain the new synonym.
 	 */
-	public @Nullable <R extends L2Register, T extends A_BasicObject>
-	L2Synonym registerToSynonym (final R register)
+	public void introduceSynonym (
+		final L2Synonym freshSynonym,
+		final TypeRestriction restriction)
 	{
-		return cast(registerToSynonym.get(register));
-	}
-
-	/**
-	 * Answer the {@link L2Synonym} associated with the given {@link
-	 * L2Register}, creating and storing one if necessary.
-	 *
-	 * @param register
-	 *        An {@link L2Register} that may or may not already have been
-	 *        registered with this manifest.
-	 * @return The {@link L2Synonym} that is now associated with the given
-	 *         register.
-	 */
-	public L2Synonym forceSynonymForRegister (final L2Register register)
-	{
-		@Nullable L2Synonym synonym = registerToSynonym.get(register);
-		if (synonym == null)
+		for (final L2SemanticValue sv : freshSynonym.semanticValues())
 		{
-			synonym = new L2Synonym(register.restriction());
-			synonym.addRegister(register);
-			registerToSynonym.put(register, synonym);
+			final @Nullable L2Synonym priorSynonym =
+				semanticValueToSynonym.put(sv, freshSynonym);
+			assert priorSynonym == null;
 		}
-		return synonym;
+		synonymRestrictions.put(freshSynonym, restriction);
+		definitions.put(freshSynonym, new ArrayList<>());
 	}
 
 	/**
-	 * Record the fact that the given register now holds this given semantic
-	 * value, in addition to any it may have already held.  Note that this may
-	 * bring together two previously distinct {@link L2Synonym}s.
+	 * Merge a new {@link L2SemanticValue} into an existing {@link L2Synonym}.
+	 * Update the manifest to reflect the merge.
 	 *
+	 * @param existingSynonym
+	 *        An {@link L2Synonym}.
 	 * @param semanticValue
-	 *        The {@link L2SemanticValue} to associate with the register.
-	 * @param register
-	 *        The {@link L2Register} to associate with the semantic value.
+	 *        Another {@link L2SemanticValue} representing the same value.
+	 * @return The newly merged {@link L2Synonym}.
 	 */
-	public void addBinding (
-		final L2SemanticValue semanticValue,
-		final L2Register register)
+	public L2Synonym extendSynonym (
+		final L2Synonym existingSynonym,
+		final L2SemanticValue semanticValue)
 	{
-		final @Nullable L2Synonym synonym1 =
-			semanticValueToSynonym(semanticValue);
-		final @Nullable L2Synonym synonym2 = registerToSynonym(register);
-		if (synonym1 == null)
+		final Set<L2SemanticValue> semanticValues =
+			new HashSet<>(existingSynonym.semanticValues());
+		assert !semanticValues.contains(semanticValue);
+		assert !hasSemanticValue(semanticValue);
+		semanticValues.add(semanticValue);
+		final L2Synonym merged = new L2Synonym(semanticValues);
+		semanticValues.forEach(sv -> semanticValueToSynonym.put(sv, merged));
+		final TypeRestriction restriction =
+			synonymRestrictions.remove(existingSynonym);
+		synonymRestrictions.put(merged, restriction);
+		definitions.put(merged, definitions.remove(existingSynonym));
+
+		// Now update composite L2SemanticValues that used the given synonyms,
+		// to now use the merged synonym instead.
+		final Map<L2SemanticValue, L2Synonym> mapCopy =
+			new HashMap<>(semanticValueToSynonym);
+		mapCopy.forEach((sv, synonym) ->
 		{
-			if (synonym2 == null)
+			final L2SemanticValue transformedSemanticValue =
+				sv.transformInnerSynonym(existingSynonym, merged);
+			if (sv != transformedSemanticValue)
 			{
-				final L2Synonym newSynonym =
-					new L2Synonym(register.restriction());
-				newSynonym.addRegister(register);
-				registerToSynonym.put(register, newSynonym);
-				newSynonym.addSemanticValue(semanticValue);
-				semanticValueToSynonym.put(semanticValue, newSynonym);
+				// Replace the semantic value inside the synonym.
+				final Set<L2SemanticValue> oldSemanticValues =
+					synonym.semanticValues();
+				final Set<L2SemanticValue> newSemanticValues =
+					new HashSet<>(oldSemanticValues);
+				newSemanticValues.remove(sv);
+				newSemanticValues.add(transformedSemanticValue);
+				final L2Synonym transformedSynonym =
+					new L2Synonym(newSemanticValues);
+				// Update the manifest's map from semantic values to synonym.
+				oldSemanticValues.forEach(semanticValueToSynonym::remove);
+				newSemanticValues.forEach(
+					sv2 -> semanticValueToSynonym.put(sv2, transformedSynonym));
+				// And update the relevant type restrictions.
+				final TypeRestriction oldRestriction =
+					synonymRestrictions.remove(synonym);
+				synonymRestrictions.put(transformedSynonym, oldRestriction);
+				definitions.put(
+					transformedSynonym, definitions.remove(synonym));
 			}
-			else
-			{
-				synonym2.addSemanticValue(semanticValue);
-				semanticValueToSynonym.put(semanticValue, synonym2);
-			}
-		}
-		else if (synonym2 == null)
-		{
-			synonym1.addRegister(register);
-			registerToSynonym.put(register, synonym1);
-		}
-		else if (synonym1 != synonym2)
-		{
-			// Merge the two (distinct) synonyms.
-			mergeSynonyms(synonym1, synonym2);
-		}
+		});
+		return merged;
 	}
 
 	/**
-	 * Record the fact that the given registers now hold the same value.  Note
-	 * that this may bring together two previously distinct {@link L2Synonym}s,
-	 * or create a new {@code L2Synonym} that does not yet include any {@link
-	 * L2SemanticValue}s.
-	 *
-	 * @param register1
-	 *        An {@link L2Register}.
-	 * @param register2
-	 *        A second {@link L2Register} that holds the same value.
-	 */
-	public void linkEqualRegisters (
-		final L2Register register1,
-		final L2Register register2)
-	{
-		final @Nullable L2Synonym synonym1 = registerToSynonym(register1);
-		final @Nullable L2Synonym synonym2 = registerToSynonym(register2);
-		if (synonym1 == null)
-		{
-			if (synonym2 == null)
-			{
-				final L2Synonym newSynonym = new L2Synonym(
-					register1.restriction().intersection(
-						register2.restriction()));
-				newSynonym.addRegister(register1);
-				newSynonym.addRegister(register2);
-				registerToSynonym.put(register1, newSynonym);
-				registerToSynonym.put(register2, newSynonym);
-			}
-			else
-			{
-				synonym2.addRegister(register1);
-				registerToSynonym.put(register1, synonym2);
-				synonym2.setRestriction(
-					synonym2.restriction().intersection(
-						register1.restriction()));
-			}
-		}
-		else if (synonym2 == null)
-		{
-			synonym1.addRegister(register2);
-			registerToSynonym.put(register2, synonym1);
-			synonym1.setRestriction(
-				synonym1.restriction().intersection(
-					register2.restriction()));
-		}
-		else if (synonym1 != synonym2)
-		{
-			mergeSynonyms(synonym1, synonym2);
-		}
-	}
-
-	/**
-	 * Merge the given {@link L2Synonym}s, since they're now known to contain
-	 * the same value.
+	 * Merge two synonyms together.  Update the manifest to reflect the merge.
 	 *
 	 * @param synonym1 An {@code L2Synonym}.
 	 * @param synonym2 Another {@code L2Synonym} representing the same value.
+	 * @return The newly merged {@link L2Synonym}.
 	 */
-	private void mergeSynonyms (
+	public L2Synonym mergeSynonyms (
 		final L2Synonym synonym1,
 		final L2Synonym synonym2)
 	{
-		// Merge the smaller synonym into the larger.
-		final L2Synonym small, large;
-		if (synonym1.biggerThan(synonym2))
-		{
-			small = synonym2;
-			large = synonym1;
-		}
-		else
-		{
-			small = synonym1;
-			large = synonym2;
-		}
-		// TODO MvG - Now update all PrimitiveSemanticValues that referred
-		// to the small synonym to use the large one instead.  Note that
-		// this has to be applied recursively.
+		assert synonym1 != synonym2;
+		final Set<L2SemanticValue> semanticValues =
+			new HashSet<>(synonym1.semanticValues());
+		semanticValues.addAll(synonym2.semanticValues());
+		final L2Synonym merged = new L2Synonym(semanticValues);
+		semanticValues.forEach(sv -> semanticValueToSynonym.put(sv, merged));
+		final TypeRestriction restriction =
+			synonymRestrictions.remove(synonym1).intersection(
+				synonymRestrictions.remove(synonym2));
+		synonymRestrictions.put(merged, restriction);
 
-		// Now merge the small synonym into the larger.
-		mergeSynonymInto(small, large);
-	}
+		// Update the definitions map.  Just concatenate the input synonyms'
+		// lists, as this essentially preserves earliest definition order.
+		final List<L2WriteOperand<?>> list = new ArrayList<>(
+			definitions.remove(synonym1));
+		list.addAll(definitions.remove(synonym2));
+		definitions.put(merged, list);
 
-	/**
-	 * Merge the registers and semantic values of the smaller synonym into the
-	 * larger synonym.  Update the manifest to reflect the merge.
-	 *
-	 * @param small
-	 *        The smaller {@link L2Synonym} to merge from.
-	 * @param large
-	 *        The larger {@link L2Synonym} to merge into.
-	 */
-	void mergeSynonymInto (
-		final L2Synonym small,
-		final L2Synonym large)
-	{
-		assert small != large;
-		for (
-			final Iterator<L2Register> iterator = small.registersIterator();
-			iterator.hasNext();)
+		// Now update composite L2SemanticValues that used the given synonyms,
+		// to now use the merged synonym instead.
+		final Map<L2SemanticValue, L2Synonym> mapCopy =
+			new HashMap<>(semanticValueToSynonym);
+		mapCopy.forEach((semanticValue, synonym) ->
 		{
-			final L2Register register = iterator.next();
-			large.addRegister(register);
-			assert registerToSynonym.get(register) == small;
-			registerToSynonym.put(register, large);
-		}
-		for (
-			final Iterator<L2SemanticValue> iterator =
-				small.semanticValuesIterator();
-			iterator.hasNext();)
-		{
-			final L2SemanticValue semanticValue = iterator.next();
-			large.addSemanticValue(semanticValue);
-			assert semanticValueToSynonym.get(semanticValue) == small;
-			semanticValueToSynonym.put(semanticValue, large);
-		}
-		large.setRestriction(
-			small.restriction().intersection(large.restriction()));
-		// Now update uses of small with large.
-		for (final Entry<L2SemanticValue, L2Synonym> entry :
-			new ArrayList<>(semanticValueToSynonym.entrySet()))
-		{
-			final L2SemanticValue originalSemanticValue = entry.getKey();
 			final L2SemanticValue transformedSemanticValue =
-				originalSemanticValue.transformInnerSynonym(small, large);
-			if (originalSemanticValue != transformedSemanticValue)
+				semanticValue
+					.transformInnerSynonym(synonym1, merged)
+					.transformInnerSynonym(synonym2, merged);
+			if (semanticValue != transformedSemanticValue)
 			{
-				final L2Synonym synonym = entry.getValue();
 				// Replace the semantic value inside the synonym.
-				synonym.removeSemanticValue(originalSemanticValue);
-				synonym.addSemanticValue(transformedSemanticValue);
+				final Set<L2SemanticValue> oldSemanticValues =
+					synonym.semanticValues();
+				final Set<L2SemanticValue> newSemanticValues =
+					new HashSet<>(oldSemanticValues);
+				newSemanticValues.remove(semanticValue);
+				newSemanticValues.add(transformedSemanticValue);
+				final L2Synonym transformedSynonym =
+					new L2Synonym(newSemanticValues);
 				// Update the manifest's map from semantic values to synonym.
-				semanticValueToSynonym.remove(originalSemanticValue);
-				semanticValueToSynonym.put(transformedSemanticValue, large);
+				oldSemanticValues.forEach(semanticValueToSynonym::remove);
+				newSemanticValues.forEach(
+					sv -> semanticValueToSynonym.put(sv, transformedSynonym));
+				// And update the relevant type restrictions.
+				final TypeRestriction oldRestriction =
+					synonymRestrictions.remove(synonym);
+				synonymRestrictions.put(transformedSynonym, oldRestriction);
+				definitions.put(
+					transformedSynonym, definitions.remove(synonym));
 			}
-		}
-
-		if (small.hasFlag(KNOWN_IMMUTABLE) && !large.hasFlag(KNOWN_IMMUTABLE))
-		{
-			// Ensure the default object register in large is replaced by the
-			// one from small, otherwise some later uses might use a register
-			// that bypasses the makeImmutable().  However, for the unboxed
-			// registers it doesn't matter which one gets used.  Note that since
-			// small is known to be immutable, it *must* already have a default
-			// boxed register.
-			final L2ObjectRegister immutableRegister =
-				stripNull(small.defaultObjectRead()).register();
-			large.replaceDefaultObjectRegister(immutableRegister);
-			large.setFlag(KNOWN_IMMUTABLE);
-		}
-		large.setRestriction(
-			large.restriction().intersection(small.restriction()));
+		});
+		return merged;
 	}
 
 	/**
-	 * An existing read should be associated with the newly created write, which
-	 * has been ensured immutable.
+	 * Replace the {@link TypeRestriction} associated with the given {@link
+	 * L2Synonym}, which must be a synonym known by this manifest.
 	 *
-	 * @param sourceRead
-	 *        The register read which should be associated with the write.
-	 * @param destinationWrite
-	 *        The register write of an immutable version of the same value that
-	 *        is in the sourceRead.
+	 * @param synonym
+	 *        The given {@link L2Synonym}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to bound the synonym.
 	 */
-	void introduceImmutable (
-		final L2ReadPointerOperand sourceRead,
-		final L2WritePointerOperand destinationWrite)
+	public void setRestriction (
+		final L2Synonym synonym,
+		final TypeRestriction restriction)
 	{
-		final L2ObjectRegister destinationRegister =
-			destinationWrite.register();
-		linkEqualRegisters(sourceRead.register(), destinationRegister);
-		final L2Synonym synonym =
-			stripNull(registerToSynonym(sourceRead.register()));
-		// Ensure attempts to look up any of the associated semantic values
-		// will use the destination register, rather than one of the others.
-		registerToSynonym.put(destinationRegister, synonym);
-		synonym.addRegister(destinationRegister);
-		synonym.replaceDefaultObjectRegister(destinationRegister);
-		synonym.setFlag(KNOWN_IMMUTABLE);
+		assert synonymRestrictions.containsKey(synonym);
+		synonymRestrictions.put(synonym, restriction);
 	}
 
 	/**
-	 * Does the given register contain an immutable value at this point?  If the
-	 * register is not part of a synonym, assume it has not been made immutable.
+	 * Look up the {@link TypeRestriction} that currently bounds this {@link
+	 * L2SemanticValue}.  Fail if there is none.
 	 *
-	 * @param register
-	 *        The {@link L2Register} to test.
-	 * @return {@code true} if the register is known to contain an immutable
-	 *         value here, {@code false} otherwise.
+	 * @param semanticValue
+	 *        The given {@link L2SemanticValue}.
+	 * @return The {@link TypeRestriction} that bounds the synonym.
 	 */
-	public boolean isAlreadyImmutable (final L2Register register)
+	public TypeRestriction restrictionFor (
+		final L2SemanticValue semanticValue)
 	{
-		final @Nullable L2Synonym synonym = registerToSynonym.get(register);
-		return synonym != null && synonym.hasFlag(KNOWN_IMMUTABLE);
+		return restrictionFor(semanticValueToSynonym(semanticValue));
+	}
+
+	/**
+	 * Look up the {@link TypeRestriction} that currently bounds this {@link
+	 * L2Synonym}.  Fail if there is none.
+	 *
+	 * @param synonym
+	 *        The given {@link L2Synonym}.
+	 * @return The {@link TypeRestriction} that bounds the synonym.
+	 */
+	public TypeRestriction restrictionFor (
+		final L2Synonym synonym)
+	{
+		return stripNull(synonymRestrictions.get(synonym));
 	}
 
 	/**
@@ -417,7 +411,7 @@ public final class L2ValueManifest
 	 */
 	public Set<L2Synonym> synonyms ()
 	{
-		return new HashSet<>(registerToSynonym.values());
+		return new HashSet<>(semanticValueToSynonym.values());
 	}
 
 	/**
@@ -426,8 +420,204 @@ public final class L2ValueManifest
 	 */
 	public void clear ()
 	{
-		registerToSynonym.clear();
 		semanticValueToSynonym.clear();
+		synonymRestrictions.clear();
+		definitions.clear();
+	}
+
+	/**
+	 * Record the fact that an {@link L2Instruction} has been emitted, which
+	 * writes to the given {@link L2WriteOperand}.
+	 *
+	 * @param writer
+	 *        The operand that received the value.
+	 */
+	public void recordDefinition (
+		final L2WriteOperand<?> writer)
+	{
+		assert writer.instructionHasBeenEmitted();
+
+		final L2SemanticValue semanticValue = writer.semanticValue();
+		final L2Synonym synonym;
+		if (hasSemanticValue(semanticValue))
+		{
+			synonym = semanticValueToSynonym(writer.semanticValue());
+		}
+		else
+		{
+			synonym = new L2Synonym(singleton(semanticValue));
+			introduceSynonym(synonym, writer.restriction());
+		}
+		final List<L2WriteOperand<?>> list = definitions.computeIfAbsent(
+			synonym, s -> new ArrayList<>());
+		assert !list.contains(writer);
+		list.add(writer);
+	}
+
+	/**
+	 * Erase the information about all {@link L2SemanticValue}s that are part of
+	 * the given {@link L2Synonym}.
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} to forget.
+	 */
+	public void forget (final L2Synonym synonym)
+	{
+		assert synonymRestrictions.containsKey(synonym);
+
+		semanticValueToSynonym.keySet().removeAll(synonym.semanticValues());
+		synonymRestrictions.remove(synonym);
+		definitions.remove(synonym);
+	}
+
+	/**
+	 * Given a synonym and a {@link RegisterKind}, answer a {@link
+	 * L2SemanticValue} from within the synonym, such that it was given a value
+	 * of the appropriate register kind as early as possible.
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} to read from.
+	 * @param registerKind
+	 *        The kind of register that should supply the value.
+	 * @param <RR>
+	 *        The {@link L2WriteOperand} type, which should agree with the
+	 *        #registerKind.
+	 * @param <R>
+	 *        The {@link L2Register} type of the write.
+	 * @return The earliest known {@link L2WriteOperand} of the appropriate
+	 *         {@link RegisterKind}, for any {@link L2SemanticValue} of the
+	 *         given {@link L2Synonym}.
+	 */
+	public <
+		RR extends L2WriteOperand<R>,
+		R extends L2Register>
+	RR getDefinition (
+		final L2Synonym synonym,
+		final RegisterKind registerKind)
+	{
+		final List<L2WriteOperand<?>> list = definitions.get(synonym);
+		for (final L2WriteOperand<?> writer : list)
+		{
+			if (writer.registerKind() == registerKind)
+			{
+				return cast(writer);
+			}
+		}
+		throw new RuntimeException(
+			"No write was found for the given register kind in a synonym");
+	}
+
+	/**
+	 * Create an {@link L2ReadBoxedOperand} for the {@link L2SemanticValue} of
+	 * the earliest known boxed write for any semantic values in the same {@link
+	 * L2Synonym} as the given semantic value..
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to read as a boxed value.
+	 * @return An {@link L2ReadBoxedOperand} that reads the value.
+	 */
+	public L2ReadBoxedOperand readBoxed (final L2SemanticValue semanticValue)
+	{
+		return readBoxed(semanticValueToSynonym(semanticValue));
+	}
+
+	/**
+	 * Create an {@link L2ReadIntOperand} for the {@link L2SemanticValue} of
+	 * the earliest known unboxed int write for any semantic values in the
+	 * same {@link L2Synonym} as the given semantic value..
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to read as an unboxed int value.
+	 * @return An {@link L2ReadIntOperand} that reads the value.
+	 */
+	public L2ReadIntOperand readInt (final L2SemanticValue semanticValue)
+	{
+		return readInt(semanticValueToSynonym(semanticValue));
+	}
+
+	/**
+	 * Create an {@link L2ReadFloatOperand} for the {@link L2SemanticValue} of
+	 * the earliest known unboxed float write for any semantic values in the
+	 * same {@link L2Synonym} as the given semantic value..
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to read as an unboxed int value.
+	 * @return An {@link L2ReadBoxedOperand} that reads from the synonym.
+	 */
+	public L2ReadFloatOperand readFloat (final L2SemanticValue semanticValue)
+	{
+		return readFloat(semanticValueToSynonym(semanticValue));
+	}
+
+	/**
+	 * Create an {@link L2ReadBoxedOperand} for the given {@link L2Synonym}.
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} to read as a boxed value.
+	 * @return An {@link L2ReadBoxedOperand} that reads the value.
+	 */
+	public L2ReadBoxedOperand readBoxed (final L2Synonym synonym)
+	{
+		final TypeRestriction restriction = restrictionFor(synonym);
+		assert restriction.isBoxed();
+		final L2WriteOperand<?> definition = getDefinition(synonym, BOXED);
+		assert definition.instructionHasBeenEmitted();
+		return new L2ReadBoxedOperand(
+			definition.semanticValue(), restriction, this);
+	}
+
+	/**
+	 * Create an {@link L2ReadIntOperand} for the {@link L2SemanticValue} of
+	 * the earliest known unboxed int write for any semantic values in the
+	 * same {@link L2Synonym} as the given semantic value..
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} to read as an unboxed int value.
+	 * @return An {@link L2ReadIntOperand} that reads the value.
+	 */
+	public L2ReadIntOperand readInt (final L2Synonym synonym)
+	{
+		final TypeRestriction restriction = restrictionFor(synonym);
+		assert restriction.isUnboxedInt();
+		final L2WriteOperand<?> definition = getDefinition(synonym, INTEGER);
+		return new L2ReadIntOperand(
+			definition.semanticValue(), restriction, this);
+	}
+
+	/**
+	 * Create an {@link L2ReadFloatOperand} for the {@link L2SemanticValue} of
+	 * the earliest known unboxed float write for any semantic values in the
+	 * same {@link L2Synonym} as the given semantic value..
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} to read as an unboxed float value.
+	 * @return An {@link L2ReadFloatOperand} that reads the value.
+	 */
+	public L2ReadFloatOperand readFloat (final L2Synonym synonym)
+	{
+		final TypeRestriction restriction = restrictionFor(synonym);
+		assert restriction.isUnboxedFloat();
+		final L2WriteOperand<?> definition = getDefinition(synonym, FLOAT);
+		return new L2ReadFloatOperand(
+			definition.semanticValue(), restriction, this);
+	}
+
+	/**
+	 * Given an {@link L2SemanticValue}, produce an {@link L2ReadBoxedOperand}
+	 * of the same value, but with the current manifest's {@link
+	 * TypeRestriction} applied.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} for which to generate a read.
+	 * @return The {@link L2ReadBoxedOperand} that reads the value.
+	 */
+	public L2ReadBoxedOperand read (
+		final L2SemanticValue semanticValue)
+	{
+		return new L2ReadBoxedOperand(
+			semanticValue,
+			restrictionFor(semanticValueToSynonym(semanticValue)),
+			this);
 	}
 
 	/**
@@ -447,8 +637,9 @@ public final class L2ValueManifest
 		final List<L2ValueManifest> manifests,
 		final L2Generator generator)
 	{
-		assert registerToSynonym.isEmpty();
 		assert semanticValueToSynonym.isEmpty();
+		assert synonymRestrictions.isEmpty();
+		assert definitions.isEmpty();
 		final int manifestsSize = manifests.size();
 		if (manifestsSize == 0)
 		{
@@ -457,204 +648,215 @@ public final class L2ValueManifest
 		}
 		if (manifestsSize == 1)
 		{
-			// Special case of a single incoming edge.  Copy each synonym.
-			for (final L2Synonym synonym : manifests.get(0).synonyms())
-			{
-				final L2Synonym synonymCopy = new L2Synonym(synonym);
-				final Iterator<L2Register> registers =
-					synonymCopy.registersIterator();
-				while (registers.hasNext())
-				{
-					registerToSynonym.put(registers.next(), synonymCopy);
-				}
-				final Iterator<L2SemanticValue> values =
-					synonymCopy.semanticValuesIterator();
-				while (values.hasNext())
-				{
-					semanticValueToSynonym.put(values.next(), synonymCopy);
-				}
-			}
+			final L2ValueManifest soleManifest = manifests.get(0);
+			semanticValueToSynonym.putAll(soleManifest.semanticValueToSynonym);
+			synonymRestrictions.putAll(soleManifest.synonymRestrictions);
+			soleManifest.definitions.forEach(
+				(syn, list) -> definitions.put(syn, new ArrayList<>(list)));
 			return;
 		}
 		final List<L2ValueManifest> otherManifests = new ArrayList<>(manifests);
 		final L2ValueManifest firstManifest = otherManifests.remove(0);
-
-		// Treat each kind (boxed, int, float) of register separately, since
-		// we don't take responsibility for boxing/unboxing here if values
-		// of some kind are only available in a subset of source edges.
-		for (final RegisterKind kind : RegisterKind.all)
-		{
-			// Avoid producing multiple phi instructions for the same list of
-			// incoming synonyms (for each RegisterKind). Explicitly track them.
-			final Map<List<L2Synonym>, L2Register> phiMap = new HashMap<>();
-
-			// For each semantic value, figure out commonalities for it in the
-			// manifests' bindings.
-			semanticValues:
-			for (final Entry<L2SemanticValue, L2Synonym> entry
-				: firstManifest.semanticValueToSynonym.entrySet())
+		// For each semantic value, figure out the list of synonyms in which it
+		// occurs for each input manifest.  Build a map from the lists of input
+		// synonyms to the set of semantic values that are represented by those
+		// input synonyms.  That defines which phi instructions will be needed,
+		// although we can eliminate some later when we know if there's an
+		// actual register that's common to all incoming edges.
+		final Set<L2SemanticValue> liveSemanticValues = new HashSet<>(
+			firstManifest.semanticValueToSynonym.keySet());
+		otherManifests.forEach(
+			m -> liveSemanticValues.retainAll(
+				m.semanticValueToSynonym.keySet()));
+		final Map<List<L2Synonym>, Set<L2SemanticValue>> phiMap =
+			new HashMap<>();
+		liveSemanticValues.forEach(
+			sv -> phiMap
+				.computeIfAbsent(
+					manifests.stream()
+						.map(m -> m.semanticValueToSynonym(sv))
+						.collect(toList()),
+					k -> new HashSet<>())
+				.add(sv));
+		// The phiMap is now populated, but we still need to figure out the
+		// appropriate TypeRestrictions, including the available register types.
+		phiMap.forEach(
+			(synList, relatedSemanticValues) ->
 			{
-				final L2SemanticValue semanticValue = entry.getKey();
-				final L2Synonym firstSynonym = entry.getValue();
-				if (kind.getDefaultRegister(firstSynonym) == null)
+				final TypeRestriction restriction =
+					IntStream.range(0, manifestsSize)
+						.mapToObj(
+							i -> manifests.get(i).restrictionFor(
+								synList.get(i)))
+						.reduce(TypeRestriction::union)
+						.orElseThrow(
+							() -> new RuntimeException(
+								"Impossible: no manifests"));
+				// Implicitly discard it if there were no common register kinds
+				// between all the inputs.
+				if (restriction.isBoxed())
 				{
-					// The synonym doesn't have the right kind of register.
-					//noinspection UnnecessaryLabelOnContinueStatement
-					continue semanticValues;
+					// Generate a boxed phi.
+					final List<L2ReadBoxedOperand> sources =
+						IntStream.range(0, manifestsSize)
+							.mapToObj(
+								i -> manifests.get(i).readBoxed(synList.get(i)))
+							.collect(toList());
+					generatePhi(
+						generator,
+						relatedSemanticValues,
+						restriction,
+						new L2ReadBoxedVectorOperand(sources),
+						L2_PHI_PSEUDO_OPERATION.boxed,
+						L2_MOVE.boxed,
+						this::readBoxed,
+						sv -> generator.boxedWrite(sv, restriction));
 				}
-				final Set<? extends L2Register> commonRegisters =
-					kind.getRegistersCopy(firstSynonym);
-				final List<L2Synonym> sourceSynonyms =
-					new ArrayList<>(manifestsSize);
-				sourceSynonyms.add(firstSynonym);
-				boolean allImmutable = firstSynonym.hasFlag(KNOWN_IMMUTABLE);
-				for (final L2ValueManifest otherManifest : otherManifests)
+				if (restriction.isUnboxedInt())
 				{
-					final @Nullable L2Synonym otherSynonym =
-						otherManifest.semanticValueToSynonym(semanticValue);
-					if (otherSynonym == null
-						|| kind.getDefaultRegister(otherSynonym) == null)
-					{
-						// At least one incoming edge doesn't know about the
-						// semantic value (or at least in the right kind of
-						// register), so we can't preserve it in a mutually
-						// common register or make a phi.
-						// TODO: Eventually we'll collect these into some sort
-						// of set of semantic values that were known in at least
-						// some ancestors, to support total redundancy
-						// elimination.
-						continue semanticValues;
-					}
-					//noinspection SuspiciousMethodCalls
-					commonRegisters.retainAll(otherSynonym.registersCopy());
-					sourceSynonyms.add(otherSynonym);
-					// TODO: Similarly to above, tracking the fact that some
-					// ancestors are known to be immutable could be used for
-					// total redundancy elimination – in this case, duplicating
-					// code to avoid having to make a value immutable if it
-					// already was known to be immutable along some code paths.
-					allImmutable &= otherSynonym.hasFlag(KNOWN_IMMUTABLE);
+					// Generate an unboxed int phi.
+					final List<L2ReadIntOperand> sources =
+						IntStream.range(0, manifestsSize)
+							.mapToObj(
+								i -> manifests.get(i).readInt(synList.get(i)))
+							.collect(toList());
+					generatePhi(
+						generator,
+						relatedSemanticValues,
+						restriction,
+						new L2ReadIntVectorOperand(sources),
+						L2_PHI_PSEUDO_OPERATION.unboxedInt,
+						L2_MOVE.unboxedInt,
+						this::readInt,
+						sv -> generator.intWrite(sv, restriction));
 				}
-				// Every incoming manifest had at least one register (of this
-				// RegisterKind) providing the semantic value.
-				if (!commonRegisters.isEmpty())
+				if (restriction.isUnboxedFloat())
 				{
-					// The manifests all had at least one register in common
-					// which was mapped to the semantic value.  Make these
-					// common registers available in the new manifest.
-					if (kind == OBJECT)
-					{
-						// Start with the first synonym's default register, so
-						// that it will be used as the default register of the
-						// new synonym, for stability and minimization of moves,
-						// and to ensure immutability if needed.
-						final L2Register firstDefaultRegister =
-							stripNull(firstSynonym.defaultObjectRead())
-								.register();
-						if (commonRegisters.contains(firstDefaultRegister))
-						{
-							// The first incoming edge's default register of
-							// this kind for this semantic value should ideally
-							// be the one that acts as the default register in
-							// the new manifest.
-							addBinding(semanticValue, firstDefaultRegister);
-						}
-					}
-					for (final L2Register register : commonRegisters)
-					{
-						addBinding(semanticValue, register);
-					}
-					// Try to preserve the first manifest's default register.
-
-					// Preserve knowledge of immutability.
-					if (allImmutable)
-					{
-						final L2Synonym synonym =
-							stripNull(semanticValueToSynonym(semanticValue));
-						synonym.setFlag(KNOWN_IMMUTABLE);
-					}
+					// Generate an unboxed float phi.
+					final List<L2ReadFloatOperand> sources =
+						IntStream.range(0, manifestsSize)
+							.mapToObj(
+								i -> manifests.get(i).readFloat(synList.get(i)))
+							.collect(toList());
+					generatePhi(
+						generator,
+						relatedSemanticValues,
+						restriction,
+						new L2ReadFloatVectorOperand(sources),
+						L2_PHI_PSEUDO_OPERATION.unboxedFloat,
+						L2_MOVE.unboxedFloat,
+						this::readFloat,
+						sv -> generator.floatWrite(sv, restriction));
 				}
-				else if (phiMap.containsKey(sourceSynonyms))
-				{
-					// The manifests all supplied semantic values, but in
-					// different registers, and in a pattern of source synonyms
-					// that we've already encountered for a previous semantic
-					// value.  Reuse the phi variable.
-					addBinding(semanticValue, phiMap.get(sourceSynonyms));
-				}
-				else
-				{
-					// The manifests all supplied the semantic value, but in
-					// different registers, and we haven't seen that particular
-					// pattern of source synonyms for previous semantic values.
-					// Create a new register and a phi function to populate it,
-					// and record the list of synonyms it came from so that we
-					// can avoid producing extra phi functions.
-					final List<L2ReadOperand<?>> reads =
-						new ArrayList<>(manifestsSize);
-					reads.add(kind.getDefaultRegister(firstSynonym));
-					TypeRestriction newRestriction =
-						cast(firstSynonym.restriction());
-					for (final L2ValueManifest otherManifest : otherManifests)
-					{
-						final L2Synonym otherSynonym = stripNull(
-							otherManifest.semanticValueToSynonym(
-								semanticValue));
-						reads.add(kind.getDefaultRegister(otherSynonym));
-						newRestriction = newRestriction.union(
-							otherSynonym.restriction());
-					}
-					final L2Register firstDefaultRegister =
-						stripNull(firstSynonym.defaultObjectRead()).register();
-					final L2Register newRegister =
-						firstDefaultRegister.copyForTranslator(
-							generator, newRestriction);
-					final L2WritePhiOperand<?> newPhiWrite =
-						generator.newPhiRegisterWriter(newRegister);
-					generator.addInstruction(
-						L2_PHI_PSEUDO_OPERATION.instance,
-						new L2ReadVectorOperand<>(cast(reads)),
-						newPhiWrite);
-					final L2Register newPhiRegister = newPhiWrite.register();
-					addBinding(semanticValue, newPhiRegister);
-					phiMap.put(sourceSynonyms, newPhiRegister);
-				}
-			}
-		}
+			});
 	}
 
+	/**
+	 * Generate an {@link L2_PHI_PSEUDO_OPERATION} and any additional moves to
+	 * ensure the given set of related {@link L2SemanticValue}s are populated
+	 * with values from the given sources.
+	 *
+	 * @param generator
+	 *        The {@link L2Generator} on which to write instructions.
+	 * @param relatedSemanticValues
+	 *        The {@link L2SemanticValue}s that should constitute a synonym in
+	 *        the current manifest, due to them being mutually connected to a
+	 *        synonym in each predecessor manifest.  The synonyms may differ in
+	 *        the predecessor manifests, but within each manifest there must be
+	 *        a synonym for that manifest that contains all of these semantic
+	 *        values.
+	 * @param restriction
+	 *        The {@link TypeRestriction} to bound the synonym.
+	 * @param sources
+	 *        An {@link L2ReadVectorOperand} that reads from each
+	 * @param phiOperation
+	 *        The {@link L2_PHI_PSEUDO_OPERATION} instruction to generate.
+	 * @param moveOperation
+	 *        Th2 {@link L2_MOVE} instructions to also generate as needed.
+	 * @param <RR>
+	 *        The {@link L2ReadOperand} type supplying values.
+	 * @param <R>
+	 *        The kind of {@link L2Register}s to merge.
+	 */
+	private <
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
+	void generatePhi (
+		final L2Generator generator,
+		final Set<L2SemanticValue> relatedSemanticValues,
+		final TypeRestriction restriction,
+		final L2ReadVectorOperand<RR, R> sources,
+		final L2_PHI_PSEUDO_OPERATION<R> phiOperation,
+		final L2_MOVE<R> moveOperation,
+		final Function<L2SemanticValue, RR> createReader,
+		final Function<L2SemanticValue, L2WriteOperand<R>> createWriter)
+	{
+		final L2SemanticValue firstSemanticValue;
+		final List<L2WriteOperand<R>> distinctDefs = sources.elements().stream()
+			.map(L2ReadOperand::definition)
+			.distinct()
+			.collect(toList());
+		if (distinctDefs.size() == 1
+			&& relatedSemanticValues.contains(
+				distinctDefs.get(0).semanticValue()))
+		{
+			// All paths get the value from a common definition, and that
+			// definition is for one of the relatedSemanticValues.
+			final L2WriteOperand<R> onlySource = distinctDefs.iterator().next();
+			firstSemanticValue = onlySource.semanticValue();
+			if (semanticValueToSynonym.containsKey(firstSemanticValue))
+			{
+				// Already present due to another RegisterKind.  Just make sure
+				// the common register shows up as a definition.
+				recordDefinition(onlySource);
+				return;
+			}
+			// This is the first RegisterKind for this collection of related
+			// semantic values.
+			introduceSynonym(
+				new L2Synonym(singleton(firstSemanticValue)), restriction);
+			final List<L2WriteOperand<?>> list = definitions.computeIfAbsent(
+				semanticValueToSynonym(firstSemanticValue),
+				syn -> new ArrayList<>());
+			list.add(onlySource);
+		}
+		else
+		{
+			firstSemanticValue = relatedSemanticValues.iterator().next();
+			generator.addInstruction(
+				phiOperation,
+				sources,
+				createWriter.apply(firstSemanticValue));
+		}
+		final List<L2SemanticValue> otherSemanticValues =
+			new ArrayList<>(relatedSemanticValues);
+		otherSemanticValues.remove(firstSemanticValue);
+		otherSemanticValues.forEach(
+			otherSemanticValue -> generator.moveRegister(
+				moveOperation,
+				createReader.apply(firstSemanticValue),
+				createWriter.apply(otherSemanticValue)));
+	}
+
+	/**
+	 * Transform this manifest by mapping its {@link L2SemanticValue}s and
+	 * {@link Frame}s.
+	 *
+	 * @param semanticValueTransformer
+	 *        The transformation for {@link L2SemanticValue}s.
+	 * @param frameTransformer
+	 *        The transformation for {@link Frame}s.
+	 * @return The transformed manifest.
+	 */
 	public L2ValueManifest transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final L2ValueManifest newManifest = new L2ValueManifest();
-		final Set<L2Synonym> originalSynonyms =
-			new HashSet<>(registerToSynonym.values());
-		for (final L2Synonym originalSynonym : originalSynonyms)
-		{
-			final L2Synonym newSynonym =
-				originalSynonym.transform(semanticValueTransformer);
-			if (newSynonym != originalSynonym)
-			{
-				for (
-					final Iterator<? extends L2Register> iterator =
-						newSynonym.registersIterator();
-					iterator.hasNext();)
-				{
-					newManifest.registerToSynonym.put(
-						iterator.next(), newSynonym);
-				}
-				for (
-					final Iterator<L2SemanticValue> iterator =
-						newSynonym.semanticValuesIterator();
-					iterator.hasNext();)
-				{
-					newManifest.semanticValueToSynonym.put(
-						iterator.next(), newSynonym);
-				}
-			}
-		}
+		synonyms().forEach(
+			oldSynonym -> newManifest.introduceSynonym(
+				oldSynonym.transform(semanticValueTransformer),
+				restrictionFor(oldSynonym)));
 		return newManifest;
 	}
 }

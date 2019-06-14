@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCompiler;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -43,9 +44,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -509,7 +508,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -578,6 +577,12 @@ extends AbstractTypeDescriptor
 
 	@Override
 	boolean o_IsBottom (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
 	{
 		return false;
 	}

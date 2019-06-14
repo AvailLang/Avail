@@ -32,16 +32,8 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
-
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2FloatRegister} models the conceptual usage of a register that can
@@ -64,43 +56,24 @@ extends L2Register
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
-	 * @param restriction
-	 * 	      The {@link TypeRestriction}.
 	 */
 	public L2FloatRegister (
-		final int debugValue,
-		final TypeRestriction restriction)
+		final int debugValue)
 	{
-		super(debugValue, restriction);
+		super(debugValue);
 	}
 
 	@Override
-	public L2ReadFloatOperand read (
-		final TypeRestriction typeRestriction)
+	public L2FloatRegister copyForTranslator (
+		final L2Generator generator)
 	{
-		return new L2ReadFloatOperand(this, typeRestriction);
-	}
-
-	@Override
-	public L2WriteFloatOperand write ()
-	{
-		return new L2WriteFloatOperand(this);
-	}
-
-	@Override
-	public <R extends L2Register> R copyForTranslator (
-		final L2Generator generator,
-		final TypeRestriction typeRestriction)
-	{
-		return
-			cast(new L2FloatRegister(generator.nextUnique(), typeRestriction));
+		return new L2FloatRegister(generator.nextUnique());
 	}
 
 	@Override
 	public L2FloatRegister copyAfterColoring ()
 	{
-		final L2FloatRegister result = new L2FloatRegister(
-			finalIndex(), TypeRestriction.restriction(DOUBLE.o()));
+		final L2FloatRegister result = new L2FloatRegister(finalIndex());
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
@@ -108,15 +81,7 @@ extends L2Register
 	@Override
 	public L2FloatRegister copyForInliner (final L2Inliner inliner)
 	{
-		return new L2FloatRegister(
-			inliner.nextUnique(),
-			restriction);
-	}
-
-	@Override
-	public L2Operation phiMoveOperation ()
-	{
-		return L2_MOVE_FLOAT.instance;
+		return new L2FloatRegister(inliner.nextUnique());
 	}
 
 	@Override

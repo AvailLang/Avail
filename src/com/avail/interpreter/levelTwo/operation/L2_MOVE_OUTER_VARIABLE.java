@@ -37,9 +37,9 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -47,14 +47,9 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
@@ -74,8 +69,8 @@ extends L2Operation
 	{
 		super(
 			INT_IMMEDIATE.is("outer index"),
-			READ_POINTER.is("function"),
-			WRITE_POINTER.is("destination"));
+			READ_BOXED.is("function"),
+			WRITE_BOXED.is("destination"));
 	}
 
 	/**
@@ -91,10 +86,10 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		final int outerIndex = instruction.intImmediateAt(0);
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(1);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2ReadBoxedOperand functionReg =
+			instruction.readBoxedRegisterAt(1);
+		final L2WriteBoxedOperand destinationReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		if (registerSet.hasConstantAt(functionReg.register()))
 		{
@@ -115,10 +110,10 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final int outerIndex = instruction.intImmediateAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String functionReg =
+			instruction.readBoxedRegisterAt(1).registerString();
+		final String destinationReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -137,10 +132,10 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		final int outerIndex = instruction.intImmediateAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister functionReg =
+			instruction.readBoxedRegisterAt(1).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, functionReg);

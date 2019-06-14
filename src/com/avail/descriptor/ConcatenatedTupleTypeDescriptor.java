@@ -276,6 +276,13 @@ extends TypeDescriptor
 	}
 
 	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return object.slot(FIRST_TUPLE_TYPE).isVacuousType()
+			|| object.slot(SECOND_TUPLE_TYPE).isVacuousType();
+	}
+
+	@Override
 	AvailObject o_MakeShared (final AvailObject object)
 	{
 		// Before an object using this descriptor can be shared, it must first

@@ -38,22 +38,19 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -70,8 +67,8 @@ extends L2Operation
 	private L2_CREATE_SET ()
 	{
 		super(
-			READ_VECTOR.is("values"),
-			WRITE_POINTER.is("new set"));
+			READ_BOXED_VECTOR.is("values"),
+			WRITE_BOXED.is("new set"));
 	}
 
 	/**
@@ -86,10 +83,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadPointerOperand> elements =
+		final List<L2ReadBoxedOperand> elements =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister destinationSetReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String destinationSetReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -101,7 +98,7 @@ extends L2Operation
 			{
 				builder.append(", ");
 			}
-			final L2ReadPointerOperand element = elements.get(i);
+			final L2ReadBoxedOperand element = elements.get(i);
 			builder.append(element);
 		}
 		builder.append('}');
@@ -113,10 +110,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> elements =
+		final List<L2ReadBoxedOperand> elements =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister destinationSetReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister destinationSetReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: set = SetDescriptor.emptySet();
 		method.visitMethodInsn(
@@ -125,7 +122,7 @@ extends L2Operation
 			"emptySet",
 			getMethodDescriptor(getType(A_Set.class)),
 			false);
-		for (final L2ReadPointerOperand operand : elements)
+		for (final L2ReadBoxedOperand operand : elements)
 		{
 			// :: set = set.setWithElementCanDestroy(«register», true);
 			translator.load(method, operand.register());

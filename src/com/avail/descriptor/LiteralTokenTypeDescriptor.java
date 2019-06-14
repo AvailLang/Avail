@@ -137,6 +137,12 @@ extends TypeDescriptor
 			object.literalType());
 	}
 
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return object.slot(LITERAL_TYPE).isVacuousType();
+	}
+
 	@Override @AvailMethod
 	A_Type o_LiteralType (final AvailObject object)
 	{

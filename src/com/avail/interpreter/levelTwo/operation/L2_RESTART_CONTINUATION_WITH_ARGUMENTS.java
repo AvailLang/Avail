@@ -39,9 +39,9 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -52,8 +52,8 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -81,8 +81,8 @@ extends L2ControlFlowOperation
 	private L2_RESTART_CONTINUATION_WITH_ARGUMENTS ()
 	{
 		super(
-			READ_POINTER.is("continuation to restart"),
-			READ_VECTOR.is("arguments"));
+			READ_BOXED.is("continuation to restart"),
+			READ_BOXED_VECTOR.is("arguments"));
 	}
 
 	/**
@@ -117,10 +117,9 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand continuationReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadVectorOperand<L2ReadPointerOperand, L2ObjectRegister>
-			argumentsVector = cast(instruction.operand(1));
+		final L2Operand continuationReg = instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedVectorOperand argumentsVector =
+			cast(instruction.operand(1));
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -136,9 +135,9 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
-		final List<L2ReadPointerOperand> argumentsVector =
+		final L2BoxedRegister continuationReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final List<L2ReadBoxedOperand> argumentsVector =
 			instruction.readVectorRegisterAt(1);
 
 		// :: return interpreter.reifierToRestart(

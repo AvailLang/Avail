@@ -37,18 +37,16 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the {@link A_Function} from an {@link A_Continuation}.
@@ -64,8 +62,8 @@ extends L2Operation
 	private L2_EXTRACT_CONTINUATION_FUNCTION ()
 	{
 		super(
-			READ_POINTER.is("continuation"),
-			WRITE_POINTER.is("extracted function"));
+			READ_BOXED.is("continuation"),
+			WRITE_BOXED.is("extracted function"));
 	}
 
 	/**
@@ -81,10 +79,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister functionReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String continuationReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String functionReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -100,10 +98,10 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		// Extract the function from the given continuation.
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister functionReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister continuationReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister functionReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: function = continuation.function();
 		translator.load(method, continuationReg);

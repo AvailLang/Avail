@@ -82,7 +82,7 @@ extends AvailException
 	}
 
 	/**
-	 * Answer a {@link MethodDefinitionException} that indicates the resolved
+	 * Answer a {@code MethodDefinitionException} that indicates the resolved
 	 * {@linkplain MethodDefinitionDescriptor definition} is a {@linkplain
 	 * ForwardDefinitionDescriptor forward}.
 	 *
@@ -94,7 +94,7 @@ extends AvailException
 	}
 
 	/**
-	 * Answer a {@link MethodDefinitionException} that indicates the resolved
+	 * Answer a {@code MethodDefinitionException} that indicates the resolved
 	 * {@linkplain MethodDefinitionDescriptor definition} is {@linkplain
 	 * AbstractDefinitionDescriptor abstract}.
 	 *

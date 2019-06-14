@@ -36,19 +36,17 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Answer the {@linkplain A_Tuple#tupleSize() size} of the specified {@linkplain
@@ -65,7 +63,7 @@ extends L2Operation
 	private L2_TUPLE_SIZE ()
 	{
 		super(
-			READ_POINTER.is("tuple"),
+			READ_BOXED.is("tuple"),
 			WRITE_INT.is("size of tuple"));
 	}
 
@@ -81,10 +79,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2IntRegister sizeReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String tupleReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String sizeReg =
+			instruction.writeIntRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -99,8 +97,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister tupleReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final L2IntRegister sizeReg =
 			instruction.writeIntRegisterAt(1).register();
 

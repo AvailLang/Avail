@@ -39,9 +39,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL;
 import com.avail.optimizer.L1Translator;
@@ -63,7 +63,8 @@ import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 
 /**
  * <strong>Primitive:</strong> Look up an element in the {@linkplain
@@ -153,9 +154,9 @@ public final class P_TupleAt extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -166,34 +167,34 @@ public final class P_TupleAt extends Primitive
 			return false;
 		}
 		// The primitive cannot fail at this site.
-		final L2ReadPointerOperand tupleReg = arguments.get(0);
-		final L2ReadPointerOperand subscriptReg = arguments.get(1);
+		final L2ReadBoxedOperand tupleReg = arguments.get(0);
+		final L2ReadBoxedOperand subscriptReg = arguments.get(1);
 		final A_Type subscriptType = subscriptReg.type();
 		final A_Number lower = subscriptType.lowerBound();
 		final A_Number upper = subscriptType.upperBound();
-		final L2WritePointerOperand writer =
-			translator.generator.newObjectRegisterWriter(
-				restriction(
-					returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
+		final L2WriteBoxedOperand writer =
+			translator.generator.boxedWriteTemp(
+				restrictionForType(
+					returnTypeGuaranteedByVM(rawFunction, argumentTypes),
+					BOXED));
 		if (lower.equals(upper))
 		{
-			// The subscript is a constant.
+			// The subscript is a constant (and it's within range).
 			final int subscriptInt = lower.extractInt();
 			translator.addInstruction(
 				L2_TUPLE_AT_CONSTANT.instance,
 				tupleReg,
 				new L2IntImmediateOperand(subscriptInt),
 				writer);
-			callSiteHelper.useAnswer(writer.read());
+			callSiteHelper.useAnswer(translator.readBoxed(writer));
 			return true;
 		}
 		// The subscript isn't a constant, but it's known to be in range.
 		final L2BasicBlock subscriptConversionFailure =
 			translator.generator.createBasicBlock("Should be unreachable");
 		final L2ReadIntOperand subscriptIntReg =
-			translator.generator.readIntRegister(
-				subscriptReg.register(),
-				subscriptReg.restriction(),
+			translator.generator.readInt(
+				subscriptReg.semanticValue(),
 				subscriptConversionFailure);
 		assert subscriptConversionFailure.predecessorEdgesCount() == 0;
 		translator.addInstruction(
@@ -201,7 +202,7 @@ public final class P_TupleAt extends Primitive
 			tupleReg,
 			subscriptIntReg,
 			writer);
-		callSiteHelper.useAnswer(writer.read());
+		callSiteHelper.useAnswer(translator.readBoxed(writer));
 		return true;
 	}
 }

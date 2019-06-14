@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
@@ -67,20 +68,24 @@ extends L2Operand
 	private @Nullable L2Instruction instruction;
 
 	/**
+	 * An array of {@link PhiRestriction}s to further restrict the {@link
+	 * #manifest} along this edge.  This field captures the array during the
+	 * operand's construction, but is nulled for safety during {@link
+	 * #instructionWasAdded(L2Instruction, L2ValueManifest)}, at which time the
+	 * manifest is also created.
+	 *
+	 * <p>This ordering is needed because some {@link L2Operation}s both write a
+	 * value to a register via an {@link L2WriteOperand} and branch, and the
+	 * register write operand populates the manifest as part of its own {@link
+	 * #instructionWasAdded(L2Instruction, L2ValueManifest)}.</p>
+	 */
+	private @Nullable PhiRestriction[] phiRestrictions;
+
+	/**
 	 * The manifest linking semantic values and registers at this control flow
 	 * edge.
 	 */
-	private final L2ValueManifest manifest;
-
-	/**
-	 * The collection of {@link PhiRestriction}s along this particular control
-	 * flow transition.  An instruction that has multiple control flow
-	 * transitions from it may produce different type restrictions along each
-	 * branch, e.g., type narrowing from a type-testing branch.
-	 *
-	 * TODO MvG - This is not yet used.
-	 */
-	public final PhiRestriction[] phiRestrictions;
+	private @Nullable L2ValueManifest manifest = null;
 
 	/**
 	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
@@ -109,21 +114,39 @@ extends L2Operand
 	 *
 	 * @param targetBlock
 	 *        The {@link L2BasicBlock} The target basic block.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that records which {@link L2Register}s
-	 *        hold which {@link L2SemanticValue}s.
 	 * @param phiRestrictions
 	 *        Additional register type and value restrictions to apply along
 	 *        this control flow edge.
 	 */
 	public L2PcOperand (
 		final L2BasicBlock targetBlock,
-		final L2ValueManifest manifest,
 		final PhiRestriction... phiRestrictions)
 	{
 		this.targetBlock = targetBlock;
-		this.manifest = new L2ValueManifest(manifest);
-		this.phiRestrictions = phiRestrictions.clone();
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
+		this.phiRestrictions = phiRestrictions;
+	}
+
+	/**
+	 * Create a remapped {@code L2PcOperand} from the original operand, the new
+	 * target {@link L2BasicBlock}, and the transformed {@link L2ValueManifest}.
+	 *
+	 * @param originalOperand
+	 *        The original {@code L2PcOperand} that we're producing a
+	 *        transformation of.
+	 * @param newTargetBlock
+	 *        The transformed target {@link L2BasicBlock} of the new edge.
+	 * @param newManifest
+	 *        The transformed {@link L2ValueManifest} for the new edge.
+	 */
+	public L2PcOperand (
+		final L2PcOperand originalOperand,
+		final L2BasicBlock newTargetBlock,
+		final L2ValueManifest newManifest)
+	{
+		this(newTargetBlock);
+		manifest = newManifest;
+		phiRestrictions = null;
 	}
 
 	@Override
@@ -140,7 +163,7 @@ extends L2Operand
 	 */
 	public L2ValueManifest manifest ()
 	{
-		return manifest;
+		return stripNull(manifest);
 	}
 
 	@Override
@@ -151,13 +174,16 @@ extends L2Operand
 
 	@Override
 	public void instructionWasAdded (
-		final L2Instruction theInstruction)
+		final L2Instruction theInstruction,
+		final L2ValueManifest theManifest)
 	{
 		assert this.instruction == null;
 		this.instruction = theInstruction;
 		instruction.basicBlock.addSuccessorEdge(this);
 		targetBlock.addPredecessorEdge(this);
-		super.instructionWasAdded(theInstruction);
+		manifest = new L2ValueManifest(theManifest, stripNull(phiRestrictions));
+		phiRestrictions = null;
+		super.instructionWasAdded(theInstruction, theManifest);
 	}
 
 	@Override
@@ -238,10 +264,14 @@ extends L2Operand
 		// also establishes bi-directional links through L2PcOperands.  We
 		// bypass that after construction.
 		final L2BasicBlock garbageBlock = new L2BasicBlock("garbage block");
+		// The jumpEdge won't introduce any new phiRestrictions.
+		final L2PcOperand jumpEdge = new L2PcOperand(garbageBlock);
+		jumpEdge.manifest = manifest;
+		jumpEdge.phiRestrictions = null;
 		final L2Instruction jump = new L2Instruction(
 			newBlock,
 			L2_JUMP.instance,
-			new L2PcOperand(garbageBlock, manifest, phiRestrictions));
+			jumpEdge);
 		jump.operands()[0] = this;
 		instruction = jump;
 		newBlock.justAddInstruction(jump);
@@ -249,8 +279,9 @@ extends L2Operand
 		newBlock.addSuccessorEdge(this);
 
 		// Create a new edge from the original source to the new block.
-		final L2PcOperand newEdge = new L2PcOperand(
-			newBlock, manifest, phiRestrictions);
+		final L2PcOperand newEdge = new L2PcOperand(newBlock);
+		newEdge.manifest = manifest;
+		newEdge.phiRestrictions = null;
 		newEdge.instruction = originalSource;
 		newBlock.addPredecessorEdge(newEdge);
 

@@ -37,7 +37,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -46,14 +46,9 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the first value is numerically greater than the second
@@ -71,8 +66,8 @@ extends L2ConditionalJump
 	private L2_JUMP_IF_GREATER_THAN_OBJECT ()
 	{
 		super(
-			READ_POINTER.is("first value"),
-			READ_POINTER.is("second value"),
+			READ_BOXED.is("first value"),
+			READ_BOXED.is("second value"),
 			PC.is("if greater", SUCCESS),
 			PC.is("if less or equal", FAILURE));	}
 
@@ -89,10 +84,10 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondReg =
-			instruction.readObjectRegisterAt(1).register();
+		final String valueReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String secondReg =
+			instruction.readBoxedRegisterAt(1).registerString();
 //		final L2PcOperand ifEqual = instruction.pcAt(2);
 //		final L2PcOperand ifUnequal = instruction.pcAt(3);
 
@@ -110,10 +105,10 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister firstReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondReg =
-			instruction.readObjectRegisterAt(1).register();
+		final L2BoxedRegister firstReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister secondReg =
+			instruction.readBoxedRegisterAt(1).register();
 		final L2PcOperand ifTrue = instruction.pcAt(2);
 		final L2PcOperand ifFalse = instruction.pcAt(3);
 

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
@@ -514,8 +513,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return An {@linkplain Iterator iterator}.
 	 */
-	@Override
-	@Nonnull Iterator<AvailObject> iterator ();
+	@Override Iterator<AvailObject> iterator ();
 
 	/**
 	 * The receiver is a {@linkplain ByteStringDescriptor byte string}; extract

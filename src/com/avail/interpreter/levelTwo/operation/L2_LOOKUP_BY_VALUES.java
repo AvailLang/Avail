@@ -44,9 +44,10 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -63,21 +64,14 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumeration
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.SELECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to
@@ -98,9 +92,9 @@ extends L2ControlFlowOperation
 	{
 		super(
 			SELECTOR.is("message bundle"),
-			READ_VECTOR.is("arguments"),
-			WRITE_POINTER.is("looked up function"),
-			WRITE_POINTER.is("error code"),
+			READ_BOXED_VECTOR.is("arguments"),
+			WRITE_BOXED.is("looked up function"),
+			WRITE_BOXED.is("error code"),
 			PC.is("lookup succeeded", SUCCESS),
 			PC.is("lookup failed", FAILURE));
 	}
@@ -132,12 +126,12 @@ extends L2ControlFlowOperation
 		// argument registers).  Then build an enumeration type over those
 		// functions.
 		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadPointerOperand> argRegs =
+		final List<L2ReadBoxedOperand> argRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2WritePointerOperand functionReg =
-			instruction.writeObjectRegisterAt(2);
-		final L2WritePointerOperand errorCodeReg =
-			instruction.writeObjectRegisterAt(3);
+		final L2WriteBoxedOperand functionReg =
+			instruction.writeBoxedRegisterAt(2);
+		final L2WriteBoxedOperand errorCodeReg =
+			instruction.writeBoxedRegisterAt(3);
 //		final int lookupSucceeded = instruction.pcOffsetAt(4);
 //		final int lookupFailed = instruction.pcOffsetAt(5);
 
@@ -147,19 +141,19 @@ extends L2ControlFlowOperation
 		// If the lookup succeeds, then the situation is more complex.
 		final RegisterSet registerSet = registerSets.get(1);
 		final int numArgs = argRegs.size();
-		final List<A_Type> argTypeBounds = new ArrayList<>(numArgs);
-		for (final L2ReadPointerOperand argRegister : argRegs)
+		final List<TypeRestriction> argRestrictions = new ArrayList<>(numArgs);
+		for (final L2ReadBoxedOperand argRegister : argRegs)
 		{
 			final A_Type type = registerSet.hasTypeAt(argRegister.register())
 				? registerSet.typeAt(argRegister.register())
 				: ANY.o();
-			argTypeBounds.add(type);
+			argRestrictions.add(restrictionForType(type, BOXED));
 		}
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
 		final List<A_Function> possibleFunctions = new ArrayList<>();
 		final List<A_Definition> possibleDefinitions =
-			bundle.bundleMethod().definitionsAtOrBelow(argTypeBounds);
+			bundle.bundleMethod().definitionsAtOrBelow(argRestrictions);
 		for (final A_Definition definition : possibleDefinitions)
 		{
 			if (definition.isMethodDefinition())
@@ -249,12 +243,12 @@ extends L2ControlFlowOperation
 		final L2Instruction instruction)
 	{
 		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadPointerOperand> argRegs =
+		final List<L2ReadBoxedOperand> argRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister functionReg =
-			instruction.writeObjectRegisterAt(2).register();
-		final L2ObjectRegister errorCodeReg =
-			instruction.writeObjectRegisterAt(3).register();
+		final L2BoxedRegister functionReg =
+			instruction.writeBoxedRegisterAt(2).register();
+		final L2BoxedRegister errorCodeReg =
+			instruction.writeBoxedRegisterAt(3).register();
 		final int lookupSucceeded = instruction.pcOffsetAt(4);
 		final L2PcOperand lookupFailed = instruction.pcAt(5);
 

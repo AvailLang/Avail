@@ -87,10 +87,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2IntRegister valueReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister negationReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String valueReg =
+			instruction.readIntRegisterAt(0).registerString();
+		final String negationReg =
+			instruction.writeIntRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

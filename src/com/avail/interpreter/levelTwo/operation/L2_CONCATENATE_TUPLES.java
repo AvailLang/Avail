@@ -38,9 +38,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -51,14 +51,11 @@ import java.util.Set;
 
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -76,8 +73,8 @@ extends L2Operation
 	private L2_CONCATENATE_TUPLES ()
 	{
 		super(
-			READ_VECTOR.is("tuples to concatenate"),
-			WRITE_POINTER.is("concatenated tuple"));
+			READ_BOXED_VECTOR.is("tuples to concatenate"),
+			WRITE_BOXED.is("concatenated tuple"));
 	}
 
 	/**
@@ -94,10 +91,10 @@ extends L2Operation
 	{
 		// Approximate it for now.  If testing the return type dynamically
 		// becomes a bottleneck, we can improve this bound.
-		final List<L2ReadPointerOperand> vector =
+		final List<L2ReadBoxedOperand> vector =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand targetTupleReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WriteBoxedOperand targetTupleReg =
+			instruction.writeBoxedRegisterAt(1);
 
 		if (vector.isEmpty())
 		{
@@ -124,10 +121,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadPointerOperand> vector =
+		final List<L2ReadBoxedOperand> vector =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister targetTupleReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String targetTupleReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -139,7 +136,7 @@ extends L2Operation
 			{
 				builder.append(" ++ ");
 			}
-			final L2ReadPointerOperand element = vector.get(i);
+			final L2ReadBoxedOperand element = vector.get(i);
 			builder.append(element);
 		}
 	}
@@ -150,10 +147,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> vector =
+		final List<L2ReadBoxedOperand> vector =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister targetTupleReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister targetTupleReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		final int tupleCount = vector.size();
 		if (tupleCount == 0)

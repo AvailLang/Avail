@@ -32,7 +32,7 @@
 package com.avail.optimizer.values;
 import com.avail.descriptor.A_BasicObject;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * A semantic value which is a particular actual constant value.
@@ -51,7 +51,7 @@ extends L2SemanticValue
 	 */
 	L2SemanticConstant (final A_BasicObject value)
 	{
-		this.value = value;
+		this.value = value.makeImmutable();
 	}
 
 	@Override
@@ -69,12 +69,17 @@ extends L2SemanticValue
 
 	@Override
 	public L2SemanticConstant transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		// Semantic constants need no transformation when inlining.
 		return this;
+	}
+
+	@Override
+	public boolean isConstant ()
+	{
+		return true;
 	}
 
 	@Override

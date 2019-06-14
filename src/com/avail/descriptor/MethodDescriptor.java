@@ -45,6 +45,7 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion;
@@ -93,16 +94,20 @@ import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleWithout;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.anyRestriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -277,9 +282,11 @@ extends Descriptor
 
 		@Override
 		public TypeComparison compareTypes (
-			final A_Type criterionType, final A_Type someType)
+			final List<TypeRestriction> argumentRestrictions,
+			final A_Type signatureType)
 		{
-			return TypeComparison.compareForDispatch(criterionType, someType);
+			return TypeComparison.compareForDispatch(
+				argumentRestrictions, signatureType);
 		}
 
 		@Override
@@ -409,26 +416,24 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up all method definitions that could match arguments with the
-	 * given types, or anything more specific.  This should return the
-	 * definitions that could be invoked at runtime at a call site with the
-	 * given static types.  This set is subject to change as new methods and
-	 * types are created.  If an argType and the corresponding argument type of
-	 * a definition have no possible descendant except bottom, then
-	 * disallow the definition (it could never actually be invoked because
-	 * bottom is uninstantiable).  Answer a {@linkplain List list} of
-	 * {@linkplain MethodDefinitionDescriptor method signatures}.
+	 * Look up all method definitions that could match arguments satisfying the
+	 * given {@link TypeRestriction}s.  This should return the definitions that
+	 * could be invoked at runtime at a call site with the given restrictions.
+	 * This set is subject to change as new methods and types are created.  If a
+	 * restriction and the corresponding argument type of a definition have no
+	 * possible intersection except bottom, then disallow the definition (it
+	 * could never actually be invoked because bottom is uninstantiable).
+	 * Answer a {@linkplain List list} of {@linkplain MethodDefinitionDescriptor
+	 * method signatures}.
 	 *
-	 * <p>
-	 * Don't do coverage analysis yet (i.e., determining if one method would
+	 * <p>Don't do coverage analysis yet (i.e., determining if one method would
 	 * always override a strictly more abstract method).  We can do that some
-	 * other day.
-	 * </p>
+	 * other day.</p>
 	 */
 	@Override @AvailMethod
 	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		final List<A_Definition> result = new ArrayList<>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the
@@ -436,7 +441,8 @@ extends Descriptor
 		final A_Tuple definitionsTuple = object.definitionsTuple();
 		for (final A_Definition definition : definitionsTuple)
 		{
-			if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
+			if (definition.bodySignature().couldEverBeInvokedWith(
+				argRestrictions))
 			{
 				result.add(definition);
 			}
@@ -586,10 +592,10 @@ extends Descriptor
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the {@linkplain
-	 * ObjectSlots#MACRO_TESTING_TREE macro testing tree} to
-	 * find the macro definition to invoke.  Throw a {@link
-	 * MethodDefinitionException} if the macro cannot be determined uniquely.
+	 * phrases.  Use the {@linkplain ObjectSlots#MACRO_TESTING_TREE macro
+	 * testing tree} to find the macro definition to invoke.  Answer the tuple
+	 * of applicable macro definitions, ideally just one if there is an
+	 * unambiguous macro to invoke.
 	 *
 	 * <p>Note that this testing tree approach is only applicable if all of the
 	 * macro definitions are visible (defined in the current module or an
@@ -597,16 +603,14 @@ extends Descriptor
 	 * macros, but when it isn't, other lookup approaches are necessary.</p>
 	 */
 	@Override @AvailMethod
-	A_Definition o_LookupMacroByPhraseTuple (
+	A_Tuple o_LookupMacroByPhraseTuple (
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
 	{
 		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
-		final A_Tuple results =
-			runtimeDispatcher.lookupByValues(tree, argumentPhraseTuple, TRUE);
-		return MethodDefinitionException.extractUniqueMethod(results);
+		return runtimeDispatcher.lookupByValues(
+			tree, argumentPhraseTuple, TRUE);
 	}
 
 	@Override @AvailMethod
@@ -898,16 +902,19 @@ extends Descriptor
 		result.setSlot(
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			identityPojo(chunkSet).makeShared());
-		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
 			runtimeDispatcher.createRoot(
-				emptyList(), initialTypes, TRUE);
+				emptyList(), nCopiesOfAnyRestriction(numArgs), TRUE);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Boolean> macrosTree =
 			runtimeDispatcher.createRoot(
-				emptyList(), initialTypes, TRUE);
+				emptyList(),
+				nCopies(
+					numArgs,
+					restrictionForType(PARSE_PHRASE.mostGeneralType(), BOXED)),
+				TRUE);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
@@ -916,18 +923,24 @@ extends Descriptor
 		return result;
 	}
 
-	/** The number of lists to cache of N occurrences of the type any. */
+	/**
+	 * The number of lists to cache of N occurrences of the {@link
+	 * TypeRestriction} that restricts an element to the type {@code any}.
+	 */
 	private static final int sizeOfListsOfAny = 10;
 
-	/** A list of lists of increasing size consisting only of the type any. */
-	private static final List<List<A_Type>> listsOfAny;
+	/**
+	 * A list of lists of increasing size consisting only of {@link
+	 * TypeRestriction}s to the type {@code any}.
+	 */
+	private static final List<List<TypeRestriction>> listsOfAny;
 
 	static
 	{
 		listsOfAny = new ArrayList<>(sizeOfListsOfAny);
 		for (int i = 0; i < sizeOfListsOfAny; i++)
 		{
-			listsOfAny.add(Collections.nCopies(i, ANY.o()));
+			listsOfAny.add(nCopies(i, anyRestriction));
 		}
 	}
 
@@ -937,13 +950,13 @@ extends Descriptor
 	 * @param n The number of elements in the desired list, all the type any.
 	 * @return The list.  Do not modify it, as it may be cached and reused.
 	 */
-	private static List<A_Type> nCopiesOfAny (final int n)
+	private static List<TypeRestriction> nCopiesOfAnyRestriction (final int n)
 	{
 		if (n < sizeOfListsOfAny)
 		{
 			return listsOfAny.get(n);
 		}
-		return Collections.nCopies(n, ANY.o());
+		return nCopies(n,anyRestriction);
 	}
 
 	/**
@@ -971,7 +984,8 @@ extends Descriptor
 
 		// Rebuild the roots of the lookup trees.
 		final int numArgs = object.slot(NUM_ARGS);
-		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
+		final List<TypeRestriction> initialTypes =
+			nCopiesOfAnyRestriction(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
 			runtimeDispatcher.createRoot(
 				TupleDescriptor.toList(object.slot(DEFINITIONS_TUPLE)),

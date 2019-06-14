@@ -36,15 +36,24 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2Synonym;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptySet;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
@@ -60,36 +69,61 @@ public abstract class L2ReadOperand<R extends L2Register>
 extends L2Operand
 {
 	/**
-	 * The actual {@link L2Register}.
+	 * The {@link L2SemanticValue} that is being read when an {@link
+	 * L2Instruction} uses this {@link L2Operand}.
 	 */
-	private R register;
+	private final L2SemanticValue semanticValue;
 
 	/**
 	 * A type restriction, certified by the VM, that this particular read of
-	 * this register is guaranteed to satisfy. This supplements the more basic
-	 * type restriction already present in the {@link L2IntRegister} itself.
+	 * this register is guaranteed to satisfy.
 	 */
 	private final TypeRestriction restriction;
 
 	/**
-	 * Construct a new {@code L2ReadOperand} for the specified {@link
-	 * L2Register} and optional restriction.
-	 *
-	 * @param register
-	 *        The register.
-	 * @param restriction
-	 *        The further {@link TypeRestriction} to apply to this particular
-	 *        read.
+	 * The {@link L2WriteOperand} that produced the value that this read is
+	 * consuming.
 	 */
-	L2ReadOperand (
-		final R register,
-		final @Nullable TypeRestriction restriction)
+	L2WriteOperand<R> definition;
+
+	/**
+	 * The actual {@link L2Register}.  This is only set during late optimization
+	 * of the control flow graph.
+	 */
+	private R register;
+
+	/**
+	 * Construct a new {@code L2ReadOperand} for the specified {@link
+	 * L2Synonym}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that is being read when an {@link
+	 *        L2Instruction} uses this {@link L2Operand}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that bounds the value being read.
+	 * @param definition
+	 *        The earliest known defining {@link L2WriteOperand} of the {@link
+	 *        L2SemanticValue}.
+	 */
+	protected L2ReadOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2WriteOperand<R> definition)
 	{
-		this.register = register;
-		this.restriction =
-			restriction == null ? register.restriction() : restriction;
-		assert this.restriction.type.isSubtypeOf(register.restriction().type)
-			: "Read restriction is weaker than register's restriction";
+		this.semanticValue = semanticValue;
+		this.restriction = restriction;
+		this.definition = definition;
+		this.register = definition.register;
+	}
+
+	/**
+	 * Answer the {@link L2SemanticValue} being read.
+	 *
+	 * @return The {@link L2SemanticValue}.
+	 */
+	public final L2SemanticValue semanticValue ()
+	{
+		return semanticValue;
 	}
 
 	/**
@@ -99,7 +133,17 @@ extends L2Operand
 	 */
 	public final R register ()
 	{
-		return register;
+		return stripNull(register);
+	}
+
+	/**
+	 * Answer a String that describes this operand for debugging.
+	 *
+	 * @return A {@link String}.
+	 */
+	public final String registerString ()
+	{
+		return register + "[" + semanticValue + "]";
 	}
 
 	/**
@@ -110,7 +154,7 @@ extends L2Operand
 	 */
 	public final int finalIndex ()
 	{
-		return register.finalIndex();
+		return register().finalIndex();
 	}
 
 	/**
@@ -146,16 +190,43 @@ extends L2Operand
 		return restriction.constantOrNull;
 	}
 
-	@Override
-	public final void instructionWasAdded (final L2Instruction instruction)
+	/**
+	 * Answer the {@link RegisterKind} of register that is read by this {@code
+	 * L2ReadOperand}.
+	 *
+	 * @return The {@link RegisterKind}.
+	 */
+	public abstract RegisterKind registerKind ();
+
+	/**
+	 * Answer the {@link L2WriteOperand} that provided the value that this
+	 * operand is reading.
+	 *
+	 * @return The defining {@link L2WriteOperand}.
+	 */
+	public L2WriteOperand<R> definition ()
 	{
-		register.addUse(instruction);
+		return stripNull(definition);
+	}
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		final L2Synonym synonym =
+			manifest.semanticValueToSynonym(semanticValue());
+		manifest.setRestriction(
+			synonym,
+			manifest.restrictionFor(synonym).intersection(restriction()));
+		definition = cast(manifest.getDefinition(synonym, registerKind()));
+		register().addUse(instruction);
 	}
 
 	@Override
 	public final void instructionWasRemoved (final L2Instruction instruction)
 	{
-		register.removeUse(instruction);
+		register().removeUse(instruction);
 	}
 
 	@Override
@@ -169,7 +240,7 @@ extends L2Operand
 		{
 			return;
 		}
-		register.removeUse(instruction);
+		register().removeUse(instruction);
 		replacement.addUse(instruction);
 		register = replacement;
 	}
@@ -186,7 +257,7 @@ extends L2Operand
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append('@');
-		builder.append(register);
+		builder.append(registerString());
 		if (restriction.constantOrNull == null)
 		{
 			// Don't redundantly print restriction information for constants.
@@ -205,9 +276,7 @@ extends L2Operand
 	 */
 	public final PhiRestriction restrictedToType (final A_Type restrictedType)
 	{
-		return new PhiRestriction(
-			register,
-			restriction.intersectionWithType(restrictedType));
+		return restrictedTo(restriction.intersectionWithType(restrictedType));
 	}
 
 	/**
@@ -220,47 +289,114 @@ extends L2Operand
 	public final PhiRestriction restrictedToValue (
 		final A_BasicObject restrictedConstant)
 	{
-		final @Nullable A_Type type = type();
+		final @Nullable A_Type type = restriction.type;
 		assert restrictedConstant.isInstanceOf(type)
 			: "This register has no possible values.";
-		return new PhiRestriction(
-			register,
+		restrictedConstant.makeImmutable();
+		// Use -1 (all bits set) for the flags, to ensure the type of register
+		// in which the value is available remains unaffected.
+		return restrictedTo(
 			TypeRestriction.restriction(
-				instanceTypeOrMetaOn(restrictedConstant).typeIntersection(type),
-				restrictedConstant));
+				instanceTypeOrMetaOn(restrictedConstant),
+				restrictedConstant,
+				emptySet(),
+				emptySet(),
+				-1));
 	}
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.  A value to exclude from the
-	 * existing type is provided.
-	 *
-	 * @param excludedConstant
-	 *        The value that the register <em>cannot</em> hold along this
-	 *        branch.
-	 */
-	public final PhiRestriction restrictedWithoutValue (
-		final A_BasicObject excludedConstant)
-	{
-		return new PhiRestriction(
-			register,
-			restriction.minusValue(excludedConstant));
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.  A type is provided to exclude,
-	 * although we don't yet maintain precise negative type information.
+	 * information along a control flow branch.  A type to be excluded is
+	 * provided.
 	 *
 	 * @param excludedType
-	 *        The value that the register <em>cannot</em> hold along this
-	 *        branch.
+	 *        The type of values that the synonym <em>cannot</em> hold along
+	 *        this branch.
 	 */
 	public final PhiRestriction restrictedWithoutType (
 		final A_Type excludedType)
 	{
-		return new PhiRestriction(
-			register,
-			restriction.minusType(excludedType));
+		return restrictedTo(restriction.minusType(excludedType));
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a synonym's type
+	 * information along a control flow branch.  A value to exclude from the
+	 * existing type is provided.
+	 *
+	 * @param excludedConstant
+	 *        The value that the synonym <em>cannot</em> hold along this branch.
+	 */
+	public final PhiRestriction restrictedWithoutValue (
+		final A_BasicObject excludedConstant)
+	{
+		return restrictedTo(restriction.minusValue(excludedConstant));
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a synonym's type
+	 * information along a control flow branch.  The given {@link
+	 * TypeRestriction} replaces the operand's restriction along the branch.
+	 *
+	 * @param newRestriction
+	 *        The new restriction to be in effect along this branch.
+	 */
+	public final PhiRestriction restrictedTo (
+		final TypeRestriction newRestriction)
+	{
+		return new PhiRestriction(semanticValue, newRestriction);
+	}
+
+	/**
+	 * Create a {@link PhiRestriction} that indicates the {@link
+	 * L2SemanticValue} has no value here, and should be considered entirely
+	 * inaccessible.
+	 *
+	 * @return A {@link PhiRestriction} that makes the semantic value
+	 *         inaccessible.
+	 */
+	public final PhiRestriction inaccessible ()
+	{
+		return new PhiRestriction(semanticValue, null);
+	}
+
+	/**
+	 * Answer an {@link L2Operation} that implements a phi move for the
+	 * receiver.
+	 *
+	 * @return The requested instruction.
+	 */
+	public abstract L2_MOVE<? extends L2Register> phiMoveOperation ();
+
+	/**
+	 * Answer the {@link L2Instruction} which generates the value that will
+	 * populate this register. Skip over move instructions. The containing graph
+	 * must be in SSA form.
+	 *
+	 * @param bypassImmutables
+	 *        Whether to bypass instructions that force a value to become
+	 *        immutable.
+	 * @return The requested {@code L2Instruction}.
+	 */
+	public L2Instruction definitionSkippingMoves (
+		final boolean bypassImmutables)
+	{
+		L2Instruction other = definition().instruction();
+		while (true)
+		{
+			if (other.operation().isMove())
+			{
+				other = L2_MOVE.sourceOf(other).definition().instruction();
+				continue;
+			}
+			if (bypassImmutables && other.operation()
+				instanceof L2_MAKE_IMMUTABLE)
+			{
+				other = L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
+					.instruction();
+				continue;
+			}
+			return other;
+		}
 	}
 }

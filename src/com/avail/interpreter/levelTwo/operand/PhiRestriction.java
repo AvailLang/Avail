@@ -31,10 +31,13 @@
  */
 
 package com.avail.interpreter.levelTwo.operand;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L2Synonym;
+import com.avail.optimizer.values.L2SemanticValue;
+
+import javax.annotation.Nullable;
 
 /**
- * This mechanism allows type information for an {@link L2Register} to be
+ * This mechanism allows type information for an {@link L2Synonym} to be
  * restricted along a branch. A good example is a type-testing instruction,
  * which narrows the type along the "pass" branch, and adds exclusions to the
  * {@link TypeRestriction} along the "fail" branch.
@@ -44,31 +47,32 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 public final class PhiRestriction
 {
 	/**
-	 * The {@link L2Register} which is to be restricted along this control flow
-	 * branch.
+	 * The {@link L2SemanticValue} which is to be restricted along this control
+	 * flow branch.
 	 */
-	public final L2Register register;
+	public final L2SemanticValue semanticValue;
 
 	/**
 	 * The new {@link TypeRestriction} for the register along the affected edge.
 	 */
-	public final TypeRestriction typeRestriction;
+	public final @Nullable TypeRestriction typeRestriction;
 
 	/**
 	 * Create a {@code PhiRestriction}, which narrows a register's type
 	 * restriction along a control flow edge.
 	 *
-	 * @param register
-	 *        The register to restrict along this edge.
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to restrict along this edge.
 	 * @param typeRestriction
-	 *        The {@link TypeRestriction} that the register will have along the
-	 *        affected edge.
+	 *        The {@link TypeRestriction} that the synonym will have along the
+	 *        affected edge.  If {@code null}, the {@link L2SemanticValue}
+	 *        should be treated as inaccessible along this path.
 	 */
 	public PhiRestriction (
-		final L2Register register,
-		final TypeRestriction typeRestriction)
+		final L2SemanticValue semanticValue,
+		final @Nullable TypeRestriction typeRestriction)
 	{
-		this.register = register;
+		this.semanticValue = semanticValue;
 		this.typeRestriction = typeRestriction;
 	}
 }

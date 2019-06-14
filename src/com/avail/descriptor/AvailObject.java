@@ -62,6 +62,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
@@ -1330,9 +1331,9 @@ implements
 
 	@Override
 	public boolean couldEverBeInvokedWith (
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
-		return descriptor.o_CouldEverBeInvokedWith(this, argTypes);
+		return descriptor.o_CouldEverBeInvokedWith(this, argRestrictions);
 	}
 
 	@Override
@@ -2079,9 +2080,9 @@ implements
 
 	@Override
 	public List<A_Definition> definitionsAtOrBelow (
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
-		return descriptor.o_DefinitionsAtOrBelow(this, argTypes);
+		return descriptor.o_DefinitionsAtOrBelow(this, argRestrictions);
 	}
 
 	@Override
@@ -2682,9 +2683,9 @@ implements
 	}
 
 	@Override
-	public void makeSubobjectsImmutable ()
+	public AvailObject makeSubobjectsImmutable ()
 	{
-		descriptor.o_MakeSubobjectsImmutable(this);
+		return descriptor.o_MakeSubobjectsImmutable(this);
 	}
 
 	@Override
@@ -5489,6 +5490,12 @@ implements
 	}
 
 	@Override
+	public boolean isVacuousType ()
+	{
+		return descriptor.o_IsVacuousType(this);
+	}
+
+	@Override
 	public boolean isTop ()
 	{
 		return descriptor.o_IsTop(this);
@@ -5640,9 +5647,8 @@ implements
 	}
 
 	@Override
-	public A_Definition lookupMacroByPhraseTuple (
+	public A_Tuple lookupMacroByPhraseTuple (
 		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
 	{
 		return descriptor.o_LookupMacroByPhraseTuple(
 			this, argumentPhraseTuple);

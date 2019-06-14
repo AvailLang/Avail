@@ -32,7 +32,7 @@
 package com.avail.optimizer.values;
 import com.avail.descriptor.A_Continuation;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 
@@ -104,9 +104,8 @@ extends L2FrameSpecificSemanticValue
 
 	@Override
 	public L2SemanticSlot transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame());
 		return newFrame.equals(frame())
@@ -117,6 +116,7 @@ extends L2FrameSpecificSemanticValue
 	@Override
 	public String toString ()
 	{
-		return "Slot #" + slotIndex + " of " + frame + " as of pc=" + pcAfter;
+		return "Slot#" + slotIndex + "@" + pcAfter +
+			(frame.depth() == 1 ? "" : "[" + frame + "]");
 	}
 }

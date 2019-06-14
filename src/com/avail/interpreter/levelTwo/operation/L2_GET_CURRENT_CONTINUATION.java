@@ -32,21 +32,19 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
@@ -70,7 +68,7 @@ extends L2Operation
 	private L2_GET_CURRENT_CONTINUATION ()
 	{
 		super(
-			WRITE_POINTER.is("current continuation"));
+			WRITE_BOXED.is("current continuation"));
 	}
 
 	/**
@@ -99,8 +97,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister targetReg =
-			instruction.writeObjectRegisterAt(0).register();
+		final L2BoxedRegister targetReg =
+			instruction.writeBoxedRegisterAt(0).register();
 
 		// :: target = interpreter.reifiedContinuation;
 		translator.loadInterpreter(method);

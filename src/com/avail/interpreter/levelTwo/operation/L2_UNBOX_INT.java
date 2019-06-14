@@ -37,19 +37,17 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Unbox an {@code int} from an {@link AvailObject}.
@@ -65,7 +63,7 @@ extends L2Operation
 	private L2_UNBOX_INT ()
 	{
 		super(
-			READ_POINTER.is("source"),
+			READ_BOXED.is("source"),
 			WRITE_INT.is("destination"));
 	}
 
@@ -80,10 +78,10 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2IntRegister destinationReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeIntRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -98,8 +96,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister sourceReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final L2IntRegister destinationReg =
 			instruction.writeIntRegisterAt(1).register();
 

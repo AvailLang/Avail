@@ -41,26 +41,9 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.I2L;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.IFGE;
-import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.L2I;
-import static org.objectweb.asm.Opcodes.LCMP;
-import static org.objectweb.asm.Opcodes.LDIV;
-import static org.objectweb.asm.Opcodes.LLOAD;
-import static org.objectweb.asm.Opcodes.LMUL;
-import static org.objectweb.asm.Opcodes.LNEG;
-import static org.objectweb.asm.Opcodes.LSTORE;
-import static org.objectweb.asm.Opcodes.LSUB;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.LONG_TYPE;
 
 /**
@@ -110,14 +93,14 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2IntRegister dividendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister divisorReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister quotientReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2IntRegister remainderReg =
-			instruction.writeIntRegisterAt(3).register();
+		final String dividendReg =
+			instruction.readIntRegisterAt(0).registerString();
+		final String divisorReg =
+			instruction.readIntRegisterAt(1).registerString();
+		final String quotientReg =
+			instruction.writeIntRegisterAt(2).registerString();
+		final String remainderReg =
+			instruction.writeIntRegisterAt(3).registerString();
 //		final L2PcOperand undefined = instruction.pcAt(4);
 //		final int successIndex = instruction.pcOffsetAt(5);
 

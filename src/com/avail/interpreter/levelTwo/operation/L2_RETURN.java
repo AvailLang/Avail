@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -47,19 +47,9 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the current {@link L2Chunk} with the given return value.  The
@@ -78,7 +68,7 @@ extends L2ControlFlowOperation
 	private L2_RETURN ()
 	{
 		super(
-			READ_POINTER.is("return value"));
+			READ_BOXED.is("return value"));
 	}
 
 	/**
@@ -123,8 +113,8 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister valueReg =
+			instruction.readBoxedRegisterAt(0).register();
 
 		// :: interpreter.latestResult(value);
 		translator.loadInterpreter(method);

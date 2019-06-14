@@ -51,16 +51,8 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
@@ -710,7 +702,8 @@ extends TypeDescriptor
  	}
 
 	/**
-	 * {@linkplain PhraseTypeDescriptor phrases} must implement {@link
+	 * Subclasses of {@code PhraseTypeDescriptor} must implement {@linkplain
+	 * A_Phrase phrases} must implement {@link
 	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod

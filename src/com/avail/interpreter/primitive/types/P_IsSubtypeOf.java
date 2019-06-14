@@ -35,7 +35,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,16 +43,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.falseObject;
-import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
-import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer whether type1 is a subtype of type2
@@ -104,15 +100,15 @@ public final class P_IsSubtypeOf extends Primitive
 	 */
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand xTypeReg = arguments.get(0);
-		final L2ReadPointerOperand yTypeReg = arguments.get(1);
+		final L2ReadBoxedOperand xTypeReg = arguments.get(0);
+		final L2ReadBoxedOperand yTypeReg = arguments.get(1);
 
 		final A_Type xMeta = xTypeReg.type();
 		final A_Type yMeta = yTypeReg.type();
@@ -128,7 +124,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				callSiteHelper.useAnswer(
-					translator.generator.constantRegister(trueObject()));
+					translator.generator.boxedConstant(trueObject()));
 				return true;
 			}
 		}
@@ -144,7 +140,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				callSiteHelper.useAnswer(
-					translator.generator.constantRegister(falseObject()));
+					translator.generator.boxedConstant(falseObject()));
 				return true;
 			}
 		}
@@ -155,7 +151,7 @@ public final class P_IsSubtypeOf extends Primitive
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
 			callSiteHelper.useAnswer(
-				translator.generator.constantRegister(trueObject()));
+				translator.generator.boxedConstant(trueObject()));
 			return true;
 		}
 

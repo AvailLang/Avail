@@ -32,16 +32,8 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_INT;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
-
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.utility.Casts.cast;
 
 /**
  * {@code L2IntRegister} models the conceptual usage of a register that can
@@ -64,42 +56,24 @@ extends L2Register
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
-	 * @param restriction
-	 * 	      The {@link TypeRestriction}.
 	 */
 	public L2IntRegister (
-		final int debugValue,
-		final TypeRestriction restriction)
+		final int debugValue)
 	{
-		super(debugValue, restriction);
+		super(debugValue);
 	}
 
 	@Override
-	public L2ReadIntOperand read (
-		final TypeRestriction typeRestriction)
+	public L2IntRegister copyForTranslator (
+		final L2Generator generator)
 	{
-		return new L2ReadIntOperand(this, typeRestriction);
-	}
-
-	@Override
-	public L2WriteIntOperand write ()
-	{
-		return new L2WriteIntOperand(this);
-	}
-
-	@Override
-	public <R extends L2Register> R copyForTranslator (
-		final L2Generator generator,
-		final TypeRestriction typeRestriction)
-	{
-		return cast(new L2IntRegister(generator.nextUnique(), typeRestriction));
+		return new L2IntRegister(generator.nextUnique());
 	}
 
 	@Override
 	public L2IntRegister copyAfterColoring ()
 	{
-		final L2IntRegister result = new L2IntRegister(
-			finalIndex(), TypeRestriction.restriction(int32()));
+		final L2IntRegister result = new L2IntRegister(finalIndex());
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
@@ -107,15 +81,7 @@ extends L2Register
 	@Override
 	public L2IntRegister copyForInliner (final L2Inliner inliner)
 	{
-		return new L2IntRegister(
-			inliner.nextUnique(),
-			restriction);
-	}
-
-	@Override
-	public L2Operation phiMoveOperation ()
-	{
-		return L2_MOVE_INT.instance;
+		return new L2IntRegister(inliner.nextUnique());
 	}
 
 	@Override

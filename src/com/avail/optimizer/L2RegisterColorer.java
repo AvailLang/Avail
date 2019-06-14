@@ -32,6 +32,7 @@
 
 package com.avail.optimizer;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
@@ -40,17 +41,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -65,7 +56,7 @@ public final class L2RegisterColorer
 	/**
 	 * A collection of registers that should be colored the same.
 	 */
-	private static class RegisterGroup
+	@InnerAccess static class RegisterGroup
 	{
 		final Set<L2Register> registers = new HashSet<>();
 

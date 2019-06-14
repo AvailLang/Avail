@@ -34,14 +34,18 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,12 +53,15 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumeration
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.SetDescriptor.toSet;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.TypeDescriptor.isProperSubtype;
-import static java.util.Collections.emptySet;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
+import static java.util.Collections.*;
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -104,6 +111,93 @@ public final class TypeRestriction
 	public final Set<A_BasicObject> excludedValues;
 
 	/**
+	 * An enumeration used to interpret the {@link #flags} of a {@link
+	 * TypeRestriction}.  The sense of the flags is such that a bit-wise and can
+	 * be used
+	 */
+	public enum RestrictionFlagEncoding
+	{
+		/** Whether the value is known to be immutable. */
+		IMMUTABLE,
+
+		/**
+		 * Whether the value is available in a boxed form in some {@link
+		 * L2BoxedRegister}.
+		 */
+		BOXED,
+
+		/**
+		 * Whether the value is available in an unboxed form in some {@link
+		 * L2IntRegister}.
+		 */
+		UNBOXED_INT,
+
+		/**
+		 * Whether the value is available in an unboxed form in some {@link
+		 * L2FloatRegister}.
+		 */
+		UNBOXED_FLOAT;
+
+		/** A pre-computed bit mask for this flag. */
+		private final int mask;
+
+		RestrictionFlagEncoding ()
+		{
+			this.mask = 1 << ordinal();
+		}
+
+		/** Answer the pre-computed bit mask for this flag. */
+		public int mask ()
+		{
+			return mask;
+		}
+	}
+
+	/**
+	 * The flags that track intangible or supplemental properties of a value.
+	 * These bits are indexed via the ordinals of elements of {@link
+	 * RestrictionFlagEncoding}.
+	 *
+	 * <p>The semantics are chosen so that the intersection of two {@code
+	 * TypeRestriction}s produces the bit-wise "and" (&) of the inputs' flags,
+	 * and the union uses the bit-wise "or" (|).</p>
+	 */
+	public final int flags;
+
+	/** Answer whether the restricted value is known to be immutable. */
+	public boolean isImmutable ()
+	{
+		return (flags & IMMUTABLE.mask()) != 0;
+	}
+
+	/**
+	 * Answer whether the restricted value is known to be boxed in an {@link
+	 * L2BoxedRegister}.
+	 */
+	public boolean isBoxed ()
+	{
+		return (flags & BOXED.mask()) != 0;
+	}
+
+	/**
+	 * Answer whether the restricted value is known to be unboxed in an {@link
+	 * L2IntRegister}.
+	 */
+	public boolean isUnboxedInt ()
+	{
+		return (flags & UNBOXED_INT.mask()) != 0;
+	}
+
+	/**
+	 * Answer whether the restricted value is known to be unboxed in an {@link
+	 * L2FloatRegister}.
+	 */
+	public boolean isUnboxedFloat ()
+	{
+		return (flags & UNBOXED_FLOAT.mask()) != 0;
+	}
+
+	/**
 	 * Create a {@code TypeRestriction} from the already-canonicalized
 	 * arguments.
 	 *
@@ -116,69 +210,207 @@ public final class TypeRestriction
 	 *        A set of {@link A_Type}s to consider excluded.
 	 * @param excludedValues
 	 *        A set of values to consider excluded.
+	 * @param flags
+	 *        The encoded {@link #flags} {@code int}.
 	 */
 	private TypeRestriction (
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> excludedTypes,
-		final Set<A_BasicObject> excludedValues)
+		final Set<A_BasicObject> excludedValues,
+		final int flags)
 	{
 		// Make the Avail objects immutable.  They'll be made Shared if they
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable();
-		this.constantOrNull = (constantOrNull != null)
-			? constantOrNull.makeImmutable()
-			: null;
+		if (constantOrNull != null)
+		{
+			this.constantOrNull = constantOrNull.makeImmutable();
+		}
+		else
+		{
+			this.constantOrNull = null;
+		}
 
 		final int typesSize = excludedTypes.size();
 		this.excludedTypes =
 			typesSize == 0
 				? emptySet()
 				: typesSize == 1
-					? Collections.singleton(excludedTypes.iterator().next())
-					: Collections.unmodifiableSet(
-						new HashSet<>(excludedTypes));
+					? singleton(excludedTypes.iterator().next())
+					: unmodifiableSet(new HashSet<>(excludedTypes));
 
-		final int constantsSize = excludedTypes.size();
+		final int constantsSize = excludedValues.size();
 		this.excludedValues =
 			constantsSize == 0
 				? emptySet()
 				: constantsSize == 1
-					? Collections.singleton(excludedValues.iterator().next())
-					: Collections.unmodifiableSet(
-						new HashSet<>(excludedValues));
+					? singleton(excludedValues.iterator().next())
+					: unmodifiableSet(new HashSet<>(excludedValues));
+		this.flags = flags;
+	}
+	/**
+	 * Create a {@code TypeRestriction} from the already-canonicalized
+	 * arguments.
+	 *
+	 * @param type
+	 *        The Avail type that constrains some value somewhere.
+	 * @param constantOrNull
+	 *        Either {@code null} or the exact value that some value somewhere
+	 *        must equal.
+	 * @param excludedTypes
+	 *        A set of {@link A_Type}s to consider excluded.
+	 * @param excludedValues
+	 *        A set of values to consider excluded.
+	 * @param isImmutable
+	 *        Whether the value is known to be immutable.
+	 * @param isBoxed
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2BoxedRegister}.
+	 * @param isUnboxedInt
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2IntRegister}.
+	 * @param isUnboxedFloat
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2FloatRegister}.
+	 */
+	private TypeRestriction (
+		final A_Type type,
+		final @Nullable A_BasicObject constantOrNull,
+		final Set<A_Type> excludedTypes,
+		final Set<A_BasicObject> excludedValues,
+		final boolean isImmutable,
+		final boolean isBoxed,
+		final boolean isUnboxedInt,
+		final boolean isUnboxedFloat)
+	{
+		this(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			(isImmutable ? IMMUTABLE.mask() : 0)
+				+ (isBoxed ? BOXED.mask() : 0)
+				+ (isUnboxedInt ? UNBOXED_INT.mask() : 0)
+				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask() : 0));
 	}
 
 	/**
 	 * The {@link TypeRestriction} for a register that holds {@link
 	 * NilDescriptor#nil}.
+	 *
+	 * <p>It's marked as immutable because there is no way to create another
+	 * {@link AvailObject} with a {@link NilDescriptor} as its descriptor.</p>
 	 */
-	private static final TypeRestriction nilRestriction =
-		new TypeRestriction(TOP.o(), nil, emptySet(), emptySet());
+	public static final TypeRestriction nilRestriction =
+		new TypeRestriction(
+			TOP.o(),
+			nil,
+			singleton(ANY.o()),
+			emptySet(),
+			true,
+			true,
+			false,
+			false);
 
 	/**
 	 * The {@link TypeRestriction} for a register that has any value whatsoever,
-	 * including {@link NilDescriptor#nil}.
+	 * including {@link NilDescriptor#nil}, and is not known to be immutable.
 	 */
-	private static final TypeRestriction topRestriction =
-		new TypeRestriction(TOP.o(), null, emptySet(), emptySet());
+	public static final TypeRestriction topRestriction =
+		new TypeRestriction(
+			TOP.o(),
+			null,
+			emptySet(),
+			emptySet(),
+			false,
+			true,
+			false,
+			false);
+
+	/**
+	 * The {@link TypeRestriction} for a register that has any value whatsoever,
+	 * including {@link NilDescriptor#nil}, but is known to be immutable.
+	 */
+	public static final TypeRestriction topRestrictionImmutable =
+		new TypeRestriction(
+			TOP.o(),
+			null,
+			emptySet(),
+			emptySet(),
+			true,
+			true,
+			false,
+			false);
+
+	/**
+	 * The {@link TypeRestriction} for a register that has any value whatsoever,
+	 * excluding {@link NilDescriptor#nil}, but it's not known to be immutable.
+	 */
+	public static final TypeRestriction anyRestriction =
+		new TypeRestriction(
+			ANY.o(),
+			null,
+			emptySet(),
+			emptySet(),
+			false,
+			true,
+			false,
+			false);
+
+	/**
+	 * The {@link TypeRestriction} for a register that has any value whatsoever,
+	 * excluding {@link NilDescriptor#nil}, but it's known to be immutable.
+	 */
+	public static final TypeRestriction anyRestrictionImmutable =
+		new TypeRestriction(
+			ANY.o(),
+			null,
+			emptySet(),
+			emptySet(),
+			true,
+			true,
+			false,
+			false);
 
 	/**
 	 * The {@link TypeRestriction} for a register that cannot hold any value.
 	 * This can be useful for cleanly dealing with unreachable code.
+	 *
+	 * <p>It's marked as immutable because nothing can read from a register with
+	 * this restriction.</p>
 	 */
-	private static final TypeRestriction bottomRestriction =
-		new TypeRestriction(bottom(), null, emptySet(), emptySet());
+	public static final TypeRestriction bottomRestriction =
+		new TypeRestriction(
+			bottom(),
+			null,
+			emptySet(),
+			emptySet(),
+			true,
+			false,
+			false,
+			false);
 
 	/**
 	 * The {@link TypeRestriction} for a register that can only hold the value
 	 * bottom (i.e., the restriction type is bottom's type).  This is a sticky
 	 * point in the type system, in that multiple otherwise unrelated type
 	 * hierarchies share the (uninstantiable) type bottom as a descendant.
+	 *
+	 * <p>Note that this restriction is marked as immutable because there is no
+	 * way to create another {@link AvailObject} whose descriptor is a {@link
+	 * BottomTypeDescriptor}.</p>
 	 */
-	private static final TypeRestriction bottomTypeRestriction =
+	public static final TypeRestriction bottomTypeRestriction =
 		new TypeRestriction(
-			instanceMeta(bottom()), bottom(), emptySet(), emptySet());
+			instanceMeta(bottom()),
+			bottom(),
+			emptySet(),
+			emptySet(),
+			true,
+			true,
+			false,
+			false);
 
 	/**
 	 * Create or reuse an immutable {@code TypeRestriction} from the already
@@ -193,14 +425,20 @@ public final class TypeRestriction
 	 *        A set of {@link A_Type}s to consider excluded.
 	 * @param givenExcludedValues
 	 *        A set of values to consider excluded.
+	 * @param flags
+	 *        The encoded {@link #flags} {@code int}.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
 	private static TypeRestriction fromCanonical (
 		final A_Type givenType,
 		final @Nullable A_BasicObject givenConstantOrNull,
 		final Set<A_Type> givenExcludedTypes,
-		final Set<A_BasicObject> givenExcludedValues)
+		final Set<A_BasicObject> givenExcludedValues,
+		final int flags)
 	{
+		assert !givenExcludedTypes.contains(bottom());
+		givenExcludedTypes.forEach(A_Type::makeImmutable);
+		givenExcludedValues.forEach(A_BasicObject::makeImmutable);
 		if (givenConstantOrNull != null)
 		{
 			// A constant was specified.  Use it if it satisfies the main type
@@ -220,28 +458,50 @@ public final class TypeRestriction
 				instanceTypeOrMetaOn(givenConstantOrNull),
 				givenConstantOrNull,
 				emptySet(),
-				emptySet());
+				emptySet(),
+				flags);
 		}
 
 		// Not a known constant.
-		if (givenType.equals(TOP.o()))
+		if (givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty())
 		{
-			return topRestriction;
-		}
-		if (givenType.instanceCount().equalsInt(1))
-		{
-			final A_BasicObject instance = givenType.instance();
-			if (instance.equals(bottom()))
+			if (givenType.equals(TOP.o()))
 			{
-				// Special case: bottom's type has one instance, bottom.
-				return bottomTypeRestriction;
+				return (flags & IMMUTABLE.mask()) != 0
+					? topRestrictionImmutable
+					: topRestriction;
 			}
-			// Ensure it's a meta, otherwise it should have been canonicalized
-			// to provide a known constant.
-			assert givenType.isInstanceMeta();
+			if (givenType.equals(ANY.o()))
+			{
+				return (flags & IMMUTABLE.mask()) != 0
+					? anyRestrictionImmutable
+					: anyRestriction;
+			}
+			if (givenType.instanceCount().equalsInt(1)
+				&& !givenType.isInstanceMeta())
+			{
+				// This is a non-meta instance type, which should be treated as
+				// a constant restriction.
+				final AvailObject instance = givenType.instance();
+				if (instance.isBottom())
+				{
+					// Special case: bottom's type has one instance, bottom.
+					return bottomTypeRestriction;
+				}
+				return new TypeRestriction(
+					givenType,
+					instance,
+					emptySet(),
+					emptySet(),
+					flags);
+			}
 		}
 		return new TypeRestriction(
-			givenType, null, emptySet(), emptySet());
+			givenType,
+			null,
+			givenExcludedTypes,
+			givenExcludedValues,
+			flags);
 	}
 
 	/**
@@ -257,13 +517,65 @@ public final class TypeRestriction
 	 *        A set of {@link A_Type}s to consider excluded.
 	 * @param givenExcludedValues
 	 *        A set of values to consider excluded.
+	 * @param isImmutable
+	 *        Whether the value is known to be immutable.
+	 * @param isBoxed
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2BoxedRegister}.
+	 * @param isUnboxedInt
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2IntRegister}.
+	 * @param isUnboxedFloat
+	 *        Whether this value is known to already reside in an {@link
+	 *        L2FloatRegister}.
 	 * @return The new or existing canonical TypeRestriction.
 	 */
 	public static TypeRestriction restriction (
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> givenExcludedTypes,
-		final Set<A_BasicObject> givenExcludedValues)
+		final Set<A_BasicObject> givenExcludedValues,
+		final boolean isImmutable,
+		final boolean isBoxed,
+		final boolean isUnboxedInt,
+		final boolean isUnboxedFloat)
+	{
+		final int flags =
+			(isImmutable ? IMMUTABLE.mask() : 0)
+				+ (isBoxed ? BOXED.mask() : 0)
+				+ (isUnboxedInt ? UNBOXED_INT.mask() : 0)
+				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask() : 0);
+		return restriction(
+			type,
+			constantOrNull,
+			givenExcludedTypes,
+			givenExcludedValues,
+			flags);
+	}
+
+	/**
+	 * Create or reuse an immutable {@code TypeRestriction}, canonicalizing the
+	 * arguments.
+	 *
+	 * @param type
+	 *        The Avail type that constrains some value somewhere.
+	 * @param constantOrNull
+	 *        Either {@code null} or the exact value that some value somewhere
+	 *        must equal.
+	 * @param givenExcludedTypes
+	 *        A set of {@link A_Type}s to consider excluded.
+	 * @param givenExcludedValues
+	 *        A set of values to consider excluded.
+	 * @param flags
+	 *        The encoded {@link #flags} {@code int}.
+	 * @return The new or existing canonical TypeRestriction.
+	 */
+	public static TypeRestriction restriction (
+		final A_Type type,
+		final @Nullable A_BasicObject constantOrNull,
+		final Set<A_Type> givenExcludedTypes,
+		final Set<A_BasicObject> givenExcludedValues,
+		final int flags)
 	{
 		if (constantOrNull == null
 			&& type.isEnumeration()
@@ -291,7 +603,8 @@ public final class TypeRestriction
 						instanceTypeOrMetaOn(instance),
 						instance,
 						emptySet(),
-						emptySet());
+						emptySet(),
+						flags);
 				}
 				default:
 				{
@@ -301,7 +614,8 @@ public final class TypeRestriction
 						enumerationWith(setFromCollection(instances)),
 						null,
 						emptySet(),
-						emptySet());
+						emptySet(),
+						flags);
 				}
 			}
 		}
@@ -328,11 +642,17 @@ public final class TypeRestriction
 			}
 			// No reason to exclude it, so use the constant.  We can safely
 			// omit the excluded types and values as part of canonicalization.
+			// Note that even though we make the constant immutable here, and
+			// the value passing through registers at runtime will be equal to
+			// it, it might be a different Java AvailObject that's still
+			// mutable.
+			constantOrNull.makeImmutable();
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(constantOrNull),
 				constantOrNull,
 				emptySet(),
-				emptySet());
+				emptySet(),
+				flags);
 		}
 
 		// Are we excluding the base type?
@@ -349,6 +669,7 @@ public final class TypeRestriction
 		final Set<A_Type> excludedTypes = givenExcludedTypes.stream()
 			.map(type::typeIntersection)
 			.collect(Collectors.toCollection(HashSet::new));
+		excludedTypes.remove(bottom());
 		final Iterator<A_Type> iterator = excludedTypes.iterator();
 		iterator.forEachRemaining(
 			t ->
@@ -382,11 +703,16 @@ public final class TypeRestriction
 			return topRestriction;
 		}
 
-		return fromCanonical(type, null, excludedTypes, excludedValues);
+		return fromCanonical(
+			type,
+			null,
+			excludedTypes,
+			excludedValues,
+			flags);
 	}
 
 	/**
-	 * Create or reuse an immutable {@code TypeRestriction}.
+	 * Create or reuse a {@code TypeRestriction}.
 	 *
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
@@ -399,21 +725,74 @@ public final class TypeRestriction
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		return restriction(type, constantOrNull, emptySet(), emptySet());
+		return restriction(
+			type,
+			constantOrNull,
+			emptySet(),
+			emptySet(),
+			false,
+			true,
+			false,
+			false);
 	}
 
 	/**
-	 * Create or reuse an immutable {@code TypeRestriction}, for which no
-	 * constant information is provided (but might be deduced from the type).
+	 * Create or reuse a {@code TypeRestriction}, for which no constant
+	 * information is provided (but might be deduced from the type).
 	 *
 	 * @param type
 	 *        The Avail type that constrains some value somewhere.
+	 * @param encoding
+	 *        A {@link RestrictionFlagEncoding} indicating the type of register
+	 *        that will hold this value ({@link RestrictionFlagEncoding#BOXED},
+	 *        {@link RestrictionFlagEncoding#UNBOXED_INT}, or {@link
+	 *        RestrictionFlagEncoding#UNBOXED_FLOAT}).
 	 * @return The new or existing canonical TypeRestriction.
 	 */
-	public static TypeRestriction restriction (
-		final A_Type type)
+	public static TypeRestriction restrictionForType (
+		final A_Type type,
+		final RestrictionFlagEncoding encoding)
 	{
-		return restriction(type, null, emptySet(), emptySet());
+		return restriction(
+			type,
+			null,
+			emptySet(),
+			emptySet(),
+			encoding.mask());
+	}
+
+	/**
+	 * Create or reuse a {@code TypeRestriction}, for which no constant
+	 * information is provided (but might be deduced from the type).
+	 *
+	 * <p>If the requested register encoding is {@link
+	 * RestrictionFlagEncoding#BOXED}, also flag the restriction as {@link
+	 * RestrictionFlagEncoding#IMMUTABLE}.</p>
+	 *
+	 * @param constant
+	 *        The sole Avail value that this restriction permits.
+	 * @param encoding
+	 *        A {@link RestrictionFlagEncoding} indicating the type of register
+	 *        that will hold this value ({@link RestrictionFlagEncoding#BOXED},
+	 *        {@link RestrictionFlagEncoding#UNBOXED_INT}, or {@link
+	 *        RestrictionFlagEncoding#UNBOXED_FLOAT}).
+	 * @return The new or existing canonical TypeRestriction.
+	 */
+	public static TypeRestriction restrictionForConstant (
+		final A_BasicObject constant,
+		final RestrictionFlagEncoding encoding)
+	{
+		assert encoding == BOXED
+			|| encoding == UNBOXED_INT
+			|| encoding == UNBOXED_FLOAT;
+		constant.makeImmutable();
+		return restriction(
+			constant.equalsNil() ? TOP.o() : instanceTypeOrMetaOn(constant),
+			constant,
+			emptySet(),
+			emptySet(),
+			encoding.mask()
+				| (encoding == BOXED ? IMMUTABLE.mask() : 0));
 	}
 
 	/**
@@ -475,7 +854,8 @@ public final class TypeRestriction
 			type.typeUnion(other.type),
 			null,
 			mutualTypeIntersections,
-			newExcludedValues);
+			newExcludedValues,
+			flags & other.flags);
 	}
 
 	/**
@@ -508,7 +888,8 @@ public final class TypeRestriction
 			type.typeIntersection(other.type),
 			constantOrNull != null ? constantOrNull : other.constantOrNull,
 			unionOfExcludedTypes,
-			unionOfExcludedValues);
+			unionOfExcludedValues,
+			flags | other.flags);
 	}
 
 	/**
@@ -529,7 +910,8 @@ public final class TypeRestriction
 			type.typeIntersection(typeToIntersect),
 			constantOrNull,
 			excludedTypes,
-			excludedValues);
+			excludedValues,
+			flags);
 	}
 
 	/**
@@ -550,7 +932,8 @@ public final class TypeRestriction
 			type,
 			constantOrNull,
 			augmentedExcludedTypes,
-			excludedValues);
+			excludedValues,
+			flags);
 	}
 
 	/**
@@ -573,7 +956,207 @@ public final class TypeRestriction
 			type,
 			constantOrNull,
 			excludedTypes,
-			augmentedExcludedValues);
+			augmentedExcludedValues,
+			flags);
+	}
+
+	/**
+	 * Answer true if this {@code TypeRestriction} contains every possible
+	 * element of the given type.
+	 *
+	 * @param testType
+	 *        The type to test is subsumed by this {@code TypeRestriction}.
+	 * @return True iff every instance of {@code testType} is a member of this
+	 *         {@code TypeRestriction}.
+	 */
+	public boolean containsEntireType (final A_Type testType)
+	{
+		if (constantOrNull != null)
+		{
+			if (constantOrNull.isType() && !constantOrNull.isBottom())
+			{
+				// The value is known to be a type other than bottom, so there
+				// is no possible testType that could contain just this
+				// constant as a member.
+				return false;
+			}
+			return testType.equals(instanceTypeOrMetaOn(constantOrNull));
+		}
+		if (!testType.isSubtypeOf(type))
+		{
+			return false;
+		}
+		for (final A_Type excludedType : excludedTypes)
+		{
+			if (!excludedType.typeIntersection(testType).isBottom())
+			{
+				return false;
+			}
+		}
+		for (final A_BasicObject excludedValue : excludedValues)
+		{
+			if (excludedValue.isInstanceOf(testType))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Answer true if this {@code TypeRestriction} only contains values that
+	 * are within the given testType.
+	 *
+	 * @param testType
+	 *        The type to check for complete coverage of this {@code
+	 *        TypeRestriction}.
+	 * @return True iff every instance of this {@code TypeRestriction} is also
+	 *         a member of {@code testType}.
+	 */
+	public boolean containedByType (final A_Type testType)
+	{
+		return type.isSubtypeOf(testType);
+	}
+
+	/**
+	 * Answer true if this {@code TypeRestriction} contains any values in common
+	 * with the given type.  It uses the {@link A_Type#isVacuousType()} test to
+	 * determine whether any instances exist in the intersection.
+	 *
+	 * @param testType
+	 *        The {@link A_Type} to intersect with this {@code TypeRestriction}
+	 * @return True iff there are any instances in common between the supplied
+	 *         type and this {@code TypeRestriction}.
+	 */
+	public boolean intersectsType (final A_Type testType)
+	{
+		if (constantOrNull != null)
+		{
+			return constantOrNull.isInstanceOf(testType);
+		}
+		if (testType.typeIntersection(type).isVacuousType())
+		{
+			return false;
+		}
+		for (final A_Type excludedType : excludedTypes)
+		{
+			if (testType.isSubtypeOf(excludedType))
+			{
+				return false;
+			}
+		}
+		//noinspection RedundantIfStatement
+		if (!excludedValues.isEmpty()
+			&& testType.isEnumeration()
+			&& !testType.isInstanceMeta()
+			&& testType.instances().isSubsetOf(
+				setFromCollection(excludedValues)))
+		{
+			// Every element of the testType enumeration has been explicitly
+			// excluded from the restriction, so there's no intersection.
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Answer a restriction like the receiver, but with an additional flag set.
+	 * If the flag is already set, answer the receiver.
+	 *
+	 * @param flagEncoding
+	 *        The {@link RestrictionFlagEncoding} to set.
+	 * @return The new {@code TypeRestriction}, or the receiver.
+	 */
+	public TypeRestriction withFlag (final RestrictionFlagEncoding flagEncoding)
+	{
+		if ((flags & flagEncoding.mask()) != 0)
+		{
+			// Flag is already set.
+			return this;
+		}
+		return restriction(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			flags | flagEncoding.mask());
+	}
+
+	/**
+	 * Answer a restriction like the receiver, but with a flag cleared.
+	 * If the flag is already clear, answer the receiver.
+	 *
+	 * @param flagEncoding
+	 *        The {@link RestrictionFlagEncoding} to clear.
+	 * @return The new {@code TypeRestriction}, or the receiver.
+	 */
+	public TypeRestriction withoutFlag (
+		final RestrictionFlagEncoding flagEncoding)
+	{
+		if ((flags & flagEncoding.mask()) == 0)
+		{
+			// Flag is already set.
+			return this;
+		}
+		return restriction(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			flags & ~flagEncoding.mask());
+	}
+
+	/**
+	 * If this restriction has only a finite set of possible values, and the
+	 * number of such values is no more than the given maximum, answer a Java
+	 * {@link Set} of them, otherwise {@code null}.
+	 *
+	 * @param maximumCount
+	 *        The threshold above which {@code null} should be answered, even if
+	 *        there is a finite set of potential values.
+	 * @return The {@link Set} of possible instances or {@code null}.
+	 */
+	public @Nullable Set<A_BasicObject> enumerationValuesOrNull (
+		final int maximumCount)
+	{
+		if (maximumCount >= 0 && this == bottomRestriction)
+		{
+			return emptySet();
+		}
+		if (maximumCount >= 1 && constantOrNull != null)
+		{
+			return singleton(constantOrNull);
+		}
+		if (type.isEnumeration()
+			&& !type.isInstanceMeta()
+			&& type.instanceCount().lessOrEqual(fromInt(maximumCount)))
+		{
+			return toSet(type.instances());
+		}
+		return null;
+	}
+
+	@Override
+	public boolean equals (final @Nullable Object other)
+	{
+		if (!(other instanceof TypeRestriction))
+		{
+			return false;
+		}
+		final TypeRestriction strongOther = (TypeRestriction) other;
+		return this == other
+			|| (type.equals(strongOther.type)
+				&& Objects.equals(constantOrNull, strongOther.constantOrNull)
+				&& excludedTypes.equals(strongOther.excludedTypes)
+				&& excludedValues.equals(strongOther.excludedValues)
+				&& flags == strongOther.flags);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return Objects.hash(
+			type, constantOrNull, excludedTypes, excludedValues, flags);
 	}
 
 	/**
@@ -587,6 +1170,10 @@ public final class TypeRestriction
 	 */
 	public boolean isStrongerThan (final TypeRestriction other)
 	{
+		if ((~flags & other.flags) != 0)
+		{
+			return false;
+		}
 		if (!type.isSubtypeOf(other.type))
 		{
 			return false;
@@ -638,5 +1225,50 @@ public final class TypeRestriction
 				.replace("_TAG", "");
 		}
 		return "";
+	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append("restriction(");
+		if (constantOrNull != null)
+		{
+			builder.append("c=");
+			builder.append(constantOrNull);
+		}
+		else
+		{
+			builder.append("t=");
+			builder.append(type);
+			if (!excludedTypes.isEmpty())
+			{
+				builder.append(", ex.t=");
+				builder.append(excludedTypes);
+			}
+			if (!excludedValues.isEmpty())
+			{
+				builder.append(", ex.v=");
+				builder.append(excludedValues);
+			}
+		}
+		if (isImmutable())
+		{
+			builder.append(", imm");
+		}
+		if (isBoxed())
+		{
+			builder.append(", box");
+		}
+		if (isUnboxedInt())
+		{
+			builder.append(", int");
+		}
+		if (isUnboxedFloat())
+		{
+			builder.append(", float");
+		}
+		builder.append(")");
+		return builder.toString();
 	}
 }

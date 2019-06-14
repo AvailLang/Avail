@@ -36,17 +36,16 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L2ValueManifest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
- * L2OperandType#READ_VECTOR}. It holds a {@link List} of {@link
+ * L2OperandType#READ_BOXED_VECTOR}. It holds a {@link List} of {@link
  * L2ReadOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -55,15 +54,15 @@ import static java.util.Collections.unmodifiableList;
  * @param <R>
  *        A subclass of L2Register
  */
-public class L2ReadVectorOperand<
+public abstract class L2ReadVectorOperand<
 	RR extends L2ReadOperand<R>,
 	R extends L2Register>
 extends L2Operand
 {
 	/**
-	 * The {@link List} of {@link L2ReadPointerOperand}s.
+	 * The {@link List} of {@link L2ReadBoxedOperand}s.
 	 */
-	private final List<RR> elements;
+	final List<RR> elements;
 
 	/**
 	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
@@ -73,28 +72,27 @@ extends L2Operand
 	 *        The list of {@link L2ReadOperand}s.
 	 */
 	public L2ReadVectorOperand (
-		final List<? extends RR> elements)
+		final List<RR> elements)
 	{
 		this.elements = unmodifiableList(elements);
 	}
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
-	public L2ReadVectorOperand<RR, R> clone ()
-	{
-		final List<RR> clonedElements = new ArrayList<>(elements.size());
-		for (final RR element : elements)
-		{
-			clonedElements.add(cast(element.clone()));
-		}
-		return new L2ReadVectorOperand<>(clonedElements);
-	}
+	public abstract L2ReadVectorOperand<RR, R> clone ();
+
+	/**
+	 * Create a vector like this one, but using the provided elements.
+	 *
+	 * @param replacementElements
+	 *        The {@link List} of {@link L2ReadOperand}s to use in the clone.
+	 * @return A new {@code L2ReadVectorOperand}, of the same type as the
+	 *         receiver, but having the given elements.
+	 */
+	public abstract L2ReadVectorOperand<RR, R> clone (
+		List<RR> replacementElements);
 
 	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READ_VECTOR;
-	}
+	public abstract L2OperandType operandType ();
 
 	/**
 	 * Answer my {@link List} of {@link L2ReadOperand}s.
@@ -107,17 +105,16 @@ extends L2Operand
 	}
 
 	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
+	public abstract void dispatchOperand (final L2OperandDispatcher dispatcher);
 
 	@Override
-	public void instructionWasAdded (final L2Instruction instruction)
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
 	{
 		for (final RR element : elements)
 		{
-			element.instructionWasAdded(instruction);
+			element.instructionWasAdded(instruction, manifest);
 		}
 	}
 
@@ -162,7 +159,7 @@ extends L2Operand
 			{
 				builder.append(", ");
 			}
-			builder.append(read.register());
+			builder.append(read.registerString());
 			final TypeRestriction restriction = read.restriction();
 			if (restriction.constantOrNull == null)
 			{

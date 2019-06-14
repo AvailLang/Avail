@@ -36,8 +36,8 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -49,18 +49,11 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to {@code "if equal"} if the value equals the constant, otherwise jump
@@ -78,7 +71,7 @@ extends L2ConditionalJump
 	private L2_JUMP_IF_EQUALS_CONSTANT ()
 	{
 		super(
-			READ_POINTER.is("value"),
+			READ_BOXED.is("value"),
 			CONSTANT.is("constant"),
 			PC.is("if equal", SUCCESS),
 			PC.is("if unequal", FAILURE));
@@ -97,8 +90,8 @@ extends L2ConditionalJump
 		final L2Generator generator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadPointerOperand valueReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand valueReg =
+			instruction.readBoxedRegisterAt(0);
 		final A_BasicObject constant = instruction.constantAt(1);
 
 		final @Nullable A_BasicObject valueOrNull = valueReg.constantOrNull();
@@ -125,7 +118,7 @@ extends L2ConditionalJump
 		throw new UnsupportedOperationException();
 //		final int ifEqual = instruction.pcAt(0);
 //		final int ifUnequal = instruction.pcAt(1);
-//		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(2);
+//		final L2BoxedRegister objectReg = instruction.readBoxedRegisterAt(2);
 //		final A_BasicObject value = instruction.constantAt(3);
 //
 //		assert registerSets.size() == 2;
@@ -145,8 +138,8 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
+		final String valueReg =
+			instruction.readBoxedRegisterAt(0).registerString();
 		final A_BasicObject constant = instruction.constantAt(1);
 //		final L2PcOperand ifEqual = instruction.pcAt(2);
 //		final L2PcOperand ifUnequal = instruction.pcAt(3);
@@ -165,8 +158,8 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister valueReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final A_BasicObject constant = instruction.constantAt(1);
 		final L2PcOperand ifEqual = instruction.pcAt(2);
 		final L2PcOperand ifUnequal = instruction.pcAt(3);

@@ -34,16 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
@@ -59,12 +50,12 @@ import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.MutableInt;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -74,23 +65,13 @@ import static com.avail.descriptor.ContinuationDescriptor.createContinuationWith
 import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.AFTER_REIFICATION;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -659,22 +640,17 @@ public final class L1InstructionStepper
 							bundle.message().atomName());
 					}
 					interpreter.argsBuffer.clear();
+					final MutableInt reversedStackp =
+						new MutableInt(stackp + numArgs);
 					final A_Tuple typesTuple =
 						generateObjectTupleFrom(
 							numArgs,
-							new IntFunction<A_BasicObject>()
-							{
-								int reversedStackp = stackp + numArgs;
-
-								@Override
-								public A_BasicObject apply (final int index)
-								{
-									final AvailObject arg =
-										pointerAt(--reversedStackp);
-									interpreter.argsBuffer.add(arg);
-									return instanceTypeOrMetaOn(arg).typeUnion(
-										superUnionType.typeAtIndex(index));
-								}
+							index -> {
+								final AvailObject arg =
+									pointerAt(--reversedStackp.value);
+								interpreter.argsBuffer.add(arg);
+								return instanceTypeOrMetaOn(arg).typeUnion(
+									superUnionType.typeAtIndex(index));
 							});
 					stackp += numArgs;
 					// Push the expected type, which should be replaced on the

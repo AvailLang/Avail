@@ -1,5 +1,5 @@
 /*
- * L2WritePointerOperand.java
+ * L2WriteBoxedOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,50 +34,59 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.values.L2SemanticValue;
+
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 
 /**
- * An {@code L2WritePointerOperand} is an operand of type {@link
- * L2OperandType#WRITE_POINTER}.  It holds the actual {@link
- * L2ObjectRegister} that is to be accessed.
+ * An {@code L2WriteBoxedOperand} is an operand of type {@link
+ * L2OperandType#WRITE_BOXED}.  It holds the actual {@link
+ * L2BoxedRegister} that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2WritePointerOperand
-extends L2WriteOperand<L2ObjectRegister>
+public class L2WriteBoxedOperand
+extends L2WriteOperand<L2BoxedRegister>
 {
+
+	/**
+	 * Construct a new {@code L2WriteBoxedOperand} for the specified {@link
+	 * L2SemanticValue}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that this operand is effectively
+	 *        producing.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that indicates what values are allowed
+	 *        to be written into the register.
+	 * @param register
+	 *        The initial {@link L2BoxedRegister} that backs this operand.
+	 */
+	public L2WriteBoxedOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2BoxedRegister register)
+	{
+		super(semanticValue, restriction, register);
+		assert restriction.isBoxed();
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.WRITE_POINTER;
+		return L2OperandType.WRITE_BOXED;
 	}
-
-	/**
-	 * Construct a new {@code L2WritePointerOperand}.
-	 *
-	 * @param register
-	 *        The {@link L2ObjectRegister}.
-	 */
-	public L2WritePointerOperand (final L2ObjectRegister register)
+	@Override
+	public RegisterKind registerKind ()
 	{
-		super(register);
+		return BOXED;
 	}
 
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
-	}
-
-	/**
-	 * Answer an {@link L2ReadPointerOperand} on the same register as this
-	 * {@code L2WritePointerOperand}.
-	 *
-	 * @return The new {@link L2ReadPointerOperand}.
-	 */
-	@Override
-	public final L2ReadPointerOperand read ()
-	{
-		return new L2ReadPointerOperand(register, register.restriction());
 	}
 }

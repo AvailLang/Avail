@@ -37,8 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -79,8 +79,8 @@ extends L2ControlFlowOperation
 	private L2_INVOKE ()
 	{
 		super(
-			READ_POINTER.is("called function"),
-			READ_VECTOR.is("arguments"),
+			READ_BOXED.is("called function"),
+			READ_BOXED_VECTOR.is("arguments"),
 			PC.is("on return", SUCCESS),
 			PC.is("on reification", OFF_RAMP));
 	}
@@ -113,9 +113,9 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2ReadPointerOperand calledFunctionReg =
-			instruction.readObjectRegisterAt(0);
-		final List<L2ReadPointerOperand> argsRegsList =
+		final L2ReadBoxedOperand calledFunctionReg =
+			instruction.readBoxedRegisterAt(0);
+		final List<L2ReadBoxedOperand> argsRegsList =
 			instruction.readVectorRegisterAt(1);
 //		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 //		final L2PcOperand onReification = instruction.pcAt(3);
@@ -136,9 +136,9 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister calledFunctionReg =
-			instruction.readObjectRegisterAt(0).register();
-		final List<L2ReadPointerOperand> argsRegsList =
+		final L2BoxedRegister calledFunctionReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final List<L2ReadBoxedOperand> argsRegsList =
 			instruction.readVectorRegisterAt(1);
 		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 		final L2PcOperand onReification = instruction.pcAt(3);
@@ -168,7 +168,7 @@ extends L2ControlFlowOperation
 	 * @param instruction
 	 *        The {@link L2Instruction} being translated.
 	 * @param argsRegsList
-	 *        The {@link List} of {@link L2ReadPointerOperand} arguments.
+	 *        The {@link List} of {@link L2ReadBoxedOperand} arguments.
 	 * @param onNormalReturn
 	 *        Where to jump if the call completes.
 	 * @param onReification
@@ -178,7 +178,7 @@ extends L2ControlFlowOperation
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction,
-		final List<L2ReadPointerOperand> argsRegsList,
+		final List<L2ReadBoxedOperand> argsRegsList,
 		final L2PcOperand onNormalReturn,
 		final L2PcOperand onReification)
 	{

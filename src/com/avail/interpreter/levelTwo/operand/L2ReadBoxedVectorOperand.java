@@ -1,19 +1,19 @@
 /*
- * L2ReadPointerOperand.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L2ReadBoxedVectorOperand.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -34,42 +34,56 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 
-import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.utility.Casts.cast;
+import static java.util.stream.Collectors.toList;
 
 /**
- * An {@code L2ReadPointerOperand} is an operand of type {@link
- * L2OperandType#READ_POINTER}. It holds the actual {@link L2ObjectRegister}
- * that is to be accessed.
+ * An {@code L2ReadBoxedVectorOperand} is an operand of type {@link
+ * L2OperandType#READ_BOXED_VECTOR}. It holds a {@link List} of {@link
+ * L2ReadBoxedOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2ReadPointerOperand
-extends L2ReadOperand<L2ObjectRegister>
+public class L2ReadBoxedVectorOperand
+extends L2ReadVectorOperand<L2ReadBoxedOperand, L2BoxedRegister>
 {
+	/**
+	 * Construct a new {@code L2ReadBoxedVectorOperand} with the specified
+	 * {@link List} of {@link L2ReadBoxedOperand}s.
+	 *
+	 * @param elements
+	 *        The list of {@link L2ReadBoxedOperand}s.
+	 */
+	public L2ReadBoxedVectorOperand (
+		final List<L2ReadBoxedOperand> elements)
+	{
+		super(elements);
+	}
+
+	@Override
+	public L2ReadBoxedVectorOperand clone ()
+	{
+		return new L2ReadBoxedVectorOperand(
+			elements.stream()
+				.<L2ReadBoxedOperand>map(read -> cast(read.clone()))
+				.collect(toList()));
+	}
+
+	@Override
+	public L2ReadBoxedVectorOperand clone (
+		final List<L2ReadBoxedOperand> replacementElements)
+	{
+		return new L2ReadBoxedVectorOperand(replacementElements);
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.READ_POINTER;
-	}
-
-	/**
-	 * Construct a new {@code L2ReadPointerOperand} for the specified {@link
-	 * L2ObjectRegister} and optional restriction.
-	 *
-	 * @param register
-	 *        The register.
-	 * @param restriction
-	 *        The further {@link TypeRestriction} to apply to this particular
-	 *        read.
-	 */
-	public L2ReadPointerOperand (
-		final L2ObjectRegister register,
-		final @Nullable TypeRestriction restriction)
-	{
-		super(register, restriction);
+		return L2OperandType.READ_BOXED_VECTOR;
 	}
 
 	@Override

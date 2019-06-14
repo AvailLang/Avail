@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableInt;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.function.IntFunction;
 
 import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
@@ -145,19 +145,14 @@ extends TupleDescriptor
 		}
 		// Fall back to building a general object tuple containing Avail
 		// character objects.
+		final MutableInt charIndex = new MutableInt(0);
 		return generateObjectTupleFrom(
 			count,
-			new IntFunction<A_BasicObject>()
-			{
-				private int charIndex = 0;
-
-				@Override
-				public A_BasicObject apply (final int ignored)
-				{
-					final int codePoint = aNativeString.codePointAt(charIndex);
-					charIndex += Character.charCount(codePoint);
-					return fromCodePoint(codePoint);
-				}
+			ignored -> {
+				final int codePoint =
+					aNativeString.codePointAt(charIndex.value);
+				charIndex.value += Character.charCount(codePoint);
+				return fromCodePoint(codePoint);
 			});
 	}
 

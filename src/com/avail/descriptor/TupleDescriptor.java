@@ -39,6 +39,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
+import com.avail.utility.MutableInt;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -50,7 +51,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -1393,22 +1393,16 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final int finalSeekIndex = seekIndex;
+				final MutableInt index = new MutableInt(1);
 				return generateObjectTupleFrom(
 					originalSize - 1,
-					new IntFunction<A_BasicObject>()
-					{
-						private int index = 1;
-
-						@Override
-						public A_BasicObject apply (final int ignored)
+					ignored -> {
+						if (index.value == finalSeekIndex)
 						{
-							if (index == finalSeekIndex)
-							{
-								// Skip that element.
-								index++;
-							}
-							return originalTuple.tupleAt(index++);
+							// Skip that element.
+							index.value++;
 						}
+						return originalTuple.tupleAt(index.value++);
 					});
 			}
 		}

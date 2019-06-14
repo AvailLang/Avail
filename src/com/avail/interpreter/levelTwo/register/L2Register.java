@@ -36,22 +36,15 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
@@ -67,96 +60,38 @@ public abstract class L2Register
 		/**
 		 * The kind of register that holds an {@link AvailObject}.
 		 */
-		OBJECT
-		{
-			@Override
-			public @Nullable L2ReadPointerOperand getDefaultRegister (
-				final L2Synonym synonym)
-			{
-				return synonym.defaultObjectRead();
-			}
-
-			@Override
-			public Set<L2ObjectRegister> getRegistersCopy (
-				final L2Synonym synonym)
-			{
-				return synonym.objectRegistersCopy();
-			}
-		},
+		BOXED(ALOAD, ASTORE),
 
 		/**
 		 * The kind of register that holds an {@code int}.
 		 */
-		INTEGER
-		{
-			@Override
-			public @Nullable L2ReadIntOperand getDefaultRegister (
-			final L2Synonym synonym)
-			{
-				return synonym.defaultIntRead();
-			}
-
-			@Override
-			public Set<L2IntRegister> getRegistersCopy (
-				final L2Synonym synonym)
-			{
-				return synonym.intRegistersCopy();
-			}
-		},
+		INTEGER(ILOAD, ISTORE),
 
 		/**
 		 * The kind of register that holds a {@code double}.
 		 */
-		FLOAT
-		{
-			@Override
-			public @Nullable L2ReadFloatOperand getDefaultRegister (
-				final L2Synonym synonym)
-			{
-				return synonym.defaultFloatRead();
-			}
-
-			@Override
-			public Set<L2FloatRegister> getRegistersCopy (
-				final L2Synonym synonym)
-			{
-				return synonym.floatRegistersCopy();
-			}
-		},
+		FLOAT(DLOAD, DSTORE),
 
 //		/**
 //		 * The kind of register that holds the value of some variable prior to
 //		 * the variable having escaped, if ever.
 // 		 */
 //		UNESCAPED_VARIABLE_VALUE
-//		{
-//
-//		}
 		;
 
-		/**
-		 * Extract an {@link L2ReadOperand} for the default {@link L2Register}
-		 * of this kind from the given {@link L2Synonym}.
-		 *
-		 * @param synonym
-		 *        The {@link L2Synonym} from which to request a default
-		 *        register.
-		 * @return A read of the default register, if one exists, otherwise
-		 *         {@code null}.
-		 */
-		public abstract @Nullable L2ReadOperand<?> getDefaultRegister (
-			L2Synonym synonym);
+		/** The JVM instruction that loads a register of this kind. */
+		public final int loadInstruction;
 
-		/**
-		 * Extract the set of {@link L2Register}s of this kind from the given
-		 * {@link L2Synonym}.
-		 *
-		 * @param synonym
-		 *        The {@link L2Synonym} from which to request registers.
-		 * @return The {@link L2Synonym}'s set of registers of this kind.
-		 */
-		public abstract Set<? extends L2Register> getRegistersCopy (
-			L2Synonym synonym);
+		/** The JVM instruction that stores a register of this kind. */
+		public final int storeInstruction;
+
+		RegisterKind (
+			final int loadInstruction,
+			final int storeInstruction)
+		{
+			this.loadInstruction = loadInstruction;
+			this.storeInstruction = storeInstruction;
+		}
 
 		/** Don't modify this array. */
 		public static final RegisterKind[] all = values();
@@ -221,54 +156,17 @@ public abstract class L2Register
 	}
 
 	/**
-	 * The {@link TypeRestriction} that constrains this register's content.
-	 */
-	protected final TypeRestriction restriction;
-
-	/**
-	 * Answer this register's basic {@link TypeRestriction}.
-	 *
-	 * @return A {@link TypeRestriction}.
-	 */
-	public final TypeRestriction restriction ()
-	{
-		return restriction;
-	}
-
-	/**
-	 * Construct a new {@code L2ObjectRegister}.
+	 * Construct a new {@code L2BoxedRegister}.
 	 *
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
-	 * @param restriction
-	 * 	      The {@link TypeRestriction}.
 	 */
 	public L2Register (
-		final int debugValue,
-		final TypeRestriction restriction)
+		final int debugValue)
 	{
 		this.uniqueValue = debugValue;
-		this.restriction = restriction;
 	}
-
-	/**
-	 * Create an appropriate {@link L2ReadOperand} for this register, using the
-	 * provided {@link TypeRestriction}.
-	 *
-	 * @param typeRestriction
-	 *        The {@code TypeRestriction}.
-	 * @return The requested {@code L2ReadOperand}.
-	 */
-	public abstract L2ReadOperand<? extends L2Register> read (
-		TypeRestriction typeRestriction);
-
-	/**
-	 * Create an appropriate {@link L2WriteOperand} for this register.
-	 *
-	 * @return The requested {@code L2WriteOperand}.
-	 */
-	public abstract L2WriteOperand<? extends L2Register> write ();
 
 	/**
 	 * The instructions that assigns to this register. While the {@link
@@ -312,33 +210,6 @@ public abstract class L2Register
 	{
 		assert definitions.size() == 1;
 		return definitions.iterator().next();
-	}
-
-	/**
-	 * Answer the {@link L2Instruction} which generates the value that will
-	 * populate this register. Skip over move instructions. The containing graph
-	 * must be in SSA form.
-	 *
-	 * @return The requested {@code L2Instruction}.
-	 */
-	public L2Instruction definitionSkippingMoves ()
-	{
-		L2Register other = this;
-		while (true)
-		{
-			assert other.definitions.size() == 1;
-			final L2Instruction definition =
-				other.definitions.iterator().next();
-			if (definition.operation().isMove())
-			{
-				final List<L2Register> sources =
-					definition.sourceRegisters();
-				assert sources.size() == 1;
-				other = sources.get(0);
-				continue;
-			}
-			return definition;
-		}
 	}
 
 	/**
@@ -399,13 +270,10 @@ public abstract class L2Register
 	 *
 	 * @param generator
 	 *        The {@link L2Generator} for which copying is requested.
-	 * @param typeRestriction
-	 *        The {@link TypeRestriction}.
 	 * @return The new {@code L2Register}.
 	 */
-	public abstract <R extends L2Register> R copyForTranslator (
-		final L2Generator generator,
-		final TypeRestriction typeRestriction);
+	public abstract L2Register copyForTranslator (
+		final L2Generator generator);
 
 	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
@@ -426,14 +294,6 @@ public abstract class L2Register
 	public abstract L2Register copyForInliner (final L2Inliner inliner);
 
 	/**
-	 * Answer an {@link L2Operation} that implements a phi move for the
-	 * receiver.
-	 *
-	 * @return The requested instruction.
-	 */
-	public abstract L2Operation phiMoveOperation ();
-
-	/**
 	 * Answer the prefix for non-constant registers. This is used only for
 	 * register printing.
 	 *
@@ -445,8 +305,7 @@ public abstract class L2Register
 	public final String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		//noinspection VariableNotUsedInsideIf
-		builder.append(restriction.constantOrNull == null ? namePrefix() : "c");
+		builder.append(namePrefix());
 		if (finalIndex() != -1)
 		{
 			builder.append(finalIndex());
@@ -454,21 +313,6 @@ public abstract class L2Register
 		else
 		{
 			builder.append(uniqueValue);
-		}
-		if (restriction.constantOrNull != null)
-		{
-			builder.append('[');
-			String constString = restriction.constantOrNull.toString();
-			if (constString.length() > 50)
-			{
-				constString = constString.substring(0, 50) + '…';
-			}
-			//noinspection DynamicRegexReplaceableByCompiledPattern
-			constString = constString
-				.replace("\n", "\\n")
-				.replace("\t", "\\t");
-			builder.append(constString);
-			builder.append(']');
 		}
 		return builder.toString();
 	}

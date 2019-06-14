@@ -49,10 +49,10 @@ import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
@@ -143,6 +143,8 @@ import static com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Interpreter.stringifyThen;
 import static com.avail.interpreter.Primitive.primitiveByName;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
@@ -3118,33 +3120,45 @@ public final class AvailCompiler
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
 				// All macro definitions are visible.  Use the lookup tree.
-				try
-				{
-					macro = method.lookupMacroByPhraseTuple(
+				final A_Tuple matchingMacros =
+					method.lookupMacroByPhraseTuple(
 						argumentsListNode.expressionsTuple());
-				}
-				catch (final MethodDefinitionException e)
+				switch (matchingMacros.tupleSize())
 				{
-					errorCode = e.errorCode();
+					case 0:
+					{
+						errorCode = E_NO_METHOD_DEFINITION;
+						break;
+					}
+					case 1:
+					{
+						macro = matchingMacros.tupleAt(1);
+						break;
+					}
+					default:
+					{
+						errorCode = E_AMBIGUOUS_METHOD_DEFINITION;
+						break;
+					}
 				}
 			}
 			else
 			{
 				// Some of the macro definitions are not visible.  Search the
 				// hard (but hopefully infrequent) way.
-				final List<A_Type> phraseTypes =
+				final List<TypeRestriction> phraseRestrictions =
 					new ArrayList<>(method.numArgs());
 				for (final A_Phrase argPhrase :
 					argumentsListNode.expressionsTuple())
 				{
-					phraseTypes.add(
-						instanceTypeOrMetaOn(argPhrase));
+					phraseRestrictions.add(
+						restrictionForConstant(argPhrase, BOXED));
 				}
 				final List<A_Definition> filtered = new ArrayList<>();
 				for (final A_Definition macroDefinition : visibleDefinitions)
 				{
 					if (macroDefinition.bodySignature().couldEverBeInvokedWith(
-						phraseTypes))
+						phraseRestrictions))
 					{
 						filtered.add(macroDefinition);
 					}

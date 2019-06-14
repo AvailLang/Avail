@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -190,7 +191,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		return true;
 	}
@@ -308,6 +309,12 @@ extends AbstractEnumerationTypeDescriptor
 
 	@Override
 	boolean o_IsBottom (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
 	{
 		return true;
 	}
@@ -567,7 +574,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link BottomTypeDescriptor}.
+	 * Construct a new {@code BottomTypeDescriptor}.
 	 */
 	private BottomTypeDescriptor ()
 	{

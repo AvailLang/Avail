@@ -43,7 +43,7 @@ import com.avail.descriptor.AvailObject;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class BeSharedSubobjectVisitor
-extends AvailSubobjectVisitor
+implements AvailSubobjectVisitor
 {
 	/** The sole instance of this visitor. */
 	public static final BeSharedSubobjectVisitor instance =

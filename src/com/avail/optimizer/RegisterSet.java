@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
@@ -176,15 +176,15 @@ public final class RegisterSet
 	 * Answer whether all of the supplied registers are constant here.
 	 *
 	 * @param registerReads
-	 *        The {@link List} of {@link L2ReadPointerOperand}s to examine for
+	 *        The {@link List} of {@link L2ReadBoxedOperand}s to examine for
 	 *        being constant in this register set.
 	 * @return {@code true} if all of the registers are constants here,
 	 *         otherwise {@code false}.
 	 */
 	public boolean allRegistersAreConstant (
-		final List<L2ReadPointerOperand> registerReads)
+		final List<L2ReadBoxedOperand> registerReads)
 	{
-		for (final L2ReadPointerOperand element : registerReads)
+		for (final L2ReadBoxedOperand element : registerReads)
 		{
 			if (!hasConstantAt(element.register()))
 			{

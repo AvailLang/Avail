@@ -46,9 +46,9 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
@@ -73,16 +73,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CanSuspend;
-import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
-import static com.avail.interpreter.Primitive.Flag.SpecialForm;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -1000,13 +996,13 @@ implements IntegerEnumSlotDescriptionEnum
 	 * answer {@code false}, and generate nothing.
 	 *
 	 * @param functionToCallReg
-	 *        The {@link L2ReadPointerOperand} register that holds the function
+	 *        The {@link L2ReadBoxedOperand} register that holds the function
 	 *        being invoked.  The function's primitive is known to be the
 	 *        receiver.
 	 * @param rawFunction
 	 *        The primitive raw function whose invocation is being generated.
 	 * @param arguments
-	 *        The argument {@link L2ReadPointerOperand}s supplied to the
+	 *        The argument {@link L2ReadBoxedOperand}s supplied to the
 	 *        function.
 	 * @param argumentTypes
 	 *        The list of {@link A_Type}s of the arguments.
@@ -1019,9 +1015,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 *         mechanism should be used instead.
 	 */
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -1038,17 +1034,27 @@ implements IntegerEnumSlotDescriptionEnum
 		// The primitive cannot fail at this site.  Output code to run the
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
-		final L2WritePointerOperand writer =
-			translator.generator.newObjectRegisterWriter(
-				restriction(
-					returnTypeGuaranteedByVM(rawFunction, argumentTypes)));
+		final A_Type guaranteedType =
+			returnTypeGuaranteedByVM(rawFunction, argumentTypes);
+		final L2WriteBoxedOperand writer =
+			translator.generator.boxedWriteTemp(
+				restrictionForType(
+					guaranteedType.isBottom() ? TOP.o() : guaranteedType,
+					BOXED));
 		translator.addInstruction(
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			new L2ConstantOperand(rawFunction),
 			new L2PrimitiveOperand(this),
-			new L2ReadVectorOperand<>(arguments),
+			new L2ReadBoxedVectorOperand(arguments),
 			writer);
-		callSiteHelper.useAnswer(writer.read());
+		if (guaranteedType.isBottom())
+		{
+			translator.generator.addUnreachableCode();
+		}
+		else
+		{
+			callSiteHelper.useAnswer(translator.readBoxed(writer));
+		}
 		return true;
 	}
 }

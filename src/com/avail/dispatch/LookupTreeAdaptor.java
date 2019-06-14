@@ -35,10 +35,16 @@ package com.avail.dispatch;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * {@code LookupTreeAdaptor} is instantiated to construct and interpret a family
@@ -68,19 +74,22 @@ public abstract class LookupTreeAdaptor<
 	 * @return The answer, some combination of the elements.
 	 */
 	public abstract Result constructResult (
-		final List<? extends Element> elements, final Memento memento);
+		final List<? extends Element> elements,
+		final Memento memento);
 
 	/**
 	 * Compare two types to produce a {@link TypeComparison}.
 	 *
-	 * @param criterionType
-	 *            The criterion signature to test against.
-	 * @param someType
-	 *            A signature to test against the criterion signature.
+	 * @param argumentRestrictions
+	 *        The {@link TypeRestriction}s that are known to hold at some point.
+	 * @param signatureType
+	 *        The signature type of some element, which can be tested for
+	 *        containment and intersection against the given restriction.
 	 * @return A {@link TypeComparison} indicating the result of the comparison.
 	 */
 	public abstract TypeComparison compareTypes (
-		final A_Type criterionType, final A_Type someType);
+		final List<TypeRestriction> argumentRestrictions,
+		final A_Type signatureType);
 
 	/**
 	 * Answer whether the tree tests individual argument positions, versus the
@@ -100,12 +109,29 @@ public abstract class LookupTreeAdaptor<
 	public abstract boolean subtypesHideSupertypes ();
 
 	/**
+	 * Extract the signature of the element, then intersect it with the given
+	 * tuple type.
+	 *
+	 * @param element
+	 *        The element providing a signature.
+	 * @param signatureBound
+	 *        The tuple type with which to intersect the result.
+	 * @return The intersection of the element's signature and the bound.
+	 */
+	public A_Type restrictedSignature (
+		final Element element,
+		final A_Type signatureBound)
+	{
+		return extractSignature(element).typeIntersection(signatureBound);
+	}
+
+	/**
 	 * Create a {@link LookupTree}, using the provided collection of {@link
 	 * Element}s, and the list of initial argument {@link A_Type types}.
 	 *
 	 * @param allElements
 	 *        The collection of {@link Element}s to categorize.
-	 * @param knownArgumentTypes
+	 * @param knownArgumentRestrictions
 	 *        The initial knowledge about the argument types.
 	 * @param memento
 	 *        A value used by this adaptor to construct a {@link Result}.
@@ -113,30 +139,32 @@ public abstract class LookupTreeAdaptor<
 	 */
 	public LookupTree<Element, Result, Memento> createRoot (
 		final Collection<? extends Element> allElements,
-		final List<A_Type> knownArgumentTypes,
+		final List<TypeRestriction> knownArgumentRestrictions,
 		final Memento memento)
 	{
+		// Do all type testing intersected with the known type bounds.
+		final A_Type bound = extractBoundingType(knownArgumentRestrictions);
 		final List<Element> prequalified = new ArrayList<>(1);
 		final List<Element> undecided = new ArrayList<>(allElements.size());
 		for (final Element element : allElements)
 		{
-			final A_Type signatureType = extractSignature(element);
+			final A_Type signatureType = restrictedSignature(element, bound);
 			boolean allComply = true;
 			boolean impossible = false;
 			if (testsArgumentPositions())
 			{
-				final int numArgs = knownArgumentTypes.size();
+				final int numArgs = knownArgumentRestrictions.size();
 				for (int i = 1; i <= numArgs; i++)
 				{
-					final A_Type knownType = knownArgumentTypes.get(i - 1);
+					final TypeRestriction knownRestriction =
+						knownArgumentRestrictions.get(i - 1);
 					final A_Type definitionArgType =
 						signatureType.typeAtIndex(i);
-					if (!knownType.isSubtypeOf(definitionArgType))
+					if (!knownRestriction.containedByType(definitionArgType))
 					{
 						allComply = false;
 					}
-					if (knownType.typeIntersection(definitionArgType)
-						.isBottom())
+					if (!knownRestriction.intersectsType(definitionArgType))
 					{
 						impossible = true;
 					}
@@ -144,13 +172,14 @@ public abstract class LookupTreeAdaptor<
 			}
 			else
 			{
-				assert knownArgumentTypes.size() == 1;
-				final A_Type knownType = knownArgumentTypes.get(0);
-				if (!knownType.isSubtypeOf(signatureType))
+				assert knownArgumentRestrictions.size() == 1;
+				final TypeRestriction knownRestriction =
+					knownArgumentRestrictions.get(0);
+				if (!knownRestriction.containedByType(signatureType))
 				{
 					allComply = false;
 				}
-				if (knownType.typeIntersection(signatureType).isBottom())
+				if (!knownRestriction.intersectsType(signatureType))
 				{
 					impossible = true;
 				}
@@ -165,7 +194,38 @@ public abstract class LookupTreeAdaptor<
 				undecided.add(element);
 			}
 		}
-		return createTree(prequalified, undecided, knownArgumentTypes, memento);
+		return createTree(
+			prequalified, undecided, knownArgumentRestrictions, memento);
+	}
+
+	/**
+	 * Compute the bounding signature from the given {@link List} of {@link
+	 * TypeRestriction}s.
+	 *
+	 * <p>Consider three elements A, B, and C, with a single argument position,
+	 * Say C = A ∩ B.  If we eliminate the possibility C at some point, but
+	 * later prove the argument is an A, then we know we can eliminate the
+	 * possibility that it's also a B, because it also would have had to be a C,
+	 * which was excluded.  By doing all type testing intersected with the known
+	 * upper type bounds at this point, we can identify this case.</p>
+	 *
+	 * @param argumentRestrictions
+	 *        The {@link List} of {@link TypeRestriction}s active for each
+	 *        argument position.
+	 * @return The type that acts as an upper bound for comparisons within these
+	 *         restrictions.
+	 */
+	public A_Type extractBoundingType (
+		final List<TypeRestriction> argumentRestrictions)
+	{
+		if (testsArgumentPositions())
+		{
+			return tupleTypeForTypes(
+				argumentRestrictions.stream()
+					.map(r -> r.type)
+					.collect(toList()));
+		}
+		return argumentRestrictions.get(0).type;
 	}
 
 	/**
@@ -176,15 +236,15 @@ public abstract class LookupTreeAdaptor<
 	 *        {@link Element}s which definitely apply at this node.
 	 * @param undecided
 	 *        Elements which are not known to apply or not apply at this node.
-	 * @param knownArgumentTypes
-	 *        The types that the arguments are known to comply with at this
-	 *        point.
+	 * @param knownArgumentRestrictions
+	 *        The {@link TypeRestriction}s that the arguments are known to
+	 *        comply with at this point.
 	 * @return A (potentially lazy) LookupTree used to look up Elements.
 	 */
 	LookupTree<Element, Result, Memento> createTree (
-		final List<? extends Element> positive,
-		final List<? extends Element> undecided,
-		final List<A_Type> knownArgumentTypes,
+		final List<Element> positive,
+		final List<Element> undecided,
+		final List<TypeRestriction> knownArgumentRestrictions,
 		final Memento memento)
 	{
 		if (undecided.size() == 0)
@@ -199,6 +259,8 @@ public abstract class LookupTreeAdaptor<
 			outer:
 			for (int outer = 0; outer < size; outer++)
 			{
+				// Use the actual signatures for dominance checking, since using
+				// the restrictedSignature would break method lookup rules.
 				final A_Type outerType = extractSignature(positive.get(outer));
 				for (int inner = 0; inner < size; inner++)
 				{
@@ -208,10 +270,9 @@ public abstract class LookupTreeAdaptor<
 							extractSignature(positive.get(inner));
 						if (innerType.isSubtypeOf(outerType))
 						{
-							// A more specific definition was found
-							// (i.e., inner was more specific than outer).
-							// This disqualifies outer from being considered
-							// most specific.
+							// A more specific definition was found (i.e., inner
+							// was more specific than outer). This disqualifies
+							// outer from being considered most specific.
 							continue outer;
 						}
 					}
@@ -221,7 +282,29 @@ public abstract class LookupTreeAdaptor<
 			return new LeafLookupTree<>(constructResult(mostSpecific, memento));
 		}
 		return new InternalLookupTree<>(
-			positive, undecided, knownArgumentTypes);
+			simplifyList(positive),
+			simplifyList(undecided),
+			knownArgumentRestrictions);
+	}
+
+	/**
+	 * Answer a list (possibly immutable) with the same elemnts as the given
+	 * list.  Use a smaller representation if possible.
+	 *
+	 * @param list
+	 *        The input list.
+	 * @param <X>
+	 *        The type of elements in the input list.
+	 * @return A list with the same elements.
+	 */
+	private static <X> List<X> simplifyList (final List<X> list)
+	{
+		switch (list.size())
+		{
+			case 0: return emptyList();
+			case 1: return singletonList(list.get(0));
+			default: return list;
+		}
 	}
 
 	/**

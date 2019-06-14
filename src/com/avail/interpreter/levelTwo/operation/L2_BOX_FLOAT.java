@@ -38,20 +38,17 @@ import com.avail.descriptor.DoubleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.DOUBLE_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Box a {@code double} into an {@link AvailObject}.
@@ -68,7 +65,7 @@ extends L2Operation
 	{
 		super(
 			READ_FLOAT.is("source"),
-			WRITE_POINTER.is("destination"));
+			WRITE_BOXED.is("destination"));
 	}
 
 	/**
@@ -83,10 +80,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2FloatRegister sourceReg =
-			instruction.readFloatRegisterAt(0).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readFloatRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -103,8 +100,8 @@ extends L2Operation
 	{
 		final L2FloatRegister sourceReg =
 			instruction.readFloatRegisterAt(0).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, sourceReg);

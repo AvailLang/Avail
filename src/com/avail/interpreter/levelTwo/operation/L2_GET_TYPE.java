@@ -38,9 +38,9 @@ import com.avail.descriptor.InstanceTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -51,12 +51,10 @@ import java.util.Set;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the {@link InstanceTypeDescriptor exact type} of an object in a
@@ -74,8 +72,8 @@ extends L2Operation
 	private L2_GET_TYPE ()
 	{
 		super(
-			READ_POINTER.is("value"),
-			WRITE_POINTER.is("value's type"));
+			READ_BOXED.is("value"),
+			WRITE_BOXED.is("value's type"));
 	}
 
 	/**
@@ -89,10 +87,10 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand valueReg =
-			instruction.readObjectRegisterAt(0);
-		final L2WritePointerOperand typeReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2ReadBoxedOperand valueReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2WriteBoxedOperand typeReg =
+			instruction.writeBoxedRegisterAt(1);
 
 		registerSet.removeConstantAt(typeReg.register());
 		if (registerSet.hasTypeAt(valueReg.register()))
@@ -125,13 +123,13 @@ extends L2Operation
 	 * Extract the register providing the value whose type is to be produced.
 	 *
 	 * @param instruction The instruction to examine.
-	 * @return The {@link L2ReadPointerOperand} supplying the value.
+	 * @return The {@link L2ReadBoxedOperand} supplying the value.
 	 */
-	public static L2ReadPointerOperand sourceValueOf (
+	public static L2ReadBoxedOperand sourceValueOf (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.readObjectRegisterAt(0);
+		return instruction.readBoxedRegisterAt(0);
 	}
 
 	@Override
@@ -141,10 +139,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister typeReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String valueReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String typeReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -159,10 +157,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister typeReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister valueReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister typeReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: type = instanceTypeOfMetaOn(value);
 		translator.load(method, valueReg);

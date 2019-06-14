@@ -145,6 +145,12 @@ extends TypeDescriptor
 		return subFunctionType.isSubtypeOf(superFunctionType);
 	}
 
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return object.slot(FUNCTION_TYPE).isVacuousType();
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeIntersection (
 		final AvailObject object,

@@ -42,6 +42,7 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -68,6 +69,29 @@ extends PhraseDescriptor
 		 * suitable for the parse stack.
 		 */
 		MARKER_VALUE
+	}
+
+	/**
+	 * An {@link Enum} whose ordinals can be used as marker values in
+	 * {@linkplain MarkerPhraseDescriptor marker phrases}.
+	 */
+	public enum MarkerTypes {
+		/**
+		 * A marker standing for a duplicate of some value that was on the
+		 * stack.
+		 */
+		DUP,
+
+		/**
+		 * A marker indicating the value below it has been permuted, and should
+		 * be checked by a subsequent call operation;
+		 */
+		PERMUTE;
+
+		/**
+		 * A pre-built marker for this enumeration value.
+		 */
+		public final A_Phrase marker = newMarkerNode(fromInt(ordinal()));
 	}
 
 	@Override

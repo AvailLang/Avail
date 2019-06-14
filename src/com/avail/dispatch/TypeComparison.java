@@ -35,6 +35,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import java.util.List;
 
@@ -48,72 +49,24 @@ public enum TypeComparison
 	/**
 	 * The definition's signature equals the criterion.
 	 */
-	SAME_TYPE
-	{
-		@Override
-		public <Element extends A_BasicObject> void applyEffect (
-			final Element undecidedDefinition,
-			final List<? super Element> ifTruePositiveDefinitions,
-			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions)
-		{
-			ifTruePositiveDefinitions.add(undecidedDefinition);
-		}
-	},
+	SAME_TYPE,
 
 	/**
 	 * The definition is a proper ancestor of the criterion.
 	 */
-	PROPER_ANCESTOR_TYPE
-	{
-		@Override
-		public <Element extends A_BasicObject> void applyEffect (
-			final Element undecidedDefinition,
-			final List<? super Element> ifTruePositiveDefinitions,
-			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions)
-		{
-			ifTruePositiveDefinitions.add(undecidedDefinition);
-			ifFalseUndecidedDefinitions.add(undecidedDefinition);
-		}
-	},
+	PROPER_ANCESTOR_TYPE,
 
 	/**
 	 * The definition is a proper descendant of the criterion.
 	 */
-	PROPER_DESCENDANT_TYPE
-	{
-		@Override
-		public <Element extends A_BasicObject> void applyEffect (
-			final Element undecidedDefinition,
-			final List<? super Element> ifTruePositiveDefinitions,
-			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions)
-		{
-			ifTrueUndecidedDefinitions.add(undecidedDefinition);
-		}
-	},
-
+	PROPER_DESCENDANT_TYPE,
 
 	/**
 	 * The definition's signature and the criterion are not directly
 	 * related, but may share subtypes other than {@linkplain
 	 * BottomTypeDescriptor bottom} (⊥).
 	 */
-	UNRELATED_TYPE
-	{
-		@Override
-		public <Element extends A_BasicObject> void applyEffect (
-			final Element undecidedDefinition,
-			final List<? super Element> ifTruePositiveDefinitions,
-			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions)
-		{
-			ifTrueUndecidedDefinitions.add(undecidedDefinition);
-			ifFalseUndecidedDefinitions.add(undecidedDefinition);
-		}
-	},
-
+	UNRELATED_TYPE,
 
 	/**
 	 * The definition's signature and the criterion have ⊥ as their
@@ -123,41 +76,48 @@ public enum TypeComparison
 	 * successful test against the criterion <em>eliminates</em> the
 	 * other definition from being considered possible.
 	 */
-	DISJOINT_TYPE
-	{
-		@Override
-		public <Element extends A_BasicObject> void applyEffect (
-			final Element undecidedDefinition,
-			final List<? super Element> ifTruePositiveDefinitions,
-			final List<? super Element> ifTrueUndecidedDefinitions,
-			final List<? super Element> ifFalseUndecidedDefinitions)
-		{
-			ifFalseUndecidedDefinitions.add(undecidedDefinition);
-		}
-	};
+	DISJOINT_TYPE;
 
 	/**
 	 * Conditionally augment the supplied lists with the provided undecided
 	 * {@link Element}.  The decision of which lists to augment depends on this
-	 * instance, which is the result of a previous comparison between the two
-	 * signatures.
+	 * instance, which is the result of a comparison with the proposed node's
+	 * type restrictions.
+	 *
 	 * @param undecidedDefinition
 	 *        An {link Entry} whose applicability has not yet been decided.
-	 * @param ifTruePositiveDefinitions
+	 * @param ifPositive
 	 *        A list of definitions that will be applicable to some arguments if
-	 *        the arguments meet the current criterion.
-	 * @param ifTrueUndecidedDefinitions
-	 *        A list of definitions that will be undecided for some arguments if
-	 *        the arguments meet the current criterion.
-	 * @param ifFalseUndecidedDefinitions
-	 *        A list of definitions that will be undecided for some arguments if
-	 *        the arguments do not meet the current criterion.
+	 *        this comparison indicates the definition is proven at some node.
+	 * @param ifUndecided
+	 *        A list of definitions that will be applicable to some arguments if
+	 *        this comparison indicates the definition is possible at some node.
 	 */
-	public abstract <Element extends A_BasicObject> void applyEffect (
+	public <Element extends A_BasicObject> void applyEffect (
 		final Element undecidedDefinition,
-		final List<? super Element> ifTruePositiveDefinitions,
-		final List<? super Element> ifTrueUndecidedDefinitions,
-		final List<? super Element> ifFalseUndecidedDefinitions);
+		final List<Element> ifPositive,
+		final List<Element> ifUndecided)
+	{
+		switch (this)
+		{
+			case SAME_TYPE:
+			case PROPER_ANCESTOR_TYPE:
+			{
+				ifPositive.add(undecidedDefinition);
+				break;
+			}
+			case PROPER_DESCENDANT_TYPE:
+			case UNRELATED_TYPE:
+			{
+				ifUndecided.add(undecidedDefinition);
+				break;
+			}
+			case DISJOINT_TYPE:
+			{
+				break;
+			}
+		}
+	}
 
 	/**
 	 * Compare two types extracted from {@link
@@ -165,28 +125,36 @@ public enum TypeComparison
 	 * will eventually be tested against arguments.  The second signature is the
 	 * one being compared by specificity with the criterion.
 	 *
-	 * @param criterionType
-	 *        The criterion signature to test against.
-	 * @param someType
-	 *        A signature to test against the criterion signature.
+	 * @param argumentRestrictions
+	 *        The {@link TypeRestriction}s that are known to hold at some point.
+	 * @param elementSignature
+	 *        An element signature type (a tuple type, here) to test against the
+	 *        given restrictions..
 	 * @return A TypeComparison representing the relationship between
-	 *         the criterion and the other signature.
+	 *         the restrictions and the signature type.
 	 */
 	public static TypeComparison compareForDispatch (
-		final A_Type criterionType,
-		final A_Type someType)
+		final List<TypeRestriction> argumentRestrictions,
+		final A_Type elementSignature)
 	{
-		final A_Type intersection = criterionType.typeIntersection(someType);
-		if (intersection.isBottom())
+		boolean allBelow = true;
+		boolean allAbove = true;
+		final int numArgs = argumentRestrictions.size();
+		for (int i = 1; i <= numArgs; i++)
 		{
-			return DISJOINT_TYPE;
+			final TypeRestriction restriction = argumentRestrictions.get(i - 1);
+			final A_Type argType = elementSignature.typeAtIndex(i);
+			if (!restriction.intersectsType(argType))
+			{
+				return DISJOINT_TYPE;
+			}
+			allBelow &= restriction.containsEntireType(argType);
+			allAbove &= restriction.containedByType(argType);
 		}
-		final boolean below = someType.isSubtypeOf(criterionType);
-		final boolean above = criterionType.isSubtypeOf(someType);
 		return
-			below
-				? (above ? SAME_TYPE : PROPER_DESCENDANT_TYPE)
-				: (above ? PROPER_ANCESTOR_TYPE : UNRELATED_TYPE);
+			allBelow
+				? (allAbove ? SAME_TYPE : PROPER_DESCENDANT_TYPE)
+				: (allAbove ? PROPER_ANCESTOR_TYPE : UNRELATED_TYPE);
 	}
 
 	/**
@@ -195,19 +163,23 @@ public enum TypeComparison
 	 * will eventually be tested against arguments.  The second signature is the
 	 * one being compared by specificity with the criterion.
 	 *
-	 * @param criterionType
-	 *        The criterion signature to test against.
+	 * @param argumentRestrictions
+	 *        The list of argument restrictions that will hold at some point
+	 *        during type testing.
 	 * @param someType
-	 *        A signature to test against the criterion signature.
+	 *        A signature type to test against the given restrictions.
 	 * @return A TypeComparison representing the relationship between
-	 *         the criterion and the other signature.
+	 *         the restrictions and the signature.
 	 */
 	public static TypeComparison compareForParsing (
-		final A_Type criterionType,
+		final List<TypeRestriction> argumentRestrictions,
 		final A_Type someType)
 	{
-		final A_Type intersection = criterionType.typeIntersection(someType);
-		if (intersection.expressionType().isBottom())
+		assert argumentRestrictions.size() == 1;
+		final TypeRestriction restriction = argumentRestrictions.get(0);
+		final TypeRestriction intersection =
+			restriction.intersectionWithType(someType);
+		if (intersection.type.expressionType().isBottom())
 		{
 			// For the purpose of parsing, if the intersection of these phrase
 			// types produces a yield type that's ⊥, treat the types as
@@ -215,8 +187,8 @@ public enum TypeComparison
 			// allowed to yield ⊥.
 			return DISJOINT_TYPE;
 		}
-		final boolean below = someType.isSubtypeOf(criterionType);
-		final boolean above = criterionType.isSubtypeOf(someType);
+		final boolean below = restriction.containsEntireType(someType);
+		final boolean above = restriction.containedByType(someType);
 		return
 			below
 				? (above ? SAME_TYPE : PROPER_DESCENDANT_TYPE)

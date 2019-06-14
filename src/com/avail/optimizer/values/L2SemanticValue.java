@@ -35,9 +35,9 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.L2Synonym;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * An {@code L2SemanticValue} represents a value stably computed from constants,
@@ -52,7 +52,7 @@ public abstract class L2SemanticValue
 	 * Answer the semantic value representing a particular constant value.
 	 *
 	 * @param value
-	 * 	The actual Avail value.
+	 *        The actual Avail value.
 	 * @return A {@link L2SemanticConstant} representing the constant.
 	 */
 	public static L2SemanticValue constant (final A_BasicObject value)
@@ -61,7 +61,19 @@ public abstract class L2SemanticValue
 	}
 
 	/**
-	 * Answer a semantic value representing invocation of a stable primitive.
+	 * Answer whether this semantic value corresponds with the notion of a
+	 * semantic constant.
+	 *
+	 * @return Whether this represents a constant.
+	 */
+	public boolean isConstant ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer a semantic value representing the result of invoking a stable
+	 * primitive.
 	 *
 	 * @param frame
 	 *        The {@link Frame} for which the primitive was executed.
@@ -74,7 +86,7 @@ public abstract class L2SemanticValue
 	 * @return The semantic value representing the primitive invocation.
 	 */
 	public static L2SemanticPrimitiveInvocation primitiveInvocation (
-		final @Nullable Frame frame,
+		final Frame frame,
 		final int pc,
 		final Primitive primitive,
 		final List<L2Synonym> argumentSynonyms)
@@ -82,7 +94,6 @@ public abstract class L2SemanticValue
 		return new L2SemanticPrimitiveInvocation(
 			frame, pc, primitive, argumentSynonyms);
 	}
-
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
@@ -97,9 +108,8 @@ public abstract class L2SemanticValue
 	 *         the result of the transformation would have been an equal value.
 	 */
 	public abstract L2SemanticValue transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer);
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer);
 
 	/**
 	 * Transform the receiver by rewriting any internal reference to the given

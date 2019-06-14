@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -96,7 +97,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes);
+		final List<? extends TypeRestriction> argRestrictions);
 
 	@Override @AvailMethod
 	abstract A_Type o_DefaultType (
@@ -494,6 +495,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract boolean o_IsBottom (final AvailObject object);
+
+	@Override @AvailMethod
+	abstract boolean o_IsVacuousType (final AvailObject object);
 
 	@Override @AvailMethod
 	abstract boolean o_IsTop (final AvailObject object);

@@ -40,8 +40,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -56,16 +56,14 @@ import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
- * invalid result function} into the supplied {@linkplain L2ObjectRegister
+ * invalid result function} into the supplied {@linkplain L2BoxedRegister
  * object register}.
  *
  * <p>The function is invoked by the VM whenever an attempt is made to return a
@@ -84,7 +82,7 @@ extends L2Operation
 	private L2_GET_INVALID_MESSAGE_RESULT_FUNCTION ()
 	{
 		super(
-			WRITE_POINTER.is("invalid message result function"));
+			WRITE_BOXED.is("invalid message result function"));
 	}
 
 	/**
@@ -99,8 +97,8 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2WritePointerOperand destination =
-			instruction.writeObjectRegisterAt(0);
+		final L2WriteBoxedOperand destination =
+			instruction.writeBoxedRegisterAt(0);
 		registerSet.typeAtPut(
 			destination.register(),
 			functionType(
@@ -132,8 +130,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister destination =
-			instruction.writeObjectRegisterAt(0).register();
+		final L2BoxedRegister destination =
+			instruction.writeBoxedRegisterAt(0).register();
 
 		// :: destination = interpreter.runtime()
 		// ::    .resultDisagreedWithExpectedTypeFunction();

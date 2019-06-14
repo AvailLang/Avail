@@ -39,11 +39,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 import org.objectweb.asm.MethodVisitor;
@@ -163,6 +164,31 @@ public final class L2Instruction
 	public void setOffset (final int offset)
 	{
 		this.offset = offset;
+	}
+
+	/**
+	 * Construct a new {@code L2Instruction}.  The instruction will be added
+	 * somewhere within the given {@link L2Generator}'s current {@link
+	 * L2BasicBlock}.
+	 *
+	 * @param generator
+	 *        The {@link L2Generator} in which this instruction is being
+	 *        regenerated.
+	 * @param operation
+	 *        The {@link L2Operation} that this instruction performs.
+	 * @param theOperands
+	 *        The array of {@link L2Operand}s on which this instruction
+	 *        operates.  These must agree with the operation's array of {@link
+	 *        L2NamedOperandType}s.  The operation is given an opportunity to
+	 *        augment this array, just as it may be given the opportunity to
+	 *        augment the named operand types.
+	 */
+	public L2Instruction (
+		final L2Generator generator,
+		final L2Operation operation,
+		final L2Operand... theOperands)
+	{
+		this(generator.currentBlock(), operation, theOperands);
 	}
 
 	/**
@@ -297,11 +323,14 @@ public final class L2Instruction
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock}.
+	 *
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this instruction
+	 *        wos just added to its {@link L2BasicBlock}.
 	 */
-	public void justAdded ()
+	public void justAdded (final L2ValueManifest manifest)
 	{
-		operation().instructionWasAdded(this);
-		operandsDo(operand -> operand.instructionWasAdded(this));
+		operation().instructionWasAdded(this, manifest);
 	}
 
 	/**
@@ -329,8 +358,8 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		operation()
-			.toString(this, EnumSet.allOf(L2OperandType.class), builder);
+		operation().toString(
+			this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
 	}
 
@@ -431,6 +460,38 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Extract the {@link L2ReadOperand} having the specified position in my
+	 * array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a read of an integer register.
+	 * @return The specified {@link L2ReadIntOperand} to read.
+	 */
+	public <
+		RR extends L2ReadOperand<R>,
+		R extends L2Register>
+	RR readRegisterAt (final int operandIndex)
+	{
+		return cast(operand(operandIndex));
+	}
+
+	/**
+	 * Extract the {@link L2WriteIntOperand} having the specified position in my
+	 * array of operands.
+	 *
+	 * @param operandIndex
+	 *        Which operand holds a write of an integer register.
+	 * @return The specified {@link L2WriteIntOperand} to write.
+	 */
+	public <
+		WR extends L2WriteOperand<R>,
+		R extends L2Register>
+	WR writeRegisterAt (final int operandIndex)
+	{
+		return cast(operand(operandIndex));
+	}
+
+	/**
 	 * Extract the {@link L2ReadIntOperand} having the specified position in my
 	 * array of operands.
 	 *
@@ -483,29 +544,29 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the {@link L2ReadPointerOperand} having the specified position in
+	 * Extract the {@link L2ReadBoxedOperand} having the specified position in
 	 * my array of operands.
 	 *
 	 * @param operandIndex
 	 *        Which operand holds a read of an object register.
-	 * @return The specified {@link L2ObjectRegister} to read.
+	 * @return The specified {@link L2BoxedRegister} to read.
 	 */
-	public L2ReadPointerOperand readObjectRegisterAt (final int operandIndex)
+	public L2ReadBoxedOperand readBoxedRegisterAt (final int operandIndex)
 	{
-		return (L2ReadPointerOperand) operand(operandIndex);
+		return (L2ReadBoxedOperand) operand(operandIndex);
 	}
 
 	/**
-	 * Extract the {@link L2WritePointerOperand} having the specified position
+	 * Extract the {@link L2WriteBoxedOperand} having the specified position
 	 * in my array of operands.
 	 *
 	 * @param operandIndex
 	 *        Which operand holds a write of an object register.
-	 * @return The specified {@code L2WritePointerOperand}.
+	 * @return The specified {@code L2WriteBoxedOperand}.
 	 */
-	public L2WritePointerOperand writeObjectRegisterAt (final int operandIndex)
+	public L2WriteBoxedOperand writeBoxedRegisterAt (final int operandIndex)
 	{
-		return (L2WritePointerOperand) operand(operandIndex);
+		return (L2WriteBoxedOperand) operand(operandIndex);
 	}
 
 	/**
@@ -519,7 +580,7 @@ public final class L2Instruction
 	 *        The type of {@link L2Register}s in this vector.
 	 * @param operandIndex
 	 *        Which operand holds a read of a register vector.
-	 * @return The list of {@link L2ReadPointerOperand}s.
+	 * @return The list of {@link L2ReadBoxedOperand}s.
 	 */
 	public <
 		RR extends L2ReadOperand<R>,
@@ -528,21 +589,6 @@ public final class L2Instruction
 	{
 		final L2ReadVectorOperand<RR, R> operand = cast(operand(operandIndex));
 		return operand.elements();
-	}
-
-	/**
-	 * Extract the {@link L2WritePhiOperand} having the specified position
-	 * in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a phi write.
-	 * @return The specified {@code L2WritePhiOperand}.
-	 */
-	@SuppressWarnings("unchecked")
-	public <U extends L2WritePhiOperand<?>> U writePhiRegisterAt (
-		final int operandIndex)
-	{
-		return (U) operand(operandIndex);
 	}
 
 	/**

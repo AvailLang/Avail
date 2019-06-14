@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -577,9 +578,9 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
-		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
+		return getSuperkind(object).couldEverBeInvokedWith(argRestrictions);
 	}
 
 	@Override @AvailMethod

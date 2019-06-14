@@ -43,7 +43,7 @@ import com.avail.descriptor.AvailObject;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class MarkUnreachableSubobjectVisitor
-extends AvailSubobjectVisitor
+implements AvailSubobjectVisitor
 {
 	/**
 	 * An object which we should <em>not</em> recurse into if encountered.

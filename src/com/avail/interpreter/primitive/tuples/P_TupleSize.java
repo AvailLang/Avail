@@ -37,9 +37,10 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
@@ -54,7 +55,8 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 
 /**
  * <strong>Primitive:</strong> Answer the size of the {@linkplain
@@ -98,14 +100,14 @@ extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand tupleReg = arguments.get(0);
+		final L2ReadBoxedOperand tupleReg = arguments.get(0);
 
 		final A_Type returnType = returnTypeGuaranteedByVM(
 			rawFunction, argumentTypes);
@@ -115,25 +117,26 @@ extends Primitive
 		{
 			// If the exact size of the tuple is known, then leverage that
 			// information to produce a constant.
-			unboxedValue = translator.generator.constantIntRegister(
+			unboxedValue = translator.generator.unboxedIntConstant(
 				returnType.lowerBound().extractInt());
 		}
 		else
 		{
 			// The exact size of the tuple isn't known, so generate code to
 			// extract it.
+			final TypeRestriction restriction =
+				restrictionForType(returnType, UNBOXED_INT);
 			final L2WriteIntOperand writer =
-				translator.generator.newIntRegisterWriter(
-					restriction(returnType));
+				translator.generator.intWriteTemp(restriction);
 			translator.addInstruction(
 				L2_TUPLE_SIZE.instance,
 				tupleReg,
 				writer);
-			unboxedValue = writer.read();
+			unboxedValue = translator.currentManifest().readInt(
+				writer.semanticValue());
 		}
-		final L2ReadPointerOperand boxed =
-			translator.generator.readBoxedRegister(
-				unboxedValue.register(), restriction(returnType));
+		final L2ReadBoxedOperand boxed =
+			translator.generator.readBoxed(unboxedValue.semanticValue());
 		callSiteHelper.useAnswer(boxed);
 		return true;
 	}

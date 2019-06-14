@@ -37,7 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -45,15 +45,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}'s n-th
@@ -72,7 +66,7 @@ extends L2Operation
 	{
 		super(
 			INT_IMMEDIATE.is("subscript into argsBuffer"),
-			WRITE_POINTER.is("argument"));
+			WRITE_BOXED.is("argument"));
 	}
 
 	/**
@@ -94,8 +88,8 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister argumentReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String argumentReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 		final int subscript = instruction.intImmediateAt(0);
 		renderPreamble(instruction, builder);
 
@@ -111,8 +105,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister argumentReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister argumentReg =
+			instruction.writeBoxedRegisterAt(1).register();
 		final int subscript = instruction.intImmediateAt(0);
 
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);

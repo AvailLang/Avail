@@ -12,6 +12,8 @@
       <value defaultName="wholeProject" />
     </option>
     <dir value="$PROJECT_DIR$/test/com/avail/test" />
-    <method v="2" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
   </configuration>
 </component>

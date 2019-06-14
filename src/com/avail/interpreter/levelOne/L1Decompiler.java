@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
@@ -50,11 +51,11 @@ import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeFo
 import static com.avail.descriptor.DeclarationPhraseDescriptor.*;
 import static com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
-import static com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode;
+import static com.avail.descriptor.MarkerPhraseDescriptor.MarkerTypes.DUP;
+import static com.avail.descriptor.MarkerPhraseDescriptor.MarkerTypes.PERMUTE;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
@@ -69,8 +70,6 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
-import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.DUP;
-import static com.avail.interpreter.levelOne.L1Decompiler.MarkerTypes.PERMUTE;
 import static com.avail.utility.PrefixSharingList.last;
 
 /**
@@ -137,7 +136,7 @@ public class L1Decompiler
 	/**
 	 * Something to generate unique variable names from a prefix.
 	 */
-	@InnerAccess final Function<String, String> tempGenerator;
+	@InnerAccess final UnaryOperator<String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
@@ -177,7 +176,7 @@ public class L1Decompiler
 	public L1Decompiler (
 		final A_RawFunction aCodeObject,
 		final A_Phrase[] outerDeclarations,
-		final Function<String, String> tempBlock)
+		final UnaryOperator<String> tempBlock)
 	{
 		code = aCodeObject;
 		numNybbles = aCodeObject.numNybbles();
@@ -338,29 +337,6 @@ public class L1Decompiler
 		final A_Phrase expression)
 	{
 		expressionStack.add(expression);
-	}
-
-	/**
-	 * An {@link Enum} whose ordinals can be used as marker values in
-	 * {@linkplain MarkerPhraseDescriptor marker phrases}.
-	 */
-	enum MarkerTypes {
-		/**
-		 * A marker standing for a duplicate of some value that was on the
-		 * stack.
-		 */
-		DUP,
-
-		/**
-		 * A marker indicating the value below it has been permuted, and should
-		 * be checked by a subsequent call operation;
-		 */
-		PERMUTE;
-
-		/**
-		 * A pre-built marker for this enumeration value.
-		 */
-		public final A_Phrase marker = newMarkerNode(fromInt(ordinal()));
 	}
 
 	@InnerAccess class DecompilerDispatcher implements L1OperationDispatcher
@@ -961,7 +937,7 @@ public class L1Decompiler
 	public static A_Phrase decompile (final A_RawFunction code)
 	{
 		final Map<String, Integer> counts = new HashMap<>();
-		final Function<String, String> generator =
+		final UnaryOperator<String> generator =
 			prefix ->
 			{
 				@Nullable Integer newCount = counts.get(prefix);

@@ -40,7 +40,8 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class AvailSubobjectVisitor
+@FunctionalInterface
+public interface AvailSubobjectVisitor
 {
 	/**
 	 * This is a visitor call from a subobject iterator running on some object.
@@ -51,6 +52,6 @@ public abstract class AvailSubobjectVisitor
 	 * @return A replacement object for the childObject.  Subclasses may use
 	 *         this to eliminate indirections, or for other purposes.
 	 */
-	public abstract AvailObject invoke (
+	AvailObject invoke (
 		final AvailObject childObject);
 }

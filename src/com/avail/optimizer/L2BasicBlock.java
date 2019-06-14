@@ -367,13 +367,19 @@ public final class L2BasicBlock
 	 * the instruction was just added.  Adding a phi instruction automatically
 	 * places it at the start.
 	 *
-	 * @param instruction The {@link L2Instruction} to append.
+	 * @param instruction
+	 *        The {@link L2Instruction} to append.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this instruction
+	 *        wos just added to its {@code L2BasicBlock}.
 	 */
-	public void addInstruction (final L2Instruction instruction)
+	public void addInstruction (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
 	{
 		assert isIrremovable() || predecessorEdgesCount() > 0;
 		justAddInstruction(instruction);
-		instruction.justAdded();
+		instruction.justAdded(manifest);
 	}
 
 	/**
@@ -405,18 +411,24 @@ public final class L2BasicBlock
 	 * Insert an instruction in this basic block at the specified instruction
 	 * index, notifying the operands that the instruction was just added.
 	 *
-	 * @param index The index at which to insert the instruction.
-	 * @param instruction The {@link L2Instruction} to insert.
+	 * @param index
+	 *        The index at which to insert the instruction.
+	 * @param instruction
+	 *        The {@link L2Instruction} to insert.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this instruction
+	 *        wos just added to its {@code L2BasicBlock}.
 	 */
 	public void insertInstruction (
 		final int index,
-		final L2Instruction instruction)
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
 	{
 		assert isIrremovable() || predecessorEdgesCount() > 0;
 		assert instruction.basicBlock == this;
 		instructions.add(index, instruction);
 		hasStartedCodeGeneration = true;
-		instruction.justAdded();
+		instruction.justAdded(manifest);
 	}
 
 	/**
@@ -472,7 +484,7 @@ public final class L2BasicBlock
 			{
 				final L2Instruction previousInstruction =
 					output.get(output.size() - 1);
-				if (previousInstruction.operation() instanceof L2_JUMP)
+				if (previousInstruction.operation() == L2_JUMP.instance)
 				{
 					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
 						== this)

@@ -31,7 +31,7 @@
  */
 package com.avail.optimizer.values;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * A semantic value which represents the return value produced by the invocation
@@ -68,9 +68,8 @@ extends L2FrameSpecificSemanticValue
 
 	@Override
 	public L2SemanticResult transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame());
 		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);

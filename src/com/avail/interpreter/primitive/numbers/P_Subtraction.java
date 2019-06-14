@@ -39,8 +39,8 @@ import com.avail.descriptor.AbstractNumberDescriptor;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT;
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS;
@@ -49,6 +49,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.values.L2SemanticValue;
 
 import java.util.List;
 
@@ -69,7 +70,10 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.optimizer.L2Generator.edgeTo;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> Subtract {@linkplain
@@ -141,8 +145,7 @@ extends Primitive
 								false);
 						}
 					}
-					return
-						enumerationWith(answers);
+					return enumerationWith(answers);
 				}
 			}
 			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
@@ -204,18 +207,17 @@ extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand a = arguments.get(0);
-		final L2ReadPointerOperand b = arguments.get(1);
+		final L2ReadBoxedOperand a = arguments.get(0);
+		final L2ReadBoxedOperand b = arguments.get(1);
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);
-
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
@@ -229,19 +231,25 @@ extends Primitive
 		final L2Generator generator = translator.generator;
 		final L2BasicBlock fallback = generator.createBasicBlock(
 			"fall back to boxed subtraction");
-		final L2ReadIntOperand intA = generator.readIntRegister(
-			a.register(), a.restriction(), fallback);
-		final L2ReadIntOperand intB = generator.readIntRegister(
-			b.register(), b.restriction(), fallback);
-		final A_Type returnType = returnTypeGuaranteedByVM(
-			rawFunction, argumentTypes);
+		final L2ReadIntOperand intA =
+			generator.readInt(a.semanticValue(), fallback);
+		final L2ReadIntOperand intB =
+			generator.readInt(b.semanticValue(), fallback);
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
 			// available unboxed arithmetic.
-			final L2WriteIntOperand difference =
-				generator.newIntRegisterWriter(restriction(returnType));
-			if (returnType.isSubtypeOf(int32()))
+			final A_Type returnTypeIfInts = returnTypeGuaranteedByVM(
+				rawFunction,
+				argumentTypes.stream()
+					.map(t -> t.typeIntersection(int32()))
+					.collect(toList()));
+			final L2SemanticValue semanticTemp =
+				generator.topFrame.temp(generator.nextUnique());
+			final L2WriteIntOperand tempWriter = generator.intWrite(
+				semanticTemp,
+				restrictionForType(returnTypeIfInts, UNBOXED_INT));
+			if (returnTypeIfInts.isSubtypeOf(int32()))
 			{
 				// The result is guaranteed not to overflow, so emit an
 				// instruction that won't bother with an overflow check.  Note
@@ -252,7 +260,7 @@ extends Primitive
 					L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS.instance,
 					intA,
 					intB,
-					difference);
+					tempWriter);
 			}
 			else
 			{
@@ -263,34 +271,28 @@ extends Primitive
 					L2_SUBTRACT_INT_MINUS_INT.instance,
 					intA,
 					intB,
-					difference,
-					translator.edgeTo(
+					tempWriter,
+					edgeTo(
 						success,
-						difference.read().restrictedToType(int32())),
-					translator.edgeTo(
+						tempWriter.restrictedToType(int32())),
+					edgeTo(
 						fallback,
-						difference.read().restrictedWithoutType(int32())));
+						tempWriter.restrictedWithoutType(int32())));
 				generator.startBlock(success);
 			}
 			// Even though we're just using the boxed value again, the unboxed
 			// form is also still available for use by subsequent primitives,
 			// which could allow the boxing instruction to evaporate.
-			final L2ReadPointerOperand boxed = generator.readBoxedRegister(
-				difference.register(), restriction(returnType));
-			callSiteHelper.useAnswer(boxed);
+			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp));
 		}
 		if (fallback.predecessorEdgesCount() > 0)
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,
-			// or from int32 overflow calculating the sum.
+			// or from int32 overflow calculating the difference.
 			generator.startBlock(fallback);
 			translator.generateGeneralFunctionInvocation(
-				functionToCallReg,
-				arguments,
-				returnType,
-				false,
-				callSiteHelper);
+				functionToCallReg, arguments, false, callSiteHelper);
 		}
 		return true;
 	}

@@ -40,8 +40,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -50,17 +50,15 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.AvailRuntime.unassignedVariableReadFunctionType;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#unassignedVariableReadFunction()
  * unassigned variable read function} into the supplied {@linkplain
- * L2ObjectRegister object register}.
+ * L2BoxedRegister object register}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -73,7 +71,7 @@ extends L2Operation
 	private L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION ()
 	{
 		super(
-			WRITE_POINTER.is("unassigned variable read function"));
+			WRITE_BOXED.is("unassigned variable read function"));
 	}
 
 	/**
@@ -88,8 +86,8 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2WritePointerOperand destination =
-			instruction.writeObjectRegisterAt(0);
+		final L2WriteBoxedOperand destination =
+			instruction.writeBoxedRegisterAt(0);
 		registerSet.typeAtPut(
 			destination.register(),
 			unassignedVariableReadFunctionType,
@@ -116,8 +114,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister destination =
-			instruction.writeObjectRegisterAt(0).register();
+		final L2BoxedRegister destination =
+			instruction.writeBoxedRegisterAt(0).register();
 
 		// :: register = interpreter.runtime().unassignedVariableReadFunction();
 		translator.loadInterpreter(method);

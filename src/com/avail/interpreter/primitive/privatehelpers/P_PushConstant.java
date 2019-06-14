@@ -38,7 +38,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -48,10 +48,7 @@ import java.util.List;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Private;
-import static com.avail.interpreter.Primitive.Flag.SpecialForm;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -60,7 +57,7 @@ import static com.avail.utility.Nulls.stripNull;
  * compiled code} that the interpreter has squirreled away for this purpose.
  *
  * <p>This mechanism relies on {@link #tryToGenerateSpecialPrimitiveInvocation(
- * L2ReadPointerOperand, A_RawFunction, List, List, L1Translator,
+ * L2ReadBoxedOperand, A_RawFunction, List, List, L1Translator,
  * CallSiteHelper)} always producing specialized L2 code – i.e., a constant
  * move.  Note that {@link Flag#CanInline} normally skips making the actual
  * called function available, so we must be careful to expose it for the
@@ -103,16 +100,15 @@ public final class P_PushConstant extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
 		final A_BasicObject constant = rawFunction.literalAt(1);
-		callSiteHelper.useAnswer(
-			translator.generator.constantRegister(constant));
+		callSiteHelper.useAnswer(translator.generator.boxedConstant(constant));
 		return true;
 	}
 }

@@ -1,19 +1,19 @@
 /*
- * L2SemanticFunction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L2SemanticTemp.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,52 +33,79 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
+import static com.avail.utility.Casts.cast;
+
 /**
- * A semantic value which represents the current function while running code for
- * a particular {@link Frame}.
+ * A semantic value which holds a temporary value in a {@link Frame}.  The scope
+ * of this value is usually local to section of Java code that both produces and
+ * consumes the value, and it might have no meaning beyond this simple
+ * correlation of production and use.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticFunction
+final class L2SemanticTemp
 extends L2FrameSpecificSemanticValue
 {
+	/**
+	 * An integer which should be unique across all other instances for the
+	 * same {@link Frame}.
+	 */
+	final int uniqueId;
+
 	/**
 	 * Create a new {@code L2SemanticFunction} semantic value.
 	 *
 	 * @param frame
 	 *        The frame for which this represents the invoked function.
+	 * @param uniqueId
+	 *        An integer which should be unique across all other instances of
+	 *        this class created for this {@link Frame}.
 	 */
-	L2SemanticFunction (final Frame frame)
+	L2SemanticTemp (final Frame frame, final int uniqueId)
 	{
 		super(frame);
+		this.uniqueId = uniqueId;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		return obj instanceof L2SemanticFunction
-			&& frame().equals(((L2SemanticFunction) obj).frame());
+		if (!(obj instanceof L2SemanticTemp))
+		{
+			return false;
+		}
+		final L2SemanticTemp other = cast(obj);
+		return frame().equals(other.frame())
+			&& uniqueId == other.uniqueId;
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame().hashCode() + 0xF1AE6003;
+		return frame().hashCode() ^ 0x4B69A947;
 	}
 
 	@Override
-	public L2SemanticFunction transform (
+	public L2SemanticTemp transform (
 		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
 		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame) ? this : new L2SemanticFunction(newFrame);
+		return newFrame.equals(frame)
+			? this
+			: new L2SemanticTemp(newFrame, uniqueId);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return "CurrentFunction" +
-			(frame.depth() == 1 ? "" : "[" + frame + "]");
+		if (frame.depth() == 1)
+		{
+			return "Temp#" + uniqueId;
+		}
+		else
+		{
+			return "Temp#" + uniqueId + " in " + frame;
+		}
 	}
 }

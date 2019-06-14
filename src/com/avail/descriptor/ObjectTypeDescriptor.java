@@ -540,6 +540,20 @@ extends TypeDescriptor
 		return true;
 	}
 
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		final int limit = object.variableObjectSlotsCount();
+		for (int i = 1; i <= limit; i++)
+		{
+			if (object.slot(FIELD_TYPES_, i).isVacuousType())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeIntersection (
 		final AvailObject object,

@@ -37,8 +37,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -47,11 +47,9 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Clear a variable; i.e., make it have no assigned value.
@@ -68,7 +66,7 @@ extends L2Operation
 	private L2_CLEAR_VARIABLE ()
 	{
 		super(
-			READ_POINTER.is("variable"));
+			READ_BOXED.is("variable"));
 	}
 
 	/**
@@ -82,8 +80,8 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand variableReg =
+			instruction.readBoxedRegisterAt(0);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
 		assert registerSet.hasTypeAt(variableReg.register());
@@ -117,8 +115,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister variableReg =
+			instruction.readBoxedRegisterAt(0).register();
 
 		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();

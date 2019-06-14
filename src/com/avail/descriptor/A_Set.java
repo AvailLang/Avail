@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nonnull;
 import java.util.Iterator;
 
 /**
@@ -91,8 +90,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return An {@linkplain Iterator iterator}.
 	 */
-	@Override
-	@Nonnull Iterator<AvailObject> iterator ();
+	@Override Iterator<AvailObject> iterator ();
 
 	/**
 	 * Check if all elements of the set are all instances of the specified kind

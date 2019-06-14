@@ -43,8 +43,8 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -76,12 +76,12 @@ extends L2ControlFlowOperation
 	private L2_CREATE_CONTINUATION ()
 	{
 		super(
-			READ_POINTER.is("function"),
-			READ_POINTER.is("caller"),
+			READ_BOXED.is("function"),
+			READ_BOXED.is("caller"),
 			INT_IMMEDIATE.is("level one pc"),
 			INT_IMMEDIATE.is("stack pointer"),
-			READ_VECTOR.is("slot values"),
-			WRITE_POINTER.is("destination"),
+			READ_BOXED_VECTOR.is("slot values"),
+			WRITE_BOXED.is("destination"),
 			PC.is("on-ramp", ON_RAMP),
 			PC.is("fall through after creation", OFF_RAMP),
 			COMMENT.is("usage comment"));
@@ -95,7 +95,7 @@ extends L2ControlFlowOperation
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
-	 * L2ReadPointerOperand}s) that fed the given {@link L2Instruction} whose
+	 * L2ReadBoxedOperand}s) that fed the given {@link L2Instruction} whose
 	 * {@link L2Operation} is an {@code L2_CREATE_CONTINUATION}.
 	 *
 	 * @param instruction
@@ -103,7 +103,7 @@ extends L2ControlFlowOperation
 	 * @return The slots that were provided to the instruction for populating an
 	 *         {@link ContinuationDescriptor continuation}.
 	 */
-	public static List<L2ReadPointerOperand> slotRegistersFor (
+	public static List<L2ReadBoxedOperand> slotRegistersFor (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
@@ -117,13 +117,14 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand function = instruction.readObjectRegisterAt(0);
-		final L2Operand caller = instruction.readObjectRegisterAt(1);
+		final L2Operand function = instruction.readBoxedRegisterAt(0);
+		final L2Operand caller = instruction.readBoxedRegisterAt(1);
 		final int levelOnePC = instruction.intImmediateAt(2);
 		final int levelOneStackp = instruction.intImmediateAt(3);
-		final L2Operand slots = instruction.operand(4);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(5).register();
+		final List<L2ReadBoxedOperand> slots =
+			instruction.readVectorRegisterAt(4);
+		final String destReg =
+			instruction.writeBoxedRegisterAt(5).registerString();
 //		final int onRampOffset = instruction.pcOffsetAt(6);
 //		final L2PcOperand fallThrough = instruction.pcAt(7);
 
@@ -134,9 +135,19 @@ extends L2ControlFlowOperation
 		builder.append(function);
 		builder.append("]:pc=");
 		builder.append(levelOnePC);
-		builder.append(" stack=");
-		builder.append(slots);
-		builder.append('[');
+		builder.append(" stack=[");
+		boolean first = true;
+		for (final L2ReadBoxedOperand slot : slots)
+		{
+			if (!first)
+			{
+				builder.append(",");
+			}
+			first = false;
+			builder.append("\n\t\t");
+			builder.append(slot);
+		}
+		builder.append("]\n\t[");
 		builder.append(levelOneStackp);
 		builder.append("] caller=");
 		builder.append(caller);
@@ -149,16 +160,16 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister callerReg =
-			instruction.readObjectRegisterAt(1).register();
+		final L2BoxedRegister functionReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister callerReg =
+			instruction.readBoxedRegisterAt(1).register();
 		final int levelOnePC = instruction.intImmediateAt(2);
 		final int levelOneStackp = instruction.intImmediateAt(3);
-		final List<L2ReadPointerOperand> slots =
+		final List<L2ReadBoxedOperand> slots =
 			instruction.readVectorRegisterAt(4);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(5).register();
+		final L2BoxedRegister destReg =
+			instruction.writeBoxedRegisterAt(5).register();
 		final int onRampOffset = instruction.pcOffsetAt(6);
 		final L2PcOperand fallThrough = instruction.pcAt(7);
 
@@ -197,7 +208,7 @@ extends L2ControlFlowOperation
 		final int slotCount = slots.size();
 		for (int i = 0; i < slotCount; i++)
 		{
-			final L2ReadPointerOperand regRead = slots.get(i);
+			final L2ReadBoxedOperand regRead = slots.get(i);
 			final @Nullable A_BasicObject constant = regRead.constantOrNull();
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.

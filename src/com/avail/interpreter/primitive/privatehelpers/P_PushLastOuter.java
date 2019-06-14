@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -39,7 +38,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -48,10 +47,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Private;
-import static com.avail.interpreter.Primitive.Flag.SpecialForm;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -94,9 +90,9 @@ public final class P_PushLastOuter extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -109,7 +105,7 @@ public final class P_PushLastOuter extends Primitive
 		if (constantFunction != null)
 		{
 			callSiteHelper.useAnswer(
-				translator.generator.constantRegister(
+				translator.generator.boxedConstant(
 					constantFunction.outerVarAt(1)));
 			return true;
 		}
@@ -118,16 +114,16 @@ public final class P_PushLastOuter extends Primitive
 		// the original register that provided the value for the outer.  This
 		// should allow us to skip the creation of the function.
 		final L2Instruction functionCreationInstruction =
-			functionToCallReg.register().definitionSkippingMoves();
+			functionToCallReg.definitionSkippingMoves(false);
 		final A_Type returnType = functionToCallReg.type().returnType();
-		final L2ReadPointerOperand outerReg =
+		final L2ReadBoxedOperand outerReg =
 			functionCreationInstruction.operation()
-				.extractFunctionOuterRegister(
+				.extractFunctionOuter(
 					functionCreationInstruction,
 					functionToCallReg,
 					1,
 					returnType,
-					translator);
+					translator.generator);
 		callSiteHelper.useAnswer(outerReg);
 		return true;
 	}

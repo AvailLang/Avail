@@ -94,8 +94,8 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final double constant = instruction.floatImmediateAt(0);
-		final L2FloatRegister destinationFloatReg =
-			instruction.writeFloatRegisterAt(1).register();
+		final String destinationFloatReg =
+			instruction.writeFloatRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

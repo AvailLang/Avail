@@ -36,20 +36,15 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract a single slot from a continuation.
@@ -66,9 +61,9 @@ extends L2Operation
 	private L2_EXTRACT_CONTINUATION_SLOT ()
 	{
 		super(
-			READ_POINTER.is("continuation"),
+			READ_BOXED.is("continuation"),
 			INT_IMMEDIATE.is("slot index"),
-			WRITE_POINTER.is("extracted slot"));
+			WRITE_BOXED.is("extracted slot"));
 	}
 
 	/**
@@ -84,11 +79,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
+		final String continuationReg =
+			instruction.readBoxedRegisterAt(0).registerString();
 		final int slotIndex = instruction.intImmediateAt(1);
-		final L2ObjectRegister explodedSlotReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String explodedSlotReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -107,11 +102,11 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		// Extract a single slot from the given continuation.
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister continuationReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final int slotIndex = instruction.intImmediateAt(1);
-		final L2ObjectRegister explodedSlotReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister explodedSlotReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: «slot[i]» = continuation.argOrLocalOrStackAt(«slotIndex»);
 		translator.load(method, continuationReg);

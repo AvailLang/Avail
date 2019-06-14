@@ -32,7 +32,7 @@
 package com.avail.optimizer.values;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * A semantic value which represents a label continuation created for the
@@ -74,9 +74,8 @@ final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 
 	@Override
 	public L2SemanticLabel transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame) ? this : new L2SemanticLabel(newFrame);

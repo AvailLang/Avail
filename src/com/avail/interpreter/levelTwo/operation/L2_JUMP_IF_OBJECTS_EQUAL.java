@@ -37,8 +37,8 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -51,16 +51,11 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Branch based on whether the two values are equal to each other.
@@ -77,8 +72,8 @@ extends L2ConditionalJump
 	private L2_JUMP_IF_OBJECTS_EQUAL ()
 	{
 		super(
-			READ_POINTER.is("first value"),
-			READ_POINTER.is("second value"),
+			READ_BOXED.is("first value"),
+			READ_BOXED.is("second value"),
 			PC.is("is equal", SUCCESS),
 			PC.is("is not equal", FAILURE));
 	}
@@ -95,10 +90,10 @@ extends L2ConditionalJump
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand firstReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand secondReg =
-			instruction.readObjectRegisterAt(1);
+		final L2ReadBoxedOperand firstReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand secondReg =
+			instruction.readBoxedRegisterAt(1);
 //		final L2PcOperand ifEqual = instruction.pcAt(2);
 //		final L2PcOperand notEqual = instruction.pcAt(3);
 
@@ -124,10 +119,10 @@ extends L2ConditionalJump
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand firstReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand secondReg =
-			instruction.readObjectRegisterAt(1);
+		final L2ReadBoxedOperand firstReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand secondReg =
+			instruction.readBoxedRegisterAt(1);
 //		final L2PcOperand ifEqual = instruction.pcAt(2);
 //		final L2PcOperand notEqual = instruction.pcAt(3);
 
@@ -170,10 +165,10 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister firstReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondReg =
-			instruction.readObjectRegisterAt(1).register();
+		final String firstReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String secondReg =
+			instruction.readBoxedRegisterAt(1).registerString();
 //		final L2PcOperand ifEqual = instruction.pcAt(2);
 //		final L2PcOperand notEqual = instruction.pcAt(3);
 
@@ -191,10 +186,10 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister firstReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondReg =
-			instruction.readObjectRegisterAt(1).register();
+		final L2BoxedRegister firstReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister secondReg =
+			instruction.readBoxedRegisterAt(1).register();
 		final L2PcOperand ifEqual = instruction.pcAt(2);
 		final L2PcOperand notEqual = instruction.pcAt(3);
 

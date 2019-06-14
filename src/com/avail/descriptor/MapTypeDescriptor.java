@@ -201,6 +201,15 @@ extends TypeDescriptor
 			&& aMapType.slot(VALUE_TYPE).isSubtypeOf(object.slot(VALUE_TYPE));
 	}
 
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return
+			!object.slot(SIZE_RANGE).lowerBound().equalsInt(0)
+				&& (object.slot(KEY_TYPE).isVacuousType()
+					|| object.slot(VALUE_TYPE).isVacuousType());
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeIntersection (
 		final AvailObject object,

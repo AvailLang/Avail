@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * An abstract representation of an invocation.  Note that this is not itself an
@@ -170,6 +171,20 @@ public final class Frame
 	}
 
 	/**
+	 * Answer the semantic value representing a new temporary value.
+	 *
+	 * @param uniqueId
+	 *        The unique identifier used to identify this temporary value within
+	 *        its frame.
+	 * @return An {@link L2SemanticTemp} representing the temporary value.
+	 */
+	public L2SemanticTemp temp (
+		final int uniqueId)
+	{
+		return new L2SemanticTemp(this, uniqueId);
+	}
+
+	/**
 	 * Transform the receiver via the given {@link Function}.
 	 *
 	 * @param topFrameReplacement
@@ -182,7 +197,7 @@ public final class Frame
 	 */
 	public Frame transform (
 		final Frame topFrameReplacement,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		if (outerFrame == null)
 		{

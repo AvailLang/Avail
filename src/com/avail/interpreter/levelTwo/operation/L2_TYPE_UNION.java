@@ -36,9 +36,9 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -46,12 +46,10 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Given two input types in registers, compute their union and write it to the
@@ -69,9 +67,9 @@ extends L2Operation
 	private L2_TYPE_UNION ()
 	{
 		super(
-			READ_POINTER.is("first type"),
-			READ_POINTER.is("second type"),
-			WRITE_POINTER.is("union type"));
+			READ_BOXED.is("first type"),
+			READ_BOXED.is("second type"),
+			WRITE_BOXED.is("union type"));
 	}
 
 	/**
@@ -85,12 +83,12 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand firstInputTypeReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand secondInputTypeReg =
-			instruction.readObjectRegisterAt(1);
-		final L2WritePointerOperand outputTypeReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2ReadBoxedOperand firstInputTypeReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand secondInputTypeReg =
+			instruction.readBoxedRegisterAt(1);
+		final L2WriteBoxedOperand outputTypeReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		final A_Type firstMeta =
 			registerSet.typeAt(firstInputTypeReg.register());
@@ -108,12 +106,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister firstInputTypeReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondInputTypeReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister outputTypeReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String firstInputTypeReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String secondInputTypeReg =
+			instruction.readBoxedRegisterAt(1).registerString();
+		final String outputTypeReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -130,12 +128,12 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister firstInputTypeReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister secondInputTypeReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister outputTypeReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister firstInputTypeReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister secondInputTypeReg =
+			instruction.readBoxedRegisterAt(1).register();
+		final L2BoxedRegister outputTypeReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: unionType = firstInputType.typeUnion(secondInputType);
 		translator.load(method, firstInputTypeReg);

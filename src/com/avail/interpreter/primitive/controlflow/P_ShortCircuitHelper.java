@@ -38,7 +38,7 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -50,9 +50,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static java.util.Collections.emptyList;
 
 /**
@@ -107,9 +105,9 @@ public final class P_ShortCircuitHelper extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -118,13 +116,11 @@ public final class P_ShortCircuitHelper extends Primitive
 		// the passed function in the 2nd (=args[1]) argument, instead.  The
 		// client will generate any needed type strengthening, so don't do it
 		// here.
-		final L2ReadPointerOperand functionReg = arguments.get(1);
+		final L2ReadBoxedOperand functionReg = arguments.get(1);
+		// the function in the 2nd (=args[1]) argument.
+		// takes no arguments.
 		translator.generateGeneralFunctionInvocation(
-			functionReg,  // the function in the 2nd (=args[1]) argument.
-			emptyList(),   // takes no arguments.
-			functionReg.type().returnType(),
-			true,
-			callSiteHelper);
+			functionReg, emptyList(), true, callSiteHelper);
 		return true;
 	}
 }

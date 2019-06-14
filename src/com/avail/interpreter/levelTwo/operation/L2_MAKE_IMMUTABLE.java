@@ -36,18 +36,18 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Force the specified object to be immutable.  Maintenance of conservative
@@ -74,14 +74,29 @@ extends L2Operation
 	private L2_MAKE_IMMUTABLE ()
 	{
 		super(
-			READ_POINTER.is("input"),
-			WRITE_POINTER.is("output"));
+			READ_BOXED.is("input"),
+			WRITE_BOXED.is("output"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2_MAKE_IMMUTABLE instance = new L2_MAKE_IMMUTABLE();
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the source
+	 * {@link L2ReadBoxedOperand} that is made immutable by the instruction.
+	 *
+	 * @param instruction
+	 *        The make-immutable instruction to examine.
+	 * @return The instruction's source {@link L2ReadBoxedOperand}.
+	 */
+	public static L2ReadBoxedOperand sourceOfImmutable (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation() instanceof L2_MAKE_IMMUTABLE;
+		return cast(instruction.operand(0));
+	}
 
 	@Override
 	public void toString (
@@ -90,10 +105,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister inputReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister outputReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String inputReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String outputReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -108,10 +123,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister inputReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister outputReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister inputReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister outputReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: output = input.makeImmutable();
 		translator.load(method, inputReg);

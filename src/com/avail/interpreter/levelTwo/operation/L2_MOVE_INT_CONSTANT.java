@@ -97,8 +97,8 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2Operand constant = instruction.operand(0);
-		final L2IntRegister destinationIntReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String destinationIntReg =
+			instruction.writeIntRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

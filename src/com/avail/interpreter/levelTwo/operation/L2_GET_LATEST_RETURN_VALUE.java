@@ -38,17 +38,15 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Ask the {@link Interpreter} for its {@link Interpreter#latestResult()}, which
@@ -66,7 +64,7 @@ extends L2Operation
 	private L2_GET_LATEST_RETURN_VALUE ()
 	{
 		super(
-			WRITE_POINTER.is("latest result"));
+			WRITE_BOXED.is("latest result"));
 	}
 
 	/**
@@ -95,8 +93,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister targetReg =
-			instruction.writeObjectRegisterAt(0).register();
+		final L2BoxedRegister targetReg =
+			instruction.writeBoxedRegisterAt(0).register();
 
 		// :: target = interpreter.latestResult();
 		translator.loadInterpreter(method);

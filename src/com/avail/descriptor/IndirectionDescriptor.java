@@ -62,6 +62,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
@@ -710,9 +711,9 @@ extends AbstractDescriptor
 	@Override
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
-		return o_Traversed(object).couldEverBeInvokedWith(argTypes);
+		return o_Traversed(object).couldEverBeInvokedWith(argRestrictions);
 	}
 
 	@Override
@@ -1120,9 +1121,9 @@ extends AbstractDescriptor
 	@Override
 	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
-		return o_Traversed(object).definitionsAtOrBelow(argTypes);
+		return o_Traversed(object).definitionsAtOrBelow(argRestrictions);
 	}
 
 	@Override
@@ -2447,9 +2448,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MakeSubobjectsImmutable (final AvailObject object)
+	AvailObject o_MakeSubobjectsImmutable (final AvailObject object)
 	{
-		o_Traversed(object).makeSubobjectsImmutable();
+		return o_Traversed(object).makeSubobjectsImmutable();
 	}
 
 	@Override
@@ -4471,6 +4472,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return o_Traversed(object).isVacuousType();
+	}
+
+	@Override
 	boolean o_IsTop (final AvailObject object)
 	{
 		return o_Traversed(object).isTop();
@@ -4635,10 +4642,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Definition o_LookupMacroByPhraseTuple (
+	A_Tuple o_LookupMacroByPhraseTuple (
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
 	{
 		return o_Traversed(object).lookupMacroByPhraseTuple(
 			argumentPhraseTuple);

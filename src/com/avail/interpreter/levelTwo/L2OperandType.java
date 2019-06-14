@@ -37,10 +37,9 @@ import com.avail.descriptor.DefinitionDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
 
 import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
@@ -57,7 +56,9 @@ import java.util.concurrent.atomic.LongAdder;
 public enum L2OperandType
 {
 	/**
-	 * An {@link L2ConstantOperand} holds a specific AvailObject.
+	 * An {@link L2ConstantOperand} holds a specific AvailObject.  The value is
+	 * always made immutable for safety during L2 code generation.  And then
+	 * made shared prior to installing the {@link L2Chunk}.
 	 */
 	CONSTANT,
 
@@ -92,16 +93,16 @@ public enum L2OperandType
 	SELECTOR,
 
 	/**
-	 * The {@link L2ReadPointerOperand} holds the {@link L2ObjectRegister} that
+	 * The {@link L2ReadBoxedOperand} holds the {@link L2BoxedRegister} that
 	 * will be read.
 	 */
-	READ_POINTER,
+	READ_BOXED,
 
 	/**
-	 * The {@link L2WritePointerOperand} holds the {@link L2ObjectRegister} that
-	 * will be written (but not read).
+	 * The {@link L2WriteBoxedOperand} holds the {@link L2BoxedRegister} that
+	 * will be written.
 	 */
-	WRITE_POINTER,
+	WRITE_BOXED,
 
 	/**
 	 * The {@link L2ReadIntOperand} holds the {@link L2IntRegister} that
@@ -111,7 +112,7 @@ public enum L2OperandType
 
 	/**
 	 * The {@link L2WriteIntOperand} holds the {@link L2IntRegister} that
-	 * will be written (but not read).
+	 * will be written.
 	 */
 	WRITE_INT,
 
@@ -123,21 +124,27 @@ public enum L2OperandType
 
 	/**
 	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
-	 * will be written (but not read).
+	 * will be written.
 	 */
 	WRITE_FLOAT,
 
 	/**
 	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
-	 * L2ReadPointerOperand}s which will be read.
+	 * L2ReadBoxedOperand}s which will be read.
 	 */
-	READ_VECTOR,
+	READ_BOXED_VECTOR,
 
 	/**
-	 * The {@link L2WritePhiOperand} holds the {@link L2Register} that will be
-	 * written (but not read).
+	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
+	 * L2ReadBoxedOperand}s which will be read.
 	 */
-	WRITE_PHI,
+	READ_INT_VECTOR,
+
+	/**
+	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
+	 * L2ReadBoxedOperand}s which will be read.
+	 */
+	READ_FLOAT_VECTOR,
 
 	/**
 	 * The {@link L2InternalCounterOperand} holds a {@link LongAdder} that will

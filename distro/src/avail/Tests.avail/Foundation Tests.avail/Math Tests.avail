@@ -490,7 +490,7 @@ Test "bit∧" in math test suite is
 	/* Some power-of-two boundary conditions. */
 	For each i from 1 to 100 do
 	[
-		power : integer := 1<<i;
+		power ::= 1 << i;
 		Require: power bit∧ power = power;
 		Require: power bit∧ (power - 1) = 0;
 		Require: power bit∧ (power + 1) = power;

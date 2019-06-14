@@ -38,11 +38,11 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.Mutable;
@@ -63,28 +63,19 @@ import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.IS_SOURCE_OF_CYCLE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.ALL_PLANS_IN_PROGRESS;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LATEST_BACKWARD_JUMP;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_ACTIONS;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_COMPLETE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_PREFILTER_MAP;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static java.util.Collections.singletonList;
 
 /**
@@ -385,9 +376,11 @@ extends Descriptor
 
 		@Override
 		public TypeComparison compareTypes (
-			final A_Type criterionType, final A_Type someType)
+			final List<TypeRestriction> argumentRestrictions,
+			final A_Type signatureType)
 		{
-			return TypeComparison.compareForParsing(criterionType, someType);
+			return TypeComparison.compareForParsing(
+				argumentRestrictions, signatureType);
 		}
 
 		@Override
@@ -695,7 +688,8 @@ extends Descriptor
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						toList(typeFilterPairs.value),
 						singletonList(
-							PhraseKind.PARSE_PHRASE.mostGeneralType()),
+							restrictionForType(
+								PARSE_PHRASE.mostGeneralType(), BOXED)),
 						latestBackwardJump);
 				final A_BasicObject pojo = identityPojo(tree);
 				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
@@ -525,7 +526,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes);
+		final List<? extends TypeRestriction> argRestrictions);
 
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
@@ -723,6 +724,14 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBottom (final AvailObject object)
 	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		// This type is literally composed of counterexamples.  Overridden in
+		// BottomTypeDescriptor.
 		return false;
 	}
 

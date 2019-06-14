@@ -41,22 +41,16 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
-import java.util.function.Function;
+import java.util.List;
+import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.zeroOrOne;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE;
+import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static java.lang.Math.max;
@@ -342,6 +336,29 @@ extends TypeDescriptor
 	{
 		// I am a tupleType, so answer true.
 		return true;
+	}
+
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		final A_Number minSizeObject = object.sizeRange().lowerBound();
+		if (!minSizeObject.isInt())
+		{
+			return false;
+		}
+		// Only check the element types up to the minimum size.  It's ok to stop
+		// after the variations (i.e., just after the leading typeTuple).
+		final int minSize = min(
+			minSizeObject.extractInt(),
+			object.slot(TYPE_TUPLE).tupleSize() + 1);
+		for (int i = 1; i <= minSize; i++)
+		{
+			if (object.typeAtIndex(i).isVacuousType())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -723,6 +740,24 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Answer a fixed size tuple type consisting of the given element types.
+	 *
+	 * @param types
+	 *        A {@link List} of {@link A_Type}s corresponding to the elements of
+	 *        the resulting fixed-size tuple type.
+	 * @return A fixed-size tuple type.
+	 *
+	 */
+	@ReferencedInGeneratedCode
+	public static A_Type tupleTypeForTypes (final List<? extends A_Type> types)
+	{
+		return tupleTypeForSizesTypesDefaultType(
+			singleInt(types.size()),
+			tupleFromList(types),
+			bottom());
+	}
+
+	/**
 	 * Transform a tuple type into another tuple type by {@linkplain
 	 * Transformer1 transforming} each of the element types.  Assume the
 	 * transformation is stable.  The resulting tuple type should have the same
@@ -739,7 +774,7 @@ extends TypeDescriptor
 	 */
 	public static A_Type tupleTypeFromTupleOfTypes (
 		final A_Type aTupleType,
-		final Function<A_Type, A_Type> elementTransformer)
+		final UnaryOperator<A_Type> elementTransformer)
 	{
 		final A_Type sizeRange = aTupleType.sizeRange();
 		final A_Tuple typeTuple = aTupleType.typeTuple();

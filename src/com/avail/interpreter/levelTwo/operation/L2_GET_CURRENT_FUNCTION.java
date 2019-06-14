@@ -39,13 +39,13 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Type.getDescriptor;
@@ -67,7 +67,7 @@ extends L2Operation
 	private L2_GET_CURRENT_FUNCTION ()
 	{
 		super(
-			WRITE_POINTER.is("current function"));
+			WRITE_BOXED.is("current function"));
 	}
 
 	/**
@@ -96,8 +96,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister register =
-			instruction.writeObjectRegisterAt(0).register();
+		final L2BoxedRegister register =
+			instruction.writeBoxedRegisterAt(0).register();
 
 		// :: register = interpreter.function;
 		translator.loadInterpreter(method);

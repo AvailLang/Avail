@@ -41,24 +41,23 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L1Translator;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Synonym;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
-import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -80,8 +79,8 @@ extends L2Operation
 	{
 		super(
 			CONSTANT.is("compiled code"),
-			READ_VECTOR.is("captured variables"),
-			WRITE_POINTER.is("new function"));
+			READ_BOXED_VECTOR.is("captured variables"),
+			WRITE_BOXED.is("new function"));
 	}
 
 	/**
@@ -97,10 +96,10 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outerRegs =
+		final List<L2ReadBoxedOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2WritePointerOperand newFunctionReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2WriteBoxedOperand newFunctionReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		registerSet.typeAtPut(
 			newFunctionReg.register(), code.functionType(), instruction);
@@ -128,54 +127,47 @@ extends L2Operation
 	}
 
 	@Override
-	public L2ReadPointerOperand extractFunctionOuterRegister (
+	public L2ReadBoxedOperand extractFunctionOuter (
 		final L2Instruction instruction,
-		final L2ReadPointerOperand functionRegister,
+		final L2ReadBoxedOperand functionRegister,
 		final int outerIndex,
 		final A_Type outerType,
-		final L1Translator translator)
+		final L2Generator generator)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outerRegs =
+		final List<L2ReadBoxedOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
 //		final int newFunctionRegIndex =
-//			instruction.writeObjectRegisterAt(2).finalIndex();
+//			instruction.writeBoxedRegisterAt(2).finalIndex();
 
-		// Narrow the outerType by the type that the raw function says the outer
-		// must have.
-		final A_Type typeFromCode = code.outerTypeAt(outerIndex);
-		A_Type intersection = outerType.typeIntersection(typeFromCode);
-		assert !intersection.isBottom();
+		final L2ReadBoxedOperand originalRead = outerRegs.get(outerIndex - 1);
+		// Intersect the read's restriction, the given type, and the type that
+		// the code says the outer must have.
+		final TypeRestriction intersection =
+			originalRead.restriction().intersectionWithType(
+				outerType.typeIntersection(code.outerTypeAt(outerIndex)));
+		assert !intersection.type.isBottom();
 
-		final L2ReadPointerOperand originalRegister =
-			outerRegs.get(outerIndex - 1);
-		// Narrow the intersection with this register's restriction.
-		intersection = intersection.typeIntersection(originalRegister.type());
-		assert !intersection.isBottom();
-
-		final @Nullable L2Synonym synonym =
-			translator.generator.currentManifest().registerToSynonym(
-				originalRegister.register());
-		if (synonym != null)
+		final L2ValueManifest manifest = generator.currentManifest();
+		final L2SemanticValue semanticValue = originalRead.semanticValue();
+		if (manifest.hasSemanticValue(semanticValue))
 		{
-			// The register that supplied the outer value is still live.  Use it
-			// directly, which may allow the function creation to be elided.
-			return stripNull(synonym.defaultObjectRead()).register().read(
-				restriction(intersection));
+			// This semantic value is still live.  Use it directly.
+			final L2Synonym synonym =
+				manifest.semanticValueToSynonym(semanticValue);
+			return manifest.readBoxed(synonym);
 		}
-
-		// The register that supplied the value is no longer live.  Extract the
-		// value from the actual function.  Note that it's still guaranteed to
-		// have the strengthened type.
-		final L2WritePointerOperand tempReg =
-			translator.generator.newObjectRegisterWriter(
-				restriction(intersection));
-		translator.addInstruction(
+		// The registers that supplied the value are no longer live.  Extract
+		// the value from the actual function.  Note that it's still guaranteed
+		// to have the strengthened type.
+		final L2WriteBoxedOperand tempWrite =
+			generator.boxedWriteTemp(intersection);
+		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
-			tempReg);
-		return tempReg.read();
+			tempWrite);
+		return generator.readBoxed(tempWrite.semanticValue());
 	}
 
 	/**
@@ -204,10 +196,10 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2Operand code = instruction.operand(0);
-		final List<L2ReadPointerOperand> outerRegs =
+		final List<L2ReadBoxedOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister newFunctionReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String newFunctionReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -229,10 +221,10 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outerRegs =
+		final List<L2ReadBoxedOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister newFunctionReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister newFunctionReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		final int numOuters = outerRegs.size();
 		assert numOuters == code.numOuters();
@@ -301,9 +293,6 @@ extends L2Operation
 						getType(A_RawFunction.class),
 						INT_TYPE),
 					false);
-//				method.visitTypeInsn(
-//					CHECKCAST,
-//					getInternalName(AvailObject.class));
 				for (int i = 0; i < numOuters; i++)
 				{
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);

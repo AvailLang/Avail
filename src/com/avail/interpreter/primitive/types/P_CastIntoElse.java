@@ -38,16 +38,13 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
@@ -63,10 +60,10 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.optimizer.L2Generator.edgeTo;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -138,9 +135,9 @@ public final class P_CastIntoElse extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -149,16 +146,17 @@ public final class P_CastIntoElse extends Primitive
 		// does a type test for the type being cast to, then either invokes the
 		// first block with the value being cast or the second block with no
 		// arguments.
-		final L2ReadPointerOperand valueReg = arguments.get(0);
-		final L2ReadPointerOperand castFunctionReg = arguments.get(1);
-		final L2ReadPointerOperand elseFunctionReg = arguments.get(2);
+		final L2ReadBoxedOperand valueRead = arguments.get(0);
+		final L2ReadBoxedOperand castFunctionRead = arguments.get(1);
+		final L2ReadBoxedOperand elseFunctionRead = arguments.get(2);
 
 		final L2BasicBlock castBlock =
 			translator.generator.createBasicBlock("cast type matched");
 		final L2BasicBlock elseBlock =
 			translator.generator.createBasicBlock("cast type did not match");
 
-		final @Nullable A_Type typeTest = exactArgumentTypeFor(castFunctionReg);
+		final @Nullable A_Type typeTest =
+			castFunctionRead.exactSoleArgumentType();
 		if (typeTest != null)
 		{
 			// By tracing where the castBlock came from, we were able to
@@ -168,16 +166,16 @@ public final class P_CastIntoElse extends Primitive
 			// runtime test entirely.
 			boolean bypassTesting = true;
 			final boolean passedTest;
-			final @Nullable A_BasicObject constant = valueReg.constantOrNull();
+			final @Nullable A_BasicObject constant = valueRead.constantOrNull();
 			if (constant != null)
 			{
 				passedTest = constant.isInstanceOf(typeTest);
 			}
-			else if (valueReg.type().isSubtypeOf(typeTest))
+			else if (valueRead.type().isSubtypeOf(typeTest))
 			{
 				passedTest = true;
 			}
-			else if (valueReg.type().typeIntersection(typeTest).isBottom())
+			else if (valueRead.type().typeIntersection(typeTest).isBottom())
 			{
 				passedTest = false;
 			}
@@ -194,20 +192,15 @@ public final class P_CastIntoElse extends Primitive
 				if (passedTest)
 				{
 					translator.generateGeneralFunctionInvocation(
-						castFunctionReg,
-						singletonList(valueReg),
-						castFunctionReg.type().returnType(),
+						castFunctionRead,
+						singletonList(valueRead),
 						true,
 						callSiteHelper);
 				}
 				else
 				{
 					translator.generateGeneralFunctionInvocation(
-						elseFunctionReg,
-						emptyList(),
-						elseFunctionReg.type().returnType(),
-						true,
-						callSiteHelper);
+						elseFunctionRead, emptyList(), true, callSiteHelper);
 				}
 				return true;
 			}
@@ -216,34 +209,32 @@ public final class P_CastIntoElse extends Primitive
 			// couldn't statically eliminate the type test.  Emit a branch.
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueReg,
+				valueRead,
 				new L2ConstantOperand(typeTest),
-				translator.edgeTo(
-					castBlock, valueReg.restrictedToType(typeTest)),
-				translator.edgeTo(
-					elseBlock, valueReg.restrictedWithoutType(typeTest)));
+				edgeTo(castBlock, valueRead.restrictedToType(typeTest)),
+				edgeTo(elseBlock, valueRead.restrictedWithoutType(typeTest)));
 		}
 		else
 		{
 			// We don't statically know the type to compare the value against,
 			// but we can get it at runtime by extracting the actual
 			// castFunction's argument type.  Note that we can't phi-strengthen
-			// the valueReg along the branches, since we don't statically know
+			// the valueRead along the branches, since we don't statically know
 			// the type that it was compared to.
-			final L2WritePointerOperand parameterTypeWrite =
-				translator.generator.newObjectRegisterWriter(
-					restriction(anyMeta()));
+			final L2WriteBoxedOperand parameterTypeWrite =
+				translator.generator.boxedWriteTemp(
+					restrictionForType(anyMeta(), BOXED));
 			translator.addInstruction(
 				L2_FUNCTION_PARAMETER_TYPE.instance,
-				castFunctionReg,
+				castFunctionRead,
 				new L2IntImmediateOperand(1),
 				parameterTypeWrite);
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_OBJECT.instance,
-				valueReg,
-				parameterTypeWrite.read(),
-				translator.edgeTo(castBlock),
-				translator.edgeTo(elseBlock));
+				valueRead,
+				translator.readBoxed(parameterTypeWrite),
+				edgeTo(castBlock),
+				edgeTo(elseBlock));
 		}
 
 		// We couldn't skip the runtime type check, which takes us to either
@@ -251,64 +242,13 @@ public final class P_CastIntoElse extends Primitive
 		// Start by generating the invocation of castFunction.
 		translator.generator.startBlock(castBlock);
 		translator.generateGeneralFunctionInvocation(
-			castFunctionReg,
-			singletonList(valueReg),
-			castFunctionReg.type().returnType(),
-			true,
-			callSiteHelper);
+			castFunctionRead, singletonList(valueRead), true, callSiteHelper);
 
 		// Now deal with invoking the elseBlock instead.
 		translator.generator.startBlock(elseBlock);
 		translator.generateGeneralFunctionInvocation(
-			elseFunctionReg,
-			emptyList(),
-			elseFunctionReg.type().returnType(),
-			true,
-			callSiteHelper);
+			elseFunctionRead, emptyList(), true, callSiteHelper);
 
 		return true;
-	}
-
-	/**
-	 * If we can determine the exact type that the value will be compared
-	 * against (i.e., the intoBlock's argument type), then answer it.  Otherwise
-	 * answer {@code null}.
-	 *
-	 * @param functionReg
-	 *        The register that holds the intoFunction.
-	 * @return Either null or an exact type to compare the value against in
-	 *         order to determine whether the intoBlock or the elseBlock will be
-	 *         invoked.
-	 */
-	private static @Nullable A_Type exactArgumentTypeFor (
-		final L2ReadPointerOperand functionReg)
-	{
-		final @Nullable A_Function constantFunction =
-			functionReg.constantOrNull();
-		if (constantFunction != null)
-		{
-			// Function is a constant.
-			final A_Type functionType =
-				constantFunction.code().functionType();
-			return functionType.argsTupleType().typeAtIndex(1);
-		}
-		final L2Instruction originOfFunction =
-			functionReg.register().definitionSkippingMoves();
-		if (originOfFunction.operation() instanceof L2_MOVE_CONSTANT)
-		{
-			final A_Function function = originOfFunction.constantAt(0);
-			final A_Type functionType = function.code().functionType();
-			return functionType.argsTupleType().typeAtIndex(1);
-		}
-		if (originOfFunction.operation() instanceof L2_CREATE_FUNCTION)
-		{
-			final A_RawFunction code = originOfFunction.constantAt(0);
-			final A_Type functionType = code.functionType();
-			return functionType.argsTupleType().typeAtIndex(1);
-		}
-		else
-		{
-			return null;
-		}
 	}
 }

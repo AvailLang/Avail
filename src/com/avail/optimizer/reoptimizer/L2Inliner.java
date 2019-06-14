@@ -40,26 +40,26 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.topRestriction;
 import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -122,19 +122,13 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2PcOperand operand)
 		{
-			final PhiRestriction[] phiRestrictions =
-				operand.phiRestrictions.clone();
-			for (int i = 0; i < phiRestrictions.length; i++)
-			{
-				final PhiRestriction phiRestriction = phiRestrictions[i];
-				phiRestrictions[i] = new PhiRestriction(
-					mapRegister(phiRestriction.register),
-					phiRestriction.typeRestriction);
-			}
+			// Manifest of edge must already be defined if we're inlining.
+			// There isn't a solid plan yet about how to narrow the types.
+			final L2ValueManifest oldManifest = operand.manifest();
 			currentOperand = new L2PcOperand(
+				operand,
 				mapBlock(operand.targetBlock()),
-				mapManifest(operand.manifest()),
-				phiRestrictions);
+				mapManifest(oldManifest));
 		}
 
 		@SuppressWarnings("EmptyMethod")
@@ -146,7 +140,9 @@ public final class L2Inliner
 		{
 			currentOperand =
 				new L2ReadIntOperand(
-					mapRegister(operand.register()), operand.restriction());
+					mapSemanticValue(operand.semanticValue()),
+					operand.restriction(),
+					targetManifest());
 		}
 
 		@Override
@@ -154,30 +150,48 @@ public final class L2Inliner
 		{
 			currentOperand =
 				new L2ReadFloatOperand(
-					mapRegister(operand.register()), operand.restriction());
+					mapSemanticValue(operand.semanticValue()),
+					operand.restriction(),
+					targetManifest());
 		}
 
 		@Override
-		public void doOperand (final L2ReadPointerOperand operand)
+		public void doOperand (final L2ReadBoxedOperand operand)
 		{
-			currentOperand = new L2ReadPointerOperand(
-				mapRegister(operand.register()), operand.restriction());
+			currentOperand = new L2ReadBoxedOperand(
+				mapSemanticValue(operand.semanticValue()),
+				operand.restriction(),
+				targetManifest());
 		}
 
 		@Override
-		public <
-			RR extends L2ReadOperand<R>,
-			R extends L2Register>
-		void doOperand (final L2ReadVectorOperand<RR, R> operand)
+		public void doOperand (final L2ReadBoxedVectorOperand operand)
 		{
-			final List<RR> oldElements = operand.elements();
-			final List<RR> newElements = new ArrayList<>(oldElements.size());
-			for (final RR oldElement : oldElements)
-			{
-				// Note: this clobbers currentOperand, but we'll set it later.
-				newElements.add(transformOperand(oldElement));
-			}
-			currentOperand = new L2ReadVectorOperand<>(newElements);
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = new L2ReadBoxedVectorOperand(
+				operand.elements().stream()
+					.map(L2Inliner.this::transformOperand)
+					.collect(toList()));
+		}
+
+		@Override
+		public void doOperand (final L2ReadIntVectorOperand operand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = new L2ReadIntVectorOperand(
+				operand.elements().stream()
+					.map(L2Inliner.this::transformOperand)
+					.collect(toList()));
+		}
+
+		@Override
+		public void doOperand (final L2ReadFloatVectorOperand operand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = new L2ReadFloatVectorOperand(
+				operand.elements().stream()
+					.map(L2Inliner.this::transformOperand)
+					.collect(toList()));
 		}
 
 		@SuppressWarnings("EmptyMethod")
@@ -187,64 +201,25 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2WriteIntOperand operand)
 		{
-			// Writes should always be encountered before reads, and only once.
-			final L2IntRegister oldRegister = operand.register();
-			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction restriction =
-				oldRegister.restriction();
-			final L2WriteIntOperand writer =
-				targetGenerator.newIntRegisterWriter(restriction);
-			final L2IntRegister newRegister = writer.register();
-			registerMap.put(oldRegister, newRegister);
-			currentOperand = writer;
+			currentOperand = targetGenerator.intWrite(
+				mapSemanticValue(operand.semanticValue()),
+				operand.restriction());
 		}
 
 		@Override
 		public void doOperand (final L2WriteFloatOperand operand)
 		{
-			// Writes should always be encountered before reads, and only once.
-			final L2FloatRegister oldRegister = operand.register();
-			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction restriction =
-				oldRegister.restriction();
-			final L2WriteFloatOperand writer =
-				targetGenerator.newFloatRegisterWriter(restriction);
-			final L2FloatRegister newRegister = writer.register();
-			registerMap.put(oldRegister, newRegister);
-			currentOperand = writer;
+			currentOperand = targetGenerator.floatWrite(
+				mapSemanticValue(operand.semanticValue()),
+				operand.restriction());
 		}
 
 		@Override
-		public void doOperand (final L2WritePointerOperand operand)
+		public void doOperand (final L2WriteBoxedOperand operand)
 		{
-			// Writes should always be encountered before reads, and only once.
-			final L2ObjectRegister oldRegister = operand.register();
-			assert !registerMap.containsKey(oldRegister);
-			final TypeRestriction restriction =
-				oldRegister.restriction();
-			final L2WritePointerOperand writer =
-				targetGenerator.newObjectRegisterWriter(restriction);
-			final L2ObjectRegister newRegister = writer.register();
-			registerMap.put(oldRegister, newRegister);
-			currentOperand = writer;
-		}
-
-		@Override
-		public <R extends L2Register>
-		void doOperand (final L2WritePhiOperand<R> operand)
-		{
-			// Writes should always be encountered before reads, and only once.
-			final R oldRegister = operand.register();
-			assert !registerMap.containsKey(oldRegister);
-			final R copiedRegister =
-				cast(
-					oldRegister.copyForTranslator(
-						targetGenerator, oldRegister.restriction()));
-			final L2WritePhiOperand<R> writer =
-				targetGenerator.newPhiRegisterWriter(copiedRegister);
-			final R newRegister = writer.register();
-			registerMap.put(oldRegister, newRegister);
-			currentOperand = writer;
+			currentOperand = targetGenerator.boxedWrite(
+				mapSemanticValue(operand.semanticValue()),
+				operand.restriction());
 		}
 	}
 
@@ -284,13 +259,13 @@ public final class L2Inliner
 	@InnerAccess final A_RawFunction code;
 
 	/** The registers providing values captured by the closure being inlined. */
-	@InnerAccess final List<L2ReadPointerOperand> outers;
+	@InnerAccess final List<L2ReadBoxedOperand> outers;
 
 	/** The registers providing arguments to the invocation being inlined. */
-	@InnerAccess final List<L2ReadPointerOperand> arguments;
+	@InnerAccess final List<L2ReadBoxedOperand> arguments;
 
 	/** The register to write the result of the inlined call into. */
-	@InnerAccess final L2WritePointerOperand result;
+	@InnerAccess final L2WriteBoxedOperand result;
 
 	/**
 	 * The {@link L2BasicBlock} that should be reached when the inlined call
@@ -326,10 +301,15 @@ public final class L2Inliner
 	private final Map<Frame, Frame> frameMap = new HashMap<>();
 
 	/**
-	 * The accumulated mapping from original {@link L2Register}s to their
-	 * replacements.
+	 * Answer the {@link L2ValueManifest} at the current target code generation
+	 * position.
+	 *
+	 * @return The target {@link L2Generator}'s {@link L2ValueManifest}.
 	 */
-	final Map<L2Register, L2Register> registerMap = new HashMap<>();
+	L2ValueManifest targetManifest ()
+	{
+		return targetGenerator.currentManifest();
+	}
 
 	/**
 	 * Construct a new {@code L2Inliner}.
@@ -342,7 +322,7 @@ public final class L2Inliner
 	 *        {@link L2SemanticValue}s, must be transformed into the provided
 	 *        inlineFrame.
 	 * @param arguments
-	 *        The {@link List} of {@link L2ReadPointerOperand}s corresponding to
+	 *        The {@link List} of {@link L2ReadBoxedOperand}s corresponding to
 	 *        the arguments to this function invocation.
 	 */
 	L2Inliner (
@@ -350,9 +330,9 @@ public final class L2Inliner
 		final Frame inlineFrame,
 		final L2Instruction invokeInstruction,
 		final A_RawFunction code,
-		final List<L2ReadPointerOperand> outers,
-		final List<L2ReadPointerOperand> arguments,
-		final L2WritePointerOperand result,
+		final List<L2ReadBoxedOperand> outers,
+		final List<L2ReadBoxedOperand> arguments,
+		final L2WriteBoxedOperand result,
 		final L2BasicBlock completionBlock,
 		final L2BasicBlock reificationBlock)
 	{
@@ -427,19 +407,39 @@ public final class L2Inliner
 	}
 
 	/**
-	 * Transform the given {@link L2Register}.  Use the {@link #registerMap},
-	 * adding an entry if necessary.
+	 * Transform the given {@link L2Synonym} from the {@link L2Chunk} being
+	 * inlined.  Locate a corresponding {@link L2SemanticValue} to get a source
+	 * synonym, then verify that all semantic values of that source synonym lead
+	 * to the same target synonym in the {@link L2Generator}. Return the target
+	 * synonym.
 	 *
-	 * @param register The {@link L2Register} to look up.
-	 * @return The looked up or created-and-stored {@link L2Register}.
+	 * @param synonym The {@link L2Synonym} to look up.
+	 * @return The looked up or created-and-stored {@link L2Synonym}.
 	 */
-	@SuppressWarnings("unchecked")
-	public <R extends L2Register> R mapRegister (final R register)
+	public L2Synonym mapSynonym (final L2Synonym synonym)
 	{
-		final R copy = (R) registerMap.computeIfAbsent(
-			register, r -> r.copyForInliner(this));
-		assert register.registerKind() == copy.registerKind();
-		return copy;
+		// Don't track a mapping between the synonyms, because there may be
+		// additional semantic value equalities in the target manifest that
+		// would cause frequent massive invalidation.
+		final Set<L2Synonym> targetSynonyms = new HashSet<>(2);
+		final L2ValueManifest manifest = targetGenerator.currentManifest();
+		synonym.semanticValues().forEach(
+			sourceSemanticValue ->
+			{
+				final L2SemanticValue targetSemanticValue =
+					mapSemanticValue(sourceSemanticValue);
+				targetSynonyms.add(
+					manifest.semanticValueToSynonym(targetSemanticValue));
+			});
+		final TypeRestriction targetRestriction = targetSynonyms.stream()
+			.map(manifest::restrictionFor)
+			.reduce(topRestriction, TypeRestriction::intersection);
+		final L2Synonym mergedTargetSynonym = targetSynonyms.stream()
+			.reduce(manifest::mergeSynonyms)
+			.orElseThrow(
+				() -> new RuntimeException("Impossible: no manifests"));
+		manifest.setRestriction(mergedTargetSynonym, targetRestriction);
+		return mergedTargetSynonym;
 	}
 
 	/**

@@ -35,19 +35,17 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * A {@code LookupTree} representing an incomplete search.  To further the
@@ -62,19 +60,19 @@ public class InternalLookupTree<
 	extends LookupTree<Element, Result, AdaptorMemento>
 {
 	/** The definitions that are applicable at this tree node. */
-	private final List<? extends Element> positiveElements;
+	private final List<Element> positiveElements;
 
 	/**
 	 * The definitions whose applicability has not yet been decided at this
 	 * tree node.
 	 */
-	private final List<? extends Element> undecidedElements;
+	private final List<Element> undecidedElements;
 
 	/**
 	 * The types that the arguments must satisfy to have reached this position
 	 * in the decision tree.
 	 */
-	private final List<A_Type> knownArgumentTypes;
+	private final List<TypeRestriction> knownArgumentRestrictions;
 
 	/** The type to test against an argument type at this node. */
 	private volatile @Nullable A_Type argumentTypeToTest;
@@ -100,19 +98,19 @@ public class InternalLookupTree<
 	 *        The elements for which a decision about whether they apply to the
 	 *        supplied arguments has not yet been made at this point in the
 	 *        decision tree.
-	 * @param knownArgumentTypes
-	 *        The list of argument types known to hold at this position in the
-	 *        decision tree.  Each element corresponds with an argument position
-	 *        for the method.
+	 * @param knownArgumentRestrictions
+	 *        The list of argument {@link TypeRestriction}s known to hold at
+	 *        this position in the decision tree.  Each element corresponds with
+	 *        an argument position for the method.
 	 */
 	InternalLookupTree (
-		final List<? extends Element> positiveElements,
-		final List<? extends Element> undecidedElements,
-		final List<A_Type> knownArgumentTypes)
+		final List<Element> positiveElements,
+		final List<Element> undecidedElements,
+		final List<TypeRestriction> knownArgumentRestrictions)
 	{
 		this.positiveElements = positiveElements;
 		this.undecidedElements = undecidedElements;
-		this.knownArgumentTypes = knownArgumentTypes;
+		this.knownArgumentRestrictions = knownArgumentRestrictions;
 	}
 
 	/**
@@ -222,6 +220,11 @@ public class InternalLookupTree<
 		final AdaptorMemento memento)
 	{
 		assert argumentTypeToTest == null;
+		final int numArgs = knownArgumentRestrictions.size();
+
+		final A_Type bound =
+			adaptor.extractBoundingType(knownArgumentRestrictions);
+
 		// To reduce duplication of the same tests, any argument that has the
 		// same type in all definitions, but has not been proven yet, should be
 		// selected first.
@@ -229,16 +232,13 @@ public class InternalLookupTree<
 			&& positiveElements.isEmpty()
 			&& undecidedElements.size() > 1)
 		{
-			final int numArgs =
-				adaptor.extractSignature(undecidedElements.get(0))
-					.sizeRange().lowerBound().extractInt();
 			@Nullable List<A_Type> commonArgTypes = null;
 			for (final Element element : undecidedElements)
 			{
-				final A_Type argsTupleType = adaptor.extractSignature(element);
-				final A_Tuple argTypesTuple =
-					argsTupleType.tupleOfTypesFromTo(1, numArgs);
-				final List<A_Type> argTypes = toList(argTypesTuple);
+				final A_Type signature =
+					adaptor.restrictedSignature(element, bound);
+				final List<A_Type> argTypes =
+					toList(signature.tupleOfTypesFromTo(1, numArgs));
 				if (commonArgTypes == null)
 				{
 					commonArgTypes = argTypes;
@@ -256,75 +256,21 @@ public class InternalLookupTree<
 					}
 				}
 			}
-			assert commonArgTypes != null;
-			for (int argNumber = 0; argNumber < numArgs; argNumber++)
+			// assert commonArgTypes != null;
+			for (int argNumber = 1; argNumber <= numArgs; argNumber++)
 			{
 				final @Nullable A_Type commonType =
-					commonArgTypes.get(argNumber);
+					commonArgTypes.get(argNumber - 1);
 				if (commonType != null
-					&& !knownArgumentTypes.get(argNumber)
-						.isSubtypeOf(commonType))
+					&& !knownArgumentRestrictions.get(argNumber - 1)
+						.containedByType(commonType))
 				{
 					// Everybody needs this argument to satisfy this exact type,
 					// but the argument isn't known to satisfy it yet.  This
 					// test will be required by every traversal, so rather than
 					// have duplicates near the leaves, test it as early as
 					// possible.
-					argumentPositionToTest = argNumber + 1;
-
-					final A_Type oldArgType = knownArgumentTypes.get(argNumber);
-					final A_Type replacementArgType =
-						commonType.typeIntersection(oldArgType);
-					// Sanity check:  Make sure we at least improve type
-					// knowledge in the positive case.
-					assert !replacementArgType.equals(oldArgType);
-
-					final List<A_Type> newPositiveKnownTypes =
-						new ArrayList<>(knownArgumentTypes);
-					newPositiveKnownTypes.set(argNumber, replacementArgType);
-					final A_Type criterionSignature = tupleTypeForTypes(
-						newPositiveKnownTypes.toArray(new A_Type[numArgs]));
-					final A_Type knownSignature = tupleTypeForTypes(
-						knownArgumentTypes.toArray(new A_Type[numArgs]));
-
-					// The true case keeps everybody, perhaps making some of
-					// them certain, but the false case is always empty, since
-					// every element required this test to be true.
-					final List<Element> positiveIfTrue =
-						new ArrayList<>(positiveElements);
-					final List<Element> undecidedIfTrue = new ArrayList<>();
-					final List<Element> undecidedIfFalse = new ArrayList<>();
-					for (final Element undecidedElement : undecidedElements)
-					{
-						// We need to synthesize a tuple type with the knowledge
-						// we currently have about the element types.
-						final TypeComparison comparison = adaptor.compareTypes(
-							criterionSignature,
-							adaptor.extractSignature(undecidedElement)
-								.typeIntersection(knownSignature));
-						comparison.applyEffect(
-							undecidedElement,
-							positiveIfTrue,
-							undecidedIfTrue,
-							undecidedIfFalse);
-					}
-					assert undecidedIfFalse.isEmpty();
-					ifCheckHolds = adaptor.createTree(
-						positiveIfTrue,
-						undecidedIfTrue,
-						newPositiveKnownTypes,
-						memento);
-					ifCheckFails = adaptor.createTree(
-						emptyList(),
-						emptyList(),
-						knownArgumentTypes,
-						memento);
-					// This is a volatile write, so all previous writes had to
-					// precede it. If another process runs expandIfNecessary(),
-					// it will either see null for this field, or see non-null
-					// and be guaranteed that all subsequent reads will see all
-					// the previous writes.
-					argumentTypeToTest = commonType;
+					buildChildren(adaptor, memento, argNumber, commonType);
 					return;
 				}
 			}
@@ -342,129 +288,202 @@ public class InternalLookupTree<
 		int smallestMin = Integer.MAX_VALUE;
 		for (final Element criterion : undecidedElements)
 		{
-			final A_Type criterionSignature =
-				adaptor.extractSignature(criterion);
+			final List<TypeRestriction> criterionRestrictions =
+				new ArrayList<>(knownArgumentRestrictions);
+			final A_Type boundedCriterionSignature =
+				adaptor.restrictedSignature(criterion, bound);
+			assert !boundedCriterionSignature.isBottom();
+			if (adaptor.testsArgumentPositions())
+			{
+				for (int i = 1; i <= numArgs; i++)
+				{
+					criterionRestrictions.set(
+						i - 1,
+						criterionRestrictions.get(i - 1).intersectionWithType(
+							boundedCriterionSignature.typeAtIndex(i)));
+				}
+			}
+			else
+			{
+				criterionRestrictions.set(
+					0,
+					criterionRestrictions.get(0).intersectionWithType(
+						boundedCriterionSignature));
+			};
 			int undecidedCountIfTrue = 0;
 			int undecidedCountIfFalse = 0;
 			for (final Element each : undecidedElements)
 			{
-				switch (adaptor.compareTypes(
-					criterionSignature, adaptor.extractSignature(each)))
+				if (!each.equals(criterion))
 				{
-					case SAME_TYPE:
-						break;
-					case PROPER_ANCESTOR_TYPE:
-						if (!adaptor.subtypesHideSupertypes())
-						{
+					final A_Type eachSignature =
+						adaptor.restrictedSignature(each, bound);
+					final TypeComparison comparison = adaptor.compareTypes(
+						criterionRestrictions, eachSignature);
+					switch (comparison)
+					{
+						case SAME_TYPE:
+							break;
+						case PROPER_ANCESTOR_TYPE:
+							if (!adaptor.subtypesHideSupertypes())
+							{
+								undecidedCountIfFalse++;
+							}
+							break;
+						case PROPER_DESCENDANT_TYPE:
+							undecidedCountIfTrue++;
+							break;
+						case UNRELATED_TYPE:
+							undecidedCountIfTrue++;
 							undecidedCountIfFalse++;
-						}
-						break;
-					case PROPER_DESCENDANT_TYPE:
-						undecidedCountIfTrue++;
-						break;
-					case UNRELATED_TYPE:
-						undecidedCountIfTrue++;
-						undecidedCountIfFalse++;
-						break;
-					case DISJOINT_TYPE:
-						undecidedCountIfFalse++;
-						break;
+							break;
+						case DISJOINT_TYPE:
+							undecidedCountIfFalse++;
+							break;
+					}
 				}
 			}
 			final int maxCount =
 				max(undecidedCountIfTrue, undecidedCountIfFalse);
 			final int minCount =
 				min(undecidedCountIfTrue, undecidedCountIfFalse);
+			// The criterion should not have been used to evaluate itself.
 			assert maxCount < undecidedElements.size();
-			if (maxCount < smallestMax ||
-				(maxCount == smallestMax && minCount < smallestMin))
+			if (maxCount < smallestMax
+				|| (maxCount == smallestMax && minCount < smallestMin))
 			{
 				smallestMax = maxCount;
 				smallestMin = minCount;
-				bestSignature = criterionSignature;
+				bestSignature = boundedCriterionSignature;
 			}
 		}
 		assert bestSignature != null;
-		final List<A_Type> newPositiveKnownTypes;
-		final A_Type criterionSignature;
-		final A_Type knownSignature;
+
+		// We have chosen one of the best signatures to test.  However, we still
+		// need to decide which argument position to test.  Use the leftmost one
+		// which is not already guaranteed by tests that have already been
+		// performed.  In particular, ignore arguments whose knownArgumentTypes
+		// information is a subtype of the chosen signature's argument type at
+		// that position.
 		A_Type selectedTypeToTest = null;
+		int positionToTest;
 		if (adaptor.testsArgumentPositions())
 		{
-			// We have chosen one of the best signatures to test.  However, we
-			// still need to decide which argument position to test.  Use the
-			// leftmost one which is not already guaranteed by tests that have
-			// already been performed.  In particular, ignore arguments whose
-			// knownArgumentTypes information is a subtype of the chosen
-			// signature's argument type at that position.
-			final int numArgs =
-				bestSignature.sizeRange().lowerBound().extractInt();
+			positionToTest = -999;  // Must be replaced in the loop below.;
 			for (int i = 1; i <= numArgs; i++)
 			{
-				final A_Type knownType = knownArgumentTypes.get(i - 1);
+				final TypeRestriction knownRestriction =
+					knownArgumentRestrictions.get(i - 1);
 				final A_Type criterionArgumentType =
 					bestSignature.typeAtIndex(i);
-				if (!knownType.isSubtypeOf(criterionArgumentType))
+				if (!knownRestriction.containedByType(criterionArgumentType))
 				{
-					argumentPositionToTest = i;
+					positionToTest = i;
 					selectedTypeToTest = criterionArgumentType;
 					break;
 				}
 			}
-			assert argumentPositionToTest >= 1;
+			assert positionToTest >= 1;
 			assert selectedTypeToTest != null;
-			final A_Type oldArgType =
-				knownArgumentTypes.get(argumentPositionToTest - 1);
-			final A_Type replacementArgType =
-				selectedTypeToTest.typeIntersection(oldArgType);
-			// Sanity check:  Make sure we at least improve type knowledge in
-			// the positive case.
-			assert !replacementArgType.equals(oldArgType);
-			newPositiveKnownTypes = new ArrayList<>(knownArgumentTypes);
-			newPositiveKnownTypes.set(
-				argumentPositionToTest - 1, replacementArgType);
-			criterionSignature = tupleTypeForTypes(
-				newPositiveKnownTypes.toArray(new A_Type[numArgs]));
-			knownSignature = tupleTypeForTypes(
-				knownArgumentTypes.toArray(new A_Type[numArgs]));
 		}
 		else
 		{
-			argumentPositionToTest = 0;
-			newPositiveKnownTypes = singletonList(bestSignature);
-			criterionSignature = bestSignature;
-			selectedTypeToTest = criterionSignature;
-			knownSignature = knownArgumentTypes.get(0);
+			positionToTest = 0;
+			selectedTypeToTest = bestSignature;
 		}
-		// Compute the positive/undecided lists, both for the condition
-		// being true and for the condition being false.
+
+		buildChildren(
+			adaptor, memento, positionToTest, selectedTypeToTest);
+	}
+
+	/**
+	 * Build children of this node, and populate any other needed fields.
+	 *
+	 * @param adaptor
+	 *        The {@link LookupTreeAdaptor} to use for expanding the tree.
+	 * @param memento
+	 *        The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *        The one-based index of the argument being tested.
+	 * @param typeToTest
+	 *        The {@link A_Type} that this node should test for.
+	 */
+	private void buildChildren (
+		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
+		final AdaptorMemento memento,
+		final int argumentIndex,
+		final A_Type typeToTest)
+	{
+		argumentPositionToTest = argumentIndex;
+		final int zeroBasedIndex;
+		final TypeRestriction oldRestriction;
+		if (adaptor.testsArgumentPositions())
+		{
+			zeroBasedIndex = argumentIndex - 1;
+			oldRestriction = knownArgumentRestrictions.get(zeroBasedIndex);
+		}
+		else
+		{
+			zeroBasedIndex = 0;
+			oldRestriction = knownArgumentRestrictions.get(0);
+		}
+
+		final List<TypeRestriction> positiveKnownRestrictions =
+			new ArrayList<>(knownArgumentRestrictions);
+		positiveKnownRestrictions.set(
+			zeroBasedIndex, oldRestriction.intersectionWithType(typeToTest));
+		final A_Type positiveBound =
+			adaptor.extractBoundingType(positiveKnownRestrictions);
+
+		final List<TypeRestriction> negativeKnownRestrictions =
+			new ArrayList<>(knownArgumentRestrictions);
+		negativeKnownRestrictions.set(
+			zeroBasedIndex, oldRestriction.minusType(typeToTest));
+		final A_Type negativeBound =
+			adaptor.extractBoundingType(negativeKnownRestrictions);
+
+		// Check each element against the positiveKnownRestrictions, and
+		// classify it as a positive hit in the holds branch, an undecided in
+		// the holds branch, an undecided in the fails branch, or some
+		// combination (but not both collections in the holds branch).
 		final List<Element> positiveIfTrue = new ArrayList<>(positiveElements);
 		final List<Element> undecidedIfTrue = new ArrayList<>();
+		final List<Element> positiveIfFalse = new ArrayList<>();
 		final List<Element> undecidedIfFalse = new ArrayList<>();
 		for (final Element undecidedElement : undecidedElements)
 		{
-			// We need to synthesize a tuple type with the knowledge we
-			// currently have about the element types.
-			final TypeComparison comparison = adaptor.compareTypes(
-				criterionSignature,
-				adaptor.extractSignature(undecidedElement)
-					.typeIntersection(knownSignature));
-			comparison.applyEffect(
+			final TypeComparison positiveComparison = adaptor.compareTypes(
+				positiveKnownRestrictions,
+				adaptor.restrictedSignature(undecidedElement, positiveBound));
+			final TypeComparison negativeComparison = adaptor.compareTypes(
+				negativeKnownRestrictions,
+				adaptor.restrictedSignature(undecidedElement, negativeBound));
+			positiveComparison.applyEffect(
 				undecidedElement,
 				positiveIfTrue,
-				undecidedIfTrue,
+				undecidedIfTrue);
+			negativeComparison.applyEffect(
+				undecidedElement,
+				positiveIfFalse,
 				undecidedIfFalse);
 		}
 		ifCheckHolds = adaptor.createTree(
-			positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes, memento);
+			positiveIfTrue,
+			undecidedIfTrue,
+			positiveKnownRestrictions,
+			memento);
+		// If the test fails, it can't certify any new elements.
+		assert positiveIfFalse.isEmpty();
 		ifCheckFails = adaptor.createTree(
-			positiveElements, undecidedIfFalse, knownArgumentTypes, memento);
-		assert undecidedIfFalse.size() < undecidedElements.size();
+			positiveElements,  // The ones that were *already* proven.
+			undecidedIfFalse,
+			negativeKnownRestrictions,
+			memento);
 		// This is a volatile write, so all previous writes had to precede it.
 		// If another process runs expandIfNecessary(), it will either see null
 		// for this field, or see non-null and be guaranteed that all subsequent
 		// reads will see all the previous writes.
-		argumentTypeToTest = selectedTypeToTest;
+		argumentTypeToTest = typeToTest;
 	}
 
 	@Override
@@ -563,16 +582,20 @@ public class InternalLookupTree<
 		if (argumentTypeToTest == null)
 		{
 			return format(
-				"Lazy internal node: known=%s",
-				knownArgumentTypes);
+				"Lazy internal node: (u=%d, p=%d) known=%s",
+				undecidedElements.size(),
+				positiveElements.size(),
+				knownArgumentRestrictions);
 		}
 		final StringBuilder builder = new StringBuilder();
 		builder.append(
 			format(
-				"#%d ∈ %s: known=%s%n",
+				"#%d ∈ %s: (u=%d, p=%d) known=%s%n",
 				argumentPositionToTest,
 				argumentTypeToTest,
-				knownArgumentTypes));
+				undecidedElements.size(),
+				positiveElements.size(),
+				knownArgumentRestrictions));
 		for (int i = 0; i <= indent; i++)
 		{
 			builder.append("\t");

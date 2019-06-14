@@ -40,22 +40,19 @@ import com.avail.descriptor.ObjectDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a map from the specified key object registers and the corresponding
@@ -75,9 +72,9 @@ extends L2Operation
 	private L2_CREATE_OBJECT ()
 	{
 		super(
-			READ_VECTOR.is("field keys"),
-			READ_VECTOR.is("field values"),
-			WRITE_POINTER.is("new object"));
+			READ_BOXED_VECTOR.is("field keys"),
+			READ_BOXED_VECTOR.is("field values"),
+			WRITE_BOXED.is("new object"));
 	}
 
 	/**
@@ -92,12 +89,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadPointerOperand> keysVector =
+		final List<L2ReadBoxedOperand> keysVector =
 			instruction.readVectorRegisterAt(0);
-		final List<L2ReadPointerOperand> valuesVector =
+		final List<L2ReadBoxedOperand> valuesVector =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister destinationMapReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String destinationMapReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -109,8 +106,8 @@ extends L2Operation
 			{
 				builder.append(", ");
 			}
-			final L2ReadPointerOperand key = keysVector.get(i);
-			final L2ReadPointerOperand value = valuesVector.get(i);
+			final L2ReadBoxedOperand key = keysVector.get(i);
+			final L2ReadBoxedOperand value = valuesVector.get(i);
 			builder.append(key);
 			builder.append("←");
 			builder.append(value);
@@ -124,12 +121,12 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> keysVector =
+		final List<L2ReadBoxedOperand> keysVector =
 			instruction.readVectorRegisterAt(0);
-		final List<L2ReadPointerOperand> valuesVector =
+		final List<L2ReadBoxedOperand> valuesVector =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister destinationObjectReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister destinationObjectReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: map = MapDescriptor.emptyMap();
 		method.visitMethodInsn(

@@ -38,8 +38,8 @@ import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -48,11 +48,9 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a new {@linkplain VariableDescriptor variable object} of the
@@ -71,7 +69,7 @@ extends L2Operation
 	{
 		super(
 			CONSTANT.is("outerType"),
-			WRITE_POINTER.is("variable"));
+			WRITE_BOXED.is("variable"));
 	}
 
 	/**
@@ -86,8 +84,8 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		final A_Type outerType = instruction.constantAt(0);
-		final L2WritePointerOperand destReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WriteBoxedOperand destReg =
+			instruction.writeBoxedRegisterAt(1);
 
 		// Not a constant, but we know the type...
 		registerSet.removeConstantAt(destReg.register());
@@ -103,8 +101,8 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final A_Type outerType = instruction.constantAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String destReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -120,8 +118,8 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		final A_Type outerType = instruction.constantAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister destReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: newVar = newVariableWithOuterType(outerType);
 		translator.literal(method, outerType);

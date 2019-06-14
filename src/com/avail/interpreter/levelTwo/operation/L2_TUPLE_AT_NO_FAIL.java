@@ -38,11 +38,11 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -70,9 +70,9 @@ extends L2Operation
 	private L2_TUPLE_AT_NO_FAIL ()
 	{
 		super(
-			READ_POINTER.is("tuple"),
+			READ_BOXED.is("tuple"),
 			READ_INT.is("int subscript"),
-			WRITE_POINTER.is("destination"));
+			WRITE_BOXED.is("destination"));
 	}
 
 	/**
@@ -87,11 +87,11 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand tupleReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand tupleReg =
+			instruction.readBoxedRegisterAt(0);
 		final L2ReadIntOperand subscript = instruction.readIntRegisterAt(1);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2WriteBoxedOperand destinationReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		final A_Type tupleType = tupleReg.type();
 		final A_Type bounded = subscript.type().typeIntersection(int32());
@@ -110,12 +110,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2IntRegister subscript =
-			instruction.readIntRegisterAt(1).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String tupleReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String subscript =
+			instruction.readIntRegisterAt(1).registerString();
+		final String destinationReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -133,12 +133,12 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister tupleReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final L2IntRegister subscriptReg =
 			instruction.readIntRegisterAt(1).register();
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tupleReg);

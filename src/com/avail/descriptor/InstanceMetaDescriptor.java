@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -163,7 +164,8 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return instanceMeta(getInstance(object).typeIntersection(another.instance()));
+			return instanceMeta(
+				getInstance(object).typeIntersection(another.instance()));
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
@@ -199,7 +201,8 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return instanceMeta(getInstance(object).typeUnion(another.instance()));
+			return instanceMeta(
+				getInstance(object).typeUnion(another.instance()));
 		}
 		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);
@@ -493,7 +496,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}

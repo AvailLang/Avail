@@ -37,10 +37,9 @@ import com.avail.optimizer.L2Synonym;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@link L2SemanticValue} which represents the invocation of some {@link
@@ -89,7 +88,7 @@ extends L2FrameSpecificSemanticValue
 	 *        The semantic values.
 	 */
 	L2SemanticPrimitiveInvocation (
-		final @Nullable Frame frame,
+		final Frame frame,
 		final int pc,
 		final Primitive primitive,
 		final List<L2Synonym> argumentSynonyms)
@@ -100,7 +99,7 @@ extends L2FrameSpecificSemanticValue
 		this.pc = pc;
 		// Compute the hash.
 		int h = primitive.primitiveNumber * multiplier;
-		h += frame == null ? 0x78296C0C : frame.hashCode();
+		h += frame.hashCode();
 		h ^= pc;
 		h *= multiplier;
 		for (final L2Synonym argument : argumentSynonyms)
@@ -150,7 +149,7 @@ extends L2FrameSpecificSemanticValue
 				builder.append(", ");
 			}
 			builder.append("syn(");
-			builder.append(arg.defaultObjectRead());
+			builder.append(arg);
 			builder.append(")");
 			first = false;
 		}
@@ -160,9 +159,8 @@ extends L2FrameSpecificSemanticValue
 
 	@Override
 	public L2SemanticPrimitiveInvocation transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final int numArgs = argumentSynonyms.size();
 		final List<L2Synonym> newArguments =
@@ -177,7 +175,7 @@ extends L2FrameSpecificSemanticValue
 			if (!newArguments.get(i).equals(argumentSynonyms.get(i)))
 			{
 				return new L2SemanticPrimitiveInvocation(
-					frameTransformer.apply(stripNull(frame)),
+					frameTransformer.apply(frame),
 					pc,
 					primitive,
 					newArguments);
@@ -193,8 +191,7 @@ extends L2FrameSpecificSemanticValue
 	{
 		// My arguments are synonyms, and they may contain additional semantic
 		// values that are also synonyms.
-		@Nullable List<L2Synonym>
-			newArguments = null;
+		@Nullable List<L2Synonym> newArguments = null;
 		final int argCount = argumentSynonyms.size();
 		for (int i = 0; i < argCount; i++)
 		{

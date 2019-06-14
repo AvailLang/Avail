@@ -42,9 +42,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -57,19 +57,9 @@ import java.util.Set;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the value of a variable, while simultaneously clearing it. If the
@@ -88,8 +78,8 @@ extends L2ControlFlowOperation
 	private L2_GET_VARIABLE_CLEARING ()
 	{
 		super(
-			READ_POINTER.is("variable"),
-			WRITE_POINTER.is("extracted value"),
+			READ_BOXED.is("variable"),
+			WRITE_BOXED.is("extracted value"),
 			PC.is("read succeeded", SUCCESS),
 			PC.is("read failed", OFF_RAMP));
 	}
@@ -106,10 +96,10 @@ extends L2ControlFlowOperation
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2WritePointerOperand destReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2ReadBoxedOperand variableReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2WriteBoxedOperand destReg =
+			instruction.writeBoxedRegisterAt(1);
 //		final int successIndex = instruction.pcOffsetAt(2);
 //		final int failureIndex = instruction.pcOffsetAt(3);
 		//TODO MvG - Rework everything related to type propagation.
@@ -147,10 +137,10 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String variableReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String destReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 //		final int successIndex = instruction.pcOffsetAt(2);
 //		final L2PcOperand failure = instruction.pcAt(3);
 
@@ -168,10 +158,10 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister variableReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister destReg =
+			instruction.writeBoxedRegisterAt(1).register();
 		final int successIndex = instruction.pcOffsetAt(2);
 		final L2PcOperand failure = instruction.pcAt(3);
 

@@ -42,7 +42,7 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -231,15 +231,15 @@ extends Primitive
 	 */
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand functionReg = arguments.get(0);
-		final L2ReadPointerOperand tupleReg = arguments.get(1);
+		final L2ReadBoxedOperand functionReg = arguments.get(0);
+		final L2ReadBoxedOperand tupleReg = arguments.get(1);
 
 		// Examine the function type.
 		final A_Type functionType = functionReg.type();
@@ -254,7 +254,7 @@ extends Primitive
 		}
 		final int argsSize = upperBound.extractInt();
 
-		final @Nullable List<L2ReadPointerOperand> explodedArgumentRegisters =
+		final @Nullable List<L2ReadBoxedOperand> explodedArgumentRegisters =
 			translator.explodeTupleIfPossible(
 				tupleReg,
 				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)));
@@ -267,11 +267,7 @@ extends Primitive
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
 		translator.generateGeneralFunctionInvocation(
-			functionReg,
-			explodedArgumentRegisters,
-			TOP.o(),
-			true,
-			callSiteHelper);
+			functionReg, explodedArgumentRegisters, true, callSiteHelper);
 		return true;
 	}
 }

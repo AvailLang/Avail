@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Variable;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
@@ -48,10 +48,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Private;
-import static com.avail.interpreter.Primitive.Flag.SpecialForm;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -102,9 +99,9 @@ public final class P_GetGlobalVariableValue extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -128,12 +125,12 @@ public final class P_GetGlobalVariableValue extends Primitive
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(
-				translator.generator.constantRegister(variable.getValue()));
+				translator.generator.boxedConstant(variable.getValue()));
 			return true;
 		}
-		final L2ReadPointerOperand valueReg = translator.emitGetVariableOffRamp(
+		final L2ReadBoxedOperand valueReg = translator.emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
-			translator.generator.constantRegister(variable),
+			translator.generator.boxedConstant(variable),
 			false);
 		callSiteHelper.useAnswer(valueReg);
 		return true;

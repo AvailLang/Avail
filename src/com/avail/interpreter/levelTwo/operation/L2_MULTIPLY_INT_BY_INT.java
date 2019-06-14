@@ -92,12 +92,12 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2IntRegister multiplicandReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister multiplierReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister productReg =
-			instruction.writeIntRegisterAt(2).register();
+		final String multiplicandReg =
+			instruction.readIntRegisterAt(0).registerString();
+		final String multiplierReg =
+			instruction.readIntRegisterAt(1).registerString();
+		final String productReg =
+			instruction.writeIntRegisterAt(2).registerString();
 //		final L2PcOperand inRange = instruction.pcAt(3);
 //		final int outOfRangeOffset = instruction.pcOffsetAt(4);
 

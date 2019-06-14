@@ -236,7 +236,11 @@ public class L2ControlFlowGraphVisualizer
 		for (int i = 0; i < limit;)
 		{
 			final int cp = s.codePointAt(i);
-			if (cp > 127 || cp == '"' || cp == '<' || cp == '>' || cp == '&')
+			if (cp > 127
+				|| cp == '"'
+				|| cp == '<'
+				|| cp == '>'
+				|| cp == '&')
 			{
 				builder.append("&#");
 				builder.append(cp);
@@ -286,7 +290,8 @@ public class L2ControlFlowGraphVisualizer
 				//
 				// In particular, Courier, Arial, Helvetica, and Times are
 				// supported.
-				builder.append("<font face=\"Helvetica\" color=\"gray\"><i>");
+				builder.append(
+					"<font face=\"Helvetica\" color=\"#404040\"><i>");
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 			}
@@ -314,7 +319,8 @@ public class L2ControlFlowGraphVisualizer
 	 */
 	private void basicBlock (
 		final L2BasicBlock basicBlock,
-		final GraphWriter writer)
+		final GraphWriter writer,
+		final boolean started)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(
@@ -324,10 +330,15 @@ public class L2ControlFlowGraphVisualizer
 			!instructions.isEmpty() ? basicBlock.instructions().get(0) : null;
 		final String bgcolor;
 		final String fontcolor;
-		if (basicBlock.instructions().stream().anyMatch(
+		if (!started)
+		{
+			bgcolor = "#202080";
+			fontcolor = "#ffffff";
+		}
+		else if (basicBlock.instructions().stream().anyMatch(
 			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
 		{
-			bgcolor = "#000000";
+			bgcolor = "#400000";
 			fontcolor = "#ffffff";
 		}
 		else if (first != null && first.operation().isEntryPoint(first))
@@ -401,10 +412,13 @@ public class L2ControlFlowGraphVisualizer
 	 *        An {@code L2BasicBlock}.
 	 * @param writer
 	 *        The {@link GraphWriter} for emission.
+	 * @param started
+	 *        Whether code generation has started for the targetBlock.
 	 */
 	private void edges (
 		final L2BasicBlock targetBlock,
-		final GraphWriter writer)
+		final GraphWriter writer,
+		final boolean started)
 	{
 		final boolean isTargetTheUnreachableBlock =
 			targetBlock.instructions().stream()
@@ -490,33 +504,22 @@ public class L2ControlFlowGraphVisualizer
 				{
 					builder.append(
 						"<font face=\"Helvetica\"><i>manifest:</i></font>");
-					synonyms.sort(
-						comparing(a -> a.getClass().getSimpleName())
-							.thenComparing(Object::toString));
+					synonyms.sort(comparing(L2Synonym::toString));
 					synonyms.forEach(
 						synonym ->
 						{
 							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							final Iterator<? extends L2Register> registers =
-								synonym.registersIterator();
-							while (registers.hasNext())
+							builder.append(escape(synonym.toString()));
+							if (synonym.semanticValues().stream().noneMatch(
+								L2SemanticValue::isConstant))
 							{
-								builder.append(registers.next());
-								if (registers.hasNext())
-								{
-									builder. append(" & ");
-								}
-							}
-							builder.append("  →  ");
-							final Iterator<L2SemanticValue> values =
-								synonym.semanticValuesIterator();
-							while (values.hasNext())
-							{
-								builder.append(values.next());
-								if (values.hasNext())
-								{
-									builder. append(" & ");
-								}
+								builder.append(
+									"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+									+ ":&nbsp;");
+								builder.append(
+									escape(
+										manifest.restrictionFor(synonym)
+											.toString()));
 							}
 						});
 				}
@@ -540,9 +543,14 @@ public class L2ControlFlowGraphVisualizer
 						: node(basicBlockName(targetBlock)),
 					attr ->
 					{
-						if (isTargetTheUnreachableBlock)
+						if (!started)
 						{
-							attr.attribute("color", "#a0a0a0");
+							attr.attribute("color", "#4040ff");
+							attr.attribute("style", "dotted");
+						}
+						else if (isTargetTheUnreachableBlock)
+						{
+							attr.attribute("color", "#804040");
 							attr.attribute("style", "dotted");
 						}
 						else
@@ -618,10 +626,22 @@ public class L2ControlFlowGraphVisualizer
 					attr.attribute("style", "solid");
 					attr.attribute("color", "#000000");
 				});
+				final Set<L2BasicBlock> startedBlocks = new HashSet<>(
+					controlFlowGraph.basicBlockOrder);
+				final Set<L2BasicBlock> unstartedBlocks = new HashSet<>();
+				startedBlocks.forEach(
+					startedBlock -> startedBlock.successorEdgesCopy().stream()
+						.map(L2PcOperand::targetBlock)
+						.filter(b -> !startedBlocks.contains(b))
+						.forEach(unstartedBlocks::add));
+
 				controlFlowGraph.basicBlockOrder.forEach(
-					basicBlock -> basicBlock(basicBlock, graph));
+					block -> basicBlock(block, graph, true));
+				unstartedBlocks.forEach(
+					block -> basicBlock(block, graph, false));
 				controlFlowGraph.basicBlockOrder.forEach(
-					basicBlock -> edges(basicBlock, graph));
+					block -> edges(block, graph, true));
+				unstartedBlocks.forEach(block -> edges(block, graph, false));
 			});
 		}
 		catch (final IOException e)

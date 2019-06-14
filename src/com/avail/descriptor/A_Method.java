@@ -38,6 +38,7 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import java.util.List;
 
@@ -54,7 +55,7 @@ extends A_ChunkDependable
 {
 	/**
 	 * Answer a {@linkplain A_Tuple tuple} that comprises all {@linkplain
-	 * A_Definition definitions} of this {@linkplain A_Method method}.
+	 * A_Definition definitions} of this {@code A_Method}.
 	 *
 	 * @return The current definitions of this method.
 	 */
@@ -63,7 +64,7 @@ extends A_ChunkDependable
 	/**
 	 * Answer the {@linkplain A_Set set} of {@linkplain A_SemanticRestriction
 	 * semantic restrictions} which restrict the applicability and return type
-	 * of this {@linkplain A_Method method} at relevant call sites.
+	 * of this {@code A_Method} at relevant call sites.
 	 *
 	 * @return The set of semantic restrictions on this method.
 	 */
@@ -79,9 +80,9 @@ extends A_ChunkDependable
 	A_Tuple sealedArgumentsTypesTuple ();
 
 	/**
-	 * Add the {@linkplain A_Definition definition} to this {@linkplain A_Method
-	 * method}. Causes dependent {@linkplain L2Chunk chunks} to be invalidated.
-	 * Answer the {@link A_DefinitionParsingPlan}s that were created for the new
+	 * Add the {@linkplain A_Definition definition} to this {@code A_Method}.
+	 * Causes dependent {@linkplain L2Chunk chunks} to be invalidated. Answer
+	 * the {@link A_DefinitionParsingPlan}s that were created for the new
 	 * definition.
 	 *
 	 * @param definition The definition to be added.
@@ -91,8 +92,8 @@ extends A_ChunkDependable
 		throws SignatureException;
 
 	/**
-	 * Answer all {@linkplain A_Definition definitions} of this {@linkplain
-	 * A_Method method} that could match the given argument types.
+	 * Answer all {@linkplain A_Definition definitions} of this {@code A_Method}
+	 * that could match the given argument types.
 	 *
 	 * @param argTypes
 	 *        The {@linkplain A_Type types} of the formal parameters, ordered by
@@ -102,20 +103,21 @@ extends A_ChunkDependable
 	List<A_Definition> filterByTypes (List<? extends A_Type> argTypes);
 
 	/**
-	 * Answer all {@linkplain A_Definition definitions} of this {@linkplain
-	 * A_Method method} that could match arguments conforming to the given
-	 * {@linkplain A_Type types}, i.e., the definitions that could be invoked
-	 * at runtime for a call site with the given static types.
+	 * Answer all {@linkplain A_Definition definitions} of this {@code A_Method}
+	 * that could match arguments conforming to the given {@linkplain A_Type
+	 * types}, i.e., the definitions that could be invoked at runtime for a call
+	 * site with the given static types.
 	 *
-	 * @param argTypes
+	 * @param argRestrictions
 	 *        The static types of the proposed arguments, ordered by position.
 	 * @return A {@linkplain List list} of definitions.
 	 */
-	List<A_Definition> definitionsAtOrBelow (List<? extends A_Type> argTypes);
+	List<A_Definition> definitionsAtOrBelow (
+		List<? extends TypeRestriction> argRestrictions);
 
 	/**
 	 * Is the given {@linkplain A_Definition definition} present in this
-	 * {@linkplain A_Method method}?
+	 * {@code A_Method}?
 	 *
 	 * @param imp
 	 *        A definition.
@@ -125,9 +127,9 @@ extends A_ChunkDependable
 	boolean includesDefinition (A_Definition imp);
 
 	/**
-	 * Answer the {@linkplain A_Definition definition} of this {@linkplain
-	 * A_Method method} that should be invoked for the given {@linkplain
-	 * A_Type argument types}. Use the testing tree to select a definition.
+	 * Answer the {@linkplain A_Definition definition} of this {@code A_Method}
+	 * that should be invoked for the given {@linkplain A_Type argument types}.
+	 * Use the testing tree to select a definition.
 	 *
 	 * @param argumentTypeTuple
 	 *        The {@linkplain A_Tuple tuple} of argument types, ordered by
@@ -143,11 +145,11 @@ extends A_ChunkDependable
 	throws MethodDefinitionException;
 
 	/**
-	 * Answer the {@linkplain A_Definition definition} of this {@linkplain
-	 * A_Method method} that should be invoked for the given values. Use the
-	 * testing tree to select a definition. If lookup fails, then write an
-	 * appropriate {@linkplain AvailErrorCode error code} into {@code errorCode}
-	 * and answer {@linkplain NilDescriptor#nil nil}.
+	 * Answer the {@linkplain A_Definition definition} of this {@code A_Method}
+	 * that should be invoked for the given values. Use the testing tree to
+	 * select a definition. If lookup fails, then write an appropriate
+	 * {@linkplain AvailErrorCode error code} into {@code errorCode} and answer
+	 * {@linkplain NilDescriptor#nil nil}.
 	 *
 	 * @param argumentList
 	 *        The {@linkplain List} of arguments, ordered by position.
@@ -163,12 +165,10 @@ extends A_ChunkDependable
 	throws MethodDefinitionException;
 
 	/**
-	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the method's macro testing tree to find the macro
-	 * definition to invoke.  Answer nil if a lookup error occurs, in which case
-	 * the errorCode will be set to either {@link
-	 * AvailErrorCode#E_NO_METHOD_DEFINITION} or {@link
-	 * AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
+	 * Look up the macro {@link A_Definition} to invoke, given an {@link
+	 * A_Tuple} of argument phrases.  Use the {@code A_Method}'s macro testing
+	 * tree to find the macro definition to invoke.  Answer the {@link A_Tuple}
+	 * of applicable macro definitions.
 	 *
 	 * <p>Note that this testing tree approach is only applicable if all of the
 	 * macro definitions are visible (defined in the current module or an
@@ -177,19 +177,13 @@ extends A_ChunkDependable
 	 *
 	 * @param argumentPhraseTuple
 	 *        The argument phrases destined to be transformed by the macro.
-	 * @return The selected macro definition if it's unique.
-	 * @throws MethodDefinitionException
-	 *         In the event the lookup doesn't produce exactly one definition.
-	 *         Possible error codes are {@link
-	 *         AvailErrorCode#E_NO_METHOD_DEFINITION} and {@link
-	 *         AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
+	 * @return The selected macro definitions.
 	 */
-	A_Definition lookupMacroByPhraseTuple (A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException;
+	A_Tuple lookupMacroByPhraseTuple (A_Tuple argumentPhraseTuple);
 
 	/**
 	 * Remove the specified {@linkplain A_Definition definition} from this
-	 * {@linkplain A_Method method}. Behaves idempotently.
+	 * {@code A_Method}. Behaves idempotently.
 	 *
 	 * @param definition
 	 *        A non-bootstrap definition.
@@ -197,7 +191,7 @@ extends A_ChunkDependable
 	void removeDefinition (A_Definition definition);
 
 	/**
-	 * Answer the arity of this {@linkplain A_Method method}.
+	 * Answer the arity of this {@code A_Method}.
 	 *
 	 * @return The arity of this method.
 	 */
@@ -205,7 +199,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Add a {@linkplain A_SemanticRestriction semantic restriction} to
-	 * this {@linkplain A_Method method}. Behaves idempotently.
+	 * this {@code A_Method}. Behaves idempotently.
 	 *
 	 * @param restriction
 	 *        The semantic restriction to add.
@@ -222,7 +216,7 @@ extends A_ChunkDependable
 	void removeSemanticRestriction (A_SemanticRestriction restriction);
 
 	/**
-	 * Add a seal to this {@linkplain A_Method method}. Behaves idempotently.
+	 * Add a seal to this {@code A_Method}. Behaves idempotently.
 	 *
 	 * @param typeTuple
 	 *        A {@linkplain A_Tuple tuple} of formal parameter {@linkplain
@@ -231,8 +225,7 @@ extends A_ChunkDependable
 	void addSealedArgumentsType (A_Tuple typeTuple);
 
 	/**
-	 * Remove a seal from this {@linkplain A_Method method}. Behaves
-	 * idempotently.
+	 * Remove a seal from this {@code A_Method}. Behaves idempotently.
 	 *
 	 * @param typeTuple
 	 *        A {@linkplain A_Tuple tuple} of formal parameter {@linkplain
@@ -241,8 +234,8 @@ extends A_ChunkDependable
 	void removeSealedArgumentsType (A_Tuple typeTuple);
 
 	/**
-	 * Is this {@linkplain A_Method method} empty? A method is empty if it
-	 * comprises no {@linkplain A_Definition definitions}, no {@linkplain
+	 * Is this {@code A_Method} empty? A method is empty if it comprises no
+	 * {@linkplain A_Definition definitions}, no {@linkplain
 	 * A_SemanticRestriction semantic restrictions}, and no seals.
 	 *
 	 * @return {@code true} if this method is empty, {@code false} otherwise.
@@ -251,7 +244,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Answer the {@linkplain A_Tuple tuple} of {@linkplain A_Bundle message
-	 * bundles} that name this {@linkplain A_Method method}.
+	 * bundles} that name this {@code A_Method}.
 	 *
 	 * @return A tuple of message bundles.
 	 */
@@ -259,7 +252,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Specify that the given {@linkplain A_Bundle message bundle} names this
-	 * {@linkplain A_Method method}.
+	 * {@code A_Method}.
 	 *
 	 * @param bundle
 	 *        A message bundle.

@@ -31,10 +31,7 @@
  */
 package com.avail.optimizer.values;
 
-import javax.annotation.Nullable;
-import java.util.function.Function;
-
-import static com.avail.utility.Nulls.stripNull;
+import java.util.function.UnaryOperator;
 
 /**
  * A semantic value which is specific to a {@link Frame}.
@@ -42,7 +39,7 @@ import static com.avail.utility.Nulls.stripNull;
 abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 {
 	/** The frame in which this is a semantic value. */
-	public final @Nullable Frame frame;
+	public final Frame frame;
 
 	/**
 	 * Create a new instance.
@@ -50,19 +47,19 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 	 * @param frame
 	 *        The frame for which this is a semantic value.
 	 */
-	L2FrameSpecificSemanticValue (final @Nullable Frame frame)
+	L2FrameSpecificSemanticValue (final Frame frame)
 	{
 		this.frame = frame;
 	}
 
 	/**
-	 * Answer the {@link Frame}, failing if it's null.
+	 * Answer the {@link Frame} in which this invocation takes place.
 	 *
-	 * @return The non-null frame.
+	 * @return The frame.
 	 */
 	public final Frame frame ()
 	{
-		return stripNull(frame);
+		return frame;
 	}
 
 	@Override
@@ -80,9 +77,8 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 
 	@Override
 	public abstract L2FrameSpecificSemanticValue transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer);
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer);
 
 	@Override
 	public abstract String toString ();

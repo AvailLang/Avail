@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
@@ -48,9 +49,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -369,15 +368,13 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
-		for (int i = 1, end = argTypes.size(); i <= end; i++)
+		for (int i = 1, end = argRestrictions.size(); i <= end; i++)
 		{
-			final A_Type argType = tupleType.typeAtIndex(i);
-			final A_Type actualType = argTypes.get(i - 1);
-			final A_Type intersection = argType.typeIntersection(actualType);
-			if (intersection.isBottom())
+			if (!argRestrictions.get(i - 1).intersectsType(
+				tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -484,6 +481,14 @@ extends TypeDescriptor
 		}
 		return object.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
 			aFunctionType.argsTupleType());
+	}
+
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		final A_Type argsTupleType = object.slot(ARGS_TUPLE_TYPE);
+		final A_Type sizeRange = argsTupleType.sizeRange();
+		return sizeRange.lowerBound().lessThan(sizeRange.upperBound());
 	}
 
 	@Override @AvailMethod

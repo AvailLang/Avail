@@ -1,5 +1,5 @@
 /*
- * L2ObjectRegister.java
+ * L2BoxedRegister.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,91 +33,57 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.utility.Casts.cast;
-
 /**
- * {@code L2ObjectRegister} models the conceptual usage of a register that can
+ * {@code L2BoxedRegister} models the conceptual usage of a register that can
  * store an {@link AvailObject}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2ObjectRegister
+public class L2BoxedRegister
 extends L2Register
 {
 	@Override
 	public RegisterKind registerKind ()
 	{
-		return RegisterKind.OBJECT;
+		return RegisterKind.BOXED;
 	}
 
 	/**
-	 * Construct a new {@code L2ObjectRegister}.
+	 * Construct a new {@code L2BoxedRegister}.
 	 *
 	 * @param debugValue
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
-	 * @param restriction
-	 * 	      The {@link TypeRestriction}.
 	 */
-	public L2ObjectRegister (
-		final int debugValue,
-		final TypeRestriction restriction)
+	public L2BoxedRegister (
+		final int debugValue)
 	{
-		super(debugValue, restriction);
+		super(debugValue);
 	}
 
 	@Override
-	public L2ReadPointerOperand read (
-		final TypeRestriction typeRestriction)
+	public L2BoxedRegister copyForTranslator (
+		final L2Generator generator)
 	{
-		return new L2ReadPointerOperand(this, restriction);
+		return new L2BoxedRegister(generator.nextUnique());
 	}
 
 	@Override
-	public L2WritePointerOperand write ()
+	public L2BoxedRegister copyAfterColoring ()
 	{
-		return new L2WritePointerOperand(this);
-	}
-
-	@Override
-	public <R extends L2Register> R copyForTranslator (
-		final L2Generator generator,
-		final TypeRestriction typeRestriction)
-	{
-		return cast(
-			new L2ObjectRegister(generator.nextUnique(), typeRestriction));
-	}
-
-	@Override
-	public L2ObjectRegister copyAfterColoring ()
-	{
-		final L2ObjectRegister result = new L2ObjectRegister(
-			finalIndex(), TypeRestriction.restriction(TOP.o()));
+		final L2BoxedRegister result = new L2BoxedRegister(finalIndex());
 		result.setFinalIndex(finalIndex());
 		return result;
 	}
 
 	@Override
-	public L2ObjectRegister copyForInliner (final L2Inliner inliner)
+	public L2BoxedRegister copyForInliner (final L2Inliner inliner)
 	{
-		return new L2ObjectRegister(
-			inliner.nextUnique(), restriction);
-	}
-
-	@Override
-	public L2Operation phiMoveOperation ()
-	{
-		return L2_MOVE.instance;
+		return new L2BoxedRegister(inliner.nextUnique());
 	}
 
 	@Override

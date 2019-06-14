@@ -37,19 +37,17 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.DOUBLE_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Unbox an {@code float} from an {@link AvailObject}.
@@ -65,7 +63,7 @@ extends L2Operation
 	private L2_UNBOX_FLOAT ()
 	{
 		super(
-			READ_POINTER.is("source"),
+			READ_BOXED.is("source"),
 			WRITE_FLOAT.is("destination"));
 	}
 
@@ -81,10 +79,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2FloatRegister destinationReg =
-			instruction.writeFloatRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeFloatRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -99,8 +97,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister sourceReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final L2FloatRegister destinationReg =
 			instruction.writeFloatRegisterAt(1).register();
 

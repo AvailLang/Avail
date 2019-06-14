@@ -52,11 +52,7 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRE
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 
 /**
  * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
@@ -146,8 +142,8 @@ extends PhraseTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
-	 * have the same expression type and same tuple type of subexpressions.
+	 * List phrase types are equal when they have the same expression type and
+	 * same tuple type of subexpressions.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -161,10 +157,9 @@ extends PhraseTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
-	 * are of the same kind and have the same expression type and the same
-	 * subexpressions tuple type.  However, aPhraseType can't be a list
-	 * phrase type like the receiver is.
+	 * List phrase types are equal when they are of the same kind and have the
+	 * same expression type and the same subexpressions tuple type.  However,
+	 * aPhraseType can't be a list phrase type like the receiver is.
 	 * </p>
 	 */
 	@Override @AvailMethod

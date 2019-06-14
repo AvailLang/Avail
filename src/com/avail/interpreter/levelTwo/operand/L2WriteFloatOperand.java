@@ -35,6 +35,10 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.values.L2SemanticValue;
+
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
 
 /**
  * An {@code L2WriteFloatOperand} is an operand of type {@link
@@ -46,29 +50,38 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 public class L2WriteFloatOperand
 extends L2WriteOperand<L2FloatRegister>
 {
+	/**
+	 * Construct a new {@code L2WriteFloatOperand} for the specified {@link
+	 * L2SemanticValue}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that this operand is effectively
+	 *        producing.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that indicates what values are allowed
+	 *        to be written into the register.
+	 * @param register
+	 *        The initial {@link L2FloatRegister} that backs this operand.
+	 */
+	public L2WriteFloatOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2FloatRegister register)
+	{
+		super(semanticValue, restriction, register);
+		assert restriction.isUnboxedFloat();
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.WRITE_FLOAT;
 	}
 
-	/**
-	 * Construct a new {@code L2WriteFloatOperand}, creating an {@link
-	 * L2FloatRegister} at the same time. Record the provided type information
-	 * and optional constant information in the new register.
-	 *
-	 * @param register
-	 *        The {@link L2FloatRegister}.
-	 */
-	public L2WriteFloatOperand (final L2FloatRegister register)
-	{
-		super(register);
-	}
-
 	@Override
-	public final L2ReadFloatOperand read ()
+	public RegisterKind registerKind ()
 	{
-		return new L2ReadFloatOperand(register, register.restriction());
+		return FLOAT;
 	}
 
 	@Override

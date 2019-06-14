@@ -1,5 +1,5 @@
 /*
- * L2ReadIntOperand.java
+ * L2ReadBoxedOperand.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,37 +32,44 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER;
+import javax.annotation.Nullable;
+
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 
 /**
- * An {@code L2ReadIntOperand} is an operand of type {@link
- * L2OperandType#READ_INT}. It holds the actual {@link L2IntRegister} that
- * is to be accessed.
+ * An {@code L2ReadBoxedOperand} is an operand of type {@link
+ * L2OperandType#READ_BOXED}. It holds the actual {@link L2BoxedRegister}
+ * that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2ReadIntOperand
-extends L2ReadOperand<L2IntRegister>
+public final class L2ReadBoxedOperand
+extends L2ReadOperand<L2BoxedRegister>
 {
 	@Override
 	public L2OperandType operandType ()
 	{
-		return L2OperandType.READ_INT;
+		return L2OperandType.READ_BOXED;
 	}
 
 	/**
-	 * Construct a new {@code L2ReadIntOperand} for the specified {@link
+	 * Construct a new {@code L2ReadBoxedOperand} for the specified {@link
 	 * L2Synonym} and {@link TypeRestriction}.
 	 *
 	 * @param semanticValue
@@ -73,7 +80,7 @@ extends L2ReadOperand<L2IntRegister>
 	 *        This restriction has been guaranteed by the VM at the point where
 	 *        this operand's instruction occurs.
 	 */
-	public L2ReadIntOperand (
+	public L2ReadBoxedOperand (
 		final L2SemanticValue semanticValue,
 		final TypeRestriction restriction,
 		final L2ValueManifest manifest)
@@ -83,8 +90,8 @@ extends L2ReadOperand<L2IntRegister>
 			restriction,
 			manifest.getDefinition(
 				manifest.semanticValueToSynonym(semanticValue),
-				INTEGER));
-		assert restriction.isUnboxedInt();
+				BOXED));
+		assert restriction.isBoxed();
 	}
 
 	@Override
@@ -96,12 +103,47 @@ extends L2ReadOperand<L2IntRegister>
 	@Override
 	public RegisterKind registerKind ()
 	{
-		return INTEGER;
+		return BOXED;
 	}
 
 	@Override
-	public L2_MOVE<L2IntRegister> phiMoveOperation ()
+	public L2_MOVE<L2BoxedRegister> phiMoveOperation ()
 	{
-		return L2_MOVE.unboxedInt;
+		return L2_MOVE.boxed;
+	}
+
+
+	/**
+	 * See if we can determine the exact type required as the first argument of
+	 * the function produced by this read.  If the exact type is known, answer
+	 * it, otherwise {@code null}.
+	 *
+	 * @return Either {@code null} or an exact {@link A_Type} to compare some
+	 *         value against in order to determine whether the one-argument
+	 *         function will accept the given argument.
+	 */
+	public @Nullable A_Type exactSoleArgumentType ()
+	{
+		final @Nullable A_Function constantFunction = constantOrNull();
+		if (constantFunction != null)
+		{
+			// Function is a constant.
+			final A_Type functionType = constantFunction.code().functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		final L2Instruction originOfFunction = definitionSkippingMoves(true);
+		if (originOfFunction.operation() == L2_MOVE_CONSTANT.instance)
+		{
+			final A_Function function = originOfFunction.constantAt(0);
+			final A_Type functionType = function.code().functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		if (originOfFunction.operation() == L2_CREATE_FUNCTION.instance)
+		{
+			final A_RawFunction code = originOfFunction.constantAt(0);
+			final A_Type functionType = code.functionType();
+			return functionType.argsTupleType().typeAtIndex(1);
+		}
+		return null;
 	}
 }

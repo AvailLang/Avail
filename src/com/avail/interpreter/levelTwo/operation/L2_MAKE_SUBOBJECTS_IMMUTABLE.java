@@ -32,24 +32,21 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Mark as immutable all objects referred to from the specified object.
@@ -69,7 +66,8 @@ extends L2Operation
 	private L2_MAKE_SUBOBJECTS_IMMUTABLE ()
 	{
 		super(
-			READ_POINTER.is("object"));
+			READ_BOXED.is("input"),
+			WRITE_BOXED.is("output"));
 	}
 
 	/**
@@ -79,33 +77,22 @@ extends L2Operation
 		new L2_MAKE_SUBOBJECTS_IMMUTABLE();
 
 	@Override
-	public boolean hasSideEffect ()
-	{
-		// Marking the object's parts immutable is a side effect.
-		return true;
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		// It just has a side-effect.
-	}
-
-	@Override
 	public void toString (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand objectReg = instruction.operand(0);
+		final String inputReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String outputReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(objectReg);
+		builder.append(outputReg);
+		builder.append(" ← ");
+		builder.append(inputReg);
 	}
 
 	@Override
@@ -114,16 +101,19 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister objectReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister inputReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister outputReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
-		// :: object.makeSubobjectsImmutable();
-		translator.load(method, objectReg);
+		// :: output = input.makeSubobjectsImmutable();
+		translator.load(method, inputReg);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"makeSubobjectsImmutable",
-			getMethodDescriptor(VOID_TYPE),
+			getMethodDescriptor(getType(AvailObject.class)),
 			true);
+		translator.store(method, outputReg);
 	}
 }

@@ -41,9 +41,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -62,13 +62,11 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
@@ -86,8 +84,8 @@ extends L2Operation
 	private L2_CREATE_TUPLE ()
 	{
 		super(
-			READ_VECTOR.is("elements"),
-			WRITE_POINTER.is("tuple"));
+			READ_BOXED_VECTOR.is("elements"),
+			WRITE_BOXED.is("tuple"));
 	}
 
 	/**
@@ -101,15 +99,15 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final List<L2ReadPointerOperand> elements =
+		final List<L2ReadBoxedOperand> elements =
 			instruction.readVectorRegisterAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WriteBoxedOperand destinationReg =
+			instruction.writeBoxedRegisterAt(1);
 
 		final int size = elements.size();
 		final A_Type sizeRange = fromInt(size).kind();
 		final List<A_Type> types = new ArrayList<>(size);
-		for (final L2ReadPointerOperand element: elements)
+		for (final L2ReadBoxedOperand element: elements)
 		{
 			if (registerSet.hasTypeAt(element.register()))
 			{
@@ -132,7 +130,7 @@ extends L2Operation
 		if (registerSet.allRegistersAreConstant(elements))
 		{
 			final List<AvailObject> constants = new ArrayList<>(size);
-			for (final L2ReadPointerOperand element : elements)
+			for (final L2ReadBoxedOperand element : elements)
 			{
 				constants.add(registerSet.constantAt(element.register()));
 			}
@@ -154,10 +152,10 @@ extends L2Operation
 	 *
 	 * @param instruction
 	 *        The tuple creation instruction to examine.
-	 * @return The instruction's {@link List} of {@link L2ReadPointerOperand}s
+	 * @return The instruction's {@link List} of {@link L2ReadBoxedOperand}s
 	 *         that supply the tuple elements.
 	 */
-	public static List<L2ReadPointerOperand> tupleSourceRegistersOf (
+	public static List<L2ReadBoxedOperand> tupleSourceRegistersOf (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
@@ -172,8 +170,8 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2Operand elements = instruction.operand(0);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String destinationReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -209,10 +207,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadPointerOperand> elements =
+		final List<L2ReadBoxedOperand> elements =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		final int size = elements.size();
 		if (size <= 5)

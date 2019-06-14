@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePhiOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
@@ -433,7 +433,7 @@ public final class L2Optimizer
 									instruction.operation(),
 									instruction.operands());
 							destinationBlock.insertInstruction(
-								0, newInstruction);
+								0, newInstruction, edge.manifest());
 							// None of the registers defined by the instruction
 							// should be live-in any more at the edge.
 							edge.sometimesLiveInRegisters.removeAll(
@@ -551,7 +551,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	@InnerAccess void insertPhiMoves ()
+	@InnerAccess <R extends L2Register> void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -566,32 +566,32 @@ public final class L2Optimizer
 					// them, if any.
 					break;
 				}
-				final L2WritePhiOperand<?> targetWriter =
+				final L2WriteOperand<R> targetWriter =
 					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
 						instruction);
-				final List<L2Register> phiSources =
-					instruction.sourceRegisters();
+				final List<L2ReadOperand<R>> phiSources =
+					L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(instruction);
 				final int fanIn = block.predecessorEdgesCount();
 				assert fanIn == phiSources.size();
 
 				// Insert a non-SSA move in each predecessor block.
 				for (int i = 0; i < fanIn; i++)
 				{
-					final L2BasicBlock predecessor =
-						block.predecessorEdgeAt(i).sourceBlock();
+					final L2PcOperand edge = block.predecessorEdgeAt(i);
+					final L2BasicBlock predecessor = edge.sourceBlock();
 					final List<L2Instruction> instructions =
 						predecessor.instructions();
 					assert predecessor.finalInstruction().operation()
-						instanceof L2_JUMP;
-					final L2Register sourceReg = phiSources.get(i);
+						== L2_JUMP.instance;
+					final L2ReadOperand<R> sourceRead = phiSources.get(i);
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
-							sourceReg.phiMoveOperation(),
-							sourceReg.read(sourceReg.restriction()),
-							targetWriter.register().write());
-					instructions.add(instructions.size() - 1, move);
-					move.justAdded();
+							sourceRead.phiMoveOperation(),
+							sourceRead,
+							targetWriter.clone());
+					predecessor.insertInstruction(
+						instructions.size() - 1, move, edge.manifest());
 				}
 				// Eliminate the phi function itself.
 				instructionIterator.remove();
@@ -724,7 +724,7 @@ public final class L2Optimizer
 			{
 				final L2BasicBlock block = blockIterator.next();
 				if (block.instructions().size() == 1
-					&& block.finalInstruction().operation() instanceof L2_JUMP)
+					&& block.finalInstruction().operation() == L2_JUMP.instance)
 				{
 					// Redirect all predecessors through the jump.
 					final L2PcOperand jumpEdge =
@@ -931,8 +931,7 @@ public final class L2Optimizer
 	private void checkBlocksAndInstructions ()
 	{
 		final Map<L2Register, Set<L2Instruction>> uses = new HashMap<>();
-		final Map<L2Register, Set<L2Instruction>> definitions = new
-			HashMap<>();
+		final Map<L2Register, Set<L2Instruction>> definitions = new HashMap<>();
 		blocks.forEach(
 			block -> block.instructions().forEach(
 				instruction ->
@@ -1067,7 +1066,7 @@ public final class L2Optimizer
 			final UsedRegisters workingSet = new UsedRegisters(checked);
 			for (final L2Instruction instruction : block.instructions())
 			{
-				if (instruction.operation() instanceof L2_ENTER_L2_CHUNK)
+				if (instruction.operation() == L2_ENTER_L2_CHUNK.instance)
 				{
 					// Wipe all registers.
 					workingSet.clearAll();

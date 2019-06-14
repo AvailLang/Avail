@@ -38,7 +38,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -46,21 +46,14 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.EnumerationTypeDescriptor.falseType;
-import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Compare two extended integers and answer
@@ -116,15 +109,15 @@ public final class P_LessOrEqual extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand firstReg = arguments.get(0);
-		final L2ReadPointerOperand secondReg = arguments.get(1);
+		final L2ReadBoxedOperand firstReg = arguments.get(0);
+		final L2ReadBoxedOperand secondReg = arguments.get(1);
 		final A_Type firstType = firstReg.type();
 		final A_Type secondType = secondReg.type();
 		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
@@ -138,7 +131,7 @@ public final class P_LessOrEqual extends Primitive
 		{
 			callSiteHelper.useAnswer(
 				translator.generator
-					.constantRegister(objectFromBoolean(canBeTrue)));
+					.boxedConstant(objectFromBoolean(canBeTrue)));
 			return true;
 		}
 		return super.tryToGenerateSpecialPrimitiveInvocation(

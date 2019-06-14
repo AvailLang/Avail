@@ -38,9 +38,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -48,14 +48,9 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract an element at a fixed subscript from a {@link TupleDescriptor tuple}
@@ -73,9 +68,9 @@ extends L2Operation
 	private L2_TUPLE_AT_CONSTANT ()
 	{
 		super(
-			READ_POINTER.is("tuple"),
+			READ_BOXED.is("tuple"),
 			INT_IMMEDIATE.is("immediate subscript"),
-			WRITE_POINTER.is("destination"));
+			WRITE_BOXED.is("destination"));
 	}
 
 	/**
@@ -90,11 +85,11 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand tupleReg =
-			instruction.readObjectRegisterAt(0);
+		final L2ReadBoxedOperand tupleReg =
+			instruction.readBoxedRegisterAt(0);
 		final int subscript = instruction.intImmediateAt(1);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(2);
+		final L2WriteBoxedOperand destinationReg =
+			instruction.writeBoxedRegisterAt(2);
 
 		final A_Type tupleType = tupleReg.type();
 		final int minSize = tupleType.sizeRange().lowerBound().extractInt();
@@ -112,11 +107,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
+		final String tupleReg =
+			instruction.readBoxedRegisterAt(0).registerString();
 		final int subscript = instruction.intImmediateAt(1);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final String destinationReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -134,11 +129,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister tupleReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister tupleReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final int subscript = instruction.intImmediateAt(1);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(2).register();
 
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tupleReg);

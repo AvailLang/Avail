@@ -36,6 +36,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.utility.PublicCloneable;
 
 import java.util.List;
@@ -73,10 +75,14 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this {@link
+	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
 	 */
 	@SuppressWarnings("EmptyMethod")
 	public void instructionWasAdded (
-		final L2Instruction instruction)
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
 	{
 		// Do nothing by default.
 	}

@@ -39,7 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -48,15 +48,9 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the value of a variable. If the variable is unassigned, then branch
@@ -74,8 +68,8 @@ extends L2ControlFlowOperation
 	private L2_GET_VARIABLE ()
 	{
 		super(
-			READ_POINTER.is("variable"),
-			WRITE_POINTER.is("extracted value"),
+			READ_BOXED.is("variable"),
+			WRITE_BOXED.is("extracted value"),
 			PC.is("read succeeded", SUCCESS),
 			PC.is("read failed", OFF_RAMP));
 	}
@@ -105,10 +99,10 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final String variableReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String destReg =
+			instruction.writeBoxedRegisterAt(1).registerString();
 //		final int successIndex = instruction.pcOffsetAt(2);
 //		final L2PcOperand failure = instruction.pcAt(3);
 
@@ -126,10 +120,10 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister variableReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister destReg =
+			instruction.writeBoxedRegisterAt(1).register();
 		final int successIndex = instruction.pcOffsetAt(2);
 		final L2PcOperand failure = instruction.pcAt(3);
 

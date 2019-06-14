@@ -61,6 +61,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
@@ -675,7 +676,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -765,7 +766,7 @@ extends AbstractDescriptor
 	@Override
 	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final List<? extends TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2511,11 +2512,13 @@ extends AbstractDescriptor
 	 * Also, ignore my mutability state, as it should be tested (and sometimes
 	 * set preemptively to immutable) prior to invoking this method.
 	 * </p>
+	 * @return
 	 */
 	@Override
-	final void o_MakeSubobjectsImmutable (final AvailObject object)
+	final AvailObject o_MakeSubobjectsImmutable (final AvailObject object)
 	{
 		object.scanSubobjects(BeImmutableSubobjectVisitor.instance);
+		return object;
 	}
 
 	/**
@@ -4368,6 +4371,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsVacuousType (
+		final AvailObject object)
+	{
+		// Only types should be tested for being vacuous.
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_IsTop (
 		final AvailObject object)
 	{
@@ -4520,10 +4531,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Definition o_LookupMacroByPhraseTuple (
+	A_Tuple o_LookupMacroByPhraseTuple (
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
 	{
 		throw unsupportedOperationException();
 	}

@@ -416,8 +416,7 @@ extends Expression
 				final A_Type singularListType =
 					createListNodeType(
 						LIST_PHRASE,
-						tupleTypeForTypes(
-							innerPhraseType.expressionType()),
+						tupleTypeForTypes(innerPhraseType.expressionType()),
 						tupleTypeForTypes(innerPhraseType));
 				beforeDagger.emitOn(
 					singularListType,

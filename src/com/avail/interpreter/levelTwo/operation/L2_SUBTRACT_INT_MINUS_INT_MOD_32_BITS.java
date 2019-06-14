@@ -79,12 +79,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2IntRegister minuendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister subtrahendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister differenceReg =
-			instruction.writeIntRegisterAt(2).register();
+		final String minuendReg =
+			instruction.readIntRegisterAt(0).registerString();
+		final String subtrahendReg =
+			instruction.readIntRegisterAt(1).registerString();
+		final String differenceReg =
+			instruction.writeIntRegisterAt(2).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

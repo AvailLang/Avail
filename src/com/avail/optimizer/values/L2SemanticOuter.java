@@ -31,7 +31,7 @@
  */
 package com.avail.optimizer.values;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 
@@ -79,9 +79,8 @@ extends L2FrameSpecificSemanticValue
 
 	@Override
 	public L2SemanticOuter transform (
-		final Function<L2SemanticValue, L2SemanticValue>
-			semanticValueTransformer,
-		final Function<Frame, Frame> frameTransformer)
+		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
+		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame);
 		return newFrame.equals(frame)
@@ -92,6 +91,7 @@ extends L2FrameSpecificSemanticValue
 	@Override
 	public String toString ()
 	{
-		return "Outer #" + outerIndex + " of " + frame;
+		return "Outer#" + outerIndex +
+			(frame.depth() == 1 ? "" : "[" + frame + "]");
 	}
 }

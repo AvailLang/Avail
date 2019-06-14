@@ -44,7 +44,7 @@ import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
@@ -63,9 +63,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanSuspend;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.optimizer.L2Generator.edgeTo;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -155,9 +154,9 @@ public final class P_Assert extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -168,7 +167,7 @@ public final class P_Assert extends Primitive
 		{
 			// The condition can't be false, so skip the call.
 			callSiteHelper.useAnswer(
-				translator.generator.constantRegister(nil));
+				translator.generator.boxedConstant(nil));
 			return true;
 		}
 		if (!trueObject().isInstanceOf(conditionType))
@@ -190,8 +189,8 @@ public final class P_Assert extends Primitive
 			L2_JUMP_IF_EQUALS_CONSTANT.instance,
 			arguments.get(0),
 			new L2ConstantOperand(trueObject()),
-			translator.edgeTo(passPath),
-			translator.edgeTo(failPath));
+			edgeTo(passPath),
+			edgeTo(failPath));
 
 		translator.generator.startBlock(failPath);
 		// Since this invocation will also be optimized, pass the constant false
@@ -199,15 +198,14 @@ public final class P_Assert extends Primitive
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
 			asList(
-				translator.generator.constantRegister(falseObject()),
+				translator.generator.boxedConstant(falseObject()),
 				arguments.get(1)),
-			functionToCallReg.type().returnType(),
 			true,
 			callSiteHelper);
 
 		// Happy case.  Just push nil and jump to a suitable exit point.
 		translator.generator.startBlock(passPath);
-		callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
+		callSiteHelper.useAnswer(translator.generator.boxedConstant(nil));
 		return true;
 	}
 }

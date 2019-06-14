@@ -116,8 +116,7 @@ extends PhraseDescriptor
 				}
 				types.add(expressionType);
 			}
-			tupleType = tupleTypeForTypes(
-				types.toArray(new A_Type[0]));
+			tupleType = tupleTypeForTypes(types);
 			object.setMutableSlot(TUPLE_TYPE, tupleType.makeShared());
 		}
 		return tupleType;

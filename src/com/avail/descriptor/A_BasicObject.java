@@ -749,9 +749,10 @@ extends JSONFriendly
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	@ReferencedInGeneratedCode
-	void makeSubobjectsImmutable ();
+	AvailObject makeSubobjectsImmutable ();
 
 	/**
 	 * Dispatch to the descriptor.

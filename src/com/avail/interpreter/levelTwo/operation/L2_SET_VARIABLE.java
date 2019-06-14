@@ -39,8 +39,8 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -54,14 +54,9 @@ import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableTyp
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Assign a value to a {@linkplain VariableDescriptor variable}.
@@ -78,8 +73,8 @@ extends L2ControlFlowOperation
 	private L2_SET_VARIABLE ()
 	{
 		super(
-			READ_POINTER.is("variable"),
-			READ_POINTER.is("value to write"),
+			READ_BOXED.is("variable"),
+			READ_BOXED.is("value to write"),
 			PC.is("write succeeded", SUCCESS),
 			PC.is("write failed", OFF_RAMP));
 	}
@@ -96,10 +91,10 @@ extends L2ControlFlowOperation
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-//		final L2ReadPointerOperand valueReg =
-//			instruction.readObjectRegisterAt(1);
+		final L2ReadBoxedOperand variableReg =
+			instruction.readBoxedRegisterAt(0);
+//		final L2ReadBoxedOperand valueReg =
+//			instruction.readBoxedRegisterAt(1);
 //		final int succeeded = instruction.pcOffsetAt(2);
 //		final int failed = instruction.pcOffsetAt(3);
 
@@ -122,10 +117,10 @@ extends L2ControlFlowOperation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadPointerOperand variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand valueReg =
-			instruction.readObjectRegisterAt(1);
+		final L2ReadBoxedOperand variableReg =
+			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand valueReg =
+			instruction.readBoxedRegisterAt(1);
 //		final int succeeded = instruction.pcOffsetAt(2);
 //		final int failed = instruction.pcOffsetAt(3);
 
@@ -159,10 +154,10 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(1).register();
+		final String variableReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String valueReg =
+			instruction.readBoxedRegisterAt(1).registerString();
 //		final int successIndex = instruction.pcOffsetAt(2);
 //		final L2PcOperand failure = instruction.pcAt(3);
 
@@ -180,10 +175,10 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister valueReg =
-			instruction.readObjectRegisterAt(1).register();
+		final L2BoxedRegister variableReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister valueReg =
+			instruction.readBoxedRegisterAt(1).register();
 		final int successIndex = instruction.pcOffsetAt(2);
 		final L2PcOperand failure = instruction.pcAt(3);
 

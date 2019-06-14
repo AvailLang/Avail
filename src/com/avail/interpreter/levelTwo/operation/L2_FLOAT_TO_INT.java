@@ -74,10 +74,10 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2FloatRegister sourceReg =
-			instruction.readFloatRegisterAt(0).register();
-		final L2IntRegister destinationReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readFloatRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeIntRegisterAt(1).registerString();
 
 		assert this == instruction.operation();
 		renderPreamble(instruction, builder);

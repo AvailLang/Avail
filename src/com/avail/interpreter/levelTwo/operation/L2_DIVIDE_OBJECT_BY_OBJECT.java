@@ -37,7 +37,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -46,18 +46,9 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Divide the dividend value by the divisor value.  If the calculation causes an
@@ -76,10 +67,10 @@ extends L2ControlFlowOperation
 	private L2_DIVIDE_OBJECT_BY_OBJECT ()
 	{
 		super(
-			READ_POINTER.is("dividend"),
-			READ_POINTER.is("divisor"),
-			WRITE_POINTER.is("quotient"),
-			WRITE_POINTER.is("remainder"),
+			READ_BOXED.is("dividend"),
+			READ_BOXED.is("divisor"),
+			WRITE_BOXED.is("quotient"),
+			WRITE_BOXED.is("remainder"),
 			PC.is("if undefined", OFF_RAMP),
 			PC.is("success", SUCCESS));
 	}
@@ -104,14 +95,14 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister dividendReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister divisorReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister quotientReg =
-			instruction.writeObjectRegisterAt(2).register();
-		final L2ObjectRegister remainderReg =
-			instruction.writeObjectRegisterAt(3).register();
+		final String dividendReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String divisorReg =
+			instruction.readBoxedRegisterAt(1).registerString();
+		final String quotientReg =
+			instruction.writeBoxedRegisterAt(2).registerString();
+		final String remainderReg =
+			instruction.writeBoxedRegisterAt(3).registerString();
 //		final L2PcOperand undefined = instruction.pcAt(4);
 //		final int successIndex = instruction.pcOffsetAt(5);
 
@@ -133,14 +124,14 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister dividendReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2ObjectRegister divisorReg =
-			instruction.readObjectRegisterAt(1).register();
-		final L2ObjectRegister quotientReg =
-			instruction.writeObjectRegisterAt(2).register();
-		final L2ObjectRegister remainderReg =
-			instruction.writeObjectRegisterAt(3).register();
+		final L2BoxedRegister dividendReg =
+			instruction.readBoxedRegisterAt(0).register();
+		final L2BoxedRegister divisorReg =
+			instruction.readBoxedRegisterAt(1).register();
+		final L2BoxedRegister quotientReg =
+			instruction.writeBoxedRegisterAt(2).register();
+		final L2BoxedRegister remainderReg =
+			instruction.writeBoxedRegisterAt(3).register();
 		final L2PcOperand undefined = instruction.pcAt(4);
 		final int successIndex = instruction.pcOffsetAt(5);
 

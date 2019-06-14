@@ -38,8 +38,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -47,15 +47,10 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to {@code "if unboxed"} if an {@code int} was unboxed from an {@link
@@ -72,7 +67,7 @@ extends L2ConditionalJump
 	private L2_JUMP_IF_UNBOX_INT ()
 	{
 		super(
-			READ_POINTER.is("source"),
+			READ_BOXED.is("source"),
 			WRITE_INT.is("destination"),
 			PC.is("if unboxed", SUCCESS),
 			PC.is("if not unboxed", FAILURE));
@@ -91,10 +86,10 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
-		final L2IntRegister destinationReg =
-			instruction.writeIntRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readBoxedRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeIntRegisterAt(1).registerString();
 //		final L2PcOperand ifUnboxed = instruction.pcAt(2);
 //		final int ifNotUnboxed = instruction.pcOffsetAt(3);
 
@@ -112,8 +107,8 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister sourceReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister sourceReg =
+			instruction.readBoxedRegisterAt(0).register();
 		final L2IntRegister destinationReg =
 			instruction.writeIntRegisterAt(1).register();
 		final L2PcOperand ifUnboxed = instruction.pcAt(2);

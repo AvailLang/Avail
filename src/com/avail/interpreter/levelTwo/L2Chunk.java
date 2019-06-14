@@ -38,9 +38,9 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.ExecutableChunk;
@@ -113,7 +113,7 @@ implements ExecutableChunk
 	final @Nullable A_RawFunction code;
 
 	/**
-	 * The number of {@linkplain L2ObjectRegister object registers} that
+	 * The number of {@linkplain L2BoxedRegister object registers} that
 	 * this chunk uses (including the fixed registers).  Having the number of
 	 * needed object registers stored separately allows the register list to be
 	 * dynamically expanded as needed only when starting or resuming a
@@ -637,7 +637,7 @@ implements ExecutableChunk
 	 *        The {@linkplain CompiledCodeDescriptor code} for which to use the
 	 *        new level two chunk, or null for the initial unoptimized chunk.
 	 * @param numObjects
-	 *        The number of {@linkplain L2ObjectRegister object registers} that
+	 *        The number of {@linkplain L2BoxedRegister object registers} that
 	 *        this chunk will require.
 	 * @param numIntegers
 	 *        The number of {@linkplain L2IntRegister integer registers}

@@ -55,7 +55,7 @@ public class EntryPoint
 	public final String methodName;
 
 	/**
-	 * Construct a new {@link EntryPoint}.
+	 * Construct a new {@code EntryPoint}.
 	 *
 	 * @param moduleName
 	 *        The fully-qualified name of the {@linkplain ModuleDescriptor

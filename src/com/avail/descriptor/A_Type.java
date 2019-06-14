@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
@@ -132,8 +133,10 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param argRestrictions
 	 */
-	boolean couldEverBeInvokedWith (List<? extends A_Type> argTypes);
+	boolean couldEverBeInvokedWith (
+		List<? extends TypeRestriction> argRestrictions);
 
 	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
@@ -179,6 +182,14 @@ extends A_BasicObject
 	 * @return Whether the type is bottom.
 	 */
 	boolean isBottom ();
+
+	/**
+	 * Answer whether this type is known to have no instances.  For example, the
+	 * {@link BottomTypeDescriptor bottom type} (denoted ⊥) has no instances.
+	 *
+	 * @return Whether the type is known to have no instances.
+	 */
+	boolean isVacuousType ();
 
 	/**
 	 * Dispatch to the descriptor.

@@ -36,8 +36,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -46,7 +47,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 
 /**
  * Move a constant {@link AvailObject} into an object register.
@@ -64,7 +65,7 @@ extends L2Operation
 	{
 		super(
 			CONSTANT.is("constant"),
-			WRITE_POINTER.is("destination"));
+			WRITE_BOXED.is("destination"));
 	}
 
 	/**
@@ -79,8 +80,8 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		final AvailObject constant = instruction.constantAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
+		final L2WriteBoxedOperand destinationReg =
+			instruction.writeBoxedRegisterAt(1);
 		registerSet.constantAtPut(
 			destinationReg.register(), constant, instruction);
 	}
@@ -108,8 +109,8 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2Operand constant = instruction.operand(0);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2Register destinationReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -125,8 +126,8 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		final AvailObject constant = instruction.constantAt(0);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1).register();
+		final L2BoxedRegister destinationReg =
+			instruction.writeBoxedRegisterAt(1).register();
 
 		// :: destination = constant;
 		translator.literal(method, constant);

@@ -32,11 +32,17 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2Synonym;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.values.L2SemanticValue;
 
-import javax.annotation.Nullable;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
 
 /**
  * An {@code L2ReadFloatOperand} is an operand of type {@link
@@ -57,24 +63,45 @@ extends L2ReadOperand<L2FloatRegister>
 
 	/**
 	 * Construct a new {@code L2ReadFloatOperand} for the specified {@link
-	 * L2FloatRegister} and optional restriction.
+	 * L2Synonym} and {@link TypeRestriction}.
 	 *
-	 * @param register
-	 *        The register.
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that is being read when an {@link
+	 *        L2Instruction} uses this {@link L2Operand}.
 	 * @param restriction
-	 *        The further {@link TypeRestriction} to apply to this particular
-	 *        read.
+	 *        The {@link TypeRestriction} to constrain this particular read.
+	 *        This restriction has been guaranteed by the VM at the point where
+	 *        this operand's instruction occurs.
 	 */
 	public L2ReadFloatOperand (
-		final L2FloatRegister register,
-		final @Nullable TypeRestriction restriction)
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2ValueManifest manifest)
 	{
-		super(register, restriction);
+		super(
+			semanticValue,
+			restriction,
+			manifest.getDefinition(
+				manifest.semanticValueToSynonym(semanticValue),
+				FLOAT));
+		assert restriction.isUnboxedFloat();
 	}
 
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public RegisterKind registerKind ()
+	{
+		return FLOAT;
+	}
+
+	@Override
+	public L2_MOVE<L2FloatRegister> phiMoveOperation ()
+	{
+		return L2_MOVE.unboxedFloat;
 	}
 }

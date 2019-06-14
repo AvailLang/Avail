@@ -36,7 +36,9 @@ import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 /**
  * An {@code L2OperandDispatcher} acts as a visitor for the actual operands of
@@ -125,21 +127,36 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a read of an {@link AvailObject} register.
 	 *
 	 * @param operand
-	 *        An {@link L2ReadPointerOperand}.
+	 *        An {@link L2ReadBoxedOperand}.
 	 */
-	void doOperand (L2ReadPointerOperand operand);
+	void doOperand (L2ReadBoxedOperand operand);
 
 	/**
-	 * Process an operand which is a read of a vector of {@link AvailObject}
-	 * registers.
+	 * Process an operand which is a read of a vector of {@link
+	 * L2BoxedRegister}s.
 	 *
 	 * @param operand
-	 *        An {@link L2ReadVectorOperand}.
+	 *        An {@link L2ReadBoxedVectorOperand}.
 	 */
-	<
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	void doOperand (final L2ReadVectorOperand<RR, R> operand);
+	void doOperand (final L2ReadBoxedVectorOperand operand);
+
+	/**
+	 * Process an operand which is a read of a vector of {@link
+	 * L2IntRegister}s.
+	 *
+	 * @param operand
+	 *        An {@link L2ReadIntVectorOperand}.
+	 */
+	void doOperand (final L2ReadIntVectorOperand operand);
+
+	/**
+	 * Process an operand which is a read of a vector of {@link
+	 * L2FloatRegister}s.
+	 *
+	 * @param operand
+	 *        An {@link L2ReadFloatVectorOperand}.
+	 */
+	void doOperand (final L2ReadFloatVectorOperand operand);
 
 	/**
 	 * Process an operand which is a literal {@link A_Bundle} which the
@@ -170,16 +187,7 @@ public interface L2OperandDispatcher
 	 * Process an operand which is a write of an {@link AvailObject} register.
 	 *
 	 * @param operand
-	 *        An {@link L2WritePointerOperand}.
+	 *        An {@link L2WriteBoxedOperand}.
 	 */
-	void doOperand (L2WritePointerOperand operand);
-
-	/**
-	 * Process an operand which is a phi write of a register.
-	 *
-	 * @param operand
-	 *        An {@link L2WritePhiOperand}.
-	 */
-	<R extends L2Register> void doOperand (
-		final L2WritePhiOperand<R> operand);
+	void doOperand (L2WriteBoxedOperand operand);
 }

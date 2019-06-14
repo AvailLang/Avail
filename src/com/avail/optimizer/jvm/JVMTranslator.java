@@ -46,9 +46,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2ControlFlowGraphVisualizer;
@@ -353,108 +352,41 @@ public final class JVMTranslator
 
 	/**
 	 * Generate a load of the local associated with the specified {@link
-	 * L2IntRegister}.
+	 * L2Register}.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntRegister}.
+	 *        A bound {@code L2Register}.
 	 */
 	public void load (
 		final MethodVisitor method,
-		final L2IntRegister register)
+		final L2Register register)
 	{
-		method.visitVarInsn(ILOAD, stripNull(locals.get(register)));
-	}
-
-	/**
-	 * Generate a load of the local associated with the specified {@link
-	 * L2FloatRegister}.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param register
-	 *        A bound {@code L2FloatRegister}.
-	 */
-	public void load (
-		final MethodVisitor method,
-		final L2FloatRegister register)
-	{
-		method.visitVarInsn(DLOAD, stripNull(locals.get(register)));
-	}
-
-	/**
-	 * Generate a load of the local associated with the specified {@link
-	 * L2ObjectRegister}.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param register
-	 *        A bound {@code L2ObjectRegister}.
-	 */
-	public void load (
-		final MethodVisitor method,
-		final L2ObjectRegister register)
-	{
-		method.visitVarInsn(ALOAD, stripNull(locals.get(register)));
+		method.visitVarInsn(
+			register.registerKind().loadInstruction,
+			stripNull(locals.get(register)));
 	}
 
 	/**
 	 * Generate a store into the local associated with the specified {@link
-	 * L2IntRegister}. The value to be stored should already be on top of
+	 * L2Register}. The value to be stored should already be on top of
 	 * the stack and correctly typed.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param register
-	 *        A bound {@code L2IntRegister}.
+	 *        A bound {@code L2Register}.
 	 */
 	public void store (
 		final MethodVisitor method,
-		final L2IntRegister register)
+		final L2Register register)
 	{
-		method.visitVarInsn(ISTORE, stripNull(locals.get(register)));
-	}
-
-	/**
-	 * Generate a store into the local associated with the specified {@link
-	 * L2FloatRegister}. The value to be stored should already be on top of
-	 * the stack and correctly typed.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param register
-	 *        A bound {@code L2FloatRegister}.
-	 */
-	public void store (
-		final MethodVisitor method,
-		final L2FloatRegister register)
-	{
-		method.visitVarInsn(DSTORE, stripNull(locals.get(register)));
-	}
-
-	/**
-	 * Generate a store into the local associated with the specified {@link
-	 * L2ObjectRegister}. The value to be stored should already be on top of the
-	 * stack and correctly typed.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param register
-	 *        A bound {@code L2ObjectRegister}.
-	 */
-	public void store (
-		final MethodVisitor method,
-		final L2ObjectRegister register)
-	{
-		final int local = stripNull(locals.get(register));
-		method.visitVarInsn(ASTORE, local);
+		method.visitVarInsn(
+			register.registerKind().storeInstruction,
+			stripNull(locals.get(register)));
 	}
 
 	/**
@@ -550,7 +482,7 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2ReadPointerOperand operand)
+		public void doOperand (final L2ReadBoxedOperand operand)
 		{
 			locals.computeIfAbsent(
 				operand.register(),
@@ -558,16 +490,35 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public <
-			RR extends L2ReadOperand<R>,
-			R extends L2Register>
-		void doOperand (final L2ReadVectorOperand<RR, R> vector)
+		public void doOperand (final L2ReadBoxedVectorOperand vector)
 		{
-			for (final L2ReadOperand<?> operand : vector.elements())
+			for (final L2ReadBoxedOperand operand : vector.elements())
 			{
 				locals.computeIfAbsent(
 					operand.register(),
 					register -> nextLocal(getType(AvailObject.class)));
+			}
+		}
+
+		@Override
+		public void doOperand (final L2ReadIntVectorOperand vector)
+		{
+			for (final L2ReadIntOperand operand : vector.elements())
+			{
+				locals.computeIfAbsent(
+					operand.register(),
+					register -> nextLocal(INT_TYPE));
+			}
+		}
+
+		@Override
+		public void doOperand (final L2ReadFloatVectorOperand vector)
+		{
+			for (final L2ReadFloatOperand operand : vector.elements())
+			{
+				locals.computeIfAbsent(
+					operand.register(),
+					register -> nextLocal(FLOAT_TYPE));
 			}
 		}
 
@@ -594,21 +545,11 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2WritePointerOperand operand)
+		public void doOperand (final L2WriteBoxedOperand operand)
 		{
 			locals.computeIfAbsent(
 				operand.register(),
 				register -> nextLocal(getType(AvailObject.class)));
-		}
-
-		@Override
-		public <R extends L2Register>
-		void doOperand (final L2WritePhiOperand<R> operand)
-		{
-			assert false
-				: "L2 code generation should not have left any "
-				+ "L2WritePhiOperands in existence";
-			throw new RuntimeException();
 		}
 
 		/**
@@ -1138,20 +1079,20 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to store each of the {@link L2ObjectRegister}s into a new
+	 * Emit code to store each of the {@link L2BoxedRegister}s into a new
 	 * array. Leave the new array on top of the stack.
 	 *
 	 * @param method
 	 *        The {@linkplain MethodVisitor method} into which the generated JVM
 	 *        instructions will be written.
 	 * @param operands
-	 *        The {@link L2ReadPointerOperand}s that hold the registers.
+	 *        The {@link L2ReadBoxedOperand}s that hold the registers.
 	 * @param arrayClass
 	 *        The element type of the new array.
 	 */
 	public void objectArray (
 		final MethodVisitor method,
-		final List<L2ReadPointerOperand> operands,
+		final List<L2ReadBoxedOperand> operands,
 		final Class<? extends A_BasicObject> arrayClass)
 	{
 		if (operands.isEmpty())

@@ -76,10 +76,10 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2IntRegister sourceReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2FloatRegister destinationReg =
-			instruction.writeFloatRegisterAt(1).register();
+		final String sourceReg =
+			instruction.readIntRegisterAt(0).registerString();
+		final String destinationReg =
+			instruction.writeFloatRegisterAt(1).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');

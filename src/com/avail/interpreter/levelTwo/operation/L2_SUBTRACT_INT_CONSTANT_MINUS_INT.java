@@ -44,19 +44,8 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.DUP2;
-import static org.objectweb.asm.Opcodes.I2L;
-import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.ISTORE;
-import static org.objectweb.asm.Opcodes.L2I;
-import static org.objectweb.asm.Opcodes.LCMP;
-import static org.objectweb.asm.Opcodes.LSUB;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.INT_TYPE;
 
 /**
@@ -101,10 +90,10 @@ extends L2ControlFlowOperation
 	{
 		assert this == instruction.operation();
 		final int minuend = instruction.intImmediateAt(0);
-		final L2IntRegister subtrahend =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister difference =
-			instruction.writeIntRegisterAt(2).register();
+		final String subtrahend =
+			instruction.readIntRegisterAt(1).registerString();
+		final String difference =
+			instruction.writeIntRegisterAt(2).registerString();
 //		final L2PcOperand inRange = instruction.pcAt(3);
 //		final int outOfRangeOffset = instruction.pcOffsetAt(4);
 

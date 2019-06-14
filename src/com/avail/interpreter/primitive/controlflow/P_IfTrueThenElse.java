@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -49,9 +49,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
 import static java.util.Collections.emptyList;
 
@@ -110,9 +108,9 @@ public final class P_IfTrueThenElse extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
@@ -120,13 +118,11 @@ public final class P_IfTrueThenElse extends Primitive
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the else function, instead.  The client will generate any needed type
 		// strengthening, so don't do it here.
-		final L2ReadPointerOperand thenFunction = arguments.get(1);
+		final L2ReadBoxedOperand thenFunction = arguments.get(1);
+		// 'then' function
+		// takes no arguments.
 		translator.generateGeneralFunctionInvocation(
-			thenFunction,  // 'then' function
-			emptyList(),   // takes no arguments.
-			thenFunction.type().returnType(),
-			true,
-			callSiteHelper);
+			thenFunction, emptyList(), true, callSiteHelper);
 		return true;
 	}
 }

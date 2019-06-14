@@ -37,7 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -77,7 +77,7 @@ extends L2ControlFlowOperation
 	{
 		super(
 			CONSTANT.is("constant function"),
-			READ_VECTOR.is("arguments"),
+			READ_BOXED_VECTOR.is("arguments"),
 			PC.is("on return", SUCCESS),
 			PC.is("on reification", OFF_RAMP));
 	}
@@ -114,7 +114,7 @@ extends L2ControlFlowOperation
 		assert this == instruction.operation();
 		final A_Function calledFunction =
 			instruction.constantAt(0);
-		final List<L2ReadPointerOperand> argsRegsList =
+		final List<L2ReadBoxedOperand> argsRegsList =
 			instruction.readVectorRegisterAt(1);
 //		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 //		final L2PcOperand onReification = instruction.pcAt(3);
@@ -135,7 +135,7 @@ extends L2ControlFlowOperation
 		final L2Instruction instruction)
 	{
 		final AvailObject calledFunction = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> argsRegsList =
+		final List<L2ReadBoxedOperand> argsRegsList =
 			instruction.readVectorRegisterAt(1);
 		final L2PcOperand onNormalReturn = instruction.pcAt(2);
 		final L2PcOperand onReification = instruction.pcAt(3);

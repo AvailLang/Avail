@@ -39,7 +39,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1Translator;
@@ -56,11 +56,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
-import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -109,15 +105,15 @@ extends Primitive
 
 	@Override
 	public boolean tryToGenerateSpecialPrimitiveInvocation (
-		final L2ReadPointerOperand functionToCallReg,
+		final L2ReadBoxedOperand functionToCallReg,
 		final A_RawFunction rawFunction,
-		final List<L2ReadPointerOperand> arguments,
+		final List<L2ReadBoxedOperand> arguments,
 		final List<A_Type> argumentTypes,
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		final L2ReadPointerOperand varReg = arguments.get(0);
-		final L2ReadPointerOperand valueReg = arguments.get(1);
+		final L2ReadBoxedOperand varReg = arguments.get(0);
+		final L2ReadBoxedOperand valueReg = arguments.get(1);
 
 		final A_Type varType = varReg.type();
 		final A_Type valueType = valueReg.type();
@@ -131,7 +127,7 @@ extends Primitive
 			varReg,
 			valueReg);
 		// We're now at the success position in the generated code.
-		callSiteHelper.useAnswer(translator.generator.constantRegister(nil));
+		callSiteHelper.useAnswer(translator.generator.boxedConstant(nil));
 		return true;
 	}
 

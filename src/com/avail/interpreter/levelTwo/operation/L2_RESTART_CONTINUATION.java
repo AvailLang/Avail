@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -49,7 +49,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
@@ -76,7 +76,7 @@ extends L2ControlFlowOperation
 	private L2_RESTART_CONTINUATION ()
 	{
 		super(
-			READ_POINTER.is("continuation to restart"));
+			READ_BOXED.is("continuation to restart"));
 	}
 
 	/**
@@ -124,8 +124,8 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0).register();
+		final L2BoxedRegister continuationReg =
+			instruction.readBoxedRegisterAt(0).register();
 
 		// :: return interpreter.reifierToRestart(continuation);
 		translator.loadInterpreter(method);

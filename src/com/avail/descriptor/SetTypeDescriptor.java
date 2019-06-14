@@ -180,6 +180,14 @@ extends TypeDescriptor
 				object.slot(CONTENT_TYPE));
 	}
 
+	@Override
+	boolean o_IsVacuousType (final AvailObject object)
+	{
+		return
+			!object.slot(SIZE_RANGE).lowerBound().equalsInt(0)
+				&& object.slot(CONTENT_TYPE).isVacuousType();
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeIntersection (
 		final AvailObject object,

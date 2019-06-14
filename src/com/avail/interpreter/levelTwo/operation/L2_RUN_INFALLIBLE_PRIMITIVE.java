@@ -42,10 +42,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -88,8 +88,8 @@ extends L2Operation
 		super(
 			CONSTANT.is("raw function"),  // Used for inlining/reoptimization.
 			PRIMITIVE.is("primitive to run"),
-			READ_VECTOR.is("arguments"),
-			WRITE_POINTER.is("primitive result"));
+			READ_BOXED_VECTOR.is("arguments"),
+			WRITE_BOXED.is("primitive result"));
 	}
 
 	/**
@@ -106,13 +106,13 @@ extends L2Operation
 	{
 		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
-		final List<L2ReadPointerOperand> argsVector =
+		final List<L2ReadBoxedOperand> argsVector =
 			instruction.readVectorRegisterAt(2);
-		final L2WritePointerOperand resultReg =
-			instruction.writeObjectRegisterAt(3);
+		final L2WriteBoxedOperand resultReg =
+			instruction.writeBoxedRegisterAt(3);
 
 		final List<A_Type> argTypes = new ArrayList<>(argsVector.size());
-		for (final L2ReadPointerOperand arg : argsVector)
+		for (final L2ReadBoxedOperand arg : argsVector)
 		{
 			assert registerSet.hasTypeAt(arg.register());
 			argTypes.add(registerSet.typeAt(arg.register()));
@@ -143,11 +143,11 @@ extends L2Operation
 	}
 
 	@Override
-	public L2WritePointerOperand primitiveResultRegister (
+	public L2WriteBoxedOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.writeObjectRegisterAt(3);
+		return instruction.writeBoxedRegisterAt(3);
 	}
 
 	/**
@@ -166,16 +166,16 @@ extends L2Operation
 	}
 
 	/**
-	 * Extract the {@link List} of {@link L2ReadPointerOperand}s that supply the
+	 * Extract the {@link List} of {@link L2ReadBoxedOperand}s that supply the
 	 * arguments to the primitive.
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} from which to extract the list of
 	 *        arguments.
-	 * @return The {@link List} of {@link L2ReadPointerOperand}s that supply
+	 * @return The {@link List} of {@link L2ReadBoxedOperand}s that supply
 	 *         arguments to the primitive.
 	 */
-	public static List<L2ReadPointerOperand> argsOf (
+	public static List<L2ReadBoxedOperand> argsOf (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
@@ -191,10 +191,10 @@ extends L2Operation
 		assert this == instruction.operation();
 //		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final L2PrimitiveOperand primitive = cast(instruction.operand(1));
-		final L2ReadVectorOperand<L2ReadPointerOperand, L2ObjectRegister>
-			argumentsVector = cast(instruction.operand(2));
-		final L2ObjectRegister resultReg =
-			instruction.writeObjectRegisterAt(3).register();
+		final L2ReadBoxedVectorOperand argumentsVector =
+			cast(instruction.operand(2));
+		final String resultReg =
+			instruction.writeBoxedRegisterAt(3).registerString();
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -214,10 +214,10 @@ extends L2Operation
 	{
 //		final A_RawFunction rawFunction = instruction.constantAt(0);
 		final Primitive primitive = instruction.primitiveAt(1);
-		final List<L2ReadPointerOperand> argumentRegs =
+		final List<L2ReadBoxedOperand> argumentRegs =
 			instruction.readVectorRegisterAt(2);
-		final L2ObjectRegister resultReg =
-			instruction.writeObjectRegisterAt(3).register();
+		final L2BoxedRegister resultReg =
+			instruction.writeBoxedRegisterAt(3).register();
 
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method);

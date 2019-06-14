@@ -39,10 +39,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.BODY_BLOCK;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 
@@ -253,7 +250,7 @@ extends DefinitionDescriptor
 	}
 
 	/**
-	 * Construct a new {@link MacroDefinitionDescriptor}.
+	 * Construct a new {@code MacroDefinitionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
