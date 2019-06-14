@@ -32,7 +32,7 @@
 
 Module "Mutability Visitors"
 Versions
-	"1.0.0 DEV 2014-04-28"
+	"1.1.0 DEV 2019-05-21"
 Uses
 	"Abstract Visitors",
 	"Depth-First Visitors",
@@ -202,7 +202,7 @@ Private method "_is visitable object value" is
 [
 	value : atom
 |
-	¬explicit subclassing key ∈ value
+	¬value is special ∧ ¬explicit subclassing key ∈ value
 ];
 
 Private method "_'s⁇visitable components" is

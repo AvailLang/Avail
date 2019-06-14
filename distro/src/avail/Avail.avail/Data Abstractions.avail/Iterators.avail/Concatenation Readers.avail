@@ -32,7 +32,7 @@
 
 Module "Concatenation Readers"
 Versions
-	"1.0.0 DEV 2014-04-28"
+	"1.1.0 DEV 2019-05-21"
 Extends
 	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =
