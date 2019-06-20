@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -83,6 +84,27 @@ extends L2ConditionalJump
 	 */
 	public static final L2_JUMP_IF_OBJECTS_EQUAL instance =
 		new L2_JUMP_IF_OBJECTS_EQUAL();
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadBoxedOperand reader1 = instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand reader2 = instruction.readBoxedRegisterAt(1);
+		final L2PcOperand ifEqual = instruction.pcAt(2);
+		final L2PcOperand ifNotEqual = instruction.pcAt(3);
+
+		// Ensure the new write ends up in the same synonym as the source.
+		reader1.instructionWasAdded(instruction, manifest);
+		reader2.instructionWasAdded(instruction, manifest);
+		ifEqual.instructionWasAdded(instruction, manifest);
+		ifNotEqual.instructionWasAdded(instruction, manifest);
+		// Merge the source and destination only along the ifEqual branch.
+		ifEqual.manifest().mergeExistingSemanticValues(
+			reader1.semanticValue(), reader2.semanticValue());
+	}
 
 	@Override
 	public BranchReduction branchReduction (

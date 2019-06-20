@@ -41,8 +41,10 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.File;
 
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
+
 /**
- * A {@code GraphTask} generates a .gv file describing a visual graph of
+ * A {@code GraphTask} generates a .dot file describing a visual graph of
  * module dependencies for the target {@linkplain ModuleDescriptor module}.
  */
 public final class GraphTask
@@ -54,9 +56,13 @@ extends AbstractWorkbenchTask
 		//noinspection CaughtExceptionImmediatelyRethrown
 		try
 		{
-			workbench.availBuilder.generateGraph(
-				targetModuleName(),
-				new File("dummy"));
+			final File file = new File("modules.dot");
+			workbench.availBuilder.generateGraph(targetModuleName(), file);
+			workbench.writeText(
+				String.format(
+					"Module graph '%s' was created.\n",
+					file.getAbsolutePath()),
+				INFO);
 		}
 		catch (final Exception e)
 		{

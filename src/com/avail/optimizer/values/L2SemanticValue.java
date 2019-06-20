@@ -33,7 +33,6 @@ package com.avail.optimizer.values;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.L2Synonym;
 
 import java.util.List;
 import java.util.function.Function;
@@ -61,6 +60,25 @@ public abstract class L2SemanticValue
 	}
 
 	/**
+	 * Answer a semantic value representing the result of invoking a foldable
+	 * primitive.
+	 *
+	 * @param primitive
+	 *        The {@link Primitive} that was executed.
+	 * @param argumentSemanticValues
+	 *        {@code L2SemanticValue}s that supplied the arguments to the
+	 *        primitive.
+	 * @return The semantic value representing the primitive result.
+	 */
+	public static L2SemanticPrimitiveInvocation primitiveInvocation (
+		final Primitive primitive,
+		final List<L2SemanticValue> argumentSemanticValues)
+	{
+		return new L2SemanticPrimitiveInvocation(
+			primitive, argumentSemanticValues);
+	}
+
+	/**
 	 * Answer whether this semantic value corresponds with the notion of a
 	 * semantic constant.
 	 *
@@ -69,30 +87,6 @@ public abstract class L2SemanticValue
 	public boolean isConstant ()
 	{
 		return false;
-	}
-
-	/**
-	 * Answer a semantic value representing the result of invoking a stable
-	 * primitive.
-	 *
-	 * @param frame
-	 *        The {@link Frame} for which the primitive was executed.
-	 * @param pc
-	 *        The Level One program counter at which the primitive was executed.
-	 * @param primitive
-	 *        The {@link Primitive} that was executed.
-	 * @param argumentSynonyms
-	 *        {@link L2Synonym}s that supplied the arguments to the primitive.
-	 * @return The semantic value representing the primitive invocation.
-	 */
-	public static L2SemanticPrimitiveInvocation primitiveInvocation (
-		final Frame frame,
-		final int pc,
-		final Primitive primitive,
-		final List<L2Synonym> argumentSynonyms)
-	{
-		return new L2SemanticPrimitiveInvocation(
-			frame, pc, primitive, argumentSynonyms);
 	}
 
 	/**
@@ -110,23 +104,4 @@ public abstract class L2SemanticValue
 	public abstract L2SemanticValue transform (
 		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
 		final UnaryOperator<Frame> frameTransformer);
-
-	/**
-	 * Transform the receiver by rewriting any internal reference to the given
-	 * original {@link L2Synonym} to refer instead to the replacement synonym.
-	 * Answer the receiver if no changes were actually needed.
-	 *
-	 * @param original
-	 *        The {@link L2Synonym} to look for recursively.
-	 * @param replacement
-	 *        The {@link L2Synonym} to replace each occurrence of the original.
-	 * @return Either the receiver if no transformation was needed, or semantic
-	 *         value to replace the receiver.
-	 */
-	public L2SemanticValue transformInnerSynonym (
-		final L2Synonym original,
-		final L2Synonym replacement)
-	{
-		return this;
-	}
 }

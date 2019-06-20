@@ -199,6 +199,38 @@ extends L2Operand
 	}
 
 	@Override
+	public final void instructionWasInserted (
+		final L2Instruction theInstruction,
+		final L2ValueManifest manifest)
+	{
+		instruction = theInstruction;
+		register.addDefinition(theInstruction);
+		manifest.recordDefinitionForInsertion(this);
+	}
+
+	/**
+	 * This operand is a write of a move-like operation.  Make the semantic
+	 * value a synonym of the given {@link L2ReadOperand}'s semantic value.
+	 *
+	 * @param theInstruction
+	 *        The move-like {@link L2Instruction} of which this is an operand.
+	 * @param sourceSemanticValue
+	 *        The {@link L2SemanticValue} that already holds the value.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} in which to capture the synonymy of
+	 *        the source and destination.
+	 */
+	public final void instructionWasAddedForMove (
+		final L2Instruction theInstruction,
+		final L2SemanticValue sourceSemanticValue,
+		final L2ValueManifest manifest)
+	{
+		instruction = theInstruction;
+		register.addDefinition(theInstruction);
+		manifest.recordDefinitionForMove(this, sourceSemanticValue);
+	}
+
+	@Override
 	public final void instructionWasRemoved (
 		final L2Instruction theInstruction)
 	{

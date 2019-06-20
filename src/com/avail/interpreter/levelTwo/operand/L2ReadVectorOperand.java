@@ -119,6 +119,17 @@ extends L2Operand
 	}
 
 	@Override
+	public void instructionWasInserted (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		for (final RR element : elements)
+		{
+			element.instructionWasInserted(instruction, manifest);
+		}
+	}
+
+	@Override
 	public void instructionWasRemoved (final L2Instruction instruction)
 	{
 		for (final RR element : elements)

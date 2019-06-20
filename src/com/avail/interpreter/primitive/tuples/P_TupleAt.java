@@ -42,18 +42,26 @@ import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL;
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.values.L2SemanticValue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -64,7 +72,10 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.optimizer.L2Generator.edgeTo;
+import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Look up an element in the {@linkplain
@@ -161,19 +172,103 @@ public final class P_TupleAt extends Primitive
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
-		{
-			// We can't guarantee success, so fall back to a regular call site.
-			return false;
-		}
-		// The primitive cannot fail at this site.
 		final L2ReadBoxedOperand tupleReg = arguments.get(0);
 		final L2ReadBoxedOperand subscriptReg = arguments.get(1);
+		final L2Generator generator = translator.generator;
+		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+		{
+			// We can't guarantee success, so do a dynamic bounds check.
+			final L2BasicBlock failed = generator.createBasicBlock(
+				"failed bounds check");
+			final L2SemanticValue semanticSize =
+				generator.primitiveInvocation(
+					P_TupleSize.instance,
+					singletonList(tupleReg));
+			final TypeRestriction intSizeRestriction =
+				restrictionForType(
+					tupleReg.type().sizeRange().typeIntersection(int32()),
+					UNBOXED_INT);
+			final L2WriteIntOperand sizeWriter = generator.intWrite(
+				semanticSize, intSizeRestriction);
+			translator.addInstruction(
+				L2_TUPLE_SIZE.instance,
+				tupleReg,
+				sizeWriter);
+			final L2ReadIntOperand readSubscript =
+				generator.readInt(subscriptReg.semanticValue(), failed);
+			// At this position, we have the tuple size and subscript in int
+			// registers. Check the lower bound, if necessary.
+			if (generator.currentlyReachable() &&
+				readSubscript.restriction().type.lowerBound().lessThan(one()))
+			{
+				final L2BasicBlock success1 =
+					generator.createBasicBlock("passed lower bound check");
+				generator.addInstruction(
+					L2_JUMP_IF_COMPARE_INT.greaterOrEqual,
+					readSubscript,
+					generator.unboxedIntConstant(1),
+					edgeTo(success1),
+					edgeTo(failed));
+				generator.startBlock(success1);
+			}
+			// Check the upper bound, if necessary.
+			if (generator.currentlyReachable()
+				&& subscriptReg.type().upperBound().greaterThan(
+					intSizeRestriction.type.lowerBound()))
+			{
+				final L2BasicBlock success2 =
+					generator.createBasicBlock("passed upper bound check");
+				generator.addInstruction(
+					L2_JUMP_IF_COMPARE_INT.lessOrEqual,
+					readSubscript,
+					generator.currentManifest().readInt(semanticSize),
+					edgeTo(success2),
+					edgeTo(failed));
+				generator.startBlock(success2);
+			}
+			if (generator.currentlyReachable())
+			{
+				final TypeRestriction resultRestriction =
+					restrictionForType(
+						returnTypeGuaranteedByVM(
+							rawFunction,
+							Arrays.asList(
+								argumentTypes.get(0),
+								intSizeRestriction.type)),
+						BOXED);
+				final L2SemanticValue semanticResult =
+					generator.primitiveInvocation(this, arguments);
+				final L2WriteBoxedOperand writeResult =
+					generator.boxedWrite(semanticResult, resultRestriction);
+				generator.addInstruction(
+					L2_TUPLE_AT_NO_FAIL.instance,
+					tupleReg,
+					readSubscript,
+					writeResult);
+				callSiteHelper.useAnswer(translator.readBoxed(writeResult));
+			}
+			generator.startBlock(failed);
+			if (!generator.currentlyReachable())
+			{
+				// The failure path can't be reached.
+				return true;
+			}
+			// We failed the dynamic range check, so fall back to a regular call
+			// site.
+			return super.tryToGenerateSpecialPrimitiveInvocation(
+				functionToCallReg,
+				rawFunction,
+				arguments,
+				argumentTypes,
+				translator,
+				callSiteHelper);
+		}
+		// The primitive cannot fail at this site.
 		final A_Type subscriptType = subscriptReg.type();
 		final A_Number lower = subscriptType.lowerBound();
 		final A_Number upper = subscriptType.upperBound();
 		final L2WriteBoxedOperand writer =
-			translator.generator.boxedWriteTemp(
+			generator.boxedWriteTemp(
 				restrictionForType(
 					returnTypeGuaranteedByVM(rawFunction, argumentTypes),
 					BOXED));
@@ -191,9 +286,9 @@ public final class P_TupleAt extends Primitive
 		}
 		// The subscript isn't a constant, but it's known to be in range.
 		final L2BasicBlock subscriptConversionFailure =
-			translator.generator.createBasicBlock("Should be unreachable");
+			generator.createBasicBlock("Should be unreachable");
 		final L2ReadIntOperand subscriptIntReg =
-			translator.generator.readInt(
+			generator.readInt(
 				subscriptReg.semanticValue(),
 				subscriptConversionFailure);
 		assert subscriptConversionFailure.predecessorEdgesCount() == 0;

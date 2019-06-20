@@ -1572,12 +1572,8 @@ public final class L1Translator
 					generateJumpIfEqualsConstant(
 						argRead,
 						instance,
-						edgeTo(
-							memento.passCheckBasicBlock,
-							argRead.restrictedToValue(instance)),
-						edgeTo(
-							nextCheckOrFail,
-							argRead.restrictedWithoutValue(instance)));
+						edgeTo(memento.passCheckBasicBlock),
+						edgeTo(nextCheckOrFail));
 					if (!last)
 					{
 						generator.startBlock(nextCheckOrFail);
@@ -1865,8 +1861,7 @@ public final class L1Translator
 								.intersectionWithType(
 									argsTupleType.typeAtIndex(i + 1));
 						manifest.setRestriction(
-							manifest.semanticValueToSynonym(argSemanticValue),
-							strongRestriction);
+							argSemanticValue, strongRestriction);
 						strongArguments.add(
 							new L2ReadBoxedOperand(
 								argSemanticValue, strongRestriction, manifest));
@@ -2221,14 +2216,6 @@ public final class L1Translator
 
 			narrowedArgTypes.add(argument.restriction().type);
 			narrowedArguments.add(argument);
-//			final A_Type narrowedType = argument.type().typeIntersection(
-//				signatureTupleType.typeAtIndex(i + 1));
-//			narrowedArgTypes.add(narrowedType);
-//			narrowedArguments.add(
-//				new L2ReadBoxedOperand(
-//					argument.semanticValue(),
-//					argument.restriction().intersection(
-//						restrictionForType(narrowedType, BOXED))));
 		}
 		final boolean generated =
 			primitive.tryToGenerateSpecialPrimitiveInvocation(

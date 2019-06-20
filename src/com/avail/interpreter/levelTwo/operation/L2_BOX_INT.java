@@ -37,8 +37,11 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -46,6 +49,7 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
@@ -89,6 +93,21 @@ extends L2Operation
 		builder.append(destinationReg);
 		builder.append(" ← ");
 		builder.append(sourceReg);
+	}
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadIntOperand source = cast(instruction.operand(0));
+		final L2WriteBoxedOperand destination = cast(instruction.operand(1));
+
+		// Ensure the new write ends up in the same synonym as the source.
+		source.instructionWasAdded(instruction, manifest);
+		destination.instructionWasAddedForMove(
+			instruction, source.semanticValue(), manifest);
 	}
 
 	@Override

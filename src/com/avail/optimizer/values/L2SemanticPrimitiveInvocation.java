@@ -31,43 +31,37 @@
  */
 package com.avail.optimizer.values;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.optimizer.L2Synonym;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static java.util.Collections.unmodifiableList;
 
 /**
- * An {@link L2SemanticValue} which represents the invocation of some {@link
- * Primitive}.  The primitive doesn't have to be stable or side-effect free, but
- * in that case the actual {@link L2Instruction} must be supplied, to ensure it
- * isn't executed too many or too few times.
+ * An {@link L2SemanticValue} which represents the result produced by a {@link
+ * Primitive} when supplied a list of argument {@link L2SemanticValue}s.  The
+ * primitive must be stable (same result), pure (no side-effects), and
+ * successful for the supplied arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class L2SemanticPrimitiveInvocation
-extends L2FrameSpecificSemanticValue
+public final class L2SemanticPrimitiveInvocation
+extends L2SemanticValue
 {
-	/**
-	 * The program counter, or {@code 0} for pure {@link Primitive}s.
-	 */
-	public final int pc;
-
 	/**
 	 * The {@link Primitive} whose invocation is being represented.
 	 */
 	public final Primitive primitive;
 
 	/**
-	 * The {@link List} of {@link L2Synonym}s that represent the arguments to
-	 * the invocation of the primitive.
+	 * The {@link List} of {@link L2SemanticValue}s that represent the arguments
+	 * to the invocation of the primitive.
 	 */
-	private final List<L2Synonym> argumentSynonyms;
+	public final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
 	 * The hash value of the receiver, computed during construction.
@@ -77,32 +71,22 @@ extends L2FrameSpecificSemanticValue
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
 	 *
-	 * @param frame
-	 *        The frame in which the primitive invocation occurs, or {@code
-	 *        null} for pure {@link Primitive}s.
-	 * @param pc
-	 *        The program counter, or {@code 0} for pure {@link Primitive}s.
 	 * @param primitive
 	 *        The primitive whose invocation is being represented.
-	 * @param argumentSynonyms
-	 *        The semantic values.
+	 * @param argumentSemanticValues
+	 *        The semantic values supplied as arguments.
 	 */
 	L2SemanticPrimitiveInvocation (
-		final Frame frame,
-		final int pc,
 		final Primitive primitive,
-		final List<L2Synonym> argumentSynonyms)
+		final List<L2SemanticValue> argumentSemanticValues)
 	{
-		super(frame);
+		assert primitive.hasFlag(CanFold);
 		this.primitive = primitive;
-		this.argumentSynonyms = new ArrayList<>(argumentSynonyms);
-		this.pc = pc;
+		this.argumentSemanticValues =
+			unmodifiableList(new ArrayList<>(argumentSemanticValues));
 		// Compute the hash.
 		int h = primitive.primitiveNumber * multiplier;
-		h += frame.hashCode();
-		h ^= pc;
-		h *= multiplier;
-		for (final L2Synonym argument : argumentSynonyms)
+		for (final L2SemanticValue argument : argumentSemanticValues)
 		{
 			h ^= argument.hashCode();
 			h *= multiplier;
@@ -123,9 +107,8 @@ extends L2FrameSpecificSemanticValue
 		}
 		final L2SemanticPrimitiveInvocation
 			invocation = (L2SemanticPrimitiveInvocation) obj;
-		return pc == invocation.pc
-			&& primitive == invocation.primitive
-			&& argumentSynonyms.equals(invocation.argumentSynonyms);
+		return primitive == invocation.primitive
+			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
 	}
 
 	@Override
@@ -138,19 +121,16 @@ extends L2FrameSpecificSemanticValue
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Invoke");
 		builder.append(primitive.name());
 		builder.append('(');
 		boolean first = true;
-		for (final L2Synonym arg : argumentSynonyms)
+		for (final L2SemanticValue arg : argumentSemanticValues)
 		{
 			if (!first)
 			{
 				builder.append(", ");
 			}
-			builder.append("syn(");
 			builder.append(arg);
-			builder.append(")");
 			first = false;
 		}
 		builder.append(')');
@@ -162,57 +142,20 @@ extends L2FrameSpecificSemanticValue
 		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
 		final UnaryOperator<Frame> frameTransformer)
 	{
-		final int numArgs = argumentSynonyms.size();
-		final List<L2Synonym> newArguments =
-			new ArrayList<>(numArgs);
-		for (final L2Synonym argument :
-			argumentSynonyms)
+		final int numArgs = argumentSemanticValues.size();
+		final List<L2SemanticValue> newArguments = new ArrayList<>(numArgs);
+		for (final L2SemanticValue argument : argumentSemanticValues)
 		{
-			newArguments.add(argument.transform(semanticValueTransformer));
+			newArguments.add(
+				argument.transform(semanticValueTransformer, frameTransformer));
 		}
 		for (int i = 0; i < numArgs; i++)
 		{
-			if (!newArguments.get(i).equals(argumentSynonyms.get(i)))
+			if (!newArguments.get(i).equals(argumentSemanticValues.get(i)))
 			{
 				return new L2SemanticPrimitiveInvocation(
-					frameTransformer.apply(frame),
-					pc,
-					primitive,
-					newArguments);
+					primitive, newArguments);
 			}
-		}
-		return this;
-	}
-
-	@Override
-	public L2SemanticValue transformInnerSynonym (
-		final L2Synonym original,
-		final L2Synonym replacement)
-	{
-		// My arguments are synonyms, and they may contain additional semantic
-		// values that are also synonyms.
-		@Nullable List<L2Synonym> newArguments = null;
-		final int argCount = argumentSynonyms.size();
-		for (int i = 0; i < argCount; i++)
-		{
-			final L2Synonym oldSynonym = argumentSynonyms.get(i);
-			final L2Synonym newSynonym =
-				oldSynonym.transformInnerSynonym(original, replacement);
-			if (oldSynonym != newSynonym)
-			{
-				// It changed.
-				if (newArguments == null)
-				{
-					newArguments = new ArrayList<>(argumentSynonyms);
-				}
-				newArguments.set(i, newSynonym);
-			}
-		}
-		if (newArguments != null)
-		{
-			// At least one replacement happened.
-			return new L2SemanticPrimitiveInvocation(
-				frame, pc, primitive, newArguments);
 		}
 		return this;
 	}

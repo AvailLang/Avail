@@ -388,7 +388,7 @@ public final class L2Optimizer
 	 * to move it if it's always-live-in at each successor block, since the
 	 * point of moving it forward is to avoid inessential computations.
 	 *
-	 * <p>So in the remaining case that the register is used in only some
+	 * <p>So in the remaining case that the register is used in only some of the
 	 * future paths, we attempt to move copies of the instruction into each
 	 * successor that may require it.  Note that this can be <em>all</em> of the
 	 * successors, if some of them are only maybe-live-in.</p>
@@ -495,9 +495,9 @@ public final class L2Optimizer
 			+ "at least one register";
 		if (!disjoint(written, registersConsumedLaterInSameBlock))
 		{
-			// A later instruction in the current basic block consumes one
-			// of the values produced by the given instruction, so we can't
-			// move the given instruction into later blocks.
+			// A later instruction in the current basic block consumes one of
+			// the values produced by the given instruction, so we can't move
+			// the given instruction into later blocks.
 			return null;
 		}
 		final L2BasicBlock block = instruction.basicBlock;

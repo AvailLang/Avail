@@ -35,22 +35,27 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -84,6 +89,34 @@ extends L2ConditionalJump
 		new L2_JUMP_IF_EQUALS_CONSTANT();
 
 	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadBoxedOperand reader = instruction.readBoxedRegisterAt(0);
+		final L2ConstantOperand constant = cast(instruction.operand(1));
+		final L2PcOperand ifEqual = instruction.pcAt(2);
+		final L2PcOperand ifNotEqual = instruction.pcAt(3);
+
+		// Ensure the new write ends up in the same synonym as the source.
+		reader.instructionWasAdded(instruction, manifest);
+		constant.instructionWasAdded(instruction, manifest);
+		ifEqual.instructionWasAdded(instruction, manifest);
+		ifNotEqual.instructionWasAdded(instruction, manifest);
+
+		// Restrict the value to the constant along the ifEqual branch, and
+		// exclude the constant along the ifNotEqual branch.
+		final TypeRestriction oldRestriction = reader.restriction();
+		ifEqual.manifest().setRestriction(
+			reader.semanticValue(),
+			restrictionForConstant(constant.object, BOXED));
+		ifNotEqual.manifest().setRestriction(
+			reader.semanticValue(),
+			oldRestriction.minusValue(constant.object));
+	}
+
+	@Override
 	public BranchReduction branchReduction (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
@@ -107,28 +140,6 @@ extends L2ConditionalJump
 		}
 		// Otherwise it's still contingent.
 		return SometimesTaken;
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		throw new UnsupportedOperationException();
-//		final int ifEqual = instruction.pcAt(0);
-//		final int ifUnequal = instruction.pcAt(1);
-//		final L2BoxedRegister objectReg = instruction.readBoxedRegisterAt(2);
-//		final A_BasicObject value = instruction.constantAt(3);
-//
-//		assert registerSets.size() == 2;
-//		final RegisterSet ifEqualSet = registerSets.get(0);
-//		final RegisterSet ifUnequalSet = registerSets.get(1);
-
-		// TODO MvG - We need to be able to strengthen the variable by
-		// introducing a new version somehow.  Likewise, we can capture an
-		// is-not-a set of types along the other path.
-//		postJumpSet.strengthenTestedValueAtPut(objectReg, value);
 	}
 
 	@Override

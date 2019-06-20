@@ -32,12 +32,14 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -96,6 +98,33 @@ extends L2Operation
 	{
 		assert instruction.operation() instanceof L2_MAKE_IMMUTABLE;
 		return cast(instruction.operand(0));
+	}
+
+	@Override
+	public L2ReadBoxedOperand extractFunctionOuter (
+		final L2Instruction instruction,
+		final L2ReadBoxedOperand functionRegister,
+		final int outerIndex,
+		final A_Type outerType,
+		final L2Generator generator)
+	{
+		assert this == instruction.operation();
+		// We don't care if the function is still mutable, since the generated
+		// JVM code will make the outer variable immutable.
+		final L2ReadBoxedOperand read =
+			instruction.readBoxedRegisterAt(0);
+//		final L2WriteBoxedOperand write =
+//			instruction.writeBoxedRegisterAt(1);
+
+		// Trace it back toward the actual function creation.
+		final L2Instruction earlierInstruction =
+			read.definitionSkippingMoves(true);
+		return earlierInstruction.operation().extractFunctionOuter(
+			earlierInstruction,
+			functionRegister,
+			outerIndex,
+			outerType,
+			generator);
 	}
 
 	@Override

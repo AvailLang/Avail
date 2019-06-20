@@ -38,16 +38,23 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -99,6 +106,37 @@ extends L2ConditionalJump
 		builder.append(" ←? ");
 		builder.append(sourceReg);
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+	}
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadBoxedOperand source = cast(instruction.operand(0));
+		final L2WriteFloatOperand destination = cast(instruction.operand(1));
+		final L2PcOperand ifUnboxed = instruction.pcAt(2);
+		final L2PcOperand ifNotUnboxed = instruction.pcAt(3);
+
+		// Ensure the new write ends up in the same synonym as the source.
+		source.instructionWasAdded(instruction, manifest);
+		ifUnboxed.instructionWasAdded(instruction, manifest);
+		ifNotUnboxed.instructionWasAdded(instruction, manifest);
+		// Merge the source and destination only along the ifUnboxed branch.
+		destination.instructionWasAddedForMove(
+			instruction, source.semanticValue(), ifUnboxed.manifest());
+		final TypeRestriction sourceRestriction = source.restriction();
+		ifUnboxed.manifest().setRestriction(
+			destination.semanticValue(),
+			sourceRestriction
+				.intersectionWithType(DOUBLE.o())
+				.withFlag(UNBOXED_FLOAT));
+		ifNotUnboxed.manifest().setRestriction(
+			source.semanticValue(),
+			sourceRestriction
+				.minusType(DOUBLE.o())
+				.withoutFlag(UNBOXED_FLOAT));
 	}
 
 	@Override

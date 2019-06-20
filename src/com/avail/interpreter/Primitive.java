@@ -49,12 +49,14 @@ import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
@@ -1034,13 +1036,36 @@ implements IntegerEnumSlotDescriptionEnum
 		// The primitive cannot fail at this site.  Output code to run the
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
+		final L2Generator generator = translator.generator;
 		final A_Type guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes);
+		final TypeRestriction restriction = restrictionForType(
+			guaranteedType.isBottom() ? TOP.o() : guaranteedType, BOXED);
+		final L2SemanticValue semanticValue;
+		if (hasFlag(CanFold) && !guaranteedType.isBottom())
+		{
+			semanticValue = generator.primitiveInvocation(this, arguments);
+			// See if we already have a value for an equivalent invocation.
+			final @Nullable L2SemanticValue equivalent =
+				generator.currentManifest().equivalentSemanticValue(
+					semanticValue);
+			if (equivalent != null)
+			{
+				// Reuse the previously computed result.
+				generator.currentManifest().setRestriction(
+					equivalent,
+					generator.currentManifest().restrictionFor(equivalent)
+						.intersectionWithType(guaranteedType));
+				callSiteHelper.useAnswer(generator.readBoxed(equivalent));
+				return true;
+			}
+		}
+		else
+		{
+			semanticValue = generator.topFrame.temp(generator.nextUnique());
+		}
 		final L2WriteBoxedOperand writer =
-			translator.generator.boxedWriteTemp(
-				restrictionForType(
-					guaranteedType.isBottom() ? TOP.o() : guaranteedType,
-					BOXED));
+			generator.boxedWrite(semanticValue, restriction);
 		translator.addInstruction(
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			new L2ConstantOperand(rawFunction),
@@ -1049,7 +1074,7 @@ implements IntegerEnumSlotDescriptionEnum
 			writer);
 		if (guaranteedType.isBottom())
 		{
-			translator.generator.addUnreachableCode();
+			generator.addUnreachableCode();
 		}
 		else
 		{

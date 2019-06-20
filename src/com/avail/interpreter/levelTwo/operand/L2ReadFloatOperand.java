@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -63,7 +62,8 @@ extends L2ReadOperand<L2FloatRegister>
 
 	/**
 	 * Construct a new {@code L2ReadFloatOperand} for the specified {@link
-	 * L2Synonym} and {@link TypeRestriction}.
+	 * L2SemanticValue} and {@link TypeRestriction}, using information from the
+	 * given {@link L2ValueManifest}.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} that is being read when an {@link
@@ -81,9 +81,7 @@ extends L2ReadOperand<L2FloatRegister>
 		super(
 			semanticValue,
 			restriction,
-			manifest.getDefinition(
-				manifest.semanticValueToSynonym(semanticValue),
-				FLOAT));
+			manifest.getDefinition(semanticValue, FLOAT));
 		assert restriction.isUnboxedFloat();
 	}
 

@@ -178,7 +178,7 @@ extends L2Operation
 			final A_Type paramType =
 				functionType.argsTupleType().typeAtIndex(paramIndex);
 			generator.addInstruction(
-				L2_MOVE_CONSTANT.instance,
+				L2_MOVE_CONSTANT.boxed,
 				new L2ConstantOperand(paramType),
 				outputParamTypeReg);
 			return true;

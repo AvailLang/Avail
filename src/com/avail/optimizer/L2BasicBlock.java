@@ -428,7 +428,7 @@ public final class L2BasicBlock
 		assert instruction.basicBlock == this;
 		instructions.add(index, instruction);
 		hasStartedCodeGeneration = true;
-		instruction.justAdded(manifest);
+		instruction.justInserted(manifest);
 	}
 
 	/**

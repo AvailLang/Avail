@@ -40,6 +40,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
@@ -73,6 +74,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L2Generator} converts a level one {@linkplain FunctionDescriptor
@@ -381,10 +383,8 @@ public final class L2Generator
 		final L2SemanticValue semanticConstant = constant(value);
 		if (currentManifest.hasSemanticValue(semanticConstant))
 		{
-			final L2Synonym synonym =
-				currentManifest.semanticValueToSynonym(semanticConstant);
 			final TypeRestriction restriction =
-				currentManifest.restrictionFor(synonym);
+				currentManifest.restrictionFor(semanticConstant);
 			if (restriction.isBoxed() && restriction.isImmutable())
 			{
 				return readBoxed(semanticConstant);
@@ -396,7 +396,7 @@ public final class L2Generator
 		final TypeRestriction restriction =
 			restrictionForConstant(value, BOXED);
 		addInstruction(
-			L2_MOVE_CONSTANT.instance,
+			L2_MOVE_CONSTANT.boxed,
 			new L2ConstantOperand(value),
 			boxedWrite(semanticConstant, restriction));
 		return readBoxed(semanticConstant);
@@ -415,27 +415,26 @@ public final class L2Generator
 	{
 		final A_Number boxedValue = fromInt(value);
 		final L2SemanticValue semanticConstant = constant(boxedValue);
-		final L2Synonym synonym;
 		TypeRestriction restriction;
 		if (currentManifest.hasSemanticValue(semanticConstant))
 		{
-			synonym = currentManifest.semanticValueToSynonym(semanticConstant);
-			restriction = currentManifest.restrictionFor(synonym);
+			restriction = currentManifest.restrictionFor(semanticConstant);
 			if (restriction.isUnboxedInt())
 			{
-				return currentManifest.readInt(synonym);
+				return currentManifest.readInt(semanticConstant);
 			}
 			restriction = restriction.withFlag(UNBOXED_INT);
-			currentManifest.setRestriction(synonym, restriction);
+			currentManifest.setRestriction(semanticConstant, restriction);
 		}
 		else
 		{
-			synonym = new L2Synonym(singleton(semanticConstant));
+			final L2Synonym synonym =
+				new L2Synonym(singleton(semanticConstant));
 			restriction = restrictionForConstant(boxedValue, UNBOXED_INT);
 			currentManifest.introduceSynonym(synonym, restriction);
 		}
 		addInstruction(
-			L2_MOVE_INT_CONSTANT.instance,
+			L2_MOVE_CONSTANT.unboxedInt,
 			new L2IntImmediateOperand(value),
 			intWrite(semanticConstant, restriction));
 		return new L2ReadIntOperand(
@@ -455,27 +454,26 @@ public final class L2Generator
 	{
 		final A_Number boxedValue = fromDouble(value);
 		final L2SemanticValue semanticConstant = constant(boxedValue);
-		final L2Synonym synonym;
 		TypeRestriction restriction;
 		if (currentManifest.hasSemanticValue(semanticConstant))
 		{
-			synonym = currentManifest.semanticValueToSynonym(semanticConstant);
-			restriction = currentManifest.restrictionFor(synonym);
+			restriction = currentManifest.restrictionFor(semanticConstant);
 			if (restriction.isUnboxedFloat())
 			{
-				return currentManifest.readFloat(synonym);
+				return currentManifest.readFloat(semanticConstant);
 			}
 			restriction = restriction.withFlag(UNBOXED_FLOAT);
-			currentManifest.setRestriction(synonym, restriction);
+			currentManifest.setRestriction(semanticConstant, restriction);
 		}
 		else
 		{
-			synonym = new L2Synonym(singleton(semanticConstant));
+			final L2Synonym synonym =
+				new L2Synonym(singleton(semanticConstant));
 			restriction = restrictionForConstant(boxedValue, UNBOXED_FLOAT);
 			currentManifest.introduceSynonym(synonym, restriction);
 		}
 		addInstruction(
-			L2_MOVE_FLOAT_CONSTANT.instance,
+			L2_MOVE_CONSTANT.unboxedFloat,
 			new L2FloatImmediateOperand(value),
 			floatWrite(semanticConstant, restriction));
 		return new L2ReadFloatOperand(
@@ -509,25 +507,21 @@ public final class L2Generator
 	public L2ReadBoxedOperand readBoxed (
 		final L2SemanticValue semanticValue)
 	{
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(semanticValue);
 		final TypeRestriction restriction =
-			currentManifest.restrictionFor(synonym);
+			currentManifest.restrictionFor(semanticValue);
 		if (restriction.isBoxed())
 		{
-			return currentManifest.readBoxed(synonym);
+			return currentManifest.readBoxed(semanticValue);
 		}
 		final TypeRestriction boxedRestriction = restriction.withFlag(BOXED);
-		final L2SemanticValue temp = topFrame.temp(nextUnique());
-		final L2Synonym newSynonym =
-			currentManifest.extendSynonym(synonym, temp);
-		currentManifest.setRestriction(newSynonym, boxedRestriction);
-		final L2WriteBoxedOperand writer = boxedWrite(temp, boxedRestriction);
+		currentManifest.setRestriction(semanticValue, boxedRestriction);
+		final L2WriteBoxedOperand writer =
+			boxedWrite(semanticValue, boxedRestriction);
 		if (restriction.isUnboxedInt())
 		{
 			addInstruction(
 				L2_BOX_INT.instance,
-				currentManifest.readInt(newSynonym),
+				currentManifest.readInt(semanticValue),
 				writer);
 		}
 		else
@@ -535,10 +529,10 @@ public final class L2Generator
 			assert restriction.isUnboxedFloat();
 			addInstruction(
 				L2_BOX_FLOAT.instance,
-				currentManifest.readFloat(newSynonym),
+				currentManifest.readFloat(semanticValue),
 				writer);
 		}
-		return currentManifest.readBoxed(newSynonym);
+		return currentManifest.readBoxed(semanticValue);
 	}
 
 	/**
@@ -568,15 +562,13 @@ public final class L2Generator
 		final L2SemanticValue semanticValue,
 		final L2BasicBlock onFailure)
 	{
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(semanticValue);
 		final TypeRestriction restriction =
-			currentManifest.restrictionFor(synonym);
+			currentManifest.restrictionFor(semanticValue);
 		if (restriction.isUnboxedInt())
 		{
 			// It already exists in an unboxed int register.
 			assert restriction.type.isSubtypeOf(int32());
-			return currentManifest.readInt(synonym);
+			return currentManifest.readInt(semanticValue);
 		}
 		// It's not available as an unboxed int, so generate code to unbox it.
 		if (!restriction.isBoxed() || !restriction.intersectsType(int32()))
@@ -620,22 +612,14 @@ public final class L2Generator
 				L2_JUMP_IF_UNBOX_INT.instance,
 				boxedRead,
 				intWrite,
-				edgeTo(
-					onSuccess,
-					boxedRead.restrictedToType(int32()),
-					intWrite.restrictedToType(int32())),
-				edgeTo(
-					onFailure,
-					boxedRead.restrictedWithoutType(int32()),
-					intWrite.inaccessible()));
+				edgeTo(onSuccess),
+				edgeTo(onFailure));
 			startBlock(onSuccess);
 		}
-		// This is the success path.  Treat the boxed and unboxed-int registers
-		// as representing the same value.
-		currentManifest.mergeSynonyms(
-			synonym,
-			currentManifest.semanticValueToSynonym(intWrite.semanticValue()));
-		// This also checks that the synonyms were merged nicely.
+		// This is the success path.  The operations have already ensured the
+		// intWrite is in the same synonym as the boxedRead.
+
+		// This checks that the synonyms were merged nicely.
 		return currentManifest.readInt(semanticValue);
 	}
 
@@ -667,15 +651,13 @@ public final class L2Generator
 		final L2SemanticValue semanticValue,
 		final L2BasicBlock onFailure)
 	{
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(semanticValue);
 		final TypeRestriction restriction =
-			currentManifest.restrictionFor(synonym);
+			currentManifest.restrictionFor(semanticValue);
 		if (restriction.isUnboxedFloat())
 		{
 			// It already exists in an unboxed float register.
 			assert restriction.type.isSubtypeOf(DOUBLE.o());
-			return currentManifest.readFloat(synonym);
+			return currentManifest.readFloat(semanticValue);
 		}
 		// It's not available as an unboxed float, so generate code to unbox it.
 		if (!restriction.isBoxed() || !restriction.intersectsType(DOUBLE.o()))
@@ -720,22 +702,14 @@ public final class L2Generator
 				L2_JUMP_IF_UNBOX_FLOAT.instance,
 				boxedRead,
 				floatWrite,
-				edgeTo(
-					onSuccess,
-					boxedRead.restrictedToType(DOUBLE.o()),
-					floatWrite.restrictedToType(DOUBLE.o())),
-				edgeTo(
-					onFailure,
-					boxedRead.restrictedWithoutType(DOUBLE.o()),
-					floatWrite.inaccessible()));
+				edgeTo(onSuccess),
+				edgeTo(onFailure));
 			startBlock(onSuccess);
 		}
-		// This is the success path.  Treat the boxed and unboxed-float
-		// registers as representing the same value.
-		currentManifest.mergeSynonyms(
-			synonym,
-			currentManifest.semanticValueToSynonym(floatWrite.semanticValue()));
-		// This also checks that the synonyms were merged nicely.
+		// This is the success path.  The operations have already ensured the
+		// floatWrite is in the same synonym as the boxedRead.
+
+		// This checks that the synonyms were merged nicely.
 		return currentManifest.readFloat(semanticValue);
 	}
 
@@ -762,18 +736,8 @@ public final class L2Generator
 	{
 		assert !currentManifest.hasSemanticValue(
 			destinationWrite.semanticValue());
-		// Revisit this to allow overwriting a semantic value.  It should be
-		// allowed, I suspect.
-
 
 		addInstruction(moveOperation, sourceRead, destinationWrite);
-		final L2SemanticValue sourceSemanticValue = sourceRead.semanticValue();
-		final L2Synonym sourceSynonym =
-			currentManifest.semanticValueToSynonym(sourceSemanticValue);
-		final L2Synonym destinationSynonym =
-			currentManifest.semanticValueToSynonym(
-				destinationWrite.semanticValue());
-		currentManifest.mergeSynonyms(sourceSynonym, destinationSynonym);
 	}
 
 	/**
@@ -787,7 +751,7 @@ public final class L2Generator
 	 * @return The resulting {@link L2ReadBoxedOperand}, holding an immutable
 	 *         version of the given register.
 	 */
-	L2ReadBoxedOperand makeImmutable (
+	public L2ReadBoxedOperand makeImmutable (
 		final L2ReadBoxedOperand read)
 	{
 		final TypeRestriction restriction = read.restriction();
@@ -806,8 +770,7 @@ public final class L2Generator
 		// as *register level* data dependencies in the final L2 code, so the
 		// makeImmutable will be independently movable from the earlier unboxing
 		// operations and the potential later uses of the unboxed value.
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(read.semanticValue());
+		final L2SemanticValue semanticValue = read.semanticValue();
 		final L2SemanticValue temp = topFrame.temp(nextUnique());
 		final TypeRestriction immutableRestriction =
 			restriction.withFlag(IMMUTABLE);
@@ -821,24 +784,46 @@ public final class L2Generator
 		if (immutableRestriction.isUnboxedInt())
 		{
 			unboxedDefinitions.add(
-				currentManifest.getDefinition(synonym, INTEGER));
+				currentManifest.getDefinition(semanticValue, INTEGER));
 		}
 		if (immutableRestriction.isUnboxedFloat())
 		{
 			unboxedDefinitions.add(
-				currentManifest.getDefinition(synonym, FLOAT));
+				currentManifest.getDefinition(semanticValue, FLOAT));
 		}
+		final L2Synonym synonym =
+			currentManifest.semanticValueToSynonym(semanticValue);
 		currentManifest.forget(synonym);
 		synonym.semanticValues().forEach(sv ->
 			moveRegister(
 				L2_MOVE.boxed,
 				readBoxed(temp),
 				boxedWrite(sv, immutableRestriction)));
-		// Restore the first of each kind of unboxed definition, if there were
-		// any.
-		unboxedDefinitions.forEach(currentManifest::recordDefinition);
-
+		// Now restore each kind of unboxed definition, if there were any.
+		unboxedDefinitions.forEach(currentManifest::recordDefinitionForNewKind);
 		return currentManifest.read(temp);
+	}
+
+	/**
+	 * Answer a semantic value representing the result of invoking a foldable
+	 * primitive.
+	 *
+	 * @param primitive
+	 *        The {@link Primitive} that was executed.
+	 * @param argumentReads
+	 *        {@link L2SemanticValue}s that supplied the arguments to the
+	 *        primitive.
+	 * @return The semantic value representing the primitive result.
+	 */
+	public L2SemanticValue primitiveInvocation (
+		final Primitive primitive,
+		final List<L2ReadBoxedOperand> argumentReads)
+	{
+		return L2SemanticValue.primitiveInvocation(
+			primitive,
+			argumentReads.stream()
+				.map(L2ReadOperand::semanticValue)
+				.collect(toList()));
 	}
 
 	/**

@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -515,11 +516,12 @@ public class L2ControlFlowGraphVisualizer
 							{
 								builder.append(
 									"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+									+ "&nbsp;&nbsp;"
 									+ ":&nbsp;");
-								builder.append(
-									escape(
-										manifest.restrictionFor(synonym)
-											.toString()));
+								final TypeRestriction restriction =
+									manifest.restrictionFor(
+										synonym.pickSemanticValue());
+								builder.append(escape(restriction.toString()));
 							}
 						});
 				}

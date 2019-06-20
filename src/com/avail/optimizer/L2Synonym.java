@@ -64,14 +64,6 @@ public final class L2Synonym
 	private final Set<L2SemanticValue> semanticValues;
 
 	/**
-	 * Answer the immutable set of {@link L2SemanticValue}s of this synonym.
-	 */
-	public Set<L2SemanticValue> semanticValues ()
-	{
-		return semanticValues;
-	}
-
-	/**
 	 * Create a synonym.
 	 *
 	 * @param semanticValues
@@ -89,46 +81,22 @@ public final class L2Synonym
 	}
 
 	/**
-	 * Recursively transform all {@link L2SemanticValue}s within the receiver,
-	 * producing a new synonym in which the original synonym has been replaced
-	 * by the replacement.  If nothing changed, answer the receiver.
+	 * Answer the immutable set of {@link L2SemanticValue}s of this synonym.
 	 *
-	 * @param original
-	 *        The original synonym to locate.
-	 * @param replacement
-	 *        The replacement synonym for each occurrence of the original.
-	 * @return The replacement synonym, or the receiver if unchanged.
+	 * @return The {@link L2SemanticValue}s in this synonym.
 	 */
-	public L2Synonym transformInnerSynonym (
-		final L2Synonym original,
-		final L2Synonym replacement)
+	public Set<L2SemanticValue> semanticValues ()
 	{
-		if (this == original)
-		{
-			// Don't recurse inside, because it's impossible for it to contain
-			// itself cyclically.
-			return replacement;
-		}
-		// Expect few replacements, statistically.
-		boolean anyChanged = false;
-		final Set<L2SemanticValue> newSemanticValues =
-			new HashSet<>(semanticValues.size());
-		for (final L2SemanticValue semanticValue : semanticValues)
-		{
-			final L2SemanticValue transformedSemanticValue =
-				semanticValue.transformInnerSynonym(original, replacement);
-			if (semanticValue != transformedSemanticValue)
-			{
-				anyChanged = true;
-			}
-			newSemanticValues.add(transformedSemanticValue);
-		}
-		if (anyChanged)
-		{
-			return new L2Synonym(newSemanticValues);
-		}
-		// Nothing needed to be transformed.
-		return this;
+		return semanticValues;
+	}
+
+	/**
+	 * Choose one of the {@link L2SemanticValue}s from this {@code L2Synonym}.
+	 *
+	 * @return An arbitrary {@link L2SemanticValue} of this synonym.
+	 */
+	public L2SemanticValue pickSemanticValue () {
+		return semanticValues.iterator().next();
 	}
 
 	/**

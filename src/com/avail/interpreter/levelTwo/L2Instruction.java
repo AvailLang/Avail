@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -211,8 +210,7 @@ public final class L2Instruction
 		final L2Operand... theOperands)
 	{
 		final L2Operand[] augmentedOperands = operation.augment(theOperands);
-		final L2NamedOperandType[] operandTypes =
-			stripNull(operation.namedOperandTypes);
+		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
 		assert operandTypes.length == augmentedOperands.length;
 		for (int i = 0; i < augmentedOperands.length; i++)
 		{
@@ -331,6 +329,19 @@ public final class L2Instruction
 	public void justAdded (final L2ValueManifest manifest)
 	{
 		operation().instructionWasAdded(this, manifest);
+	}
+
+	/**
+	 * This instruction was just added to its {@link L2BasicBlock} as part of an
+	 * optimization pass.
+	 *
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this instruction
+	 *        wos just added to its {@link L2BasicBlock}.
+	 */
+	public void justInserted (final L2ValueManifest manifest)
+	{
+		operation().instructionWasInserted(this, manifest);
 	}
 
 	/**

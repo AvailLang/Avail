@@ -107,7 +107,7 @@ extends L2Operation
 	 * The {@link L2_MOVE} operation to substitute for this instruction on
 	 * incoming split edges.
 	 */
-	final L2_MOVE<R> moveOperation;
+	public final L2_MOVE<R> moveOperation;
 
 	/**
 	 * Initialize the instance used for merging boxed values.

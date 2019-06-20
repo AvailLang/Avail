@@ -46,7 +46,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -134,6 +133,7 @@ extends L2Operation
 		final A_Type outerType,
 		final L2Generator generator)
 	{
+		assert this == instruction.operation();
 		final A_RawFunction code = instruction.constantAt(0);
 		final List<L2ReadBoxedOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
@@ -153,9 +153,14 @@ extends L2Operation
 		if (manifest.hasSemanticValue(semanticValue))
 		{
 			// This semantic value is still live.  Use it directly.
-			final L2Synonym synonym =
-				manifest.semanticValueToSynonym(semanticValue);
-			return manifest.readBoxed(synonym);
+			final TypeRestriction restriction =
+				manifest.restrictionFor(semanticValue);
+			if (restriction.isBoxed())
+			{
+				// It's still live *and* boxed.  Make it immutable if necessary.
+				return generator.makeImmutable(
+					manifest.readBoxed(semanticValue));
+			}
 		}
 		// The registers that supplied the value are no longer live.  Extract
 		// the value from the actual function.  Note that it's still guaranteed

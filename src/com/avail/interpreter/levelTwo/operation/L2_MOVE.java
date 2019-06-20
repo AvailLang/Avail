@@ -47,6 +47,7 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -146,6 +147,21 @@ extends L2Operation
 	}
 
 	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadOperand<?> source = cast(instruction.operand(0));
+		final L2WriteOperand<?> destination = cast(instruction.operand(1));
+
+		// Ensure the new write ends up in the same synonym as the source.
+		source.instructionWasAdded(instruction, manifest);
+		destination.instructionWasAddedForMove(
+			instruction, source.semanticValue(), manifest);
+	}
+
+	@Override
 	public L2ReadBoxedOperand extractFunctionOuter (
 		final L2Instruction instruction,
 		final L2ReadBoxedOperand functionRegister,
@@ -153,14 +169,14 @@ extends L2Operation
 		final A_Type outerType,
 		final L2Generator generator)
 	{
-		assert instruction.operation() == boxed;
+		assert this == instruction.operation() && this == boxed;
 		final L2ReadBoxedOperand sourceRead = cast(instruction.operand(0));
 //		final L2WriteBoxedOperand destinationWrite =
 //			instruction.writeBoxedRegisterAt(1);
 
 		// Trace it back toward the actual function creation.
 		final L2Instruction earlierInstruction =
-			sourceRead.definitionSkippingMoves(false);
+			sourceRead.definitionSkippingMoves(true);
 		return earlierInstruction.operation().extractFunctionOuter(
 			earlierInstruction,
 			sourceRead,

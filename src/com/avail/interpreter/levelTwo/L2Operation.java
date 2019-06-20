@@ -327,6 +327,27 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * This is the operation for the given instruction, which was just inserted
+	 * into its basic block as part of an optimization pass.  Do any
+	 * post-processing appropriate for having inserted the instruction.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} that was just inserted.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active at this instruction.
+	 */
+	public void instructionWasInserted (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert !isEntryPoint(instruction)
+			|| instruction.basicBlock.instructions().get(0) == instruction
+			: "Entry point instruction must be at start of a block";
+		instruction.operandsDo(
+			operand -> operand.instructionWasInserted(instruction, manifest));
+	}
+
+	/**
 	 * Write the given instruction's equivalent effect through the given {@link
 	 * L2Inliner}.  The given {@link L2Instruction}'s {@linkplain
 	 * L2Instruction#operation() operation} must be the current receiver.
@@ -390,7 +411,7 @@ public abstract class L2Operation
 	 *        The instruction that produced the function.  Its {@linkplain
 	 *        L2Instruction#operation() operation} is the receiver.
 	 * @param functionRegister
-	 *        The register holding the function after this instruction runs.
+	 *        The register holding the function at the code generation point.
 	 * @param outerIndex
 	 *        The one-based outer index to extract from the function.
 	 * @param outerType

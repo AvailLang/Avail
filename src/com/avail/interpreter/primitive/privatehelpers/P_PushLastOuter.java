@@ -114,7 +114,7 @@ public final class P_PushLastOuter extends Primitive
 		// the original register that provided the value for the outer.  This
 		// should allow us to skip the creation of the function.
 		final L2Instruction functionCreationInstruction =
-			functionToCallReg.definitionSkippingMoves(false);
+			functionToCallReg.definitionSkippingMoves(true);
 		final A_Type returnType = functionToCallReg.type().returnType();
 		final L2ReadBoxedOperand outerReg =
 			functionCreationInstruction.operation()

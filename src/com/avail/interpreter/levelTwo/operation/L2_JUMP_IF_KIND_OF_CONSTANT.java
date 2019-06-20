@@ -36,10 +36,13 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -52,6 +55,7 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -82,6 +86,34 @@ extends L2ConditionalJump
 	 */
 	public static final L2_JUMP_IF_KIND_OF_CONSTANT instance =
 		new L2_JUMP_IF_KIND_OF_CONSTANT();
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadBoxedOperand reader = instruction.readBoxedRegisterAt(0);
+		final L2ConstantOperand constantType = cast(instruction.operand(1));
+		final L2PcOperand ifKind = instruction.pcAt(2);
+		final L2PcOperand ifNotKind = instruction.pcAt(3);
+
+		// Ensure the new write ends up in the same synonym as the source.
+		reader.instructionWasAdded(instruction, manifest);
+		constantType.instructionWasAdded(instruction, manifest);
+		ifKind.instructionWasAdded(instruction, manifest);
+		ifNotKind.instructionWasAdded(instruction, manifest);
+
+		// Restrict to the intersection along the ifKind branch, and exclude the
+		// type along the ifNotKind branch.
+		final TypeRestriction oldRestriction = reader.restriction();
+		ifKind.manifest().setRestriction(
+			reader.semanticValue(),
+			oldRestriction.intersectionWithType(constantType.object));
+		ifNotKind.manifest().setRestriction(
+			reader.semanticValue(),
+			oldRestriction.minusValue(constantType.object));
+	}
 
 	@Override
 	public BranchReduction branchReduction (

@@ -38,8 +38,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -82,6 +84,34 @@ extends L2ConditionalJump
 	 */
 	public static final L2_JUMP_IF_KIND_OF_OBJECT instance =
 		new L2_JUMP_IF_KIND_OF_OBJECT();
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadBoxedOperand valueReader =
+			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand typeReader =
+			instruction.readBoxedRegisterAt(1);
+		final L2PcOperand ifKind = instruction.pcAt(2);
+		final L2PcOperand ifNotKind = instruction.pcAt(3);
+
+		// Ensure the new write ends up in the same synonym as the source.
+		valueReader.instructionWasAdded(instruction, manifest);
+		typeReader.instructionWasAdded(instruction, manifest);
+		ifKind.instructionWasAdded(instruction, manifest);
+		ifNotKind.instructionWasAdded(instruction, manifest);
+
+		// Restrict the value to the type along the ifKind branch, but because
+		// the provided type can be more specific at runtime, we can't restrict
+		// the ifNotKind branch.
+		final TypeRestriction oldRestriction = valueReader.restriction();
+		ifKind.manifest().setRestriction(
+			valueReader.semanticValue(),
+			oldRestriction.intersectionWithType(typeReader.type()));
+	}
 
 	@Override
 	public BranchReduction branchReduction (

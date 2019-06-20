@@ -88,6 +88,23 @@ extends PublicCloneable<L2Operand>
 	}
 
 	/**
+	 * This is an operand of the given instruction, which was just inserted into
+	 * its basic block as part of an optimization pass.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} that was just inserted.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this {@link
+	 *        L2Instruction} was just inserted into its {@link L2BasicBlock}.
+	 */
+	public void instructionWasInserted (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		instructionWasAdded(instruction, manifest);
+	}
+
+	/**
 	 * This is an operand of the given instruction, which was just removed from
 	 * its basic block.
 	 *

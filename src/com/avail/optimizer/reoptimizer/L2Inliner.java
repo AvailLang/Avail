@@ -44,19 +44,15 @@ import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.topRestriction;
 import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
@@ -404,42 +400,6 @@ public final class L2Inliner
 	{
 		return blockMap.computeIfAbsent(
 			block, b -> targetGenerator.createBasicBlock(b.name()));
-	}
-
-	/**
-	 * Transform the given {@link L2Synonym} from the {@link L2Chunk} being
-	 * inlined.  Locate a corresponding {@link L2SemanticValue} to get a source
-	 * synonym, then verify that all semantic values of that source synonym lead
-	 * to the same target synonym in the {@link L2Generator}. Return the target
-	 * synonym.
-	 *
-	 * @param synonym The {@link L2Synonym} to look up.
-	 * @return The looked up or created-and-stored {@link L2Synonym}.
-	 */
-	public L2Synonym mapSynonym (final L2Synonym synonym)
-	{
-		// Don't track a mapping between the synonyms, because there may be
-		// additional semantic value equalities in the target manifest that
-		// would cause frequent massive invalidation.
-		final Set<L2Synonym> targetSynonyms = new HashSet<>(2);
-		final L2ValueManifest manifest = targetGenerator.currentManifest();
-		synonym.semanticValues().forEach(
-			sourceSemanticValue ->
-			{
-				final L2SemanticValue targetSemanticValue =
-					mapSemanticValue(sourceSemanticValue);
-				targetSynonyms.add(
-					manifest.semanticValueToSynonym(targetSemanticValue));
-			});
-		final TypeRestriction targetRestriction = targetSynonyms.stream()
-			.map(manifest::restrictionFor)
-			.reduce(topRestriction, TypeRestriction::intersection);
-		final L2Synonym mergedTargetSynonym = targetSynonyms.stream()
-			.reduce(manifest::mergeSynonyms)
-			.orElseThrow(
-				() -> new RuntimeException("Impossible: no manifests"));
-		manifest.setRestriction(mergedTargetSynonym, targetRestriction);
-		return mergedTargetSynonym;
 	}
 
 	/**

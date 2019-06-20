@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.emptySet;
@@ -94,7 +92,8 @@ extends L2Operand
 
 	/**
 	 * Construct a new {@code L2ReadOperand} for the specified {@link
-	 * L2Synonym}.
+	 * L2SemanticValue} and {@link TypeRestriction}, using information from the
+	 * given {@link L2ValueManifest}.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} that is being read when an {@link
@@ -214,12 +213,8 @@ extends L2Operand
 		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		final L2Synonym synonym =
-			manifest.semanticValueToSynonym(semanticValue());
-		manifest.setRestriction(
-			synonym,
-			manifest.restrictionFor(synonym).intersection(restriction()));
-		definition = cast(manifest.getDefinition(synonym, registerKind()));
+		definition = manifest.getDefinition(semanticValue, registerKind());
+		manifest.setRestriction(semanticValue, restriction);
 		register().addUse(instruction);
 	}
 
@@ -389,8 +384,8 @@ extends L2Operand
 				other = L2_MOVE.sourceOf(other).definition().instruction();
 				continue;
 			}
-			if (bypassImmutables && other.operation()
-				instanceof L2_MAKE_IMMUTABLE)
+			if (bypassImmutables
+				&& other.operation() instanceof L2_MAKE_IMMUTABLE)
 			{
 				other = L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
 					.instruction();
