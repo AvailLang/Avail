@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -41,11 +40,11 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -57,7 +56,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -104,28 +102,28 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final A_RawFunction rawFunction = instruction.constantAt(0);
-		final Primitive primitive = instruction.primitiveAt(1);
-		final List<L2ReadBoxedOperand> argsVector =
-			instruction.readVectorRegisterAt(2);
-		final L2WriteBoxedOperand resultReg =
-			instruction.writeBoxedRegisterAt(3);
+		final L2ConstantOperand rawFunction = instruction.operand(0);
+		final L2PrimitiveOperand primitive = instruction.operand(1);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
+		final L2WriteBoxedOperand result = instruction.operand(3);
 
-		final List<A_Type> argTypes = new ArrayList<>(argsVector.size());
-		for (final L2ReadBoxedOperand arg : argsVector)
+		final List<A_Type> argTypes =
+			new ArrayList<>(arguments.elements().size());
+		for (final L2ReadBoxedOperand arg : arguments.elements())
 		{
 			assert registerSet.hasTypeAt(arg.register());
 			argTypes.add(registerSet.typeAt(arg.register()));
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
-			primitive.returnTypeGuaranteedByVM(rawFunction, argTypes);
-		registerSet.removeTypeAt(resultReg.register());
-		registerSet.removeConstantAt(resultReg.register());
+			primitive.primitive.returnTypeGuaranteedByVM(
+				rawFunction.object, argTypes);
+		registerSet.removeTypeAt(result.register());
+		registerSet.removeConstantAt(result.register());
 		if (!guaranteedType.isBottom())
 		{
 			registerSet.typeAtPut(
-				resultReg.register(), guaranteedType, instruction);
+				result.register(), guaranteedType, instruction);
 		}
 	}
 
@@ -134,12 +132,18 @@ extends L2Operation
 	{
 		// It depends on the primitive.
 		assert instruction.operation() == this;
-		final Primitive primitive = instruction.primitiveAt(1);
-		return primitive.hasFlag(Flag.HasSideEffect)
-			|| primitive.hasFlag(Flag.CatchException)
-			|| primitive.hasFlag(Flag.Invokes)
-			|| primitive.hasFlag(Flag.CanSwitchContinuations)
-			|| primitive.hasFlag(Flag.Unknown);
+//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		final L2PrimitiveOperand primitive = instruction.operand(1);
+//		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
+//		final L2WriteBoxedOperand result = instruction.operand(3);
+
+
+		final Primitive prim = primitive.primitive;
+		return prim.hasFlag(Flag.HasSideEffect)
+			|| prim.hasFlag(Flag.CatchException)
+			|| prim.hasFlag(Flag.Invokes)
+			|| prim.hasFlag(Flag.CanSwitchContinuations)
+			|| prim.hasFlag(Flag.Unknown);
 	}
 
 	@Override
@@ -147,7 +151,7 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.writeBoxedRegisterAt(3);
+		return instruction.operand(3);
 	}
 
 	/**
@@ -162,7 +166,8 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.primitiveAt(1);
+		final L2PrimitiveOperand primitive = instruction.operand(1);
+		return primitive.primitive;
 	}
 
 	/**
@@ -179,7 +184,8 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.readVectorRegisterAt(2);
+		final L2ReadBoxedVectorOperand vector = instruction.operand(2);
+		return vector.elements();
 	}
 
 	@Override
@@ -189,20 +195,18 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-//		final A_RawFunction rawFunction = instruction.constantAt(0);
-		final L2PrimitiveOperand primitive = cast(instruction.operand(1));
-		final L2ReadBoxedVectorOperand argumentsVector =
-			cast(instruction.operand(2));
-		final String resultReg =
-			instruction.writeBoxedRegisterAt(3).registerString();
+//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		final L2PrimitiveOperand primitive = instruction.operand(1);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
+		final L2WriteBoxedOperand result = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(resultReg);
+		builder.append(result.registerString());
 		builder.append(" ← ");
 		builder.append(primitive);
 		builder.append('(');
-		builder.append(argumentsVector);
+		builder.append(arguments.elements());
 		builder.append(')');
 	}
 
@@ -212,12 +216,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-//		final A_RawFunction rawFunction = instruction.constantAt(0);
-		final Primitive primitive = instruction.primitiveAt(1);
-		final List<L2ReadBoxedOperand> argumentRegs =
-			instruction.readVectorRegisterAt(2);
-		final L2BoxedRegister resultReg =
-			instruction.writeBoxedRegisterAt(3).register();
+//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		final L2PrimitiveOperand primitive = instruction.operand(1);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
+		final L2WriteBoxedOperand result = instruction.operand(3);
 
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method);
@@ -229,7 +231,7 @@ extends L2Operation
 			getDescriptor(List.class));
 		// [argsBuffer]
 		// :: argsBuffer.clear();
-		if (!argumentRegs.isEmpty())
+		if (!arguments.elements().isEmpty())
 		{
 			method.visitInsn(DUP);
 		}
@@ -241,14 +243,14 @@ extends L2Operation
 			getMethodDescriptor(VOID_TYPE),
 			true);
 		// [argsBuffer if #args > 0]
-		for (int i = 0, limit = argumentRegs.size(); i < limit; i++)
+		for (int i = 0, limit = arguments.elements().size(); i < limit; i++)
 		{
 			// :: argsBuffer.add(«argument[i]»);
 			if (i < limit - 1)
 			{
 				method.visitInsn(DUP);
 			}
-			translator.load(method, argumentRegs.get(i).register());
+			translator.load(method, arguments.elements().get(i).register());
 			method.visitMethodInsn(
 				INVOKEINTERFACE,
 				getInternalName(List.class),
@@ -261,7 +263,7 @@ extends L2Operation
 
 		translator.loadInterpreter(method);
 		// [interp]
-		translator.literal(method, primitive);
+		translator.literal(method, primitive.primitive);
 		// [interp, prim]
 		method.visitInsn(DUP2);
 		// [interp, prim, interp, prim]
@@ -286,7 +288,7 @@ extends L2Operation
 		// :: Result success = primitive.attempt(interpreter)
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
-			getInternalName(primitive.getClass()),
+			getInternalName(primitive.primitive.getClass()),
 			"attempt",
 			getMethodDescriptor(
 				getType(Result.class),
@@ -309,7 +311,7 @@ extends L2Operation
 
 		// If the infallible primitive definitely switches continuations, then
 		// return null to force the context switch.
-		if (primitive.hasFlag(Flag.AlwaysSwitchesContinuation))
+		if (primitive.primitive.hasFlag(Flag.AlwaysSwitchesContinuation))
 		{
 			// :: return null;
 			method.visitInsn(POP);
@@ -318,7 +320,7 @@ extends L2Operation
 		}
 		// If the infallible primitive cannot switch continuations, then by
 		// definition it can only succeed.
-		else if (!primitive.hasFlag(Flag.CanSwitchContinuations))
+		else if (!primitive.primitive.hasFlag(Flag.CanSwitchContinuations))
 		{
 			// :: result = interpreter.latestResult();
 			method.visitInsn(POP);
@@ -329,7 +331,7 @@ extends L2Operation
 				"latestResult",
 				getMethodDescriptor(getType(AvailObject.class)),
 				false);
-			translator.store(method, resultReg);
+			translator.store(method, result.register());
 		}
 		// Otherwise, determine whether the infallible primitive switched
 		// continuations and react accordingly.
@@ -351,7 +353,7 @@ extends L2Operation
 				"latestResult",
 				getMethodDescriptor(getType(AvailObject.class)),
 				false);
-			translator.store(method, resultReg);
+			translator.store(method, result.register());
 			// ::    goto success;
 			final Label success = new Label();
 			method.visitJumpInsn(GOTO, success);

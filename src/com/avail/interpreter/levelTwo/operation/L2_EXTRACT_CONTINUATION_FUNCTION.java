@@ -37,7 +37,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -79,16 +80,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String continuationReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String functionReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2WriteBoxedOperand function = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(functionReg);
+		builder.append(function.registerString());
 		builder.append(" ← ");
-		builder.append(continuationReg);
+		builder.append(continuation.registerString());
 	}
 
 	@Override
@@ -98,19 +97,17 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		// Extract the function from the given continuation.
-		final L2BoxedRegister continuationReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister functionReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2WriteBoxedOperand function = instruction.operand(1);
 
 		// :: function = continuation.function();
-		translator.load(method, continuationReg);
+		translator.load(method, continuation.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Continuation.class),
 			"function",
 			getMethodDescriptor(getType(AvailObject.class)),
 			true);
-		translator.store(method, functionReg);
+		translator.store(method, function.register());
 	}
 }

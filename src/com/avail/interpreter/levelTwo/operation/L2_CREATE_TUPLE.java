@@ -40,10 +40,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -99,15 +98,13 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2WriteBoxedOperand destinationReg =
-			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedVectorOperand values = instruction.operand(0);
+		final L2WriteBoxedOperand tuple = instruction.operand(1);
 
-		final int size = elements.size();
+		final int size = values.elements().size();
 		final A_Type sizeRange = fromInt(size).kind();
 		final List<A_Type> types = new ArrayList<>(size);
-		for (final L2ReadBoxedOperand element: elements)
+		for (final L2ReadBoxedOperand element: values.elements())
 		{
 			if (registerSet.hasTypeAt(element.register()))
 			{
@@ -122,27 +119,27 @@ extends L2Operation
 			tupleTypeForSizesTypesDefaultType(sizeRange,
 				tupleFromList(types), bottom());
 		tupleType.makeImmutable();
-		registerSet.removeConstantAt(destinationReg.register());
+		registerSet.removeConstantAt(tuple.register());
 		registerSet.typeAtPut(
-			destinationReg.register(),
+			tuple.register(),
 			tupleType,
 			instruction);
-		if (registerSet.allRegistersAreConstant(elements))
+		if (registerSet.allRegistersAreConstant(values.elements()))
 		{
 			final List<AvailObject> constants = new ArrayList<>(size);
-			for (final L2ReadBoxedOperand element : elements)
+			for (final L2ReadBoxedOperand element : values.elements())
 			{
 				constants.add(registerSet.constantAt(element.register()));
 			}
-			final A_Tuple tuple = tupleFromList(constants);
-			tuple.makeImmutable();
-			assert tuple.isInstanceOf(tupleType);
+			final A_Tuple newTuple = tupleFromList(constants);
+			newTuple.makeImmutable();
+			assert newTuple.isInstanceOf(tupleType);
 			registerSet.typeAtPut(
-				destinationReg.register(),
-				instanceType(tuple),
+				tuple.register(),
+				instanceType(newTuple),
 				instruction);
 			registerSet.constantAtPut(
-				destinationReg.register(), tuple, instruction);
+				tuple.register(), newTuple, instruction);
 		}
 	}
 
@@ -159,7 +156,8 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.readVectorRegisterAt(0);
+		final L2ReadBoxedVectorOperand vector = instruction.operand(0);
+		return vector.elements();
 	}
 
 	@Override
@@ -169,15 +167,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand elements = instruction.operand(0);
-		final String destinationReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedVectorOperand values = instruction.operand(0);
+		final L2WriteBoxedOperand tuple = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(tuple.registerString());
 		builder.append(" ← ");
-		builder.append(elements);
+		builder.append(values.elements());
 	}
 
 	/**
@@ -207,11 +204,10 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2BoxedRegister destinationReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedVectorOperand values = instruction.operand(0);
+		final L2WriteBoxedOperand tuple = instruction.operand(1);
 
+		final List<L2ReadBoxedOperand> elements = values.elements();
 		final int size = elements.size();
 		if (size <= 5)
 		{
@@ -220,7 +216,7 @@ extends L2Operation
 			{
 				// :: destination = theEmptyTupleLiteral;
 				translator.literal(method, emptyTuple());
-				translator.store(method, destinationReg);
+				translator.store(method, tuple.register());
 				return;
 			}
 			// :: destination = TupleDescriptor.tuple(element1...elementN);
@@ -239,7 +235,7 @@ extends L2Operation
 					callSignature),
 				false);
 			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-			translator.store(method, destinationReg);
+			translator.store(method, tuple.register());
 			return;
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
@@ -253,6 +249,6 @@ extends L2Operation
 				getType(A_BasicObject[].class)),
 			false);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, destinationReg);
+		translator.store(method, tuple.register());
 	}
 }

@@ -35,7 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -79,20 +80,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String minuendReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String subtrahendReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String differenceReg =
-			instruction.writeIntRegisterAt(2).registerString();
+		final L2ReadIntOperand minuend = instruction.operand(0);
+		final L2ReadIntOperand subtrahend = instruction.operand(1);
+		final L2WriteIntOperand difference = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(differenceReg);
+		builder.append(difference.registerString());
 		builder.append(" ← ");
-		builder.append(minuendReg);
+		builder.append(minuend.registerString());
 		builder.append(" - ");
-		builder.append(subtrahendReg);
+		builder.append(subtrahend.registerString());
 	}
 
 	@Override
@@ -101,17 +99,14 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister minuendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister subtrahendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister differenceReg =
-			instruction.writeIntRegisterAt(2).register();
+		final L2ReadIntOperand minuend = instruction.operand(0);
+		final L2ReadIntOperand subtrahend = instruction.operand(1);
+		final L2WriteIntOperand difference = instruction.operand(2);
 
 		// :: difference = minuend - subtrahend;
-		translator.load(method, minuendReg);
-		translator.load(method, subtrahendReg);
+		translator.load(method, minuend.register());
+		translator.load(method, subtrahend.register());
 		method.visitInsn(ISUB);
-		translator.store(method, differenceReg);
+		translator.store(method, difference.register());
 	}
 }

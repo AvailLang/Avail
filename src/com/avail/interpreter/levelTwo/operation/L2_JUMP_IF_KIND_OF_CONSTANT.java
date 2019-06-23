@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -55,7 +54,6 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -93,25 +91,25 @@ extends L2ConditionalJump
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedOperand reader = instruction.readBoxedRegisterAt(0);
-		final L2ConstantOperand constantType = cast(instruction.operand(1));
-		final L2PcOperand ifKind = instruction.pcAt(2);
-		final L2PcOperand ifNotKind = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+		final L2PcOperand ifKind = instruction.operand(2);
+		final L2PcOperand ifNotKind = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		reader.instructionWasAdded(instruction, manifest);
+		value.instructionWasAdded(instruction, manifest);
 		constantType.instructionWasAdded(instruction, manifest);
 		ifKind.instructionWasAdded(instruction, manifest);
 		ifNotKind.instructionWasAdded(instruction, manifest);
 
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
-		final TypeRestriction oldRestriction = reader.restriction();
+		final TypeRestriction oldRestriction = value.restriction();
 		ifKind.manifest().setRestriction(
-			reader.semanticValue(),
+			value.semanticValue(),
 			oldRestriction.intersectionWithType(constantType.object));
 		ifNotKind.manifest().setRestriction(
-			reader.semanticValue(),
+			value.semanticValue(),
 			oldRestriction.minusValue(constantType.object));
 	}
 
@@ -122,25 +120,27 @@ extends L2ConditionalJump
 		final L2Generator generator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand valueReg =
-			instruction.readBoxedRegisterAt(0);
-		final A_Type type = instruction.constantAt(1);
-//		final L2PcOperand isKind = instruction.pcAt(2);
-//		final L2PcOperand notKind = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand ifKind = instruction.operand(2);
+//		final L2PcOperand ifNotKind = instruction.operand(3);
 
-		final @Nullable A_BasicObject constant = valueReg.constantOrNull();
-		if (constant != null)
+		final @Nullable A_BasicObject valueConstant = value.constantOrNull();
+		if (valueConstant != null)
 		{
-			return constant.isInstanceOf(type) ? AlwaysTaken : NeverTaken;
+			return valueConstant.isInstanceOf(constantType.object)
+				? AlwaysTaken
+				: NeverTaken;
 		}
-		final A_Type knownType = valueReg.type();
-		if (knownType.isSubtypeOf(type))
+		final A_Type knownType = value.type();
+		if (knownType.isSubtypeOf(constantType.object))
 		{
 			// It's a subtype, so it must always pass the type test.
 			return AlwaysTaken;
 		}
-		final A_Type intersection = type.typeIntersection(knownType);
-		if (intersection.isBottom())
+		final A_Type intersection =
+			constantType.object.typeIntersection(knownType);
+		if (intersection.isVacuousType())
 		{
 			// The types don't intersect, so it can't ever pass the type test.
 			return NeverTaken;
@@ -154,19 +154,19 @@ extends L2ConditionalJump
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand valueReg =
-			instruction.readBoxedRegisterAt(0);
-		final A_Type type = instruction.constantAt(1);
-//		final L2PcOperand isKind = instruction.pcAt(2);
-//		final L2PcOperand notKind = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand ifKind = instruction.operand(2);
+//		final L2PcOperand ifNotKind = instruction.operand(3);
 
 		assert registerSets.size() == 2;
 		final RegisterSet isKindSet = registerSets.get(0);
 //		final RegisterSet notKindSet = registerSets.get(1);
 
-		final A_Type existingType = isKindSet.typeAt(valueReg.register());
-		final A_Type intersection = existingType.typeIntersection(type);
-		isKindSet.strengthenTestedTypeAtPut(valueReg.register(), intersection);
+		final A_Type existingType = isKindSet.typeAt(value.register());
+		final A_Type intersection =
+			existingType.typeIntersection(constantType.object);
+		isKindSet.strengthenTestedTypeAtPut(value.register(), intersection);
 	}
 
 	@Override
@@ -176,17 +176,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueRegister =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final A_BasicObject constant = instruction.constantAt(1);
-//		final L2PcOperand isKind = instruction.pcAt(2);
-//		final L2PcOperand notKind = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand ifKind = instruction.operand(2);
+//		final L2PcOperand ifNotKind = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(valueRegister);
+		builder.append(value.registerString());
 		builder.append(" ∈ ");
-		builder.append(constant);
+		builder.append(constantType.object);
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -196,22 +195,21 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister valueRegister =
-			instruction.readBoxedRegisterAt(0).register();
-		final A_Type type = instruction.constantAt(1);
-		final L2PcOperand isKind = instruction.pcAt(2);
-		final L2PcOperand notKind = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+		final L2PcOperand ifKind = instruction.operand(2);
+		final L2PcOperand ifNotKind = instruction.operand(3);
 
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto notKind;
-		translator.load(method, valueRegister);
-		translator.literal(method, type);
+		translator.load(method, value.register());
+		translator.literal(method, constantType.object);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"isInstanceOf",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
 			true);
-		emitBranch(translator, method, instruction, IFNE, isKind, notKind);
+		emitBranch(translator, method, instruction, IFNE, ifKind, ifNotKind);
 	}
 }

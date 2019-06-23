@@ -56,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Casts.cast;
 
 /**
  * Move an {@link AvailObject} from the source to the destination.  The
@@ -116,34 +115,32 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadOperand<?> sourceReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2WriteOperand<?> destinationReg =
-			instruction.writeBoxedRegisterAt(1);
+		final L2ReadOperand<R> source = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
-		assert sourceReg.register() != destinationReg.register();
-		registerSet.removeConstantAt(destinationReg.register());
-		if (registerSet.hasTypeAt(sourceReg.register()))
+		assert source.register() != destination.register();
+		registerSet.removeConstantAt(destination.register());
+		if (registerSet.hasTypeAt(source.register()))
 		{
 			registerSet.typeAtPut(
-				destinationReg.register(),
-				registerSet.typeAt(sourceReg.register()),
+				destination.register(),
+				registerSet.typeAt(source.register()),
 				instruction);
 		}
 		else
 		{
-			registerSet.removeTypeAt(destinationReg.register());
+			registerSet.removeTypeAt(destination.register());
 		}
 
-		if (registerSet.hasConstantAt(sourceReg.register()))
+		if (registerSet.hasConstantAt(source.register()))
 		{
 			registerSet.constantAtPut(
-				destinationReg.register(),
-				registerSet.constantAt(sourceReg.register()),
+				destination.register(),
+				registerSet.constantAt(source.register()),
 				instruction);
 		}
 		registerSet.propagateMove(
-			sourceReg.register(), destinationReg.register(), instruction);
+			source.register(), destination.register(), instruction);
 	}
 
 	@Override
@@ -152,8 +149,8 @@ extends L2Operation
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadOperand<?> source = cast(instruction.operand(0));
-		final L2WriteOperand<?> destination = cast(instruction.operand(1));
+		final L2ReadOperand<R> source = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(instruction, manifest);
@@ -170,9 +167,8 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		assert this == instruction.operation() && this == boxed;
-		final L2ReadBoxedOperand sourceRead = cast(instruction.operand(0));
-//		final L2WriteBoxedOperand destinationWrite =
-//			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedOperand sourceRead = instruction.operand(0);
+//		final L2WriteBoxedOperand destinationWrite = instruction.operand(1);
 
 		// Trace it back toward the actual function creation.
 		final L2Instruction earlierInstruction =
@@ -199,8 +195,8 @@ extends L2Operation
 	public boolean shouldEmit (final L2Instruction instruction)
 	{
 		assert instruction.operation() == this;
-		final L2ReadOperand<R> sourceReg = instruction.readRegisterAt(0);
-		final L2WriteOperand<R> destinationReg = instruction.writeRegisterAt(1);
+		final L2ReadOperand<R> sourceReg = instruction.operand(0);
+		final L2WriteOperand<R> destinationReg = instruction.operand(1);
 
 		return sourceReg.finalIndex() != destinationReg.finalIndex();
 	}
@@ -231,7 +227,7 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() instanceof L2_MOVE;
-		return cast(instruction.operand(0));
+		return instruction.operand(0);
 	}
 
 	@Override
@@ -241,16 +237,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String sourceReg =
-			instruction.readRegisterAt(0).registerString();
-		final String destinationReg =
-			instruction.writeRegisterAt(1).registerString();
+		final L2ReadOperand<R> source = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(destination.registerString());
 		builder.append(" ← ");
-		builder.append(sourceReg);
+		builder.append(source.registerString());
 	}
 
 	@Override
@@ -273,13 +267,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2Register sourceReg =
-			instruction.readRegisterAt(0).register();
-		final L2Register destinationReg =
-			instruction.writeRegisterAt(1).register();
+		final L2ReadOperand<R> source = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		// :: destination = source;
-		translator.load(method, sourceReg);
-		translator.store(method, destinationReg);
+		translator.load(method, source.register());
+		translator.store(method, destination.register());
 	}
 }

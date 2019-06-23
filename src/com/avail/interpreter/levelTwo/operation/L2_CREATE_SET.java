@@ -39,11 +39,11 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
@@ -83,22 +83,20 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final String destinationSetReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedVectorOperand values = instruction.operand(0);
+		final L2WriteBoxedOperand set = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationSetReg);
+		builder.append(set.registerString());
 		builder.append(" ← {");
-		for (int i = 0, limit = elements.size(); i < limit; i++)
+		for (int i = 0, limit = values.elements().size(); i < limit; i++)
 		{
 			if (i > 0)
 			{
 				builder.append(", ");
 			}
-			final L2ReadBoxedOperand element = elements.get(i);
+			final L2ReadBoxedOperand element = values.elements().get(i);
 			builder.append(element);
 		}
 		builder.append('}');
@@ -110,10 +108,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2BoxedRegister destinationSetReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedVectorOperand values = instruction.operand(0);
+		final L2WriteBoxedOperand set = instruction.operand(1);
 
 		// :: set = SetDescriptor.emptySet();
 		method.visitMethodInsn(
@@ -122,7 +118,7 @@ extends L2Operation
 			"emptySet",
 			getMethodDescriptor(getType(A_Set.class)),
 			false);
-		for (final L2ReadBoxedOperand operand : elements)
+		for (final L2ReadBoxedOperand operand : values.elements())
 		{
 			// :: set = set.setWithElementCanDestroy(«register», true);
 			translator.load(method, operand.register());
@@ -138,6 +134,6 @@ extends L2Operation
 				true);
 		}
 		// :: destinationSet = set;
-		translator.store(method, destinationSetReg);
+		translator.store(method, set.register());
 	}
 }

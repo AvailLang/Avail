@@ -41,8 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -54,7 +52,6 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -93,18 +90,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String sourceReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String destinationReg =
-			instruction.writeFloatRegisterAt(1).registerString();
-//		final L2PcOperand ifUnboxed = instruction.pcAt(2);
-//		final int ifNotUnboxed = instruction.pcOffsetAt(3);
+		final L2ReadBoxedOperand source = instruction.operand(0);
+		final L2WriteFloatOperand destination = instruction.operand(1);
+//		final L2PcOperand ifUnboxed = instruction.operand(2);
+//		final L2PcOperand ifNotUnboxed = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(destination.registerString());
 		builder.append(" ←? ");
-		builder.append(sourceReg);
+		builder.append(source.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -114,10 +109,10 @@ extends L2ConditionalJump
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedOperand source = cast(instruction.operand(0));
-		final L2WriteFloatOperand destination = cast(instruction.operand(1));
-		final L2PcOperand ifUnboxed = instruction.pcAt(2);
-		final L2PcOperand ifNotUnboxed = instruction.pcAt(3);
+		final L2ReadBoxedOperand source = instruction.operand(0);
+		final L2WriteFloatOperand destination = instruction.operand(1);
+		final L2PcOperand ifUnboxed = instruction.operand(2);
+		final L2PcOperand ifNotUnboxed = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(instruction, manifest);
@@ -145,34 +140,33 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister sourceReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2FloatRegister destinationReg =
-			instruction.writeFloatRegisterAt(1).register();
-		final L2PcOperand ifUnboxed = instruction.pcAt(2);
-		final int ifNotUnboxed = instruction.pcOffsetAt(3);
+		final L2ReadBoxedOperand source = instruction.operand(0);
+		final L2WriteFloatOperand destination = instruction.operand(1);
+		final L2PcOperand ifUnboxed = instruction.operand(2);
+		final L2PcOperand ifNotUnboxed = instruction.operand(3);
 
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
-		translator.load(method, sourceReg);
+		translator.load(method, source.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"isDouble",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			true);
-		method.visitJumpInsn(IFEQ, translator.labelFor(ifNotUnboxed));
+		method.visitJumpInsn(
+			IFEQ, translator.labelFor(ifNotUnboxed.offset()));
 		// :: else {
 		// ::    destination = source.extractDouble();
 		// ::    goto ifUnboxed;
 		// :: }
-		translator.load(method, sourceReg);
+		translator.load(method, source.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Number.class),
 			"extractDouble",
 			getMethodDescriptor(DOUBLE_TYPE),
 			true);
-		translator.store(method, destinationReg);
+		translator.store(method, destination.register());
 		translator.jump(method, instruction, ifUnboxed);
 	}
 }

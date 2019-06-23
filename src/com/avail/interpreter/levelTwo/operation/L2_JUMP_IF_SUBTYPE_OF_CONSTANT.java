@@ -36,10 +36,9 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -93,26 +92,25 @@ extends L2ConditionalJump
 		final L2Generator generator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand typeReg =
-			instruction.readBoxedRegisterAt(0);
-		final A_Type constantType = instruction.constantAt(1);
-//		final L2PcOperand isSubtype = instruction.pcAt(2);
-//		final L2PcOperand notSubtype = instruction.pcAt(3);
+		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand isSubtype = instruction.operand(2);
+//		final L2PcOperand notSubtype = instruction.operand(3);
 
-		final @Nullable A_BasicObject typeToTest = typeReg.constantOrNull();
-		if (typeToTest != null)
+		final @Nullable A_BasicObject exactType = typeToCheck.constantOrNull();
+		if (exactType != null)
 		{
-			return typeToTest.isInstanceOf(constantType)
+			return exactType.isInstanceOf(constantType.object)
 				? AlwaysTaken
 				: NeverTaken;
 		}
-		final A_Type knownType = typeReg.type().instance();
-		if (knownType.isSubtypeOf(constantType))
+		if (typeToCheck.type().instance().isSubtypeOf(constantType.object))
 		{
 			// It's a subtype, so it must always pass the type test.
 			return AlwaysTaken;
 		}
-		final A_Type intersection = constantType.typeIntersection(knownType);
+		final A_Type intersection =
+			typeToCheck.type().instance().typeIntersection(constantType.object);
 		if (intersection.isBottom())
 		{
 			// The types don't intersect, so it can't ever pass the type test.
@@ -127,31 +125,31 @@ extends L2ConditionalJump
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand typeReg =
-			instruction.readBoxedRegisterAt(0);
-		final A_Type constantType = instruction.constantAt(1);
-//		final L2PcOperand isSubtype = instruction.pcAt(2);
-//		final L2PcOperand notSubtype = instruction.pcAt(3);
+		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand isSubtype = instruction.operand(2);
+//		final L2PcOperand notSubtype = instruction.operand(3);
 
 		assert registerSets.size() == 2;
 		final RegisterSet isSubtypeSet = registerSets.get(0);
 //		final RegisterSet notSubtypeSet = registerSets.get(1);
 
-		assert isSubtypeSet.hasTypeAt(typeReg.register());
-		if (isSubtypeSet.hasConstantAt(typeReg.register()))
+		assert isSubtypeSet.hasTypeAt(typeToCheck.register());
+		if (isSubtypeSet.hasConstantAt(typeToCheck.register()))
 		{
 			// The *exact* type is already known.  Don't weaken it by recording
 			// type information for it (a meta).
 		}
 		else
 		{
-			final A_Type existingMeta = isSubtypeSet.typeAt(typeReg.register());
+			final A_Type existingMeta =
+				isSubtypeSet.typeAt(typeToCheck.register());
 			final A_Type existingType = existingMeta.instance();
 			final A_Type intersectionType =
-				existingType.typeIntersection(constantType);
+				existingType.typeIntersection(constantType.object);
 			final A_Type intersectionMeta = instanceMeta(intersectionType);
 			isSubtypeSet.strengthenTestedTypeAtPut(
-				typeReg.register(), intersectionMeta);
+				typeToCheck.register(), intersectionMeta);
 		}
 	}
 
@@ -162,17 +160,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String typeRegister =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final L2Operand constantType = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.pcAt(2);
-//		final L2PcOperand notSubtype = instruction.pcAt(3);
+		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+//		final L2PcOperand isSubtype = instruction.operand(2);
+//		final L2PcOperand notSubtype = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(typeRegister);
+		builder.append(typeToCheck.registerString());
 		builder.append(" ⊆ ");
-		builder.append(constantType);
+		builder.append(constantType.object);
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -182,16 +179,15 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister typeRegister =
-			instruction.readBoxedRegisterAt(0).register();
-		final A_Type constantType = instruction.constantAt(1);
-		final L2PcOperand isSubtype = instruction.pcAt(2);
-		final L2PcOperand notSubtype = instruction.pcAt(3);
+		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
+		final L2ConstantOperand constantType = instruction.operand(1);
+		final L2PcOperand isSubtype = instruction.operand(2);
+		final L2PcOperand notSubtype = instruction.operand(3);
 
 		// :: if (type.isSubtypeOf(constant)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, typeRegister);
-		translator.literal(method, constantType);
+		translator.load(method, typeToCheck.register());
+		translator.literal(method, constantType.object);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Type.class),

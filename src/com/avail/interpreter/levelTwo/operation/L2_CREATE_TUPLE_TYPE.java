@@ -36,10 +36,9 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -89,10 +88,10 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2WriteBoxedOperand destinationReg =
-			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedVectorOperand types = instruction.operand(0);
+		final L2WriteBoxedOperand tupleType = instruction.operand(1);
+
+		final List<L2ReadBoxedOperand> elements = types.elements();
 
 		final int size = elements.size();
 		if (registerSet.allRegistersAreConstant(elements))
@@ -103,33 +102,33 @@ extends L2Operation
 			{
 				constants.add(registerSet.constantAt(element.register()));
 			}
-			final A_Type tupleType = tupleTypeForTypes(constants);
-			tupleType.makeImmutable();
+			final A_Type newTupleType = tupleTypeForTypes(constants);
+			newTupleType.makeImmutable();
 			registerSet.constantAtPut(
-				destinationReg.register(), tupleType, instruction);
+				tupleType.register(), newTupleType, instruction);
 		}
 		else
 		{
-			final List<A_Type> types = new ArrayList<>(size);
+			final List<A_Type> newTypes = new ArrayList<>(size);
 			for (final L2ReadBoxedOperand element : elements)
 			{
 				if (registerSet.hasTypeAt(element.register()))
 				{
 					final A_Type meta = registerSet.typeAt(element.register());
-					types.add(
+					newTypes.add(
 						meta.isInstanceMeta() ? meta.instance() : ANY.o());
 				}
 				else
 				{
-					types.add(ANY.o());
+					newTypes.add(ANY.o());
 				}
 			}
-			final A_Type tupleType = tupleTypeForTypes(types);
-			final A_Type tupleMeta = instanceMeta(tupleType);
-			tupleMeta.makeImmutable();
-			registerSet.removeConstantAt(destinationReg.register());
+			final A_Type newTupleType = tupleTypeForTypes(newTypes);
+			final A_Type newTupleMeta = instanceMeta(newTupleType);
+			newTupleMeta.makeImmutable();
+			registerSet.removeConstantAt(tupleType.register());
 			registerSet.typeAtPut(
-				destinationReg.register(), tupleMeta, instruction);
+				tupleType.register(), newTupleMeta, instruction);
 		}
 	}
 
@@ -140,15 +139,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand elements = instruction.operand(0);
-		final String destinationReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedVectorOperand types = instruction.operand(0);
+		final L2WriteBoxedOperand tupleType = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(tupleType.registerString());
 		builder.append(" ← ");
-		builder.append(elements);
+		builder.append(types.elements());
 	}
 
 	@Override
@@ -157,19 +155,17 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> elements =
-			instruction.readVectorRegisterAt(0);
-		final L2BoxedRegister destinationReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedVectorOperand types = instruction.operand(0);
+		final L2WriteBoxedOperand tupleType = instruction.operand(1);
 
 		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
-		translator.objectArray(method, elements, A_Type.class);
+		translator.objectArray(method, types.elements(), A_Type.class);
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(TupleTypeDescriptor.class),
 			"tupleTypeForTypes",
 			getMethodDescriptor(getType(A_Type.class), getType(A_Type[].class)),
 			false);
-		translator.store(method, destinationReg);
+		translator.store(method, tupleType.register());
 	}
 }

@@ -32,13 +32,13 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -84,17 +84,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final A_BasicObject constant = instruction.constantAt(1);
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
+		final L2PcOperand ifLess = instruction.operand(2);
+		final L2PcOperand ifNotLess = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(valueReg);
+		builder.append(value.registerString());
 		builder.append(" < ");
-		builder.append(constant);
+		builder.append(constant.object);
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -104,15 +103,14 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister register =
-			instruction.readBoxedRegisterAt(0).register();
-		final A_Number constant = instruction.constantAt(1);
-		final L2PcOperand ifTrue = instruction.pcAt(2);
-		final L2PcOperand ifFalse = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
+		final L2PcOperand ifLess = instruction.operand(2);
+		final L2PcOperand ifNotLess = instruction.operand(3);
 
 		// :: comparison = first.numericCompare(second);
-		translator.load(method, register);
-		translator.literal(method, constant);
+		translator.load(method, value.register());
+		translator.literal(method, constant.object);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Number.class),
@@ -127,6 +125,6 @@ extends L2ConditionalJump
 			"isLess",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		emitBranch(translator, method, instruction, IFNE, ifTrue, ifFalse);
+		emitBranch(translator, method, instruction, IFNE, ifLess, ifNotLess);
 	}
 }

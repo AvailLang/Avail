@@ -39,8 +39,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -49,7 +47,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
@@ -83,16 +80,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String sourceReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String destinationReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteBoxedOperand destination = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(destination.registerString());
 		builder.append(" ← ");
-		builder.append(sourceReg);
+		builder.append(source.registerString());
 	}
 
 	@Override
@@ -101,8 +96,8 @@ extends L2Operation
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadIntOperand source = cast(instruction.operand(0));
-		final L2WriteBoxedOperand destination = cast(instruction.operand(1));
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteBoxedOperand destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(instruction, manifest);
@@ -116,19 +111,17 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister sourceReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2BoxedRegister destinationReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteBoxedOperand destination = instruction.operand(1);
 
 		// :: destination = IntegerDescriptor.fromInt(source);
-		translator.load(method, sourceReg);
+		translator.load(method, source.register());
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(IntegerDescriptor.class),
 			"fromInt",
 			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
 			false);
-		translator.store(method, destinationReg);
+		translator.store(method, destination.register());
 	}
 }

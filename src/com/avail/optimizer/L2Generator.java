@@ -912,19 +912,16 @@ public final class L2Generator
 	}
 
 	/**
-	 * Create an {@link L2PcOperand} with suitable defaults.
+	 * Create an {@link L2PcOperand} leading to the given {@link L2BasicBlock}.
 	 *
 	 * @param targetBlock
 	 *        The target {@link L2BasicBlock}.
-	 * @param phiRestrictions
-	 *        Any restrictions for the {@link L2ValueManifest} along this edge.
 	 * @return The new {@link L2PcOperand}.
 	 */
 	public static L2PcOperand edgeTo (
-		final L2BasicBlock targetBlock,
-		final PhiRestriction... phiRestrictions)
+		final L2BasicBlock targetBlock)
 	{
-		return new L2PcOperand(targetBlock, phiRestrictions);
+		return new L2PcOperand(targetBlock);
 	}
 
 	/**

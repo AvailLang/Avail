@@ -118,20 +118,18 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String int1Reg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String int2Reg =
-			instruction.readIntRegisterAt(1).registerString();
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+		final L2ReadIntOperand int1Reg = instruction.operand(0);
+		final L2ReadIntOperand int2Reg = instruction.operand(1);
+//		final L2PcOperand ifTrue = instruction.operand(2);
+//		final L2PcOperand ifFalse = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(int1Reg);
+		builder.append(int1Reg.registerString());
 		builder.append(" ");
 		builder.append(opcodeName);
 		builder.append(" ");
-		builder.append(int2Reg);
+		builder.append(int2Reg.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -147,10 +145,10 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ReadIntOperand int1Reg = instruction.readIntRegisterAt(0);
-		final L2ReadIntOperand int2Reg = instruction.readIntRegisterAt(1);
-		final L2PcOperand ifTrue = instruction.pcAt(2);
-		final L2PcOperand ifFalse = instruction.pcAt(3);
+		final L2ReadIntOperand int1Reg = instruction.operand(0);
+		final L2ReadIntOperand int2Reg = instruction.operand(1);
+		final L2PcOperand ifTrue = instruction.operand(2);
+		final L2PcOperand ifFalse = instruction.operand(3);
 
 		// :: if (int1 op int2) goto ifTrue;
 		// :: else goto ifFalse;

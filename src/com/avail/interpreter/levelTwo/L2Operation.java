@@ -322,8 +322,10 @@ public abstract class L2Operation
 		assert !isEntryPoint(instruction)
 				|| instruction.basicBlock.instructions().get(0) == instruction
 			: "Entry point instruction must be at start of a block";
-		instruction.operandsDo(
-			operand -> operand.instructionWasAdded(instruction, manifest));
+		for (final L2Operand operand : instruction.operands())
+		{
+			operand.instructionWasAdded(instruction, manifest);
+		}
 	}
 
 	/**

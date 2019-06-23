@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -92,20 +91,18 @@ extends L2ControlFlowOperation
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand variableReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedOperand valueReg =
-			instruction.readBoxedRegisterAt(1);
-//		final int succeeded = instruction.pcAt(2);
-//		final int failed = instruction.pcAt(3);
+		final L2ReadBoxedOperand variable = instruction.operand(0);
+		final L2ReadBoxedOperand value = instruction.operand(1);
+//		final L2PcOperand success = instruction.operand(2);
+//		final L2PcOperand failure = instruction.operand(3);
 
 		// The two register sets are clones, so only cross-check one of them.
 		final RegisterSet registerSet = registerSets.get(0);
-		assert registerSet.hasTypeAt(variableReg.register());
-		final A_Type varType = registerSet.typeAt(variableReg.register());
+		assert registerSet.hasTypeAt(variable.register());
+		final A_Type varType = registerSet.typeAt(variable.register());
 		assert varType.isSubtypeOf(mostGeneralVariableType());
-		assert registerSet.hasTypeAt(valueReg.register());
-		final A_Type valueType = registerSet.typeAt(valueReg.register());
+		assert registerSet.hasTypeAt(value.register());
+		final A_Type valueType = registerSet.typeAt(value.register());
 		assert valueType.isSubtypeOf(varType.writeType());
 	}
 
@@ -127,19 +124,17 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final String variableReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String valueReg =
-			instruction.readBoxedRegisterAt(1).registerString();
-//		final int successIndex = instruction.pcOffsetAt(2);
-//		final L2PcOperand failure = instruction.pcAt(3);
+		final L2ReadBoxedOperand variable = instruction.operand(0);
+		final L2ReadBoxedOperand value = instruction.operand(1);
+//		final L2PcOperand success = instruction.operand(2);
+//		final L2PcOperand failure = instruction.operand(3);
 
 		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(" ↓");
-		builder.append(variableReg);
+		builder.append(variable.registerString());
 		builder.append(" ← ");
-		builder.append(valueReg);
+		builder.append(value.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -149,12 +144,10 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister variableReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister valueReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final int successIndex = instruction.pcOffsetAt(2);
-		final L2PcOperand failure = instruction.pcAt(3);
+		final L2ReadBoxedOperand variable = instruction.operand(0);
+		final L2ReadBoxedOperand value = instruction.operand(1);
+		final L2PcOperand success = instruction.operand(2);
+		final L2PcOperand failure = instruction.operand(3);
 
 		// :: try {
 		final Label tryStart = new Label();
@@ -166,8 +159,8 @@ extends L2ControlFlowOperation
 			getInternalName(VariableSetException.class));
 		method.visitLabel(tryStart);
 		// ::    variable.setValueNoCheck(value);
-		translator.load(method, variableReg);
-		translator.load(method, valueReg);
+		translator.load(method, variable.register());
+		translator.load(method, value.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Variable.class),
@@ -179,7 +172,7 @@ extends L2ControlFlowOperation
 		// fall through, because the next instruction expects a
 		// VariableSetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 		// :: } catch (VariableSetException e) {
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);

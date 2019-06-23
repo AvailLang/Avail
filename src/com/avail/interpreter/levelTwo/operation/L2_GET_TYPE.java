@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -87,10 +86,8 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand valueReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2WriteBoxedOperand typeReg =
-			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedOperand valueReg = instruction.operand(0);
+		final L2WriteBoxedOperand typeReg = instruction.operand(1);
 
 		registerSet.removeConstantAt(typeReg.register());
 		if (registerSet.hasTypeAt(valueReg.register()))
@@ -129,7 +126,7 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.readBoxedRegisterAt(0);
+		return instruction.operand(0);
 	}
 
 	@Override
@@ -139,16 +136,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String typeReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2WriteBoxedOperand type = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(typeReg);
+		builder.append(type.registerString());
 		builder.append(" ← ");
-		builder.append(valueReg);
+		builder.append(value.registerString());
 	}
 
 	@Override
@@ -157,13 +152,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister valueReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister typeReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2WriteBoxedOperand type = instruction.operand(1);
 
 		// :: type = instanceTypeOfMetaOn(value);
-		translator.load(method, valueReg);
+		translator.load(method, value.register());
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(AbstractEnumerationTypeDescriptor.class),
@@ -172,6 +165,6 @@ extends L2Operation
 				getType(A_Type.class),
 				getType(A_BasicObject.class)),
 			false);
-		translator.store(method, typeReg);
+		translator.store(method, type.register());
 	}
 }

@@ -39,7 +39,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
@@ -97,10 +96,9 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2WriteBoxedOperand destination =
-			instruction.writeBoxedRegisterAt(0);
+		final L2WriteBoxedOperand function = instruction.operand(0);
 		registerSet.typeAtPut(
-			destination.register(),
+			function.register(),
 			functionType(
 				tuple(
 					mostGeneralFunctionType(),
@@ -117,11 +115,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand destination = instruction.operand(0);
+		final L2WriteBoxedOperand function = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destination);
+		builder.append(function.registerString());
 	}
 
 	@Override
@@ -130,8 +128,7 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister destination =
-			instruction.writeBoxedRegisterAt(0).register();
+		final L2WriteBoxedOperand function = instruction.operand(0);
 
 		// :: destination = interpreter.runtime()
 		// ::    .resultDisagreedWithExpectedTypeFunction();
@@ -149,6 +146,6 @@ extends L2Operation
 			getMethodDescriptor(getType(A_Function.class)),
 			false);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, destination);
+		translator.store(method, function.register());
 	}
 }

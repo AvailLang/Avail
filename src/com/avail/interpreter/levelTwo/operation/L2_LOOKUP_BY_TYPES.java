@@ -45,10 +45,12 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -58,12 +60,14 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.SetDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
@@ -71,6 +75,7 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -115,6 +120,63 @@ extends L2ControlFlowOperation
 			E_FORWARD_METHOD_DEFINITION,
 			E_ABSTRACT_METHOD_DEFINITION));
 
+
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2SelectorOperand bundleOperand = instruction.operand(0);
+		final L2ReadBoxedVectorOperand argTypeRegs = instruction.operand(1);
+		final L2WriteBoxedOperand functionReg = instruction.operand(2);
+		final L2WriteBoxedOperand errorCodeReg = instruction.operand(3);
+		final L2PcOperand lookupSucceeded = instruction.operand(4);
+		final L2PcOperand lookupFailed = instruction.operand(5);
+
+		bundleOperand.instructionWasAdded(instruction, manifest);
+		argTypeRegs.instructionWasAdded(instruction, manifest);
+		functionReg.instructionWasAdded(instruction, manifest);
+		errorCodeReg.instructionWasAdded(instruction, manifest);
+		lookupSucceeded.instructionWasAdded(instruction, manifest);
+		lookupFailed.instructionWasAdded(instruction, manifest);
+
+		// If the lookup failed, it supplies the reason to the errorCodeReg.
+		lookupFailed.manifest().setRestriction(
+			errorCodeReg.semanticValue(),
+			errorCodeReg.restriction());
+
+		// If the lookup succeeds, the functionReg will be set, and we can also
+		// conclude that the arguments satisfied at least one of the found
+		// function types.
+		lookupSucceeded.manifest().setRestriction(
+			functionReg.semanticValue(),
+			functionReg.restriction());
+		// The function type should be an enumeration, so we know that each
+		// argument type satisfied at least one of the functions' corresponding
+		// argument types.
+		final List<L2ReadBoxedOperand> argumentTypeRegs =
+			argTypeRegs.elements();
+		final A_Type functionType = functionReg.restriction().type;
+		if (functionType.isEnumeration())
+		{
+			final int numArgs = argumentTypeRegs.size();
+			final Set<A_Function> functions = toSet(functionType.instances());
+			final A_Type argumentTupleUnionType = functions.stream()
+				.map(f -> f.code().functionType().argsTupleType())
+				.reduce(A_Type::typeUnion)
+				.orElse(bottom());  // impossible
+			for (int i = 1; i <= numArgs; i++)
+			{
+				final A_Type argumentUnion =
+					argumentTupleUnionType.typeAtIndex(i);
+				lookupSucceeded.manifest().intersectType(
+					argumentTypeRegs.get(i - 1).semanticValue(),
+					instanceTypeOrMetaOn(argumentUnion));
+			}
+		}
+	}
+
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
@@ -124,35 +186,32 @@ extends L2ControlFlowOperation
 		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over
 		// those functions.
-		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadBoxedOperand> argTypeRegs =
-			instruction.readVectorRegisterAt(1);
-		final L2WriteBoxedOperand functionReg =
-			instruction.writeBoxedRegisterAt(2);
-		final L2WriteBoxedOperand errorCodeReg =
-			instruction.writeBoxedRegisterAt(3);
-//		final int lookupSucceeded = instruction.pcOffsetAt(4);
-//		final int lookupFailed = instruction.pcOffsetAt(5);
+		final L2SelectorOperand bundleOperand = instruction.operand(0);
+		final L2ReadBoxedVectorOperand argTypeRegs = instruction.operand(1);
+		final L2WriteBoxedOperand functionReg = instruction.operand(2);
+		final L2WriteBoxedOperand errorCodeReg = instruction.operand(3);
+//		final L2PcOperand lookupSucceeded = instruction.operand(4);
+//		final L2PcOperand lookupFailed = instruction.operand(5);
 
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(
 			errorCodeReg.register(), failureCodesType, instruction);
 		// If the lookup succeeds, then the situation is more complex.
 		final RegisterSet registerSet = registerSets.get(1);
-		final int numArgs = argTypeRegs.size();
-		final List<TypeRestriction> argRestrictions = new ArrayList<>(numArgs);
-		for (final L2ReadBoxedOperand argRegister : argTypeRegs)
-		{
-			final A_Type type = registerSet.hasTypeAt(argRegister.register())
-				? registerSet.typeAt(argRegister.register())
-				: ANY.o();
-			argRestrictions.add(restrictionForType(type, BOXED));
-		}
+		final int numArgs = argTypeRegs.elements().size();
+		final List<TypeRestriction> argRestrictions =
+			argTypeRegs.elements().stream()
+				.map(
+					argRegister -> registerSet.hasTypeAt(argRegister.register())
+						? registerSet.typeAt(argRegister.register())
+						: ANY.o()).map(type -> restrictionForType(type, BOXED))
+				.collect(toList());
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
 		final List<A_Function> possibleFunctions = new ArrayList<>();
 		final List<A_Definition> possibleDefinitions =
-			bundle.bundleMethod().definitionsAtOrBelow(argRestrictions);
+			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
+				argRestrictions);
 		for (final A_Definition definition : possibleDefinitions)
 		{
 			if (definition.isMethodDefinition())
@@ -194,10 +253,10 @@ extends L2ControlFlowOperation
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Function lookup (
-			final Interpreter interpreter,
-			final A_Bundle bundle,
-			final AvailObject[] types)
-		throws MethodDefinitionException
+		final Interpreter interpreter,
+		final A_Bundle bundle,
+		final AvailObject[] types)
+	throws MethodDefinitionException
 	{
 		if (Interpreter.debugL2)
 		{
@@ -242,15 +301,12 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ReadBoxedOperand> argTypeRegs =
-			instruction.readVectorRegisterAt(1);
-		final L2BoxedRegister functionReg =
-			instruction.writeBoxedRegisterAt(2).register();
-		final L2BoxedRegister errorCodeReg =
-			instruction.writeBoxedRegisterAt(3).register();
-		final int lookupSucceeded = instruction.pcOffsetAt(4);
-		final L2PcOperand lookupFailed = instruction.pcAt(5);
+		final L2SelectorOperand bundleOperand = instruction.operand(0);
+		final L2ReadBoxedVectorOperand argTypeRegs = instruction.operand(1);
+		final L2WriteBoxedOperand functionReg = instruction.operand(2);
+		final L2WriteBoxedOperand errorCodeReg = instruction.operand(3);
+		final L2PcOperand lookupSucceeded = instruction.operand(4);
+		final L2PcOperand lookupFailed = instruction.operand(5);
 
 		// :: try {
 		final Label tryStart = new Label();
@@ -263,8 +319,9 @@ extends L2ControlFlowOperation
 		method.visitLabel(tryStart);
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method);
-		translator.literal(method, bundle);
-		translator.objectArray(method, argTypeRegs, AvailObject.class);
+		translator.literal(method, bundleOperand.bundle);
+		translator.objectArray(
+			method, argTypeRegs.elements(), AvailObject.class);
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(L2_LOOKUP_BY_TYPES.class),
@@ -275,13 +332,14 @@ extends L2ControlFlowOperation
 				getType(A_Bundle.class),
 				getType(AvailObject[].class)),
 			false);
-		translator.store(method, functionReg);
+		translator.store(method, functionReg.register());
 		// ::    goto lookupSucceeded;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// MethodDefinitionException to be pushed onto the stack. So always do
 		// the jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(lookupSucceeded));
+		method.visitJumpInsn(
+			GOTO, translator.labelFor(lookupSucceeded.offset()));
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart);
 		// ::    errorCode = e.numericCode();
@@ -294,7 +352,7 @@ extends L2ControlFlowOperation
 		method.visitTypeInsn(
 			CHECKCAST,
 			getInternalName(AvailObject.class));
-		translator.store(method, errorCodeReg);
+		translator.store(method, errorCodeReg.register());
 		// ::    goto lookupFailed;
 		translator.jump(method, instruction, lookupFailed);
 		// :: }

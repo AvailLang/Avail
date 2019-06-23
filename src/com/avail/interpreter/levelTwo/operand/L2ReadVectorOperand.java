@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ValueManifest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -103,6 +104,21 @@ extends L2Operand
 	{
 		return elements;
 	}
+
+	/**
+	 * Answer a {@link List} of my elements' {@link L2Register}s.
+	 *
+	 * @return The list of {@link L2Register}s that I read.
+	 */
+	public List<R> registers ()
+	{
+		final List<R> registers = new ArrayList<>(elements.size());
+		for (final RR rr : elements)
+		{
+			registers.add(rr.register());
+		}
+		return registers;
+	};
 
 	@Override
 	public abstract void dispatchOperand (final L2OperandDispatcher dispatcher);

@@ -41,11 +41,11 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
@@ -89,28 +89,25 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadBoxedOperand> keysVector =
-			instruction.readVectorRegisterAt(0);
-		final List<L2ReadBoxedOperand> valuesVector =
-			instruction.readVectorRegisterAt(1);
-		final String destinationMapReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
+		final L2ReadBoxedVectorOperand fieldKeys = instruction.operand(0);
+		final L2ReadBoxedVectorOperand fieldValues = instruction.operand(1);
+		final L2WriteBoxedOperand object = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationMapReg);
+		builder.append(object.registerString());
 		builder.append(" ← {");
-		for (int i = 0, limit = keysVector.size(); i < limit; i++)
+		for (int i = 0, limit = fieldKeys.elements().size(); i < limit; i++)
 		{
 			if (i > 0)
 			{
 				builder.append(", ");
 			}
-			final L2ReadBoxedOperand key = keysVector.get(i);
-			final L2ReadBoxedOperand value = valuesVector.get(i);
-			builder.append(key);
+			final L2ReadBoxedOperand key = fieldKeys.elements().get(i);
+			final L2ReadBoxedOperand value = fieldValues.elements().get(i);
+			builder.append(key.registerString());
 			builder.append("←");
-			builder.append(value);
+			builder.append(value.registerString());
 		}
 		builder.append('}');
 	}
@@ -121,12 +118,9 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> keysVector =
-			instruction.readVectorRegisterAt(0);
-		final List<L2ReadBoxedOperand> valuesVector =
-			instruction.readVectorRegisterAt(1);
-		final L2BoxedRegister destinationObjectReg =
-			instruction.writeBoxedRegisterAt(2).register();
+		final L2ReadBoxedVectorOperand fieldKeys = instruction.operand(0);
+		final L2ReadBoxedVectorOperand fieldValues = instruction.operand(1);
+		final L2WriteBoxedOperand object = instruction.operand(2);
 
 		// :: map = MapDescriptor.emptyMap();
 		method.visitMethodInsn(
@@ -135,14 +129,14 @@ extends L2Operation
 			"emptyMap",
 			getMethodDescriptor(getType(A_Map.class)),
 			false);
-		final int limit = keysVector.size();
-		assert limit == valuesVector.size();
+		final int limit = fieldKeys.elements().size();
+		assert limit == fieldValues.elements().size();
 		for (int i = 0; i < limit; i++)
 		{
 			// :: map = map.mapAtPuttingCanDestroy(
 			// ::    «keysVector[i]», «valuesVector[i]», true);
-			translator.load(method, keysVector.get(i).register());
-			translator.load(method, valuesVector.get(i).register());
+			translator.load(method, fieldKeys.elements().get(i).register());
+			translator.load(method, fieldValues.elements().get(i).register());
 			translator.intConstant(method, 1);
 			method.visitMethodInsn(
 				INVOKEINTERFACE,
@@ -164,6 +158,6 @@ extends L2Operation
 				getType(AvailObject.class),
 				getType(A_Map.class)),
 			true);
-		translator.store(method, destinationObjectReg);
+		translator.store(method, object.register());
 	}
 }

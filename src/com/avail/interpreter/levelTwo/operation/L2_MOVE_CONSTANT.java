@@ -44,7 +44,13 @@ import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2Generator;
@@ -56,22 +62,24 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Casts.cast;
 
 /**
  * Move a constant {@link AvailObject} into a register.  Instances of this
  * operation are customized for different {@link RegisterKind}s.
  *
- * @param <P> The {@link L2Operand} that provides the constant value.
+ * @param <C> The {@link L2Operand} that provides the constant value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_MOVE_CONSTANT <P extends L2Operand>
+public class L2_MOVE_CONSTANT <
+	C extends L2Operand,
+	R extends L2Register,
+	WR extends L2WriteOperand<R>>
 extends L2Operation
 {
 	/** A {@link Continuation3NotNull} to invoke to push the constant value. */
-	final Continuation3NotNull<JVMTranslator, MethodVisitor, P> pushConstant;
+	final Continuation3NotNull<JVMTranslator, MethodVisitor, C> pushConstant;
 
 	/**
 	 * Construct an {@code L2_MOVE_CONSTANT} operation.
@@ -86,7 +94,7 @@ extends L2Operation
 	 */
 	@InnerAccess
 	L2_MOVE_CONSTANT (
-		final Continuation3NotNull<JVMTranslator, MethodVisitor, P> pushConstant,
+		final Continuation3NotNull<JVMTranslator, MethodVisitor, C> pushConstant,
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
@@ -96,7 +104,8 @@ extends L2Operation
 	/**
 	 * Initialize the move-constant operation for boxed values.
 	 */
-	public static final L2_MOVE_CONSTANT<L2ConstantOperand>
+	public static final L2_MOVE_CONSTANT<
+			L2ConstantOperand, L2BoxedRegister, L2WriteBoxedOperand>
 		boxed = new L2_MOVE_CONSTANT<>(
 			(translator, method, operand) ->
 				translator.literal(method, operand.object),
@@ -106,8 +115,9 @@ extends L2Operation
 	/**
 	 * Initialize the move-constant operation for int values.
 	 */
-	public static final L2_MOVE_CONSTANT<L2IntImmediateOperand> unboxedInt =
-		new L2_MOVE_CONSTANT<>(
+	public static final L2_MOVE_CONSTANT<
+			L2IntImmediateOperand, L2IntRegister, L2WriteIntOperand>
+		unboxedInt = new L2_MOVE_CONSTANT<>(
 			(translator, method, operand) ->
 				translator.literal(method, operand.value),
 			INT_IMMEDIATE.is("constant int"),
@@ -116,8 +126,9 @@ extends L2Operation
 	/**
 	 * Initialize the move-constant operation for float values.
 	 */
-	public static final L2_MOVE_CONSTANT<L2FloatImmediateOperand> unboxedFloat =
-		new L2_MOVE_CONSTANT<>(
+	public static final L2_MOVE_CONSTANT<
+			L2FloatImmediateOperand, L2FloatRegister, L2WriteFloatOperand>
+		unboxedFloat = new L2_MOVE_CONSTANT<>(
 			(translator, method, operand) ->
 				translator.literal(method, operand.value),
 			FLOAT_IMMEDIATE.is("constant float"),
@@ -129,8 +140,8 @@ extends L2Operation
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final P source = cast(instruction.operand(0));
-		final L2WriteOperand<?> destination = cast(instruction.operand(1));
+		final C source = instruction.operand(0);
+		final WR destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(instruction, manifest);
@@ -159,7 +170,7 @@ extends L2Operation
 	{
 		// The exact function is known statically.
 		assert this == instruction.operation() && this == boxed;
-		final A_Function constantFunction = instruction.constantAt(0);
+		final A_Function constantFunction = constantOf(instruction);
 		return generator.boxedConstant(constantFunction.outerVarAt(outerIndex));
 	}
 
@@ -175,7 +186,8 @@ extends L2Operation
 	public static AvailObject constantOf (final L2Instruction instruction)
 	{
 		assert instruction.operation() == boxed;
-		return instruction.constantAt(0);
+		final L2ConstantOperand constant = instruction.operand(0);
+		return constant.object;
 	}
 
 	@Override
@@ -185,13 +197,12 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand constant = instruction.operand(0);
-		final L2Register destinationReg =
-			instruction.writeRegisterAt(1).register();
+		final C constant = instruction.operand(0);
+		final WR destination = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(destination.register());
 		builder.append(" ← ");
 		builder.append(constant);
 	}
@@ -216,9 +227,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final P constantOperand = cast(instruction.operand(0));
-		final L2WriteOperand<?> destinationWriter =
-			cast(instruction.operand(1));
+		final C constantOperand = instruction.operand(0);
+		final WR destinationWriter = instruction.operand(1);
 
 		// :: destination = constant;
 		pushConstant.value(translator, method, constantOperand);

@@ -46,7 +46,6 @@ import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.INTERNAL_COUNTER;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
-import static com.avail.utility.Casts.cast;
 import static java.util.Arrays.copyOf;
 
 /**
@@ -121,10 +120,8 @@ extends L2ControlFlowOperation
 		final L2PcOperand isSubtype,
 		final L2PcOperand notSubtype)
 	{
-		final L2InternalCounterOperand taken =
-			cast(instruction.operand(instruction.operands().length - 2));
-		final L2InternalCounterOperand notTaken =
-			cast(instruction.operand(instruction.operands().length - 1));
+		final L2InternalCounterOperand taken = instruction.operand(instruction.operands().length - 2);
+		final L2InternalCounterOperand notTaken = instruction.operand(instruction.operands().length - 1);
 		translator.branch(
 			method,
 			instruction,

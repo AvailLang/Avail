@@ -39,7 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -99,18 +100,16 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String variableReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String destReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
-//		final int successIndex = instruction.pcOffsetAt(2);
-//		final L2PcOperand failure = instruction.pcAt(3);
+		final L2ReadBoxedOperand variable = instruction.operand(0);
+		final L2WriteBoxedOperand value = instruction.operand(1);
+//		final L2PcOperand success = instruction.operand(2);
+//		final L2PcOperand failure = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destReg);
+		builder.append(value.registerString());
 		builder.append(" ← ↓");
-		builder.append(variableReg);
+		builder.append(variable.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -120,12 +119,10 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister variableReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister destReg =
-			instruction.writeBoxedRegisterAt(1).register();
-		final int successIndex = instruction.pcOffsetAt(2);
-		final L2PcOperand failure = instruction.pcAt(3);
+		final L2ReadBoxedOperand variable = instruction.operand(0);
+		final L2WriteBoxedOperand value = instruction.operand(1);
+		final L2PcOperand success = instruction.operand(2);
+		final L2PcOperand failure = instruction.operand(3);
 
 		// :: try {
 		final Label tryStart = new Label();
@@ -137,7 +134,7 @@ extends L2ControlFlowOperation
 			getInternalName(VariableGetException.class));
 		method.visitLabel(tryStart);
 		// ::    dest = variable.getValue().makeImmutable();
-		translator.load(method, variableReg);
+		translator.load(method, variable.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Variable.class),
@@ -150,13 +147,13 @@ extends L2ControlFlowOperation
 			"makeImmutable",
 			getMethodDescriptor(getType(AvailObject.class)),
 			true);
-		translator.store(method, destReg);
+		translator.store(method, value.register());
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 		// :: } catch (VariableGetException e) {
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);

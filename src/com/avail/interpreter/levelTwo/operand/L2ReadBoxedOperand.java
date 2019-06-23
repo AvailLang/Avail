@@ -132,13 +132,15 @@ extends L2ReadOperand<L2BoxedRegister>
 		final L2Instruction originOfFunction = definitionSkippingMoves(true);
 		if (originOfFunction.operation() == L2_MOVE_CONSTANT.boxed)
 		{
-			final A_Function function = originOfFunction.constantAt(0);
+			final A_Function function =
+				L2_MOVE_CONSTANT.constantOf(originOfFunction);
 			final A_Type functionType = function.code().functionType();
 			return functionType.argsTupleType().typeAtIndex(1);
 		}
 		if (originOfFunction.operation() == L2_CREATE_FUNCTION.instance)
 		{
-			final A_RawFunction code = originOfFunction.constantAt(0);
+			final A_RawFunction code =
+				L2_CREATE_FUNCTION.constantRawFunctionOf(originOfFunction);
 			final A_Type functionType = code.functionType();
 			return functionType.argsTupleType().typeAtIndex(1);
 		}

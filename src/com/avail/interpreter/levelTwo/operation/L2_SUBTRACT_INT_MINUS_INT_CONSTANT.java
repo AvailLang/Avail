@@ -34,8 +34,10 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -89,21 +91,19 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String minuend =
-			instruction.readIntRegisterAt(0).registerString();
-		final int subtrahend = instruction.intImmediateAt(1);
-		final String difference =
-			instruction.writeIntRegisterAt(2).registerString();
-//		final L2PcOperand inRange = instruction.pcAt(3);
-//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand minuend = instruction.operand(0);
+		final L2IntImmediateOperand subtrahend = instruction.operand(1);
+		final L2WriteIntOperand difference = instruction.operand(2);
+//		final L2PcOperand inRange = instruction.operand(3);
+//		final L2PcOperand outOfRange = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(difference);
+		builder.append(difference.registerString());
 		builder.append(" ← ");
-		builder.append(minuend);
+		builder.append(minuend.registerString());
 		builder.append(" - ");
-		builder.append(subtrahend);
+		builder.append(subtrahend.value);
 		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
 	}
 
@@ -113,18 +113,16 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister minuend =
-			instruction.readIntRegisterAt(0).register();
-		final int subtrahend = instruction.intImmediateAt(1);
-		final L2IntRegister differenceReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2PcOperand inRange = instruction.pcAt(3);
-		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand minuend = instruction.operand(0);
+		final L2IntImmediateOperand subtrahend = instruction.operand(1);
+		final L2WriteIntOperand difference = instruction.operand(2);
+		final L2PcOperand inRange = instruction.operand(3);
+		final L2PcOperand outOfRange = instruction.operand(4);
 
 		// :: longDifference = (long) minuend - (long) subtrahend;
-		translator.load(method, minuend);
+		translator.load(method, minuend.register());
 		method.visitInsn(I2L);
-		translator.literal(method, subtrahend);
+		translator.literal(method, subtrahend.value);
 		method.visitInsn(I2L);
 		method.visitInsn(LSUB);
 		method.visitInsn(DUP2);
@@ -138,7 +136,7 @@ extends L2ControlFlowOperation
 		// :: if (longDifference != intDifference) goto outOfRange;
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeOffset));
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
 		// :: else {
 		// ::    sum = intDifference;
 		// ::    goto inRange;
@@ -153,7 +151,7 @@ extends L2ControlFlowOperation
 			intDifferenceStart,
 			intDifferenceEnd,
 			intDifferenceLocal);
-		translator.store(method, differenceReg);
+		translator.store(method, difference.register());
 		translator.jump(method, instruction, inRange);
 	}
 }

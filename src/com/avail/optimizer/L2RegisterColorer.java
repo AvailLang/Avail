@@ -43,6 +43,7 @@ import com.avail.utility.Graph;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static com.avail.utility.Casts.cast;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -172,8 +173,10 @@ public final class L2RegisterColorer
 			{
 				if (instruction.operation().isPhi())
 				{
+					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+						cast(instruction.operation());
 					for (final L2BasicBlock predBlock :
-						L2_PHI_PSEUDO_OPERATION.predecessorBlocksForUseOf(
+						phiOperation.predecessorBlocksForUseOf(
 							instruction, reg))
 					{
 						if (reachedBlocks.add(predBlock))

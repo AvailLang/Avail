@@ -37,7 +37,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -84,18 +84,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String secondReg =
-			instruction.readBoxedRegisterAt(1).registerString();
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+		final L2ReadBoxedOperand first = instruction.operand(0);
+		final L2ReadBoxedOperand second = instruction.operand(1);
+		final L2PcOperand ifGreater = instruction.operand(2);
+		final L2PcOperand ifNotGreater = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(valueReg);
+		builder.append(first.registerString());
 		builder.append(" > ");
-		builder.append(secondReg);
+		builder.append(second.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -105,16 +103,14 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister firstReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister secondReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final L2PcOperand ifTrue = instruction.pcAt(2);
-		final L2PcOperand ifFalse = instruction.pcAt(3);
+		final L2ReadBoxedOperand first = instruction.operand(0);
+		final L2ReadBoxedOperand second = instruction.operand(1);
+		final L2PcOperand ifGreater = instruction.operand(2);
+		final L2PcOperand ifNotGreater = instruction.operand(3);
 
 		// :: comparison = first.numericCompare(second);
-		translator.load(method, firstReg);
-		translator.load(method, secondReg);
+		translator.load(method, first.register());
+		translator.load(method, second.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Number.class),
@@ -129,6 +125,7 @@ extends L2ConditionalJump
 			"isMore",
 			getMethodDescriptor(BOOLEAN_TYPE),
 			false);
-		emitBranch(translator, method, instruction, IFNE, ifTrue, ifFalse);
+		emitBranch(
+			translator, method, instruction, IFNE, ifGreater, ifNotGreater);
 	}
 }

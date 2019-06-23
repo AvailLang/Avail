@@ -133,7 +133,7 @@ public abstract class L2ControlFlowOperation extends L2Operation
 			new ArrayList<>(labelOperandIndices.length);
 		for (final int labelOperandIndex : labelOperandIndices)
 		{
-			edges.add(instruction.pcAt(labelOperandIndex));
+			edges.add(instruction.operand(labelOperandIndex));
 		}
 		return edges;
 	}

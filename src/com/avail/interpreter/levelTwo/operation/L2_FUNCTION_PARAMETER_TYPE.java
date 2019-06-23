@@ -39,10 +39,9 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
@@ -91,11 +90,9 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand functionReg =
-			instruction.readBoxedRegisterAt(0);
-		final int paramIndex = instruction.intImmediateAt(1);
-		final L2WriteBoxedOperand outputParamTypeReg =
-			instruction.writeBoxedRegisterAt(2);
+		final L2ReadBoxedOperand functionReg = instruction.operand(0);
+		final L2IntImmediateOperand paramIndex = instruction.operand(1);
+		final L2WriteBoxedOperand outputParamTypeReg = instruction.operand(2);
 
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
@@ -107,7 +104,7 @@ extends L2Operation
 			final A_Type functionType = function.code().functionType();
 			registerSet.constantAtPut(
 				outputParamTypeReg.register(),
-				functionType.argsTupleType().typeAtIndex(paramIndex),
+				functionType.argsTupleType().typeAtIndex(paramIndex.value),
 				instruction);
 			return;
 		}
@@ -118,11 +115,12 @@ extends L2Operation
 			final L2Instruction source = sources.get(0);
 			if (source.operation() == L2_CREATE_FUNCTION.instance)
 			{
-				final A_RawFunction code = sources.get(0).constantAt(0);
+				final A_RawFunction code =
+					L2_CREATE_FUNCTION.constantRawFunctionOf(source);
 				final A_Type functionType = code.functionType();
 				registerSet.constantAtPut(
 					outputParamTypeReg.register(),
-					functionType.argsTupleType().typeAtIndex(paramIndex),
+					functionType.argsTupleType().typeAtIndex(paramIndex.value),
 					instruction);
 				return;
 			}
@@ -139,23 +137,21 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand functionReg =
-			instruction.readBoxedRegisterAt(0);
-		final int paramIndex = instruction.intImmediateAt(1);
-		final L2WriteBoxedOperand outputParamTypeReg =
-			instruction.writeBoxedRegisterAt(2);
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
+		final L2WriteBoxedOperand parameterType = instruction.operand(2);
 
 		@Nullable A_Type functionType = null;
-		if (registerSet.hasConstantAt(functionReg.register()))
+		if (registerSet.hasConstantAt(function.register()))
 		{
 			final A_Function constantFunction =
-				registerSet.constantAt(functionReg.register());
+				registerSet.constantAt(function.register());
 			functionType = constantFunction.code().functionType();
 		}
 		else
 		{
 			final RegisterState state =
-				registerSet.stateForReading(functionReg.register());
+				registerSet.stateForReading(function.register());
 			final List<L2Instruction> sources = state.sourceInstructions();
 			if (sources.size() == 1)
 			{
@@ -166,7 +162,9 @@ extends L2Operation
 					// The creation of the function is visible.  We can get to
 					// the code, which gives a precise functionType (a kind, not
 					// all the way down to the instance type).
-					final A_RawFunction code = closeInstruction.constantAt(0);
+					final A_RawFunction code =
+						L2_CREATE_FUNCTION.constantRawFunctionOf(
+							closeInstruction);
 					functionType = code.functionType();
 				}
 			}
@@ -176,11 +174,11 @@ extends L2Operation
 			// The exact function type (at least to kind) is known statically.
 			// Replace this instruction with a constant move.
 			final A_Type paramType =
-				functionType.argsTupleType().typeAtIndex(paramIndex);
+				functionType.argsTupleType().typeAtIndex(parameterIndex.value);
 			generator.addInstruction(
 				L2_MOVE_CONSTANT.boxed,
 				new L2ConstantOperand(paramType),
-				outputParamTypeReg);
+				parameterType);
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, generator);
@@ -193,18 +191,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand function = instruction.readBoxedRegisterAt(0);
-		final int paramIndex = instruction.intImmediateAt(1);
-		final String outputParamTypeReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
+		final L2WriteBoxedOperand parameterType = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(outputParamTypeReg);
+		builder.append(parameterType.registerString());
 		builder.append(" ← ");
-		builder.append(function);
+		builder.append(function.registerString());
 		builder.append('[');
-		builder.append(paramIndex);
+		builder.append(parameterIndex.value);
 		builder.append(']');
 	}
 
@@ -214,15 +211,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister functionReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final int paramIndex = instruction.intImmediateAt(1);
-		final L2BoxedRegister outputParamTypeReg =
-			instruction.writeBoxedRegisterAt(2).register();
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
+		final L2WriteBoxedOperand parameterType = instruction.operand(2);
 
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)
-		translator.load(method, functionReg);
+		translator.load(method, function.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Function.class),
@@ -241,13 +236,13 @@ extends L2Operation
 			"argsTupleType",
 			getMethodDescriptor(getType(A_Type.class)),
 			true);
-		translator.literal(method, paramIndex);
+		translator.literal(method, parameterIndex.value);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Type.class),
 			"typeAtIndex",
 			getMethodDescriptor(getType(A_Type.class), INT_TYPE),
 			true);
-		translator.store(method, outputParamTypeReg);
+		translator.store(method, parameterType.register());
 	}
 }

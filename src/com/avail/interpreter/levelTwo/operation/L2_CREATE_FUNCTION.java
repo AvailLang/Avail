@@ -39,12 +39,12 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -52,7 +52,6 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
@@ -94,34 +93,34 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadBoxedOperand> outerRegs =
-			instruction.readVectorRegisterAt(1);
-		final L2WriteBoxedOperand newFunctionReg =
-			instruction.writeBoxedRegisterAt(2);
+		final L2ConstantOperand code = instruction.operand(0);
+		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
+		final L2WriteBoxedOperand function = instruction.operand(2);
 
 		registerSet.typeAtPut(
-			newFunctionReg.register(), code.functionType(), instruction);
-		if (registerSet.allRegistersAreConstant(outerRegs))
+			function.register(), code.object.functionType(), instruction);
+		if (registerSet.allRegistersAreConstant(outers.elements()))
 		{
 			// This can be replaced with a statically constructed function
 			// during regeneration, but for now capture the exact function that
 			// will be constructed.
-			final int numOuters = outerRegs.size();
-			assert numOuters == code.numOuters();
-			final A_Function function = createExceptOuters(code, numOuters);
+			final int numOuters = outers.elements().size();
+			assert numOuters == code.object.numOuters();
+			final A_Function newFunction =
+				createExceptOuters(code.object, numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
-				function.outerVarAtPut(
+				newFunction.outerVarAtPut(
 					i,
-					registerSet.constantAt(outerRegs.get(i - 1).register()));
+					registerSet.constantAt(
+						outers.elements().get(i - 1).register()));
 			}
 			registerSet.constantAtPut(
-				newFunctionReg.register(), function, instruction);
+				function.register(), newFunction, instruction);
 		}
 		else
 		{
-			registerSet.removeConstantAt(newFunctionReg.register());
+			registerSet.removeConstantAt(function.register());
 		}
 	}
 
@@ -134,18 +133,18 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		assert this == instruction.operation();
-		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadBoxedOperand> outerRegs =
-			instruction.readVectorRegisterAt(1);
-//		final int newFunctionRegIndex =
-//			instruction.writeBoxedRegisterAt(2).finalIndex();
+		final L2ConstantOperand code = instruction.operand(0);
+		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
+		final L2WriteBoxedOperand function = instruction.operand(2);
 
-		final L2ReadBoxedOperand originalRead = outerRegs.get(outerIndex - 1);
+		final L2ReadBoxedOperand originalRead =
+			outers.elements().get(outerIndex - 1);
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
 		final TypeRestriction intersection =
 			originalRead.restriction().intersectionWithType(
-				outerType.typeIntersection(code.outerTypeAt(outerIndex)));
+				outerType.typeIntersection(
+					code.object.outerTypeAt(outerIndex)));
 		assert !intersection.type.isBottom();
 
 		final L2ValueManifest manifest = generator.currentManifest();
@@ -190,7 +189,26 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.constantAt(0);
+		final L2ConstantOperand constant = instruction.operand(0);
+		return constant.object;
+	}
+
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the constant
+	 * {@link A_RawFunction} that is closed into a function by the instruction.
+	 *
+	 * @param instruction
+	 *        The function-closing instruction to examine.
+	 * @return The constant {@link A_RawFunction} that is closed by the
+	 *         instruction.
+	 */
+	public static A_RawFunction constantRawFunctionOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation() instanceof L2_CREATE_FUNCTION;
+		final L2ConstantOperand constant = instruction.operand(0);
+		return constant.object;
 	}
 
 	@Override
@@ -200,21 +218,19 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand code = instruction.operand(0);
-		final List<L2ReadBoxedOperand> outerRegs =
-			instruction.readVectorRegisterAt(1);
-		final String newFunctionReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
+		final L2ConstantOperand code = instruction.operand(0);
+		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
+		final L2WriteBoxedOperand function = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(newFunctionReg);
+		builder.append(function.registerString());
 		builder.append(" ← ");
 		String decompiled = code.toString();
-		for (int i = 0, limit = outerRegs.size(); i < limit; i++)
+		for (int i = 0, limit = outers.elements().size(); i < limit; i++)
 		{
 			decompiled = decompiled.replace(
-				"Outer#" + (i + 1), outerRegs.get(i).toString());
+				"Outer#" + (i + 1), outers.elements().get(i).toString());
 		}
 		builder.append(increaseIndentation(decompiled, 1));
 	}
@@ -225,21 +241,19 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadBoxedOperand> outerRegs =
-			instruction.readVectorRegisterAt(1);
-		final L2BoxedRegister newFunctionReg =
-			instruction.writeBoxedRegisterAt(2).register();
+		final L2ConstantOperand code = instruction.operand(0);
+		final L2ReadBoxedVectorOperand outerRegs = instruction.operand(1);
+		final L2WriteBoxedOperand newFunctionReg = instruction.operand(2);
 
-		final int numOuters = outerRegs.size();
-		assert numOuters == code.numOuters();
+		final int numOuters = outerRegs.elements().size();
+		assert numOuters == code.object.numOuters();
 
-		translator.literal(method, code);
+		translator.literal(method, code.object);
 		switch (numOuters)
 		{
 			case 1:
 			{
-				translator.load(method, outerRegs.get(0).register());
+				translator.load(method, outerRegs.registers().get(0));
 				method.visitMethodInsn(
 					INVOKESTATIC,
 					getInternalName(FunctionDescriptor.class),
@@ -253,8 +267,8 @@ extends L2Operation
 			}
 			case 2:
 			{
-				translator.load(method, outerRegs.get(0).register());
-				translator.load(method, outerRegs.get(1).register());
+				translator.load(method, outerRegs.registers().get(0));
+				translator.load(method, outerRegs.registers().get(1));
 				method.visitMethodInsn(
 					INVOKESTATIC,
 					getInternalName(FunctionDescriptor.class),
@@ -269,9 +283,9 @@ extends L2Operation
 			}
 			case 3:
 			{
-				translator.load(method, outerRegs.get(0).register());
-				translator.load(method, outerRegs.get(1).register());
-				translator.load(method, outerRegs.get(2).register());
+				translator.load(method, outerRegs.registers().get(0));
+				translator.load(method, outerRegs.registers().get(1));
+				translator.load(method, outerRegs.registers().get(2));
 				method.visitMethodInsn(
 					INVOKESTATIC,
 					getInternalName(FunctionDescriptor.class),
@@ -303,7 +317,8 @@ extends L2Operation
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
 					method.visitInsn(DUP);
 					translator.intConstant(method, i + 1);
-					translator.load(method, outerRegs.get(i).register());
+					translator.load(
+						method, outerRegs.elements().get(i).register());
 					method.visitMethodInsn(
 						INVOKEINTERFACE,
 						getInternalName(A_Function.class),
@@ -318,6 +333,6 @@ extends L2Operation
 			}
 		}
 		// :: newFunction = function;
-		translator.store(method, newFunctionReg);
+		translator.store(method, newFunctionReg.register());
 	}
 }

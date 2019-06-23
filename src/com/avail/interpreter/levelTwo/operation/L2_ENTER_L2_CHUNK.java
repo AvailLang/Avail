@@ -32,10 +32,10 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -44,19 +44,8 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -103,9 +92,11 @@ extends L2Operation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-//		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
-
 		assert this == instruction.operation();
+//		final L2IntImmediateOperand offsetInDefaultChunk =
+//			instruction.operand(0);
+//		final L2CommentOperand comment = instruction.operand(1);
+
 		renderPreamble(instruction, builder);
 	}
 
@@ -115,11 +106,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int offsetInUnoptimizedChunk = instruction.intImmediateAt(0);
+		final L2IntImmediateOperand offsetInDefaultChunk =
+			instruction.operand(0);
+//		final L2CommentOperand comment = instruction.operand(1);
 
 		// :: if (!checkValidity()) {
 		translator.loadInterpreter(method);
-		translator.literal(method, offsetInUnoptimizedChunk);
+		translator.literal(method, offsetInDefaultChunk.value);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),

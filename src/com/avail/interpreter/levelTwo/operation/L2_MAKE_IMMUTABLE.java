@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -109,14 +109,12 @@ extends L2Operation
 		final L2Generator generator)
 	{
 		assert this == instruction.operation();
-		// We don't care if the function is still mutable, since the generated
-		// JVM code will make the outer variable immutable.
-		final L2ReadBoxedOperand read =
-			instruction.readBoxedRegisterAt(0);
-//		final L2WriteBoxedOperand write =
-//			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedOperand read = instruction.operand(0);
+//		final L2WriteBoxedOperand write = instruction.operand(1);
 
-		// Trace it back toward the actual function creation.
+		// Trace it back toward the actual function creation. We don't care if
+		// the function is still mutable, since the generated JVM code will make
+		// the outer variable immutable.
 		final L2Instruction earlierInstruction =
 			read.definitionSkippingMoves(true);
 		return earlierInstruction.operation().extractFunctionOuter(
@@ -134,16 +132,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String inputReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String outputReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedOperand read = instruction.operand(0);
+		final L2WriteBoxedOperand write = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(outputReg);
+		builder.append(write.registerString());
 		builder.append(" ← ");
-		builder.append(inputReg);
+		builder.append(read.registerString());
 	}
 
 	@Override
@@ -152,19 +148,17 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister inputReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister outputReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedOperand read = instruction.operand(0);
+		final L2WriteBoxedOperand write = instruction.operand(1);
 
 		// :: output = input.makeImmutable();
-		translator.load(method, inputReg);
+		translator.load(method, read.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"makeImmutable",
 			getMethodDescriptor(getType(AvailObject.class)),
 			true);
-		translator.store(method, outputReg);
+		translator.store(method, write.register());
 	}
 }

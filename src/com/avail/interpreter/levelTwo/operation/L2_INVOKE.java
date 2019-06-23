@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -113,19 +113,17 @@ extends L2ControlFlowOperation
 		final Set<L2OperandType> desiredTypes,
 		final StringBuilder builder)
 	{
-		final L2ReadBoxedOperand calledFunctionReg =
-			instruction.readBoxedRegisterAt(0);
-		final List<L2ReadBoxedOperand> argsRegsList =
-			instruction.readVectorRegisterAt(1);
-//		final L2PcOperand onNormalReturn = instruction.pcAt(2);
-//		final L2PcOperand onReification = instruction.pcAt(3);
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
+//		final L2PcOperand onReturn = instruction.operand(2);
+//		final L2PcOperand onReification = instruction.operand(3);
 
 		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(calledFunctionReg);
+		builder.append(function.registerString());
 		builder.append("(");
-		builder.append(argsRegsList);
+		builder.append(arguments.elements());
 		builder.append(")");
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
@@ -136,24 +134,22 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister calledFunctionReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final List<L2ReadBoxedOperand> argsRegsList =
-			instruction.readVectorRegisterAt(1);
-		final L2PcOperand onNormalReturn = instruction.pcAt(2);
-		final L2PcOperand onReification = instruction.pcAt(3);
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
+		final L2PcOperand onReturn = instruction.operand(2);
+		final L2PcOperand onReification = instruction.operand(3);
 
 		// :: reifier = interpreter.invoke(
 		// ::   calledFunction,
 		// ::   args)
 		translator.loadInterpreter(method);
-		translator.load(method, calledFunctionReg);
+		translator.load(method, function.register());
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
 			instruction,
-			argsRegsList,
-			onNormalReturn,
+			arguments.elements(),
+			onReturn,
 			onReification);
 	}
 

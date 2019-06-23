@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -46,7 +47,6 @@ import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,87 +114,18 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Copy an existing manifest.  Also intersect the {@link TypeRestriction}s
-	 * with the information in the given {@link PhiRestriction}s.
-	 *
-	 * <p>As a notational convenience, if a {@link PhiRestriction} was
-	 * constructed with {@link L2ReadOperand#inaccessible()}, the corresponding
-	 * semantic value should be *excluded* as invalid.</p>
+	 * Copy an existing manifest.
 	 *
 	 * @param originalManifest
 	 * 	      The original manifest.
-	 * @param phiRestrictions
-	 *        Additional register type and value restrictions to apply along
-	 *        this control flow edge.
 	 */
 	public L2ValueManifest (
-		final L2ValueManifest originalManifest,
-		final PhiRestriction... phiRestrictions)
+		final L2ValueManifest originalManifest)
 	{
 		semanticValueToSynonym.putAll(originalManifest.semanticValueToSynonym);
 		synonymRestrictions.putAll(originalManifest.synonymRestrictions);
 		originalManifest.definitions.forEach(
 			(synonym, list) -> definitions.put(synonym, new ArrayList<>(list)));
-		Arrays.stream(phiRestrictions)
-			.forEach(
-				phiRestriction ->
-				{
-					if (phiRestriction.typeRestriction == null)
-					{
-						// Bottom was given explicitly as the phi restriction,
-						// which is an indication to remove this register as
-						// unassigned along this path.  Note that we should only
-						// remove the semantic value, not the whole synonym.
-						removeSemanticValue(phiRestriction.semanticValue);
-					}
-					else
-					{
-						synonymRestrictions.merge(
-							semanticValueToSynonym.get(
-								phiRestriction.semanticValue),
-							phiRestriction.typeRestriction,
-							TypeRestriction::intersection);
-					}
-				});
-	}
-
-	/**
-	 * Exclude the given {@link L2SemanticValue} from this manifest.
-	 *
-	 * @param semanticValue
-	 *        The {@link L2SemanticValue} that should no longer be mentioned by
-	 *        this manifest.
-	 */
-	public void removeSemanticValue (
-		final L2SemanticValue semanticValue)
-	{
-		if (!hasSemanticValue(semanticValue))
-		{
-			// It already isn't mentioned.
-			return;
-		}
-		final L2Synonym oldSynonym = semanticValueToSynonym(semanticValue);
-		final TypeRestriction oldRestriction =
-			synonymRestrictions.get(oldSynonym);
-		final List<L2WriteOperand<?>> oldDefinitions =
-			definitions.get(oldSynonym);
-		// Erase the old synonym.
-		final Set<L2SemanticValue> values =
-			new HashSet<>(oldSynonym.semanticValues());
-		semanticValueToSynonym.keySet().removeAll(values);
-		synonymRestrictions.remove(oldSynonym);
-		definitions.remove(oldSynonym);
-
-		values.remove(semanticValue);
-		if (values.isEmpty())
-		{
-			// The synonym was a singleton.
-			return;
-		}
-		final L2Synonym newSynonym = new L2Synonym(values);
-		values.forEach(sv -> semanticValueToSynonym.put(sv, newSynonym));
-		synonymRestrictions.put(newSynonym, oldRestriction);
-		definitions.put(newSynonym, oldDefinitions);
 	}
 
 	/**
@@ -566,6 +497,48 @@ public final class L2ValueManifest
 	{
 		synonymRestrictions.put(
 			semanticValueToSynonym(semanticValue), restriction);
+	}
+
+	/**
+	 * Replace the {@link TypeRestriction} associated with the given {@link
+	 * L2SemanticValue}, which must be known by this manifest, with the
+	 * intersection of its current restriction and the given restriction.  Note
+	 * that this also restricts any synonymous semantic values.
+	 *
+	 * @param semanticValue
+	 *        The given {@link L2SemanticValue}.
+	 * @param type
+	 *        The {@link A_Type} to intersect with the synonym.
+	 */
+	public void intersectType (
+		final L2SemanticValue semanticValue,
+		final A_Type type)
+	{
+		final L2Synonym synonym = semanticValueToSynonym(semanticValue);
+		synonymRestrictions.put(
+			synonym,
+			synonymRestrictions.get(synonym).intersectionWithType(type));
+	}
+
+	/**
+	 * Replace the {@link TypeRestriction} associated with the given {@link
+	 * L2SemanticValue}, which must be known by this manifest, with the
+	 * difference between its current restriction and the given restriction.
+	 * Note that this also restricts any synonymous semantic values.
+	 *
+	 * @param semanticValue
+	 *        The given {@link L2SemanticValue}.
+	 * @param type
+	 *        The {@link A_Type} to exclude from the synonym's restriction.
+	 */
+	public void subtractType (
+		final L2SemanticValue semanticValue,
+		final A_Type type)
+	{
+		final L2Synonym synonym = semanticValueToSynonym(semanticValue);
+		synonymRestrictions.put(
+			synonym,
+			synonymRestrictions.get(synonym).minusType(type));
 	}
 
 	/**
@@ -977,7 +950,7 @@ public final class L2ValueManifest
 		final Collection<L2SemanticValue> relatedSemanticValues,
 		final TypeRestriction restriction,
 		final L2ReadVectorOperand<RR, R> sources,
-		final L2_PHI_PSEUDO_OPERATION<R> phiOperation,
+		final L2_PHI_PSEUDO_OPERATION<RR, R> phiOperation,
 		final Function<L2SemanticValue, RR> createReader,
 		final BiFunction<L2SemanticValue, TypeRestriction, L2WriteOperand<R>>
 			createWriter)

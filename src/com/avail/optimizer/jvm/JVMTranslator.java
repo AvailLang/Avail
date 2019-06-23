@@ -283,9 +283,31 @@ public final class JVMTranslator
 
 	/**
 	 * Throw an {@link UnsupportedOperationException}. It is never valid to
-	 * treat an {@link L2Register} as a literal, so this method is marked as
+	 * treat an {@link L2Operand} as a JVM literal, so this method is marked as
 	 * {@linkplain Deprecated} to protect against code cloning and refactoring
 	 * errors by a programmer.
+	 *
+	 * @param method
+	 *        Unused.
+	 * @param operand
+	 *        Unused.
+	 */
+	@SuppressWarnings({
+		"unused",
+		"MethodMayBeStatic",
+		"OverloadedMethodsWithSameNumberOfParameters"
+	})
+	@Deprecated
+	public void literal (final MethodVisitor method, final L2Operand operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * Throw an {@link UnsupportedOperationException}. It is never valid to
+	 * treat an {@link L2Register} as a Java literal, so this method is marked
+	 * as {@linkplain Deprecated} to protect against code cloning and
+	 * refactoring errors by a programmer.
 	 *
 	 * @param method
 	 *        Unused.
@@ -455,7 +477,7 @@ public final class JVMTranslator
 		public void doOperand (final L2PcOperand operand)
 		{
 			labels.computeIfAbsent(
-				operand.targetBlock().offset(),
+				operand.offset(),
 				pc -> new Label());
 		}
 
@@ -1208,7 +1230,7 @@ public final class JVMTranslator
 		final L2Instruction instruction,
 		final L2PcOperand operand)
 	{
-		final int pc = operand.targetBlock().offset();
+		final int pc = operand.offset();
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
 		if (instruction.offset() != pc - 1)
@@ -1252,8 +1274,8 @@ public final class JVMTranslator
 		final LongAdder failureCounter)
 	{
 		final int offset = instruction.offset();
-		final int successPc = success.targetBlock().offset();
-		final int failurePc = failure.targetBlock().offset();
+		final int successPc = success.offset();
+		final int failurePc = failure.offset();
 		if (offset == failurePc - 1)
 		{
 			generateBranch(
@@ -1361,8 +1383,8 @@ public final class JVMTranslator
 		final L2PcOperand failure)
 	{
 		final int offset = instruction.offset();
-		final int successPc = success.targetBlock().offset();
-		final int failurePc = failure.targetBlock().offset();
+		final int successPc = success.offset();
+		final int failurePc = failure.offset();
 		if (offset == failurePc - 1)
 		{
 			// The failure branch targets the next instruction, so just fall

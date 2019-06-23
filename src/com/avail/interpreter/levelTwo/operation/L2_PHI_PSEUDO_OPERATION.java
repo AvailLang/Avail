@@ -38,6 +38,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
@@ -61,7 +63,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Casts.cast;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link
@@ -78,10 +79,13 @@ import static com.avail.utility.Casts.cast;
  * instructions along each incoming edge.</p>
  *
  * @param <R> The kind of {@link L2Register} to merge.
+ * @param <RR> The kind of {@link L2ReadOperand}s to merge.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_PHI_PSEUDO_OPERATION <R extends L2Register>
+public final class L2_PHI_PSEUDO_OPERATION <
+	RR extends L2ReadOperand<R>,
+	R extends L2Register>
 extends L2Operation
 {
 	/**
@@ -112,8 +116,9 @@ extends L2Operation
 	/**
 	 * Initialize the instance used for merging boxed values.
 	 */
-	public static final L2_PHI_PSEUDO_OPERATION<L2BoxedRegister> boxed =
-		new L2_PHI_PSEUDO_OPERATION<>(
+	public static final L2_PHI_PSEUDO_OPERATION<
+			L2ReadBoxedOperand, L2BoxedRegister>
+		boxed = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.boxed,
 			READ_BOXED_VECTOR.is("potential boxed sources"),
 			WRITE_BOXED.is("boxed destination"));
@@ -121,8 +126,9 @@ extends L2Operation
 	/**
 	 * Initialize the instance used for merging boxed values.
 	 */
-	public static final L2_PHI_PSEUDO_OPERATION<L2IntRegister> unboxedInt =
-		new L2_PHI_PSEUDO_OPERATION<>(
+	public static final L2_PHI_PSEUDO_OPERATION<
+			L2ReadIntOperand, L2IntRegister>
+		unboxedInt = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedInt,
 			READ_INT_VECTOR.is("potential int sources"),
 			WRITE_INT.is("int destination"));
@@ -130,8 +136,9 @@ extends L2Operation
 	/**
 	 * Initialize the instance used for merging boxed values.
 	 */
-	public static final L2_PHI_PSEUDO_OPERATION<L2FloatRegister> unboxedFloat =
-		new L2_PHI_PSEUDO_OPERATION<>(
+	public static final L2_PHI_PSEUDO_OPERATION<
+			L2ReadFloatOperand, L2FloatRegister>
+		unboxedFloat = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedFloat,
 			READ_BOXED_VECTOR.is("potential float sources"),
 			WRITE_FLOAT.is("float destination"));
@@ -142,12 +149,10 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final List<? extends L2ReadOperand<?>> inputRegs =
-			instruction.readVectorRegisterAt(0);
-		final L2WriteOperand<?> destinationReg = cast(instruction.operand(1));
+		final L2ReadVectorOperand<RR, R> sources = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
-		final Iterator<? extends L2ReadOperand<?>> iterator =
-			inputRegs.iterator();
+		final Iterator<RR> iterator = sources.elements().iterator();
 		assert iterator.hasNext();
 		TypeRestriction restriction = iterator.next().restriction();
 		while (iterator.hasNext())
@@ -155,14 +160,14 @@ extends L2Operation
 			restriction = restriction.union(iterator.next().restriction());
 		}
 
-		registerSet.removeConstantAt(destinationReg.register());
-		registerSet.removeTypeAt(destinationReg.register());
+		registerSet.removeConstantAt(destination.register());
+		registerSet.removeTypeAt(destination.register());
 		registerSet.typeAtPut(
-			destinationReg.register(), restriction.type, instruction);
+			destination.register(), restriction.type, instruction);
 		if (restriction.constantOrNull != null)
 		{
 			registerSet.constantAtPut(
-				destinationReg.register(),
+				destination.register(),
 				restriction.constantOrNull,
 				instruction);
 		}
@@ -182,22 +187,21 @@ extends L2Operation
 		// The reads in the input vector are from the positionally corresponding
 		// incoming edges, which carry the manifests that should be used to
 		// look up the best source semantic values.
-		final List<? extends L2ReadOperand<?>> oldVector =
-			instruction.readVectorRegisterAt(0);
-		final L2WriteOperand<?> destinationReg = cast(instruction.operand(1));
+		final L2ReadVectorOperand<RR, R> sources = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		final List<L2PcOperand> predecessorEdges =
 			instruction.basicBlock.predecessorEdgesCopy();
-		final int fanIn = oldVector.size();
+		final int fanIn = sources.elements().size();
 		assert fanIn == predecessorEdges.size();
 		for (int i = 0; i < fanIn; i++)
 		{
 			// The read operand should use the corresponding incoming manifest.
-			oldVector.get(i).instructionWasAdded(
+			sources.elements().get(i).instructionWasAdded(
 				instruction,
 				predecessorEdges.get(i).manifest());
 		}
-		destinationReg.instructionWasAdded(instruction, manifest);
+		destination.instructionWasAdded(instruction, manifest);
 	}
 
 	@Override
@@ -218,18 +222,12 @@ extends L2Operation
 	 * @param inputIndex
 	 *        The index to remove.
 	 */
-	public static <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	L2Instruction withoutIndex (
+	public L2Instruction withoutIndex (
 		final L2Instruction instruction,
 		final int inputIndex)
 	{
-		final L2_PHI_PSEUDO_OPERATION<R> operation =
-			cast(instruction.operation());
-		final L2ReadVectorOperand<RR, R> oldVector =
-			cast(instruction.operand(0));
-		final L2WriteOperand<R> destinationReg = cast(instruction.operand(1));
+		final L2ReadVectorOperand<RR, R> oldVector = instruction.operand(0);
+		final L2WriteOperand<R> destinationReg = instruction.operand(1);
 
 		final List<RR> newSources = new ArrayList<>(oldVector.elements());
 		newSources.remove(inputIndex);
@@ -240,13 +238,13 @@ extends L2Operation
 			// Replace the phi function with a simple move.
 			return new L2Instruction(
 				instruction.basicBlock,
-				operation.moveOperation,
+				moveOperation,
 				newSources.get(0),
 				destinationReg);
 		}
 		return new L2Instruction(
 			instruction.basicBlock,
-			instruction.operation(),
+			this,
 			oldVector.clone(newSources),
 			destinationReg);
 	}
@@ -263,24 +261,23 @@ extends L2Operation
 	 * @return A {@link List} of predecessor blocks that supplied the
 	 *         usedRegister as an input to this phi operation.
 	 */
-	public static <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	List<L2BasicBlock> predecessorBlocksForUseOf (
+	public List<L2BasicBlock> predecessorBlocksForUseOf (
 		final L2Instruction instruction,
 		final L2Register usedRegister)
 	{
-		assert instruction.operation() instanceof L2_PHI_PSEUDO_OPERATION;
+		assert this == instruction.operation();
+		final L2ReadVectorOperand<RR, R> sources = instruction.operand(0);
+		final L2WriteOperand<R> destination = instruction.operand(1);
 
-		final List<RR> sources = instruction.readVectorRegisterAt(0);
-		assert sources.size() == instruction.basicBlock.predecessorEdgesCount();
+		assert sources.elements().size()
+			== instruction.basicBlock.predecessorEdgesCount();
 		final Iterator<L2PcOperand> predecessorEdgesIterator =
 			instruction.basicBlock.predecessorEdgesIterator();
 		final List<L2BasicBlock> list = new ArrayList<>();
 		int i = 0;
 		while (predecessorEdgesIterator.hasNext())
 		{
-			if (sources.get(i).register() == usedRegister)
+			if (sources.elements().get(i).register() == usedRegister)
 			{
 				list.add(predecessorEdgesIterator.next().sourceBlock());
 			}
@@ -296,17 +293,15 @@ extends L2Operation
 	 *
 	 * @param <W>
 	 *        The type of the {@link L2WriteOperand}.
-	 * @param <R>
-	 *        The type of {@link L2Register} being written.
 	 * @param instruction
 	 *        The instruction to examine.  It must be a phi operation.
 	 * @return The instruction's destination {@link L2WriteOperand}.
 	 */
-	public static <W extends L2WriteOperand<R>, R extends L2Register>
+	public <W extends L2WriteOperand<R>>
 	W destinationRegisterWrite (final L2Instruction instruction)
 	{
-		assert instruction.operation() instanceof L2_PHI_PSEUDO_OPERATION;
-		return cast(instruction.operand(1));
+		assert this == instruction.operation();
+		return instruction.operand(1);
 	}
 
 	/**
@@ -318,13 +313,11 @@ extends L2Operation
 	 *        The phi instruction.
 	 * @return The instruction's list of sources.
 	 */
-	public static <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	List<RR> sourceRegisterReads (
+	public List<RR> sourceRegisterReads (
 		final L2Instruction instruction)
 	{
-		return instruction.readVectorRegisterAt(0);
+		final L2ReadVectorOperand<RR, R> vector = instruction.operand(0);
+		return vector.elements();
 	}
 
 	@Override

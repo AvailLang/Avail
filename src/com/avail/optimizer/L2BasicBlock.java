@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.avail.utility.Casts.cast;
+
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
  * L2Instruction}s.  It has no incoming jumps except to the start, and has no
@@ -135,6 +137,7 @@ public final class L2BasicBlock
 	 *
 	 * @return The block's {@link List} of {@link L2Instruction}s.
 	 */
+	@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 	public List<L2Instruction> instructions ()
 	{
 		return instructions;
@@ -225,9 +228,10 @@ public final class L2BasicBlock
 				final L2Instruction instruction = instructions.get(i);
 				if (instruction.operation().isPhi())
 				{
+					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+						cast(instruction.operation());
 					final L2Instruction replacement =
-						L2_PHI_PSEUDO_OPERATION.withoutIndex(
-							instruction, index);
+						phiOperation.withoutIndex(instruction, index);
 					instructions.set(i, replacement);
 				}
 				else

@@ -33,13 +33,9 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -137,10 +133,17 @@ public final class L2Instruction
 
 	/**
 	 * Answer the Nth {@link L2Operand} to supply to the operation.
+	 *
+	 * @param index
+	 *        The zero-based operand index.
+	 * @param <O>
+	 *        The specialization of {@link L2Operand} to return.
+	 * @return The specified operand.
 	 */
-	public L2Operand operand (final int index)
+	public <O extends L2Operand>
+	O operand (final int index)
 	{
-		return operands[index];
+		return cast(operands[index]);
 	}
 
 	/**
@@ -254,10 +257,9 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer all possible {@link L2PcOperand}s of this instruction.  These
-	 * edges lead to other {@link L2BasicBlock}s, and carry both the basic slot
-	 * register information and additional {@link PhiRestriction}s for other
-	 * registers that are strengthened along that edge.
+	 * Answer all possible {@link L2PcOperand}s within this instruction.  These
+	 * edges lead to other {@link L2BasicBlock}s, and carry a {@link
+	 * L2ValueManifest}.
 	 *
 	 * <p>This is empty for instructions that don't alter control flow and just
 	 * fall through to the next instruction of the same basic block.</p>
@@ -372,234 +374,6 @@ public final class L2Instruction
 		operation().toString(
 			this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
-	}
-
-	/**
-	 * Extract the constant {@link AvailObject} from the {@link
-	 * L2ConstantOperand} having the specified position in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the constant.
-	 * @return The constant value.
-	 */
-	public AvailObject constantAt (final int operandIndex)
-	{
-		return ((L2ConstantOperand) operand(operandIndex)).object;
-	}
-
-	/**
-	 * Extract the {@link A_Bundle} from the {@link L2SelectorOperand} having
-	 * the specified position in my array of operands.  Should only be used if
-	 * it's known that the constant is in fact an {@link A_Bundle}, and the
-	 * resulting {@link L2Chunk} should be dependent upon changes to its {@link
-	 * A_Method}.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the message bundle.
-	 * @return The message bundle.
-	 */
-	public A_Bundle bundleAt (final int operandIndex)
-	{
-		return ((L2SelectorOperand) operand(operandIndex)).bundle;
-	}
-
-	/**
-	 * Extract the immediate {@code int} from the {@link L2IntImmediateOperand}
-	 * having the specified position in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the immediate value.
-	 * @return The immediate value.
-	 */
-	public int intImmediateAt (final int operandIndex)
-	{
-		return ((L2IntImmediateOperand) operand(operandIndex)).value;
-	}
-
-	/**
-	 * Extract the immediate {@code double} from the {@link
-	 * L2FloatImmediateOperand} having the specified position in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the immediate value.
-	 * @return The immediate value.
-	 */
-	public double floatImmediateAt (final int operandIndex)
-	{
-		return ((L2FloatImmediateOperand) operand(operandIndex)).value;
-	}
-
-	/**
-	 * Extract the {@link L2PcOperand} having the specified position in my array
-	 * of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the {@link L2PcOperand}.
-	 * @return The {@link L2PcOperand} representing the destination {@link
-	 *         L2BasicBlock} that will be reached if this branch direction is
-	 *         taken.
-	 */
-	public L2PcOperand pcAt (final int operandIndex)
-	{
-		return ((L2PcOperand) operand(operandIndex));
-	}
-
-	/**
-	 * Extract the program counter {@code int} from the {@link L2PcOperand}
-	 * having the specified position in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds the program counter value.
-	 * @return An int representing a target offset into a chunk's instructions.
-	 */
-	public int pcOffsetAt (final int operandIndex)
-	{
-		return pcAt(operandIndex).targetBlock().offset();
-	}
-
-	/**
-	 * Extract the {@link Primitive} from the {@link L2PrimitiveOperand} having
-	 * the specified position in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a primitive.
-	 * @return The specified {@link Primitive}.
-	 */
-	public Primitive primitiveAt (final int operandIndex)
-	{
-		return ((L2PrimitiveOperand) operand(operandIndex)).primitive;
-	}
-
-	/**
-	 * Extract the {@link L2ReadOperand} having the specified position in my
-	 * array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a read of an integer register.
-	 * @return The specified {@link L2ReadIntOperand} to read.
-	 */
-	public <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	RR readRegisterAt (final int operandIndex)
-	{
-		return cast(operand(operandIndex));
-	}
-
-	/**
-	 * Extract the {@link L2WriteIntOperand} having the specified position in my
-	 * array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a write of an integer register.
-	 * @return The specified {@link L2WriteIntOperand} to write.
-	 */
-	public <
-		WR extends L2WriteOperand<R>,
-		R extends L2Register>
-	WR writeRegisterAt (final int operandIndex)
-	{
-		return cast(operand(operandIndex));
-	}
-
-	/**
-	 * Extract the {@link L2ReadIntOperand} having the specified position in my
-	 * array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a read of an integer register.
-	 * @return The specified {@link L2ReadIntOperand} to read.
-	 */
-	public L2ReadIntOperand readIntRegisterAt (final int operandIndex)
-	{
-		return (L2ReadIntOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link L2WriteIntOperand} having the specified position in my
-	 * array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a write of an integer register.
-	 * @return The specified {@link L2WriteIntOperand} to write.
-	 */
-	public L2WriteIntOperand writeIntRegisterAt (final int operandIndex)
-	{
-		return (L2WriteIntOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link L2ReadFloatOperand} having the specified position in
-	 * my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a read of a double register.
-	 * @return The specified {@link L2ReadFloatOperand} to read.
-	 */
-	public L2ReadFloatOperand readFloatRegisterAt (final int operandIndex)
-	{
-		return (L2ReadFloatOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link L2WriteFloatOperand} having the specified position in my
-	 * array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a write of a double register.
-	 * @return The specified {@link L2WriteFloatOperand} to write.
-	 */
-	public L2WriteFloatOperand writeFloatRegisterAt (final int operandIndex)
-	{
-		return (L2WriteFloatOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link L2ReadBoxedOperand} having the specified position in
-	 * my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a read of an object register.
-	 * @return The specified {@link L2BoxedRegister} to read.
-	 */
-	public L2ReadBoxedOperand readBoxedRegisterAt (final int operandIndex)
-	{
-		return (L2ReadBoxedOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link L2WriteBoxedOperand} having the specified position
-	 * in my array of operands.
-	 *
-	 * @param operandIndex
-	 *        Which operand holds a write of an object register.
-	 * @return The specified {@code L2WriteBoxedOperand}.
-	 */
-	public L2WriteBoxedOperand writeBoxedRegisterAt (final int operandIndex)
-	{
-		return (L2WriteBoxedOperand) operand(operandIndex);
-	}
-
-	/**
-	 * Extract the {@link List} of {@link L2ReadOperand}s from the {@link
-	 * L2ReadVectorOperand} having the specified position in my array of
-	 * operands.
-	 *
-	 * @param <RR>
-	 *        The type of {@link L2ReadOperand}s in this vector.
-	 * @param <R>
-	 *        The type of {@link L2Register}s in this vector.
-	 * @param operandIndex
-	 *        Which operand holds a read of a register vector.
-	 * @return The list of {@link L2ReadBoxedOperand}s.
-	 */
-	public <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	List<RR> readVectorRegisterAt (final int operandIndex)
-	{
-		final L2ReadVectorOperand<RR, R> operand = cast(operand(operandIndex));
-		return operand.elements();
 	}
 
 	/**

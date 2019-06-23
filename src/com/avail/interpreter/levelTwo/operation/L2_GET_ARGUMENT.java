@@ -37,7 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -88,15 +89,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String argumentReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
-		final int subscript = instruction.intImmediateAt(0);
-		renderPreamble(instruction, builder);
+		final L2IntImmediateOperand subscript = instruction.operand(0);
+		final L2WriteBoxedOperand argument = instruction.operand(1);
 
+		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(argumentReg);
+		builder.append(argument.registerString());
 		builder.append(" ← arg#");
-		builder.append(subscript);
+		builder.append(subscript.value);
 	}
 
 	@Override
@@ -105,9 +105,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister argumentReg =
-			instruction.writeBoxedRegisterAt(1).register();
-		final int subscript = instruction.intImmediateAt(0);
+		final L2IntImmediateOperand subscript = instruction.operand(0);
+		final L2WriteBoxedOperand argument = instruction.operand(1);
 
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
 		translator.loadInterpreter(method);
@@ -116,7 +115,7 @@ extends L2Operation
 			getInternalName(Interpreter.class),
 			"argsBuffer",
 			getDescriptor(List.class));
-		translator.literal(method, subscript - 1);
+		translator.literal(method, subscript.value - 1);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(List.class),
@@ -124,6 +123,6 @@ extends L2Operation
 			getMethodDescriptor(getType(Object.class), INT_TYPE),
 			true);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, argumentReg);
+		translator.store(method, argument.register());
 	}
 }

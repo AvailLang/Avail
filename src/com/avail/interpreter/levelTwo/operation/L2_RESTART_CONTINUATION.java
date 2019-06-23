@@ -37,8 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -111,11 +110,11 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand continuationReg = instruction.operand(0);
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(continuationReg);
+		builder.append(continuation.registerString());
 	}
 
 	@Override
@@ -124,12 +123,11 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister continuationReg =
-			instruction.readBoxedRegisterAt(0).register();
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
 
 		// :: return interpreter.reifierToRestart(continuation);
 		translator.loadInterpreter(method);
-		translator.load(method, continuationReg);
+		translator.load(method, continuation.register());
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),

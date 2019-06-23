@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -117,18 +117,17 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> registers =
-			instruction.readVectorRegisterAt(0);
+		final L2ReadBoxedVectorOperand continuations = instruction.operand(0);
 
 		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		for (int i = 0, limit = registers.size(); i < limit; i++)
+		for (int i = 0, limit = continuations.elements().size(); i < limit; i++)
 		{
 			// :: reifier.pushContinuation(«register»);
 			if (i < limit - 1)
 			{
 				method.visitInsn(DUP);
 			}
-			translator.load(method, registers.get(i).register());
+			translator.load(method, continuations.elements().get(i).register());
 			method.visitMethodInsn(
 				INVOKEVIRTUAL,
 				getInternalName(StackReifier.class),

@@ -35,13 +35,16 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -77,6 +80,28 @@ extends L2ControlFlowOperation
 	public static final L2_ADD_INT_TO_INT instance = new L2_ADD_INT_TO_INT();
 
 	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadIntOperand augendReg = instruction.operand(0);
+		final L2ReadIntOperand addendReg = instruction.operand(1);
+		final L2WriteIntOperand sumReg = instruction.operand(2);
+		final L2PcOperand inRange = instruction.operand(3);
+		final L2PcOperand outOfRange = instruction.operand(4);
+
+		augendReg.instructionWasAdded(instruction, manifest);
+		addendReg.instructionWasAdded(instruction, manifest);
+		sumReg.instructionWasAdded(instruction, manifest);
+		inRange.instructionWasAdded(instruction, manifest);
+		outOfRange.instructionWasAdded(instruction, manifest);
+
+		inRange.manifest().intersectType(sumReg.semanticValue(), int32());
+		outOfRange.manifest().subtractType(sumReg.semanticValue(), int32());
+	}
+
+	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps if the result doesn't fit in an int.
@@ -90,22 +115,19 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String augendReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String addendReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String sumReg =
-			instruction.writeIntRegisterAt(2).registerString();
-//		final L2PcOperand inRange = instruction.pcAt(3);
-//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand augend = instruction.operand(0);
+		final L2ReadIntOperand addend = instruction.operand(1);
+		final L2WriteIntOperand sum = instruction.operand(2);
+//		final L2PcOperand inRange = instruction.operand(3);
+//		final L2PcOperand outOfRange = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(sumReg);
+		builder.append(sum.registerString());
 		builder.append(" ← ");
-		builder.append(augendReg);
+		builder.append(augend.registerString());
 		builder.append(" + ");
-		builder.append(addendReg);
+		builder.append(addend.registerString());
 		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
 	}
 
@@ -115,19 +137,16 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister augendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister addendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister sumReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2PcOperand inRange = instruction.pcAt(3);
-		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand augendReg = instruction.operand(0);
+		final L2ReadIntOperand addendReg = instruction.operand(1);
+		final L2WriteIntOperand sumReg = instruction.operand(2);
+		final L2PcOperand inRange = instruction.operand(3);
+		final L2PcOperand outOfRange = instruction.operand(4);
 
 		// :: longSum = (long) augend + (long) addend;
-		translator.load(method, augendReg);
+		translator.load(method, augendReg.register());
 		method.visitInsn(I2L);
-		translator.load(method, addendReg);
+		translator.load(method, addendReg.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LADD);
 		method.visitInsn(DUP2);
@@ -141,7 +160,8 @@ extends L2ControlFlowOperation
 		// :: if (longSum != intSum) goto outOfRange;
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeOffset));
+		method.visitJumpInsn(
+			IFNE, translator.labelFor(outOfRange.offset()));
 		// :: else {
 		// ::    sum = intSum;
 		// ::    goto inRange;
@@ -156,7 +176,7 @@ extends L2ControlFlowOperation
 			intSumStart,
 			intSumEnd,
 			intSumLocal);
-		translator.store(method, sumReg);
+		translator.store(method, sumReg.register());
 		translator.jump(method, instruction, inRange);
 	}
 }

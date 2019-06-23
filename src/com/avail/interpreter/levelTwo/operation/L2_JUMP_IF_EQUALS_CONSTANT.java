@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -55,7 +54,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -94,10 +92,10 @@ extends L2ConditionalJump
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedOperand reader = instruction.readBoxedRegisterAt(0);
-		final L2ConstantOperand constant = cast(instruction.operand(1));
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand ifNotEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand reader = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
+		final L2PcOperand ifEqual = instruction.operand(2);
+		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
 		reader.instructionWasAdded(instruction, manifest);
@@ -123,17 +121,18 @@ extends L2ConditionalJump
 		final L2Generator generator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand valueReg =
-			instruction.readBoxedRegisterAt(0);
-		final A_BasicObject constant = instruction.constantAt(1);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
 
-		final @Nullable A_BasicObject valueOrNull = valueReg.constantOrNull();
+		final @Nullable A_BasicObject valueOrNull = value.constantOrNull();
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
-			return valueOrNull.equals(constant) ? AlwaysTaken : NeverTaken;
+			return valueOrNull.equals(constant.object)
+				? AlwaysTaken
+				: NeverTaken;
 		}
-		if (!constant.isInstanceOf(valueReg.type()))
+		if (!constant.object.isInstanceOf(value.type()))
 		{
 			// They can't be equal.
 			return NeverTaken;
@@ -149,17 +148,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final A_BasicObject constant = instruction.constantAt(1);
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand ifUnequal = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
+//		final L2PcOperand ifEqual = instruction.operand(2);
+//		final L2PcOperand ifUnequal = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(valueReg);
+		builder.append(value.registerString());
 		builder.append(" = ");
-		builder.append(constant);
+		builder.append(constant.object);
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -169,16 +167,15 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister valueReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final A_BasicObject constant = instruction.constantAt(1);
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand ifUnequal = instruction.pcAt(3);
+		final L2ReadBoxedOperand value = instruction.operand(0);
+		final L2ConstantOperand constant = instruction.operand(1);
+		final L2PcOperand ifEqual = instruction.operand(2);
+		final L2PcOperand ifUnequal = instruction.operand(3);
 
 		// :: if (value.equals(constant)) goto ifEqual;
 		// :: else goto ifUnequal;
-		translator.load(method, valueReg);
-		translator.literal(method, constant);
+		translator.load(method, value.register());
+		translator.literal(method, constant.object);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),

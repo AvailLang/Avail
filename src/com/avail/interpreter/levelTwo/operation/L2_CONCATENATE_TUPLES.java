@@ -39,8 +39,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -91,27 +91,26 @@ extends L2Operation
 	{
 		// Approximate it for now.  If testing the return type dynamically
 		// becomes a bottleneck, we can improve this bound.
-		final List<L2ReadBoxedOperand> vector =
-			instruction.readVectorRegisterAt(0);
-		final L2WriteBoxedOperand targetTupleReg =
-			instruction.writeBoxedRegisterAt(1);
+		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
+		final L2WriteBoxedOperand output = instruction.operand(1);
 
-		if (vector.isEmpty())
+		if (tuples.elements().isEmpty())
 		{
 			registerSet.constantAtPut(
-				targetTupleReg.register(),
+				output.register(),
 				emptyTuple(),
 				instruction);
 			return;
 		}
-		int index = vector.size() - 1;
-		A_Type resultType = vector.get(index).type();
+		int index = tuples.elements().size() - 1;
+		A_Type resultType = tuples.elements().get(index).type();
 		while (--index >= 0)
 		{
-			resultType = concatenatingAnd(vector.get(index).type(), resultType);
+			resultType = concatenatingAnd(
+				tuples.elements().get(index).type(), resultType);
 		}
 		registerSet.constantAtPut(
-			targetTupleReg.register(), resultType, instruction);
+			output.register(), resultType, instruction);
 	}
 
 	@Override
@@ -121,23 +120,21 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final List<L2ReadBoxedOperand> vector =
-			instruction.readVectorRegisterAt(0);
-		final String targetTupleReg =
-			instruction.writeBoxedRegisterAt(1).registerString();
+		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
+		final L2WriteBoxedOperand output = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(targetTupleReg);
+		builder.append(output.registerString());
 		builder.append(" ← ");
-		for (int i = 0, limit = vector.size(); i < limit; i++)
+		for (int i = 0, limit = tuples.elements().size(); i < limit; i++)
 		{
 			if (i > 0)
 			{
 				builder.append(" ++ ");
 			}
-			final L2ReadBoxedOperand element = vector.get(i);
-			builder.append(element);
+			final L2ReadBoxedOperand element = tuples.elements().get(i);
+			builder.append(element.registerString());
 		}
 	}
 
@@ -147,12 +144,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final List<L2ReadBoxedOperand> vector =
-			instruction.readVectorRegisterAt(0);
-		final L2BoxedRegister targetTupleReg =
-			instruction.writeBoxedRegisterAt(1).register();
+		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
+		final L2WriteBoxedOperand output = instruction.operand(1);
 
-		final int tupleCount = vector.size();
+		final List<L2ReadBoxedOperand> elements = tuples.elements();
+		final int tupleCount = elements.size();
 		if (tupleCount == 0)
 		{
 			method.visitMethodInsn(
@@ -164,10 +160,10 @@ extends L2Operation
 		}
 		else
 		{
-			translator.load(method, vector.get(0).register());
+			translator.load(method, elements.get(0).register());
 			for (int i = 1; i < tupleCount; i++)
 			{
-				translator.load(method, vector.get(i).register());
+				translator.load(method, elements.get(i).register());
 				translator.intConstant(method, 1);
 				method.visitMethodInsn(
 					INVOKEINTERFACE,
@@ -180,6 +176,6 @@ extends L2Operation
 				true);
 			}
 		}
-		translator.load(method, targetTupleReg);
+		translator.store(method, output.register());
 	}
 }

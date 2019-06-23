@@ -211,8 +211,8 @@ public final class P_CastIntoElse extends Primitive
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				valueRead,
 				new L2ConstantOperand(typeTest),
-				edgeTo(castBlock, valueRead.restrictedToType(typeTest)),
-				edgeTo(elseBlock, valueRead.restrictedWithoutType(typeTest)));
+				edgeTo(castBlock),
+				edgeTo(elseBlock));
 		}
 		else
 		{

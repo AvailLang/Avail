@@ -38,10 +38,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -54,7 +52,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
@@ -117,15 +114,14 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand continuationReg = instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedVectorOperand argumentsVector =
-			cast(instruction.operand(1));
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(continuationReg);
+		builder.append(continuation.registerString());
 		builder.append("(");
-		builder.append(argumentsVector);
+		builder.append(arguments.elements());
 		builder.append(")");
 	}
 
@@ -135,16 +131,14 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister continuationReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final List<L2ReadBoxedOperand> argumentsVector =
-			instruction.readVectorRegisterAt(1);
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
 
 		// :: return interpreter.reifierToRestart(
 		// ::    continuation, argsArray);
 		translator.loadInterpreter(method);
-		translator.load(method, continuationReg);
-		translator.objectArray(method, argumentsVector, AvailObject.class);
+		translator.load(method, continuation.register());
+		translator.objectArray(method, arguments.elements(), AvailObject.class);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),

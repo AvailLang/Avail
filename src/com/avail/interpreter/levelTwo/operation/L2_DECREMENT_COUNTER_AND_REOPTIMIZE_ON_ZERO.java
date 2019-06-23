@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
@@ -48,15 +49,8 @@ import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.optimizer.L1Translator.translateToLevelTwo;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.optimizationLevel;
 import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
@@ -96,7 +90,8 @@ extends L2Operation
 	@Override
 	public boolean isEntryPoint (final L2Instruction instruction)
 	{
-		return instruction.intImmediateAt(1) != 0;
+		final L2IntImmediateOperand immediate = instruction.operand(1);
+		return immediate.value != 0;
 	}
 
 	@ReferencedInGeneratedCode
@@ -132,13 +127,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int targetOptimizationLevel = instruction.intImmediateAt(0);
-//		final int isEntryPoint = instruction.intImmediateAt(1);
+		final L2IntImmediateOperand optimization = instruction.operand(0);
+//		final L2IntImmediateOperand isEntryPoint = instruction.operand(1);
 
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		translator.loadInterpreter(method);
-		translator.literal(method, targetOptimizationLevel);
+		translator.literal(method, optimization.value);
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class),

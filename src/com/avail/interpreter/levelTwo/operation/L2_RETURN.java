@@ -37,8 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -100,11 +99,11 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand valueReg = instruction.operand(0);
+		final L2ReadBoxedOperand value = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(valueReg);
+		builder.append(value.registerString());
 	}
 
 	@Override
@@ -113,13 +112,12 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister valueReg =
-			instruction.readBoxedRegisterAt(0).register();
+		final L2ReadBoxedOperand value = instruction.operand(0);
 
 		// :: interpreter.latestResult(value);
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
-		translator.load(method, valueReg);
+		translator.load(method, value.register());
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),

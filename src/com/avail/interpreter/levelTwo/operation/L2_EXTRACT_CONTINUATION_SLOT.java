@@ -36,7 +36,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -79,19 +81,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String continuationReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final int slotIndex = instruction.intImmediateAt(1);
-		final String explodedSlotReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2IntImmediateOperand slotIndex = instruction.operand(1);
+		final L2WriteBoxedOperand slotValue = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(explodedSlotReg);
+		builder.append(slotValue.registerString());
 		builder.append(" ← ");
-		builder.append(continuationReg);
+		builder.append(continuation.registerString());
 		builder.append('[');
-		builder.append(slotIndex);
+		builder.append(slotIndex.value);
 		builder.append(']');
 	}
 
@@ -102,21 +102,19 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		// Extract a single slot from the given continuation.
-		final L2BoxedRegister continuationReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final int slotIndex = instruction.intImmediateAt(1);
-		final L2BoxedRegister explodedSlotReg =
-			instruction.writeBoxedRegisterAt(2).register();
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		final L2IntImmediateOperand slotIndex = instruction.operand(1);
+		final L2WriteBoxedOperand slotValue = instruction.operand(2);
 
 		// :: «slot[i]» = continuation.argOrLocalOrStackAt(«slotIndex»);
-		translator.load(method, continuationReg);
-		translator.intConstant(method, slotIndex);
+		translator.load(method, continuation.register());
+		translator.intConstant(method, slotIndex.value);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Continuation.class),
 			"argOrLocalOrStackAt",
 			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
 			true);
-		translator.store(method, explodedSlotReg);
+		translator.store(method, slotValue.register());
 	}
 }

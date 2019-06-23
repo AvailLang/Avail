@@ -270,12 +270,8 @@ extends Primitive
 					intA,
 					intB,
 					tempWriter,
-					edgeTo(
-						success,
-						tempWriter.restrictedToType(int32())),
-					edgeTo(
-						fallback,
-						tempWriter.restrictedWithoutType(int32())));
+					edgeTo(success),
+					edgeTo(fallback));
 				generator.startBlock(success);
 			}
 			// Even though we're just using the boxed value again, the unboxed

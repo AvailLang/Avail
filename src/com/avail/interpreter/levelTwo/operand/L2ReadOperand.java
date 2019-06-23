@@ -48,10 +48,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
-import static java.util.Collections.emptySet;
 
 /**
  * {@code L2ReadOperand} abstracts the capabilities of actual register read
@@ -259,100 +257,6 @@ extends L2Operand
 			builder.append(restriction.suffixString());
 		}
 		return builder.toString();
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.
-	 *
-	 * @param restrictedType
-	 *        The type that the register was successfully tested against along
-	 *        this branch.
-	 */
-	public final PhiRestriction restrictedToType (final A_Type restrictedType)
-	{
-		return restrictedTo(restriction.intersectionWithType(restrictedType));
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.  The exact value is supplied.
-	 *
-	 * @param restrictedConstant
-	 *        The exact value that the register will hold along this branch.
-	 */
-	public final PhiRestriction restrictedToValue (
-		final A_BasicObject restrictedConstant)
-	{
-		final @Nullable A_Type type = restriction.type;
-		assert restrictedConstant.isInstanceOf(type)
-			: "This register has no possible values.";
-		restrictedConstant.makeImmutable();
-		// Use -1 (all bits set) for the flags, to ensure the type of register
-		// in which the value is available remains unaffected.
-		return restrictedTo(
-			TypeRestriction.restriction(
-				instanceTypeOrMetaOn(restrictedConstant),
-				restrictedConstant,
-				emptySet(),
-				emptySet(),
-				-1));
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a register's type
-	 * information along a control flow branch.  A type to be excluded is
-	 * provided.
-	 *
-	 * @param excludedType
-	 *        The type of values that the synonym <em>cannot</em> hold along
-	 *        this branch.
-	 */
-	public final PhiRestriction restrictedWithoutType (
-		final A_Type excludedType)
-	{
-		return restrictedTo(restriction.minusType(excludedType));
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a synonym's type
-	 * information along a control flow branch.  A value to exclude from the
-	 * existing type is provided.
-	 *
-	 * @param excludedConstant
-	 *        The value that the synonym <em>cannot</em> hold along this branch.
-	 */
-	public final PhiRestriction restrictedWithoutValue (
-		final A_BasicObject excludedConstant)
-	{
-		return restrictedTo(restriction.minusValue(excludedConstant));
-	}
-
-	/**
-	 * Create a {@code PhiRestriction}, which narrows a synonym's type
-	 * information along a control flow branch.  The given {@link
-	 * TypeRestriction} replaces the operand's restriction along the branch.
-	 *
-	 * @param newRestriction
-	 *        The new restriction to be in effect along this branch.
-	 */
-	public final PhiRestriction restrictedTo (
-		final TypeRestriction newRestriction)
-	{
-		return new PhiRestriction(semanticValue, newRestriction);
-	}
-
-	/**
-	 * Create a {@link PhiRestriction} that indicates the {@link
-	 * L2SemanticValue} has no value here, and should be considered entirely
-	 * inaccessible.
-	 *
-	 * @return A {@link PhiRestriction} that makes the semantic value
-	 *         inaccessible.
-	 */
-	public final PhiRestriction inaccessible ()
-	{
-		return new PhiRestriction(semanticValue, null);
 	}
 
 	/**

@@ -35,7 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -79,20 +80,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String augendReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String addendReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String sumReg =
-			instruction.writeIntRegisterAt(2).registerString();
+		final L2ReadIntOperand augend = instruction.operand(0);
+		final L2ReadIntOperand addend = instruction.operand(1);
+		final L2WriteIntOperand sum = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(sumReg);
+		builder.append(sum.registerString());
 		builder.append(" ← ");
-		builder.append(augendReg);
+		builder.append(augend.registerString());
 		builder.append(" + ");
-		builder.append(addendReg);
+		builder.append(addend.registerString());
 	}
 
 	@Override
@@ -101,17 +99,14 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister augendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister addendReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister sumReg =
-			instruction.writeIntRegisterAt(2).register();
+		final L2ReadIntOperand augend = instruction.operand(0);
+		final L2ReadIntOperand addend = instruction.operand(1);
+		final L2WriteIntOperand sum = instruction.operand(2);
 
 		// :: sum = augend + addend;
-		translator.load(method, augendReg);
-		translator.load(method, addendReg);
+		translator.load(method, augend.register());
+		translator.load(method, addend.register());
 		method.visitInsn(IADD);
-		translator.store(method, sumReg);
+		translator.store(method, sum.register());
 	}
 }

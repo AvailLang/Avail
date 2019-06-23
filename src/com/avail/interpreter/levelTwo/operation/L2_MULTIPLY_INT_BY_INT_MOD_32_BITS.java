@@ -35,7 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -62,8 +63,8 @@ extends L2Operation
 	private L2_MULTIPLY_INT_BY_INT_MOD_32_BITS ()
 	{
 		super(
-			READ_INT.is("multiplier"),
 			READ_INT.is("multiplicand"),
+			READ_INT.is("multiplier"),
 			WRITE_INT.is("product"));
 	}
 
@@ -80,20 +81,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String multiplicandReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String multiplierReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String productReg =
-			instruction.writeIntRegisterAt(2).registerString();
+		final L2ReadIntOperand multiplicand = instruction.operand(0);
+		final L2ReadIntOperand multiplier = instruction.operand(1);
+		final L2WriteIntOperand product = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(productReg);
+		builder.append(product.registerString());
 		builder.append(" ← ");
-		builder.append(multiplicandReg);
+		builder.append(multiplicand.registerString());
 		builder.append(" × ");
-		builder.append(multiplierReg);
+		builder.append(multiplier.registerString());
 	}
 
 	@Override
@@ -102,17 +100,14 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister multiplicandReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister multiplierReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister productReg =
-			instruction.writeIntRegisterAt(2).register();
+		final L2ReadIntOperand multiplicand = instruction.operand(0);
+		final L2ReadIntOperand multiplier = instruction.operand(1);
+		final L2WriteIntOperand product = instruction.operand(2);
 
 		// :: product = multiplicand * multiplier;
-		translator.load(method, multiplicandReg);
-		translator.load(method, multiplierReg);
+		translator.load(method, multiplicand.register());
+		translator.load(method, multiplier.register());
 		method.visitInsn(IMUL);
-		translator.store(method, productReg);
+		translator.store(method, product.register());
 	}
 }

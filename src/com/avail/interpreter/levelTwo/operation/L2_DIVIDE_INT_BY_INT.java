@@ -34,7 +34,9 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -93,26 +95,22 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String dividendReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String divisorReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String quotientReg =
-			instruction.writeIntRegisterAt(2).registerString();
-		final String remainderReg =
-			instruction.writeIntRegisterAt(3).registerString();
-//		final L2PcOperand undefined = instruction.pcAt(4);
-//		final int successIndex = instruction.pcOffsetAt(5);
+		final L2ReadIntOperand dividend = instruction.operand(0);
+		final L2ReadIntOperand divisor = instruction.operand(1);
+		final L2WriteIntOperand quotient = instruction.operand(2);
+		final L2WriteIntOperand remainder = instruction.operand(3);
+//		final L2PcOperand zeroDivisor = instruction.operand(4);
+//		final L2PcOperand success = instruction.operand(5);
 
 		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(quotientReg);
-		builder.append(", ");
-		builder.append(remainderReg);
+		builder.append("quo=");
+		builder.append(quotient.registerString());
+		builder.append(", rem=");
+		builder.append(remainder.registerString());
 		builder.append(" ← ");
-		builder.append(dividendReg);
+		builder.append(dividend.registerString());
 		builder.append(" ÷ ");
-		builder.append(divisorReg);
+		builder.append(divisor.registerString());
 		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
 	}
 
@@ -122,101 +120,96 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister dividendReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister divisorReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister intQuotientReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2IntRegister intRemainderReg =
-			instruction.writeIntRegisterAt(3).register();
-		final int outOfRangeIndex = instruction.pcOffsetAt(4);
-		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
-		final int successIndex = instruction.pcOffsetAt(6);
+		final L2ReadIntOperand dividend = instruction.operand(0);
+		final L2ReadIntOperand divisor = instruction.operand(1);
+		final L2WriteIntOperand quotient = instruction.operand(2);
+		final L2WriteIntOperand remainder = instruction.operand(3);
+		final L2PcOperand zeroDivisor = instruction.operand(4);
+		final L2PcOperand success = instruction.operand(5);
 
 		// :: if (divisor == 0) goto zeroDivisorIndex;
-		translator.load(method, divisorReg);
-		method.visitJumpInsn(IFEQ, translator.labelFor(zeroDivisorIndex));
+		translator.load(method, divisor.register());
+		method.visitJumpInsn(IFEQ, translator.labelFor(zeroDivisor.offset()));
 
 		// a/b for b<0:  use -(a/-b)
 		// :: if (divisor < 0) quotient = -(dividend / -divisor);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		final Label checkDividend = new Label();
 		method.visitJumpInsn(IFGE, checkDividend);
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		method.visitInsn(I2L);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LNEG);
 		method.visitInsn(LDIV);
 		method.visitInsn(LNEG);
-		final int quotient = translator.nextLocal(LONG_TYPE);
-		method.visitVarInsn(LSTORE, quotient);
+		final int quotientLong = translator.nextLocal(LONG_TYPE);
+		method.visitVarInsn(LSTORE, quotientLong);
 		final Label quotientComputed = new Label();
 		method.visitJumpInsn(GOTO, quotientComputed);
 
 		// a/b for a<0, b>0:  use -1-(-1-a)/b
 		// :: else if (dividend < 0)
 		// ::    quotient = -1L - ((-1L - dividend) / divisor);
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		final Label bothNonNegative = new Label();
 		method.visitJumpInsn(IFGE, bothNonNegative);
 		translator.longConstant(method, -1);
 		method.visitInsn(DUP);
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LSUB);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LDIV);
 		method.visitInsn(LSUB);
-		method.visitVarInsn(LSTORE, quotient);
+		method.visitVarInsn(LSTORE, quotientLong);
 		method.visitJumpInsn(GOTO, quotientComputed);
 
 		// :: else quotient = dividend / divisor;
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		method.visitInsn(I2L);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LDIV);
-		method.visitVarInsn(LSTORE, quotient);
+		method.visitVarInsn(LSTORE, quotientLong);
 
 		// Remainder is always non-negative.
 		// :: remainder = dividend - (quotient * divisor);
 		method.visitLabel(quotientComputed);
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		method.visitInsn(I2L);
-		method.visitVarInsn(LLOAD, quotient);
-		translator.load(method, divisorReg);
+		method.visitVarInsn(LLOAD, quotientLong);
+		translator.load(method, divisor.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LMUL);
 		method.visitInsn(LSUB);
-		final int remainder = translator.nextLocal(LONG_TYPE);
-		method.visitVarInsn(LSTORE, remainder);
+		final int remainderLong = translator.nextLocal(LONG_TYPE);
+		method.visitVarInsn(LSTORE, remainderLong);
 
 		// :: if (quotient != (int) quotient) goto outOfRange;
-		method.visitVarInsn(LLOAD, quotient);
+		method.visitVarInsn(LLOAD, quotientLong);
 		method.visitInsn(DUP);
 		method.visitInsn(L2I);
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeIndex));
+		method.visitJumpInsn(IFNE, translator.labelFor(zeroDivisor.offset()));
 		// ::  if (remainder != (int) remainder) goto outOfRange;
-		method.visitVarInsn(LLOAD, remainder);
+		method.visitVarInsn(LLOAD, remainderLong);
 		method.visitInsn(DUP);
 		method.visitInsn(L2I);
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeIndex));
+		method.visitJumpInsn(IFNE, translator.labelFor(zeroDivisor.offset()));
 		// ::    intQuotient = (int) quotient;
-		method.visitVarInsn(LLOAD, quotient);
+		method.visitVarInsn(LLOAD, quotientLong);
 		method.visitInsn(L2I);
-		translator.store(method, intQuotientReg);
+		translator.store(method, quotient.register());
 		// ::    intRemainder = (int) remainder;
-		method.visitVarInsn(LLOAD, remainder);
+		method.visitVarInsn(LLOAD, remainderLong);
 		method.visitInsn(L2I);
-		translator.store(method, intRemainderReg);
+		translator.store(method, remainder.register());
 		// ::    goto success;
-		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 	}
 }

@@ -37,8 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -80,11 +79,11 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand targetReg = instruction.operand(0);
+		final L2WriteBoxedOperand value = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(targetReg);
+		builder.append(value.registerString());
 	}
 
 	@Override
@@ -93,8 +92,7 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister targetReg =
-			instruction.writeBoxedRegisterAt(0).register();
+		final L2WriteBoxedOperand value = instruction.operand(0);
 
 		// :: target = interpreter.latestResult();
 		translator.loadInterpreter(method);
@@ -104,6 +102,6 @@ extends L2Operation
 			"latestResult",
 			getMethodDescriptor(getType(AvailObject.class)),
 			false);
-		translator.store(method, targetReg);
+		translator.store(method, value.register());
 	}
 }

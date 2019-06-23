@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -80,8 +79,7 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand variableReg =
-			instruction.readBoxedRegisterAt(0);
+		final L2ReadBoxedOperand variableReg = instruction.operand(0);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
 		assert registerSet.hasTypeAt(variableReg.register());
@@ -115,12 +113,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister variableReg =
-			instruction.readBoxedRegisterAt(0).register();
+		final L2ReadBoxedOperand variable = instruction.operand(0);
 
 		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();
-		translator.load(method, variableReg);
+		translator.load(method, variable.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Variable.class),

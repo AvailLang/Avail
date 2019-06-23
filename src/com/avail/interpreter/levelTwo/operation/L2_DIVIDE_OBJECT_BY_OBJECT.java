@@ -37,7 +37,8 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -95,26 +96,22 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String dividendReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String divisorReg =
-			instruction.readBoxedRegisterAt(1).registerString();
-		final String quotientReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
-		final String remainderReg =
-			instruction.writeBoxedRegisterAt(3).registerString();
-//		final L2PcOperand undefined = instruction.pcAt(4);
-//		final int successIndex = instruction.pcOffsetAt(5);
+		final L2ReadBoxedOperand dividend = instruction.operand(0);
+		final L2ReadBoxedOperand divisor = instruction.operand(1);
+		final L2WriteBoxedOperand quotient = instruction.operand(2);
+		final L2WriteBoxedOperand remainder = instruction.operand(3);
+//		final L2PcOperand undefined = instruction.operand(4);
+//		final L2PcOperand success = instruction.operand(5);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(quotientReg);
+		builder.append(quotient.registerString());
 		builder.append(", ");
-		builder.append(remainderReg);
+		builder.append(remainder.registerString());
 		builder.append(" ← ");
-		builder.append(dividendReg);
+		builder.append(dividend.registerString());
 		builder.append(" ÷ ");
-		builder.append(divisorReg);
+		builder.append(divisor.registerString());
 		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
 	}
 
@@ -124,16 +121,12 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister dividendReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister divisorReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final L2BoxedRegister quotientReg =
-			instruction.writeBoxedRegisterAt(2).register();
-		final L2BoxedRegister remainderReg =
-			instruction.writeBoxedRegisterAt(3).register();
-		final L2PcOperand undefined = instruction.pcAt(4);
-		final int successIndex = instruction.pcOffsetAt(5);
+		final L2ReadBoxedOperand dividend = instruction.operand(0);
+		final L2ReadBoxedOperand divisor = instruction.operand(1);
+		final L2WriteBoxedOperand quotient = instruction.operand(2);
+		final L2WriteBoxedOperand remainder = instruction.operand(3);
+		final L2PcOperand undefined = instruction.operand(4);
+		final L2PcOperand success = instruction.operand(5);
 
 		// :: try {
 		final Label tryStart = new Label();
@@ -145,9 +138,9 @@ extends L2ControlFlowOperation
 			getInternalName(ArithmeticException.class));
 		method.visitLabel(tryStart);
 		// ::    quotient = dividend.divideCanDestroy(divisor, false);
-		translator.load(method, dividendReg);
+		translator.load(method, dividend.register());
 		method.visitInsn(DUP);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		method.visitInsn(ICONST_0);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
@@ -159,11 +152,11 @@ extends L2ControlFlowOperation
 				BOOLEAN_TYPE),
 			true);
 		method.visitInsn(DUP);
-		translator.store(method, quotientReg);
+		translator.store(method, quotient.register());
 		// ::    remainder = dividend.minusCanDestroy(
 		// ::       quotient.timesCanDestroy(divisor, false),
 		// ::       false);
-		translator.load(method, divisorReg);
+		translator.load(method, divisor.register());
 		method.visitInsn(ICONST_0);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
@@ -184,13 +177,13 @@ extends L2ControlFlowOperation
 				getType(A_Number.class),
 				BOOLEAN_TYPE),
 			true);
-		translator.store(method, remainderReg);
+		translator.store(method, remainder.register());
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// ArithmeticException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(successIndex));
+		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 		// :: } catch (ArithmeticException e) {
 		method.visitLabel(catchStart);
 		method.visitInsn(POP);

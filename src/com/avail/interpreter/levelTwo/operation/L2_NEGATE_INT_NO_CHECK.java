@@ -36,7 +36,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -50,7 +51,7 @@ import static org.objectweb.asm.Opcodes.INEG;
  * Extract an {@code int} from the specified register and negate it. The result
  * must also be an {@code int}; the result is not checked for overflow. If
  * overflow detection is required, then use {@link
- * L2_SUBTRACT_INT_MINUS_INT_CONSTANT} with an {@linkplain L2IntImmediateOperand
+ * L2_SUBTRACT_INT_CONSTANT_MINUS_INT} with an {@linkplain L2IntImmediateOperand
  * immediate} {@code 0} instead.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -87,16 +88,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String valueReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String negationReg =
-			instruction.writeIntRegisterAt(1).registerString();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteIntOperand destination = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(negationReg);
+		builder.append(destination.registerString());
 		builder.append(" ← -");
-		builder.append(valueReg);
+		builder.append(source.registerString());
 	}
 
 	@Override
@@ -105,14 +104,12 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister valueReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister negationReg =
-			instruction.writeIntRegisterAt(1).register();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteIntOperand destination = instruction.operand(1);
 
 		// :: negationReg = -valueReg;
-		translator.load(method, valueReg);
+		translator.load(method, source.register());
 		method.visitInsn(INEG);
-		translator.store(method, negationReg);
+		translator.store(method, destination.register());
 	}
 }

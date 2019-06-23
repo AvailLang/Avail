@@ -36,6 +36,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.StackReifier;
@@ -132,27 +133,30 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final boolean actuallyReify = instruction.intImmediateAt(0) == 1;
-		final boolean processInterrupt = instruction.intImmediateAt(1) == 1;
+		final L2IntImmediateOperand actuallyReify = instruction.operand(0);
+		final L2IntImmediateOperand processInterrupt = instruction.operand(1);
+		final L2IntImmediateOperand categoryIndex = instruction.operand(2);
+//		final L2PcOperand onReification = instruction.operand(3);
+
 		final StatisticCategory category =
-			StatisticCategory.values()[instruction.intImmediateAt(2)];
+			StatisticCategory.values()[categoryIndex.value];
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		//noinspection DynamicRegexReplaceableByCompiledPattern
 		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
-		if (actuallyReify || processInterrupt)
+		if (actuallyReify.value != 0 || processInterrupt.value != 0)
 		{
 			builder.append(" [");
-			if (actuallyReify)
+			if (actuallyReify.value != 0)
 			{
 				builder.append("actually reify");
-				if (processInterrupt)
+				if (processInterrupt.value != 0)
 				{
 					builder.append(", ");
 				}
 			}
-			if (processInterrupt)
+			if (processInterrupt.value != 0)
 			{
 				builder.append("process interrupt");
 			}
@@ -176,17 +180,17 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final int actuallyReify = instruction.intImmediateAt(0);
-		final int processInterrupt = instruction.intImmediateAt(1);
-		final int categoryIndex = instruction.intImmediateAt(2);
-		final L2PcOperand reify = instruction.pcAt(3);
+		final L2IntImmediateOperand actuallyReify = instruction.operand(0);
+		final L2IntImmediateOperand processInterrupt = instruction.operand(1);
+		final L2IntImmediateOperand categoryIndex = instruction.operand(2);
+		final L2PcOperand onReification = instruction.operand(3);
 
 		// :: reifier = interpreter.reify(
 		// ::    actuallyReify, processInterrupt, categoryIndex);
 		translator.loadInterpreter(method);
-		translator.literal(method, actuallyReify);
-		translator.literal(method, processInterrupt);
-		translator.literal(method, categoryIndex);
+		translator.literal(method, actuallyReify.value);
+		translator.literal(method, processInterrupt.value);
+		translator.literal(method, categoryIndex.value);
 		method.visitMethodInsn(
 			INVOKEVIRTUAL,
 			getInternalName(Interpreter.class),
@@ -199,6 +203,6 @@ extends L2ControlFlowOperation
 			false);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: goto reify;
-		translator.jump(method, instruction, reify);
+		translator.jump(method, instruction, onReification);
 	}
 }

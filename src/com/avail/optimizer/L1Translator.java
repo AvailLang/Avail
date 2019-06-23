@@ -1586,12 +1586,8 @@ public final class L1Translator
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				argRead,
 				new L2ConstantOperand(typeToTest),
-				edgeTo(
-					memento.passCheckBasicBlock,
-					argRead.restrictedToType(typeToTest)),
-				edgeTo(
-					memento.failCheckBasicBlock,
-					argRead.restrictedWithoutType(typeToTest)));
+				edgeTo(memento.passCheckBasicBlock),
+				edgeTo(memento.failCheckBasicBlock));
 			return memento;
 		}
 
@@ -2044,12 +2040,8 @@ public final class L1Translator
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				uncheckedValueRead,
 				new L2ConstantOperand(expectedType),
-				edgeTo(
-					passedCheck,
-					uncheckedValueRead.restrictedToType(expectedType)),
-				edgeTo(
-					failedCheck,
-					uncheckedValueRead.restrictedWithoutType(expectedType)));
+				edgeTo(passedCheck),
+				edgeTo(failedCheck));
 		}
 
 		// The type check failed, so report it.
@@ -2378,7 +2370,9 @@ public final class L1Translator
 				"reify in method lookup failure handler for "
 					+ callSiteHelper.quotedBundleName);
 		final L2WriteBoxedOperand errorCodeWrite =
-			generator.boxedWriteTemp(restrictionForType(TOP.o(), BOXED));
+			generator.boxedWriteTemp(
+				restrictionForType(
+					L2_LOOKUP_BY_VALUES.lookupErrorsType, BOXED));
 
 		final List<TypeRestriction> argumentRestrictions =
 			new ArrayList<>(nArgs);
@@ -2406,27 +2400,6 @@ public final class L1Translator
 		final L2WriteBoxedOperand functionWrite =
 			generator.boxedWriteTemp(
 				restrictionForType(functionTypeUnion, BOXED));
-		final List<PhiRestriction> phisOnSuccess = new ArrayList<>();
-		phisOnSuccess.add(functionWrite.restrictedToType(functionTypeUnion));
-		phisOnSuccess.add(errorCodeWrite.inaccessible());
-		final A_Type argsTupleUnion = possibleFunctions.stream()
-			.map(fn -> fn.code().functionType().argsTupleType())
-			.reduce(bottom(), A_Type::typeUnion);
-		for (int i = 0; i < nArgs; i++)
-		{
-			final L2ReadBoxedOperand arg = arguments.get(i);
-			final TypeRestriction argRestriction =
-				arg.restriction()
-					.intersection(
-						currentManifest().restrictionFor(arg.semanticValue()))
-					.intersectionWithType(argsTupleUnion.typeAtIndex(i + 1));
-			phisOnSuccess.add(arg.restrictedTo(argRestriction));
-		}
-		final List<PhiRestriction> phisOnFailure = new ArrayList<>();
-		phisOnFailure.add(functionWrite.inaccessible());
-		phisOnFailure.add(
-			errorCodeWrite.restrictedToType(
-				L2_LOOKUP_BY_VALUES.lookupErrorsType));
 		if (!callSiteHelper.isSuper)
 		{
 			// Not a super-call.
@@ -2436,20 +2409,15 @@ public final class L1Translator
 				new L2ReadBoxedVectorOperand(arguments),
 				functionWrite,
 				errorCodeWrite,
-				edgeTo(
-					lookupSucceeded,
-					phisOnSuccess.toArray(new PhiRestriction[0])),
-				edgeTo(
-					lookupFailed,
-					phisOnFailure.toArray(new PhiRestriction[0])));
+				edgeTo(lookupSucceeded),
+				edgeTo(lookupFailed));
 		}
 		else
 		{
 			// Extract a tuple type from the runtime types of the arguments,
 			// take the type union with the superUnionType, then perform a
 			// lookup-by-types using that tuple type.
-			final List<L2ReadBoxedOperand> argTypeRegs =
-				new ArrayList<>(nArgs);
+			final List<L2ReadBoxedOperand> argTypeRegs = new ArrayList<>(nArgs);
 			for (int i = 1; i <= nArgs; i++)
 			{
 				final L2ReadBoxedOperand argReg = arguments.get(i - 1);
@@ -2504,15 +2472,8 @@ public final class L1Translator
 				new L2ReadBoxedVectorOperand(argTypeRegs),
 				functionWrite,
 				errorCodeWrite,
-				edgeTo(
-					lookupSucceeded,
-					functionWrite.restrictedToType(functionTypeUnion),
-					errorCodeWrite.inaccessible()),
-				edgeTo(
-					lookupFailed,
-					functionWrite.inaccessible(),
-					errorCodeWrite.restrictedToType(
-						L2_LOOKUP_BY_VALUES.lookupErrorsType)));
+				edgeTo(lookupSucceeded),
+				edgeTo(lookupFailed));
 		}
 		// At this point, we've attempted to look up the method, and either
 		// jumped to lookupSucceeded with functionWrite set to the body function,

@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -91,19 +90,19 @@ extends L2ConditionalJump
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedOperand reader1 = instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedOperand reader2 = instruction.readBoxedRegisterAt(1);
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand ifNotEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand first = instruction.operand(0);
+		final L2ReadBoxedOperand second = instruction.operand(1);
+		final L2PcOperand ifEqual = instruction.operand(2);
+		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		reader1.instructionWasAdded(instruction, manifest);
-		reader2.instructionWasAdded(instruction, manifest);
+		first.instructionWasAdded(instruction, manifest);
+		second.instructionWasAdded(instruction, manifest);
 		ifEqual.instructionWasAdded(instruction, manifest);
 		ifNotEqual.instructionWasAdded(instruction, manifest);
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
-			reader1.semanticValue(), reader2.semanticValue());
+			first.semanticValue(), second.semanticValue());
 	}
 
 	@Override
@@ -112,12 +111,10 @@ extends L2ConditionalJump
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand firstReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedOperand secondReg =
-			instruction.readBoxedRegisterAt(1);
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand notEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand firstReg = instruction.operand(0);
+		final L2ReadBoxedOperand secondReg = instruction.operand(1);
+//		final L2PcOperand ifEqual = instruction.operand(2);
+//		final L2PcOperand notEqual = instruction.operand(3);
 
 		final @Nullable A_BasicObject constant1 = firstReg.constantOrNull();
 		final @Nullable A_BasicObject constant2 = secondReg.constantOrNull();
@@ -141,12 +138,10 @@ extends L2ConditionalJump
 		final List<RegisterSet> registerSets,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand firstReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedOperand secondReg =
-			instruction.readBoxedRegisterAt(1);
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand notEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand firstReg = instruction.operand(0);
+		final L2ReadBoxedOperand secondReg = instruction.operand(1);
+//		final L2PcOperand ifEqual = instruction.operand(2);
+//		final L2PcOperand notEqual = instruction.operand(3);
 
 		assert registerSets.size() == 2;
 //		final RegisterSet fallThroughSet = registerSets.get(0);
@@ -187,18 +182,16 @@ extends L2ConditionalJump
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String firstReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String secondReg =
-			instruction.readBoxedRegisterAt(1).registerString();
-//		final L2PcOperand ifEqual = instruction.pcAt(2);
-//		final L2PcOperand notEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand first = instruction.operand(0);
+		final L2ReadBoxedOperand second = instruction.operand(1);
+//		final L2PcOperand ifEqual = instruction.operand(2);
+//		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(firstReg);
+		builder.append(first.registerString());
 		builder.append(" = ");
-		builder.append(secondReg);
+		builder.append(second.registerString());
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
 	}
 
@@ -208,23 +201,21 @@ extends L2ConditionalJump
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister firstReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister secondReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final L2PcOperand ifEqual = instruction.pcAt(2);
-		final L2PcOperand notEqual = instruction.pcAt(3);
+		final L2ReadBoxedOperand first = instruction.operand(0);
+		final L2ReadBoxedOperand second = instruction.operand(1);
+		final L2PcOperand ifEqual = instruction.operand(2);
+		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		// :: if (first.equals(second)) goto ifEqual;
 		// :: else goto notEqual;
-		translator.load(method, firstReg);
-		translator.load(method, secondReg);
+		translator.load(method, first.register());
+		translator.load(method, second.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_BasicObject.class),
 			"equals",
 			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
 			true);
-		emitBranch(translator, method, instruction, IFNE, ifEqual, notEqual);
+		emitBranch(translator, method, instruction, IFNE, ifEqual, ifNotEqual);
 	}
 }

@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -83,20 +82,17 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Generator generator)
 	{
-		final L2ReadBoxedOperand firstInputTypeReg =
-			instruction.readBoxedRegisterAt(0);
-		final L2ReadBoxedOperand secondInputTypeReg =
-			instruction.readBoxedRegisterAt(1);
-		final L2WriteBoxedOperand outputTypeReg =
-			instruction.writeBoxedRegisterAt(2);
+		final L2ReadBoxedOperand firstType = instruction.operand(0);
+		final L2ReadBoxedOperand secondType = instruction.operand(1);
+		final L2WriteBoxedOperand outputType = instruction.operand(2);
 
 		final A_Type firstMeta =
-			registerSet.typeAt(firstInputTypeReg.register());
+			registerSet.typeAt(firstType.register());
 		final A_Type secondMeta =
-			registerSet.typeAt(secondInputTypeReg.register());
+			registerSet.typeAt(secondType.register());
 		final A_Type unionMeta = firstMeta.typeUnion(secondMeta);
 		registerSet.typeAtPut(
-			outputTypeReg.register(), unionMeta, instruction);
+			outputType.register(), unionMeta, instruction);
 	}
 
 	@Override
@@ -106,20 +102,17 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String firstInputTypeReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String secondInputTypeReg =
-			instruction.readBoxedRegisterAt(1).registerString();
-		final String outputTypeReg =
-			instruction.writeBoxedRegisterAt(2).registerString();
+		final L2ReadBoxedOperand firstType = instruction.operand(0);
+		final L2ReadBoxedOperand secondType = instruction.operand(1);
+		final L2WriteBoxedOperand outputType = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(outputTypeReg);
+		builder.append(outputType.registerString());
 		builder.append(" ← ");
-		builder.append(firstInputTypeReg);
+		builder.append(firstType.registerString());
 		builder.append(" ∪ ");
-		builder.append(secondInputTypeReg);
+		builder.append(secondType.registerString());
 	}
 
 	@Override
@@ -128,16 +121,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister firstInputTypeReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister secondInputTypeReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final L2BoxedRegister outputTypeReg =
-			instruction.writeBoxedRegisterAt(2).register();
+		final L2ReadBoxedOperand firstType = instruction.operand(0);
+		final L2ReadBoxedOperand secondType = instruction.operand(1);
+		final L2WriteBoxedOperand outputType = instruction.operand(2);
 
 		// :: unionType = firstInputType.typeUnion(secondInputType);
-		translator.load(method, firstInputTypeReg);
-		translator.load(method, secondInputTypeReg);
+		translator.load(method, firstType.register());
+		translator.load(method, secondType.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Type.class),
@@ -146,6 +136,6 @@ extends L2Operation
 				getType(A_Type.class),
 				getType(A_Type.class)),
 			true);
-		translator.store(method, outputTypeReg);
+		translator.store(method, outputType.register());
 	}
 }

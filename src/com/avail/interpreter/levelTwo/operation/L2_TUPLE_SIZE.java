@@ -36,8 +36,8 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -79,16 +79,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String tupleReg =
-			instruction.readBoxedRegisterAt(0).registerString();
-		final String sizeReg =
-			instruction.writeIntRegisterAt(1).registerString();
+		final L2ReadBoxedOperand tuple = instruction.operand(0);
+		final L2WriteIntOperand size = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(sizeReg);
+		builder.append(size.registerString());
 		builder.append(" ← ");
-		builder.append(tupleReg);
+		builder.append(tuple.registerString());
 	}
 
 	@Override
@@ -97,19 +95,17 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister tupleReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2IntRegister sizeReg =
-			instruction.writeIntRegisterAt(1).register();
+		final L2ReadBoxedOperand tuple = instruction.operand(0);
+		final L2WriteIntOperand size = instruction.operand(1);
 
 		// :: size = tuple.tupleSize();
-		translator.load(method, tupleReg);
+		translator.load(method, tuple.register());
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_Tuple.class),
 			"tupleSize",
 			getMethodDescriptor(INT_TYPE),
 			true);
-		translator.store(method, sizeReg);
+		translator.store(method, size.register());
 	}
 }

@@ -35,13 +35,16 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -79,6 +82,28 @@ extends L2ControlFlowOperation
 		new L2_MULTIPLY_INT_BY_INT();
 
 	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+		final L2ReadIntOperand multiplicandReg = instruction.operand(0);
+		final L2ReadIntOperand multiplierReg = instruction.operand(1);
+		final L2WriteIntOperand productReg = instruction.operand(2);
+		final L2PcOperand inRange = instruction.operand(3);
+		final L2PcOperand outOfRange = instruction.operand(4);
+
+		multiplicandReg.instructionWasAdded(instruction, manifest);
+		multiplierReg.instructionWasAdded(instruction, manifest);
+		productReg.instructionWasAdded(instruction, manifest);
+		inRange.instructionWasAdded(instruction, manifest);
+		outOfRange.instructionWasAdded(instruction, manifest);
+
+		inRange.manifest().intersectType(productReg.semanticValue(), int32());
+		outOfRange.manifest().subtractType(productReg.semanticValue(), int32());
+	}
+
+	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps if the result doesn't fit in an int.
@@ -92,22 +117,19 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String multiplicandReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String multiplierReg =
-			instruction.readIntRegisterAt(1).registerString();
-		final String productReg =
-			instruction.writeIntRegisterAt(2).registerString();
-//		final L2PcOperand inRange = instruction.pcAt(3);
-//		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand multiplicandReg = instruction.operand(0);
+		final L2ReadIntOperand multiplierReg = instruction.operand(1);
+		final L2WriteIntOperand productReg = instruction.operand(2);
+//		final L2PcOperand inRange = instruction.operand(3);
+//		final L2PcOperand outOfRange = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(productReg);
+		builder.append(productReg.registerString());
 		builder.append(" ← ");
-		builder.append(multiplicandReg);
+		builder.append(multiplicandReg.registerString());
 		builder.append(" × ");
-		builder.append(multiplierReg);
+		builder.append(multiplierReg.registerString());
 		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
 	}
 
@@ -117,19 +139,16 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister multiplicandReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2IntRegister multiplierReg =
-			instruction.readIntRegisterAt(1).register();
-		final L2IntRegister productReg =
-			instruction.writeIntRegisterAt(2).register();
-		final L2PcOperand inRange = instruction.pcAt(3);
-		final int outOfRangeOffset = instruction.pcOffsetAt(4);
+		final L2ReadIntOperand multiplicandReg = instruction.operand(0);
+		final L2ReadIntOperand multiplierReg = instruction.operand(1);
+		final L2WriteIntOperand productReg = instruction.operand(2);
+		final L2PcOperand inRange = instruction.operand(3);
+		final L2PcOperand outOfRange = instruction.operand(4);
 
 		// :: longProduct = (long) multiplicand * (long) multiplier;
-		translator.load(method, multiplicandReg);
+		translator.load(method, multiplicandReg.register());
 		method.visitInsn(I2L);
-		translator.load(method, multiplierReg);
+		translator.load(method, multiplierReg.register());
 		method.visitInsn(I2L);
 		method.visitInsn(LMUL);
 		method.visitInsn(DUP2);
@@ -143,7 +162,8 @@ extends L2ControlFlowOperation
 		// :: if (longProduct != intProduct) goto outOfRange;
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRangeOffset));
+		method.visitJumpInsn(
+			IFNE, translator.labelFor(outOfRange.offset()));
 		// :: else {
 		// ::    product = intProduct;
 		// ::    goto inRange;
@@ -158,7 +178,7 @@ extends L2ControlFlowOperation
 			intProductStart,
 			intProductEnd,
 			intProductLocal);
-		translator.store(method, productReg);
+		translator.store(method, productReg.register());
 		translator.jump(method, instruction, inRange);
 	}
 }

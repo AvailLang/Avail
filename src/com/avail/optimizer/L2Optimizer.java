@@ -345,16 +345,16 @@ public final class L2Optimizer
 				for (int i = lastPhiIndex; i >= 0; i--)
 				{
 					final L2Instruction phiInstruction = instructions.get(i);
+					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+						cast(phiInstruction.operation());
 					assert phiInstruction.operation().isPhi();
 					edgeSometimesLiveIn.removeAll(
 						phiInstruction.destinationRegisters());
 					edgeAlwaysLiveIn.removeAll(
 						phiInstruction.destinationRegisters());
 					final List<? extends L2ReadOperand<?>> sources =
-						L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(
-							phiInstruction);
-					final L2Register source =
-						sources.get(edgeIndex).register();
+						phiOperation.sourceRegisterReads(phiInstruction);
+					final L2Register source = sources.get(edgeIndex).register();
 					edgeSometimesLiveIn.add(source);
 					edgeAlwaysLiveIn.add(source);
 				}
@@ -551,7 +551,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	@InnerAccess <R extends L2Register> void insertPhiMoves ()
+	@InnerAccess void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -566,11 +566,12 @@ public final class L2Optimizer
 					// them, if any.
 					break;
 				}
-				final L2WriteOperand<R> targetWriter =
-					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
-						instruction);
-				final List<L2ReadOperand<R>> phiSources =
-					L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(instruction);
+				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+					cast(instruction.operation());
+				final L2WriteOperand<?> targetWriter =
+					phiOperation.destinationRegisterWrite(instruction);
+				final List<? extends L2ReadOperand<?>> phiSources =
+					phiOperation.sourceRegisterReads(instruction);
 				final int fanIn = block.predecessorEdgesCount();
 				assert fanIn == phiSources.size();
 
@@ -583,7 +584,7 @@ public final class L2Optimizer
 						predecessor.instructions();
 					assert predecessor.finalInstruction().operation()
 						== L2_JUMP.instance;
-					final L2ReadOperand<R> sourceRead = phiSources.get(i);
+					final L2ReadOperand<?> sourceRead = phiSources.get(i);
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,

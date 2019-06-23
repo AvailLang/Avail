@@ -41,10 +41,11 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -107,7 +108,8 @@ extends L2ControlFlowOperation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.readVectorRegisterAt(5);
+		final L2ReadBoxedVectorOperand vector = instruction.operand(5);
+		return vector.elements();
 	}
 
 	@Override
@@ -117,16 +119,14 @@ extends L2ControlFlowOperation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2Operand function = instruction.readBoxedRegisterAt(0);
-		final L2Operand caller = instruction.readBoxedRegisterAt(1);
-		final int levelOnePC = instruction.intImmediateAt(2);
-		final int levelOneStackp = instruction.intImmediateAt(3);
-		final List<L2ReadBoxedOperand> slots =
-			instruction.readVectorRegisterAt(4);
-		final String destReg =
-			instruction.writeBoxedRegisterAt(5).registerString();
-//		final int onRampOffset = instruction.pcOffsetAt(6);
-//		final L2PcOperand fallThrough = instruction.pcAt(7);
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2ReadBoxedOperand caller = instruction.operand(1);
+		final L2IntImmediateOperand levelOnePC = instruction.operand(2);
+		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
+		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
+		final L2WriteBoxedOperand destReg = instruction.operand(5);
+//		final L2PcOperand onRamp = instruction.operand(6);
+//		final L2PcOperand fallThrough = instruction.operand(7);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -137,7 +137,7 @@ extends L2ControlFlowOperation
 		builder.append(levelOnePC);
 		builder.append(" stack=[");
 		boolean first = true;
-		for (final L2ReadBoxedOperand slot : slots)
+		for (final L2ReadBoxedOperand slot : slots.elements())
 		{
 			if (!first)
 			{
@@ -160,18 +160,14 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2BoxedRegister functionReg =
-			instruction.readBoxedRegisterAt(0).register();
-		final L2BoxedRegister callerReg =
-			instruction.readBoxedRegisterAt(1).register();
-		final int levelOnePC = instruction.intImmediateAt(2);
-		final int levelOneStackp = instruction.intImmediateAt(3);
-		final List<L2ReadBoxedOperand> slots =
-			instruction.readVectorRegisterAt(4);
-		final L2BoxedRegister destReg =
-			instruction.writeBoxedRegisterAt(5).register();
-		final int onRampOffset = instruction.pcOffsetAt(6);
-		final L2PcOperand fallThrough = instruction.pcAt(7);
+		final L2ReadBoxedOperand function = instruction.operand(0);
+		final L2ReadBoxedOperand caller = instruction.operand(1);
+		final L2IntImmediateOperand levelOnePC = instruction.operand(2);
+		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
+		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
+		final L2WriteBoxedOperand destReg = instruction.operand(5);
+		final L2PcOperand onRamp = instruction.operand(6);
+		final L2PcOperand fallThrough = instruction.operand(7);
 
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
@@ -180,17 +176,17 @@ extends L2ControlFlowOperation
 		// ::    levelOneStackp,
 		// ::    interpreter.chunk,
 		// ::    onRampOffset);
-		translator.load(method, functionReg);
-		translator.load(method, callerReg);
-		translator.literal(method, levelOnePC);
-		translator.literal(method, levelOneStackp);
+		translator.load(method, function.register());
+		translator.load(method, caller.register());
+		translator.literal(method, levelOnePC.value);
+		translator.literal(method, levelOneStackp.value);
 		translator.loadInterpreter(method);
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
 			"chunk",
 			getDescriptor(L2Chunk.class));
-		translator.intConstant(method, onRampOffset);
+		translator.intConstant(method, onRamp.offset());
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(ContinuationDescriptor.class),
@@ -205,10 +201,10 @@ extends L2ControlFlowOperation
 				INT_TYPE),
 			false);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		final int slotCount = slots.size();
+		final int slotCount = slots.elements().size();
 		for (int i = 0; i < slotCount; i++)
 		{
-			final L2ReadBoxedOperand regRead = slots.get(i);
+			final L2ReadBoxedOperand regRead = slots.elements().get(i);
 			final @Nullable A_BasicObject constant = regRead.constantOrNull();
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
@@ -217,7 +213,7 @@ extends L2ControlFlowOperation
 				// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);
 				method.visitInsn(DUP);
 				translator.intConstant(method, i + 1);
-				translator.load(method, slots.get(i).register());
+				translator.load(method, slots.elements().get(i).register());
 				method.visitMethodInsn(
 					INVOKEINTERFACE,
 					getInternalName(A_Continuation.class),
@@ -229,7 +225,7 @@ extends L2ControlFlowOperation
 					true);
 			}
 		}
-		translator.store(method, destReg);
+		translator.store(method, destReg.register());
 		// :: goto fallThrough;
 		translator.jump(method, instruction, fallThrough);
 	}

@@ -35,8 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -76,16 +76,14 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final String sourceReg =
-			instruction.readIntRegisterAt(0).registerString();
-		final String destinationReg =
-			instruction.writeFloatRegisterAt(1).registerString();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteFloatOperand destination = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destinationReg);
+		builder.append(source.registerString());
 		builder.append(" ← ");
-		builder.append(sourceReg);
+		builder.append(destination.registerString());
 	}
 
 	@Override
@@ -94,15 +92,13 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2IntRegister sourceReg =
-			instruction.readIntRegisterAt(0).register();
-		final L2FloatRegister destinationReg =
-			instruction.writeFloatRegisterAt(1).register();
+		final L2ReadIntOperand source = instruction.operand(0);
+		final L2WriteFloatOperand destination = instruction.operand(1);
 
 		// :: destination = (double) source;
-		translator.load(method, sourceReg);
+		translator.load(method, source.register());
 		method.visitInsn(I2D);
-		translator.store(method, destinationReg);
+		translator.store(method, destination.register());
 	}
 }
 

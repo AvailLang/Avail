@@ -95,7 +95,7 @@ extends L2ControlFlowOperation
 	public static L2PcOperand jumpTarget (final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		return instruction.pcAt(0);
+		return instruction.operand(0);
 	}
 
 	@Override
@@ -104,7 +104,7 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2PcOperand target = instruction.pcAt(0);
+		final L2PcOperand target = instruction.operand(0);
 
 		// :: goto offset;
 		translator.jump(method, instruction, target);
