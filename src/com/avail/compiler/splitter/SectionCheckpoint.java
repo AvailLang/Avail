@@ -68,13 +68,18 @@ extends Expression
 
 	/**
 	 * Construct a SectionCheckpoint.
+	 *
+	 * @param positionInName
+	 *        The section checkpoint's position in the message name.
+	 * @param subscript
+	 *        This section checkpoint's one-based index.
 	 */
 	SectionCheckpoint (
 		final int positionInName,
-		final MessageSplitter messageSplitter)
+		final int subscript)
 	{
 		super(positionInName);
-		this.subscript = ++messageSplitter.numberOfSectionCheckpoints;
+		this.subscript = subscript;
 	}
 
 	@Override
@@ -85,7 +90,7 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	{

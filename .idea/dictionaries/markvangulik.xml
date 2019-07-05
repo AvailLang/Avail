@@ -4,6 +4,7 @@
       <w>aeolipile</w>
       <w>arriaga</w>
       <w>availuator</w>
+      <w>backquotable</w>
       <w>backquote</w>
       <w>backquoted</w>
       <w>boundedly</w>
@@ -30,12 +31,14 @@
       <w>denormalized</w>
       <w>disassembly</w>
       <w>dominator</w>
+      <w>eawt</w>
       <w>enablements</w>
       <w>endian</w>
       <w>endianness</w>
       <w>enqueuer</w>
       <w>fanout</w>
       <w>fixup</w>
+      <w>fnord</w>
       <w>foldable</w>
       <w>graphviz</w>
       <w>guillemet</w>
@@ -120,6 +123,7 @@
       <w>subcomponents</w>
       <w>subentry</w>
       <w>subkey</w>
+      <w>subkind</w>
       <w>submap</w>
       <w>subobject</w>
       <w>subobjects</w>
@@ -150,6 +154,7 @@
       <w>uncached</w>
       <w>underflows</w>
       <w>uninstantiable</w>
+      <w>unlinking</w>
       <w>unloader</w>
       <w>unparseable</w>
       <w>unpopped</w>

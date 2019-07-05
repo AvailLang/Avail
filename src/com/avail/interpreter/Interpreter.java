@@ -33,6 +33,7 @@
 package com.avail.interpreter;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
@@ -82,6 +83,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
@@ -593,11 +595,12 @@ public final class Interpreter
 	}
 
 	/**
-	 * Capture a unique ID between 0 and the {@link #runtime()}'s {@link
-	 * AvailRuntime#maxInterpreters}.
+	 * Capture a unique ID between 0 and {@link
+	 * AvailRuntimeConfiguration#maxInterpreters} minus one.
 	 */
 	public final int interpreterIndex;
 
+	/** Text to show at the starts of lines in debug traces. */
 	public String debugModeString = "";
 
 	/**
@@ -1325,7 +1328,7 @@ public final class Interpreter
 		returnNow = false;
 		latestResult(null);
 		assert current() == this;
-		return AvailRuntime.captureNanos();
+		return captureNanos();
 	}
 
 	/**
@@ -1346,7 +1349,7 @@ public final class Interpreter
 		final long timeBefore,
 		final Result success)
 	{
-		final long timeAfter = AvailRuntime.captureNanos();
+		final long timeAfter = captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
 		assert success != FAILURE || !primitive.hasFlag(CannotFail);

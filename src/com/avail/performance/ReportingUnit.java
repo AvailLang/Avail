@@ -32,7 +32,7 @@
 
 package com.avail.performance;
 
-import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeConfiguration;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.POSITIVE_INFINITY;
@@ -46,8 +46,8 @@ import static java.lang.String.format;
  *
  * <p>If you want to record samples from multiple processes, use a Statistic,
  * which holds a PerInterpreterStatistic for up to {@link
- * AvailRuntime#maxInterpreters} separate Threads to access, without any locks.
- * </p>
+ * AvailRuntimeConfiguration#maxInterpreters} separate Threads to access,
+ * without any locks.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

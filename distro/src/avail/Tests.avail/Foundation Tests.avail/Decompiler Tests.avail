@@ -97,3 +97,20 @@ Test "inner permuted super-cast" in decompiler test suite is [
 			(60::integer)<-("50"::string)
 	];
 ];
+
+Method "Circles«foo»②«bar none»?③«this|that»!④_†①" is
+[
+	t : number,
+	foo : <⊥…|0>*,
+	barNone : boolean,
+	thisOrThat : [1..2]
+|
+	<t, foo, barNone, thisOrThat>
+];
+
+Test "circled numbers" in decompiler test suite is
+[
+	Check round-trip for [Circles this 11];
+	Check round-trip for [Circles that 120.1];
+	Check round-trip for [Circles foo bar none this ∞];
+];

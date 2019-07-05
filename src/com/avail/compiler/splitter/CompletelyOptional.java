@@ -40,9 +40,8 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.throwMalformedMessageException;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
@@ -68,8 +67,10 @@ extends Expression
 	private final Sequence sequence;
 
 	/**
-	 * Construct a new {@link CompletelyOptional}.
+	 * Construct a new {@code CompletelyOptional}.
 	 *
+	 * @param positionInName
+	 *        The position of the start of this phrase in the message name.
 	 * @param sequence
 	 *        The governed {@linkplain Sequence sequence}.
 	 * @throws MalformedMessageException
@@ -77,7 +78,6 @@ extends Expression
 	 */
 	CompletelyOptional (
 		final int positionInName,
-		final MessageSplitter messageSplitter,
 		final Sequence sequence)
 	throws MalformedMessageException
 	{
@@ -86,7 +86,7 @@ extends Expression
 		if (sequence.canBeReordered()
 			&& sequence.explicitOrdinal() != -1)
 		{
-			messageSplitter.throwMalformedMessageException(
+			throwMalformedMessageException(
 				E_INCONSISTENT_ARGUMENT_REORDERING,
 				"Completely optional phrase should not have a circled "
 				+ "number to indicate reordering");
@@ -114,7 +114,7 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	{

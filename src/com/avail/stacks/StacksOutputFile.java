@@ -36,6 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.IO;
 import com.avail.utility.MutableLong;
+import com.avail.utility.Nulls;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -111,7 +112,7 @@ public class StacksOutputFile
 				{
 					if (buffer.hasRemaining())
 					{
-						pos.value += bytesWritten;
+						pos.value += Nulls.stripNull(bytesWritten);
 						outputFile.write(buffer, pos.value, null, this);
 					}
 					else
@@ -134,7 +135,7 @@ public class StacksOutputFile
 	}
 
 	/**
-	 * Construct a new {@link StacksOutputFile}.
+	 * Construct a new {@code StacksOutputFile}.
 	 *
 	 * @param outputPath
 	 *        The {@linkplain Path path} to the output {@linkplain
@@ -169,7 +170,7 @@ public class StacksOutputFile
 		Files.createDirectories(outputPath);
 		try
 		{
-			this.outputFile = runtime.openFile(
+			this.outputFile = runtime.ioSystem().openFile(
 				filePath, EnumSet.of(StandardOpenOption.CREATE,
 					StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING));

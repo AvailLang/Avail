@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
@@ -45,10 +46,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
@@ -75,7 +74,7 @@ extends Expression
 	private final Sequence sequence;
 
 	/**
-	 * Construct a new {@link Optional}.
+	 * Construct a new {@code Optional}.
 	 *
 	 * @param positionInName
 	 *        The position of the group or token in the message name.
@@ -120,18 +119,15 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException
 	{
-		if (!argumentType.isSubtypeOf(
-			booleanType()))
+		// The declared type of the subexpression must be a subtype of boolean.
+		if (!argumentType.isSubtypeOf(booleanType()))
 		{
-			// The declared type of the subexpression must be a subtype of
-			// boolean.
-			MessageSplitter.throwSignatureException(
-				E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
+			throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
 		}
 	}
 
@@ -174,6 +170,17 @@ extends Expression
 		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
+	/**
+	 * On the given {@link InstructionGenerator}, output
+	 * {@link ParsingOperation}s to handle this {@code Optional}'s present
+	 * and absent cases, invoking the {@link Continuation0} within each.
+	 *
+	 * @param generator
+	 *        Where to emit parsing instructions.
+	 * @param continuation
+	 *        A {@link Continuation0} that generates code both in the case that
+	 *        the optional tokens are present and the case that they are absent.
+	 */
 	void emitInRunThen (
 		final InstructionGenerator generator,
 		final Continuation0 continuation)

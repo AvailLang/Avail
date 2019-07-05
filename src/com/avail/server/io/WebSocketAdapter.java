@@ -126,7 +126,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		this.server = server;
 		this.adapterAddress = adapterAddress;
 		this.serverAuthority = serverAuthority;
-		this.serverChannel = server.runtime().openServerSocket();
+		this.serverChannel = server.runtime().ioSystem().openServerSocket();
 		this.serverChannel.bind(adapterAddress);
 		acceptConnections();
 	}

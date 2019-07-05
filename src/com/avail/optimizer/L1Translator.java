@@ -75,6 +75,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;

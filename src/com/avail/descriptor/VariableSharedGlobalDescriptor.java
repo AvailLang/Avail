@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.AvailErrorCode;
@@ -42,20 +41,13 @@ import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_ALWAYS_SET;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.VALUE_IS_STABLE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.MODULE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.VALUE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.*;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -344,8 +336,15 @@ extends VariableSharedDescriptor
 	 *
 	 * @param variableType
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
-	 * @return
-	 *         The new write-once shared variable.
+	 * @param module
+	 *        The {@link A_Module} that this global is being defined in.
+	 * @param name
+	 *        The name of the global.  This is captured by the actual variable
+	 *        to make it easier to quickly and accurately reproduce the effect
+	 *        of loading the module.
+	 * @param writeOnce
+	 *        Whether the variable is to be written to exactly once.
+	 * @return The new shared variable.
 	 */
 	public static AvailObject createGlobal (
 		final A_Type variableType,
@@ -355,7 +354,7 @@ extends VariableSharedDescriptor
 	{
 		final AvailObject result = mutableInitial.create();
 		result.setSlot(KIND, variableType);
-		result.setSlot(HASH_ALWAYS_SET, AvailRuntime.nextHash());
+		result.setSlot(HASH_ALWAYS_SET, nextHash());
 		result.setSlot(VALUE, nil);
 		result.setSlot(WRITE_REACTORS, nil);
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
@@ -370,29 +369,19 @@ extends VariableSharedDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
-	 *        null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots layout,
-	 *        or null if there are no integer slots.
 	 * @param writeOnce
 	 *        Whether the variable can only be assigned once.  This is only
 	 *        intended to be used to implement module constants.
 	 */
 	protected VariableSharedGlobalDescriptor (
 		final Mutability mutability,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass,
 		final boolean writeOnce)
 	{
 		super(
 			mutability,
 			TypeTag.VARIABLE_TAG,
-			objectSlotsEnumClass,
-			integerSlotsEnumClass);
+			ObjectSlots.class,
+			IntegerSlots.class);
 		this.writeOnce = writeOnce;
 	}
 
@@ -403,16 +392,12 @@ extends VariableSharedDescriptor
 	private static final VariableSharedGlobalDescriptor mutableInitial =
 		new VariableSharedGlobalDescriptor(
 			Mutability.MUTABLE,
-			ObjectSlots.class,
-			IntegerSlots.class,
 			false);
 
 	/** The shared {@link VariableSharedGlobalDescriptor}. */
 	static final VariableSharedGlobalDescriptor shared =
 		new VariableSharedGlobalDescriptor(
 			Mutability.SHARED,
-			ObjectSlots.class,
-			IntegerSlots.class,
 			false);
 
 	/**
@@ -422,7 +407,5 @@ extends VariableSharedDescriptor
 	private static final VariableSharedGlobalDescriptor sharedWriteOnce =
 		new VariableSharedGlobalDescriptor(
 			Mutability.SHARED,
-			ObjectSlots.class,
-			IntegerSlots.class,
 			true);
 }

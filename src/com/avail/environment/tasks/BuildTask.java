@@ -33,13 +33,10 @@
 package com.avail.environment.tasks;
 
 import com.avail.builder.ResolvedModuleName;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
-import com.avail.utility.evaluation.Continuation3;
-import jdk.nashorn.internal.objects.Global;
 
 import java.awt.*;
 
@@ -66,17 +63,6 @@ extends AbstractWorkbenchTask
 	}
 
 	/**
-	 * Answer a suitable {@linkplain CompilerProgressReporter compiler
-	 * progress reporter}.
-	 *
-	 * @return A compiler progress reporter.
-	 */
-	private CompilerProgressReporter compilerProgressReporter ()
-	{
-		return workbench::eventuallyUpdatePerModuleProgress;
-	}
-
-	/**
 	 * Answer a suitable {@linkplain GlobalProgressReporter global tracker}.
 	 *
 	 * @return A global tracker.
@@ -92,7 +78,7 @@ extends AbstractWorkbenchTask
 		assert targetModuleName != null;
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
-			compilerProgressReporter(),
+			workbench::eventuallyUpdatePerModuleProgress,
 			globalTracker());
 	}
 

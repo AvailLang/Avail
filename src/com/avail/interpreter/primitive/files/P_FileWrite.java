@@ -32,20 +32,12 @@
 package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.BufferKey;
-import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
+import com.avail.io.IOSystem.BufferKey;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableLong;
@@ -78,11 +70,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static com.avail.utility.evaluation.Combinator.recurse;
@@ -154,6 +142,7 @@ extends Primitive
 		}
 		final int alignment = handle.alignment;
 		final AvailRuntime runtime = currentRuntime();
+		final IOSystem ioSystem = runtime.ioSystem();
 		final long oneBasedPositionLong = positionObject.extractLong();
 		// Guaranteed positive by argument constraint.
 		assert oneBasedPositionLong > 0L;
@@ -301,7 +290,7 @@ extends Primitive
 							for (final BufferKey key : new ArrayList<>(
 								handle.bufferKeys.keySet()))
 							{
-								runtime.discardBuffer(key);
+								ioSystem.discardBuffer(key);
 							}
 							Interpreter.runOutermostFunction(
 								runtime,
@@ -336,7 +325,7 @@ extends Primitive
 					final BufferKey key = new BufferKey(
 						handle, startOfBuffer);
 					final MutableOrNull<A_Tuple> bufferHolder =
-						runtime.getBuffer(key);
+						ioSystem.getBuffer(key);
 					@Nullable A_Tuple tuple = bufferHolder.value;
 					if (offsetInBuffer == 1
 						&& consumedThisTime == alignment)

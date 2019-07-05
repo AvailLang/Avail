@@ -44,7 +44,6 @@ import com.avail.descriptor.LiteralPhraseDescriptor;
 import com.avail.descriptor.PhraseDescriptor;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken;
 import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
@@ -121,7 +120,6 @@ public enum ParsingConversionRule
 			final Continuation1NotNull<A_Phrase> continuation,
 			final Continuation1NotNull<Throwable> onProblem)
 		{
-			assert input.expressionType().isSubtypeOf(topMeta());
 			compilationContext.evaluatePhraseAtThen(
 				lexingState,
 				input,

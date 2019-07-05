@@ -32,102 +32,45 @@
 
 package com.avail;
 
+import com.avail.AvailRuntimeSupport.Clock;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_GrammaticalRestriction;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_SemanticRestriction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.MacroDefinitionDescriptor;
-import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.PojoDescriptor;
-import com.avail.descriptor.RawPojoDescriptor;
-import com.avail.descriptor.SemanticRestrictionDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.phrases.P_CreateToken;
+import com.avail.io.IOSystem;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
-import com.avail.utility.LRUCache;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.channels.AsynchronousChannelGroup;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.LinkOption;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.WeakHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.avail.AvailRuntimeConfiguration.availableProcessors;
+import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
@@ -138,134 +81,38 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionDescriptor.newCrashFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.enumerationWith;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.two;
-import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.characterCodePoints;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegersMeta;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.unsignedShorts;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
-import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
-import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTypeDescriptor.exceptionAtom;
-import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta;
-import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
-import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MODULE_CONSTANT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.ObjectTypeDescriptor.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoSelfType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoSelfTypeAtom;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
-import static com.avail.descriptor.SetTypeDescriptor.setMeta;
-import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.ABSTRACT_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
-import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.allNumericCodes;
+import static com.avail.descriptor.SetTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableTypeDescriptor.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -277,71 +124,6 @@ import static java.util.Arrays.asList;
  */
 public final class AvailRuntime
 {
-	/** The build version, set by the build process. */
-	private static final String buildVersion;
-
-	/*
-	 * Initialize the build version from a resource bundled with the
-	 * distribution JAR.
-	 */
-	static
-	{
-		String version = "dev";
-		try (
-			final @Nullable InputStream resourceStream =
-				ClassLoader.getSystemResourceAsStream(
-					"resources/build.time.txt"))
-		{
-			if (resourceStream != null)
-			{
-				try (final Scanner scanner = new Scanner(resourceStream))
-				{
-					version = scanner.nextLine();
-				}
-			}
-		}
-		catch (final IOException e)
-		{
-			version = "UNKNOWN";
-		}
-		buildVersion = version;
-	}
-
-	/**
-	 * Answer the build version, as set by the build process.
-	 *
-	 * @return The build version, or {@code "dev"} if Avail is not running from
-	 *         a distribution JAR.
-	 */
-	@SuppressWarnings("unused")
-	public static String buildVersion ()
-	{
-		return buildVersion;
-	}
-
-	/**
-	 * The active versions of the Avail virtual machine. These are the versions
-	 * for which the virtual machine guarantees compatibility.
-	 */
-	private static final String[] activeVersions = {"1.1.0 DEV 2019-05-21"};
-
-	/**
-	 * Answer the active versions of the Avail virtual machine. These are the
-	 * versions for which the virtual machine guarantees compatibility.
-	 *
-	 * @return The active versions.
-	 */
-	public static A_Set activeVersions ()
-	{
-		A_Set versions = emptySet();
-		for (final String version : activeVersions)
-		{
-			versions = versions.setWithElementCanDestroy(
-				stringFrom(version), true);
-		}
-		return versions;
-	}
-
 	/**
 	 * Answer the Avail runtime associated with the current {@linkplain Thread
 	 * thread}.
@@ -354,45 +136,6 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * A general purpose {@linkplain Random pseudo-random number generator}.
-	 */
-	private static final Random rng = new Random();
-
-	/**
-	 * Answer a new value suitable for use as the {@linkplain AvailObject#hash()
-	 * hash code} for an immutable {@linkplain AvailObject value}.
-	 *
-	 * <p>Note that the implementation uses opportunistic locking internally, so
-	 * explicit synchronization here is not required.  However, synchronization
-	 * is included anyhow since that behavior is not part of Random's
-	 * specification.</p>
-	 *
-	 * @return A 32-bit pseudo-random number.
-	 */
-	@ThreadSafe
-	public static synchronized int nextHash ()
-	{
-		return rng.nextInt();
-	}
-
-	/**
-	 * The source of {@linkplain FiberDescriptor fiber} identifiers.
-	 */
-	private static final AtomicInteger fiberIdGenerator = new AtomicInteger(1);
-
-	/**
-	 * Answer the next unused {@linkplain FiberDescriptor fiber} identifier.
-	 * Fiber identifiers will not repeat for 2^32 invocations.
-	 *
-	 * @return The next fiber identifier.
-	 */
-	@ThreadSafe
-	public static int nextFiberId ()
-	{
-		return fiberIdGenerator.getAndIncrement();
-	}
-
-	/**
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
 	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
@@ -402,49 +145,19 @@ public final class AvailRuntime
 			runnable,
 			new Interpreter(AvailRuntime.this));
 
+	/** The {@link IOSystem} for this runtime. */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	private final IOSystem ioSystem = new IOSystem(this);
+
 	/**
-	 * The {@linkplain ThreadFactory thread factory} for creating {@link
-	 * Thread}s for processing file I/O on behalf of this {@linkplain
-	 * AvailRuntime Avail runtime}.
+	 * Answer this runtime's {@link IOSystem}.
+	 *
+	 * @return An {@link IOSystem}.
 	 */
-	private final ThreadFactory fileThreadFactory = new ThreadFactory()
+	public IOSystem ioSystem ()
 	{
-		final AtomicInteger counter = new AtomicInteger();
-
-		@Override
-		public Thread newThread (final Runnable runnable)
-		{
-			return new Thread(
-				runnable, "AvailFile-" + counter.incrementAndGet());
-		}
-	};
-
-	/**
-	 * The {@linkplain ThreadFactory thread factory} for creating {@link
-	 * Thread}s for processing socket I/O on behalf of this {@linkplain
-	 * AvailRuntime Avail runtime}.
-	 */
-	private final ThreadFactory socketThreadFactory = new ThreadFactory()
-	{
-		final AtomicInteger counter = new AtomicInteger();
-
-		@Override
-		public Thread newThread (final Runnable runnable)
-		{
-			return new Thread(
-				runnable, "AvailSocket-" + counter.incrementAndGet());
-		}
-	};
-
-	/** The number of available processors. */
-	private static final int availableProcessors =
-		Runtime.getRuntime().availableProcessors();
-
-	/**
-	 * The maximum number of {@link Interpreter}s that can be constructed for
-	 * this runtime.
-	 */
-	public static final int maxInterpreters = availableProcessors;
+		return ioSystem;
+	}
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
@@ -512,417 +225,6 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
-	 * file operations performed on behalf of this {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	private final ThreadPoolExecutor fileExecutor =
-		new ThreadPoolExecutor(
-			availableProcessors,
-			availableProcessors << 2,
-			10L,
-			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<>(10),
-			fileThreadFactory,
-			new CallerRunsPolicy());
-
-	/**
-	 * Schedule the specified {@linkplain Runnable task} for eventual execution
-	 * by the {@linkplain ThreadPoolExecutor thread pool executor} for
-	 * asynchronous file operations. The implementation is free to run the task
-	 * immediately or delay its execution arbitrarily. The task will not execute
-	 * on an {@linkplain AvailThread Avail thread}.
-	 *
-	 * @param task A task.
-	 */
-	public void executeFileTask (final Runnable task)
-	{
-		fileExecutor.execute(task);
-	}
-
-	/**
-	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
-	 * socket operations performed on behalf of this {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	private final ThreadPoolExecutor socketExecutor =
-		new ThreadPoolExecutor(
-			availableProcessors,
-			availableProcessors << 2,
-			10L,
-			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<>(),
-			socketThreadFactory,
-			new CallerRunsPolicy());
-
-	/**
-	 * The {@linkplain AsynchronousChannelGroup asynchronous channel group}
-	 * that manages {@linkplain AsynchronousSocketChannel asynchronous socket
-	 * channels} on behalf of this {@linkplain AvailRuntime Avail runtime}.
-	 */
-	private final AsynchronousChannelGroup socketGroup;
-
-	{
-		try
-		{
-			socketGroup = AsynchronousChannelGroup.withThreadPool(
-				socketExecutor);
-		}
-		catch (final IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Schedule the specified {@linkplain Runnable task} for eventual
-	 * execution by the {@linkplain ThreadPoolExecutor thread pool executor} for
-	 * asynchronous socket operations. The implementation is free to run the
-	 * task immediately or delay its execution arbitrarily. The task will not
-	 * execute on an {@linkplain AvailThread Avail thread}.
-	 *
-	 * @param task A task.
-	 */
-	@SuppressWarnings("unused")
-	void executeSocketTask (final Runnable task)
-	{
-		socketExecutor.execute(task);
-	}
-
-	/**
-	 * Open an {@linkplain AsynchronousFileChannel asynchronous file channel}
-	 * for the specified {@linkplain Path path}.
-	 *
-	 * @param path
-	 *        A path.
-	 * @param options
-	 *        The {@linkplain OpenOption open options}.
-	 * @param attributes
-	 *        The {@linkplain FileAttribute file attributes} (for newly created
-	 *        files only).
-	 * @return An asynchronous file channel.
-	 * @throws IllegalArgumentException
-	 *         If the combination of options is invalid.
-	 * @throws UnsupportedOperationException
-	 *         If an option is invalid for the specified path.
-	 * @throws SecurityException
-	 *         If the {@linkplain SecurityManager security manager} denies
-	 *         permission to complete the operation.
-	 * @throws IOException
-	 *         If the open fails for any reason.
-	 */
-	public AsynchronousFileChannel openFile (
-			final Path path,
-			final Set<? extends OpenOption> options,
-			final FileAttribute<?>... attributes)
-		throws
-			IllegalArgumentException,
-			UnsupportedOperationException,
-			SecurityException,
-			IOException
-	{
-		return AsynchronousFileChannel.open(
-			path, options, fileExecutor, attributes);
-	}
-
-	/** The default {@linkplain FileSystem file system}. */
-	private static final FileSystem fileSystem = FileSystems.getDefault();
-
-	/**
-	 * Answer the default {@linkplain FileSystem file system}.
-	 *
-	 * @return The default file system.
-	 */
-	public static FileSystem fileSystem ()
-	{
-		return fileSystem;
-	}
-
-	/**
-	 * The {@linkplain LinkOption link options} for following symbolic links.
-	 */
-	private static final LinkOption[] followSymlinks = {};
-
-	/**
-	 * The {@linkplain LinkOption link options} for forbidding traversal of
-	 * symbolic links.
-	 */
-	private static final LinkOption[] doNotFollowSymbolicLinks =
-		{LinkOption.NOFOLLOW_LINKS};
-
-	/**
-	 * Answer the appropriate {@linkplain LinkOption link options} for
-	 * following, or not following, symbolic links.
-	 *
-	 * @param shouldFollow
-	 *        {@code true} for an array that permits symbolic link traversal,
-	 *        {@code false} for an array that forbids symbolic link traversal.
-	 * @return An array of link options.
-	 */
-	public static LinkOption[] followSymlinks (final boolean shouldFollow)
-	{
-		return shouldFollow ? followSymlinks : doNotFollowSymbolicLinks;
-	}
-
-	/**
-	 * The {@linkplain PosixFilePermission POSIX file permissions}. <em>The
-	 * order of these elements should not be changed!</em>
-	 */
-	private static final PosixFilePermission[] posixPermissions =
-	{
-		OWNER_READ,
-		OWNER_WRITE,
-		OWNER_EXECUTE,
-		GROUP_READ,
-		GROUP_WRITE,
-		GROUP_EXECUTE,
-		OTHERS_READ,
-		OTHERS_WRITE,
-		OTHERS_EXECUTE
-	};
-
-	/**
-	 * The {@linkplain PosixFilePermission POSIX file permissions}.
-	 *
-	 * @return The POSIX file permissions.
-	 */
-	public static PosixFilePermission[] posixPermissions ()
-	{
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		return posixPermissions;
-	}
-
-	/**
-	 * A {@code BufferKey} identifies a file buffer in the {@linkplain
-	 * #cachedBuffers buffer cache}.
-	 */
-	public static final class BufferKey
-	{
-		/**
-		 * The {@linkplain FileHandle file handle} that represents the
-		 * provenance of the associated buffer.
-		 */
-		final FileHandle fileHandle;
-
-		/**
-		 * The start position of the buffer within the underlying file. This
-		 * value is measured in bytes, and need not be aligned.
-		 */
-		final long startPosition;
-
-		/**
-		 * Construct a new buffer key, used to identify a buffer in the global
-		 * cache.
-		 *
-		 * @param fileHandle
-		 *        The {@link FileHandle} that represents the provenance of the
-		 *        associated buffer.
-		 * @param startPosition
-		 *        The start position of the buffer within the underlying file.
-		 *        This value is measured in bytes, and need not be aligned.
-		 */
-		public BufferKey (
-			final FileHandle fileHandle,
-			final long startPosition)
-		{
-			this.fileHandle = fileHandle;
-			this.startPosition = startPosition;
-		}
-
-		@Override
-		public boolean equals (final @Nullable Object obj)
-		{
-			if (obj instanceof BufferKey)
-			{
-				final BufferKey other = (BufferKey) obj;
-				return fileHandle == other.fileHandle
-					&& startPosition == other.startPosition;
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode ()
-		{
-			int h = fileHandle.hashCode();
-			h *= multiplier;
-			h ^= 0xD198EA23;
-			h += (int) (startPosition >> 32);
-			h *= multiplier;
-			h ^= 0x918F7711;
-			h += (int) startPosition;
-			h *= multiplier;
-			h ^= 0x32AE891D;
-			return h;
-		}
-	}
-
-	/**
-	 * A {@code FileHandle} is an abstraction which wraps an {@link
-	 * AsynchronousFileChannel} with some additional information like filename
-	 * and buffer alignment.  It gets stuffed in a {@linkplain PojoDescriptor
-	 * pojo} in a {@linkplain SpecialAtom#FILE_KEY property} of the
-	 * {@linkplain AtomDescriptor atom} that serves as Avail's most basic view
-	 * of a file handle.  Sockets use a substantially similar technique.
-	 *
-	 * <p>
-	 * In addition, the {@code FileHandle} weakly tracks which buffers need to
-	 * be evicted from Avail's {@link AvailRuntime#cachedBuffers file buffer
-	 * cache}.
-	 * </p>
-	 *
-	 * @author Mark van Gulik&lt;mark@availlang.org&gt;
-	 */
-	public static final class FileHandle
-	{
-		/** The name of the file. */
-		public final A_String filename;
-
-		/**
-		 * The buffer alignment for the file.  Reading is only ever attempted
-		 * on this file at buffer boundaries.  There is a {@linkplain
-		 * AvailRuntime#getBuffer(BufferKey) global file buffer cache}, which is
-		 * an {@link LRUCache} of buffers across all open files.  Each buffer in
-		 * the cache has a length exactly equal to that file handle's alignment.
-		 * A file will often have a partial buffer at the end due to its size
-		 * not being an integral multiple of the alignment.  Such a partial
-		 * buffer is always excluded from the global file buffer cache.
-		 */
-		public final int alignment;
-
-		/** Whether this file can be read. */
-		public final boolean canRead;
-
-		/** Whether this file can be written. */
-		public final boolean canWrite;
-
-		/**
-		 * The underlying {@link AsynchronousFileChannel} through which input
-		 * and/or output takes place.
-		 */
-		public final AsynchronousFileChannel channel;
-
-		/**
-		 * A weak set of {@link BufferKey}s pertaining to this file, for which
-		 * there may be entries in the {@linkplain
-		 * AvailRuntime#getBuffer(BufferKey) global file buffer cache}.  Since
-		 * the buffer keys are specific to each {@link FileHandle}, they are
-		 * removed from the cache explicitly when the file is closed.  This weak
-		 * set allows the cache removals to happen efficiently.
-		 */
-		public final WeakHashMap<BufferKey, Void> bufferKeys =
-			new WeakHashMap<>();
-
-		/**
-		 * Construct a new file handle.
-		 *
-		 * @param filename The {@link A_String name} of the file.
-		 * @param alignment The alignment by which to access the file.
-		 * @param canRead Whether the file can be read.
-		 * @param canWrite Whether the file can be written.
-		 * @param channel The {@link AsynchronousFileChannel} with which to do
-		 *                reading and writing.
-		 */
-		public FileHandle (
-			final A_String filename,
-			final int alignment,
-			final boolean canRead,
-			final boolean canWrite,
-			final AsynchronousFileChannel channel)
-		{
-			this.filename = filename;
-			this.alignment = alignment;
-			this.canRead = canRead;
-			this.canWrite = canWrite;
-			this.channel = channel;
- 		}
-	}
-
-	/**
-	 * Maintain an {@link LRUCache} of file buffers.  This allows us to avoid
-	 * a trip to the operating system to re-fetch recently accessed buffers of
-	 * data, which is especially powerful since the buffers are shared
-	 * (immutable and thread-safe).
-	 *
-	 * <p>A miss for this cache doesn't actually read the necessary data from
-	 * the operating system.  Instead, it simply creates a {@link MutableOrNull}
-	 * initially.  The client is responsible for reading the actual data that
-	 * should be stored into the {@code MutableOrNull}.</p>
-	 */
-	private final LRUCache<
-			BufferKey,
-			MutableOrNull<A_Tuple>>
-		cachedBuffers = new LRUCache<>(
-			10000,
-			10,
-		key ->
-		{
-			assert key != null;
-			return new MutableOrNull<>();
-		},
-		(key, value) ->
-		{
-			assert value != null;
-			// Just clear the mutable's value slot, freeing the actual
-			// buffer.
-			value.value = null;
-		});
-
-	/**
-	 * Answer the {@linkplain MutableOrNull container} responsible for the
-	 * {@linkplain A_Tuple buffer} indicated by the supplied {@linkplain
-	 * BufferKey key}.
-	 *
-	 * @param key
-	 *        A key.
-	 * @return A container for a buffer, possibly empty.
-	 */
-	public MutableOrNull<A_Tuple> getBuffer (final BufferKey key)
-	{
-		return stripNull(cachedBuffers.get(key));
-	}
-
-	/**
-	 * Discard the {@linkplain MutableOrNull container} responsible for the
-	 * {@linkplain A_Tuple buffer} indicated by the supplied {@linkplain
-	 * BufferKey key}.
-	 *
-	 * @param key
-	 *        A key.
-	 */
-	public void discardBuffer (final BufferKey key)
-	{
-		cachedBuffers.remove(key);
-	}
-
-	/**
-	 * Open an {@linkplain AsynchronousServerSocketChannel asynchronous server
-	 * socket channel}.
-	 *
-	 * @return An asynchronous server socket channel.
-	 * @throws IOException
-	 *         If the open fails for some reason.
-	 */
-	public AsynchronousServerSocketChannel openServerSocket ()
-		throws IOException
-	{
-		return AsynchronousServerSocketChannel.open(socketGroup);
-	}
-
-	/**
-	 * Open an {@linkplain AsynchronousSocketChannel asynchronous socket
-	 * channel}.
-	 *
-	 * @return An asynchronous socket channel.
-	 * @throws IOException
-	 *         If the open fails for some reason.
-	 */
-	public AsynchronousSocketChannel openSocket () throws IOException
-	{
-		return AsynchronousSocketChannel.open(socketGroup);
-	}
-
-	/**
 	 * The {@linkplain Timer timer} that managed scheduled {@linkplain
 	 * TimerTask tasks} for this {@linkplain AvailRuntime runtime}. The timer
 	 * thread is not an {@linkplain AvailThread Avail thread}, and therefore
@@ -934,42 +236,13 @@ public final class AvailRuntime
 		true);
 
 	/**
-	 * Utility class for wrapping a volatile counter that can be polled.
-	 */
-	public class Clock
-	{
-		/**
-		 * The current value of the monotonic counter.
-		 */
-		private final AtomicLong counter = new AtomicLong(0);
-
-		/**
-		 * Advance the clock.
-		 */
-		public void increment ()
-		{
-			counter.incrementAndGet();
-		}
-
-		/**
-		 * Poll the monotonic counter of the clock.
-		 *
-		 * @return The current clock value.
-		 */
-		public long get ()
-		{
-			return counter.get();
-		}
-	}
-
-	/**
 	 * The number of clock ticks since this {@linkplain AvailRuntime runtime}
 	 * was created.
 	 */
 	public final Clock clock = new Clock();
 
+	// Schedule a fixed-rate timer task to increment the runtime clock.
 	{
-		// Schedule a fixed-rate timer task to increment the runtime clock.
 		timer.schedule(
 			new TimerTask()
 			{
@@ -982,17 +255,6 @@ public final class AvailRuntime
 			10,
 			10);
 	}
-
-	/**
-	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
-	 * they happen.
-	 */
-	public static boolean debugMacroExpansions = false;
-
-	/**
-	 * Whether to show detailed compiler trace information.
-	 */
-	public static boolean debugCompilerSteps = false;
 
 	/**
 	 * Perform an integrity check on the parser data structures.  Report the
@@ -1062,7 +324,6 @@ public final class AvailRuntime
 					}
 				}
 			}
-			// TODO(MvG) - Do more checks.
 			System.out.println("done.");
 		}
 		finally
@@ -1503,7 +764,7 @@ public final class AvailRuntime
 	 * special objects.
 	 */
 	private static final List<AvailObject> specialObjectsList =
-		Collections.unmodifiableList(asList(specialObjects));
+		unmodifiableList(asList(specialObjects));
 
 	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
@@ -1523,15 +784,13 @@ public final class AvailRuntime
 	 * Answer the {@linkplain AvailObject special object} with the specified
 	 * ordinal.
 	 *
-	 * @param ordinal The {@linkplain AvailObject special object} with the
-	 *                specified ordinal.
+	 * @param ordinal
+	 *        The {@linkplain AvailObject special object} with the specified
+	 *        ordinal.
 	 * @return An {@link AvailObject}.
-	 * @throws ArrayIndexOutOfBoundsException
-	 *         If the ordinal is out of bounds.
 	 */
 	@ThreadSafe
 	public static AvailObject specialObject (final int ordinal)
-		throws ArrayIndexOutOfBoundsException
 	{
 		return specialObjects[ordinal];
 	}
@@ -1759,7 +1018,6 @@ public final class AvailRuntime
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
-		//noinspection ConstantConditions
 		assert specialAtomsList.isEmpty();
 		specialAtomsList.addAll(asList(
 			SpecialAtom.ALL_TOKENS_KEY.atom,
@@ -2344,15 +1602,7 @@ public final class AvailRuntime
 	{
 		timer.cancel();
 		executor.shutdownNow();
-		fileExecutor.shutdownNow();
-		try
-		{
-			socketGroup.shutdownNow();
-		}
-		catch (final IOException e)
-		{
-			// Ignore.
-		}
+		ioSystem.destroy();
 		try
 		{
 			executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -2361,35 +1611,7 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
-		try
-		{
-			fileExecutor.awaitTermination(10, TimeUnit.SECONDS);
-		}
-		catch (final InterruptedException e)
-		{
-			// Ignore.
-		}
-		try
-		{
-			socketGroup.awaitTermination(10, TimeUnit.SECONDS);
-		}
-		catch (final InterruptedException e)
-		{
-			// Ignore.
-		}
 		modules = nil;
 	}
 
-	/**
-	 * Capture the current time with nanosecond precision (but not necessarily
-	 * accuracy).  If per-thread accounting is available, use it.
-	 *
-	 * @return The current value of the nanosecond counter, or if supported, the
-	 *         number of nanoseconds of CPU time that the current thread has
-	 *         consumed.
-	 */
-	public static long captureNanos ()
-	{
-		return System.nanoTime();
-	}
 }

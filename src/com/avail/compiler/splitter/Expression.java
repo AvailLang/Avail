@@ -35,12 +35,16 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.avail.compiler.splitter.MessageSplitter.throwMalformedMessageException;
+import static com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION;
 
 /**
  * An {@code Expression} represents a structural view of part of the
@@ -73,6 +77,22 @@ abstract class Expression
 	private int explicitOrdinal = -1;
 
 	/**
+	 * Transform this expression to be case-insensitive, failing with a {@link
+	 * MalformedMessageException} if this is not meaningful.
+	 *
+	 * @return The case-insensitive expression.
+	 * @throws MalformedMessageException if the result would not be meaningful.
+	 */
+	Expression applyCaseInsensitive ()
+	throws MalformedMessageException
+	{
+		throw throwMalformedMessageException(
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+			"Tilde (~) may only occur after a lowercase "
+				+ "token or a group of lowercase tokens");
+	}
+
+	/**
 	 * Answer whether or not this an {@linkplain Argument argument} or
 	 * {@linkplain Group group}.
 	 *
@@ -91,20 +111,6 @@ abstract class Expression
 	 *         {@code false} otherwise.
 	 */
 	boolean isGroup ()
-	{
-		return false;
-	}
-
-	/**
-	 * If this isn't even a {@link Group} then it doesn't need
-	 * double-wrapping.  Override in Group.
-	 *
-	 * @return {@code true} if this is a group which will generate a tuple
-	 *         of fixed-length tuples, {@code false} if this group will
-	 *         generate a tuple of individual arguments or subgroups (or if
-	 *         this isn't a group).
-	 */
-	boolean needsDoubleWrapping ()
 	{
 		return false;
 	}
@@ -194,7 +200,7 @@ abstract class Expression
 	 * @throws SignatureException
 	 *        If the argument type is inappropriate.
 	 */
-	public abstract void checkType (
+	abstract void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException;
@@ -275,7 +281,7 @@ abstract class Expression
 
 	/**
 	 * Answer my explicitOrdinal, which indicates how to reorder me with my
-	 * siblings.  This may only be requested for types of {@link Expression}
+	 * siblings.  This may only be requested for types of {@code Expression}
 	 * that {@link #canBeReordered()}.
 	 *
 	 * @return My explicitOrdinal or -1.
@@ -288,7 +294,7 @@ abstract class Expression
 
 	/**
 	 * Set my explicitOrdinal, which indicates how to reorder me with my
-	 * siblings.  This may only be set for types of {@link Expression}
+	 * siblings.  This may only be set for types of {@code Expression}
 	 * that {@link #canBeReordered()}.
 	 *
 	 * @param ordinal My explicitOrdinal or -1.

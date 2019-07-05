@@ -505,7 +505,7 @@ public class CompilerDiagnostics
 		if (!descendingIterator.hasNext())
 		{
 			// Done assembling each of the problems.  Report them.
-			assert !groupedProblems.isEmpty();
+//			assert !groupedProblems.isEmpty();
 			afterGrouping.value(groupedProblems);
 			return;
 		}

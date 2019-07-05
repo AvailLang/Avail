@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
@@ -42,6 +41,7 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
@@ -55,7 +55,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
 import java.util.Set;
 
-import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -66,10 +65,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -103,7 +99,7 @@ extends Primitive
 		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
-			AvailRuntime.posixPermissions();
+			IOSystem.posixPermissions();
 		final Set<PosixFilePermission> permissions =
 			EnumSet.noneOf(PosixFilePermission.class);
 		for (final A_Number ordinal : ordinals)
@@ -124,15 +120,14 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = AvailRuntime.fileSystem().getPath(
-				filename.asNativeString());
+			path = IOSystem.fileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
 		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
-		final LinkOption[] options = AvailRuntime.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final PosixFileAttributeView view = Files.getFileAttributeView(
 			path, PosixFileAttributeView.class, options);

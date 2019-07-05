@@ -81,6 +81,7 @@ public final class Locks
 	 *        The {@link Supplier} to execute while holding the lock.
 	 * @return The result of running the supplier, which must not be {@code
 	 *         null}.
+	 * @param <T> The type of value to pass through from the supplier.
 	 */
 	public static <T> T lockWhile (
 		final Lock lock,
@@ -107,6 +108,9 @@ public final class Locks
 	 * @param supplier
 	 *        The {@link Supplier} to execute while holding the lock.
 	 * @return The result of running the supplier, which may be {@code null}.
+	 * @param <T>
+	 *        The type of {@link Nullable} value to pass through from the
+	 *        supplier.
 	 */
 	public static @Nullable <T> T lockWhileNullable (
 		final Lock lock,
@@ -133,15 +137,16 @@ public final class Locks
 	 * @return An {@link AutoCloseable} which will unlock the lock when closed.
 	 */
 	@SuppressWarnings("LockAcquiredButNotSafelyReleased")
-	public static NoThrowAutoCloseable auto (
+	public static Auto auto (
 		final Lock lock)
 	{
 		lock.lock();
 		return lock::unlock;
 	}
 
+	/** A convenient non-throwing form of {@link AutoCloseable}. */
 	@FunctionalInterface
-	public interface NoThrowAutoCloseable extends AutoCloseable
+	public interface Auto extends AutoCloseable
 	{
 		@Override
 		void close ();

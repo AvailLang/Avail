@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;

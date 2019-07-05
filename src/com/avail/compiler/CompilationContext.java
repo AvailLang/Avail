@@ -32,6 +32,7 @@
 package com.avail.compiler;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -588,10 +589,10 @@ public class CompilationContext
 		Continuation1NotNull<AvailObject> adjustedSuccess = onSuccess;
 		if (shouldSerialize)
 		{
-			final long before = AvailRuntime.captureNanos();
+			final long before = AvailRuntimeSupport.captureNanos();
 			adjustedSuccess = successValue ->
 			{
-				final long after = AvailRuntime.captureNanos();
+				final long after = AvailRuntimeSupport.captureNanos();
 				Interpreter.current().recordTopStatementEvaluation(
 					after - before, module, lexingState.lineNumber);
 				loader().stopRecordingEffects();

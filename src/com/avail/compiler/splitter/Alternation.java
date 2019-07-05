@@ -36,14 +36,14 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * An {@code Alternation} is a special {@linkplain Expression expression}
@@ -75,7 +75,7 @@ extends Expression
 	}
 
 	/**
-	 * Construct a new {@link Alternation}.
+	 * Construct a new {@code Alternation}.
 	 *
 	 * @param positionInName
 	 *        The position of this expression in the message name.
@@ -85,7 +85,7 @@ extends Expression
 	Alternation (final int positionInName, final List<Expression> alternatives)
 	{
 		super(positionInName);
-		this.alternatives = alternatives;
+		this.alternatives = unmodifiableList(new ArrayList<>(alternatives));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	{

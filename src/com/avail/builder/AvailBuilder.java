@@ -68,7 +68,6 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Continuation2NotNull;
 import com.avail.utility.evaluation.Continuation3;
-import com.avail.utility.evaluation.Continuation4;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -96,6 +95,7 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.*;
@@ -1971,11 +1971,11 @@ public final class AvailBuilder
 										code.startingLineNumber());
 							});
 						fiber.textInterface(textInterface);
-						final long before = AvailRuntime.captureNanos();
+						final long before = captureNanos();
 						fiber.setSuccessAndFailureContinuations(
 							ignored ->
 							{
-								final long after = AvailRuntime.captureNanos();
+								final long after = captureNanos();
 								Interpreter.current().
 									recordTopStatementEvaluation(
 										after - before,
@@ -2817,7 +2817,7 @@ public final class AvailBuilder
 					}
 				},
 				0);
-			final AsynchronousFileChannel channel = runtime.openFile(
+			final AsynchronousFileChannel channel = runtime.ioSystem().openFile(
 				outputFile.toPath(),
 				EnumSet.of(
 					StandardOpenOption.WRITE,

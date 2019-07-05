@@ -31,13 +31,13 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;

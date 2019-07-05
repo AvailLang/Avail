@@ -51,16 +51,22 @@ final class RawWholeNumberLiteralTokenArgument
 extends RawTokenArgument
 {
 	/**
-	 * Construct a new {@link
-	 * RawStringLiteralTokenArgument}.
+	 * Construct a {@code RawWholeNumberLiteralTokenArgument}, given the
+	 * one-based position of the token in the name, and the absolute index of
+	 * this argument in the entire message name.
 	 *
-	 * @param startTokenIndex The one-based token index of this argument.
+	 * @param positionInName
+	 *        The one-based position of the start of the token in the message
+	 *        name.
+	 * @param absoluteUnderscoreIndex
+	 *        The one-based index of this argument within the entire message
+	 *        name's list of arguments.
 	 */
 	RawWholeNumberLiteralTokenArgument (
-		final MessageSplitter splitter,
-		final int startTokenIndex)
+		final int positionInName,
+		final int absoluteUnderscoreIndex)
 	{
-		super(splitter, startTokenIndex);
+		super(positionInName, absoluteUnderscoreIndex);
 	}
 
 	@Override

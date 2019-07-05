@@ -49,46 +49,58 @@ final class Simple
 extends Expression
 {
 	/**
-	 * The {@link MessageSplitter} in which this is a {@link Simple} expression.
+	 * The {@link A_String} for this simple expression.
 	 */
-	private final MessageSplitter messageSplitter;
+	private final A_String token;
 
 	/**
 	 * The one-based index of this token within the {@link
 	 * MessageSplitter#messagePartsList message parts}.
 	 */
-	final int tokenIndex;
+	private final int tokenIndex;
 
 	/**
 	 * Construct a new {@code Simple} expression representing a specific token
 	 * expected in the input.
 	 *
+	 * @param token
+	 *        An {@link A_String} containing the token's characters.
 	 * @param tokenIndex
 	 *        The one-based index of the token within the {@link
 	 *        MessageSplitter#messagePartsList message parts}.
+	 * @param positionInName
+	 *        The one-based index of the token within the entire name string.
 	 */
-	Simple (final MessageSplitter messageSplitter, final int tokenIndex)
+	Simple (
+		final A_String token,
+		final int tokenIndex,
+		final int positionInName)
 	{
-		super(messageSplitter.messagePartPositions.get(tokenIndex - 1));
-		this.messageSplitter = messageSplitter;
+		super(positionInName);
+		this.token = token;
 		this.tokenIndex = tokenIndex;
+	}
+
+	@Override
+	Expression applyCaseInsensitive ()
+	{
+		return new CaseInsensitive(positionInName, this);
 	}
 
 	@Override
 	boolean isLowerCase ()
 	{
-		final String token =
-			messageSplitter.messagePartsList.get(tokenIndex - 1).asNativeString();
-		return token.toLowerCase().equals(token);
+		final String nativeString = token.asNativeString();
+		return nativeString.toLowerCase().equalsIgnoreCase(nativeString);
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	{
-		assert false : "checkType() should not be called for Simple" +
-				" expressions";
+		assert false :
+			"checkType() should not be called for Simple expressions";
 	}
 
 	@Override
@@ -108,8 +120,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() +
-			'(' + messageSplitter.messagePartsList.get(tokenIndex - 1) + ')';
+		return getClass().getSimpleName() + '(' + token + ')';
 	}
 
 	@Override
@@ -118,8 +129,6 @@ extends Expression
 		final StringBuilder builder,
 		final int indent)
 	{
-		final A_String token =
-			messageSplitter.messagePartsList.get(tokenIndex - 1);
 		builder.append(token.asNativeString());
 	}
 
@@ -140,12 +149,8 @@ extends Expression
 	@Override
 	boolean shouldBeSeparatedOnLeft ()
 	{
-		final String string =
-			messageSplitter.messagePartsList
-				.get(tokenIndex - 1)
-				.asNativeString();
-		assert string.length() > 0;
-		final int firstCharacter = string.codePointAt(0);
+		assert token.tupleSize() > 0;
+		final int firstCharacter = token.tupleCodePointAt(1);
 		return Character.isUnicodeIdentifierPart(firstCharacter)
 			|| charactersThatLikeSpacesBefore.indexOf(firstCharacter) >= 0;
 	}
@@ -153,12 +158,8 @@ extends Expression
 	@Override
 	boolean shouldBeSeparatedOnRight ()
 	{
-		final String token =
-			messageSplitter.messagePartsList
-				.get(tokenIndex - 1)
-				.asNativeString();
-		assert token.length() > 0;
-		final int lastCharacter = token.codePointBefore(token.length());
+		assert token.tupleSize() > 0;
+		final int lastCharacter = token.tupleCodePointAt(token.tupleSize());
 		return Character.isUnicodeIdentifierPart(lastCharacter)
 			|| charactersThatLikeSpacesAfter.indexOf(lastCharacter) >= 0;
 	}

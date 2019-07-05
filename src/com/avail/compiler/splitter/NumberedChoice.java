@@ -44,6 +44,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -81,7 +82,7 @@ extends Expression
 	private final Alternation alternation;
 
 	/**
-	 * Construct a new {@link NumberedChoice}.
+	 * Construct a new {@code NumberedChoice}.
 	 *
 	 * @param alternation
 	 *        The enclosed {@link Alternation}.
@@ -119,19 +120,17 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException
 	{
+		// The declared type of the subexpression must be a subtype of
+		// [1..N] where N is the number of alternatives.
 		if (!argumentType.isSubtypeOf(
-			inclusive(1,
-				alternation.alternatives().size())))
+			inclusive(1, alternation.alternatives().size())))
 		{
-			// The declared type of the subexpression must be a subtype of
-			// [1..N] where N is the number of alternatives.
-			MessageSplitter.throwSignatureException(
-				E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
+			throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
 		}
 	}
 

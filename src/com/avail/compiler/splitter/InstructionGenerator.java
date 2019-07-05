@@ -41,17 +41,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.BRANCH_FORWARD;
-import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
-import static com.avail.compiler.ParsingOperation.JUMP_BACKWARD;
-import static com.avail.compiler.ParsingOperation.JUMP_FORWARD;
-import static com.avail.compiler.ParsingOperation.PARSE_PART;
-import static com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY;
-import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
-import static com.avail.compiler.ParsingOperation.WRAP_IN_LIST;
-import static com.avail.compiler.ParsingOperation.decode;
-import static com.avail.compiler.ParsingOperation.operand;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 
 /**

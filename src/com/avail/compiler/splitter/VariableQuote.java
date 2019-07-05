@@ -40,9 +40,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_VARIABLE_REFERENCE;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -57,15 +55,22 @@ final class VariableQuote
 extends Argument
 {
 	/**
-	 * Construct a new {@code VariableQuote}.
+	 * Construct a {@code VariableQuote}, given the one-based position of the
+	 * token in the name, and the absolute index of this argument in the entire
+	 * message name.
 	 *
-	 * @param startTokenIndex The one-based token index of this argument.
+	 * @param positionInName
+	 *        The one-based position of the start of the token in the message
+	 *        name.
+	 * @param absoluteUnderscoreIndex
+	 *        The one-based index of this argument within the entire message
+	 *        name's list of arguments.
 	 */
 	VariableQuote (
-		final MessageSplitter splitter,
-		final int startTokenIndex)
+		final int positionInName,
+		final int absoluteUnderscoreIndex)
 	{
-		super(splitter, startTokenIndex);
+		super(positionInName, absoluteUnderscoreIndex);
 	}
 
 	@Override

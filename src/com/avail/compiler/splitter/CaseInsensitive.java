@@ -57,7 +57,7 @@ extends Expression
 	final Expression expression;
 
 	/**
-	 * Construct a new {@link CaseInsensitive}.
+	 * Construct a new {@code CaseInsensitive}.
 	 *
 	 * @param positionInName
 	 *        The position of this expression in the message name.
@@ -109,7 +109,7 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException

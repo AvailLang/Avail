@@ -60,6 +60,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
 import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
@@ -272,7 +273,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = AvailRuntime.captureNanos();
+					final long beforeLookup = captureNanos();
 					try
 					{
 						matching = method.lookupByValuesFromList(
@@ -285,7 +286,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = AvailRuntime.captureNanos();
+						final long afterLookup = captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -659,7 +660,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = AvailRuntime.captureNanos();
+					final long beforeLookup = captureNanos();
 					try
 					{
 						matching = method.lookupByTypesFromTuple(typesTuple);
@@ -671,7 +672,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = AvailRuntime.captureNanos();
+						final long afterLookup = captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -974,9 +975,9 @@ public final class L1InstructionStepper
 		final A_Type expectedReturnType,
 		final A_Function returnee)
 	{
-		final long before = AvailRuntime.captureNanos();
+		final long before = captureNanos();
 		final boolean checkOk = result.isInstanceOf(expectedReturnType);
-		final long after = AvailRuntime.captureNanos();
+		final long after = captureNanos();
 		final A_Function returner = stripNull(interpreter.returningFunction);
 		final @Nullable Primitive calledPrimitive = returner.code().primitive();
 		if (calledPrimitive != null)

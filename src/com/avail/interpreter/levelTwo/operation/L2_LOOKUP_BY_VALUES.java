@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Function;
@@ -63,6 +62,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.SetDescriptor.*;
@@ -274,7 +274,7 @@ extends L2ControlFlowOperation
 		Collections.addAll(valuesList, values);
 
 		final A_Method method = bundle.bundleMethod();
-		final long before = AvailRuntime.captureNanos();
+		final long before = captureNanos();
 		final A_Definition definitionToCall;
 		try
 		{
@@ -282,7 +282,7 @@ extends L2ControlFlowOperation
 		}
 		finally
 		{
-			final long after = AvailRuntime.captureNanos();
+			final long after = captureNanos();
 			interpreter.recordDynamicLookup(bundle, after - before);
 		}
 		if (definitionToCall.isAbstractDefinition())

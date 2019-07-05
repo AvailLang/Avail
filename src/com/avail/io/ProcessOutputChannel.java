@@ -93,7 +93,7 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		runtime.executeFileTask(() ->
+		runtime.ioSystem().executeFileTask(() ->
 		{
 			try
 			{
@@ -116,7 +116,7 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		runtime.executeFileTask(
+		runtime.ioSystem().executeFileTask(
 			() ->
 			{
 				try

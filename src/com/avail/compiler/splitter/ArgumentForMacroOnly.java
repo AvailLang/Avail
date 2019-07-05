@@ -35,9 +35,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListPhraseDescriptor;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_TOP_VALUED_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 
 /**
  * An {@code ArgumentForMacroOnly} is the translation of an {@linkplain
@@ -61,15 +59,22 @@ final class ArgumentForMacroOnly
 extends Argument
 {
 	/**
-	 * Construct a new {@code ArgumentForMacroOnly}.
+	 * Construct an {@code ArgumentForMacroOnly}, given the one-based position
+	 * of the token in the name, and the absolute index of this argument in the
+	 * entire message name.
 	 *
-	 * @param startTokenIndex The one-based token index of this argument.
+	 * @param positionInName
+	 *        The one-based position of the start of the token in the message
+	 *        name.
+	 * @param absoluteUnderscoreIndex
+	 *        The one-based index of this argument within the entire message
+	 *        name's list of arguments.
 	 */
 	ArgumentForMacroOnly (
-		final MessageSplitter splitter,
-		final int startTokenIndex)
+		final int positionInName,
+		final int absoluteUnderscoreIndex)
 	{
-		super(splitter, startTokenIndex);
+		super(positionInName, absoluteUnderscoreIndex);
 	}
 
 	/**

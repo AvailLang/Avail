@@ -88,7 +88,7 @@ extends Primitive
 		{
 			final A_Atom handle = createAtom(name, currentModule());
 			final AsynchronousSocketChannel channel =
-				currentRuntime().openSocket();
+				currentRuntime().ioSystem().openSocket();
 			final AvailObject pojo = identityPojo(channel);
 			handle.setAtomProperty(SOCKET_KEY.atom, pojo);
 			return interpreter.primitiveSuccess(handle);

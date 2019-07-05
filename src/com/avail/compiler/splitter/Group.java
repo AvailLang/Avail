@@ -33,13 +33,13 @@
 package com.avail.compiler.splitter;
 
 import com.avail.compiler.splitter.InstructionGenerator.Label;
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 
 import javax.annotation.Nullable;
@@ -48,8 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter.circledNumberCodePoint;
-import static com.avail.compiler.splitter.MessageSplitter.indexForPermutation;
+import static com.avail.compiler.splitter.MessageSplitter.*;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -146,8 +145,7 @@ extends Expression
 	}
 
 	/**
-	 * Construct a new {@code Group} that does not contain a double-dagger
-	 * (‡).
+	 * Construct a new {@code Group} that does not contain a double-dagger (‡).
 	 *
 	 * @param positionInName
 	 *        The position of the group in the message name.
@@ -156,13 +154,24 @@ extends Expression
 	 */
 	Group (
 		final int positionInName,
-		final MessageSplitter messageSplitter,
 		final Sequence beforeDagger)
 	{
 		super(positionInName);
 		this.beforeDagger = beforeDagger;
 		this.hasDagger = false;
-		this.afterDagger = new Sequence(positionInName + 1, messageSplitter);
+		this.afterDagger = new Sequence(positionInName + 1);
+	}
+
+	@Override
+	Expression applyCaseInsensitive ()
+	throws MalformedMessageException
+	{
+		if (!isLowerCase())
+		{
+			// Fail due to the group containing a non-lowercase token.
+			super.applyCaseInsensitive();
+		}
+		return new CaseInsensitive(positionInName, this);
 	}
 
 	@Override
@@ -207,7 +216,6 @@ extends Expression
 	 *         fixed-length tuples, {@code false} if this group will
 	 *         generate a tuple of individual arguments or subgroups.
 	 */
-	@Override
 	boolean needsDoubleWrapping ()
 	{
 		return beforeDagger.arguments.size() != 1
@@ -227,7 +235,7 @@ extends Expression
 	 * this group.
 	 */
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException
@@ -236,13 +244,13 @@ extends Expression
 		if (argumentType.isBottom())
 		{
 			// Method argument type should not be bottom.
-			MessageSplitter.throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
+			throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
 		}
 
 		if (!argumentType.isTupleType())
 		{
 			// The group produces a tuple.
-			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 		}
 
 		final A_Type requiredRange = integerRangeType(
@@ -257,7 +265,7 @@ extends Expression
 		{
 			// The method's parameter should have a cardinality that's a
 			// subtype of what the message name requires.
-			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 		}
 
 		if (needsDoubleWrapping())
@@ -284,8 +292,7 @@ extends Expression
 				if (!solutionType.isTupleType())
 				{
 					// The argument should be a tuple of tuples.
-					MessageSplitter.throwSignatureException(
-						E_INCORRECT_TYPE_FOR_GROUP);
+					throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 				}
 				// Check that the solution that will reside at the current
 				// index accepts either a full group or a group up to the
@@ -301,22 +308,17 @@ extends Expression
 					// number of argument subexpressions before the double
 					// dagger up to the total number of argument
 					// subexpressions in this group.
-					MessageSplitter.throwSignatureException(
-						E_INCORRECT_TYPE_FOR_COMPLEX_GROUP);
+					throwSignatureException(E_INCORRECT_TYPE_FOR_COMPLEX_GROUP);
 				}
 				int j = 1;
 				for (final Expression e : beforeDagger.arguments)
 				{
-					e.checkType(
-						solutionType.typeAtIndex(j),
-						sectionNumber);
+					e.checkType(solutionType.typeAtIndex(j), sectionNumber);
 					j++;
 				}
 				for (final Expression e : afterDagger.arguments)
 				{
-					e.checkType(
-						solutionType.typeAtIndex(j),
-						sectionNumber);
+					e.checkType(solutionType.typeAtIndex(j), sectionNumber);
 					j++;
 				}
 			}

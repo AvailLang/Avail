@@ -34,33 +34,30 @@ package com.avail.test;
 
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_DefinitionParsingPlan;
 import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListPhraseTypeDescriptor;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.SignatureException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.BRANCH_FORWARD;
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.JUMP_BACKWARD;
-import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_PART;
-import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
-import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.decode;
-import static com.avail.compiler.ParsingOperation.distinctInstructions;
-import static com.avail.compiler.ParsingOperation.operand;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.fromLong;
@@ -71,12 +68,12 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static java.util.Arrays.stream;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
@@ -119,20 +116,42 @@ public final class MessageSplitterTest
 		final List<Integer> instructions;
 
 		/**
-		 * Construct a new {@link Case}.
+		 * The phrase type for which to instantiate a {@link
+		 * A_DefinitionParsingPlan}.
+		 */
+		final A_Type listPhraseType;
+
+		/**
+		 * Construct a new {@code Case}.
 		 *
-		 * @param message The method name to split.
-		 * @param tokens The expected substrings comprising the method name.
-		 * @param instructions The expected encoded parsing instructions.
+		 * @param message
+		 *        The method name to split.
+		 * @param listPhraseType
+		 *        The list phrase type for which the instructions should be
+		 *        specialized.
+		 * @param tokens
+		 *        The expected substrings comprising the method name.
+		 * @param instructions
+		 *        The expected encoded parsing instructions.
 		 */
 		Case (
 			final String message,
+			final A_Type listPhraseType,
 			final String[] tokens,
 			final Integer[] instructions)
 		{
 			this.message = message;
-			this.tokens = tokens;
+			this.listPhraseType = listPhraseType;
+			this.tokens = tokens.clone();
 			this.instructions = Arrays.asList(instructions);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return message
+				+ " @ " + listPhraseType
+				+ " → " + Arrays.toString(tokens);
 		}
 	}
 
@@ -150,45 +169,14 @@ public final class MessageSplitterTest
 	 *         tokens, then a print representation of the numeric instructions
 	 *         converted to a {@link List}.
 	 */
-	static Case C(
+	static Case C (
 		final String message,
 		final A_Type listPhraseType,
 		final String[] tokens,
 		final Integer[] instructions)
 	{
 		assert listPhraseType.isSubtypeOf(List(0, -1, Phrase(ANY.o())));
-		return new Case(message, tokens, instructions);
-	}
-
-	/**
-	 * Construct a tuple type from the lower bound, upper bound (-1 for
-	 * infinity), and vararg array of element types.
-	 *
-	 * @param lowerBound
-	 *        The smallest this tuple can be.
-	 * @param upperBound
-	 *        The largest this tuple can be, or -1 if it's unbounded.
-	 * @param values
-	 *        The vararg array of element types, the last one being implicitly
-	 *        repeated if the upperBound is bigger than the length of the array.
-	 * @return A {@link TupleTypeDescriptor tuple type}.
-	 */
-	static A_Type Tuple(
-		final int lowerBound,
-		final int upperBound,
-		final A_Type... values)
-	{
-		assert upperBound >= -1;
-		final A_Number lower = fromInt(lowerBound);
-		final A_Number upperPlusOne = upperBound >= 0
-			? fromLong(upperBound + 1L)
-			: positiveInfinity();
-		return tupleTypeForSizesTypesDefaultType(
-			integerRangeType(lower, true, upperPlusOne, false),
-			tupleFromArray(values),
-			values.length > 0
-				? values[values.length - 1]
-				: bottom());
+		return new Case(message, listPhraseType, tokens, instructions);
 	}
 
 	/**
@@ -205,7 +193,7 @@ public final class MessageSplitterTest
 	 *        the array.
 	 * @return A {@link ListPhraseTypeDescriptor list phrase type}.
 1	 */
-	static A_Type List(
+	static A_Type List (
 		final int lowerBound,
 		final int upperBound,
 		final A_Type... expressionPhraseTypes)
@@ -259,6 +247,7 @@ public final class MessageSplitterTest
 	 *
 	 * @param x The varargs array passed in.
 	 * @return The same array.
+	 * @param <X> The type of elements in the array.
 	 */
 	@SafeVarargs
 	static <X> X[] A(final X... x)
@@ -267,8 +256,11 @@ public final class MessageSplitterTest
 	}
 
 	/** Test cases. */
-	private static final Case[] splitCases =
-		new Case[] {
+	private static final Case[] splitCases;
+
+	static
+	{
+		splitCases = new Case[] {
 			C(
 				"Foo",
 				List(0, 0),
@@ -295,15 +287,15 @@ public final class MessageSplitterTest
 				A(
 					PARSE_PART.encoding(1))),
 			C(
-				"Most`_Sauceulent`_",
+				"Most`_Saucy`_",
 				List(0, 0),
-				A("Most_Sauceulent_"),
+				A("Most_Saucy_"),
 				A(
 					PARSE_PART.encoding(1))),
 			C(
-				"Most `_Sauceulent",
+				"Most `_Saucy",
 				List(0, 0),
-				A("Most", "_Sauceulent"),
+				A("Most", "_Saucy"),
 				A(
 					PARSE_PART.encoding(1),
 					PARSE_PART.encoding(2))),
@@ -316,6 +308,7 @@ public final class MessageSplitterTest
 					PARSE_PART.encoding(1),
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(stringType()),
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"_+_",
@@ -323,37 +316,45 @@ public final class MessageSplitterTest
 				A("_", "+", "_"),
 				A(
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2),  // Hoisted before the checks.
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(2),
-					APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					WRAP_IN_LIST.encoding(2),
+					CONCATENATE.encoding())),
 			C(
 				"_+_*_",
 				List(3, 3, Phrase(NUMBER.o())),
 				A("_", "+", "_", "*", "_"),
 				A(
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2),  // Hoisted before arg 1 checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(4),  // Hoisted before arg 2 checks
 					CHECK_ARGUMENT.encoding(2),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(4),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(3),
-					APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					WRAP_IN_LIST.encoding(3),
+					CONCATENATE.encoding())),
 			C(
 				"_;",
 				List(1, 1, Phrase(Phrase(TOP.o()))),
 				A("_", ";"),
 				A(
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2),  // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(2))),
+					typeCheckEncodingForPhrase(Phrase(TOP.o())),
+					APPEND_ARGUMENT.encoding())),
 			C(
 				"__",
 				List(2, 2, Phrase(stringType())),
@@ -361,30 +362,30 @@ public final class MessageSplitterTest
 				A(
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(2),
-					APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
+					WRAP_IN_LIST.encoding(2),
+					CONCATENATE.encoding())),
 		/* Literals */
 			C(
 				"…#",
-				List(
-					1,
-					1,
-					Phrase(LiteralToken(wholeNumbers()))),
+				List(1, 1, Phrase(LiteralToken(wholeNumbers()))),
 				A("…", "#"),
 				A(
 					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
+					typeCheckEncodingForPhrase(LiteralToken(wholeNumbers())),
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"…$",
-				List(
-					1,
-					1,
-					Phrase(LiteralToken(stringType()))),
+				List(1, 1, Phrase(LiteralToken(stringType()))),
 				A("…", "$"),
 				A(
 					PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
+					typeCheckEncodingForPhrase(LiteralToken(stringType())),
 					APPEND_ARGUMENT.encoding())),
 		/* Backquotes. */
 			C(
@@ -395,6 +396,7 @@ public final class MessageSplitterTest
 					PARSE_PART.encoding(2),
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(stringType()),
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"`$_",
@@ -404,6 +406,7 @@ public final class MessageSplitterTest
 					PARSE_PART.encoding(2),
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(stringType()),
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"_`«_",
@@ -411,24 +414,32 @@ public final class MessageSplitterTest
 				A("_", "`", "«", "_"),
 				A(
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3), // Hoisted above checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(3),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(),
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(2),
-					APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
+					WRAP_IN_LIST.encoding(2),
+					CONCATENATE.encoding())),
 			C(
 				"_``_",
-				List(1, 1, Phrase(stringType())),
+				List(2, 2, Phrase(stringType())),
 				A("_", "`", "`", "_"),
 				A(
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3), // Hoisted above checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(3),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					PARSE_ARGUMENT.encoding(),
 					CHECK_ARGUMENT.encoding(2),
-					APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(stringType()),
+					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
+					WRAP_IN_LIST.encoding(2),
+					CONCATENATE.encoding())),
 			C(
 				"`#`?`~",
 				List(0, 0),
@@ -446,122 +457,168 @@ public final class MessageSplitterTest
 					PARSE_PART.encoding(2),
 					PARSE_PART.encoding(4),
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(7), // Hoisted before checks
+					PARSE_PART.encoding(9), // Also hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(7),
-					PARSE_PART.encoding(9))),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.encoding())),
 		/* Repeated groups. */
 			C(
 				"«_;»",
-				List(1, 1, Phrase(NUMBER.o())),
+				List(1, 1, Phrase(zeroOrMoreOf(NUMBER.o()))),
 				A("«", "_", ";", "»"),
 				A(
-					SAVE_PARSE_POSITION.encoding(),
 					EMPTY_LIST.encoding(),
-					BRANCH_FORWARD.encoding(12),
+					BRANCH_FORWARD.encoding(16),
+					// First unrolled loop
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
 					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(3),
-					BRANCH_FORWARD.encoding(11),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					JUMP_BACKWARD.encoding(4),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					BRANCH_FORWARD.encoding(16), // Maybe that's all
+					// 9: Top of loop.
+					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3), // Hoisted before checks
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.encoding(),
+					BRANCH_FORWARD.encoding(16), // Maybe that's all
+					JUMP_BACKWARD.encoding(9), // To top of loop
+					// 16: After loop
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"«x»",
 				List(1, 1, List(0, -1, List(0, 0))),
 				A("«", "x", "»"),
 				A(
-					SAVE_PARSE_POSITION.encoding(),
-					EMPTY_LIST.encoding(),
-					BRANCH_FORWARD.encoding(12),
-					EMPTY_LIST.encoding(),
+					EMPTY_LIST.encoding(), // whole expression
+					BRANCH_FORWARD.encoding(13), // allow zero occurrences
+					PARSE_PART.encoding(2), // unroll first one.
+					EMPTY_LIST.encoding(), // first occurrence has no arguments.
+					BRANCH_FORWARD.encoding(12), // done after one?
+					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					//7: Start of loop after unrolled iteration.
 					PARSE_PART.encoding(2),
-					BRANCH_FORWARD.encoding(10),
-					APPEND_ARGUMENT.encoding(),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					JUMP_BACKWARD.encoding(4),
-					APPEND_ARGUMENT.encoding(),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					DISCARD_SAVED_PARSE_POSITION.encoding(),
-					APPEND_ARGUMENT.encoding())),
+					EMPTY_LIST.encoding(), // other occurrences have no args.
+					BRANCH_FORWARD.encoding(12), // exit loop?
+					APPEND_ARGUMENT.encoding(), // capture it and continue
+					JUMP_BACKWARD.encoding(7),
+					//12:
+					APPEND_ARGUMENT.encoding(), // save last occurrence
+					//13:
+					APPEND_ARGUMENT.encoding())),  // save all occurrences
 			C(
 				"«x y»",
 				List(1, 1, List(0, -1, List(0, 0))),
 				A("«", "x", "y", "»"),
 				A(
-					SAVE_PARSE_POSITION.encoding(),
-					EMPTY_LIST.encoding(),
-					BRANCH_FORWARD.encoding(13),
-					EMPTY_LIST.encoding(),
-					PARSE_PART.encoding(2),
-					PARSE_PART.encoding(3),
-					BRANCH_FORWARD.encoding(11),
-					APPEND_ARGUMENT.encoding(),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					JUMP_BACKWARD.encoding(4),
-					APPEND_ARGUMENT.encoding(),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					EMPTY_LIST.encoding(), // whole expression
+					BRANCH_FORWARD.encoding(15), // allow zero occurrences
+					PARSE_PART.encoding(2), // unroll first x...
+					PARSE_PART.encoding(3), // ... and y.
+					EMPTY_LIST.encoding(), // first occurrence has no arguments.
+					BRANCH_FORWARD.encoding(14), // done after one?
+					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					//8: Start of loop after unrolled iteration.
+					PARSE_PART.encoding(2),  // x
+					PARSE_PART.encoding(3),  // y
+					EMPTY_LIST.encoding(), // other occurrences have no args.
+					BRANCH_FORWARD.encoding(14), // exit loop?
+					APPEND_ARGUMENT.encoding(), // capture it and continue
+					JUMP_BACKWARD.encoding(8),
+					//14:
+					APPEND_ARGUMENT.encoding(), // save all occurrences
+					//15:
 					APPEND_ARGUMENT.encoding())),
 			C(
 				"«x_y»",
-				List(1, 1, List(0, -1, List(1, 1, Phrase(NUMBER.o())))),
+				List(1, 1, List(0, -1, Phrase(NUMBER.o()))),
 				A("«", "x", "_", "y", "»"),
 				A(
-					SAVE_PARSE_POSITION.encoding(),
-					EMPTY_LIST.encoding(),
-					BRANCH_FORWARD.encoding(13),
-					PARSE_PART.encoding(2),
+					// NOTE: The group's left half has one argument and the
+					// right half has none (it's elided).  Use single-wrapping
+					// to avoid creating a sequence of singleton tuples.
+					EMPTY_LIST.encoding(), // whole expression
+					BRANCH_FORWARD.encoding(18), // allow zero occurrences
+					PARSE_PART.encoding(2), // unroll first occurrence
 					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(4), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
-					APPEND_ARGUMENT.encoding(),
-					PARSE_PART.encoding(4),
-					BRANCH_FORWARD.encoding(12),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					JUMP_BACKWARD.encoding(4),
-					ENSURE_PARSE_PROGRESS.encoding(),
-					DISCARD_SAVED_PARSE_POSITION.encoding(),
-					APPEND_ARGUMENT.encoding())),
-//		C("«_:_»",
-//			A("«", "_", ":", "_", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(18),
-//				EMPTY_LIST.encoding(),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(1),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(3),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(2),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(16),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«»",
-//			A("«", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(9),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					BRANCH_FORWARD.encoding(18), // done after one?
+					//10: Start of loop after unrolled iteration.
+					PARSE_PART.encoding(2),  // next x
+					PARSE_ARGUMENT.encoding(),
+					PARSE_PART.encoding(4), // Hoisted before checks
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					BRANCH_FORWARD.encoding(18), // exit loop?
+					JUMP_BACKWARD.encoding(10),
+					//18:
+					APPEND_ARGUMENT.encoding())),  // save all occurrences
+		C(
+			"«_:_»",
+			List(1, 1, List(0, -1, List(2, 2, Phrase(NUMBER.o())))),
+			A("«", "_", ":", "_", "»"),
+			A(
+				// NOTE: The group's left half has two argument positions, so we
+				// have to double-wrap (i.e., produce a tuple of 2-tuples).
+				EMPTY_LIST.encoding(), // whole expression
+				BRANCH_FORWARD.encoding(25), // allow zero occurrences
+				PARSE_ARGUMENT.encoding(),
+				PARSE_PART.encoding(3), // Hoisted before checks
+				CHECK_ARGUMENT.encoding(1),
+				typeCheckEncodingForPhrase(NUMBER.o()),
+				PARSE_ARGUMENT.encoding(),
+				CHECK_ARGUMENT.encoding(2),
+				typeCheckEncodingForPhrase(NUMBER.o()),
+				WRAP_IN_LIST.encoding(2),
+				BRANCH_FORWARD.encoding(24), // done after one?
+				APPEND_ARGUMENT.encoding(), // save it and parse more.
+				//13: Start of loop after unrolled iteration.
+				PARSE_ARGUMENT.encoding(),
+				PARSE_PART.encoding(3), // Hoisted before checks
+				CHECK_ARGUMENT.encoding(1),
+				typeCheckEncodingForPhrase(NUMBER.o()),
+				PARSE_ARGUMENT.encoding(),
+				CHECK_ARGUMENT.encoding(2),
+				typeCheckEncodingForPhrase(NUMBER.o()),
+				WRAP_IN_LIST.encoding(2),
+				BRANCH_FORWARD.encoding(24), // exit loop?
+				APPEND_ARGUMENT.encoding(), // save it and parse more.
+				JUMP_BACKWARD.encoding(13),
+				//24:
+				APPEND_ARGUMENT.encoding(), // save the last pair
+				//25:
+				APPEND_ARGUMENT.encoding())),  // save all occurrences
+		C("«»",
+			List(1, 1, List(0, -1, List(0, 0))),
+			A("«", "»"),
+			A(
+				// This is a degenerate case, and can't actually pass the
+				// progress checks because no tokens can ever be parsed.
+				EMPTY_LIST.encoding(), // Zero occurrences.
+				BRANCH_FORWARD.encoding(16), // Try zero occurrences.
+				//3: Unrolled first occurrence
+				SAVE_PARSE_POSITION.encoding(), //Occurrences must make progress
+				EMPTY_LIST.encoding(), // Unrolled first occurrence.
+				BRANCH_FORWARD.encoding(13), // Try a single occurrence.
+				APPEND_ARGUMENT.encoding(), // Add the occurrence.
+				ENSURE_PARSE_PROGRESS.encoding(), // Make sure it was productive
+				//8: second and later occurrences.
+				EMPTY_LIST.encoding(),
+				BRANCH_FORWARD.encoding(13), // Try the new occurrence.
+				APPEND_ARGUMENT.encoding(), // Save it.
+				ENSURE_PARSE_PROGRESS.encoding(), // Make sure it was productive
+				JUMP_BACKWARD.encoding(8), // Try another
+				//13: Save latest occurrence and try it.
+				APPEND_ARGUMENT.encoding(),
+				ENSURE_PARSE_PROGRESS.encoding(), // Must have made progress
+				DISCARD_SAVED_PARSE_POSITION.encoding(), // Chuck progress mark
+				APPEND_ARGUMENT.encoding())), // Save list as sole argument.
 //		C("«»«»",
 //			A("«", "»", "«", "»"),
 //			A(
@@ -1331,6 +1388,21 @@ public final class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding()
 //			))
 		};
+	}
+
+	/**
+	 * A helper for creating an {@code int} encoding a {@link
+	 * ParsingOperation#TYPE_CHECK_ARGUMENT} for a phrase that yields the
+	 * indicated type.
+	 *
+	 * @param type The type to check the latest parsed argument against.
+	 * @return An {@code int} encoding a type check parsing operation.
+	 */
+	private static int typeCheckEncodingForPhrase (final A_Type type)
+	{
+		return TYPE_CHECK_ARGUMENT.encoding(
+			indexForConstant(PARSE_PHRASE.create(type)));
+	}
 
 	/**
 	 * Describe a sequence of instructions, one per line, and answer the
@@ -1364,45 +1436,73 @@ public final class MessageSplitterTest
 	}
 
 	/**
-	 * Test: Split the test cases.
+	 * Provide a {@link Stream} of {@link Case}s to test.
 	 *
-	 * @throws MalformedMessageException If the message name is malformed.
+	 * @return The {@link Stream} of {@link Arguments} for parameterizing
+	 *         a JUnit test.
 	 */
-//	@Test
-//	public void testSplitting () throws MalformedMessageException
-//	{
-//		for (final Case splitCase : splitCases)
-//		{
-//			final String msgString = splitCase.message;
-//			final A_String message = StringDescriptor.from(msgString);
-//			final MessageSplitter splitter = new MessageSplitter(message);
-//			final A_Tuple parts = splitter.messageParts();
-//			assert splitCase.tokens.length == parts.tupleSize();
-//			for (int i = 1; i <= parts.tupleSize(); i++)
-//			{
-//				assertEquals(
-//					"Split was not as expected: " + msgString,
-//					splitCase.tokens[i - 1],
-//					parts.tupleAt(i).asNativeString());
-//			}
-//			final A_Tuple instructionsTuple = splitter.instructionsTuple();
-//			final List<Integer> instructionsList = new ArrayList<>();
-//			for (final A_Number instruction : instructionsTuple)
-//			{
-//				instructionsList.add(instruction.extractInt());
-//			}
-//			if (!splitCase.instructions.toString().equals(
-//				instructionsList.toString()))
-//			{
-//				System.out.println(dumpInstructions(instructionsList));
-//				fail(
-//					String.format(
-//						"Generated parse code for \"%s\" was not as expected:%n"
-//							+ "%s%ninstead it was:%n%s",
-//						msgString,
-//						dumpInstructions(splitCase.instructions),
-//						dumpInstructions(instructionsList)));
-//			}
-//		}
-//	}
+	private static Stream<Arguments> casesProvider() {
+		return stream(splitCases).map(Arguments::of);
+	}
+
+	/**
+	 * Check that the {@link MessageSplitter} processes the information in the
+	 * given {@link Case} as expected.
+	 *
+	 * @param splitCase The {@link Case} to check.
+	 * @throws MalformedMessageException
+	 *         If the method name is determined to be malformed.
+	 * @throws SignatureException
+	 *         If the {@link Case}'s type signature is inconsistent with the
+	 *         method name.
+	 */
+	@DisplayName("Message Splitter")
+	@ParameterizedTest(name = "{index} => case={0}")
+	@MethodSource("casesProvider")
+	public void testSplitCase (
+		final Case splitCase)
+	throws MalformedMessageException, SignatureException
+	{
+		final String msgString = splitCase.message;
+		final A_String message = stringFrom(msgString);
+		final MessageSplitter splitter = new MessageSplitter(message);
+		final A_Tuple parts = splitter.messageParts();
+		assert splitCase.tokens.length == parts.tupleSize();
+		for (int i = 1; i <= parts.tupleSize(); i++)
+		{
+			assertEquals(
+				splitCase.tokens[i - 1],
+				parts.tupleAt(i).asNativeString(),
+				"Split was not as expected");
+		}
+		final A_Type tupleType = splitCase.listPhraseType.expressionType();
+		final A_Type sizeRange = tupleType.sizeRange();
+		assert sizeRange.lowerBound().equals(sizeRange.upperBound());
+		final A_Tuple typeTuple =
+			tupleType.tupleOfTypesFromTo(
+				1, sizeRange.lowerBound().extractInt());
+		splitter.checkImplementationSignature(
+			functionType(typeTuple, TOP.o()));
+		final A_Tuple instructionsTuple =
+			splitter.instructionsTupleFor(splitCase.listPhraseType);
+		final List<Integer> instructionsList = new ArrayList<>();
+		for (final A_Number instruction : instructionsTuple)
+		{
+			instructionsList.add(instruction.extractInt());
+		}
+		if (!splitCase.instructions.toString().equals(
+			instructionsList.toString()))
+		{
+			System.out.println(splitCase.instructions);
+			System.out.println(instructionsList);
+			System.out.println(dumpInstructions(instructionsList));
+			fail(
+				String.format(
+					"Generated parse code for \"%s\" was not as expected:%n"
+						+ "%s%ninstead it was:%n%s",
+					msgString,
+					dumpInstructions(splitCase.instructions),
+					dumpInstructions(instructionsList)));
+		}
+	}
 }
