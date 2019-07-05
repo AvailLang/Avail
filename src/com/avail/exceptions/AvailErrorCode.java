@@ -34,43 +34,9 @@ package com.avail.exceptions;
 
 import com.avail.AvailRuntime;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AbstractDefinitionDescriptor;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.EnumerationTypeDescriptor;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FiberTypeDescriptor;
-import com.avail.descriptor.ForwardDefinitionDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.LexerDescriptor;
-import com.avail.descriptor.MacroDefinitionDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MethodDefinitionDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.ReferencePhraseDescriptor;
-import com.avail.descriptor.SequencePhraseDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.VariableSharedGlobalDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
@@ -402,11 +368,11 @@ public enum AvailErrorCode
 	 */
 	E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION (51),
 
-	/**
-	 * A tilde (~) must not follow an argument. It may only follow a keyword or
-	 * a guillemet group.
-	 */
-	E_TILDE_MUST_NOT_FOLLOW_ARGUMENT (52),
+//	/**
+//	 * A tilde (~) must not follow an argument. It may only follow a keyword or
+//	 * a guillemet group.
+//	 */
+//	E_TILDE_MUST_NOT_FOLLOW_ARGUMENT (52),
 
 	/**
 	 * A double question mark (⁇) may only occur after a keyword, operator, or

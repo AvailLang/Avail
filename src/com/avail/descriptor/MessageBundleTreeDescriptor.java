@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
@@ -59,24 +58,14 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.IS_SOURCE_OF_CYCLE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.ALL_PLANS_IN_PROGRESS;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LATEST_BACKWARD_JUMP;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_ACTIONS;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_COMPLETE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_PREFILTER_MAP;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
@@ -655,7 +644,7 @@ extends Descriptor
 						}
 						else
 						{
-							final long timeBefore = AvailRuntime.captureNanos();
+							final long timeBefore = captureNanos();
 							final int instruction = instructions.tupleIntAt(pc);
 							final ParsingOperation op = decode(instruction);
 							updateForPlan(
@@ -669,7 +658,7 @@ extends Descriptor
 								actionMap,
 								prefilterMap,
 								typeFilterPairs);
-							final long timeAfter = AvailRuntime.captureNanos();
+							final long timeAfter = captureNanos();
 							op.expandingStatisticInNanoseconds.record(
 								timeAfter - timeBefore,
 								Interpreter.currentIndex());
@@ -788,7 +777,7 @@ extends Descriptor
 					}
 					default:
 					{
-						// It's an ordinary action.  JUMPs and BRANCHes were
+						// It's an ordinary action.  Each JUMP and BRANCH was
 						// already dealt with in a previous case.
 						final A_Tuple successors =
 							object.slot(LAZY_ACTIONS).mapAt(
@@ -806,6 +795,7 @@ extends Descriptor
 		}
 	}
 
+	/** A {@link Statistic} for tracking bundle tree invalidations. */
 	private static final Statistic invalidationsStat = new Statistic(
 		"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
 
@@ -814,10 +804,12 @@ extends Descriptor
 	 * this should only happen when we're changing the grammar in some way,
 	 * which happens mutually exclusive of parsing, so we don't really need to
 	 * use a lock.
+	 *
+	 * @param object Which {@link A_BundleTree} to invalidate.
 	 */
 	private static void invalidate (final AvailObject object)
 	{
-		final long timeBefore = AvailRuntime.captureNanos();
+		final long timeBefore = captureNanos();
 		synchronized (object)
 		{
 			object.setSlot(LAZY_COMPLETE, emptySet());
@@ -831,7 +823,7 @@ extends Descriptor
 			// Note:  It can't be the target of a cycle any more, since there
 			// are no longer *any* successors.
 		}
-		final long timeAfter = AvailRuntime.captureNanos();
+		final long timeAfter = captureNanos();
 		invalidationsStat.record(
 			timeAfter - timeBefore, Interpreter.currentIndex());
 	}
@@ -857,7 +849,7 @@ extends Descriptor
 				{
 					do
 					{
-						hash = AvailRuntime.nextHash();
+						hash = nextHash();
 					}
 					while (hash == 0);
 					object.setSlot(HASH_OR_ZERO, hash);

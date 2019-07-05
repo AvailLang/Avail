@@ -32,6 +32,7 @@
 package com.avail.compiler;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeConfiguration;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -92,6 +93,7 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.PragmaKind.pragmaKindByLexeme;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
@@ -128,7 +130,6 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -282,6 +283,8 @@ public final class AvailCompiler
 	 *        A_Fiber fibers} started by the new compiler.
 	 * @param pollForAbort
 	 *        A {@link BooleanSupplier} that indicates whether to abort.
+	 * @param reporter
+	 *        The {@link CompilerProgressReporter} used to report progress.
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
@@ -619,7 +622,7 @@ public final class AvailCompiler
 		final AsynchronousFileChannel file;
 		try
 		{
-			file = runtime.openFile(
+			file = runtime.ioSystem().openFile(
 				ref.toPath(), EnumSet.of(StandardOpenOption.READ));
 		}
 		catch (final IOException e)
@@ -1732,7 +1735,7 @@ public final class AvailCompiler
 					final A_Phrase args = argsSoFar.get(0);
 					for (final A_Bundle bundle : complete)
 					{
-						if (AvailRuntime.debugCompilerSteps)
+						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							System.out.println(
 								"Completed send/macro: "
@@ -1794,7 +1797,7 @@ public final class AvailCompiler
 					{
 						final A_BundleTree successor =
 							prefilter.mapAt(argumentBundle);
-						if (AvailRuntime.debugCompilerSteps)
+						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							System.out.println(
 								"Grammatical prefilter: " + argumentBundle
@@ -1831,17 +1834,17 @@ public final class AvailCompiler
 				final A_Phrase latestPhrase = last(argsSoFar);
 				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree>
 					typeFilterTree = typeFilterTreePojo.javaObjectNotNull();
-				final long timeBefore = AvailRuntime.captureNanos();
+				final long timeBefore = captureNanos();
 				final A_BundleTree successor =
 					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
 						typeFilterTree,
 						latestPhrase,
 						bundleTree.latestBackwardJump());
-				final long timeAfter = AvailRuntime.captureNanos();
+				final long timeAfter = captureNanos();
 				typeCheckArgumentStat.record(
 					timeAfter - timeBefore,
 					Interpreter.currentIndex());
-				if (AvailRuntime.debugCompilerSteps)
+				if (AvailRuntimeConfiguration.debugCompilerSteps)
 				{
 					System.out.println(
 						"Type filter: " + latestPhrase
@@ -1991,10 +1994,10 @@ public final class AvailCompiler
 							{
 								continue;
 							}
-							final long timeBefore = AvailRuntime.captureNanos();
+							final long timeBefore = captureNanos();
 							final A_BundleTree successor =
 								tokenMap.mapAt(string);
-							if (AvailRuntime.debugCompilerSteps)
+							if (AvailRuntimeConfiguration.debugCompilerSteps)
 							{
 								System.out.println(
 									format(
@@ -2019,7 +2022,7 @@ public final class AvailCompiler
 								argsSoFar,
 								marksSoFar,
 								continuation);
-							final long timeAfter = AvailRuntime.captureNanos();
+							final long timeAfter = captureNanos();
 							final Statistic stat = caseInsensitive
 								? matchTokenInsensitivelyStat
 								: matchTokenStat;
@@ -2440,7 +2443,7 @@ public final class AvailCompiler
 		final Con1 continuation)
 	{
 		final ParsingOperation op = decode(instruction);
-		if (AvailRuntime.debugCompilerSteps)
+		if (AvailRuntimeConfiguration.debugCompilerSteps)
 		{
 			if (op.ordinal() >= distinctInstructions)
 			{
@@ -2466,7 +2469,7 @@ public final class AvailCompiler
 			}
 		}
 
-		final long timeBefore = AvailRuntime.captureNanos();
+		final long timeBefore = captureNanos();
 		op.execute(
 			this,
 			instruction,
@@ -2480,7 +2483,7 @@ public final class AvailCompiler
 			consumedAnythingBeforeLatestArgument,
 			consumedTokens,
 			continuation);
-		final long timeAfter = AvailRuntime.captureNanos();
+		final long timeAfter = captureNanos();
 		op.parsingStatisticInNanoseconds.record(
 			timeAfter - timeBefore,
 			Interpreter.currentIndex());
@@ -2513,6 +2516,9 @@ public final class AvailCompiler
 	 *        encountering the most recent argument.  This is to improve
 	 *        diagnostics when argument type checking is postponed past matches
 	 *        for subsequent tokens.
+	 * @param consumedTokens
+	 *        The list of {@link A_Token}s that have been consumed so far for
+	 *        this message send.
 	 * @param argsSoFar
 	 *        The stack of phrases.
 	 * @param marksSoFar
@@ -2771,6 +2777,7 @@ public final class AvailCompiler
 			}
 			onFailure.value(new Describer()
 			{
+				/** Count through the failureMessages. */
 				int index = 0;
 
 				@Override
@@ -3457,6 +3464,10 @@ public final class AvailCompiler
 	 *        used as a leading argument.  If it's {@code null} then no leading
 	 *        argument has been parsed, and a request to parse a leading
 	 *        argument should simply produce no local solution.
+	 * @param consumedAnything
+	 *        Whether anything has yet been consumed for this invocation.
+	 * @param consumedTokens
+	 *        The tokens that have been consumed for this invocation.
 	 * @param argsSoFar
 	 *        The list of arguments parsed so far. I do not modify it. This is a
 	 *        stack of expressions that the parsing instructions will assemble
@@ -3513,14 +3524,13 @@ public final class AvailCompiler
 					//noinspection VariableNotUsedInsideIf
 					if (firstArgOrNull != null)
 					{
-						// A leading argument was already supplied.  We
-						// couldn't prevent it from referring to
-						// variables that were in scope during its
-						// parsing, but we can reject it if the leading
-						// argument is supposed to be parsed in global
+						// A leading argument was already supplied.  We couldn't
+						// prevent it from referring to variables that were in
+						// scope during its parsing, but we can reject it if the
+						// leading argument is supposed to be parsed in global
 						// scope, which is the case here, and there are
-						// references to local variables within the
-						// argument's parse tree.
+						// references to local variables within the argument's
+						// parse tree.
 						final A_Set usedLocals =
 							usesWhichLocalVariables(newArg);
 						if (usedLocals.setSize() > 0)
@@ -3626,7 +3636,7 @@ public final class AvailCompiler
 				false)
 			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
 			.makeShared();
-		if (AvailRuntime.debugMacroExpansions)
+		if (AvailRuntimeConfiguration.debugMacroExpansions)
 		{
 			System.out.println(
 				"PRE-EVAL:"
@@ -3707,7 +3717,7 @@ public final class AvailCompiler
 					macroDefinitionToInvoke.bodySignature().returnType());
 				final A_Phrase substitution =
 					newMacroSubstitution(original, adjustedReplacement);
-				if (AvailRuntime.debugMacroExpansions)
+				if (AvailRuntimeConfiguration.debugMacroExpansions)
 				{
 					System.out.println(
 						":"
@@ -3751,6 +3761,8 @@ public final class AvailCompiler
 	/**
 	 * Check a property of the Avail virtual machine.
 	 *
+	 * @param state
+	 *        The {@link ParserState} at which the pragma was found.
 	 * @param propertyName
 	 *        The name of the property that is being checked.
 	 * @param propertyValue
@@ -3783,7 +3795,8 @@ public final class AvailCompiler
 						true);
 			}
 			// Ask for the guaranteed versions.
-			final A_Set activeVersions = AvailRuntime.activeVersions();
+			final A_Set activeVersions =
+				AvailRuntimeConfiguration.activeVersions();
 			// If the intersection of the sets is empty, then the module and
 			// the virtual machine are incompatible.
 			if (!requiredVersions.setIntersects(activeVersions))
@@ -4506,6 +4519,8 @@ public final class AvailCompiler
 	 * @param headerPhrase
 	 *        The invocation of {@link SpecialMethodAtom#MODULE_HEADER}
 	 *        that was just parsed.
+	 * @param stateAfterHeader
+	 *        The {@link ParserState} after the module's header.
 	 * @return Whether header processing was successful.  If unsuccessful,
 	 *         arrangements will already have been made (and perhaps already
 	 *         executed) to present the error.
@@ -4807,8 +4822,8 @@ public final class AvailCompiler
 						compilationContext.diagnostics.reportError(
 							solution.endState().lexingState,
 							"Unexpected exception encountered while processing "
-								+ "module header (ends at %s, line %d):\n\t%s",
-								trace(e));
+								+ "module header (ends at %s, line %d):",
+							trace(e));
 					}
 				}));
 	}
@@ -4966,6 +4981,9 @@ public final class AvailCompiler
 	 *        encountering the most recent argument.  This is to improve
 	 *        diagnostics when argument type checking is postponed past matches
 	 *        for subsequent tokens.
+	 * @param consumedTokens
+	 *        The {@link A_Token}s that have been consumed so far for this
+	 *        invocation.
 	 * @param argsSoFar
 	 *        The arguments stack.
 	 * @param marksSoFar

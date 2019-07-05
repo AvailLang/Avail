@@ -129,7 +129,7 @@ import static javax.swing.SwingUtilities.invokeLater;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings({"serial", "ThisEscapedInObjectConstruction"})
+@SuppressWarnings("ThisEscapedInObjectConstruction")
 public final class AvailWorkbench
 extends JFrame
 {
@@ -138,6 +138,14 @@ extends JFrame
 	 */
 	public static final String resourcePrefix = "/resources/workbench/";
 
+	/**
+	 * Answer a properly prefixed {@link String} for accessing the resource
+	 * having the given local name.
+	 *
+	 * @param localResourceName
+	 *        The unqualified resource name.
+	 * @return The fully qualified resource name.
+	 */
 	public static String resource (final String localResourceName)
 	{
 		return resourcePrefix + localResourceName;
@@ -346,10 +354,19 @@ extends JFrame
 	 */
 	final class BuildOutputStreamEntry
 	{
+		/** The {@link StreamStyle} for this entry. */
 		public final StreamStyle style;
 
+		/** The {@link String} to output in the given style. */
 		public final String string;
 
+		/**
+		 * Create an entry that captures a {@link StreamStyle} and {@link
+		 * String} to output.
+		 *
+		 * @param style The {@link StreamStyle} with which to render the string.
+		 * @param string The {@link String} to output.
+		 */
 		BuildOutputStreamEntry (final StreamStyle style, final String string)
 		{
 			this.style = style;
@@ -421,11 +438,13 @@ extends JFrame
 		}
 	}
 
+	/** The {@link Statistic} for tracking text insertions. */
 	private static final Statistic insertStringStat =
 		new Statistic(
 			"Insert string",
 			WORKBENCH_TRANSCRIPT);
 
+	/** The {@link Statistic} for tracking text deletions. */
 	private static final Statistic removeStringStat =
 		new Statistic(
 			"Remove string",
@@ -759,12 +778,6 @@ extends JFrame
 	extends ByteArrayInputStream
 	{
 		/**
-		 * The {@linkplain StyledDocument styled document} underlying the
-		 * {@linkplain #transcript}.
-		 */
-		final StyledDocument doc;
-
-		/**
 		 * Clear the input stream. All pending data is discarded and the stream
 		 * position is reset to zero ({@code 0}).
 		 */
@@ -892,7 +905,6 @@ extends JFrame
 		public BuildInputStream ()
 		{
 			super(new byte[1024], 0, 0);
-			this.doc = transcript.getStyledDocument();
 		}
 	}
 
@@ -1321,6 +1333,17 @@ extends JFrame
 		final Mutable<Boolean> isRoot = new Mutable<>(true);
 		return new FileVisitor<Path>()
 		{
+			/**
+			 * Resolve a file name relative to an existing
+			 * {@link DefaultMutableTreeNode}.
+			 *
+			 * @param parentNode
+			 *        The {@link DefaultMutableTreeNode} in which to resolve
+			 *        the file name.
+			 * @param fileName
+			 *        The {@link String} containing the file name to resolve.
+			 * @return The resolved {@link ModuleName}.
+			 */
 			private ModuleName resolveModule (
 				final DefaultMutableTreeNode parentNode,
 				final String fileName)
@@ -1855,7 +1878,16 @@ extends JFrame
 	private int perModuleStatusTextSize = 0;
 
 	/**
-	 * Progress has been made at loading a module.
+	 * Progress has been made at loading a module.  Ensure this is presented
+	 * to the user in the near future.
+	 *
+	 * @param moduleName
+	 *        The {@link ModuleName} being loaded.
+	 * @param moduleSize
+	 *        The size of the module in bytes.
+	 * @param position
+	 *        The byte position in the module at which loading has been
+	 *        achieved.
 	 */
 	public void eventuallyUpdatePerModuleProgress (
 		final ModuleName moduleName,
@@ -1893,6 +1925,10 @@ extends JFrame
 			});
 	}
 
+	/**
+	 * Update the visual presentation of the per-module statistics.  This
+	 * must be invoked from within the UI dispatch thread,
+	 */
 	@InnerAccess void updatePerModuleProgressInUIThread ()
 	{
 		assert EventQueue.isDispatchThread();
@@ -2884,6 +2920,13 @@ extends JFrame
 	/**
 	 * Create a menu with the given name and entries, which can be null to
 	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
+	 *
+	 * @param name
+	 *        The name of the menu to create.
+	 * @param actionsAndSubmenus
+	 *        A varargs array of {@link Action}s, {@link JMenuItem}s for
+	 *        submenus, and {@code null}s for separator lines.
+	 * @return A new {@link JMenu}.
 	 */
 	private static JMenu menu (
 		final String name,
@@ -2897,8 +2940,16 @@ extends JFrame
 	/**
 	 * Augment the given menu with the array of entries, which can be null to
 	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
+	 *
+	 * @param menu
+	 *        A {@link JMenu} to add items to.
+	 * @param actionsAndSubmenus
+	 *        A varargs array of {@link Action}s, {@link JMenuItem}s for
+	 *        submenus, and {@code null}s for separator lines.
 	 */
-	private static void augment (final JMenu menu, final Object... actionsAndSubmenus)
+	private static void augment (
+		final JMenu menu,
+		final Object... actionsAndSubmenus)
 	{
 		for (final @Nullable Object item : actionsAndSubmenus)
 		{
@@ -2921,7 +2972,13 @@ extends JFrame
 		}
 	}
 
-	/** Answer the pane wrapped in a JScrollPane. */
+	/**
+	 * Answer the pane wrapped in a JScrollPane.
+	 *
+	 * @param innerComponent
+	 *        The {@link Component} to be wrapped with scrolling capability.
+	 * @return The new {@link JScrollPane}.
+	 */
 	private static JScrollPane createScrollPane (
 		final Component innerComponent)
 	{

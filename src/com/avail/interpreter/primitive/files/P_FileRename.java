@@ -40,6 +40,7 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
@@ -70,11 +71,7 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_NO_FILE;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.util.Collections.singletonList;
@@ -115,9 +112,9 @@ extends Primitive
 		final Path destinationPath;
 		try
 		{
-			sourcePath = AvailRuntime.fileSystem().getPath(
+			sourcePath = IOSystem.fileSystem().getPath(
 				source.asNativeString());
-			destinationPath = AvailRuntime.fileSystem().getPath(
+			destinationPath = IOSystem.fileSystem().getPath(
 				destination.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -142,7 +139,7 @@ extends Primitive
 		fail.makeShared();
 
 		final boolean replace = replaceExisting.extractBoolean();
-		runtime.executeFileTask(() ->
+		runtime.ioSystem().executeFileTask(() ->
 		{
 			final List<CopyOption> options = new ArrayList<>();
 			if (replace)

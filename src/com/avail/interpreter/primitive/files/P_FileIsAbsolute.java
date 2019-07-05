@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.nio.file.InvalidPathException;
@@ -54,7 +54,8 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
- * <strong>Primitive:</strong> TODO: [TLS] Document this!
+ * <strong>Primitive:</strong> Determine whether the given filename is an
+ * absolute path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -78,7 +79,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = AvailRuntime.fileSystem().getPath(
+			path = IOSystem.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)

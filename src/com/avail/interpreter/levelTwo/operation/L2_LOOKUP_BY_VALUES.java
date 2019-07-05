@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Function;
@@ -59,25 +58,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.SELECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to
@@ -220,7 +211,7 @@ extends L2ControlFlowOperation
 		Collections.addAll(valuesList, values);
 
 		final A_Method method = bundle.bundleMethod();
-		final long before = AvailRuntime.captureNanos();
+		final long before = captureNanos();
 		final A_Definition definitionToCall;
 		try
 		{
@@ -228,7 +219,7 @@ extends L2ControlFlowOperation
 		}
 		finally
 		{
-			final long after = AvailRuntime.captureNanos();
+			final long after = captureNanos();
 			interpreter.recordDynamicLookup(bundle, after - before);
 		}
 		if (definitionToCall.isAbstractDefinition())

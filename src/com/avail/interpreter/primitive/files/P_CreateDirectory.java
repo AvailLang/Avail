@@ -43,6 +43,7 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -71,10 +72,7 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.util.Collections.singletonList;
@@ -110,7 +108,7 @@ extends Primitive
 		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
-			AvailRuntime.posixPermissions();
+			IOSystem.posixPermissions();
 		final Set<PosixFilePermission> permissions =
 			EnumSet.noneOf(PosixFilePermission.class);
 		for (final A_Number ordinal : ordinals)
@@ -132,7 +130,7 @@ extends Primitive
 		final A_Number priority = interpreter.argument(4);
 
 		final AvailRuntime runtime = interpreter.runtime();
-		final FileSystem fileSystem = AvailRuntime.fileSystem();
+		final FileSystem fileSystem = IOSystem.fileSystem();
 		final Path path;
 		try
 		{
@@ -160,7 +158,7 @@ extends Primitive
 		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
 		final FileAttribute<Set<PosixFilePermission>> attr =
 			PosixFilePermissions.asFileAttribute(permissions);
-		runtime.executeFileTask(() ->
+		runtime.ioSystem().executeFileTask(() ->
 		{
 			try
 			{

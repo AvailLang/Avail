@@ -32,9 +32,9 @@
 
 package com.avail.performance;
 
-import com.avail.AvailRuntime;
-
 import java.util.function.Supplier;
+
+import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
 
 /** An immutable collection of related statistics. */
 public class Statistic
@@ -69,7 +69,7 @@ public class Statistic
 		final StatisticReport report)
 	{
 		this.nameSupplier = nameSupplier;
-		statistics = new PerInterpreterStatistic[AvailRuntime.maxInterpreters];
+		statistics = new PerInterpreterStatistic[maxInterpreters];
 		for (int i = 0; i < statistics.length; i++)
 		{
 			statistics[i] = new PerInterpreterStatistic();

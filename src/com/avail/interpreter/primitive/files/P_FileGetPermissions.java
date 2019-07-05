@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
@@ -42,6 +41,7 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
@@ -66,16 +66,13 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain IntegerDescriptor
- * ordinals} (into {@link AvailRuntime#posixPermissions()}) of the {@linkplain
+ * ordinals} (into {@link IOSystem#posixPermissions()}) of the {@linkplain
  * PosixFilePermission POSIX file permissions} that describe the access rights
  * granted by the file named by specified {@linkplain Path path}.
  *
@@ -104,8 +101,7 @@ extends Primitive
 	// necessary.
 	static
 	{
-		final PosixFilePermission[] permissions =
-			AvailRuntime.posixPermissions();
+		final PosixFilePermission[] permissions = IOSystem.posixPermissions();
 		for (int i = 0; i < permissions.length; i++)
 		{
 			permissionMap.put(permissions[i], fromInt(i + 1));
@@ -145,14 +141,13 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = AvailRuntime.fileSystem().getPath(
-				filename.asNativeString());
+			path = IOSystem.fileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = AvailRuntime.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final Set<PosixFilePermission> permissions;
 		try

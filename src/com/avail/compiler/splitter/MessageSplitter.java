@@ -36,15 +36,20 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
+import com.avail.utility.Locks.Auto;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -58,6 +63,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Locks.auto;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -78,28 +84,254 @@ public final class MessageSplitter
 	/** The metacharacters used in message names. */
 	public enum Metacharacter
 	{
+		/**
+		 * A back-quote (`) precedes a metacharacter to cause it to be treated
+		 * as an ordinary character.  Since no metacharacters are alphanumeric,
+		 * and since non-alphanumeric characters are always tokenized
+		 * individually, back-quote only operates on the single character
+		 * following it.  Note that since back-quote is itself a metacharacter,
+		 * two successive backquotes indicates a single back-quote should be
+		 * parsed from the Avail source code.
+		 *
+		 * <p>The only characters that can be backquoted (and must be to use
+		 * them in a non-special way) are the {@code Metacharacter}s, space, and
+		 * the {@linkplain #circledNumbersString circled numbers}.</p>
+		 */
 		BACK_QUOTE("`"),
+
+		/**
+		 * A close-guillemet (») indicates the end of a group or other structure
+		 * that started with an {@link #OPEN_GUILLEMET} open-guillemet («).
+		 */
 		CLOSE_GUILLEMET("»"),
+
+		/**
+		 * A dollar sign ($) after an {@link #ELLIPSIS} (…) indicates that a
+		 * string-valued literal token should be consumed from the Avail source
+		 * code at this position.  This is accomplished through the use of a
+		 * {@link RawStringLiteralTokenArgument}.
+		 */
 		DOLLAR_SIGN("$"),
+
+		/**
+		 * The double-dagger (‡) is used within a {@link Group} to delimit the
+		 * left part, which repeats, from the right part, which separates
+		 * occurrences of the left part.
+		 *
+		 * <p>The actual method argument (or portion of a method argument
+		 * associated with this subexpression) must be able to accept some
+		 * number of occurrences of tuples whose size is the total number of
+		 * value-yielding subexpressions in the group, plus one final tuple that
+		 * only has values yielded from subexpressions left of the
+		 * double-dagger.  In the special, most common case of the left side
+		 * having exactly one yielding expression, and the right side yielding
+		 * nothing, the inner one-element tuples are elided.</p>
+		 */
 		DOUBLE_DAGGER("‡"),
+
+		/**
+		 * The double-question-mark (⁇) is a single Unicode character (U+2047).
+		 * It can be placed after a token or after a simple group (a group that
+		 * has no right side and does not yield anything from its left side).
+		 * In the case of a token, it allows zero or one occurrences of the
+		 * token to occur in the Avail source, and <em>discards</em> information
+		 * about whether the token was encountered.  Similarly, when applied to
+		 * a simple group it accepts zero or one occurrences of the group's left
+		 * side, discarding the distinction.  In both cases, the
+		 * double-question-mark causes a {@link CompletelyOptional} to be built.
+		 *
+		 * <p>This can be useful to make expressions read more fluidly by
+		 * allowing inessential words to be elided when they would be
+		 * grammatically awkward.</p>
+		 */
 		DOUBLE_QUESTION_MARK("⁇"),
+
+		/**
+		 * An ellipsis (…) indicates that a single token should be consumed from
+		 * the Avail source code (tokens are produced from the actual file
+		 * content via {@link A_Lexer}s).  There are a few variants:
+		 *
+		 * <ul>
+		 *     <li>If left unadorned, it creates a {@link
+		 *         RawKeywordTokenArgument}, which matches a single {@link
+		 *         A_Token} of kind {@link TokenType#KEYWORD}.</li>
+		 *     <li>If followed by an {@link #OCTOTHORP} (#), it creates a {@link
+		 *         RawWholeNumberLiteralTokenArgument}, which matches a single
+		 *         {@link A_Token} of kind {@link TokenType#LITERAL} which
+		 *         yields an integer in the range [0..∞).</li>
+		 *     <li>If followed by a {@link #DOLLAR_SIGN} ($), it creates a
+		 *         {@link RawStringLiteralTokenArgument}, which matches a
+		 *         single {@link A_Token} of kind {@link TokenType#LITERAL}
+		 *         which yields a string.</li>
+		 *     <li>If followed by an {@link #EXCLAMATION_MARK} (!), it creates a
+		 *         {@link RawTokenArgument}, which matches a single {@link
+		 *         A_Token} of any kind except {@link TokenType#WHITESPACE} or
+		 *         {@link TokenType#COMMENT}.</li>
+		 * </ul>
+		 */
 		ELLIPSIS("…"),
+
+		/**
+		 * The exclamation mark (!) can follow an {@link #ELLIPSIS} (…) to cause
+		 * creation of a {@link RawTokenArgument}, which matches any token that
+		 * isn't whitespace or a comment.
+		 *
+		 * <p>When it follows an {@link #UNDERSCORE} (_), it creates an {@link
+		 * ArgumentForMacroOnly}, which matches any {@link A_Phrase}, even those
+		 * that yield ⊤ or ⊥.  Since these argument types are forbidden for
+		 * methods, this construct can only be used in macros, where what is
+		 * passed as an argument is a <em>phrase</em> yielding that type.</p>
+		 */
 		EXCLAMATION_MARK("!"),
+
+		/**
+		 * An octothorp (#) after an {@link #ELLIPSIS} (…) indicates that a
+		 * whole-number-valued literal token should be consumed from the Avail
+		 * source code at this position.  This is accomplished through the use
+		 * of a {@link RawWholeNumberLiteralTokenArgument}.
+		 */
 		OCTOTHORP("#"),
+
+		/**
+		 * An open-guillemet («) indicates the start of a group or other
+		 * structure that will eventually end with a {@link #CLOSE_GUILLEMET}
+		 * (»).
+		 */
 		OPEN_GUILLEMET("«"),
-		SECTION_SIGN("§"),
-		SINGLE_DAGGER("†"),
-		TILDE("~"),
+
+		/**
+		 * A question mark (?) may follow a {@link Simple} expression, which
+		 * creates an {@link Optional}, which yields a boolean literal
+		 * indicating whether the token was present or not.
+		 *
+		 * <p>When a question mark follows a simple {@link Group}, i.e., one
+		 * that has no {@link #DOUBLE_DAGGER} (‡) and yields no values, it
+		 * creates an {@link Optional}.  This causes a boolean literal to be
+		 * generated at a call site, indicating whether the sequence of tokens
+		 * from that group actually occurred.</p>
+		 *
+		 * <p>When a question mark follows a {@link Group} which produces one or
+		 * more values, it simply limits that group to [0..1] occurrences.  The
+		 * {@link #DOUBLE_DAGGER} (‡) is forbidden here as well, because the
+		 * sequence after the double-dagger would only ever occur between
+		 * repetitions, but there cannot be two of them.</p>
+		 */
 		QUESTION_MARK("?"),
+
+		/**
+		 * A section sign (§) indicates where, in the parsing of a macro
+		 * invocation, it should invoke one of its {@link
+		 * A_Definition#prefixFunctions()}.  The order of section signs in the
+		 * method name corresponds with the order of the prefix functions.
+		 *
+		 * <p>Prefix functions are passed all arguments that have been parsed so
+		 * far.  They can access a fiber-specific variable, {@link
+		 * SpecialAtom#CLIENT_DATA_GLOBAL_KEY}, which allows manipulation of the
+		 * current variables that are in scope, and also early parse rejection
+		 * based on what has been parsed so far.</p>
+		 */
+		SECTION_SIGN("§"),
+
+		/**
+		 * A single-dagger (†) following an {@link #UNDERSCORE} (_) causes
+		 * creation of an {@link ArgumentInModuleScope}.  This will parse an
+		 * expression that does not use any variables in the local scope, then
+		 * evaluate it and wrap it in a {@link LiteralTokenDescriptor literal
+		 * token}.
+		 */
+		SINGLE_DAGGER("†"),
+
+		/**
+		 * An {@link Expression} followed by a tilde (~) causes all {@link
+		 * Simple} expressions anywhere within it to match case-insensitively
+		 * to the tokens lexed from the Avail source code.  All of these simple
+		 * expressions are required to be specified in lower case to break a
+		 * pointless symmetry about how to name the method.
+		 */
+		TILDE("~"),
+
+		/**
+		 * An underscore indicates where a subexpression should be parsed.
+		 *
+		 * <ul>
+		 *     <li>If unadorned, an {@link Argument} is created, which expects
+		 *         an expression that yields something other than ⊤ or ⊥.</li>
+		 *     <li>If followed by an {@link #EXCLAMATION_MARK} (!), an {@link
+		 *         ArgumentForMacroOnly} is constructed.  This allows
+		 *         expressions that yield ⊤ or ⊥, which are only permitted in
+		 *         macros.</li>
+		 *     <li>If followed by a {@link #SINGLE_DAGGER} (†), the expression
+		 *         must not attempt to use any variables in the current scope.
+		 *         The expression will be evaluated at compile time, and wrapped
+		 *         in a literal phrase.</li>
+		 *     <li>If followed by a {@link #UP_ARROW} (↑), a {@linkplain
+		 *         VariableUsePhraseDescriptor variable use phrase} must be
+		 *         supplied, which is converted into a {@linkplain
+		 *         ReferencePhraseDescriptor reference phrase}.</li>
+		 * </ul>
+		 */
 		UNDERSCORE("_"),
+
+		/**
+		 * If an up-arrow (↑) follows an {@link #UNDERSCORE}, a {@link
+		 * VariableQuote} is created, which expects a {@linkplain
+		 * VariableUsePhraseDescriptor variable use phrase}, which will be
+		 * automatically converted into a {@linkplain ReferencePhraseDescriptor
+		 * reference phrase}.
+		 */
 		UP_ARROW("↑"),
+
+		/**
+		 * The vertical bar (|) separates alternatives within an {@link
+		 * Alternation}.  The alternatives may be {@link Simple} expressions, or
+		 * simple {@link Group}s (having no double-dagger, and yielding no
+		 * argument values).
+		 */
 		VERTICAL_BAR("|");
 
+		/** The Avail {@link A_String} denoting this metacharacter. */
 		public final A_String string;
 
+		/**
+		 * This collects all metacharacters, including space and circled
+		 * numbers.  These are the characters that can be {@link #BACK_QUOTE}d.
+		 */
+		private static final Set<Integer> backquotableCodepoints =
+			new HashSet<>();
+
+		// Load the set with metacharacters, space, and circled numbers.
+		static
+		{
+			backquotableCodepoints.add((int)' ');
+			backquotableCodepoints.addAll(circledNumbersMap.keySet());
+			for (final Metacharacter metacharacter : values())
+			{
+				backquotableCodepoints.add(metacharacter.string.tupleCodePointAt(1));
+			}
+		}
+
+		/**
+		 * Answer whether the given Unicode codepoint may be {@link
+		 * #BACK_QUOTE}d.
+		 *
+		 * @param codePoint
+		 *        The Unicode codepoint to check.
+		 * @return Whether the character can be backquoted in a method name.
+		 */
+		public static boolean canBeBackQuoted (final int codePoint)
+		{
+			return backquotableCodepoints.contains(codePoint);
+		}
+
+		/**
+		 * Initialize an enum instance.
+		 *
+		 * @param javaString The Java {@link String} denoting the metacharacter.
+		 */
 		Metacharacter (final String javaString)
 		{
 			string = stringFrom(javaString).makeShared();
+			assert string.tupleSize() == 1;
 		}
 	}
 
@@ -121,7 +353,6 @@ public final class MessageSplitter
 		E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 		E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
 		E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
-		E_TILDE_MUST_NOT_FOLLOW_ARGUMENT,
 		E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
 		E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 		E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
@@ -162,7 +393,7 @@ public final class MessageSplitter
 	 * found in various regions of the Unicode code space.  See {@link
 	 * #circledNumbersString}.
 	 */
-	private static final Map<Integer, Integer> circledNumbersMap =
+	@InnerAccess static final Map<Integer, Integer> circledNumbersMap =
 		new HashMap<>(circledNumbersCount);
 
 	/* Initialize circledNumbersMap and circledNumberCodePoints */
@@ -217,8 +448,11 @@ public final class MessageSplitter
 	 * indicates where an argument occurs.</li>
 	 * <li>A {@linkplain Metacharacter#SINGLE_DAGGER single dagger} (†) may
 	 * occur immediately after an underscore to cause the argument expression to
-	 * be evaluated in the static scope during compilation.  This is applicable
-	 * to both methods and macros.  The expression must yield a type.</li>
+	 * be evaluated in the static scope during compilation, wrapping the value
+	 * in a {@linkplain LiteralPhraseDescriptor literal phrase}.  This is
+	 * applicable to both methods and macros.  The expression is subject to
+	 * grammatical restrictions, and it must yield a value of suitable
+	 * type.</li>
 	 * <li>An {@linkplain Metacharacter#UP_ARROW up-arrow} (↑) after an
 	 * underscore indicates an in-scope variable name is to be parsed.  The
 	 * subexpression causes the variable itself to be provided, rather than its
@@ -305,7 +539,8 @@ public final class MessageSplitter
 	 * for which some {@link ParsingOperation} needed to hold that constant as
 	 * an operand.
 	 */
-	private static final Map<AvailObject, Integer> constantsMap = new HashMap<>(100);
+	private static final Map<AvailObject, Integer> constantsMap =
+		new HashMap<>(100);
 
 	/**
 	 * A lock to protect {@link #constantsList} and {@link #constantsMap}.
@@ -371,11 +606,10 @@ public final class MessageSplitter
 	 * @return The one-based index of the type, which can be retrieved later via
 	 *         {@link #constantForIndex(int)}.
 	 */
-	@InnerAccess static int indexForConstant (final A_BasicObject constant)
+	public static int indexForConstant (final A_BasicObject constant)
 	{
 		final AvailObject strongConstant = constant.makeShared();
-		constantsLock.readLock().lock();
-		try
+		try (final Auto ignored = auto(constantsLock.readLock()))
 		{
 			final Integer index = constantsMap.get(strongConstant);
 			if (index != null)
@@ -383,13 +617,8 @@ public final class MessageSplitter
 				return index;
 			}
 		}
-		finally
-		{
-			constantsLock.readLock().unlock();
-		}
 
-		constantsLock.writeLock().lock();
-		try
+		try (final Auto ignored = auto(constantsLock.writeLock()))
 		{
 			final Integer index = constantsMap.get(strongConstant);
 			if (index != null)
@@ -402,27 +631,29 @@ public final class MessageSplitter
 			constantsMap.put(strongConstant, newIndex);
 			return newIndex;
 		}
-		finally
-		{
-			constantsLock.writeLock().unlock();
-		}
 	}
 
 	/** The position at which true is stored in the {@link #constantsList}. */
-	private static final int indexForTrue =
-		indexForConstant(trueObject());
+	private static final int indexForTrue = indexForConstant(trueObject());
 
-	/** The position at which true is stored in the {@link #constantsList}. */
+	/**
+	 * The position at which true is stored in the {@link #constantsList}.
+	 *
+	 * @return {@code true}'s index in the {@link #constantsList}.
+	 */
 	static int indexForTrue ()
 	{
 		return indexForTrue;
 	}
 
 	/** The position at which false is stored in the {@link #constantsList}. */
-	private static final int indexForFalse =
-		indexForConstant(falseObject());
+	private static final int indexForFalse = indexForConstant(falseObject());
 
-	/** The position at which false is stored in the {@link #constantsList}. */
+	/**
+	 * The position at which false is stored in the {@link #constantsList}.
+	 *
+	 * @return {@code false}'s index in the {@link #constantsList}.
+	 */
 	static int indexForFalse ()
 	{
 		return indexForFalse;
@@ -437,14 +668,9 @@ public final class MessageSplitter
 	 */
 	public static AvailObject constantForIndex (final int index)
 	{
-		constantsLock.readLock().lock();
-		try
+		try (final Auto ignored = auto(constantsLock.readLock()))
 		{
 			return constantsList.get(index - 1);
-		}
-		finally
-		{
-			constantsLock.readLock().unlock();
 		}
 	}
 
@@ -462,33 +688,65 @@ public final class MessageSplitter
 	public MessageSplitter (final A_String messageName)
 	throws MalformedMessageException
 	{
-		this.messageName = messageName;
-		messageName.makeImmutable();
-		splitMessage();
-		messagePartPosition = 1;
-		rootSequence = parseSequence();
-		if (!atEnd())
+		this.messageName = messageName.makeShared();
+		try
 		{
-			final A_String part = currentMessagePart();
-			final String encountered;
-			if (part.equals(CLOSE_GUILLEMET.string))
+			splitMessage();
+			messagePartPosition = 1;
+			rootSequence = parseSequence();
+
+			if (!atEnd())
 			{
-				encountered =
-					"close guillemet (») with no corresponding open guillemet";
+				peekFor(
+					CLOSE_GUILLEMET,
+					true,
+					E_UNBALANCED_GUILLEMETS,
+					"close guillemet (») with no corresponding open "
+						+ "guillemet («)");
+				peekFor(
+					DOUBLE_DAGGER,
+					true,
+					E_UNBALANCED_GUILLEMETS,
+					"double-dagger (‡) outside of a group");
+				throwMalformedMessageException(
+					E_UNBALANCED_GUILLEMETS,
+					"Encountered unexpected character: "
+						+ currentMessagePart());
 			}
-			else if (part.equals(DOUBLE_DAGGER.string))
-			{
-				encountered = "double-dagger (‡) outside of a group";
-			}
-			else
-			{
-				encountered = "unexpected token " + part;
-			}
-			throwMalformedMessageException(
-				E_UNBALANCED_GUILLEMETS,
-				"Encountered " + encountered);
+			messagePartsTuple = tupleFromList(messagePartsList).makeShared();
 		}
-		messagePartsTuple = tupleFromList(messagePartsList).makeShared();
+		catch (final MalformedMessageException e)
+		{
+			// Add contextual text and rethrow it.
+			throw new MalformedMessageException(
+				e.errorCode(),
+				() ->
+				{
+					final StringBuilder builder = new StringBuilder();
+					builder.append(e.describeProblem());
+					builder.append(". See arrow (");
+					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
+					builder.append(") in: \"");
+					final int characterIndex =
+						messagePartPosition > 0
+							? messagePartPosition <= messagePartPositions.size()
+							? messagePartPositions.get(
+							messagePartPosition - 1)
+							: messageName.tupleSize() + 1
+							: 0;
+					final A_String before =
+						messageName.copyStringFromToCanDestroy(
+							1, characterIndex - 1, false);
+					final A_String after =
+						messageName.copyStringFromToCanDestroy(
+							characterIndex, messageName.tupleSize(), false);
+					builder.append(before.asNativeString());
+					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
+					builder.append(after.asNativeString());
+					builder.append('"');
+					return builder.toString();
+				});
+		}
 	}
 
 	/**
@@ -534,8 +792,10 @@ public final class MessageSplitter
 	/**
 	 * Answer the 1-based position of the current message part in the message
 	 * name.
+	 *
+	 * @return The current 1-based position in the message name.
 	 */
-	private int positionInName()
+	private int positionInName ()
 	{
 		if (atEnd())
 		{
@@ -562,7 +822,7 @@ public final class MessageSplitter
 	 */
 	private @Nullable A_String currentMessagePartOrNull ()
 	{
-		return atEnd() ? null : currentMessagePart();
+		return atEnd() ? null : messagePartsList.get(messagePartPosition - 1);
 	}
 
 	/**
@@ -686,7 +946,8 @@ public final class MessageSplitter
 	 *
 	 * @throws MalformedMessageException If the signature is invalid.
 	 */
-	private void splitMessage () throws MalformedMessageException
+	private void splitMessage ()
+	throws MalformedMessageException
 	{
 		if (messageName.tupleSize() == 0)
 		{
@@ -795,8 +1056,7 @@ public final class MessageSplitter
 								builder.appendCodePoint(cp);
 							}
 						}
-						messagePartsList.add(
-							stringFrom(builder.toString()));
+						messagePartsList.add(stringFrom(builder.toString()));
 						messagePartPositions.add(position);
 					}
 					else
@@ -871,530 +1131,599 @@ public final class MessageSplitter
 	}
 
 	/**
-	 * Create a {@linkplain Group group} from the series of tokens describing
-	 * it. This is also used to construct the outermost sequence of {@linkplain
-	 * Expression expressions}.  Expect the {@linkplain #messagePartPosition} to
-	 * point (via a one-based offset) to the first token of the sequence, or
-	 * just past the end if the sequence is empty. Leave the {@code
-	 * messagePartPosition} pointing just past the last token of the group.
+	 * Check if there are more parts and the next part is an occurrence of the
+	 * given {@link Metacharacter}.  If so, increment the {@link
+	 * #messagePartPosition} and answer {code true}, otherwise answer {@code
+	 * false}.
 	 *
-	 * <p>Stop parsing the sequence when we reach the end of the tokens, a close
-	 * guillemet (»), or a double-dagger (‡).</p>
+	 * @param metacharacter
+	 *        The {@link Metacharacter} to look for.
+	 * @return Whether the given metacharacter was found and consumed.
+	 */
+	private boolean peekFor (
+		final Metacharacter metacharacter)
+	{
+		final @Nullable A_String token = currentMessagePartOrNull();
+		if (token != null && token.equals(metacharacter.string))
+		{
+			messagePartPosition++;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if the next part, if any, is the indicated {@link Metacharacter}.
+	 * Do not advance the {@link #messagePartPosition} in either case.
+	 *
+	 * @param metacharacter
+	 *        The {@link Metacharacter} to look ahead for.
+	 * @return Whether the given metacharacter is the next token.
+	 */
+	private boolean peekAheadFor (
+		final Metacharacter metacharacter)
+	{
+		final @Nullable A_String token = currentMessagePartOrNull();
+		return token != null && token.equals(metacharacter.string);
+	}
+
+	/**
+	 * Check for an occurrence of a circled number, signifying an explicit
+	 * renumbering of arguments within a {@link Sequence}.  Answer the contained
+	 * number, or -1 if not present.  If it was present, also advance past it.
+	 *
+	 * @return The value of the parsed explicit ordinal, or -1 if there was
+	 *         none.
+	 */
+	private int peekForExplicitOrdinal ()
+	{
+		if (!atEnd())
+		{
+			final int codePoint = currentMessagePart().tupleCodePointAt(1);
+			if (circledNumbersMap.containsKey(codePoint))
+			{
+				// In theory we could allow messages to go past ㊿ by
+				// allowing a sequence of circled single digits (⓪-⑨)
+				// that doesn't start with ⓪.  DEFINITELY not worth the
+				// bother for now (2014.12.24).
+				messagePartPosition++;
+				return circledNumbersMap.get(codePoint);
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Check if the next token is the given metacharacter.  If it is not, return
+	 * {@code false}.  If it is, consume it and check the failureCondition.  If
+	 * it's true, throw a {@link MalformedMessageException} with the given
+	 * errorCode and errorString.  Otherwise return {@code true}.
+	 *
+	 * @param metacharacter
+	 *        The {@link Metacharacter} to look for.
+	 * @param failureCondition
+	 *        The {@code boolean} to test if the metacharacter was consumed.
+	 * @param errorCode
+	 *        The errorCode to use in the {@link MalformedMessageException} if
+	 *        the metacharacter is found and the condition is true.
+	 * @param errorString
+	 *        The errorString to use in the {@link MalformedMessageException} if
+	 *        the metacharacter is found and the condition is true.
+	 * @return Whether the metacharacter was found and consumed.
+	 * @throws MalformedMessageException
+	 *         If the {@link Metacharacter} was found and the failureCondition
+	 *         was true.
+	 */
+	private boolean peekFor (
+		final Metacharacter metacharacter,
+		final boolean failureCondition,
+		final AvailErrorCode errorCode,
+		final String errorString)
+	throws MalformedMessageException
+	{
+		final @Nullable A_String token = currentMessagePartOrNull();
+		if (token == null || !token.equals(metacharacter.string))
+		{
+			return false;
+		}
+		throwMalformedIf(failureCondition, errorCode, errorString);
+		messagePartPosition++;
+		return true;
+	}
+
+	/**
+	 * If the condition is true, throw a {@link MalformedMessageException} with
+	 * the given errorCode and errorString.  Otherwise do nothing.
+	 *
+	 * @param condition
+	 *        The {@code boolean} to test.
+	 * @param errorCode
+	 *        The errorCode to use in the {@link MalformedMessageException} if
+	 *        the condition was true.
+	 * @param errorString
+	 *        The errorString to use in the {@link MalformedMessageException} if
+	 *        the condition was true.
+	 * @throws MalformedMessageException
+	 *         If the condition was true.
+	 */
+	private static void throwMalformedIf (
+		final boolean condition,
+		final AvailErrorCode errorCode,
+		final String errorString)
+	throws MalformedMessageException
+	{
+		if (condition)
+		{
+			throwMalformedMessageException(errorCode, errorString);
+		}
+	}
+
+	/**
+	 * Create a {@link Sequence} from the tokenized message name.  Stop parsing
+	 * the sequence when we reach the end of the tokens, a close guillemet (»),
+	 * or a double-dagger (‡).</p>
 	 *
 	 * @return A {@link Sequence} expression parsed from the {@link
 	 *         #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
 	private Sequence parseSequence ()
-		throws MalformedMessageException
+	throws MalformedMessageException
 	{
-		List<Expression> alternatives = new ArrayList<>();
-		boolean justParsedVerticalBar = false;
-		final Sequence sequence = new Sequence(positionInName(), this);
-		while (true)
+		final Sequence sequence = new Sequence(messagePartPosition);
+		@Nullable Expression expression = parseElementOrAlternation();
+		while (expression != null)
 		{
-			assert !justParsedVerticalBar || !alternatives.isEmpty();
-			A_String token = atEnd() ? null : currentMessagePart();
-			if (token == null)
-			{
-				if (justParsedVerticalBar)
-				{
-					throwMalformedMessageException(
-						E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
-						"Expecting another token or simple group after the "
-							+ "vertical bar (|)");
-				}
-				sequence.checkForConsistentOrdinals();
-				return sequence;
-			}
-			if (token.equals(CLOSE_GUILLEMET.string) || token.equals(
-				DOUBLE_DAGGER.string))
-			{
-				if (justParsedVerticalBar)
-				{
-					final String problem = token.equals(CLOSE_GUILLEMET.string)
-						? "close guillemet (»)"
-						: "double-dagger (‡)";
-					throwMalformedMessageException(
-						E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
-						"Expecting another token or simple group after the "
-						+ "vertical bar (|), not "
-						+ problem);
-				}
-				sequence.checkForConsistentOrdinals();
-				return sequence;
-			}
-			if (token.equals(UNDERSCORE.string))
-			{
-				// Capture the one-based index.
-				final int argStart = messagePartPosition;
-				if (alternatives.size() > 0)
-				{
-					// Alternations may not contain arguments.
-					throwMalformedMessageException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
-						"Alternations must not contain arguments");
-				}
-				messagePartPosition++;
-				@Nullable A_String nextToken = currentMessagePartOrNull();
-				int ordinal = -1;
-				if (nextToken != null)
-				{
-					// Just ate the underscore, so immediately after is where
-					// we expect an optional circled number to indicate argument
-					// reordering.
-					final int codePoint = nextToken.tupleCodePointAt(1);
-					if (circledNumbersMap.containsKey(codePoint))
-					{
-						// In theory we could allow messages to go past ㊿ by
-						// allowing a sequence of circled single digits (⓪-⑨)
-						// that doesn't start with ⓪.  DEFINITELY not worth the
-						// bother for now (2014.12.24).
-						ordinal = circledNumbersMap.get(codePoint);
-						messagePartPosition++;
-						nextToken = currentMessagePartOrNull();
-					}
-				}
-				Expression argument = null;
-				if (nextToken != null)
-				{
-					if (nextToken.equals(SINGLE_DAGGER.string))
-					{
-						messagePartPosition++;
-						argument = new ArgumentInModuleScope(this, argStart);
-					}
-					else if (nextToken.equals(UP_ARROW.string))
-					{
-						messagePartPosition++;
-						argument = new VariableQuote(this, argStart);
-					}
-					else if (nextToken.equals(EXCLAMATION_MARK.string))
-					{
-						messagePartPosition++;
-						argument = new ArgumentForMacroOnly(this, argStart);
-					}
-				}
-				// If the argument wasn't set already (because it wasn't
-				// followed by a modifier), then set it here.
-				if (argument == null)
-				{
-					argument = new Argument(this, argStart);
-				}
-				argument.explicitOrdinal(ordinal);
-				sequence.addExpression(argument);
-			}
-			else if (token.equals(ELLIPSIS.string))
-			{
-				final int ellipsisStart = messagePartPosition;
-				if (alternatives.size() > 0)
-				{
-					// Alternations may not contain arguments.
-					throwMalformedMessageException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
-						"Alternations must not contain arguments");
-				}
-				messagePartPosition++;
-				final @Nullable A_String nextToken = currentMessagePartOrNull();
-				if (nextToken != null
-					&& nextToken.equals(EXCLAMATION_MARK.string))
-				{
-					sequence.addExpression(
-						new RawTokenArgument(this, ellipsisStart));
-					messagePartPosition++;
-				}
-				else if (nextToken != null
-					&& nextToken.equals(OCTOTHORP.string))
-				{
-					sequence.addExpression(
-						new RawWholeNumberLiteralTokenArgument(
-							this, ellipsisStart));
-					messagePartPosition++;
-				}
-				else if (nextToken != null
-					&& nextToken.equals(DOLLAR_SIGN.string))
-				{
-					sequence.addExpression(
-						new RawStringLiteralTokenArgument(this, ellipsisStart));
-					messagePartPosition++;
-				}
-				else
-				{
-					sequence.addExpression(
-						new RawKeywordTokenArgument(this, ellipsisStart));
-				}
-			}
-			else if (token.equals(OCTOTHORP.string))
-			{
-				throwMalformedMessageException(
-					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
-					"An octothorp (#) may only follow a simple group («») "
-					+ "or an ellipsis (…)");
-			}
-			else if (token.equals(DOLLAR_SIGN.string))
-			{
-				throwMalformedMessageException(
-					E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
-					"A dollar sign ($) may only follow an ellipsis(…)");
-			}
-			else if (token.equals(QUESTION_MARK.string))
-			{
-				throwMalformedMessageException(
-					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
-					"A question mark (?) may only follow a simple group "
-					+ "(optional) or a group with no double-dagger (‡)");
-			}
-			else if (token.equals(TILDE.string))
-			{
-				throwMalformedMessageException(
-					E_TILDE_MUST_NOT_FOLLOW_ARGUMENT,
-					"A tilde (~) must not follow an argument");
-			}
-			else if (token.equals(VERTICAL_BAR.string))
-			{
-				throwMalformedMessageException(
-					E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
-					"A vertical bar (|) may only separate tokens or simple "
-					+ "groups");
-			}
-			else if (token.equals(EXCLAMATION_MARK.string))
-			{
-				throwMalformedMessageException(
-					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
-					"An exclamation mark (!) may only follow an alternation "
-					+ "group (or follow an underscore for macros)");
-			}
-			else if (token.equals(UP_ARROW.string))
-			{
-				throwMalformedMessageException(
-					E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
-					"An up-arrow (↑) may only follow an argument");
-			}
-			else if (circledNumbersMap.containsKey(
-				token.tupleCodePointAt(1)))
-			{
-				throwMalformedMessageException(
-					E_INCONSISTENT_ARGUMENT_REORDERING,
-					"Unquoted circled numbers (⓪-㊿) may only follow an "
-					+ "argument, an ellipsis, or an argument group");
-			}
-			else if (token.equals(OPEN_GUILLEMET.string))
-			{
-				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
-				// close guillemet, and add the group.
-				final int startOfGroup = positionInName();
-				messagePartPosition++;
-				final Group subgroup = parseGroup(startOfGroup);
-				//justParsedVerticalBar = false;
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-				}
-				// Otherwise token stays an open guillemet, hence not a close...
-				if (!token.equals(CLOSE_GUILLEMET.string))
-				{
-					// Expected matching close guillemet.
-					throwMalformedMessageException(
-						E_UNBALANCED_GUILLEMETS,
-						"Expected close guillemet (») to end group");
-				}
-				messagePartPosition++;
-				// Just ate the close guillemet, so immediately after is where
-				// we expect an optional circled number to indicate argument
-				// reordering.
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-					final int codePoint = token.tupleCodePointAt(1);
-					if (circledNumbersMap.containsKey(codePoint))
-					{
-						// In theory we could allow messages to go past ㊿ by
-						// allowing a sequence of circled single digits (⓪-⑨)
-						// that doesn't start with ⓪.  DEFINITELY not worth the
-						// bother for now (2014.12.24).
-						subgroup.explicitOrdinal(
-							circledNumbersMap.get(codePoint));
-						messagePartPosition++;
-					}
-				}
-				// Try to parse a counter, optional, and/or case-insensitive.
-				Expression subexpression = subgroup;
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-					if (token.equals(OCTOTHORP.string))
-					{
-						if (subgroup.underscoreCount() > 0)
-						{
-							// Counting group may not contain arguments.
-							throwMalformedMessageException(
-								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
-								"An octothorp (#) may only follow a simple "
-								+ "group or an ellipsis (…)");
-						}
-						subexpression = new Counter(startOfGroup, subgroup);
-						messagePartPosition++;
-					}
-					else if (token.equals(QUESTION_MARK.string))
-					{
-						if (subgroup.hasDagger)
-						{
-							// A question mark after a group with underscores
-							// means zero or one occurrence, so a double-dagger
-							// would be pointless.
-							throwMalformedMessageException(
-								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
-								"A question mark (?) may only follow a simple "
-								+ "group (optional) or a group with arguments "
-								+ "(0 or 1 occurrences), but not one with a "
-								+ "double-dagger (‡), since that implies "
-								+ "multiple occurrences to be separated");
-						}
-						if (subgroup.underscoreCount() > 0)
-						{
-							subgroup.beOptional();
-						}
-						else
-						{
-							subexpression = new Optional(
-								startOfGroup, subgroup.beforeDagger);
-						}
-						messagePartPosition++;
-					}
-					else if (token.equals(DOUBLE_QUESTION_MARK.string))
-					{
-						if (subgroup.underscoreCount() > 0
-							|| subgroup.hasDagger)
-						{
-							// Completely optional group may not contain
-							// arguments or double daggers.
-							throwMalformedMessageException(
-								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
-								"A double question mark (⁇) may only follow "
-								+ "a token or simple group, not one with a "
-								+ "double-dagger (‡) or arguments");
-						}
-						subexpression = new CompletelyOptional(
-							startOfGroup, this, subgroup.beforeDagger);
-						messagePartPosition++;
-					}
-					else if (token.equals(EXCLAMATION_MARK.string))
-					{
-						if (subgroup.underscoreCount() > 0
-							|| subgroup.hasDagger
-							|| (subgroup.beforeDagger.expressions.size() != 1)
-							|| !(subgroup.beforeDagger.expressions.get(0)
-								instanceof Alternation))
-						{
-							// Numbered choice group may not contain
-							// underscores.  The group must also consist of an
-							// alternation.
-							throwMalformedMessageException(
-								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
-								"An exclamation mark (!) may only follow an "
-								+ "alternation group or (for macros) an "
-								+ "underscore");
-						}
-						final Expression alternation =
-							subgroup.beforeDagger.expressions.get(0);
-						subexpression =
-							new NumberedChoice((Alternation) alternation);
-						messagePartPosition++;
-					}
-				}
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-					// Try to parse a case-insensitive modifier.
-					if (token.equals(TILDE.string))
-					{
-						if (!subexpression.isLowerCase())
-						{
-							throwMalformedMessageException(
-								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
-								"Tilde (~) may only occur after a lowercase "
-								+ "token or a group of lowercase tokens");
-						}
-						subexpression = new CaseInsensitive(
-							startOfGroup, subexpression);
-						messagePartPosition++;
-					}
-				}
-				// Parse a vertical bar. If no vertical bar occurs, then either
-				// complete an alternation already in progress (including this
-				// most recent expression) or add the subexpression directly to
-				// the group.
-				if (atEnd()
-					|| !currentMessagePart().equals(VERTICAL_BAR.string))
-				{
-					if (alternatives.size() > 0)
-					{
-						alternatives.add(subexpression);
-						subexpression = new Alternation(
-							startOfGroup, alternatives);
-						alternatives = new ArrayList<>();
-					}
-					sequence.addExpression(subexpression);
-					justParsedVerticalBar = false;
-				}
-				else
-				{
-					if (subexpression.underscoreCount() > 0)
-					{
-						// Alternations may not contain arguments.
-						throwMalformedMessageException(
-							E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
-							"Alternatives must not contain arguments");
-					}
-					alternatives.add(subexpression);
-					messagePartPosition++;
-					justParsedVerticalBar = true;
-				}
-			}
-			else if (token.equals(SECTION_SIGN.string))
-			{
-				if (alternatives.size() > 0)
-				{
-					throwMalformedMessageException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
-						"Alternative must not contain a section "
-						+ "checkpoint (§)");
-				}
-				assert !justParsedVerticalBar;
-				sequence.addExpression(
-					new SectionCheckpoint(positionInName(), this));
-				messagePartPosition++;
-			}
-			else
-			{
-				// Parse a backquote.
-				if (token.equals(BACK_QUOTE.string))
-				{
-					// Eat the backquote.
-					messagePartPosition++;
-					if (atEnd())
-					{
-						// Expected operator character after backquote, not end.
-						throwMalformedMessageException(
-							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
-							"Backquote (`) must be followed by an operator "
-							+ "character");
-					}
-					token = currentMessagePart();
-					if (token.tupleSize() != 1
-						|| !isUnderscoreOrSpaceOrOperator(
-							token.tupleCodePointAt(1)))
-					{
-						// Expected operator character after backquote.
-						throwMalformedMessageException(
-							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
-							"Backquote (`) must be followed by an operator "
-							+ "character");
-					}
-				}
-				// Parse a regular keyword or operator.
-				//justParsedVerticalBar = false;
-				Expression subexpression =
-					new Simple(this, messagePartPosition);
-				messagePartPosition++;
-				// Parse a completely optional.
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-					if (token.equals(DOUBLE_QUESTION_MARK.string))
-					{
-						final Sequence singleSequence =
-							new Sequence(subexpression.positionInName, this);
-						singleSequence.addExpression(subexpression);
-						subexpression = new CompletelyOptional(
-							subexpression.positionInName, this, singleSequence);
-						messagePartPosition++;
-					}
-				}
-				// Parse a case insensitive.
-				if (!atEnd())
-				{
-					token = currentMessagePart();
-					if (token.equals(TILDE.string))
-					{
-						if (!subexpression.isLowerCase())
-						{
-							throwMalformedMessageException(
-								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
-								"Tilde (~) may only occur after a lowercase "
-								+ "token or a group of lowercase tokens");
-						}
-						subexpression = new CaseInsensitive(
-							subexpression.positionInName, subexpression);
-						messagePartPosition++;
-					}
-				}
-				// Parse a vertical bar. If no vertical bar occurs, then either
-				// complete an alternation already in progress (including this
-				// most recent expression) or add the subexpression directly to
-				// the group.
-				if (atEnd()
-					|| !currentMessagePart().equals(VERTICAL_BAR.string))
-				{
-					if (alternatives.size() > 0)
-					{
-						alternatives.add(subexpression);
-						subexpression = new Alternation(
-							alternatives.get(0).positionInName, alternatives);
-						alternatives = new ArrayList<>();
-					}
-					sequence.addExpression(subexpression);
-					justParsedVerticalBar = false;
-				}
-				else
-				{
-					alternatives.add(subexpression);
-					messagePartPosition++;
-					justParsedVerticalBar = true;
-				}
-			}
+			sequence.addExpression(expression);
+			expression = parseElementOrAlternation();
 		}
+		sequence.checkForConsistentOrdinals();
+		return sequence;
 	}
 
 	/**
-	 * Create a {@linkplain Group group} from the series of tokens describing
-	 * it. This is also used to construct the outermost sequence of {@linkplain
-	 * Expression expressions}, with the restriction that an occurrence of a
-	 * {@linkplain Metacharacter#DOUBLE_DAGGER double dagger} in the
-	 * outermost pseudo-group is an error. Expect the {@linkplain
-	 * #messagePartPosition} to point (via a one-based offset) to the first
-	 * token of the group, or just past the end if the group is empty. Leave the
-	 * {@code messagePartPosition} pointing just past the last token of the
-	 * group.
+	 * Parse an element of a {@link Sequence}.  The element may be an {@link
+	 * Alternation}.
 	 *
-	 * <p>The caller is responsible for identifying and skipping an open
-	 * guillemet prior to this group, and for consuming the close guillemet
-	 * after parsing the group. The outermost caller is also responsible for
-	 * ensuring the entire input was exactly consumed.</p>
-	 *
-	 * @param positionInName
-	 *        The position of the group in the message name.
-	 * @return A {@link Group} expression parsed from the {@link
-	 *         #messagePartsList}.
-	 * @throws MalformedMessageException If the method name is malformed.
+	 * @return The parsed {@link Expression}, or {@code null} if no expression
+	 *         can be found
+	 * @throws MalformedMessageException
+	 *         If the start of an {@link Expression} is found, but it's
+	 *         malformed.
 	 */
-	private Group parseGroup (final int positionInName)
-		throws MalformedMessageException
+	private @Nullable Expression parseElementOrAlternation ()
+	throws MalformedMessageException
 	{
-		final Sequence beforeDagger = parseSequence();
-		if (!atEnd() && currentMessagePart().equals(DOUBLE_DAGGER.string))
+		final Expression firstExpression = parseElement();
+		if (firstExpression == null)
 		{
-			messagePartPosition++;
-			final Sequence afterDagger = parseSequence();
-			if (!atEnd() && currentMessagePart().equals(DOUBLE_DAGGER.string))
-			{
-				// Two daggers were encountered in a group.
-				throwMalformedMessageException(
-					E_INCORRECT_USE_OF_DOUBLE_DAGGER,
-					"A group must have at most one double-dagger (‡)");
-			}
-			return new Group(positionInName, beforeDagger, afterDagger);
+			return null;
 		}
-		return new Group(positionInName, this, beforeDagger);
+		if (!peekAheadFor(VERTICAL_BAR))
+		{
+			// Not an alternation.
+			return firstExpression;
+		}
+		// It must be an alternation.
+		checkAlternative(firstExpression);
+		final List<Expression> alternatives = new ArrayList<>();
+		alternatives.add(firstExpression);
+		while (peekFor(VERTICAL_BAR))
+		{
+			final @Nullable Expression nextExpression = parseElement();
+			if (nextExpression == null)
+			{
+				throwMalformedMessageException(
+					E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+					"Expecting another token or simple group after the "
+						+ "vertical bar (|)");
+			}
+			checkAlternative(nextExpression);
+			alternatives.add(nextExpression);
+		}
+		return new Alternation(firstExpression.positionInName, alternatives);
+	}
+
+	/**
+	 * Check that an {@link Expression} to be used as an alternative in an
+	 * {@link Alternation} is well-formed.  Note that alternations may not
+	 * contain arguments.
+	 *
+	 * @param expression
+	 *        The alternative to check.
+	 * @throws MalformedMessageException
+	 *         If the alternative contains an argument.
+	 */
+	private static void checkAlternative (final Expression expression)
+	throws MalformedMessageException
+	{
+		throwMalformedIf(
+			expression.isArgumentOrGroup()
+				|| expression.underscoreCount() > 0,
+			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+			"Alternatives must not contain arguments");
+	}
+
+	/**
+	 * Parse a single element or return {@code null}.
+	 *
+	 * @return A parsed {@link Expression}, which is suitable for use within an
+	 *         {@link Alternation} or {@link Sequence}, or {@code null} if none
+	 *         is available at this position.
+	 * @throws MalformedMessageException
+	 *         If there appeared to be an element {@link Expression} at this
+	 *         position, but it was malformed.
+	 */
+	private @Nullable Expression parseElement ()
+	throws MalformedMessageException
+	{
+		// Try to parse the kinds of things that deal with their own suffixes.
+		if (atEnd()
+			|| peekAheadFor(DOUBLE_DAGGER)
+			|| peekAheadFor(CLOSE_GUILLEMET))
+		{
+			return null;
+		}
+		if (peekFor(UNDERSCORE))
+		{
+			return parseOptionalExplicitOrdinal(parseUnderscoreElement());
+		}
+		if (peekFor(ELLIPSIS))
+		{
+			return parseOptionalExplicitOrdinal(parseEllipsisElement());
+		}
+		if (peekFor(OPEN_GUILLEMET))
+		{
+			return parseOptionalExplicitOrdinal(parseGuillemetElement());
+		}
+		if (peekFor(SECTION_SIGN))
+		{
+			return new SectionCheckpoint(
+				positionInName(), ++numberOfSectionCheckpoints);
+		}
+		return parseSimple();
+	}
+
+	/**
+	 * Parse a {@link Simple} at the current position.  Don't look for any
+	 * suffixes.
+	 *
+	 * @return The {@link Simple}.
+	 * @throws MalformedMessageException
+	 *         If the {@link Simple} expression is malformed.
+	 */
+	private Expression parseSimple ()
+	throws MalformedMessageException
+	{
+		// First, parse the next token, then apply a double-question-mark,
+		// tilde, and/or circled number.
+		if (peekFor(
+			BACK_QUOTE,
+			atEnd(),
+			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
+			"Backquote (`) must be followed by a special metacharacter, "
+				+ "space, or circled number"))
+		{
+			final A_String token = currentMessagePart();
+			// Expects metacharacter or space or circled number after backquote.
+			throwMalformedIf(
+				token.tupleSize() != 1
+					|| !canBeBackQuoted(token.tupleCodePointAt(1)),
+				E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
+				"Backquote (`) must be followed by a special metacharacter, "
+					+ "space, or circled number, not ("
+					+ token
+					+ ")");
+		}
+		else
+		{
+			// Parse a regular keyword or operator.
+			checkSuffixCharactersNotInSuffix();
+		}
+		Expression expression = new Simple(
+			currentMessagePart(),
+			messagePartPosition,
+			messagePartPositions.get(messagePartPosition - 1));
+		messagePartPosition++;
+
+		if (peekFor(
+			TILDE,
+			!expression.isLowerCase(),
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+			"Tilde (~) may only occur after a lowercase "
+				+ "token or a group of lowercase tokens"))
+		{
+			expression = expression.applyCaseInsensitive();
+		}
+
+		if (peekFor(QUESTION_MARK))
+		{
+			final Sequence sequence = new Sequence(expression.positionInName);
+			sequence.addExpression(expression);
+			expression = new Optional(
+				expression.positionInName,
+				sequence);
+		}
+		else if (peekFor(DOUBLE_QUESTION_MARK))
+		{
+			final Sequence sequence = new Sequence(expression.positionInName);
+			sequence.addExpression(expression);
+			expression = new CompletelyOptional(
+				expression.positionInName, sequence);
+		}
+
+		return expression;
+	}
+
+	/**
+	 * The provided sequence element or {@link Alternation} has just been
+	 * parsed.  Look for a suffixed ordinal indicator, marking the {@link
+	 * Expression} with the explicit ordinal if indicated.
+	 *
+	 * @param expression
+	 *        The {@link Expression} that was just parsed.
+	 * @return A replacement {@link Expression} with its explicit ordinal set
+	 *         if necessary.  This may be the original expression after
+	 *         mutation.
+	 */
+	private Expression parseOptionalExplicitOrdinal (
+		final Expression expression)
+	{
+		final int ordinal = peekForExplicitOrdinal();
+		if (ordinal != -1)
+		{
+			expression.explicitOrdinal(ordinal);
+		}
+		return expression;
+	}
+
+	/**
+	 * Check that the given token is not a special character that should only
+	 * occur after an element or subgroup.  If it is such a special character,
+	 * throw a {@link MalformedMessageException} with a suitable error code and
+	 * message.
+	 *
+	 * @throws MalformedMessageException
+	 *         If the token is special.
+	 */
+	private void checkSuffixCharactersNotInSuffix ()
+	throws MalformedMessageException
+	{
+		final @Nullable A_String token = currentMessagePartOrNull();
+		if (token == null)
+		{
+			return;
+		}
+		if (circledNumbersMap.containsKey(token.tupleCodePointAt(1)))
+		{
+			throwMalformedMessageException(
+				E_INCONSISTENT_ARGUMENT_REORDERING,
+				"Unquoted circled numbers (⓪-㊿) may only follow an "
+					+ "argument, an ellipsis, or an argument group");
+		}
+		peekFor(
+			OCTOTHORP,
+			true,
+			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
+			"An octothorp (#) may only follow a simple group («») "
+				+ "or an ellipsis (…)");
+		peekFor(
+			DOLLAR_SIGN,
+			true,
+			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
+			"A dollar sign ($) may only follow an ellipsis(…)");
+		peekFor(
+			QUESTION_MARK,
+			true,
+			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
+			"A question mark (?) may only follow a simple group "
+				+ "(optional) or a group with no double-dagger (‡)");
+		peekFor(
+			TILDE,
+			true,
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+			"Tilde (~) may only occur after a lowercase "
+				+ "token or a group of lowercase tokens");
+		peekFor(
+			VERTICAL_BAR,
+			true,
+			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+			"A vertical bar (|) may only separate tokens or simple "
+				+ "groups");
+		peekFor(
+			EXCLAMATION_MARK,
+			true,
+			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
+			"An exclamation mark (!) may only follow an alternation "
+				+ "group (or follow an underscore for macros)");
+		peekFor(
+			UP_ARROW,
+			true,
+			E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
+			"An up-arrow (↑) may only follow an argument");
+	}
+
+	/**
+	 * An open guillemet («) was detected in the input stream.  Parse a suitable
+	 * group or alternation or any other kind of {@link Expression} that starts
+	 * with an open guillemet.  Do not parse any trailing circled numbers, which
+	 * are used to permute argument expressions within a group or the top level.
+	 *
+	 * @return The {@link Expression} that started at the {@link
+	 *         Metacharacter#OPEN_GUILLEMET}.
+	 * @throws MalformedMessageException
+	 *         If the subgroup is malformed.
+	 */
+	private Expression parseGuillemetElement ()
+	throws MalformedMessageException
+	{
+		// We just parsed an open guillemet.  Parse a subgroup, eat the
+		// mandatory close guillemet, and apply any modifiers to the group.
+		final int startOfGroup = positionInName();
+		final Sequence beforeDagger = parseSequence();
+		final Group group;
+		if (peekFor(DOUBLE_DAGGER))
+		{
+			final Sequence afterDagger = parseSequence();
+			// Check for a second double-dagger.
+			peekFor(
+				DOUBLE_DAGGER,
+				true,
+				E_INCORRECT_USE_OF_DOUBLE_DAGGER,
+				"A group must have at most one double-dagger (‡)");
+			group = new Group(startOfGroup, beforeDagger, afterDagger);
+		}
+		else
+		{
+			group = new Group(startOfGroup, beforeDagger);
+		}
+
+		if (!peekFor(CLOSE_GUILLEMET))
+		{
+			// Expected matching close guillemet.
+			throwMalformedMessageException(
+				E_UNBALANCED_GUILLEMETS,
+				"Expected close guillemet (») to end group");
+		}
+		Expression subexpression = group;
+
+		// Look for a case-sensitive, then look for a counter, optional, or
+		// completely-optional.
+		if (peekFor(
+			TILDE,
+			!subexpression.isLowerCase(),
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+			"Tilde (~) may only occur after a lowercase "
+				+ "token or a group of lowercase tokens"))
+		{
+			subexpression = new CaseInsensitive(startOfGroup, subexpression);
+		}
+
+		if (peekFor(
+			OCTOTHORP,
+			group.underscoreCount() > 0,
+			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
+			"An octothorp (#) may only follow a non-yielding "
+			+ "group or an ellipsis (…)"))
+		{
+			subexpression = new Counter(startOfGroup, group);
+		}
+		else if (peekFor(
+			QUESTION_MARK,
+			group.hasDagger,
+			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
+			"A question mark (?) may only follow a simple "
+			+ "group (optional) or a group with arguments "
+			+ "(0 or 1 occurrences), but not one with a "
+			+ "double-dagger (‡), since that implies "
+			+ "multiple occurrences to be separated"))
+		{
+			if (group.underscoreCount() > 0)
+			{
+				// A complex group just gets bounded to [0..1] occurrences.
+				group.beOptional();
+			}
+			else
+			{
+				// A simple group turns into an Optional, which produces a
+				// literal boolean indicating the presence of such a
+				// subexpression.
+				subexpression = new Optional(startOfGroup, group.beforeDagger);
+			}
+		}
+		else if (peekFor(
+			DOUBLE_QUESTION_MARK,
+			group.underscoreCount() > 0 || group.hasDagger,
+			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
+			"A double question mark (⁇) may only follow "
+			+ "a token or simple group, not one with a "
+			+ "double-dagger (‡) or arguments"))
+		{
+			subexpression = new CompletelyOptional(
+				startOfGroup, group.beforeDagger);
+		}
+		else if (peekFor(
+			EXCLAMATION_MARK,
+			group.underscoreCount() > 0
+				|| group.hasDagger
+				|| (group.beforeDagger.expressions.size() != 1)
+				|| !(group.beforeDagger.expressions.get(0)
+					instanceof Alternation),
+			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
+			"An exclamation mark (!) may only follow an "
+			+ "alternation group or (for macros) an "
+			+ "underscore"))
+		{
+			// The guillemet group should have had a single element, an
+			// alternation.
+			final Alternation alternation =
+				cast(group.beforeDagger.expressions.get(0));
+			subexpression = new NumberedChoice(alternation);
+		}
+		return subexpression;
+	}
+
+	/**
+	 * Parse an ellipsis element, applying suffixed modifiers if present.  The
+	 * ellipsis has already been consumed.
+	 *
+	 * @return A newly parsed {@link RawTokenArgument} or subclass.
+	 */
+	private Expression parseEllipsisElement ()
+	{
+		final int tokenStart =
+			messagePartPositions.get(messagePartPosition - 2);
+		incrementLeafArgumentCount();
+		final int absoluteUnderscoreIndex = numberOfLeafArguments();
+		if (peekFor(EXCLAMATION_MARK))
+		{
+			return new RawTokenArgument(
+				tokenStart, absoluteUnderscoreIndex);
+		}
+		if (peekFor(OCTOTHORP))
+		{
+			return new RawWholeNumberLiteralTokenArgument(
+				tokenStart, absoluteUnderscoreIndex);
+		}
+		if (peekFor(DOLLAR_SIGN))
+		{
+			return new RawStringLiteralTokenArgument(
+				tokenStart, absoluteUnderscoreIndex);
+		}
+		return new RawKeywordTokenArgument(tokenStart, absoluteUnderscoreIndex);
+	}
+
+	/**
+	 * Parse an underscore element, applying suffixed modifiers if present.  The
+	 * underscore has already been consumed.
+	 *
+	 * @return A newly parsed {@link Argument} or subclass.
+	 */
+	private Expression parseUnderscoreElement ()
+	{
+		// Capture the one-based index.
+		final int positionInName =
+			messagePartPositions.get(messagePartPosition - 2);
+		incrementLeafArgumentCount();
+		final int absoluteUnderscoreIndex = numberOfLeafArguments();
+		if (peekFor(SINGLE_DAGGER))
+		{
+			return new ArgumentInModuleScope(
+				positionInName, absoluteUnderscoreIndex);
+		}
+		else if (peekFor(UP_ARROW))
+		{
+			return new VariableQuote(positionInName, absoluteUnderscoreIndex);
+		}
+		else if (peekFor(EXCLAMATION_MARK))
+		{
+			return new ArgumentForMacroOnly(
+				positionInName, absoluteUnderscoreIndex);
+		}
+		else
+		{
+			return new Argument(positionInName, absoluteUnderscoreIndex);
+		}
 	}
 
 	/**
@@ -1479,9 +1808,7 @@ public final class MessageSplitter
 		{
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		rootSequence.checkType(
-			functionType.argsTupleType(),
-			sectionNumber);
+		rootSequence.checkRootType(functionType.argsTupleType(), sectionNumber);
 	}
 
 	/**
@@ -1541,38 +1868,17 @@ public final class MessageSplitter
 	 *        A description of the problem.
 	 * @throws MalformedMessageException
 	 *         Always, with the given error code and diagnostic message.
+	 * @return Nothing, but pretend it's the {@link MalformedMessageException}
+	 *         that was thrown so that the caller can pretend to throw it
+	 *         again to indicate to Java that this call terminates the control
+	 *         flow unconditionally.
 	 */
-	void throwMalformedMessageException (
-			final AvailErrorCode errorCode,
-			final String errorMessage)
-		throws MalformedMessageException
+	static MalformedMessageException throwMalformedMessageException (
+		final AvailErrorCode errorCode,
+		final String errorMessage)
+	throws MalformedMessageException
 	{
-		throw new MalformedMessageException(
-			errorCode,
-			() ->
-			{
-				final StringBuilder builder = new StringBuilder();
-				builder.append(errorMessage);
-				builder.append(". See arrow (");
-				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
-				builder.append(") in: \"");
-				final int characterIndex =
-					messagePartPosition > 0
-						? messagePartPosition <= messagePartPositions.size()
-							? messagePartPositions.get(
-								messagePartPosition - 1)
-							: messageName.tupleSize() + 1
-						: 0;
-				final A_String before = messageName.copyStringFromToCanDestroy(
-					1, characterIndex - 1, false);
-				final A_String after = messageName.copyStringFromToCanDestroy(
-					characterIndex, messageName.tupleSize(), false);
-				builder.append(before.asNativeString());
-				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
-				builder.append(after.asNativeString());
-				builder.append('"');
-				return builder.toString();
-			});
+		throw new MalformedMessageException(errorCode, () -> errorMessage);
 	}
 
 	/**

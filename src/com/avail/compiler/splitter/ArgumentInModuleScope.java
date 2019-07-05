@@ -40,10 +40,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION;
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.CONVERT;
-import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT_IN_MODULE_SCOPE;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -60,15 +57,22 @@ final class ArgumentInModuleScope
 extends Argument
 {
 	/**
-	 * Construct a new {@code ArgumentInModuleScope}.
+	 * Construct an {@code ArgumentInModuleScope}, given the one-based position
+	 * of the token in the name, and the absolute index of this argument in the
+	 * entire message name.
 	 *
-	 * @param startTokenIndex The one-based token index of this argument.
+	 * @param positionInName
+	 *        The one-based position of the start of the token in the message
+	 *        name.
+	 * @param absoluteUnderscoreIndex
+	 *        The one-based index of this argument within the entire message
+	 *        name's list of arguments.
 	 */
 	ArgumentInModuleScope (
-		final MessageSplitter splitter,
-		final int startTokenIndex)
+		final int positionInName,
+		final int absoluteUnderscoreIndex)
 	{
-		super(splitter, startTokenIndex);
+		super(positionInName, absoluteUnderscoreIndex);
 	}
 
 	/**

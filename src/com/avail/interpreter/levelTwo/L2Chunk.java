@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -68,6 +67,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
@@ -826,7 +826,7 @@ implements ExecutableChunk
 	 */
 	public void invalidate (final Statistic invalidationStatistic)
 	{
-		final long before =  AvailRuntime.captureNanos();
+		final long before = captureNanos();
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
 		final A_Set contingents = contingentValues.makeImmutable();
@@ -845,7 +845,7 @@ implements ExecutableChunk
 				unoptimizedChunk, countdownForInvalidatedCode());
 		}
 		Generation.removeInvalidatedChunk(this);
-		final long after =  AvailRuntime.captureNanos();
+		final long after = captureNanos();
 		// Use interpreter #0, since the invalidationLock prevents concurrent
 		// updates.
 		invalidationStatistic.record(after - before, 0);

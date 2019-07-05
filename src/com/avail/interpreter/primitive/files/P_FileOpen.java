@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
@@ -43,6 +41,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
@@ -73,12 +73,7 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT;
-import static com.avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.nio.file.StandardOpenOption.READ;
@@ -145,11 +140,11 @@ extends Primitive
 	 */
 	private static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
 	{
-		if (AvailRuntime.fileSystem().supportedFileAttributeViews().contains(
+		if (IOSystem.fileSystem().supportedFileAttributeViews().contains(
 			"posix"))
 		{
 			final PosixFilePermission[] allPermissions =
-				AvailRuntime.posixPermissions();
+				IOSystem.posixPermissions();
 			final Set<PosixFilePermission> permissions = EnumSet.noneOf(
 				PosixFilePermission.class);
 			for (final A_Number optionInt : optionInts)
@@ -187,7 +182,7 @@ extends Primitive
 			alignmentInt = 4096;
 		}
 		assert alignmentInt > 0;
-		final AvailRuntime runtime = currentRuntime();
+		final IOSystem ioSystem = currentRuntime().ioSystem();
 		final Set<? extends OpenOption> fileOptions = openOptionsFor(options);
 		final FileAttribute<?>[] fileAttributes = permissionsFor(permissions);
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))
@@ -197,8 +192,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = AvailRuntime.fileSystem().getPath(
-				filename.asNativeString());
+			path = IOSystem.fileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
@@ -208,7 +202,7 @@ extends Primitive
 		final AsynchronousFileChannel channel;
 		try
 		{
-			channel = runtime.openFile(path, fileOptions, fileAttributes);
+			channel = ioSystem.openFile(path, fileOptions, fileAttributes);
 		}
 		catch (final IllegalArgumentException e)
 		{

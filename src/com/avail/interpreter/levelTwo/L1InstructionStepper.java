@@ -34,16 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
@@ -69,28 +60,19 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
 import static com.avail.descriptor.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.AFTER_REIFICATION;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -291,7 +273,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = AvailRuntime.captureNanos();
+					final long beforeLookup = captureNanos();
 					try
 					{
 						matching = method.lookupByValuesFromList(
@@ -304,7 +286,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = AvailRuntime.captureNanos();
+						final long afterLookup = captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -683,7 +665,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long beforeLookup = AvailRuntime.captureNanos();
+					final long beforeLookup = captureNanos();
 					try
 					{
 						matching = method.lookupByTypesFromTuple(typesTuple);
@@ -695,7 +677,7 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long afterLookup = AvailRuntime.captureNanos();
+						final long afterLookup = captureNanos();
 						interpreter.recordDynamicLookup(
 							bundle, afterLookup - beforeLookup);
 					}
@@ -998,9 +980,9 @@ public final class L1InstructionStepper
 		final A_Type expectedReturnType,
 		final A_Function returnee)
 	{
-		final long before = AvailRuntime.captureNanos();
+		final long before = captureNanos();
 		final boolean checkOk = result.isInstanceOf(expectedReturnType);
-		final long after = AvailRuntime.captureNanos();
+		final long after = captureNanos();
 		final A_Function returner = stripNull(interpreter.returningFunction);
 		final @Nullable Primitive calledPrimitive = returner.code().primitive();
 		if (calledPrimitive != null)

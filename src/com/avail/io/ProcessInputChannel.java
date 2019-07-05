@@ -64,7 +64,7 @@ implements TextInputChannel
 	@SuppressWarnings("WeakerAccess") @InnerAccess final Reader in;
 
 	/**
-	 * Construct a new {@link ProcessInputChannel} that wraps the specified
+	 * Construct a new {@code ProcessInputChannel} that wraps the specified
 	 * {@linkplain InputStream stream}.
 	 *
 	 * @param stream
@@ -93,7 +93,7 @@ implements TextInputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = currentRuntime();
-		runtime.executeFileTask(() ->
+		runtime.ioSystem().executeFileTask(() ->
 		{
 			final int charsRead;
 			try

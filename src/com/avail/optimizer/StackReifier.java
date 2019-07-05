@@ -32,7 +32,6 @@
 
 package com.avail.optimizer;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
@@ -45,6 +44,8 @@ import com.avail.utility.evaluation.Continuation0;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.avail.AvailRuntimeSupport.captureNanos;
 
 /**
  * The level two execution machinery allows limited use of the Java stack during
@@ -120,13 +121,15 @@ public final class StackReifier
 		this.actuallyReify = actuallyReify;
 		this.expectedDepth = expectedDepth;
 		this.postReificationAction = postReificationAction;
-		this.startNanos = AvailRuntime.captureNanos();
+		this.startNanos = captureNanos();
 		this.reificationStatistic = reificationStatistic;
 	}
 
 	/**
 	 * Answer whether this {@code StackReifier} should cause reification (rather
 	 * than just clearing the Java stack).
+	 *
+	 * @return An indicator whether to reify versus discard the Java stack.
 	 */
 	public boolean actuallyReify ()
 	{
@@ -203,8 +206,7 @@ public final class StackReifier
 	 */
 	public void recordCompletedReification (final int interpreterIndex)
 	{
-		final long endNanos = AvailRuntime.captureNanos();
-		reificationStatistic.record(
-			endNanos - startNanos, interpreterIndex);
+		final long endNanos = captureNanos();
+		reificationStatistic.record(endNanos - startNanos, interpreterIndex);
 	}
 }

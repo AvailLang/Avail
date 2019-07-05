@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
@@ -69,6 +69,7 @@ import com.avail.optimizer.L2Generator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
@@ -100,6 +102,7 @@ import static com.avail.descriptor.TupleDescriptor.tupleWithout;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.utility.Locks.auto;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -654,8 +657,7 @@ extends Descriptor
 		// that we don't update the current module's message bundle tree here,
 		// and leave that to the caller to deal with.  Other modules' parsing
 		// should be unaffected (although runtime execution may change).
-		L2Chunk.invalidationLock.lock();
-		try
+		try (final Auto ignored = auto(L2Chunk.invalidationLock))
 		{
 			final A_Type bodySignature = definition.bodySignature();
 			final A_Type paramTypes = bodySignature.argsTupleType();
@@ -663,8 +665,8 @@ extends Descriptor
 			{
 				// Install the macro.
 				final A_Tuple oldTuple = object.slot(MACRO_DEFINITIONS_TUPLE);
-				final A_Tuple newTuple = oldTuple.appendCanDestroy(
-					definition, true);
+				final A_Tuple newTuple =
+					oldTuple.appendCanDestroy(definition, true);
 				object.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared());
 			}
 			else
@@ -684,8 +686,8 @@ extends Descriptor
 							AvailErrorCode.E_METHOD_IS_SEALED);
 					}
 				}
-				final A_Tuple newTuple = oldTuple.appendCanDestroy(
-					definition, true);
+				final A_Tuple newTuple =
+					oldTuple.appendCanDestroy(definition, true);
 				object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
 			}
 			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
@@ -695,10 +697,6 @@ extends Descriptor
 				bundle.addDefinitionParsingPlan(plan);
 			}
 			membershipChanged(object);
-		}
-		finally
-		{
-			L2Chunk.invalidationLock.unlock();
 		}
 	}
 
@@ -885,7 +883,7 @@ extends Descriptor
 		final int numArgs)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(HASH, AvailRuntime.nextHash());
+		result.setSlot(HASH, nextHash());
 		result.setSlot(NUM_ARGS, numArgs);
 		result.setSlot(OWNING_BUNDLES, emptySet());
 		result.setSlot(DEFINITIONS_TUPLE, emptyTuple());

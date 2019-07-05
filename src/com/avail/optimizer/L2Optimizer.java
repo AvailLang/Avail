@@ -32,7 +32,6 @@
 
 package com.avail.optimizer;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -60,6 +59,7 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
@@ -1148,13 +1148,13 @@ public final class L2Optimizer
 	{
 		if (shouldSanityCheck)
 		{
-			final long before = AvailRuntime.captureNanos();
+			final long before = captureNanos();
 			checkBlocksAndInstructions();
 			checkUniqueOperands();
 			checkEdgesAndPhis();
 			checkRegistersAreInitialized(L2Register::uniqueValue);
 			checkEntryPoints();
-			final long after = AvailRuntime.captureNanos();
+			final long after = captureNanos();
 			sanityCheckStat.record(
 				after - before, interpreter.interpreterIndex);
 		}
@@ -1305,9 +1305,9 @@ public final class L2Optimizer
 	{
 		for (final OptimizationPhase phase : OptimizationPhase.values())
 		{
-			final long before = AvailRuntime.captureNanos();
+			final long before = captureNanos();
 			phase.action.value(this);
-			final long after = AvailRuntime.captureNanos();
+			final long after = captureNanos();
 			phase.stat.record(after - before, interpreter.interpreterIndex);
 			sanityCheck(interpreter);
 		}

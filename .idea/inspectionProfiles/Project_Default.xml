@@ -59,7 +59,6 @@
     <inspection_tool class="Convert2Diamond" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="CovariantCompareTo" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CovariantEquals" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="DanglingJavadoc" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="DefaultNotLastCaseInSwitch" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="DoubleBraceInitialization" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="DoubleLiteralMayBeFloatLiteral" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -147,25 +146,25 @@
     <inspection_tool class="JavaDoc" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="TOP_LEVEL_CLASS_OPTIONS">
         <value>
-          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="none" />
+          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="package" />
           <option name="REQUIRED_TAGS" value="@param" />
         </value>
       </option>
       <option name="INNER_CLASS_OPTIONS">
         <value>
-          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="none" />
+          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="private" />
           <option name="REQUIRED_TAGS" value="" />
         </value>
       </option>
       <option name="METHOD_OPTIONS">
         <value>
-          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="none" />
+          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="private" />
           <option name="REQUIRED_TAGS" value="@return@param@throws or @exception" />
         </value>
       </option>
       <option name="FIELD_OPTIONS">
         <value>
-          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="none" />
+          <option name="ACCESS_JAVADOC_REQUIRED_FOR" value="private" />
           <option name="REQUIRED_TAGS" value="" />
         </value>
       </option>
@@ -177,7 +176,7 @@
       <IGNORE_ACCESSORS value="true" />
     </inspection_tool>
     <inspection_tool class="JavaLangImport" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="JavadocHtmlLint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="JavadocHtmlLint" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="KeySetIterationMayUseEntrySet" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="LambdaBodyCanBeCodeBlock" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="LambdaCanBeReplacedWithAnonymous" enabled="false" level="INFORMATION" enabled_by_default="false" />
@@ -213,7 +212,9 @@
     <inspection_tool class="MethodOverridesStaticMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodRefCanBeReplacedWithLambda" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="MismatchedArrayReadWrite" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="MissingDeprecatedAnnotation" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="MissingDeprecatedAnnotation" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="warnOnMissingJavadoc" value="true" />
+    </inspection_tool>
     <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="ERROR" enabled_by_default="true">
       <option name="ignoreObjectMethods" value="false" />
       <option name="ignoreAnonymousClassMethods" value="false" />
@@ -283,7 +284,7 @@
       <option name="ignoreObjectConstruction" value="false" />
     </inspection_tool>
     <inspection_tool class="RedundantMethodOverride" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="RedundantSuppression" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+    <inspection_tool class="RedundantSuppression" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="IGNORE_ALL" value="true" />
     </inspection_tool>
     <inspection_tool class="RedundantThrowsDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -354,6 +355,7 @@
     <inspection_tool class="ThreadStopSuspendResume" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThreadWithDefaultRunMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThreadYield" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ThrowsRuntimeException" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="TooBroadScope" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_allowConstructorAsInitializer" value="true" />
       <option name="m_onlyLookAtBlocks" value="false" />
@@ -369,7 +371,6 @@
       <option name="ignoreReferencesNeedingImport" value="false" />
     </inspection_tool>
     <inspection_tool class="UnnecessarilyQualifiedStaticallyImportedElement" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="UnnecessaryDefault" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryFullyQualifiedName" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreJavadoc" value="false" />
       <option name="ignoreInModuleStatements" value="true" />

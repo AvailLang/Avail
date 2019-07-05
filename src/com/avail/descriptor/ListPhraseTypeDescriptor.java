@@ -52,11 +52,7 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRE
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 
 /**
  * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
@@ -145,10 +141,8 @@ extends PhraseTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
-	 * have the same expression type and same tuple type of subexpressions.
-	 * </p>
+	 * <p>List phrase types are equal when they have the same expression type
+	 * and same tuple type of subexpressions.</p>
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -160,12 +154,10 @@ extends PhraseTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * {@linkplain ListPhraseTypeDescriptor list phrase types} are equal when they
-	 * are of the same kind and have the same expression type and the same
-	 * subexpressions tuple type.  However, aPhraseType can't be a list
-	 * phrase type like the receiver is.
-	 * </p>
+	 * <p>List phrase types are equal when they are of the same kind and have
+	 * the same expression type and the same subexpressions tuple type.
+	 * However, aPhraseType can't be a list phrase type like the receiver
+	 * is.</p>
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsPhraseType (
@@ -408,8 +400,11 @@ extends PhraseTypeDescriptor
 	 * has a yield type matching those types as a tuple, but where the size can
 	 * vary from the given minimum size to the array's size.
 	 *
-	 * @param types The array of types yielded by corresponding elements of the
-	 *              list phrase type.
+	 * @param minimumSize
+	 *        How small the list is permitted to be.
+	 * @param types
+	 *        The array of types yielded by corresponding elements of the list
+	 *        phrase type.
 	 * @return A list phrase type.
 	 */
 	public static A_Type listPrefix (
@@ -446,6 +441,8 @@ extends PhraseTypeDescriptor
 		assert kind.isSubkindOf(LIST_PHRASE);
 		assert yieldType.isTupleType();
 		assert subexpressionsTupleType.isTupleType();
+		yieldType.makeImmutable();
+		subexpressionsTupleType.makeImmutable();
 		final A_Type yieldTypesAsPhrases =
 			tupleTypeFromTupleOfTypes(
 				yieldType,
@@ -546,13 +543,19 @@ extends PhraseTypeDescriptor
 				LIST_PHRASE, tupleTypeForTypes(), tupleTypeForTypes()
 			).makeShared();
 
+		/** Hide constructor to avoid unintentional instantiation. */
 		private Empty ()
 		{
 			// Avoid unintentional instantiation.
 		}
 	}
 
-	/** Answer the empty list phrase's type. */
+	/**
+	 * Answer the empty list phrase's type.
+	 *
+	 * @return The {@code ListPhraseTypeDescriptor list phrase type} for the
+	 *         empty list phrase.
+	 */
 	public static A_Type emptyListPhraseType ()
 	{
 		return Empty.empty;

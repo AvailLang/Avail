@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeSupport;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
@@ -60,42 +61,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntimeSupport.nextFiberId;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots.EXECUTION_STATE;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots.PRIORITY;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._BOUND;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._CAN_REJECT_PARSE;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._IS_EVALUATING_MACRO;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._PERMIT_UNAVAILABLE;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._REIFICATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._SCHEDULED;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._TERMINATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._TRACE_VARIABLE_READS_BEFORE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots._TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.CONTINUATION;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.DEBUG_LOG;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.FAILURE_CONTINUATION;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.FIBER_GLOBALS;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.HERITABLE_FIBER_GLOBALS;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.JOINING_FIBERS;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.LOADER;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.NAME_OR_NIL;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.NAME_SUPPLIER;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.REIFICATION_WAITERS;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.RESULT;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.RESULT_CONTINUATION;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.RESULT_TYPE;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.SUSPENDING_FUNCTION;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.TEXT_INTERFACE;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.TRACED_VARIABLES;
-import static com.avail.descriptor.FiberDescriptor.ObjectSlots.WAKEUP_TASK;
+import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -650,6 +623,7 @@ extends Descriptor
 		 * Answer the {@code ExecutionState} enum value having the given
 		 * ordinal.
 		 *
+		 * @param ordinal The ordinal to look up.
 		 * @return The indicated {@code ExecutionState}..
 		 */
 		static ExecutionState lookup (final int ordinal)
@@ -1190,7 +1164,7 @@ extends Descriptor
 				// This guarantees the uniqueness of fiber hashes (modulo 2^32),
 				// but makes it play more nicely with sets (to prevent
 				// clumping).
-				hash = (AvailRuntime.nextFiberId() * multiplier) ^ 0x4058A781;
+				hash = (nextFiberId() * multiplier) ^ 0x4058A781;
 			}
 			while (hash == 0);
 			object.setSlot(HASH_OR_ZERO, hash);

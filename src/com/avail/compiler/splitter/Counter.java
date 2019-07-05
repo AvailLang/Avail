@@ -44,12 +44,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.CONVERT;
-import static com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION;
-import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
-import static com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS;
-import static com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
@@ -81,7 +77,7 @@ extends Expression
 	private final Group group;
 
 	/**
-	 * Construct a new {@link Counter}.
+	 * Construct a new {@code Counter}.
 	 *
 	 * @param positionInName
 	 *        The position of the start of the group in the message name.
@@ -123,17 +119,16 @@ extends Expression
 	}
 
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException
 	{
+		// The declared type for the subexpression must be a subtype of whole
+		// number.
 		if (!argumentType.isSubtypeOf(wholeNumbers()))
 		{
-			// The declared type for the subexpression must be a subtype of
-			// whole number.
-			MessageSplitter.throwSignatureException(
-				E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
+			throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
 		}
 	}
 

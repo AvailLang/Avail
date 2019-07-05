@@ -32,7 +32,7 @@
 
 package com.avail.environment.actions;
 
-import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeConfiguration;
 import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
 
@@ -80,7 +80,8 @@ extends AbstractWorkbenchAction
 		builder.append("<font color=blue>www.availlang.org</font><br><br><br>");
 		builder.append("<font size=+2>The Avail Workbench</font><br>");
 		builder.append("<font size=-1>Supported Versions:</font>");
-		for (final A_String version : AvailRuntime.activeVersions())
+		for (final A_String version :
+			AvailRuntimeConfiguration.activeVersions())
 		{
 			builder.append("<br><font size=-2>");
 			builder.append(version.asNativeString());

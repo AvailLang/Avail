@@ -32,14 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
+import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to
@@ -165,7 +163,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * Create a new {@code GrammaticalRestrictionDescriptor grammatical
 	 * restriction} with the specified information.  Make it {@link
 	 * Mutability#SHARED SHARED}.
 	 *
@@ -185,7 +183,7 @@ extends Descriptor
 		final A_Module module)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(HASH, AvailRuntime.nextHash());
+		result.setSlot(HASH, nextHash());
 		result.setSlot(ARGUMENT_RESTRICTION_SETS, argumentRestrictionSets);
 		result.setSlot(RESTRICTED_BUNDLE, restrictedBundle);
 		result.setSlot(DEFINITION_MODULE, module);
@@ -194,7 +192,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link GrammaticalRestrictionDescriptor}.
+	 * Construct a new {@code GrammaticalRestrictionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

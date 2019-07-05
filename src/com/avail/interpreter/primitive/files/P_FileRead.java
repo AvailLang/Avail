@@ -32,20 +32,12 @@
 package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.BufferKey;
-import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.ByteArrayTupleDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
+import com.avail.io.IOSystem.BufferKey;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
@@ -66,23 +58,15 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.one;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
@@ -166,6 +150,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
 		}
 		final AvailRuntime runtime = interpreter.runtime();
+		final IOSystem ioSystem = runtime.ioSystem();
 		final long oneBasedPositionLong = positionObject.extractLong();
 		// Guaranteed positive by argument constraint.
 		assert oneBasedPositionLong > 0L;
@@ -202,6 +187,7 @@ extends Primitive
 				size = min(size, (int) min(available, MAX_READ_SIZE));
 			}
 		}
+		//noinspection ConstantConditions
 		assert 0 < size && size <= MAX_READ_SIZE;
 		final int alignment = handle.alignment;
 		final long augmentedStart = (oneBasedPositionLong - 1)
@@ -224,7 +210,7 @@ extends Primitive
 			bufferStart += alignment)
 		{
 			final BufferKey key = new BufferKey(handle, bufferStart);
-			final MutableOrNull<A_Tuple> bufferHolder = runtime.getBuffer(key);
+			final MutableOrNull<A_Tuple> bufferHolder = ioSystem.getBuffer(key);
 			final @Nullable A_Tuple buffer = bufferHolder.value;
 			if (buffer == null)
 			{
@@ -345,13 +331,13 @@ extends Primitive
 							final BufferKey key =
 								new BufferKey(handle, bufferStart);
 							final MutableOrNull<A_Tuple> bufferHolder =
-								runtime.getBuffer(key);
+								ioSystem.getBuffer(key);
 							// The getBuffer() used a lock, so all writes have
 							// now happened-before.
 							bufferHolder.value = subtuple;
 							// Do one more lookup of the key to ensure that
 							// everything happens-after the above write.
-							runtime.getBuffer(key);
+							ioSystem.getBuffer(key);
 							offsetInBuffer += alignment;
 						}
 					}

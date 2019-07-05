@@ -40,9 +40,8 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -62,17 +61,22 @@ extends Expression
 	final int absoluteUnderscoreIndex;
 
 	/**
-	 * Construct an argument.
+	 * Construct an argument, given the one-based position of the token in the
+	 * name, and the absolute index of this argument in the entire message name.
 	 *
-	 * @param startTokenIndex The one-based index of the underscore token.
+	 * @param positionInName
+	 *        The one-based position of the start of the token in the message
+	 *        name.
+	 * @param absoluteUnderscoreIndex
+	 *        The one-based index of this argument within the entire message
+	 *        name's list of arguments.
 	 */
 	Argument (
-		final MessageSplitter messageSplitter,
-		final int startTokenIndex)
+		final int positionInName,
+		final int absoluteUnderscoreIndex)
 	{
-		super(messageSplitter.messagePartPositions.get(startTokenIndex - 1));
-		messageSplitter.incrementLeafArgumentCount();
-		absoluteUnderscoreIndex = messageSplitter.numberOfLeafArguments();
+		super(positionInName);
+		this.absoluteUnderscoreIndex = absoluteUnderscoreIndex;
 	}
 
 	@Override
@@ -93,15 +97,15 @@ extends Expression
 	 * BottomTypeDescriptor#bottom() bottom}.
 	 */
 	@Override
-	public void checkType (
+	void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException
 	{
+		// Method argument type should not be bottom.
 		if (argumentType.isBottom())
 		{
-			// Method argument type should not be bottom.
-			MessageSplitter.throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
+			throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
 		}
 	}
 

@@ -32,7 +32,6 @@
 
 package com.avail.optimizer.jvm;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
@@ -85,6 +84,7 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -1685,9 +1685,9 @@ public final class JVMTranslator
 			{
 				method.visitLabel(label);
 			}
-			final long beforeTranslation = AvailRuntime.captureNanos();
+			final long beforeTranslation = captureNanos();
 			instruction.translateToJVM(this, method);
-			final long afterTranslation = AvailRuntime.captureNanos();
+			final long afterTranslation = captureNanos();
 			if (interpreter != null)
 			{
 				instruction.operation().jvmTranslationTime.record(
@@ -1877,12 +1877,12 @@ public final class JVMTranslator
 				thread != null ? thread.interpreter : null;
 			for (final GenerationPhase phase : GenerationPhase.all)
 			{
-				final long before = AvailRuntime.captureNanos();
+				final long before = captureNanos();
 				phase.action.value(jvmTranslator);
 				if (interpreter != null)
 				{
 					phase.statistic.record(
-						AvailRuntime.captureNanos() - before,
+						captureNanos() - before,
 						interpreter.interpreterIndex);
 				}
 			}

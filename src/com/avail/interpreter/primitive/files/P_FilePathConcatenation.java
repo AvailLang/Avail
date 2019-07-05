@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -40,6 +39,7 @@ import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
@@ -83,7 +83,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Tuple tuple = interpreter.argument(0);
-		final FileSystem fileSystem = AvailRuntime.fileSystem();
+		final FileSystem fileSystem = IOSystem.fileSystem();
 		@Nullable Path path = null;
 		try
 		{

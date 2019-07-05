@@ -32,8 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.FileHandle;
+import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
@@ -41,6 +40,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
+import com.avail.io.IOSystem.FileHandle;
 import com.avail.serialization.Serializer;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -55,11 +55,7 @@ import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.NAME;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FALSE;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.TRUE;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
 import static com.avail.descriptor.MethodDescriptor.newMethod;
@@ -228,7 +224,7 @@ extends Descriptor
 		{
 			do
 			{
-				hash = AvailRuntime.nextHash();
+				hash = AvailRuntimeSupport.nextHash();
 			}
 			while (hash == 0);
 			object.setSlot(HASH_OR_ZERO, hash);

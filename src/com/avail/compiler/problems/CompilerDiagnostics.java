@@ -47,16 +47,7 @@ import com.avail.utility.evaluation.SimpleDescriber;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -78,11 +69,7 @@ import static com.avail.utility.Strings.addLineNumbers;
 import static com.avail.utility.Strings.lineBreakPattern;
 import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.String.format;
-import static java.util.Collections.emptyIterator;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.reverseOrder;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.sort;
+import static java.util.Collections.*;
 
 public class CompilerDiagnostics
 {
@@ -520,7 +507,7 @@ public class CompilerDiagnostics
 		if (!descendingIterator.hasNext())
 		{
 			// Done assembling each of the problems.  Report them.
-			assert !groupedProblems.isEmpty();
+//			assert !groupedProblems.isEmpty();
 			afterGrouping.value(groupedProblems);
 			return;
 		}

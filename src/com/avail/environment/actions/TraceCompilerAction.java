@@ -32,7 +32,7 @@
 
 package com.avail.environment.actions;
 
-import com.avail.AvailRuntime;
+import com.avail.AvailRuntimeConfiguration;
 import com.avail.environment.AvailWorkbench;
 
 import javax.annotation.Nullable;
@@ -50,11 +50,11 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		AvailRuntime.debugCompilerSteps ^= true;
+		AvailRuntimeConfiguration.debugCompilerSteps ^= true;
 	}
 
 	/**
-	 * Construct a new {@link TraceCompilerAction}.
+	 * Construct a new {@code TraceCompilerAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
@@ -66,6 +66,6 @@ extends AbstractWorkbenchAction
 			SHORT_DESCRIPTION,
 			"Show detailed compiler steps during compilation.");
 		putValue(
-			SELECTED_KEY, AvailRuntime.debugCompilerSteps);
+			SELECTED_KEY, AvailRuntimeConfiguration.debugCompilerSteps);
 	}
 }
