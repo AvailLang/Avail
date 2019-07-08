@@ -46,9 +46,6 @@ import java.io.File;
 public class AvailCompilerException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 486558432544374634L;
-
 	/**
 	 * The {@linkplain ModuleName fully-qualified name} of the {@linkplain
 	 * ModuleDescriptor module} undergoing {@linkplain AvailCompiler

@@ -40,11 +40,6 @@ package com.avail.stacks;
 public class StacksCommentBuilderException extends Exception
 {
 	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1969888642664158924L;
-
-	/**
 	 * The error {@link CommentImplementationBuilder builder} in question
 	 */
 	final CommentImplementationBuilder failedBuilder;

@@ -42,6 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
@@ -49,10 +50,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
@@ -101,7 +99,7 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 		if (!latestStatement.expressionType().equals(TOP.o()))
 		{
 			throw new AvailRejectedParseException(
-				"statement to have type ⊤");
+				WEAK, "statement to have type ⊤");
 		}
 		return interpreter.primitiveSuccess(nil);
 	}

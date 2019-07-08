@@ -41,9 +41,6 @@ package com.avail.utility.fsm;
 public class InvalidContextException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -2481013688117392484L;
-
 	/**
 	 * Construct a new {@code InvalidContextException}.
 	 */

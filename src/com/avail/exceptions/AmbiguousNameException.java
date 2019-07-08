@@ -43,11 +43,8 @@ import com.avail.descriptor.AtomDescriptor;
 public final class AmbiguousNameException
 extends AvailException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 6382035912230769886L;
-
 	/**
-	 * Construct a new {@link AmbiguousNameException}.
+	 * Construct a new {@code AmbiguousNameException}.
 	 */
 	public AmbiguousNameException ()
 	{

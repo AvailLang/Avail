@@ -54,6 +54,8 @@ import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -70,8 +72,126 @@ import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 
+/**
+ * This tracks the problems encountered while compiling a single module.
+ */
 public class CompilerDiagnostics
 {
+	/**
+	 * These enumeration values form a priority scheme for reporting parsing
+	 * problems.
+	 */
+	public enum ParseNotificationLevel
+	{
+		/**
+		 * Never report the parse problem, and don't include the current error
+		 * location as a potential place at which to describe expectations
+		 * (potential syntax errors) unless there is a stronger
+		 * (i.e., non-{code SILENT}) problem at the same position.
+		 */
+		SILENT,
+
+		/**
+		 * Only report the parse problem if there is no {@link #MEDIUM}
+		 * or {@link #STRONG} theory about what went wrong at the current
+		 * location.
+		 */
+		WEAK,
+
+		/**
+		 * Only report the parse problem if there is no {@link #STRONG} theory
+		 * about what went wrong at the current location.
+		 */
+		MEDIUM,
+
+		/**
+		 * Always report the parse problem at this location, unless there are
+		 * {@link #expectationsCountToTrack} or more places later in the parse
+		 * sequence at which non-{@link #SILENT} problems have been recorded.
+		 */
+		STRONG;
+
+		/** Capture the values once in an array. */
+		private static final ParseNotificationLevel[] all = values();
+
+		/**
+		 * Convert the zero-based int to a {@code ParseNotificationLevel}.
+		 *
+		 * @param level The ordinal of the level.
+		 * @return The {@code ParseNotificationLevel} with that ordinal.
+		 */
+		public static ParseNotificationLevel levelFromInt (final int level)
+		{
+			return all[level];
+		}
+	}
+
+	/**
+	 * A collection of potential problems that have been collected at a
+	 * particular source location.  If parsing can't proceed more than a
+	 * few tokens past this point, the problems will be presented as compiler
+	 * error output.
+	 */
+	static class ExpectationsAtPosition
+	{
+		/**
+		 * The highest level of {@link ParseNotificationLevel} encountered at
+		 * this position.  Note that it's initialized to {@link
+		 * ParseNotificationLevel#SILENT}, but must not be stored in the
+		 * {@link CompilerDiagnostics} unless a stronger notification level
+		 * is recorded.
+		 */
+		private ParseNotificationLevel level = SILENT;
+
+		/**
+		 * The {@link List} of {@link Describer}s that describe problems at this
+		 * position.
+		 */
+		final List<Describer> problems = new ArrayList<>();
+
+		/**
+		 * All {@link LexingState}s at which problems for the current
+		 * notification level occur.  These are all at the same position, but
+		 * some may have different interpretations of which tokens might follow.
+		 * These will be examined during error production to ensure the longest
+		 * such potential successor token will be included in its entirety in
+		 * the contextual code excerpt during error reporting.  This is relevant
+		 * for multi-line tokens like string literals.
+		 */
+		final Set<LexingState> lexingStates = new HashSet<>();
+
+		/**
+		 * Record a new problem in this instance.  Discard problems that have
+		 * a lower notification level than the maximum encountered.
+		 *
+		 * @param lexingState
+		 *        The {@link LexingState} at which this problem occurred.
+		 * @param newLevel
+		 *        The {@link ParseNotificationLevel} of this new problem.
+		 * @param describer
+		 *        A {@link Describer} for the new problem.
+		 */
+		void recordProblem (
+			final LexingState lexingState,
+			final ParseNotificationLevel newLevel,
+			final Describer describer)
+		{
+			assert newLevel != SILENT;
+			if (newLevel.ordinal() < level.ordinal())
+			{
+				return;
+			}
+			if (newLevel.ordinal() > level.ordinal())
+			{
+				level = newLevel;
+				problems.clear();
+				lexingStates.clear();
+			}
+			problems.add(describer);
+			lexingStates.add(lexingState);
+		}
+	}
+
 	/**
 	 * Create a {@code CompilerDiagnostics} suitable for tracking the potential
 	 * problems encountered during compilation of a single module.
@@ -106,7 +226,9 @@ public class CompilerDiagnostics
 
 	/**
 	 * The number of distinct (rightmost) positions for which to record
-	 * expectations.
+	 * expectations.  Note that {@link ParseNotificationLevel#SILENT} entries
+	 * are never recorded, nor do they cause an error position to be occupied
+	 * in the {@link #expectations} map or {@link #expectationsIndexHeap}.
 	 */
 	static final int expectationsCountToTrack = 3;
 
@@ -126,15 +248,14 @@ public class CompilerDiagnostics
 	 * The rightmost few positions at which potential problems have been
 	 * recorded.  The keys of this {@link Map} always agree with the values in
 	 * the {@link #expectationsIndexHeap}.  The key is the one-based position of
-	 * the start of token, and the value is a map from the tokens that were
-	 * lexed at that position to the non-empty list of {@link Describer}s that
-	 * indicate problems encountered at that token.
+	 * the start of token, and the value is an {@link ExpectationsAtPosition}
+	 * that tracks the most likely causes of problems at this position.
 	 *
 	 * <p>Lexing problems are recorded here as well, although a suitable invalid
 	 * token is created for this purpose.  This allows positioning the problem
 	 * at an exact character position.</p>
 	 */
-	private final Map<Integer, Map<LexingState, List<Describer>>> expectations =
+	private final Map<Integer, ExpectationsAtPosition> expectations =
 		new HashMap<>();
 
 	/**
@@ -306,6 +427,9 @@ public class CompilerDiagnostics
 	/**
 	 * Record an expectation at the given token.
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} which indicates the priority
+	 *        of this theory about a failed parse.
 	 * @param describer
 	 *        A {@link Describer}, something which can be evaluated (including
 	 *        running Avail code) to produce a String, which is then passed to a
@@ -314,17 +438,23 @@ public class CompilerDiagnostics
 	 *        The {@link LexingState} at which the expectation occurred.
 	 */
 	public void expectedAt (
+		final ParseNotificationLevel level,
 		final Describer describer,
 		final LexingState lexingState)
 	{
+		if (level == SILENT)
+		{
+			// Always ignore silent potential parse errors.
+			return;
+		}
 		lockWhile(
 			expectationsLock.writeLock(),
 			() ->
 			{
 				final Integer position = lexingState.position;
-				Map<LexingState, List<Describer>> innerMap =
+				ExpectationsAtPosition localExpectations =
 					expectations.get(position);
-				if (innerMap == null)
+				if (localExpectations == null)
 				{
 					if (expectationsIndexHeap.size() == expectationsCountToTrack
 						&& position < expectationsIndexHeap.peek())
@@ -333,18 +463,19 @@ public class CompilerDiagnostics
 						// the new one would come before them all, so ignore it.
 						return;
 					}
-					innerMap = new HashMap<>();
-					expectations.put(position, innerMap);
+					localExpectations = new ExpectationsAtPosition();
+					expectations.put(position, localExpectations);
 					// Also update expectationsIndexHeap.
 					expectationsIndexHeap.add(position);
 					if (expectationsIndexHeap.size() > expectationsCountToTrack)
 					{
-						expectationsIndexHeap.remove();
+						final int removed = expectationsIndexHeap.remove();
+						final ExpectationsAtPosition removedEntry =
+							expectations.remove(removed);
+						assert removedEntry != null;
 					}
 				}
-				final List<Describer> innerList = innerMap.computeIfAbsent(
-					lexingState, k -> new ArrayList<>());
-				innerList.add(describer);
+				localExpectations.recordProblem(lexingState, level, describer);
 			});
 	}
 
@@ -366,10 +497,24 @@ public class CompilerDiagnostics
 	 */
 	class IndicatorGenerator
 	{
+		/**
+		 * The zero-based index of the next {@code char} within {@link
+		 * #circledLetters}.  If it points past the end, use a Ⓩ (circled Z)
+		 * and a decimal number taken from the {@link #supplementaryCounter}.
+		 */
 		int letterOffset = 0;
 
+		/**
+		 * The counter to use after the 26 circled letters have been exhausted.
+		 */
 		int supplementaryCounter = 0;
 
+		/**
+		 * Produce the next indicator {@link String}.
+		 *
+		 * @return A circled letter, optionally followed by a decimal numeral
+		 *         if it's past the 26th entry.
+		 */
 		@InnerAccess String next ()
 		{
 			final int nextLetterOffset =
@@ -383,16 +528,16 @@ public class CompilerDiagnostics
 				// separate it from any subsequent token.
 				indicator += supplementaryCounter + " ";
 			}
-			// Keep using Ⓩ (circled Z) if we're looking back
-			// more than 26 tokens for problems.
+			// Keep using Ⓩ (circled Z) if we're looking back more than 26
+			// tokens for problems (unlikely).
 			if (nextLetterOffset < circledLetters.length())
 			{
 				letterOffset = nextLetterOffset;
 			}
 			else
 			{
-				// Start using Ⓩ (circled Z) followed by an
-				// increasing numeric value.
+				// Start using Ⓩ (circled Z) followed by an increasing numeric
+				// value.
 				supplementaryCounter++;
 			}
 			return indicator;
@@ -510,37 +655,27 @@ public class CompilerDiagnostics
 			return;
 		}
 		final int sourcePosition = descendingIterator.next();
-		final Map<LexingState, List<Describer>> innerMap = lockWhile(
+		final List<Describer> describers = new ArrayList<>();
+		final Set<LexingState> lexingStates = new HashSet<>();
+		lockWhile(
 			expectationsLock.readLock(),
 			() ->
 			{
-				final Map<LexingState, List<Describer>> originalMap =
+				final ExpectationsAtPosition localExpectations =
 					expectations.get(sourcePosition);
-				final Map<LexingState, List<Describer>> safeMap =
-					new HashMap<>();
-				originalMap.forEach(
-					(lexingState, listOfDescribers) ->
-						safeMap.put(
-							lexingState, new ArrayList<>(listOfDescribers)));
-				return safeMap;
+				describers.addAll(localExpectations.problems);
+				lexingStates.addAll(localExpectations.lexingStates);
 			});
-		assert !innerMap.isEmpty();
+		assert !describers.isEmpty();
 		// Due to local lexer ambiguity, there may be multiple possible
 		// tokens at this position.  Choose the longest for the purpose
 		// of displaying the diagnostics.  We only care about the tokens
 		// that have already been formed, not ones in progress.
 		findLongestTokenThen(
-			innerMap.keySet(),
+			lexingStates,
 			longestToken ->
 			{
-				final List<Describer> describers = new ArrayList<>();
-				for (final List<Describer> eachDescriberList
-					: innerMap.values())
-				{
-					describers.addAll(eachDescriberList);
-				}
-				final LexingState before =
-					innerMap.keySet().iterator().next();
+				final LexingState before = lexingStates.iterator().next();
 				groupedProblems.add(
 					new ProblemsAtPosition(
 						before,
@@ -575,17 +710,20 @@ public class CompilerDiagnostics
 		final String headerMessagePattern,
 		final String message)
 	{
-		final int startPosition = lexingState.position;
-		final Map<LexingState, List<Describer>> innerMap = new HashMap<>();
-		innerMap.put(lexingState, singletonList(new SimpleDescriber(message)));
 		lockWhile(
 			expectationsLock.writeLock(),
 			() ->
 			{
+				// Delete any potential parsing errors already encountered, and
+				// replace them with the new error.
 				expectations.clear();
 				expectationsIndexHeap.clear();
-				expectations.put(startPosition, innerMap);
-				expectationsIndexHeap.add(startPosition);
+				final ExpectationsAtPosition localExpectations =
+					new ExpectationsAtPosition();
+				localExpectations.recordProblem(
+					lexingState, STRONG, new SimpleDescriber(message));
+				expectations.put(lexingState.position, localExpectations);
+				expectationsIndexHeap.add(lexingState.position);
 			});
 		reportError(headerMessagePattern);
 	}

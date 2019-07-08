@@ -129,9 +129,6 @@ extends TypeDescriptor
 	private static final class Canon
 	extends HashMap<Class<?>, AvailObject>
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -5682929623799845184L;
-
 		/**
 		 * Construct a new {@code Canon} that has initial capacity for five
 		 * bindings and includes a binding for {@link Object java.lang.Object}.
@@ -171,9 +168,6 @@ extends TypeDescriptor
 	private static final class TypeVariableMap
 	extends HashMap<String, Integer>
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -6642629479723500110L;
-
 		/**
 		 * Construct a new {@code TypeVariableMap} for the specified {@linkplain
 		 * Class Java class or interface}.

@@ -41,6 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList;
@@ -92,6 +93,7 @@ public final class P_ModuleHeaderPrefixCheckModuleVersion extends Primitive
 			if (latestVersionString.equals(oldVersion))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"module version %s to be unique, not a duplicate of #%d in "
 					+ "the list (on line %d)",
 					latestVersionString,

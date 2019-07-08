@@ -44,6 +44,4 @@ import com.avail.exceptions.PrimitiveThrownException;
 public class FiberTerminationException
 extends PrimitiveThrownException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 6048283627858078215L;
 }

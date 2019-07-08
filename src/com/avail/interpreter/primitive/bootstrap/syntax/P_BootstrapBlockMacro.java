@@ -33,17 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -52,11 +42,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -64,26 +53,15 @@ import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapBlockMacro} primitive is used for bootstrapping
@@ -222,6 +200,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive specification to be a (compiler created) "
 					+ "literal keyword token");
 			}
@@ -240,6 +219,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 				!= canHaveStatements)
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					!canHaveStatements
 						? "infallible primitive function not to have statements"
 						: "fallible primitive function to have statements");
@@ -332,6 +312,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 		if (allStatements.size() > 0 && !canHaveStatements)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"infallible primitive function not to have statements");
 		}
 
@@ -348,6 +329,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 			if (!deducedReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					labelReturnType == null
 						? "final expression's type to agree with the declared "
 							+ "return type"
@@ -359,6 +341,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive's intrinsic return type to agree with the "
 					+ "declared return type");
 			}
@@ -366,6 +349,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 				&& !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"label's declared return type to agree with the "
 					+ "function's declared return type");
 			}
@@ -375,6 +359,8 @@ public final class P_BootstrapBlockMacro extends Primitive
 			// If it's a primitive, then the block must declare an explicit
 			// return type.
 			throw new AvailRejectedParseException(
+				// In case we're trying a parse that stops before the type.
+				WEAK,
 				"primitive function to declare its return type");
 		}
 		final A_Type returnType =

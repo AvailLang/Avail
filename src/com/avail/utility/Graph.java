@@ -97,9 +97,6 @@ public class Graph<Vertex>
 	 */
 	public static final class GraphPreconditionFailure extends RuntimeException
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -4084330590821139287L;
-
 		/**
 		 * Construct a new {@code GraphPreconditionFailure} with the given
 		 * message.

@@ -1577,10 +1577,11 @@ Private method "scenes from_named by_reachable from_" is
 /**
  * Verify that every {@type "scene"} referenced from the given {@type "map"} is
  * transitively reachable from the scene contained in the supplied {@type
- * "variable"}. Because this method {@method "Reject parse,expected:_" rejects
- * the current parse} if some scenes are deemed unreachable, it should only be
- * used with the complete scene vault and real {@method "the opening scene"
- * opening scene"}.
+ * "variable"}. Because this method {@method
+ * "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_" rejects the
+ * current parse} if some scenes are deemed unreachable, it should only be used
+ * with the complete scene vault and real {@method "the opening scene" opening
+ * scene"}.
  *
  * @method "Verify all scenes in_are reachable from_"
  * @param "sceneVault" "{variable→nonempty string|}"

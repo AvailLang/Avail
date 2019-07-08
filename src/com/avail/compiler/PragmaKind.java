@@ -45,6 +45,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER;
@@ -79,6 +80,7 @@ public enum PragmaKind
 			if (parts.length != 2)
 			{
 				state.expected(
+					STRONG,
 					format(
 						"pragma to have the form '%1$s=<property>=<value>'",
 						name()));
@@ -109,6 +111,7 @@ public enum PragmaKind
 			if (parts.length != 2)
 			{
 				state.expected(
+					STRONG,
 					"method pragma to have the form "
 						+ "'method=<primitiveName>=<name>'");
 				return;
@@ -138,6 +141,7 @@ public enum PragmaKind
 			if (parts.length != 2)
 			{
 				state.expected(
+					STRONG,
 					"macro pragma to have the form "
 						+ "'macro=<comma-separated prefix and body primitive "
 						+ "names>=<macro name>");
@@ -154,6 +158,7 @@ public enum PragmaKind
 				if (prim == null)
 				{
 					state.expected(
+						STRONG,
 						format(
 							"macro pragma to reference a valid primitive, "
 								+ "not %s",
@@ -190,6 +195,7 @@ public enum PragmaKind
 			if (atoms.setSize() == 0)
 			{
 				state.expected(
+					STRONG,
 					"this module to introduce or import the stringification "
 						+ "atom having this name");
 				return;
@@ -197,6 +203,7 @@ public enum PragmaKind
 			if (atoms.setSize() > 1)
 			{
 				state.expected(
+					STRONG,
 					"this stringification atom name to be unambiguous");
 				return;
 			}
@@ -228,6 +235,7 @@ public enum PragmaKind
 			if (parts.length != 2)
 			{
 				state.expected(
+					STRONG,
 					"lexer pragma to have the form "
 						+ "'lexer=<filter primitive>,<body primitive>=<name>', "
 						+ "but the second '=' was not found");
@@ -238,6 +246,7 @@ public enum PragmaKind
 			if (primParts.length != 2)
 			{
 				state.expected(
+					STRONG,
 					"lexer pragma to have the form "
 						+ "'lexer=<filter primitive>,<body primitive>=<name>', "
 						+ "but the comma was not found");
@@ -251,12 +260,16 @@ public enum PragmaKind
 			final A_Set atoms = module.trueNamesForStringName(availName);
 			if (atoms.setSize() == 0)
 			{
-				state.expected("lexer name to be introduced in this module");
+				state.expected(
+					STRONG,
+					"lexer name to be introduced in this module");
 				return;
 			}
 			if (atoms.setSize() > 1)
 			{
-				state.expected("lexer name to be unambiguous in this module");
+				state.expected(
+					STRONG,
+					"lexer name to be unambiguous in this module");
 				return;
 			}
 			final A_Atom lexerAtom = atoms.iterator().next();
@@ -302,6 +315,8 @@ public enum PragmaKind
 
 	/**
 	 * Answer the Java {@link String} form of this pragma's lexeme.
+	 *
+	 * @return The lexeme {@link String}.
 	 */
 	public final String lexeme ()
 	{

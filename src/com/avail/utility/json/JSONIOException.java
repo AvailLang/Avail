@@ -43,11 +43,8 @@ import java.io.IOException;
 public final class JSONIOException
 extends JSONException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -7877694113619594180L;
-
 	/**
-	 * Construct a new {@link JSONIOException}.
+	 * Construct a new {@code JSONIOException}.
 	 *
 	 * @param cause
 	 *        The causal exception.

@@ -42,11 +42,8 @@ package com.avail.utility.json;
 public abstract class JSONException
 extends RuntimeException
 {
-	/** Serial version identifier. */
-	private static final long serialVersionUID = 7941289114658764430L;
-
 	/**
-	 * Construct a new {@link JSONException}.
+	 * Construct a new {@code JSONException}.
 	 */
 	protected JSONException ()
 	{
@@ -54,7 +51,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link JSONException}.
+	 * Construct a new {@code JSONException}.
 	 *
 	 * @param cause
 	 *        The causal exception.

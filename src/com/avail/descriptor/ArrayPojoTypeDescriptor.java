@@ -97,8 +97,6 @@ extends PojoTypeDescriptor
 	abstract static class PojoArray<T>
 	implements Cloneable, Serializable
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -4266609576367881124L;
 	}
 
 	/** The layout of the integer slots. */

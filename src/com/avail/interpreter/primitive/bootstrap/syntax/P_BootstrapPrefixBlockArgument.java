@@ -46,6 +46,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newArgument;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -55,9 +57,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
@@ -112,6 +112,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		if (argToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"argument name to be alphanumeric, not %s",
 				argName);
 		}
@@ -120,6 +121,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		if (argType.isBottom())
 		{
 			throw new AvailRejectedParseException(
+				// Weak, in case we've read a prefix of the type expression.
+				WEAK,
 				"block parameter type not to be ⊥");
 		}
 
@@ -131,6 +134,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		if (conflictingDeclaration != null)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"block argument declaration %s to have a name that doesn't "
 				+ "shadow an existing %s (from line %d)",
 				argName,

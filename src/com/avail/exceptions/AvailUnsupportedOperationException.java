@@ -48,9 +48,6 @@ import static java.lang.String.format;
 public final class AvailUnsupportedOperationException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 2275923459723009067L;
-
 	/**
 	 * Construct a new {@code AvailUnsupportedOperationException}.
 	 *

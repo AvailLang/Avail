@@ -47,9 +47,6 @@ import static java.lang.String.format;
 public final class AvailEmergencyExitException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 3368815860637333527L;
-
 	/**
 	 * The {@linkplain StringDescriptor error message} describing the
 	 * emergency exit situation.

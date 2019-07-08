@@ -32,6 +32,8 @@
 package com.avail.interpreter.primitive.phrases;
 
 import com.avail.compiler.AvailRejectedParseException;
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
@@ -42,6 +44,7 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumeration
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -49,8 +52,11 @@ import static com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_REJECTION;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
- * <strong>Primitive:</strong> Reject current macro substitution with
- * the specified error string.
+ * <strong>Primitive:</strong> Reject current macro substitution with the
+ * specified one-based error level [1..4] and error string.  The levels
+ * correspond to the instances of {@link ParseNotificationLevel}, although the
+ * integer has to be adjusted to zero-based to use {@link
+ * ParseNotificationLevel#levelFromInt(int)}.
  */
 public final class P_RejectParsing
 extends Primitive
@@ -61,26 +67,33 @@ extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_RejectParsing().init(
-			1, Unknown);
+			2, Unknown);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(1);
+		interpreter.checkArgumentCount(2);
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
 			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION);
 		}
-		final A_String rejectionString = interpreter.argument(0);
-		throw new AvailRejectedParseException(rejectionString);
+		final A_Number oneBasedRejectionLevel = interpreter.argument(0);
+		final A_String rejectionString = interpreter.argument(1);
+		throw new AvailRejectedParseException(
+			ParseNotificationLevel.levelFromInt(
+				oneBasedRejectionLevel.extractInt() - 1),
+			rejectionString);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return
-			functionType(tuple(stringType()), bottom());
+		return functionType(
+			tuple(
+				inclusive(1L, 4L),
+				stringType()),
+			bottom());
 	}
 
 	@Override

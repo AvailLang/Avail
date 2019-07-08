@@ -51,9 +51,6 @@ import javax.annotation.Nullable;
 public class UnresolvedRootException
 extends UnresolvedDependencyException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 1774549045775411642L;
-
 	/** The name of the root that could not be found. */
 	private final String unresolvedRootName;
 

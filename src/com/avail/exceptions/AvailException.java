@@ -46,9 +46,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 public class AvailException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 7650255850287561559L;
-
 	/** The {@linkplain AvailObject error value}. */
 	private final AvailErrorCode errorCode;
 
@@ -75,7 +72,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link AvailException} with the specified {@linkplain
+	 * Construct a new {@code AvailException} with the specified {@linkplain
 	 * AvailErrorCode error code}.
 	 *
 	 * @param errorCode
@@ -87,7 +84,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link AvailException} with the specified {@linkplain
+	 * Construct a new {@code AvailException} with the specified {@linkplain
 	 * AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode

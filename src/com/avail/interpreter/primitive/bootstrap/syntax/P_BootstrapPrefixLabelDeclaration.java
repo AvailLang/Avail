@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newLabel;
@@ -59,9 +60,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
@@ -114,7 +113,7 @@ extends Primitive
 		if (labelName.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"label name to be alphanumeric");
+				STRONG, "label name to be alphanumeric");
 		}
 		final A_Phrase optionalLabelReturnTypePhrase =
 			labelPairPhrase.expressionAt(2);
@@ -168,6 +167,7 @@ extends Primitive
 		if (conflictingDeclaration != null)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"label declaration %s to have a name that doesn't "
 					+ "shadow an existing %s (from line %d)",
 				labelName.string(),

@@ -46,6 +46,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -54,9 +55,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapVariableDeclarationMacro} primitive is used
@@ -88,6 +87,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		if (nameToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"new variable name to be alphanumeric, not %s",
 				nameString);
 		}
@@ -95,6 +95,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"variable's declared type to be something other than %s",
 				type);
 		}
@@ -105,6 +106,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		if (conflictingDeclaration != null)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"local variable %s to have a name that doesn't shadow an "
 					+ "existing %s (from line %d)",
 				nameString,

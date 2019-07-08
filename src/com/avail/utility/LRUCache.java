@@ -103,9 +103,6 @@ public class LRUCache<K, V>
 	private final class StrongCacheMap
 	extends LinkedHashMap<K, V>
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 5184227991121201660L;
-
 		/** The capacity of the {@linkplain StrongCacheMap map}. */
 		private final int capacity;
 
@@ -202,9 +199,6 @@ public class LRUCache<K, V>
 	@InnerAccess final class SoftCacheMap
 	extends LinkedHashMap<K, SoftReference<V>>
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 9157534562182014165L;
-
 		/** The capacity of the {@linkplain StrongCacheMap map}. */
 		private final int capacity;
 

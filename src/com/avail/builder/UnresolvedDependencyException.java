@@ -50,9 +50,6 @@ import static com.avail.utility.Nulls.stripNull;
 public abstract class UnresolvedDependencyException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 3805218550541316595L;
-
 	/**
 	 * The module that contained an unresolved reference to another module.
 	 */

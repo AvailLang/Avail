@@ -40,11 +40,8 @@ package com.avail.compiler;
 final class ImportValidationException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 4925679877429696123L;
-
 	/**
-	 * Construct a new {@link ImportValidationException}.
+	 * Construct a new {@code ImportValidationException}.
 	 *
 	 * @param message
 	 *        A message suitable for use as a parse rejection.

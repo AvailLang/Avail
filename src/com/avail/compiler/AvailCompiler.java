@@ -69,7 +69,6 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer3;
 
 import javax.annotation.Nullable;
@@ -96,6 +95,7 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.PragmaKind.pragmaKindByLexeme;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
@@ -146,6 +146,7 @@ import static com.avail.interpreter.Interpreter.stringifyThen;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
@@ -839,6 +840,7 @@ public final class AvailCompiler
 		final Mutable<A_Phrase> phrase2 = new Mutable<>(interpretation2);
 		findParseTreeDiscriminants(phrase1, phrase2);
 		where.expected(
+			STRONG,
 			asList(phrase1.value, phrase2.value),
 			strings ->
 				"unambiguous interpretation.  "
@@ -1194,6 +1196,7 @@ public final class AvailCompiler
 				if (shadowProblem != null)
 				{
 					afterStatement.expected(
+						STRONG,
 						"new module constant "
 						+ name
 						+ " not to have same name as existing "
@@ -1280,6 +1283,7 @@ public final class AvailCompiler
 				if (shadowProblem != null)
 				{
 					afterStatement.expected(
+						STRONG,
 						"new module variable "
 						+ name
 						+ " not to have same name as existing "
@@ -1357,8 +1361,7 @@ public final class AvailCompiler
 
 	/**
 	 * Report that the parser was expecting one of several keywords. The
-	 * keywords are keys of the {@linkplain MapDescriptor map} argument {@code
-	 * incomplete}.
+	 * keywords are keys of the {@link A_Map} argument {@code incomplete}.
 	 *
 	 * @param where
 	 *        Where the keywords were expected.
@@ -1380,116 +1383,119 @@ public final class AvailCompiler
 		final boolean caseInsensitive,
 		final Set<A_String> excludedStrings)
 	{
-		where.expected(c ->
-		{
-			final StringBuilder builder = new StringBuilder(200);
-			if (caseInsensitive)
+		where.expected(
+			MEDIUM,
+			c ->
 			{
-				builder.append("one of the following case-insensitive tokens:");
-			}
-			else
-			{
-				builder.append("one of the following tokens:");
-			}
-			final List<String> sorted = new ArrayList<>(incomplete.mapSize());
-			final boolean detail = incomplete.mapSize() < 10;
-			for (final Entry entry : incomplete.mapIterable())
-			{
-				final A_String availTokenString = entry.key();
-				if (!excludedStrings.contains(availTokenString))
+				final StringBuilder builder = new StringBuilder(200);
+				if (caseInsensitive)
 				{
-					if (!detail)
-					{
-						sorted.add(availTokenString.asNativeString());
-						continue;
-					}
-					// Collect the plans-in-progress and deduplicate
-					// them by their string representation (including
-					// the indicator at the current parsing location).
-					// We can't just deduplicate by bundle, since the
-					// current bundle tree might be eligible for
-					// continued parsing at multiple positions.
-					final Set<String> strings = new HashSet<>();
-					final A_BundleTree nextTree = entry.value();
-					for (final Entry successorBundleEntry :
-						nextTree.allParsingPlansInProgress().mapIterable())
-					{
-						final A_Bundle bundle = successorBundleEntry.key();
-						for (final Entry definitionEntry :
-							successorBundleEntry.value().mapIterable())
-						{
-							for (final A_ParsingPlanInProgress inProgress
-								: definitionEntry.value())
-							{
-								final A_ParsingPlanInProgress
-									previousPlan = newPlanInProgress(
-										inProgress.parsingPlan(),
-										max(inProgress.parsingPc() - 1, 1));
-								final A_Module issuingModule =
-									bundle.message().issuingModule();
-								final String moduleName =
-									issuingModule.equalsNil()
-										? "(built-in)"
-										: issuingModule.moduleName()
-											.asNativeString();
-								final String shortModuleName =
-									moduleName.substring(
-										moduleName.lastIndexOf('/') + 1);
-								strings.add(
-									previousPlan.nameHighlightingPc()
-										+ " from "
-										+ shortModuleName);
-							}
-						}
-					}
-					final List<String> sortedStrings = new ArrayList<>(strings);
-					Collections.sort(sortedStrings);
-					final StringBuilder buffer = new StringBuilder();
-					buffer.append(availTokenString.asNativeString());
-					buffer.append("  (");
-					boolean first = true;
-					for (final String progressString : sortedStrings)
-					{
-						if (!first)
-						{
-							buffer.append(", ");
-						}
-						buffer.append(progressString);
-						first = false;
-					}
-					buffer.append(')');
-					sorted.add(buffer.toString());
-				}
-			}
-			Collections.sort(sorted);
-			boolean startOfLine = true;
-			final int leftColumn = 4 + 4; // ">>> " and a tab.
-			int column = leftColumn;
-			for (final String s : sorted)
-			{
-				if (startOfLine)
-				{
-					builder.append("\n\t");
-					column = leftColumn;
+					builder.append("one of the following case-insensitive tokens:");
 				}
 				else
 				{
-					builder.append("  ");
-					column += 2;
+					builder.append("one of the following tokens:");
 				}
-				startOfLine = false;
-				final int lengthBefore = builder.length();
-				builder.append(s);
-				column += builder.length() - lengthBefore;
-				if (detail || column + 2 + s.length() > 80)
+				final List<String> sorted =
+					new ArrayList<>(incomplete.mapSize());
+				final boolean detail = incomplete.mapSize() < 10;
+				for (final Entry entry : incomplete.mapIterable())
 				{
-					startOfLine = true;
+					final A_String availTokenString = entry.key();
+					if (!excludedStrings.contains(availTokenString))
+					{
+						if (!detail)
+						{
+							sorted.add(availTokenString.asNativeString());
+							continue;
+						}
+						// Collect the plans-in-progress and deduplicate
+						// them by their string representation (including
+						// the indicator at the current parsing location).
+						// We can't just deduplicate by bundle, since the
+						// current bundle tree might be eligible for
+						// continued parsing at multiple positions.
+						final Set<String> strings = new HashSet<>();
+						final A_BundleTree nextTree = entry.value();
+						for (final Entry successorBundleEntry :
+							nextTree.allParsingPlansInProgress().mapIterable())
+						{
+							final A_Bundle bundle = successorBundleEntry.key();
+							for (final Entry definitionEntry :
+								successorBundleEntry.value().mapIterable())
+							{
+								for (final A_ParsingPlanInProgress inProgress
+									: definitionEntry.value())
+								{
+									final A_ParsingPlanInProgress
+										previousPlan = newPlanInProgress(
+											inProgress.parsingPlan(),
+											max(inProgress.parsingPc() - 1, 1));
+									final A_Module issuingModule =
+										bundle.message().issuingModule();
+									final String moduleName =
+										issuingModule.equalsNil()
+											? "(built-in)"
+											: issuingModule.moduleName()
+												.asNativeString();
+									final String shortModuleName =
+										moduleName.substring(
+											moduleName.lastIndexOf('/') + 1);
+									strings.add(
+										previousPlan.nameHighlightingPc()
+											+ " from "
+											+ shortModuleName);
+								}
+							}
+						}
+						final List<String> sortedStrings = new ArrayList<>(strings);
+						Collections.sort(sortedStrings);
+						final StringBuilder buffer = new StringBuilder();
+						buffer.append(availTokenString.asNativeString());
+						buffer.append("  (");
+						boolean first = true;
+						for (final String progressString : sortedStrings)
+						{
+							if (!first)
+							{
+								buffer.append(", ");
+							}
+							buffer.append(progressString);
+							first = false;
+						}
+						buffer.append(')');
+						sorted.add(buffer.toString());
+					}
 				}
-			}
-			compilationContext.eventuallyDo(
-				where.lexingState,
-				() -> c.value(builder.toString()));
-		});
+				Collections.sort(sorted);
+				boolean startOfLine = true;
+				final int leftColumn = 4 + 4; // ">>> " and a tab.
+				int column = leftColumn;
+				for (final String s : sorted)
+				{
+					if (startOfLine)
+					{
+						builder.append("\n\t");
+						column = leftColumn;
+					}
+					else
+					{
+						builder.append("  ");
+						column += 2;
+					}
+					startOfLine = false;
+					final int lengthBefore = builder.length();
+					builder.append(s);
+					column += builder.length() - lengthBefore;
+					if (detail || column + 2 + s.length() > 80)
+					{
+						startOfLine = true;
+					}
+				}
+				compilationContext.eventuallyDo(
+					where.lexingState,
+					() -> c.value(builder.toString()));
+			});
 	}
 
 	/**
@@ -1857,15 +1863,21 @@ public final class AvailCompiler
 				// expectations as neatly as possible.
 				if (successor.allParsingPlansInProgress().mapSize() == 0)
 				{
-					start.expected(
-						continueWithDescription -> stringifyThen(
-							compilationContext.runtime,
-							compilationContext.getTextInterface(),
-							latestPhrase.expressionType(),
-							actualTypeString -> describeFailedTypeTestThen(
-								actualTypeString,
-								bundleTree,
-								continueWithDescription)));
+					// Also be silent if no static tokens have been consumed
+					// yet.
+					if (!consumedTokens.isEmpty())
+					{
+						start.expected(
+							WEAK,
+							continueWithDescription -> stringifyThen(
+								compilationContext.runtime,
+								compilationContext.getTextInterface(),
+								latestPhrase.expressionType(),
+								actualTypeString -> describeFailedTypeTestThen(
+									actualTypeString,
+									bundleTree,
+									continueWithDescription)));
+					}
 				}
 				eventuallyParseRestOfSendNode(
 					start,
@@ -2033,7 +2045,9 @@ public final class AvailCompiler
 								Interpreter.currentIndex());
 						}
 						assert foundOne;
-						if (!recognized && consumedAnything)
+						// Only report if at least one static token has been
+						// consumed.
+						if (!recognized && !consumedTokens.isEmpty())
 						{
 							final Set<A_String> strings =
 								tokens.stream()
@@ -2181,6 +2195,7 @@ public final class AvailCompiler
 								&& token.string().tupleSize() < 50)
 							{
 								start.expected(
+									STRONG,
 									"the whitespace " + token.string()
 										+ " to be uniquely lexically"
 										+ " scanned.  There are probably"
@@ -2191,6 +2206,7 @@ public final class AvailCompiler
 								&& token.string().tupleSize() < 100)
 							{
 								start.expected(
+									STRONG,
 									"the comment " + token.string()
 										+ " to be uniquely lexically"
 										+ " scanned.  There are probably"
@@ -2200,6 +2216,7 @@ public final class AvailCompiler
 							else
 							{
 								start.expected(
+									STRONG,
 									"the comment or whitespace ("
 										+ token.string().tupleSize()
 										+ " characters) to be uniquely"
@@ -2224,6 +2241,7 @@ public final class AvailCompiler
 				if (toKeep.size() == 0)
 				{
 					start.expected(
+						STRONG,
 						"a way to parse tokens here, but all lexers were "
 							+ "unproductive");
 					continuation.value(emptyList());
@@ -2614,15 +2632,17 @@ public final class AvailCompiler
 				}
 				if (e instanceof AvailRejectedParseException)
 				{
-					final AvailRejectedParseException stronger =
-						(AvailRejectedParseException) e;
+					final AvailRejectedParseException stronger = cast(e);
 					start.expected(
+						stronger.level,
 						stronger.rejectionString().asNativeString());
 				}
 				else
 				{
-					start.expected(new FormattingDescriber(
-						"prefix function not to have failed with:\n%s", e));
+					start.expected(
+						STRONG,
+						new FormattingDescriber(
+							"prefix function not to have failed with:\n%s", e));
 				}
 			});
 		runOutermostFunction(
@@ -2634,7 +2654,9 @@ public final class AvailCompiler
 	 * {@linkplain MethodDefinitionDescriptor method definitions}, but also any
 	 * semantic restrictions. The semantic restrictions may choose to
 	 * {@linkplain P_RejectParsing reject the parse}, indicating that the
-	 * argument types are mutually incompatible.
+	 * argument types are mutually incompatible.  If all semantic restrictions
+	 * succeed, invoke onSuccess with the intersection of the produced types and
+	 * the applicable method body return types.
 	 *
 	 * @param bundle
 	 *        A {@linkplain MessageBundleDescriptor message bundle}.
@@ -2647,48 +2669,33 @@ public final class AvailCompiler
 	 *        A {@link MacroDefinitionDescriptor macro definition} if this is
 	 *        for a macro invocation, otherwise {@code nil}.
 	 * @param onSuccess
-	 *        What to do with the strengthened return type.
-	 * @param onFailure
-	 *        What to do if any validations failed.
+	 *        What to do with the strengthened return type.  This may be
+	 *        invoked at most once, and only if no semantic restriction rejected
+	 *        the parse.
 	 */
 	private void validateArgumentTypes (
 		final A_Bundle bundle,
 		final List<? extends A_Type> argTypes,
 		final A_Definition macroOrNil,
 		final ParserState state,
-		final Continuation1NotNull<A_Type> onSuccess,
-		final Continuation1NotNull<Describer> onFailure)
+		final Continuation1NotNull<A_Type> onSuccess)
 	{
 		final A_Method method = bundle.bundleMethod();
 		final A_Tuple methodDefinitions = method.definitionsTuple();
 		final A_Set restrictions = method.semanticRestrictions();
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
+
 		if (methodDefinitions.tupleSize() > 0)
 		{
 			// There are method definitions.
-			for (
-				int index = 1, end = argTypes.size();
-				index <= end;
-				index++)
-			{
-				final int finalIndex = index;
-				final A_Type finalType = argTypes.get(finalIndex - 1);
-				if (finalType.isBottom() || finalType.isTop())
+			// Compiler should have assured there were no bottom or
+			// top argument expressions.
+			argTypes.forEach(
+				argType ->
 				{
-					onFailure.value(c -> stringifyThen(
-						compilationContext.runtime,
-						compilationContext.getTextInterface(),
-						argTypes.get(finalIndex - 1),
-						s -> c.value(format(
-							"argument #%d of message %s "
-							+ "to have a type other than %s",
-							finalIndex,
-							bundle.message().atomName(),
-							s))));
-					return;
-				}
-			}
+					assert !argType.isBottom() && !argType.isTop();
+				});
 		}
 		// Find all method definitions that could match the argument types.
 		// Only consider definitions that are defined in the current module or
@@ -2709,7 +2716,8 @@ public final class AvailCompiler
 		}
 		if (satisfyingDefinitions.isEmpty())
 		{
-			onFailure.value(
+			state.expected(
+				STRONG,
 				describeWhyDefinitionsAreInapplicable(
 					bundle,
 					argTypes,
@@ -2756,8 +2764,8 @@ public final class AvailCompiler
 				}
 			}
 		}
-		// If there are no relevant semantic restrictions, then just invoke the
-		// success continuation with the intersection and exit early.
+		// If there are no relevant semantic restrictions, then immediately
+		// invoke the success continuation and exit.
 		if (restrictionsToTry.isEmpty())
 		{
 			onSuccess.value(intersection.value);
@@ -2767,48 +2775,17 @@ public final class AvailCompiler
 		// type intersection of their results.
 		final AtomicInteger outstanding =
 			new AtomicInteger(restrictionsToTry.size());
+		final AtomicInteger failureCount = new AtomicInteger(0);
 		final ReadWriteLock outstandingLock = new ReentrantReadWriteLock();
-		final List<Describer> failureMessages = new ArrayList<>();
+		// This runs when the last applicable semantic restriction finishes.
 		final Continuation0 whenDone = () ->
 		{
 			assert outstanding.get() == 0;
-			if (failureMessages.isEmpty())
+			if (failureCount.get() == 0)
 			{
+				// No failures occurred.  Invoke success.
 				onSuccess.value(intersection.value);
-				return;
 			}
-			onFailure.value(new Describer()
-			{
-				/** Count through the failureMessages. */
-				int index = 0;
-
-				@Override
-				public void describeThen (
-					final Continuation1NotNull<String> continuation)
-				{
-					assert !failureMessages.isEmpty();
-					final StringBuilder builder = new StringBuilder();
-					recurse(
-						looper -> failureMessages.get(index).describeThen(
-							string ->
-							{
-								if (index > 0)
-								{
-									builder.append("\n-------------------\n");
-								}
-								builder.append(string);
-								index++;
-								if (index < failureMessages.size())
-								{
-									looper.value();
-								}
-								else
-								{
-									continuation.value(builder.toString());
-								}
-							}));
-				}
-			});
 		};
 		final Continuation1NotNull<AvailObject> intersectAndDecrement =
 			restrictionType ->
@@ -2818,7 +2795,7 @@ public final class AvailCompiler
 					outstandingLock.writeLock(),
 					() ->
 					{
-						if (failureMessages.isEmpty())
+						if (failureCount.get() == 0)
 						{
 							intersection.value =
 								intersection.value.typeIntersection(
@@ -2839,12 +2816,12 @@ public final class AvailCompiler
 					intersectAndDecrement.value(TOP.o());
 					return;
 				}
-				final Describer message;
 				if (e instanceof AvailRejectedParseException)
 				{
 					final AvailRejectedParseException rej =
 						(AvailRejectedParseException) e;
-					message = c -> c.value(
+					state.expected(
+						rej.level,
 						rej.rejectionString().asNativeString()
 						+ " (while parsing send of "
 						+ bundle.message().atomName().asNativeString()
@@ -2852,7 +2829,8 @@ public final class AvailCompiler
 				}
 				else if (e instanceof FiberTerminationException)
 				{
-					message = c -> c.value(
+					state.expected(
+						STRONG,
 						"semantic restriction not to raise an "
 						+ "unhandled exception (while parsing "
 						+ "send of "
@@ -2864,7 +2842,8 @@ public final class AvailCompiler
 				{
 					final AvailAssertionFailedException ex =
 						(AvailAssertionFailedException) e;
-					message = new SimpleDescriber(
+					state.expected(
+						STRONG,
 						"assertion not to have failed "
 						+ "(while parsing send of "
 						+ bundle.message().atomName().asNativeString()
@@ -2873,18 +2852,18 @@ public final class AvailCompiler
 				}
 				else
 				{
-					message = new FormattingDescriber(
-						"unexpected error: %s", e);
+					state.expected(
+						STRONG,
+						new FormattingDescriber(
+							"unexpected error: %s", e));
 				}
-				lockWhile(
-					outstandingLock.writeLock(),
-					() -> failureMessages.add(message));
+				failureCount.incrementAndGet();
 				if (outstanding.decrementAndGet() == 0)
 				{
 					whenDone.value();
 				}
 			};
-		// Launch the semantic restriction in parallel.
+		// Launch the semantic restrictions in parallel.
 		for (final A_SemanticRestriction restriction : restrictionsToTry)
 		{
 			evaluateSemanticRestrictionFunctionThen(
@@ -3096,6 +3075,7 @@ public final class AvailCompiler
 			== 0)
 		{
 			stateAfterCall.expected(
+				STRONG,
 				"there to be a method or macro definition for "
 				+ bundle.message()
 				+ ", but there wasn't");
@@ -3175,6 +3155,7 @@ public final class AvailCompiler
 				{
 					// Nothing is visible.
 					stateAfterCall.expected(
+						WEAK,
 						"perhaps some definition of the macro "
 						+ bundle.message()
 						+ " to be visible");
@@ -3232,6 +3213,7 @@ public final class AvailCompiler
 				{
 					final AvailErrorCode finalErrorCode = stripNull(errorCode);
 					stateAfterCall.expected(
+						MEDIUM,
 						withString -> withString.value(
 							finalErrorCode == E_AMBIGUOUS_METHOD_DEFINITION
 								? "unambiguous definition of macro "
@@ -3253,6 +3235,7 @@ public final class AvailCompiler
 						phraseTypes.add(instanceTypeOrMetaOn(argPhrase));
 					}
 					stateAfterCall.expected(
+						MEDIUM,
 						describeWhyDefinitionsAreInapplicable(
 							bundle,
 							phraseTypes,
@@ -3322,8 +3305,7 @@ public final class AvailCompiler
 								.isMacroSubstitutionNode();
 							continuation.value(macroSolution);
 						}));
-			},
-			stateAfterCall::expected);
+			});
 	}
 
 	/**
@@ -3375,12 +3357,14 @@ public final class AvailCompiler
 			final A_Type expressionType = firstArgOrNull.expressionType();
 			if (expressionType.isTop())
 			{
-				start.expected("leading argument not to be ⊤-valued.");
+				start.expected(
+					WEAK, "leading argument not to be ⊤-valued.");
 				return;
 			}
 			if (expressionType.isBottom())
 			{
-				start.expected("leading argument not to be ⊥-valued.");
+				start.expected(
+					WEAK, "leading argument not to be ⊥-valued.");
 				return;
 			}
 			start.workUnitDo(
@@ -3424,7 +3408,7 @@ public final class AvailCompiler
 								describeOn(continuation.superexpressions, b);
 								c.value(b.toString());
 							};
-							afterArgument.expected(describer);
+							afterArgument.expected(WEAK, describer);
 							return;
 						}
 					}
@@ -3532,6 +3516,7 @@ public final class AvailCompiler
 					if (newArg.hasSuperCast())
 					{
 						afterArg.expected(
+							STRONG,
 							"global-scoped argument, not supercast");
 						return;
 					}
@@ -3552,23 +3537,25 @@ public final class AvailCompiler
 							// A leading argument was supplied which
 							// used at least one local.  It shouldn't
 							// have.
-							afterArg.expected(c ->
-							{
-								final List<String> localNames =
-									new ArrayList<>();
-								for (final A_Phrase usedLocal : usedLocals)
+							afterArg.expected(
+								WEAK,
+								c ->
 								{
-									final A_String name =
-										usedLocal.token().string();
-									localNames.add(name.asNativeString());
-								}
-								c.value(
-									"a leading argument which "
-									+ "was supposed to be parsed in "
-									+ "module scope, but it referred to "
-									+ "some local variables: "
-									+ localNames);
-							});
+									final List<String> localNames =
+										new ArrayList<>();
+									for (final A_Phrase usedLocal : usedLocals)
+									{
+										final A_String name =
+											usedLocal.token().string();
+										localNames.add(name.asNativeString());
+									}
+									c.value(
+										"a leading argument which "
+										+ "was supposed to be parsed in "
+										+ "module scope, but it referred to "
+										+ "some local variables: "
+										+ localNames);
+								});
 							return;
 						}
 					}
@@ -3679,6 +3666,7 @@ public final class AvailCompiler
 					PARSE_PHRASE.mostGeneralType()))
 				{
 					stateAfterCall.expected(
+						STRONG,
 						singletonList(replacement),
 						list -> format(
 							"Macro body for %s to have "
@@ -3710,6 +3698,7 @@ public final class AvailCompiler
 					// strengthen it to what the semantic
 					// restrictions promised it should be.
 					stateAfterCall.expected(
+						STRONG,
 						"macro "
 							+ bundle.message().atomName()
 							+ " to produce either a send phrase to "
@@ -3750,6 +3739,7 @@ public final class AvailCompiler
 				if (e instanceof AvailAcceptedParseException)
 				{
 					stateAfterCall.expected(
+						STRONG,
 						"macro body to reject the parse or produce "
 							+ "a replacement expression, not merely "
 							+ "accept its phrases like a semantic "
@@ -3760,11 +3750,13 @@ public final class AvailCompiler
 					final AvailRejectedParseException rej =
 						(AvailRejectedParseException) e;
 					stateAfterCall.expected(
+						rej.level,
 						rej.rejectionString().asNativeString());
 				}
 				else
 				{
 					stateAfterCall.expected(
+						STRONG,
 						"evaluation of macro body not to raise an "
 							+ "unhandled exception:\n\t"
 							+ e);
@@ -3816,6 +3808,7 @@ public final class AvailCompiler
 			if (!requiredVersions.setIntersects(activeVersions))
 			{
 				state.expected(
+					STRONG,
 					format(
 						"Module and virtual machine are not compatible; "
 							+ "the virtual machine guarantees versions %s, "
@@ -3830,6 +3823,7 @@ public final class AvailCompiler
 			final Set<String> viableAssertions = new HashSet<>();
 			viableAssertions.add("version");
 			state.expected(
+				STRONG,
 				format(
 					"Expected check pragma to assert one of the following "
 						+ "properties: %s",
@@ -4009,7 +4003,7 @@ public final class AvailCompiler
 			primitiveByName(filterPrimitiveName);
 		if (filterPrimitive == null)
 		{
-			state.expected("a valid primitive for the lexer filter");
+			state.expected(STRONG, "a valid primitive for the lexer filter");
 			return;
 		}
 		final A_Type filterFunctionType =
@@ -4017,6 +4011,7 @@ public final class AvailCompiler
 		if (!filterFunctionType.equals(lexerFilterFunctionType()))
 		{
 			state.expected(
+				STRONG,
 				"a primitive lexer filter function with type "
 				+ lexerFilterFunctionType()
 				+ ", not "
@@ -4034,13 +4029,16 @@ public final class AvailCompiler
 			primitiveByName(bodyPrimitiveName);
 		if (bodyPrimitive == null)
 		{
-			state.expected("a valid primitive for the lexer body");
+			state.expected(
+				STRONG,
+				"a valid primitive for the lexer body");
 			return;
 		}
 		final A_Type bodyFunctionType = bodyPrimitive.blockTypeRestriction();
 		if (!bodyFunctionType.equals(lexerBodyFunctionType()))
 		{
 			state.expected(
+				STRONG,
 				"a primitive lexer body function with type "
 				+ lexerBodyFunctionType()
 				+ ", not "
@@ -4165,7 +4163,7 @@ public final class AvailCompiler
 						moduleName(),
 						source().tupleSize(),
 						source().tupleSize());
-					afterHeader.expected(errorString);
+					afterHeader.expected(STRONG, errorString);
 					compilationContext.diagnostics.reportError();
 					return;
 				}
@@ -4305,7 +4303,7 @@ public final class AvailCompiler
 			{
 				formatter.format("%n\t%s", forward);
 			}
-			afterModule.expected(formatter.toString());
+			afterModule.expected(STRONG, formatter.toString());
 			compilationContext.diagnostics.reportError();
 			return;
 		}
@@ -4415,7 +4413,7 @@ public final class AvailCompiler
 				// If no solutions were found, then report an error.
 				if (solutions.isEmpty())
 				{
-					start.expected("an invocation of an entry point");
+					start.expected(STRONG, "an invocation of an entry point");
 					compilationContext.diagnostics.reportError();
 					return;
 				}
@@ -4433,12 +4431,14 @@ public final class AvailCompiler
 					if (expression.equals(endOfFileMarkerPhrase))
 					{
 						afterExpression.expected(
+							STRONG,
 							"a valid command, not just whitespace");
 						return;
 					}
 					if (expression.hasSuperCast())
 					{
 						afterExpression.expected(
+							STRONG,
 							"a valid command, not a supercast");
 						return;
 					}
@@ -4458,7 +4458,7 @@ public final class AvailCompiler
 							else
 							{
 								afterExpression.expected(
-									"end of command");
+									STRONG, "end of command");
 							}
 						}
 					);
@@ -4649,6 +4649,7 @@ public final class AvailCompiler
 								renameToken
 									.nextLexingState()
 									.expected(
+										STRONG,
 										"negated or renaming import, but "
 											+ "not both");
 								compilationContext.diagnostics.reportError();
@@ -4661,6 +4662,7 @@ public final class AvailCompiler
 								renameToken
 									.nextLexingState()
 									.expected(
+										STRONG,
 										"renames to specify distinct "
 											+ "target names");
 								compilationContext.diagnostics.reportError();
@@ -4675,8 +4677,8 @@ public final class AvailCompiler
 							// Process an excluded import.
 							if (importedExcludes.hasElement(name))
 							{
-								nameToken.nextLexingState()
-									.expected("import exclusions to be unique");
+								nameToken.nextLexingState().expected(
+									STRONG, "import exclusions to be unique");
 								compilationContext.diagnostics.reportError();
 								return false;
 							}
@@ -4690,8 +4692,8 @@ public final class AvailCompiler
 							// nor an exclusion).
 							if (importedNames.hasElement(name))
 							{
-								nameToken.nextLexingState()
-									.expected("import names to be unique");
+								nameToken.nextLexingState().expected(
+									STRONG, "import names to be unique");
 								compilationContext.diagnostics.reportError();
 								return false;
 							}
@@ -4724,8 +4726,8 @@ public final class AvailCompiler
 				}
 				catch (final ImportValidationException e)
 				{
-					importedModuleToken.nextLexingState()
-						.expected(e.getMessage());
+					importedModuleToken.nextLexingState().expected(
+						STRONG, e.getMessage());
 					compilationContext.diagnostics.reportError();
 					return false;
 				}
@@ -4873,13 +4875,15 @@ public final class AvailCompiler
 		{
 			// We're the (only) cause of the transition from hasn't-started to
 			// has-started.
-			start.expected(withDescription ->
-			{
-				final StringBuilder builder = new StringBuilder();
-				builder.append("an expression for (at least) this reason:");
-				describeOn(originalContinuation.superexpressions, builder);
-				withDescription.value(builder.toString());
-			});
+			start.expected(
+				MEDIUM,
+				withDescription ->
+				{
+					final StringBuilder builder = new StringBuilder();
+					builder.append("an expression for (at least) this reason:");
+					describeOn(originalContinuation.superexpressions, builder);
+					withDescription.value(builder.toString());
+				});
 			start.workUnitDo(
 				a -> parseExpressionUncachedThen(start, a),
 				Con(
@@ -4929,6 +4933,7 @@ public final class AvailCompiler
 								return;
 							}
 							afterExpression.expected(
+								STRONG,
 								new FormattingDescriber(
 									"an outer level statement, not %s (%s)",
 									expression.phraseKind(),

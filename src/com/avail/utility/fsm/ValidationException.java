@@ -42,9 +42,6 @@ package com.avail.utility.fsm;
 public class ValidationException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -7627928027143297507L;
-
 	/**
 	 * Construct a new {@code ValidationException}.
 	 */

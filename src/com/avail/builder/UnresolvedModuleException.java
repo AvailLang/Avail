@@ -50,10 +50,6 @@ import java.util.List;
 public class UnresolvedModuleException
 extends UnresolvedDependencyException
 {
-
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 5538552037288443414L;
-
 	/**
 	 * The list of the places the unresolved module could have been.
 	 */

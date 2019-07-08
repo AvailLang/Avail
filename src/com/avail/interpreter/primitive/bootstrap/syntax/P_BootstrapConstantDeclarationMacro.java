@@ -46,18 +46,15 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
@@ -91,6 +88,7 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 		if (nameToken.tokenType() != KEYWORD)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"new constant name to be alphanumeric, not %s",
 				nameString);
 		}
@@ -99,6 +97,7 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 		if (initializationType.isTop() || initializationType.isBottom())
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"constant initialization expression to have a type other "
 				+ "than %s",
 				initializationType);
@@ -110,6 +109,7 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 		if (conflictingDeclaration != null)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"local constant %s to have a name that doesn't shadow an "
 				+ "existing %s (from line %d)",
 				nameString,

@@ -47,11 +47,6 @@ public class AvailAcceptedParseException
 extends PrimitiveThrownException
 {
 	/**
-	 * The serial version identifier.
-	 */
-	private static final long serialVersionUID = 1956015610046321084L;
-
-	/**
 	 * Construct a new {@link AvailAcceptedParseException}, which can be thrown
 	 * by primitive {@link P_AcceptParsing} to indicate a semantic
 	 * restriction has accepted a parse but does not wish to strengthen the

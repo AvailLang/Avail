@@ -45,11 +45,8 @@ import com.avail.descriptor.IntegerDescriptor;
 public final class ArithmeticException
 extends AvailRuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -2390483636801333298L;
-
 	/**
-	 * Construct a new {@link ArithmeticException} with the specified
+	 * Construct a new {@code ArithmeticException} with the specified
 	 * {@linkplain AvailErrorCode error code}.
 	 *
 	 * @param errorCode
@@ -61,7 +58,7 @@ extends AvailRuntimeException
 	}
 
 	/**
-	 * Construct a new {@link ArithmeticException} with the specified
+	 * Construct a new {@code ArithmeticException} with the specified
 	 * {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode

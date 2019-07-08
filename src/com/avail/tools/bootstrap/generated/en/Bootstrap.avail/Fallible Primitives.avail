@@ -65,7 +65,7 @@ Uses
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
-		"Reject parse,expected:_",
+		"Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
@@ -1176,7 +1176,6 @@ Primitive "_«[_]»→_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1207,7 +1206,6 @@ Primitive "Abstract method_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1251,7 +1249,6 @@ Primitive "Abstract method_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1281,7 +1278,6 @@ Primitive "Abstract method_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1303,9 +1299,9 @@ Primitive "Abstract method_is_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Reject parse,expected:_`. Second, it may strengthen the type of value
- * produced at the call site by answering a subtype of the method's declared
- * return type.
+ * `Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_`. Second,
+ * it may strengthen the type of value produced at the call site by answering
+ * a subtype of the method's declared return type.
  *
  * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @category "Semantic Restrictions"
@@ -1331,7 +1327,6 @@ Primitive "Abstract method_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1360,7 +1355,6 @@ Primitive "Semantic restriction_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1382,9 +1376,9 @@ Primitive "Semantic restriction_is_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Reject parse,expected:_`. Second, it may strengthen the type of value
- * produced at the call site by answering a subtype of the method's declared
- * return type.
+ * `Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_`. Second, it
+ * may strengthen the type of value produced at the call site by answering a
+ * subtype of the method's declared return type.
  *
  * @category "Primitives" "Methods" "Constructors" "Mutators"
  * @category "Semantic Restrictions"
@@ -1409,7 +1403,6 @@ Primitive "Semantic restriction_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1437,7 +1430,6 @@ Primitive "Semantic restriction_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1476,7 +1468,6 @@ Primitive "Semantic restriction_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1506,7 +1497,6 @@ Primitive "Alias_to_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1615,7 +1605,6 @@ Primitive "method definition of_for_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1646,7 +1635,6 @@ Primitive "Forward method_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1697,7 +1685,6 @@ Primitive "Forward method_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1725,7 +1712,6 @@ Primitive "Grammatical restriction_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1775,7 +1761,6 @@ Primitive "Grammatical restriction_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1802,7 +1787,6 @@ Primitive "Grammatical restriction_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1858,7 +1842,6 @@ Primitive "method for_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1882,7 +1865,6 @@ Primitive "message_contains groups" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1916,7 +1898,6 @@ Primitive "message_contains groups" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -1940,7 +1921,6 @@ Primitive "`|message_'s⁇parameters`|" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -1979,7 +1959,6 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2007,7 +1986,6 @@ Primitive "Seal method_at_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2047,7 +2025,6 @@ Primitive "Seal method_at_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2074,7 +2051,6 @@ Primitive "Seal method_at_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2160,7 +2136,6 @@ Primitive "semantic restrictions for_given_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2191,7 +2166,6 @@ Primitive "Lexer_when_is_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2248,7 +2222,6 @@ Primitive "Lexer_when_is_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2281,7 +2254,6 @@ Primitive "Macro_is«_,»_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2341,7 +2313,6 @@ Primitive "Macro_is«_,»_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2377,7 +2348,6 @@ Primitive "Macro_is«_,»_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2908,7 +2878,6 @@ Primitive "`«`↑_`»" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -2937,7 +2906,6 @@ Primitive "restricted send_with_:_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -2979,7 +2947,6 @@ Primitive "restricted send_with_:_" is
  * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
- * @raises "tilde-must-not-follow-argument exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
@@ -3006,7 +2973,6 @@ Primitive "send_with_:_" is
 		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
-		tilde-must-not-follow-argument code,
 		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
@@ -3127,15 +3093,24 @@ Primitive "_→function" is
  * compiler, never by a semantically valid Avail program.
  *
  * @category "Primitives" "Semantic Restrictions"
- * @method "Reject parse,expected:_"
+ * @method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * @param "level" "parse rejection level"
+ *        The notification level that controls under what circumstances the text
+ *        should be presented as a compilation error.  The values are: 
+ *            1=silently, which is never displayed,
+ *            2=weakly, which is only displayed if there is nothing >2,
+ *            3=moderately, which is only displayed if there is nothing >3, and
+ *            4=strongly, which is always displayed, as long as parsing has not
+ *              proceeded too far beyond this position.
  * @param "expected" "string"
  *        A description of the cause of rejection, worded to sound good
  *        after {@code "Expected..."}.
  * @returns "⊥"
  * @raises "untimely-parse-rejection exception"
  */
-Primitive "Reject parse,expected:_" is
+Primitive "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_" is
 [
+	level : parse rejection level,
 	expected : string
 |
 	Primitive RejectParsing (failureCode : {

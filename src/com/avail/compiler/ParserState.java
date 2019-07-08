@@ -31,6 +31,7 @@
 
 package com.avail.compiler;
 import com.avail.compiler.problems.CompilerDiagnostics;
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Map;
@@ -132,6 +133,11 @@ public class ParserState
 			clientDataMap);
 	}
 
+	/**
+	 * Report a short description of this state.
+	 *
+	 * @return A {@link String} describing this {@code ParserState}.
+	 */
 	public String shortString ()
 	{
 		final A_String source = lexingState.compilationContext.source();
@@ -147,6 +153,7 @@ public class ParserState
 			lexingState.position,
 			min(lexingState.position + 20, source.tupleSize()),
 			false);
+		//noinspection DynamicRegexReplaceableByCompiledPattern
 		return lexingState.lineNumber + ":"
 			+ nearbyText.asNativeString().replace("\n", "\\n")
 			+ '…';
@@ -201,20 +208,23 @@ public class ParserState
 	 * captured at the rightmost few reached parse positions constitute the
 	 * error message in case the parse fails.
 	 *
-	 * <p>
-	 * The expectation is a {@linkplain Describer}, in case constructing a
+	 * <p>The expectation is a {@linkplain Describer}, in case constructing a
 	 * {@link String} frivolously would be prohibitive. There is also {@link
-	 * #expected(String) another} version of this method that accepts a
-	 * String directly.
-	 * </p>
+	 * #expected(ParseNotificationLevel, String) another} version of this method
+	 * that accepts a String directly.</p>
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param describer
 	 *        The {@code describer} to capture.
 	 */
-	void expected (final Describer describer)
+	void expected (
+		final ParseNotificationLevel level,
+		final Describer describer)
 	{
 		lexingState.compilationContext.diagnostics.expectedAt(
-			describer, lexingState);
+			level, describer, lexingState);
 	}
 
 	/**
@@ -222,6 +232,9 @@ public class ParserState
 	 * captured at the rightmost parse position constitute the error message
 	 * in case the parse fails.
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param values
 	 *        A list of arbitrary {@linkplain AvailObject Avail values} that
 	 *        should be stringified.
@@ -230,10 +243,12 @@ public class ParserState
 	 *        stringified values and answers an expectation message.
 	 */
 	void expected (
+		final ParseNotificationLevel level,
 		final List<? extends A_BasicObject> values,
 		final Function<List<String>, String> transformer)
 	{
 		expected(
+			level,
 			continuation -> Interpreter.stringifyThen(
 				currentRuntime(),
 				lexingState.compilationContext.getTextInterface(),
@@ -244,13 +259,18 @@ public class ParserState
 	/**
 	 * Record an indication of what was expected at this parse position.
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param aString
 	 *        The string describing something that was expected at this
 	 *        position under some interpretation so far.
 	 */
-	void expected (final String aString)
+	void expected (
+		final ParseNotificationLevel level,
+		final String aString)
 	{
-		expected(new SimpleDescriber(aString));
+		expected(level, new SimpleDescriber(aString));
 	}
 
 	/**

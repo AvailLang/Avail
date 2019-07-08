@@ -35,16 +35,14 @@ package com.avail.exceptions;
 import com.avail.interpreter.primitive.general.P_BreakPoint;
 
 /**
- * {@code AvailBreakpointException} is thrown by {@linkplain
- * P_BreakPoint primitive 257} and then immediately caught. The
- * Java debugger may be configured to trap when this exception is raised,
- * thereby permitting VM-debugging within the context of specific Avail code.
+ * {@code AvailBreakpointException} is thrown by {@link P_BreakPoint} and then
+ * immediately caught. The Java debugger may be configured to trap when this
+ * exception is raised, thereby permitting VM-debugging within the context of
+ * specific Avail code.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailBreakpointException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -8111823264709475386L;
 }

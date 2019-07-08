@@ -41,11 +41,8 @@ package com.avail.server.messages;
 public final class CommandParseException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 2870768934117768459L;
-
 	/**
-	 * Construct a new {@link CommandParseException}.
+	 * Construct a new {@code CommandParseException}.
 	 *
 	 * @param message
 	 *        A detailed error message suitable for reporting directly to a
@@ -57,7 +54,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link CommandParseException}.
+	 * Construct a new {@code CommandParseException}.
 	 *
 	 * @param message
 	 *        A detailed error message suitable for reporting directly to a

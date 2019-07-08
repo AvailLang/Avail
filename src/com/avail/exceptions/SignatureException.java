@@ -51,11 +51,8 @@ import com.avail.descriptor.DefinitionDescriptor;
 public final class SignatureException
 extends AvailException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -1062035730137304902L;
-
 	/**
-	 * Construct a new {@link SignatureException} with the specified {@linkplain
+	 * Construct a new {@code SignatureException} with the specified {@linkplain
 	 * AvailErrorCode error code}.
 	 *
 	 * @param errorCode

@@ -33,6 +33,7 @@ package com.avail.compiler.scanning;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Lexer;
@@ -64,6 +65,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
@@ -287,6 +289,7 @@ public class LexingState
 			final int codePoint =
 				compilationContext.source().tupleCodePointAt(position);
 			expected(
+				STRONG,
 				format(
 					"an applicable lexer, but all %d filter functions returned "
 						+ "false (code point = %s(U+%04x))",
@@ -359,12 +362,15 @@ public class LexingState
 				{
 					final AvailRejectedParseException rej =
 						(AvailRejectedParseException) throwable;
-					expected(rej.rejectionString().asNativeString());
+					expected(
+						rej.level,
+						rej.rejectionString().asNativeString());
 				}
 				else
 				{
 					// Report the problem as an expectation, with a stack trace.
 					expected(
+						STRONG,
 						afterDescribing ->
 						{
 							final StringWriter writer = new StringWriter();
@@ -527,17 +533,19 @@ public class LexingState
 	{
 		for (final Entry<A_Lexer, Throwable> entry : filterFailures.entrySet())
 		{
-			expected(afterDescribing ->
-			{
-				final StringWriter stringWriter = new StringWriter();
-				entry.getValue().printStackTrace(new PrintWriter(stringWriter));
-				final String text = format(
-					"%s not to have failed while evaluating its filter "
-						+ "function:\n%s",
-					entry.getKey().toString(),
-					stringWriter.toString());
-				afterDescribing.value(text);
-			});
+			expected(
+				STRONG,
+				afterDescribing ->
+				{
+					final StringWriter stringWriter = new StringWriter();
+					entry.getValue().printStackTrace(new PrintWriter(stringWriter));
+					final String text = format(
+						"%s not to have failed while evaluating its filter "
+							+ "function:\n%s",
+						entry.getKey().toString(),
+						stringWriter.toString());
+					afterDescribing.value(text);
+				});
 		}
 	}
 
@@ -567,16 +575,21 @@ public class LexingState
 	 * <p>
 	 * The expectation is a {@linkplain Describer}, in case constructing a
 	 * {@link String} frivolously would be prohibitive. There is also {@link
-	 * #expected(String) another} version of this method that accepts a
-	 * String directly.
+	 * #expected(ParseNotificationLevel, String) another} version of this method
+	 * that accepts a String directly.
 	 * </p>
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param describer
 	 *        The {@code describer} to capture.
 	 */
-	public void expected (final Describer describer)
+	public void expected (
+		final ParseNotificationLevel level,
+		final Describer describer)
 	{
-		compilationContext.diagnostics.expectedAt(describer, this);
+		compilationContext.diagnostics.expectedAt(level, describer, this);
 	}
 
 	/**
@@ -584,6 +597,9 @@ public class LexingState
 	 * captured at the rightmost parse position constitute the error message
 	 * in case the parse fails.
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param values
 	 *        A list of arbitrary {@linkplain AvailObject Avail values} that
 	 *        should be stringified.
@@ -592,11 +608,13 @@ public class LexingState
 	 *        stringified values and answers an expectation message.
 	 */
 	public void expected (
+		final ParseNotificationLevel level,
 		final List<? extends A_BasicObject> values,
 		final Function<List<String>, String> transformer)
 	{
-		expected(continuation ->
-			Interpreter.stringifyThen(
+		expected(
+			level,
+			continuation -> Interpreter.stringifyThen(
 				compilationContext.loader().runtime(),
 				compilationContext.getTextInterface(),
 				values,
@@ -606,12 +624,17 @@ public class LexingState
 	/**
 	 * Record an indication of what was expected at this parse position.
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param aString
 	 *        The string describing something that was expected at this
 	 *        position under some interpretation so far.
 	 */
-	public void expected (final String aString)
+	public void expected (
+		final ParseNotificationLevel level,
+		final String aString)
 	{
-		expected(new SimpleDescriber(aString));
+		expected(level, new SimpleDescriber(aString));
 	}
 }

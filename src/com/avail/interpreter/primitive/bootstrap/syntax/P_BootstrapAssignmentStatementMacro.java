@@ -50,27 +50,22 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapAssignmentStatementMacro} primitive is used for
@@ -117,6 +112,7 @@ extends Primitive
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"variable name for assignment to be alphanumeric, not "
 				+ variableNameString);
 		}
@@ -147,26 +143,30 @@ extends Primitive
 		if (declaration == null)
 		{
 			throw new AvailRejectedParseException(
-				"variable (" + variableNameString +
-					") for assignment to be in scope");
+				STRONG,
+				() -> formatString(
+					"variable (%s) for assignment to be in scope",
+					variableNameString));
 		}
 		final A_Phrase declarationFinal = declaration;
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				() ->
-					formatString("a name of a variable, not a %s",
-						declarationFinal.declarationKind().nativeKindName()));
+				STRONG,
+				() -> formatString(
+					"a name of a variable, not a %s",
+					declarationFinal.declarationKind().nativeKindName()));
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
 			declaration.declaredType()))
 		{
 			throw new AvailRejectedParseException(
-				() ->
-					formatString("assignment expression's type (%s) "
-							+ "to match variable type (%s)",
-						valueExpression.expressionType(),
-						declarationFinal.declaredType()));
+				STRONG,
+				() -> formatString(
+					"assignment expression's type (%s) "
+						+ "to match variable type (%s)",
+					valueExpression.expressionType(),
+					declarationFinal.declaredType()));
 		}
 		final A_Tuple tokens = clientData.mapAt(staticTokensKey);
 		final A_Phrase assignment = newAssignment(

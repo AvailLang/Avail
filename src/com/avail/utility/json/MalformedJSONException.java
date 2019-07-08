@@ -41,11 +41,8 @@ package com.avail.utility.json;
 public final class MalformedJSONException
 extends JSONException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -5353596996559705950L;
-
 	/**
-	 * Construct a new {@link MalformedJSONException}.
+	 * Construct a new {@code MalformedJSONException}.
 	 */
 	MalformedJSONException ()
 	{

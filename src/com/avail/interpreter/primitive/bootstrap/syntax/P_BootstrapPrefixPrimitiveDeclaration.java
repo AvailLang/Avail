@@ -49,6 +49,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
@@ -56,15 +57,11 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -105,6 +102,7 @@ extends Primitive
 		if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"primitive specification to be a literal keyword token");
 		}
 		final A_String primName = primNamePhrase.token().string();
@@ -113,6 +111,7 @@ extends Primitive
 		if (prim == null)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"a supported primitive name, not %s",
 				primName);
 		}
@@ -140,7 +139,7 @@ extends Primitive
 				prim.primitiveNumber, blockArgumentPhrases);
 		if (problem != null)
 		{
-			throw new AvailRejectedParseException(problem);
+			throw new AvailRejectedParseException(STRONG, problem);
 		}
 
 		// The section marker occurs inside the optionality of the primitive
@@ -153,6 +152,7 @@ extends Primitive
 			if (prim.hasFlag(CannotFail))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"no primitive failure variable declaration for this "
 					+ "infallible primitive");
 			}
@@ -163,6 +163,7 @@ extends Primitive
 			if (failureName.tokenType() != TokenType.KEYWORD)
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive failure variable name to be alphanumeric");
 			}
 			final A_Phrase failureTypePhrase = failurePair.expressionAt(2);
@@ -170,12 +171,14 @@ extends Primitive
 			if (failureType.isBottom() || failureType.isTop())
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive failure variable type not to be " + failureType);
 			}
 			final A_Type requiredFailureType = prim.failureVariableType();
 			if (!requiredFailureType.isSubtypeOf(failureType))
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive failure variable to be a supertype of: "
 					+ requiredFailureType
 					+ ", not "
@@ -188,6 +191,7 @@ extends Primitive
 			if (conflictingDeclaration != null)
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"primitive failure variable %s to have a name that doesn't "
 					+ "shadow an existing %s (from line %d)",
 					failureName.string(),
@@ -199,6 +203,7 @@ extends Primitive
 		if (!prim.hasFlag(CannotFail))
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"a primitive failure variable declaration for this "
 				+ "fallible primitive");
 		}

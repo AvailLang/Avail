@@ -47,9 +47,6 @@ import javax.annotation.Nullable;
 public class AvailRuntimeException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -8826389456392434347L;
-
 	/** The {@linkplain AvailErrorCode error code}. */
 	private final AvailErrorCode errorCode;
 
@@ -65,7 +62,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link AvailRuntimeException} with the specified
+	 * Construct a new {@code AvailRuntimeException} with the specified
 	 * {@linkplain AvailErrorCode error code}.
 	 *
 	 * @param errorCode
@@ -77,7 +74,7 @@ extends RuntimeException
 	}
 
 	/**
-	 * Construct a new {@link AvailRuntimeException} with the specified
+	 * Construct a new {@code AvailRuntimeException} with the specified
 	 * {@linkplain AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode

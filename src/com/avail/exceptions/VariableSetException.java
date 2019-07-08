@@ -43,11 +43,8 @@ import com.avail.descriptor.AvailObject;
 public final class VariableSetException
 extends AvailRuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 5516315813534925676L;
-
 	/**
-	 * Construct a new {@link VariableSetException}.
+	 * Construct a new {@code VariableSetException}.
 	 *
 	 * @param errorCode An {@linkplain AvailErrorCode error code}.
 	 */
@@ -57,7 +54,7 @@ extends AvailRuntimeException
 	}
 
 	/**
-	 * Construct a new {@link VariableSetException}.
+	 * Construct a new {@code VariableSetException}.
 	 *
 	 * @param errorCode
 	 *        An {@linkplain AvailErrorCode error code}.

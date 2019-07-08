@@ -52,6 +52,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
@@ -66,9 +68,8 @@ import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.util.Comparator.comparing;
 
 /**
  * The {@code P_BootstrapVariableUseMacro} primitive is used to create
@@ -100,7 +101,8 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		assert variableNameLiteral.isInstanceOf(LITERAL_PHRASE.mostGeneralType());
+		assert variableNameLiteral.isInstanceOf(
+			LITERAL_PHRASE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.LITERAL;
 		final A_Token actualToken = literalToken.literal();
@@ -109,6 +111,7 @@ extends Primitive
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"variable %s to be alphanumeric",
 				variableNameString);
 		}
@@ -143,6 +146,9 @@ extends Primitive
 		if (!module.constantBindings().hasKey(variableNameString))
 		{
 			throw new AvailRejectedParseException(
+				// Almost any theory is better than guessing that we want the
+				// value of some variable that doesn't exist.
+				WEAK,
 				() ->
 				{
 					final StringBuilder builder = new StringBuilder();
@@ -151,12 +157,7 @@ extends Primitive
 					builder.append(" to be in scope (local scope is: ");
 					final List<A_String> scope = new ArrayList<>(
 						toList(scopeMap.keysAsSet().asTuple()));
-					scope.sort((s1, s2) ->
-					{
-						assert s1 != null && s2 != null;
-						return s1.asNativeString().compareTo(
-							s2.asNativeString());
-					});
+					scope.sort(comparing(A_String::asNativeString));
 					boolean first = true;
 					for (final A_String eachVar : scope)
 					{

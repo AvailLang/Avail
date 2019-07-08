@@ -47,9 +47,6 @@ import java.util.function.Supplier;
 public final class MalformedMessageException
 extends AvailException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -1566262280388678301L;
-
 	/**
 	 * A {@link Supplier} that can produce a description of what the problem
 	 * is with the message name.

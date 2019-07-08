@@ -34,31 +34,9 @@ package com.avail.compiler;
 
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.ListPhraseDescriptor;
-import com.avail.descriptor.LiteralPhraseDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MessageBundleTreeDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
-import com.avail.descriptor.ReferencePhraseDescriptor;
-import com.avail.descriptor.SendPhraseDescriptor;
-import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.VariableDescriptor;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Describer;
 
@@ -69,6 +47,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.compiler.AvailCompiler.Con;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -82,18 +62,12 @@ import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListN
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
-import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
-import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS;
 import static com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS;
-import static com.avail.utility.PrefixSharingList.append;
-import static com.avail.utility.PrefixSharingList.last;
-import static com.avail.utility.PrefixSharingList.withoutLast;
+import static com.avail.utility.PrefixSharingList.*;
 import static com.avail.utility.StackPrinter.trace;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverse;
@@ -483,10 +457,13 @@ public enum ParsingOperation
 						{
 							if (consumedAnything)
 							{
-								// At least one token besides the variable
-								// use has been encountered, so go ahead and
-								// report that we expected a variable.
+								// At least one token besides the variable use
+								// has been encountered, so go ahead and report
+								// that we expected a variable.
 								afterUse.expected(
+									consumedStaticTokens.isEmpty()
+										? WEAK
+										: STRONG,
 									describeWhyVariableUseIsExpected(
 										successorTrees.tupleAt(1)));
 							}
@@ -500,10 +477,11 @@ public enum ParsingOperation
 						{
 							if (consumedAnything)
 							{
-								// Only complain about this not being a
-								// variable if we've parsed something
-								// besides the variable reference argument.
+								// Only complain about this not being a variable
+								// if we've parsed something besides the
+								// variable reference argument.
 								afterUse.expected(
+									STRONG,
 									"variable for reference argument to be "
 										+ "assignable, not "
 										+ declarationKind.nativeKindName());
@@ -617,7 +595,9 @@ public enum ParsingOperation
 					assert tokenType != WHITESPACE && tokenType != COMMENT;
 					if (tokenType == END_OF_FILE)
 					{
-						start.expected("any token, not end-of-file");
+						start.expected(
+							consumedStaticTokens.isEmpty() ? WEAK : STRONG,
+							"any token, not end-of-file");
 						return;
 					}
 					final A_Token syntheticToken =
@@ -640,7 +620,8 @@ public enum ParsingOperation
 						// tokens read past it in the stream to have been truly
 						// encountered.
 						consumedAnything,
-						append(consumedStaticTokens, syntheticToken),
+						// Don't count it as a static token.
+						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
 						continuation);
@@ -690,6 +671,7 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
+								consumedStaticTokens.isEmpty() ? WEAK : STRONG,
 								c -> c.value(
 									"a keyword token, not " +
 										(tokenType == END_OF_FILE
@@ -720,7 +702,8 @@ public enum ParsingOperation
 						// tokens read past it in the stream to have been truly
 						// encountered.
 						consumedAnything,
-						append(consumedStaticTokens, syntheticToken),
+						// Don't count it as a static token.
+						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
 						continuation);
@@ -771,6 +754,7 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
+								consumedStaticTokens.isEmpty() ? WEAK : STRONG,
 								c -> c.value(
 									"a string literal token, not " +
 										(tokenType == END_OF_FILE
@@ -801,7 +785,8 @@ public enum ParsingOperation
 						// tokens read past it in the stream to have been truly
 						// encountered.
 						consumedAnything,
-						append(consumedStaticTokens, syntheticToken),
+						// Don't count it as a static token.
+						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
 						continuation);
@@ -852,6 +837,7 @@ public enum ParsingOperation
 						if (consumedAnything)
 						{
 							start.expected(
+								consumedStaticTokens.isEmpty() ? WEAK : STRONG,
 								c -> c.value(
 									"a whole number literal token, not " +
 										(tokenType == END_OF_FILE
@@ -882,7 +868,8 @@ public enum ParsingOperation
 						// tokens read past it in the stream to have been truly
 						// encountered.
 						consumedAnything,
-						append(consumedStaticTokens, syntheticToken),
+						// Don't count it as a static token.
+						consumedStaticTokens,
 						newArgsSoFar,
 						marksSoFar,
 						continuation);
@@ -1283,6 +1270,7 @@ public enum ParsingOperation
 					// evaluation.
 					assert sanityFlag.compareAndSet(false, true);
 					start.expected(
+						STRONG,
 						c -> c.value(
 							"evaluation of expression not to have "
 								+ "thrown Java exception:\n"

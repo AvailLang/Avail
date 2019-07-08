@@ -56,9 +56,6 @@ import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 public final class MethodDefinitionException
 extends AvailException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -8106007037531230402L;
-
 	/**
 	 * Construct a new {@code MethodDefinitionException}.
 	 *

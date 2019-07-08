@@ -138,6 +138,7 @@ Names
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
 	/* 143 */ "parse map key",
+	/* 168 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
 	/*  50 */ "phrase",
@@ -2205,4 +2206,13 @@ Special object "source position" is special object 166;
  * @alias "source line number"
  */
 Special object "source line number" is special object 167;
+
+/**
+ * The type for parse rejection levels, currently [1..4].
+ *
+ * @category "Primitives" "Types"
+ * @type "[1..4]"
+ * @alias "parse rejection level"
+ */
+Special object "parse rejection level" is special object 168;
 

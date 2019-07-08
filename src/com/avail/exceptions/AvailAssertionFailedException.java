@@ -48,11 +48,6 @@ public class AvailAssertionFailedException
 extends Exception
 {
 	/**
-	 * The serial version identifier.
-	 */
-	private static final long serialVersionUID = -3945878927329358120L;
-
-	/**
 	 * The {@linkplain StringDescriptor error message} describing the
 	 * assertion.
 	 */

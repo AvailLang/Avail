@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.PrimitiveThrownException;
@@ -56,9 +57,10 @@ public class AvailRejectedParseException
 extends PrimitiveThrownException
 {
 	/**
-	 * The serial version identifier.
+	 * The {@link ParseNotificationLevel} that indicates the priority of the
+	 * parse theory that failed.
 	 */
-	private static final long serialVersionUID = -5638050952579212324L;
+	public final ParseNotificationLevel level;
 
 	/**
 	 * The {@linkplain StringDescriptor error message} indicating why a
@@ -91,13 +93,18 @@ extends PrimitiveThrownException
 	 * Construct a new instance.  If this diagnostic is deemed relevant, the
 	 * string will be presented after the word "Expected...".
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param rejectionString
 	 *        The Avail {@linkplain A_String string} indicating why a particular
 	 *        parse was rejected.
 	 */
 	public AvailRejectedParseException (
+		final ParseNotificationLevel level,
 		final A_String rejectionString)
 	{
+		this.level = level;
 		this.rejectionSupplier = () -> rejectionString;
 		this.rejectionString = rejectionString;
 	}
@@ -108,6 +115,9 @@ extends PrimitiveThrownException
 	 * this diagnostic is deemed relevant, the string will be presented after
 	 * the word "Expected...".
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param rejectionPattern
 	 *        The String to use as a pattern in {@link String#format(String,
 	 *        Object...)}.  The arguments with which to instantiate the pattern
@@ -116,9 +126,11 @@ extends PrimitiveThrownException
 	 *        The arguments that should be substituted into the pattern.
 	 */
 	public AvailRejectedParseException (
+		final ParseNotificationLevel level,
 		final String rejectionPattern,
 		final Object... rejectionArguments)
 	{
+		this.level = level;
 		this.rejectionSupplier = () ->
 			stringFrom(format(rejectionPattern, rejectionArguments));
 		this.rejectionString = null;
@@ -130,13 +142,18 @@ extends PrimitiveThrownException
 	 * diagnostic is deemed relevant, the string will be presented after the
 	 * word "Expected...".
 	 *
+	 * @param level
+	 *        The {@link ParseNotificationLevel} that indicates the priority
+	 *        of the parse theory that failed.
 	 * @param supplier
 	 *        The {@link Supplier} that produces a diagnostic {@link A_String
 	 *        Avail string} upon first request.
 	 */
 	public AvailRejectedParseException (
+		final ParseNotificationLevel level,
 		final Supplier<A_String> supplier)
 	{
+		this.level = level;
 		this.rejectionSupplier = supplier;
 		this.rejectionString = null;
 	}

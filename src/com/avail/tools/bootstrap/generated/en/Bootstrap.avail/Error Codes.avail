@@ -154,7 +154,6 @@ Names
 	/* 107 */ "supercast-expression-must-not-also-be-a-supercast code",
 	/* 106 */ "supercast-expression-type-must-not-be-top-or-bottom code",
 	/* 108 */ "supercast-must-be-strict-supertype-of-expression-type code",
-	/*  52 */ "tilde-must-not-follow-argument code",
 	/*  30 */ "too-large-to-represent code",
 	/*  31 */ "type-restriction-must-accept-only-types code",
 	/*  44 */ "unbalanced-guillemets code",
@@ -415,11 +414,6 @@ Primitive "question-mark-must-follow-a-simple-group code" is
 Primitive "case-insensitive-expression-canonization code" is
 [
 	51
-];
-
-Primitive "tilde-must-not-follow-argument code" is
-[
-	52
 ];
 
 Primitive "double-question-mark-must-follow-a-token-or-simple-group code" is

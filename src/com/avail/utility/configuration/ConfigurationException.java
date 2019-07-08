@@ -42,11 +42,8 @@ package com.avail.utility.configuration;
 public final class ConfigurationException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -3955240420524190217L;
-
 	/**
-	 * Construct a new {@link ConfigurationException}.
+	 * Construct a new {@code ConfigurationException}.
 	 *
 	 * @param message
 	 *        The detail message, expected to be the proximal reason why
@@ -58,7 +55,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link ConfigurationException}.
+	 * Construct a new {@code ConfigurationException}.
 	 *
 	 * @param message
 	 *        The detail message, expected to be the proximal reason why

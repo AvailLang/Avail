@@ -40,13 +40,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.list;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.listPrefix;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;
@@ -103,6 +101,7 @@ public final class P_ModuleHeaderPrefixCheckImportVersion extends Primitive
 				final A_Phrase importModuleName =
 					lastImportNameEntry.expressionAt(1);
 				throw new AvailRejectedParseException(
+					STRONG,
 					"imported module (%s) version specification %s to be "
 						+ "unique, not a duplicate (of line %d)",
 					importModuleName,

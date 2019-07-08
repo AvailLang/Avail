@@ -40,9 +40,6 @@ package com.avail.utility.fsm;
 public class InvalidTransitionException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 8401610016972089929L;
-
 	/**
 	 * Construct a new {@code InvalidTransitionException}.
 	 */

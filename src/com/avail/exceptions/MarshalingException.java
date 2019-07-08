@@ -45,11 +45,8 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
 public final class MarshalingException
 extends AvailRuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -5955389215116529L;
-
 	/**
-	 * Construct a new {@link MarshalingException}.
+	 * Construct a new {@code MarshalingException}.
 	 */
 	public MarshalingException ()
 	{
@@ -57,7 +54,7 @@ extends AvailRuntimeException
 	}
 
 	/**
-	 * Construct a new {@link MarshalingException}.
+	 * Construct a new {@code MarshalingException}.
 	 *
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@code

@@ -43,11 +43,8 @@ import javax.annotation.Nullable;
 public class MalformedSerialStreamException
 extends Exception
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 5622164630276718981L;
-
 	/**
-	 * Construct a new {@link MalformedSerialStreamException}.
+	 * Construct a new {@code MalformedSerialStreamException}.
 	 *
 	 * @param e The originating exception.
 	 */

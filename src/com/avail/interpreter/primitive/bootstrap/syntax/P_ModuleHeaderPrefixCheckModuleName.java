@@ -43,6 +43,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
@@ -87,6 +88,7 @@ public final class P_ModuleHeaderPrefixCheckModuleName extends Primitive
 		if (!localName.equals(declaredModuleName))
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"module name (%s) to agree with file's name (%s)",
 				declaredModuleName,
 				localName);

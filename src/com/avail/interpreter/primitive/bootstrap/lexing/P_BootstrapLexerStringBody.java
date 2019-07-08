@@ -43,15 +43,14 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerStringBody} primitive is used for parsing quoted
@@ -98,12 +97,12 @@ public final class P_BootstrapLexerStringBody extends Primitive
 						startPosition,
 						startLineNumber,
 						stringFrom(builder.toString()));
-					return interpreter.primitiveSuccess(
-						set(tuple(token)));
+					return interpreter.primitiveSuccess(set(tuple(token)));
 				case '\\':
 					if (!scanner.hasNext())
 					{
 						throw new AvailRejectedParseException(
+							STRONG,
 							"more characters after backslash in string "
 								+ "literal");
 					}
@@ -157,6 +156,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 							else
 							{
 								throw new AvailRejectedParseException(
+									STRONG,
 									"only whitespace characters on line "
 										+ "before \"\\|\" ");
 							}
@@ -166,10 +166,12 @@ public final class P_BootstrapLexerStringBody extends Primitive
 							break;
 						case '[':
 							throw new AvailRejectedParseException(
+								WEAK,
 								"something other than \"\\[\", because power "
 									+ "strings are not yet supported");
 						default:
 							throw new AvailRejectedParseException(
+								STRONG,
 								"Backslash escape should be followed by "
 									+ "one of n, r, t, \\, \", (, [, |, or a "
 									+ "line break, not Unicode character "
@@ -206,19 +208,33 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		// TODO MvG - Indicate where the quoted string started, to make it
 		// easier to figure out where the end-quote is missing.
 		throw new AvailRejectedParseException(
-			"close-quote (\") for string literal");
+			STRONG, "close-quote (\") for string literal");
 	}
 
+	/**
+	 * A class to help consume codepoints during parsing.
+	 */
 	final class Scanner
 	{
+		/** The module source. */
 		private final A_String source;
 
+		/** The number of characters in the module source. */
 		private final int sourceSize;
 
+		/** The current position in the source. */
 		@InnerAccess int position;
 
+		/** The current line number in the source. */
 		@InnerAccess int lineNumber;
 
+		/**
+		 * Create a {@code Scanner} to help parse the string literal.
+		 *
+		 * @param source The module source string.
+		 * @param position The starting position in the source.
+		 * @param lineNumber The starting line number in the source.
+		 */
 		Scanner (
 			final A_String source,
 			final int position,
@@ -230,16 +246,35 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			this.lineNumber = lineNumber;
 		}
 
+		/**
+		 * Whether there are any more codepoints available.
+		 *
+		 * @return {@code true} if there are more codepoints available,
+		 *         otherwise {@code false}
+		 */
 		@InnerAccess boolean hasNext ()
 		{
 			return position <= sourceSize;
 		}
 
+		/**
+		 * Answer the next codepoint from the source, without consuming it.
+		 * Should only be called if {@link #hasNext()} would produce true.
+		 *
+		 * @return The next codepoint.
+		 */
 		@InnerAccess int peek ()
 		{
 			return source.tupleCodePointAt(position);
 		}
 
+		/**
+		 * Answer the next codepoint from the source, and consume it.  Should
+		 * only be called if {@link #hasNext()} would produce true before
+		 * this call.
+		 *
+		 * @return The consumed codepoint.
+		 */
 		@InnerAccess int next ()
 		{
 			final int c = source.tupleCodePointAt(position++);
@@ -250,7 +285,6 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			return c;
 		}
 	}
-
 
 	/**
 	 * Parse Unicode hexadecimal encoded characters.  The characters "\" and "("
@@ -271,6 +305,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		if (!scanner.hasNext())
 		{
 			throw new AvailRejectedParseException(
+				STRONG,
 				"Unicode escape sequence in string literal");
 		}
 		int c = scanner.next();
@@ -298,11 +333,13 @@ public final class P_BootstrapLexerStringBody extends Primitive
 				else
 				{
 					throw new AvailRejectedParseException(
+						STRONG,
 						"a hex digit or comma or closing parenthesis");
 				}
 				if (digitCount > 6)
 				{
 					throw new AvailRejectedParseException (
+						STRONG,
 						"at most six hex digits per comma-separated Unicode "
 							+ "entry");
 				}
@@ -311,6 +348,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			if (digitCount == 0)
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"a comma-separated list of Unicode code"
 						+ " points, each being one to six (upper case)"
 						+ " hexadecimal digits");
@@ -318,6 +356,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			if (value > CharacterDescriptor.maxCodePointInt)
 			{
 				throw new AvailRejectedParseException(
+					STRONG,
 					"A valid Unicode code point, which must be <= U+10FFFF");
 			}
 			stringBuilder.appendCodePoint(value);

@@ -1333,8 +1333,6 @@ System exception "question-mark-must-follow-a-simple-group" (50)
 	extends bad-message exception;
 System exception "case-insensitive-expression-canonization" (51)
 	extends bad-message exception;
-System exception "tilde-must-not-follow-argument" (52)
-	extends bad-message exception;
 System exception "double-question-mark-must-follow-a-token-or-simple-group" (53)
 	extends bad-message exception;
 System exception "alternative-must-not-contain-arguments" (54)

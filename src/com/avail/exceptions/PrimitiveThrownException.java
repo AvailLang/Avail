@@ -45,8 +45,4 @@ import com.avail.descriptor.FiberDescriptor;
 public class PrimitiveThrownException
 extends RuntimeException
 {
-	/**
-	 * The serial version identifier.
-	 */
-	private static final long serialVersionUID = -3945878927329358120L;
 }

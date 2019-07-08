@@ -43,11 +43,6 @@ import com.avail.descriptor.CommentTokenDescriptor;
 public class StacksScannerException extends Exception
 {
 	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1941203667489406705L;
-
-	/**
 	 * The {@link StacksScanner} that failed.
 	 */
 	final AbstractStacksScanner failedScanner;

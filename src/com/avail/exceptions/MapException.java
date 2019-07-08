@@ -45,11 +45,8 @@ import com.avail.descriptor.MapDescriptor;
 public final class MapException
 extends AvailRuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -2390483636801333298L;
-
 	/**
-	 * Construct a new {@link MapException} with the specified
+	 * Construct a new {@code MapException} with the specified
 	 * {@linkplain AvailErrorCode error code}.
 	 *
 	 * @param errorCode
@@ -61,7 +58,7 @@ extends AvailRuntimeException
 	}
 
 	/**
-	 * Construct a new {@link MapException} with the specified
+	 * Construct a new {@code MapException} with the specified
 	 * {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode

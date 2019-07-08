@@ -43,13 +43,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
@@ -90,6 +89,7 @@ extends Primitive
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{
 			throw new AvailRejectedParseException(
+				WEAK,
 				"statement to be a ⊤-valued send phrase, not a %s: %s",
 				sendPhrase.phraseKind().name(),
 				sendPhrase);
@@ -97,7 +97,8 @@ extends Primitive
 		if (!sendPhrase.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				"statement's type to be ⊤, but it was %s.  Expression is: %s",
+				WEAK,
+				"statement to yield ⊤, but it yields %s.  Expression is: %s",
 				sendPhrase.expressionType(),
 				sendPhrase);
 		}

@@ -41,15 +41,13 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerSlashStarCommentBody} primitive is used for
@@ -96,6 +94,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 				// nesting of the comment (with "*/").  Reject the lexing with a
 				// suitable warning.
 				throw new AvailRejectedParseException(
+					STRONG,
 					"Subsequent '*/' to close this (nestable) block comment");
 			}
 
