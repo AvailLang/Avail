@@ -52,8 +52,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG;
-import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK;
+import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
@@ -148,7 +147,7 @@ extends Primitive
 			throw new AvailRejectedParseException(
 				// Almost any theory is better than guessing that we want the
 				// value of some variable that doesn't exist.
-				WEAK,
+				scopeMap.mapSize() == 0 ? SILENT : WEAK,
 				() ->
 				{
 					final StringBuilder builder = new StringBuilder();
