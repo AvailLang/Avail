@@ -101,7 +101,7 @@ public final class AvailRuntimeConfiguration
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	private static final String[] activeVersions = {"1.1.0 DEV 2019-05-21"};
+	private static final String[] activeVersions = {"1.2.0 DEV 2019-07-09"};
 
 	/**
 	 * Answer the active versions of the Avail virtual machine. These are the

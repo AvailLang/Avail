@@ -32,8 +32,8 @@
 
 Module "ShouldFailDuplicateVersion"
 Versions
-	"1.1.0 DEV 2019-05-21",
-	"1.1.0 DEV 2019-05-21"
+	"1.2.0 DEV 2019-07-09",
+	"1.2.0 DEV 2019-07-09"
 Uses
 	"Avail"
 Body
