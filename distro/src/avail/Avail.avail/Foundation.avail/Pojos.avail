@@ -323,7 +323,7 @@ Public stable method "Java char" is [[0..2^16)];
  * @raises "incorrect-number-of-arguments exception"
  * @raises "Java-class-not-available exception"
  */
-Public method "_<«_‡,»>" is
+Public stable method "_<«_‡,»>" is
 [
 	javaName : string,
 	typeParameters : <any's type…|>
@@ -470,6 +470,7 @@ Public method "method_._«parameterized by»⁇_" is
  * @restricts "string's type"
  * @restricts "<any's type…|>'s type"
  */
+/*
 Semantic restriction "method_._«parameterized by»⁇_" is
 [
 	pojoMeta : pojo's type's type,
@@ -490,13 +491,14 @@ Semantic restriction "method_._«parameterized by»⁇_" is
 			if |methodName| = 1 then
 			[
 				return type of pojoType.(methodName's instance)
-					parameterized by args
+					parameterized by args[2..]
 			]
 			else [⊤];
 		function accepting args and returning returnType
 	]
 	else [⊤]
 ];
+*/
 
 /**
  * Construct and answer a {@type "function"} that, when applied with arguments
@@ -558,6 +560,7 @@ Public method "static method_._«parameterized by»⁇_" is
  * @restricts "string's type"
  * @restricts "<any's type…|>'s type"
  */
+/*
 Semantic restriction "static method_._«parameterized by»⁇_" is
 [
 	pojoMeta : pojo's type's type,
@@ -584,6 +587,7 @@ Semantic restriction "static method_._«parameterized by»⁇_" is
 	]
 	else [⊤]
 ];
+*/
 
 /* TODO: [TLS] Introduce defining methods that bind pojo methods and restrict
  * them appropriately.

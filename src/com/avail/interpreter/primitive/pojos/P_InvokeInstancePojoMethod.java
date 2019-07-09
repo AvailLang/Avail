@@ -44,6 +44,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -59,8 +60,7 @@ import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
@@ -89,12 +89,13 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 	{
 		interpreter.checkArgumentCount(4);
 		final A_BasicObject methodPojo = interpreter.argument(0);
-		final A_BasicObject receiverPojo = interpreter.argument(1);
+		final A_BasicObject receiverPojoMaybe = interpreter.argument(1);
 		final A_Tuple methodArgs = interpreter.argument(2);
 		final A_Tuple marshaledTypePojos = interpreter.argument(3);
 		// Marshal the arguments and invoke the method.
 		final Method method = methodPojo.javaObjectNotNull();
-		final Object receiver = receiverPojo.rawPojo().javaObjectNotNull();
+		final @Nullable Object receiver = receiverPojoMaybe.marshalToJava(
+			method.getDeclaringClass());
 		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
@@ -138,8 +139,14 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		{
 			return interpreter.primitiveSuccess(nullPojo());
 		}
+		final A_Type receiverPojo = receiverPojoMaybe.isPojo()
+			? receiverPojoMaybe.rawPojo()
+			: newPojo(
+				identityPojo(receiver),
+				pojoTypeForClass(method.getDeclaringClass()));
 		final A_Type expectedType = resolvePojoType(
-			method.getGenericReturnType(), receiverPojo.kind().typeVariables());
+			method.getGenericReturnType(),
+			receiverPojo.kind().typeVariables());
 		final AvailObject unmarshaled = unmarshal(result, expectedType);
 		return interpreter.primitiveSuccess(unmarshaled);
 	}
@@ -150,7 +157,7 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		return functionType(
 			tuple(
 				RAW_POJO.o(),
-				mostGeneralPojoType(),
+				ANY.o(),
 				mostGeneralTupleType(),
 				zeroOrMoreOf(RAW_POJO.o())),
 			TOP.o());

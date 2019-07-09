@@ -77,8 +77,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
@@ -198,7 +197,7 @@ extends Primitive
 		writer.primitive(P_InvokeInstancePojoMethod.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
-			mostGeneralPojoType(),
+			ANY.o(),
 			mostGeneralTupleType(),
 			zeroOrMoreOf(RAW_POJO.o()));
 		writer.returnType(TOP.o());
@@ -226,7 +225,8 @@ extends Primitive
 		writer = new L1InstructionWriter(nil, 0, nil);
 		final List<A_Type> allParamTypes =
 			new ArrayList<>(paramTypes.tupleSize() + 1);
-		allParamTypes.add(pojoType);
+		allParamTypes.add(resolvePojoType(
+			method.getDeclaringClass(), pojoType.typeVariables()));
 		for (final AvailObject paramType : paramTypes)
 		{
 			allParamTypes.add(paramType);
