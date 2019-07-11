@@ -34,7 +34,6 @@ package com.avail.utility;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Transformer1;
 
 import javax.annotation.Nullable;
 import java.lang.ref.Reference;
@@ -50,6 +49,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -69,7 +69,7 @@ public class LRUCache<K, V>
 	 * The {@linkplain ReentrantLock lock} responsible for guarding
 	 * access to internal {@linkplain LRUCache cache} structures.
 	 */
-	@InnerAccess final ReentrantLock lock = new ReentrantLock();
+	private final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * Acquire the {@linkplain ReentrantLock lock}.
@@ -166,7 +166,7 @@ public class LRUCache<K, V>
 	/**
 	 * Check the integrity of the {@linkplain LRUCache cache}.
 	 */
-	@InnerAccess void checkInvariants ()
+	private void checkInvariants ()
 	{
 		if (checkInvariants)
 		{
@@ -175,8 +175,7 @@ public class LRUCache<K, V>
 			assert strongMap.size() <= strongCapacity;
 			assert softMap.size() == keysBySoftReference.size();
 			assert softMap.size() <= softCapacity;
-			for (final Entry<K, SoftReference<V>> entry
-					: softMap.entrySet())
+			for (final Entry<K, SoftReference<V>> entry : softMap.entrySet())
 			{
 				assert entry.getKey() != null;
 				assert entry.getValue() != null;
@@ -250,7 +249,7 @@ public class LRUCache<K, V>
 	 * cached values. This is the total capacity of the {@linkplain LRUCache
 	 * cache}, i.e. the capacity of {@link #softMap}.
 	 */
-	@InnerAccess final int softCapacity;
+	private final int softCapacity;
 
 	/**
 	 * Answer the capacity of the {@linkplain LRUCache cache}.
@@ -267,7 +266,7 @@ public class LRUCache<K, V>
 	 * to {@linkplain SoftReference softly held} cached values. All cached
 	 * values are ultimately retrieved from this map.
 	 */
-	@InnerAccess final SoftCacheMap softMap;
+	private final SoftCacheMap softMap;
 
 	/**
 	 * A mapping from {@linkplain SoftReference softly held} cached values to
@@ -275,14 +274,14 @@ public class LRUCache<K, V>
 	 * {@linkplain #softMap primary map} after the garbage collector has
 	 * reclaimed the cached values.
 	 */
-	@InnerAccess final Map<SoftReference<? extends V>, K> keysBySoftReference =
+	private final Map<SoftReference<? extends V>, K> keysBySoftReference =
 		new HashMap<>();
 
 	/**
 	 * The cardinality of the set of strongly held cached values, i.e. the
 	 * capacity of {@link #strongMap}.
 	 */
-	@InnerAccess final int strongCapacity;
+	private final int strongCapacity;
 
 	/**
 	 * Answer the cardinality of the set of strongly held cached values.
@@ -301,27 +300,27 @@ public class LRUCache<K, V>
 	private final StrongCacheMap strongMap;
 
 	/**
-	 * The {@linkplain Transformer1 transformer} responsible for producing new
-	 * values from user-supplied keys. Must not produce {@code null}.
+	 * The {@link Function} responsible for producing new values from
+	 * user-supplied keys. Must not produce {@code null}.
 	 */
-	@InnerAccess final Transformer1<K, V> transformer;
+	private final Function<K, V> function;
 
 	/**
-	 * Answer the {@linkplain Transformer1 transformer} responsible for
-	 * producing new values from user-supplied keys.
+	 * Answer the {@linkplain Function function} responsible for producing new
+	 * values from user-supplied keys.
 	 *
-	 * @return A {@linkplain Transformer1 transformer}.
+	 * @return A {@link Function}.
 	 */
-	public Transformer1<K, V> transformer ()
+	public Function<K, V> transformer ()
 	{
-		return transformer;
+		return function;
 	}
 
 	/**
 	 * The {@linkplain Continuation2 action} responsible for retiring a binding
 	 * expired from the {@linkplain LRUCache cache}.
 	 */
-	@InnerAccess final @Nullable Continuation2<K, V> retirementAction;
+	private final @Nullable Continuation2<K, V> retirementAction;
 
 	/**
 	 * A {@code ValueFuture} synchronously provides a value for the key
@@ -350,8 +349,8 @@ public class LRUCache<K, V>
 
 		/**
 		 * The {@linkplain Condition condition} on which threads should wait to
-		 * be notified that execution of the user-supplied {@linkplain
-		 * Transformer1 transformer} has completed.
+		 * be notified that execution of the user-supplied {@link Function} has
+		 * completed.
 		 */
 		private final Condition completionCondition =
 			computationLock.newCondition();
@@ -407,8 +406,7 @@ public class LRUCache<K, V>
 
 		/**
 		 * The {@linkplain RuntimeException exception}, if any, that was
-		 * encountered during execution of the user-supplied {@linkplain
-		 * Transformer1 transformer}.
+		 * encountered during execution of the user-supplied {@link Function}.
 		 */
 		private volatile @Nullable RuntimeException exception;
 
@@ -488,58 +486,62 @@ public class LRUCache<K, V>
 	/**
 	 * Construct a new {@link LRUCache}.
 	 *
-	 * @param capacity The capacity of the {@linkplain LRUCache cache}. This is
-	 *                 the maximum number of cached values that will ever be
-	 *                 retained simultaneously. Must be greater than zero (0).
-	 * @param strongCapacity The maximum number of cached values that will be
-	 *                       strongly retained to prevent garbage collection.
-	 *                       Must be less than or equal to the capacity.
-	 * @param transformer The {@linkplain Transformer1 transformer} responsible
-	 *                    for producing new values from user-supplied keys. Must
-	 *                    not produce {@code null}.
-	 * @param retirementAction The {@linkplain Continuation2 action} responsible
-	 *                         for retiring a binding expired from the
-	 *                         {@linkplain LRUCache cache}, or {@code null} if
-	 *                         no such action should be performed.
+	 * @param capacity
+	 *        The capacity of the {@linkplain LRUCache cache}. This is the
+	 *        maximum number of cached values that will ever be retained
+	 *        simultaneously. Must be greater than zero (0).
+	 * @param strongCapacity
+	 *        The maximum number of cached values that will be strongly retained
+	 *        to prevent garbage collection. Must be less than or equal to the
+	 *        capacity.
+	 * @param function
+	 *        The {@link Function} responsible for producing new values from
+	 *        user-supplied keys. Must not produce {@code null}.
+	 * @param retirementAction
+	 *        The {@linkplain Continuation2 action} responsible for retiring a
+	 *        binding expired from the {@linkplain LRUCache cache}, or {@code
+	 *        null} if no such action should be performed.
 	 */
 	public LRUCache (
 		final int capacity,
 		final int strongCapacity,
-		final Transformer1<K, V> transformer,
+		final Function<K, V> function,
 		final @Nullable Continuation2<K, V> retirementAction)
 	{
 		assert capacity > 0;
 		assert strongCapacity <= capacity;
 
-		this.softCapacity     = capacity;
-		this.strongCapacity   = strongCapacity;
-		this.transformer      = transformer;
+		this.softCapacity = capacity;
+		this.strongCapacity = strongCapacity;
+		this.function = function;
 		this.retirementAction = retirementAction;
 
-		softMap   = new SoftCacheMap(softCapacity);
+		softMap = new SoftCacheMap(softCapacity);
 		strongMap = new StrongCacheMap(strongCapacity);
-		futures   = new HashMap<>();
+		futures = new HashMap<>();
 	}
 
 	/**
 	 * Construct a new {@link LRUCache}.
 	 *
-	 * @param capacity The capacity of the {@linkplain LRUCache cache}. This is
-	 *                 the maximum number of cached values that will ever be
-	 *                 retained simultaneously. Must be greater than zero (0).
-	 * @param strongCapacity The maximum number of cached values that will be
-	 *                       strongly retained to prevent garbage collection.
-	 *                       Must be less than or equal to the capacity.
-	 * @param transformer The {@linkplain Transformer1 transformer} responsible
-	 *                    for producing new values from user-supplied keys. Must
-	 *                    not produce {@code null}.
+	 * @param capacity
+	 *        The capacity of the {@linkplain LRUCache cache}. This is the
+	 *        maximum number of cached values that will ever be retained
+	 *        simultaneously. Must be greater than zero (0).
+	 * @param strongCapacity
+	 *        The maximum number of cached values that will be strongly retained
+	 *        to prevent garbage collection. Must be less than or equal to the
+	 *        capacity.
+	 * @param function
+	 *        The {@link Function} responsible for producing new values from
+	 *        user-supplied keys. Must not produce {@code null}.
 	 */
 	public LRUCache (
 		final int capacity,
 		final int strongCapacity,
-		final Transformer1<K, V> transformer)
+		final Function<K, V> function)
 	{
-		this(capacity, strongCapacity, transformer, null);
+		this(capacity, strongCapacity, function, null);
 	}
 
 	/**
@@ -581,7 +583,7 @@ public class LRUCache<K, V>
 	 * @param key The key to remove.
 	 * @param referent The value at that key.
 	 */
-	@InnerAccess void retire (final K key, final V referent)
+	private void retire (final K key, final V referent)
 	{
 		final @Nullable Continuation2<K, V> retire = retirementAction;
 		if (retire != null)
@@ -595,7 +597,7 @@ public class LRUCache<K, V>
 	 * been completed. A thread waiting on it will be signaled every time a
 	 * future is removed from {@linkplain #futures the map of futures}.
 	 */
-	final Condition futuresCondition = lock.newCondition();
+	private final Condition futuresCondition = lock.newCondition();
 
 	/**
 	 * Completely clear the cache, forcing retirement of the contents before
@@ -658,8 +660,8 @@ public class LRUCache<K, V>
 
 	/**
 	 * Immediately answer the value already associated with the specified key.
-	 * Do not execute the user-supplied {@linkplain Transformer1 transformer}
-	 * under any circumstances. That is, only answer an already cached value.
+	 * Do not execute the user-supplied {@link Function} under any
+	 * circumstances. That is, only answer an already cached value.
 	 *
 	 * <p>This method answers {@code null} if <strong>1)</strong> the cached
 	 * value associated with the specified key is actually {@code null} or
@@ -669,7 +671,8 @@ public class LRUCache<K, V>
 	 * reenter any public operation while computing a value for a specified
 	 * key.</p>
 	 *
-	 * @param key The key whose associated value should be answered.
+	 * @param key
+	 *        The key whose associated value should be answered.
 	 * @return The value to which the specified key is mapped, or {@code null}
 	 *         if no value has been mapped.
 	 */
@@ -703,8 +706,8 @@ public class LRUCache<K, V>
 
 	/**
 	 * Answer the value associated with the specified key, computing the value
-	 * from the user-supplied {@linkplain Transformer1 transformer} if the value
-	 * is not already present in the {@linkplain LRUCache cache}.
+	 * from the user-supplied {@link Function} if the value is not already
+	 * present in the {@linkplain LRUCache cache}.
 	 *
 	 * <p>This method only returns {@code null} for those keys explicitly
 	 * mapped to {@code null} by the transformer.</p>
@@ -717,8 +720,7 @@ public class LRUCache<K, V>
 	 * @return The value to which the specified key is mapped.
 	 * @throws RuntimeException
 	 *         If an exception occurred as a result of an error in the
-	 *         execution of the user-supplied {@linkplain Transformer1
-	 *         transformer}.
+	 *         execution of the user-supplied {@link Function}.
 	 */
 	public @Nullable V get (final K key) throws RuntimeException
 	{
@@ -753,22 +755,20 @@ public class LRUCache<K, V>
 					@Nullable RuntimeException exception = null;
 					try
 					{
-						result = transformer.value(key);
+						result = function.apply(key);
 					}
-
-					// Record the exception locally. We are not holding the lock
-					// at this point, and we really ought to set the exception
-					// when we *are* holding it.
 					catch (final RuntimeException e)
 					{
+						// Record the exception locally. We are not holding the
+						// lock at this point, and we really ought to set the
+						// exception when we *are* holding it.
 						exception = e;
 					}
-
-					// If the transformer throws an exception, then attach the
-					// exception to the future so that waiters can react
-					// appropriately.
 					finally
 					{
+						// If the transformer throws an exception, then attach
+						// the exception to the future so that waiters can react
+						// appropriately.
 						lock();
 						if (exception == null)
 						{
@@ -795,11 +795,10 @@ public class LRUCache<K, V>
 					softMap.put(key, reference);
 					keysBySoftReference.put(reference, key);
 				}
-
-				// Some other thread is computing a value for our key, so just
-				// wait until it becomes available.
 				else
 				{
+					// Some other thread is computing a value for our key, so just
+					// wait until it becomes available.
 					// We must not hold any locks while awaiting completion of
 					// the future.
 					unlock();
@@ -833,8 +832,8 @@ public class LRUCache<K, V>
 
 	/**
 	 * Answer the value associated with the specified key, computing the value
-	 * from the user-supplied {@linkplain Transformer1 transformer} if the value
-	 * is not already present in the {@linkplain LRUCache cache}.
+	 * from the user-supplied {@link Function} if the value is not already
+	 * present in the {@linkplain LRUCache cache}.
 	 *
 	 * <p>This operation should not be used if the value can be null.</p>
 	 *
@@ -845,9 +844,8 @@ public class LRUCache<K, V>
 	 * @param key The key whose associated value should be answered.
 	 * @return The value to which the specified key is mapped.
 	 * @throws RuntimeException
-	 *         If an exception occurred as a result of an error in the
-	 *         execution of the user-supplied {@linkplain Transformer1
-	 *         transformer}.
+	 *         If an exception occurred as a result of an error in the execution
+	 *         of the user-supplied {@link Function}.
 	 */
 	public V getNotNull (final K key) throws RuntimeException
 	{

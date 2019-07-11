@@ -39,10 +39,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.PojoFieldDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
@@ -91,6 +93,13 @@ public final class P_BindPojoStaticField extends Primitive
 		final A_Type pojoType = interpreter.argument(0);
 		final A_String fieldName = interpreter.argument(1);
 		final Field field;
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		// If pojoType is not a fused type, then it has an immediate class
 		// that should be used to recursively look up the field.
 		if (!pojoType.isPojoFusedType())

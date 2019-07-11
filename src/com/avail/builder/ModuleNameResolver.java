@@ -215,14 +215,7 @@ public final class ModuleNameResolver
 	 * names}.
 	 */
 	private final LRUCache<ModuleName, ModuleNameResolutionResult>
-		resolutionCache = new LRUCache<>(
-			10_000,
-			100,
-		qualifiedName ->
-		{
-			assert qualifiedName != null;
-			return privateResolve(qualifiedName);
-		});
+		resolutionCache = new LRUCache<>(10_000, 100, this::privateResolve);
 
 	public void clearCache ()
 	{

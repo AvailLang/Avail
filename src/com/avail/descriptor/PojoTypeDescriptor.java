@@ -34,9 +34,11 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -67,33 +69,24 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
+import static com.avail.descriptor.RawPojoDescriptor.*;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
 
@@ -376,14 +369,10 @@ extends TypeDescriptor
 		// of java.lang.Object. Make this relationship explicit: seed the
 		// ancestry with java.lang.Object.
 		final Canon canon = new Canon();
-		final Mutable<A_Map> ancestors = new Mutable<>(
-			emptyMap());
+		final Mutable<A_Map> ancestors = new Mutable<>(emptyMap());
 		ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
-			canon.get(Object.class),
-			emptyTuple(),
-			true);
-		computeAncestry(
-			key.javaClass, key.typeArgs, ancestors, canon);
+			canon.get(Object.class), emptyTuple(), true);
+		computeAncestry(key.javaClass, key.typeArgs, ancestors, canon);
 		return createUnfusedPojoType(canon.get(key.javaClass), ancestors.value);
 	}
 
@@ -392,14 +381,7 @@ extends TypeDescriptor
 	 * to build, so cache them for efficiency.
 	 */
 	private static final LRUCache<LRUCacheKey, AvailObject> cache =
-		new LRUCache<>(
-			1000,
-			10,
-			key ->
-			{
-				assert key != null;
-				return computeValue(key);
-			});
+		new LRUCache<>(1000, 10, PojoTypeDescriptor::computeValue);
 
 	@Override @AvailMethod
 	final boolean o_Equals (
@@ -816,7 +798,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Marshal the supplied {@linkplain TypeDescriptor types}.
+	 * Marshal the supplied {@link A_Tuple} of {@link A_Type}s.
 	 *
 	 * @param types
 	 *        A {@linkplain TupleDescriptor tuple} of types.
@@ -826,16 +808,90 @@ extends TypeDescriptor
 	 *         If marshaling fails for any of the supplied types.
 	 */
 	public static Class<?>[] marshalTypes (final A_Tuple types)
-		throws MarshalingException
+	throws MarshalingException
 	{
 		// Marshal the argument types.
 		final Class<?>[] marshaledTypes = new Class<?>[types.tupleSize()];
 		for (int i = 0; i < marshaledTypes.length; i++)
 		{
-			marshaledTypes[i] = (Class<?>) types.tupleAt(
-				i + 1).marshalToJava(null);
+			marshaledTypes[i] =
+				nullableCast(types.tupleAt(i + 1).marshalToJava(null));
 		}
 		return marshaledTypes;
+	}
+
+	/**
+	 * Search for the requested Java {@link Method}.
+	 *
+	 * @param pojoType
+	 *        The pojo type (an {@link A_Type}) where the method is defined. The
+	 *        method may also be in a superclass of this class.
+	 * @param methodName
+	 *        The name of the method.
+	 * @param marshaledTypes
+	 *        The array of {@link Class}es for the arguments, used to
+	 *        disambiguate overloaded methods.
+	 * @param errorOut
+	 *        A {@link MutableOrNull} into which an {@link AvailErrorCode} can
+	 *        be written in the event that a unique {@link Method} is not found.
+	 * @return Either the successfully looked up {@link Method} or {@code null}.
+	 *         Note that either the return is non-null or the errorOut will
+	 *         have a non-null value written to it.
+	 */
+	public static @Nullable Method lookupMethod (
+		final A_Type pojoType,
+		final A_String methodName,
+		final Class<?>[] marshaledTypes,
+		final MutableOrNull<AvailErrorCode> errorOut)
+	{
+		// Search for the method.
+		// If pojoType is not a fused type, then it has an immediate class that
+		// should be used to recursively look up the method.
+		if (!pojoType.isPojoFusedType())
+		{
+			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
+			try
+			{
+				return javaClass.getMethod(
+					methodName.asNativeString(), marshaledTypes);
+			}
+			catch (final NoSuchMethodException e)
+			{
+				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE;
+				return null;
+			}
+		}
+		// If pojoType is a fused type, then iterate through its ancestry in an
+		// attempt to uniquely resolve the method.
+		else
+		{
+			final Set<Method> methods = new HashSet<>();
+			final A_Map ancestors = pojoType.javaAncestors();
+			for (final A_BasicObject ancestor : ancestors.keysAsSet())
+			{
+				final Class<?> javaClass = ancestor.javaObjectNotNull();
+				try
+				{
+					methods.add(javaClass.getMethod(
+						methodName.asNativeString(), marshaledTypes));
+				}
+				catch (final NoSuchMethodException e)
+				{
+					// Ignore -- this is not unexpected.
+				}
+			}
+			if (methods.isEmpty())
+			{
+				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE;
+				return null;
+			}
+			if (methods.size() > 1)
+			{
+				errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+				return null;
+			}
+			return methods.iterator().next();
+		}
 	}
 
 	/**
@@ -907,6 +963,7 @@ extends TypeDescriptor
 		{
 			availObject = newPojo(identityPojo(object), type);
 		}
+
 		if (!availObject.isInstanceOf(type))
 		{
 			throw new MarshalingException();
@@ -1203,7 +1260,7 @@ extends TypeDescriptor
 	 *        The current {@linkplain Canon canon}, used to deduplicate the
 	 *        collection of ancestors.
 	 */
-	@InnerAccess static void computeAncestry (
+	private static void computeAncestry (
 		final Class<?> target,
 		final A_Tuple typeArgs,
 		final Mutable<A_Map> ancestry,
@@ -1356,7 +1413,7 @@ extends TypeDescriptor
 		final Canon canon)
 	{
 		ancestors.add(canon.canonize(target));
-		final Class<?> superclass = target.getSuperclass();
+		final @Nullable Class<?> superclass = target.getSuperclass();
 		if (superclass != null)
 		{
 			computeUnparameterizedAncestry(superclass, ancestors, canon);

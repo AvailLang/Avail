@@ -180,7 +180,7 @@ Semantic restriction "_'s⁇payload" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "keyType"} is a subtype of the
  * {@type "trie"} type's {@method "_'s⁇key type"}.
  *
@@ -205,7 +205,7 @@ Public method "Require:_is valid key type of_" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "valueType"} is a subtype of the
  * {@type "trie"} type's {@method "_'s⁇value type"}.
  *

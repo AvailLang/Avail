@@ -33,8 +33,11 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -172,6 +175,29 @@ extends Descriptor
 	}
 
 	@Override
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
+	{
+		if (javaObject == null)
+		{
+			return SerializerOperation.RAW_POJO_NULL;
+		}
+		if (javaObject instanceof Class)
+		{
+			return SerializerOperation.RAW_JAVA_CLASS;
+		}
+		if (javaObject instanceof Method)
+		{
+			return SerializerOperation.RAW_POJO_METHOD;
+		}
+		if (javaObject instanceof Constructor)
+		{
+			return SerializerOperation.RAW_POJO_CONSTRUCTOR;
+		}
+		return super.o_SerializerOperation(object);
+	}
+
+	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
@@ -191,7 +217,7 @@ extends Descriptor
 	enum FakeSlots implements ObjectSlotsEnum
 	{
 		/** The sole (pseudo-)slot, the java object itself. */
-		JAVA_OBJECT;
+		JAVA_OBJECT
 	}
 
 	/**
@@ -244,7 +270,7 @@ extends Descriptor
 	 *
 	 * @return A raw pojo that represents {@code Object}.
 	 */
-	public static AvailObject rawObjectClass ()
+	static AvailObject rawObjectClass ()
 	{
 		return rawObjectClass;
 	}

@@ -31,52 +31,34 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.enumerationWith;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
-import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
@@ -114,84 +96,41 @@ extends Primitive
 		final A_String methodName = interpreter.argument(1);
 		final A_Tuple paramTypes = interpreter.argument(2);
 		final AvailObject failFunction = interpreter.argument(3);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		// Marshal the argument types.
-		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
+		final Class<?>[] marshaledTypes;
 		try
 		{
-			for (int i = 0; i < marshaledTypes.length; i++)
-			{
-				marshaledTypes[i] = (Class<?>) paramTypes.tupleAt(
-					i + 1).marshalToJava(null);
-			}
+			marshaledTypes = marshalTypes(paramTypes);
 		}
 		catch (final MarshalingException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
 		// Search for the method.
-		final Method method;
+		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
+		final @Nullable Method method = lookupMethod(
+			pojoType, methodName, marshaledTypes, errorOut);
 		// If pojoType is not a fused type, then it has an immediate class
 		// that should be used to recursively look up the method.
-		if (!pojoType.isPojoFusedType())
-		{
-			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
-			try
-			{
-				method = javaClass.getMethod(
-					methodName.asNativeString(), marshaledTypes);
-			}
-			catch (final NoSuchMethodException e)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_NOT_AVAILABLE);
-			}
-		}
-		// If pojoType is a fused type, then iterate through its ancestry in
-		// an attempt to uniquely resolve the method.
-		else
-		{
-			final Set<Method> methods = new HashSet<>();
-			final A_Map ancestors = pojoType.javaAncestors();
-			for (final A_BasicObject ancestor : ancestors.keysAsSet())
-			{
-				final Class<?> javaClass = ancestor.javaObjectNotNull();
-				try
-				{
-					methods.add(javaClass.getMethod(
-						methodName.asNativeString(), marshaledTypes));
-				}
-				catch (final NoSuchMethodException e)
-				{
-					// Ignore -- this is not unexpected.
-				}
-			}
-			if (methods.isEmpty())
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_NOT_AVAILABLE);
-			}
-			if (methods.size() > 1)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS);
-			}
-			method = methods.iterator().next();
-		}
 		assert method != null;
+		assert errorOut.value == null;
 		// Wrap each of the marshaled argument types into raw pojos. These
 		// will be embedded into one of the generated functions below.
-		final List<AvailObject> marshaledTypePojos =
-			new ArrayList<>(marshaledTypes.length);
-		for (final Class<?> paramClass : marshaledTypes)
-		{
-			marshaledTypePojos.add(equalityPojo(paramClass));
-		}
-		final A_Tuple marshaledTypesTuple = tupleFromList(marshaledTypePojos);
+		final A_Tuple marshaledTypesTuple =
+			generateObjectTupleFrom(
+				marshaledTypes.length,
+				i -> equalityPojo(marshaledTypes[i - 1]));
 		// Create a function wrapper for the pojo method invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.
-		L1InstructionWriter writer = new L1InstructionWriter(
-			nil, 0, nil);
+		L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.primitive(P_InvokeStaticPojoMethod.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),

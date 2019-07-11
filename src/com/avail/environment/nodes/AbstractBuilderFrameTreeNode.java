@@ -36,7 +36,6 @@ import com.avail.builder.AvailBuilder;
 import com.avail.environment.AvailWorkbench;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Transformer1;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -74,7 +73,7 @@ extends DefaultMutableTreeNode
 	 *
 	 * @param builder The builder for which this node is being built.
 	 */
-	public AbstractBuilderFrameTreeNode (final AvailBuilder builder)
+	AbstractBuilderFrameTreeNode (final AvailBuilder builder)
 	{
 		this.builder = builder;
 	}
@@ -119,24 +118,18 @@ extends DefaultMutableTreeNode
 		cachedScaledIcons = new LRUCache<>(
 			100,
 			20,
-			new Transformer1<Pair<String, Integer>, ImageIcon>()
+			pair ->
 			{
-				@Override
-				public ImageIcon value(
-					final @Nullable Pair<String, Integer> key)
-				{
-					assert key != null;
-					final String iconResourceName = key.first();
-					final String path = AvailWorkbench.resourcePrefix
-						+ iconResourceName + ".png";
-					final Class<?> thisClass = this.getClass();
-					final URL resource = thisClass.getResource(path);
-					final ImageIcon originalIcon = new ImageIcon(resource);
-					final Image scaled =
-						originalIcon.getImage().getScaledInstance(
-							-1, key.second(), Image.SCALE_SMOOTH);
-					return new ImageIcon(scaled, iconResourceName);
-				}
+				final String iconResourceName = pair.first();
+				final String path = AvailWorkbench.resourcePrefix
+					+ iconResourceName + ".png";
+				final Class<?> thisClass = AbstractBuilderFrameTreeNode.class;
+				final URL resource = thisClass.getResource(path);
+				final ImageIcon originalIcon = new ImageIcon(resource);
+				final Image scaled =
+					originalIcon.getImage().getScaledInstance(
+						-1, pair.second(), Image.SCALE_SMOOTH);
+				return new ImageIcon(scaled, iconResourceName);
 			});
 
 	/**

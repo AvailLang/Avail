@@ -65,7 +65,7 @@ Uses
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
-		"Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_",
+		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
@@ -1299,7 +1299,7 @@ Primitive "Abstract method_is_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_`. Second,
+ * `Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_`. Second,
  * it may strengthen the type of value produced at the call site by answering
  * a subtype of the method's declared return type.
  *
@@ -1376,7 +1376,7 @@ Primitive "Semantic restriction_is_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_`. Second, it
+ * `Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_`. Second, it
  * may strengthen the type of value produced at the call site by answering a
  * subtype of the method's declared return type.
  *
@@ -3093,7 +3093,7 @@ Primitive "_→function" is
  * compiler, never by a semantically valid Avail program.
  *
  * @category "Primitives" "Semantic Restrictions"
- * @method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * @method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * @param "level" "parse rejection level"
  *        The notification level that controls under what circumstances the text
  *        should be presented as a compilation error.  The values are: 
@@ -3108,7 +3108,7 @@ Primitive "_→function" is
  * @returns "⊥"
  * @raises "untimely-parse-rejection exception"
  */
-Primitive "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_" is
+Primitive "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
 [
 	level : parse rejection level,
 	expected : string

@@ -31,28 +31,21 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.lang.reflect.TypeVariable;
-
-import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoSelfType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments;
-import static com.avail.descriptor.PojoTypeDescriptor.selfTypeForClass;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -83,58 +76,17 @@ public final class P_CreatePojoType extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_String className = interpreter.argument(0);
 		final A_Tuple classParameters = interpreter.argument(1);
-		// Forbid access to the Avail implementation's packages.
-		final String nativeClassName = className.asNativeString();
-		if (nativeClassName.startsWith("com.avail"))
-		{
-			return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
-		}
-		// Look up the raw Java class using the interpreter's runtime's
-		// class loader.
-		final Class<?> rawClass;
+
 		try
 		{
-			rawClass = Class.forName(
-				className.asNativeString(),
-				true,
-				currentRuntime().classLoader());
+			return interpreter.primitiveSuccess(
+				interpreter.runtime().lookupJavaType(
+					className, classParameters));
 		}
-		catch (final ClassNotFoundException e)
+		catch (AvailRuntimeException e)
 		{
-			return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
+			return interpreter.primitiveFailure(e.numericCode());
 		}
-		// Check that the correct number of type parameters have been
-		// supplied. Don't bother to check the bounds of the type
-		// parameters. Incorrect bounds will cause some method and
-		// constructor lookups to fail, but that's fine.
-		final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
-		if (typeVars.length != classParameters.tupleSize())
-		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS);
-		}
-		// Replace all occurrences of the pojo self type atom with actual
-		// pojo self types.
-		A_Tuple realParameters = classParameters.copyAsMutableObjectTuple();
-		for (int i = 1; i <= classParameters.tupleSize(); i++)
-		{
-			final A_BasicObject originalParameter = classParameters.tupleAt(i);
-			final AvailObject realParameter;
-			if (originalParameter.equals(pojoSelfType()))
-			{
-				realParameter = selfTypeForClass(rawClass);
-			}
-			else
-			{
-				realParameter = originalParameter.makeImmutable();
-			}
-			realParameters = realParameters.tupleAtPuttingCanDestroy(
-				i, realParameter, true);
-		}
-		// Construct and answer the pojo type.
-		final A_Type newPojoType =
-			pojoTypeForClassWithTypeArguments(rawClass, realParameters);
-		return interpreter.primitiveSuccess(newPojoType);
 	}
 
 	@Override

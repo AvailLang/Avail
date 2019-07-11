@@ -81,6 +81,7 @@ Extends
 		"Mersenne Twister test suite",
 		"network test suite",
 		"observation test suite",
+		"pojo test suite",
 		"pRNG test suite",
 		"set test suite",
 		"string test suite",

@@ -52,7 +52,7 @@ Names
 Body
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "name"} is not a canonical message.
  *
  * @method "Require:_is canonical"
@@ -77,7 +77,7 @@ Public method "Require:_is canonical" is
 ] : ⊤;
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "name"} is not a canonical message.
  *
  * @method "Require:_is canonical"
@@ -106,7 +106,7 @@ Public method "Require:_is canonical" is
 ] : ⊤;
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "name"} is ambiguous in the {@method
  * "current module"}.
  *

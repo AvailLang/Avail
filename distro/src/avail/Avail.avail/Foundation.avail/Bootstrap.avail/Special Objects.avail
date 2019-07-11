@@ -157,6 +157,7 @@ Names
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
 	/*  68 */ "primitive failure reason phrase",
+	/* 169 */ "raw pojo",
 	/* 131 */ "readable extended integer variable",
 	/* 144 */ "scope map key",
 	/* 149 */ "scope stack key",
@@ -2215,4 +2216,13 @@ Special object "source line number" is special object 167;
  * @alias "parse rejection level"
  */
 Special object "parse rejection level" is special object 168;
+
+/**
+ * The type for raw pojos (Plain Old Java Objects).
+ *
+ * @category "Primitives" "Types"
+ * @type "raw pojo"
+ * @alias "raw pojo"
+ */
+Special object "raw pojo" is special object 169;
 

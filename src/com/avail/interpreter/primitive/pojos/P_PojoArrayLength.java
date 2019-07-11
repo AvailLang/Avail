@@ -34,10 +34,12 @@ package com.avail.interpreter.primitive.pojos;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.PojoDescriptor;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -69,6 +71,13 @@ public final class P_PojoArrayLength extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_BasicObject pojo = interpreter.argument(0);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final A_BasicObject rawPojo = pojo.rawPojo();
 		final Object array = rawPojo.javaObjectNotNull();
 		return interpreter.primitiveSuccess(fromInt(Array.getLength(array)));

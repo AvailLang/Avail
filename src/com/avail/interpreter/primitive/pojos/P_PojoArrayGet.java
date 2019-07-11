@@ -38,10 +38,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -79,6 +81,13 @@ public final class P_PojoArrayGet extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_BasicObject pojo = interpreter.argument(0);
 		final A_Number subscript = interpreter.argument(1);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final A_BasicObject rawPojo = pojo.rawPojo();
 		final Object array = rawPojo.javaObjectNotNull();
 		final int index = subscript.extractInt();

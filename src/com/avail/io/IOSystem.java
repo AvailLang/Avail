@@ -469,20 +469,16 @@ public class IOSystem
 		BufferKey,
 		MutableOrNull<A_Tuple>>
 		cachedBuffers = new LRUCache<>(
-		10000,
-		10,
-		key ->
-		{
-			assert key != null;
-			return new MutableOrNull<>();
-		},
-		(key, value) ->
-		{
-			assert value != null;
-			// Just clear the mutable's value slot, freeing the actual
-			// buffer.
-			value.value = null;
-		});
+			10000,
+			10,
+			key -> new MutableOrNull<>(),
+			(key, value) ->
+			{
+				assert value != null;
+				// Just clear the mutable's value slot, freeing the actual
+				// buffer.
+				value.value = null;
+			});
 
 	/**
 	 * Answer the {@linkplain MutableOrNull container} responsible for the

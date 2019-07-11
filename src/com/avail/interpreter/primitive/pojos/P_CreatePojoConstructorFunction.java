@@ -37,16 +37,19 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.RawPojoDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -60,8 +63,7 @@ import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -73,11 +75,8 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelOne.L1Operation.L1_doCall;
-import static com.avail.interpreter.levelOne.L1Operation.L1_doGetLocal;
-import static com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple;
-import static com.avail.interpreter.levelOne.L1Operation.L1_doPushLiteral;
-import static com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal;
+import static com.avail.interpreter.levelOne.L1Operation.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> Given the specified {@linkplain
@@ -107,6 +106,13 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		final A_Type pojoType = interpreter.argument(0);
 		final A_Tuple paramTypes = interpreter.argument(1);
 		final A_Function failFunction = interpreter.argument(2);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		// Do not attempt to bind a constructor to an abstract pojo type.
 		if (pojoType.isAbstract())
 		{
@@ -115,14 +121,10 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		// Marshal the argument types and look up the appropriate
 		// constructor.
 		final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
-		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
+		final Class<?>[] marshaledTypes;
 		try
 		{
-			for (int i = 0; i < marshaledTypes.length; i++)
-			{
-				marshaledTypes[i] =
-					(Class<?>) paramTypes.tupleAt(i + 1).marshalToJava(null);
-			}
+			marshaledTypes = marshalTypes(paramTypes);
 		}
 		catch (final MarshalingException e)
 		{
@@ -131,8 +133,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		final Constructor<?> constructor;
 		try
 		{
-			constructor = javaClass.getConstructor(
-				marshaledTypes);
+			constructor = javaClass.getConstructor(marshaledTypes);
 		}
 		catch (final Exception e)
 		{
@@ -142,18 +143,14 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		// Wrap each of the marshaled argument types into raw pojos. These
 		// will be embedded into one of the generated functions below.
 		final List<AvailObject> marshaledTypePojos =
-			new ArrayList<>(marshaledTypes.length);
-		for (final Class<?> paramClass : marshaledTypes)
-		{
-			marshaledTypePojos.add(
-				equalityPojo(paramClass));
-		}
+			Arrays.stream(marshaledTypes)
+				.map(RawPojoDescriptor::equalityPojo)
+				.collect(toList());
 		final A_Tuple marshaledTypesTuple = tupleFromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo constructor invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.
-		L1InstructionWriter writer = new L1InstructionWriter(
-			nil, 0, nil);
+		L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.primitive(P_InvokePojoConstructor.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),

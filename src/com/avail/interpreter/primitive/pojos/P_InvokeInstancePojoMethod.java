@@ -40,6 +40,7 @@ import com.avail.descriptor.RawPojoDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -53,10 +54,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
-import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -92,6 +90,13 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		final A_BasicObject receiverPojoMaybe = interpreter.argument(1);
 		final A_Tuple methodArgs = interpreter.argument(2);
 		final A_Tuple marshaledTypePojos = interpreter.argument(3);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		// Marshal the arguments and invoke the method.
 		final Method method = methodPojo.javaObjectNotNull();
 		final @Nullable Object receiver = receiverPojoMaybe.marshalToJava(
@@ -139,8 +144,8 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		{
 			return interpreter.primitiveSuccess(nullPojo());
 		}
-		final A_Type receiverPojo = receiverPojoMaybe.isPojo()
-			? receiverPojoMaybe.rawPojo()
+		final A_BasicObject receiverPojo = receiverPojoMaybe.isPojo()
+			? receiverPojoMaybe
 			: newPojo(
 				identityPojo(receiver),
 				pojoTypeForClass(method.getDeclaringClass()));

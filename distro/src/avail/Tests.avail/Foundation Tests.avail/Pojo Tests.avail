@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Pojo Tests.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,30 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Foundation Tests"
+Module "Pojo Tests"
 Versions
 	"1.2.0 DEV 2019-07-09"
 Uses
-	"Avail"
-Extends
-	"Assertion Tests" = ("assertion test suite"),
-	"Backtracking Tests" = ("backtracking test suite"),
-	"Cast Tests" = ("cast test suite"),
-	"Characters Tests" = ("character test suite"),
- 	"Common" = ("Foundation|foundation test suite"),
-	"Concurrency Tests" = ("concurrency test suite"),
-	"Control Structure Tests" = ("control structure test suite"),
-	"Decompiler Tests" = ("decompiler test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Logic Tests" = ("logic test suite"),
-	"Map Tests" = ("map test suite"),
-	"Math Tests" = ("math test suite"),
-	"Message Tests" = ("message test suite"),
-	"Observation Tests" = ("observation test suite"),
-	"Pojo Tests" = ("pojo test suite"),
-	"Set Tests" = ("set test suite"),
-	"String Tests" = ("string test suite"),
-	"Tuple Tests" = ("tuple test suite"),
-	"Type Tests" = ("type test suite")
+	"Common"
+Names
+	"pojo test suite"
 Body
+
+/* This tests pojos, which are Plain Old Java Objects. */
+
+/* The test suite identifier. */
+"pojo test suite" is a new atom;
+
+New test suite pojo test suite extends foundation test suite;
+
+jListOfString ::= "java.util.List"<string>;
+jArrayListOfString ::= "java.util.ArrayList"<string>;
+
+Test "pojo string list" in pojo test suite is
+[
+	listConstructor ::= constructor of jArrayListOfString parameterized by <>;
+	listSize ::= method jListOfString."size" <> ?→ […]→Java int;
+	listAdd ::= method jListOfString."add" <any> ?→ […]→boolean;
+	listGet ::= method jListOfString."get" <Java int> ?→ […]→string;
+
+	/* Use these reflection pojos to create and poke a List<String>. */
+	list ::= invoke listConstructor with <>;
+	Require: (invoke listSize with <list>) = 0;
+	added ::= invoke listAdd with <list, "cat">;
+	Require: added = true;
+	Require: (invoke listSize with <list>) = 1;
+	cat ::= invoke listGet with <list, 0>;
+	Require: cat = "cat";
+];

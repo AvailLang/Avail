@@ -34,7 +34,6 @@ package com.avail.persistence;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.LRUCache;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.evaluation.Transformer2NotNull;
 
 import javax.annotation.Nullable;
@@ -498,43 +497,38 @@ public abstract class IndexedFile
 		new LRUCache<>(
 			DEFAULT_SOFT_CACHE_SIZE,
 			DEFAULT_STRONG_CACHE_SIZE,
-			new Transformer1<Long, byte[]>()
+			argument ->
 			{
-				@Override
-				public byte[] value (final @Nullable Long argument)
+				try
 				{
-					assert argument != null;
-					try
+					final byte[] block = fetchSizedFromFile(argument);
+					final Inflater inflater = new Inflater();
+					inflater.setInput(block);
+					final List<byte[]> buffers = new ArrayList<>(10);
+					int size = 0;
+					int bufferPos = -1;
+					while (!inflater.needsInput())
 					{
-						final byte[] block = fetchSizedFromFile(argument);
-						final Inflater inflater = new Inflater();
-						inflater.setInput(block);
-						final List<byte[]> buffers = new ArrayList<>(10);
-						int size = 0;
-						int bufferPos = -1;
-						while (!inflater.needsInput())
-						{
-							final byte[] buffer =
-								new byte[(compressionBlockSize * 3 >> 1)];
-							bufferPos = inflater.inflate(buffer);
-							size += bufferPos;
-							buffers.add(buffer);
-						}
-						final ByteBuffer inflated = ByteBuffer.wrap(
-							new byte[size]);
-						for (int i = 0; i < buffers.size() - 1; i++)
-						{
-							inflated.put(buffers.get(i));
-						}
-						inflated.put(
-							buffers.get(buffers.size() - 1), 0, bufferPos);
-						assert inflated.position() == inflated.capacity();
-						return inflated.array();
+						final byte[] buffer =
+							new byte[(compressionBlockSize * 3 >> 1)];
+						bufferPos = inflater.inflate(buffer);
+						size += bufferPos;
+						buffers.add(buffer);
 					}
-					catch (final Exception e)
+					final ByteBuffer inflated = ByteBuffer.wrap(
+						new byte[size]);
+					for (int i = 0; i < buffers.size() - 1; i++)
 					{
-						throw new RuntimeException(e);
+						inflated.put(buffers.get(i));
 					}
+					inflated.put(
+						buffers.get(buffers.size() - 1), 0, bufferPos);
+					assert inflated.position() == inflated.capacity();
+					return inflated.array();
+				}
+				catch (final Exception e)
+				{
+					throw new RuntimeException(e);
 				}
 			});
 

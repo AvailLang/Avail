@@ -40,6 +40,7 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -91,6 +92,13 @@ public final class P_InvokePojoConstructor extends Primitive
 		final A_Tuple constructorArgs = interpreter.argument(1);
 		final A_Tuple marshaledTypePojos = interpreter.argument(2);
 		final A_Type expectedType = interpreter.argument(3);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final Constructor<?> constructor = constructorPojo.javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[constructorArgs.tupleSize()];
 		// Marshal the arguments.

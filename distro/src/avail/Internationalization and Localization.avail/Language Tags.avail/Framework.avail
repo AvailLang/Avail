@@ -238,7 +238,7 @@ Public method "_is valid language code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "nameType"} is an enumeration type
  * and its instances are all {@method "Language_has code_" registered}.
  *
@@ -279,7 +279,7 @@ Public method "Require:_is valid language name" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "codeType"} is an enumeration type
  * and its instances are all {@method "Language_has code_" registered}.
  *
@@ -320,7 +320,7 @@ Public method "Require:_is valid language code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "codeType"} is an enumeration type and
  * its instances are not well-formed.
  *
@@ -519,7 +519,7 @@ Public method "_is valid script code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "nameType"} is an enumeration type
  * and its instances are all {@method "Script_has code_" registered}.
  *
@@ -560,7 +560,7 @@ Public method "Require:_is valid script name" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "codeType"} is an enumeration type
  * and its instances are all {@method "Script_has code_" registered}.
  *
@@ -601,7 +601,7 @@ Public method "Require:_is valid script code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "codeType"} is an enumeration type and
  * its instances are not well-formed.
  *
@@ -798,7 +798,7 @@ Public method "_is valid region code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "nameType"} is an enumeration type
  * and its instances are all {@method "Region_has code_" registered}.
  *
@@ -839,7 +839,7 @@ Public method "Require:_is valid region name" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "codeType"} is an enumeration type
  * and its instances are all {@method "Region_has code_" registered}.
  *
@@ -880,7 +880,7 @@ Public method "Require:_is valid region code" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "codeType"} is an enumeration type and
  * its instances are not well-formed.
  *
@@ -1141,7 +1141,7 @@ Semantic restriction "a language tag…" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless {@param "codeType"} is an enumeration type
  * and its instances are all {@method "Script_has code_" registered} {@type
  * "script code" script code}s or {@method "Region_has code_" registered} {@type
@@ -1334,7 +1334,7 @@ Semantic restriction "an unchecked language tag…" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} if {@param "codeType"} is an enumeration type and
  * its instances are not all well-formed {@type "script code" script code}s or
  * well-formed {@type "region code"}s.

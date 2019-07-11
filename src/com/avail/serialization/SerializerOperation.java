@@ -33,82 +33,22 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AbstractDefinitionDescriptor;
-import com.avail.descriptor.AssignmentPhraseDescriptor;
-import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.DoubleDescriptor;
-import com.avail.descriptor.EnumerationTypeDescriptor;
-import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor;
-import com.avail.descriptor.FiberTypeDescriptor;
-import com.avail.descriptor.FirstOfSequencePhraseDescriptor;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.ForwardDefinitionDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.InstanceMetaDescriptor;
-import com.avail.descriptor.InstanceTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ListPhraseDescriptor;
-import com.avail.descriptor.ListPhraseTypeDescriptor;
-import com.avail.descriptor.LiteralPhraseDescriptor;
-import com.avail.descriptor.LiteralTokenDescriptor;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.MacroDefinitionDescriptor;
-import com.avail.descriptor.MacroSubstitutionPhraseDescriptor;
-import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MapTypeDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.MethodDefinitionDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.PermutedListPhraseDescriptor;
-import com.avail.descriptor.PhraseTypeDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.ReadWriteVariableTypeDescriptor;
-import com.avail.descriptor.SendPhraseDescriptor;
-import com.avail.descriptor.SequencePhraseDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.SuperCastPhraseDescriptor;
-import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.TokenTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.VariableTypeDescriptor;
-import com.avail.descriptor.VariableUsePhraseDescriptor;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction;
+import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.AvailRuntime.specialObject;
@@ -137,11 +77,7 @@ import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
-import static com.avail.descriptor.IntegerDescriptor.one;
-import static com.avail.descriptor.IntegerDescriptor.two;
-import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
@@ -153,16 +89,12 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
-import static com.avail.descriptor.PojoTypeDescriptor.Types;
-import static com.avail.descriptor.PojoTypeDescriptor.fusedTypeFromAncestorMap;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
 import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoFromSerializationProxy;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.pojoSerializationProxy;
@@ -181,25 +113,12 @@ import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
-import static com.avail.serialization.SerializerOperandEncoding.BIG_INTEGER_DATA;
-import static com.avail.serialization.SerializerOperandEncoding.BYTE;
-import static com.avail.serialization.SerializerOperandEncoding.BYTE_CHARACTER_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_ARBITRARY_CHARACTER_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_INT_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT;
-import static com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT_CHARACTER_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.GENERAL_MAP;
-import static com.avail.serialization.SerializerOperandEncoding.OBJECT_REFERENCE;
-import static com.avail.serialization.SerializerOperandEncoding.SIGNED_INT;
-import static com.avail.serialization.SerializerOperandEncoding.TUPLE_OF_OBJECTS;
-import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_BYTE_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_NYBBLE_TUPLE;
-import static com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_SHORT;
-import static com.avail.serialization.SerializerOperandEncoding.UNSIGNED_INT;
+import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Double.doubleToRawLongBits;
 import static java.lang.Double.longBitsToDouble;
@@ -225,7 +144,7 @@ public enum SerializerOperation
 	 * The Avail integer 0.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	ZERO_INTEGER (0)
+	ZERO_INTEGER(0)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -248,7 +167,7 @@ public enum SerializerOperation
 	 * The Avail integer 1.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	ONE_INTEGER (1)
+	ONE_INTEGER(1)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -271,7 +190,7 @@ public enum SerializerOperation
 	 * The Avail integer 2.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	TWO_INTEGER (2)
+	TWO_INTEGER(2)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -294,7 +213,7 @@ public enum SerializerOperation
 	 * The Avail integer 3.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	THREE_INTEGER (3)
+	THREE_INTEGER(3)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -317,7 +236,7 @@ public enum SerializerOperation
 	 * The Avail integer 4.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	FOUR_INTEGER (4)
+	FOUR_INTEGER(4)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -340,7 +259,7 @@ public enum SerializerOperation
 	 * The Avail integer 5.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	FIVE_INTEGER (5)
+	FIVE_INTEGER(5)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -363,7 +282,7 @@ public enum SerializerOperation
 	 * The Avail integer 6.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	SIX_INTEGER (6)
+	SIX_INTEGER(6)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -386,7 +305,7 @@ public enum SerializerOperation
 	 * The Avail integer 7.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	SEVEN_INTEGER (7)
+	SEVEN_INTEGER(7)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -409,7 +328,7 @@ public enum SerializerOperation
 	 * The Avail integer 8.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	EIGHT_INTEGER (8)
+	EIGHT_INTEGER(8)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -432,7 +351,7 @@ public enum SerializerOperation
 	 * The Avail integer 9.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	NINE_INTEGER (9)
+	NINE_INTEGER(9)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -455,7 +374,7 @@ public enum SerializerOperation
 	 * The Avail integer 10.  Note that there are no operands, since the value
 	 * is encoded in the choice of instruction itself.
 	 */
-	TEN_INTEGER (10)
+	TEN_INTEGER(10)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -478,7 +397,7 @@ public enum SerializerOperation
 	 * An Avail integer in the range 11..255.  Note that 0..10 have their own
 	 * special cases already which require very little space.
 	 */
-	BYTE_INTEGER (11, BYTE.as("only byte"))
+	BYTE_INTEGER(11, BYTE.as("only byte"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -511,7 +430,7 @@ public enum SerializerOperation
 	 * own special cases already which require less space.  Don't try to
 	 * compress the short value for this reason.
 	 */
-	SHORT_INTEGER (12, UNCOMPRESSED_SHORT.as("the unsigned short"))
+	SHORT_INTEGER(12, UNCOMPRESSED_SHORT.as("the unsigned short"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -543,7 +462,7 @@ public enum SerializerOperation
 	 * An Avail integer in the range -2<sup>31</sup> through 2<sup>31</sup>-1,
 	 * except the range 0..65535 which have their own special cases already.
 	 */
-	INT_INTEGER (13, SIGNED_INT.as("int's value"))
+	INT_INTEGER(13, SIGNED_INT.as("int's value"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -574,7 +493,7 @@ public enum SerializerOperation
 	/**
 	 * An Avail integer that cannot be represented as an {@code int}.
 	 */
-	BIG_INTEGER (14, BIG_INTEGER_DATA.as("constituent ints"))
+	BIG_INTEGER(14, BIG_INTEGER_DATA.as("constituent ints"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -607,7 +526,7 @@ public enum SerializerOperation
 	 * Produce the Avail {@linkplain NilDescriptor#nil nil} during
 	 * deserialization.
 	 */
-	NIL (15)
+	NIL(15)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -630,7 +549,7 @@ public enum SerializerOperation
 	 * This special opcode causes a previously built object to be produced as an
 	 * actual checkpoint output from the {@link Deserializer}.
 	 */
-	CHECKPOINT (16, OBJECT_REFERENCE.as("object to checkpoint"))
+	CHECKPOINT(16, OBJECT_REFERENCE.as("object to checkpoint"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -655,7 +574,7 @@ public enum SerializerOperation
 	/**
 	 * One of the special objects that the {@link AvailRuntime} maintains.
 	 */
-	SPECIAL_OBJECT (17, COMPRESSED_SHORT.as("special object number"))
+	SPECIAL_OBJECT(17, COMPRESSED_SHORT.as("special object number"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -691,7 +610,7 @@ public enum SerializerOperation
 	/**
 	 * One of the special atoms that the {@link AvailRuntime} maintains.
 	 */
-	SPECIAL_ATOM (18, COMPRESSED_SHORT.as("special atom number"))
+	SPECIAL_ATOM(18, COMPRESSED_SHORT.as("special atom number"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -728,7 +647,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER (19, BYTE.as("Latin-1 code point"))
+	BYTE_CHARACTER(19, BYTE.as("Latin-1 code point"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -753,8 +672,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER (20,
-		UNCOMPRESSED_SHORT.as("BMP code point"))
+	SHORT_CHARACTER(20, UNCOMPRESSED_SHORT.as("BMP code point"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -779,7 +697,8 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires
 	 * three bytes to represent (0..16777215, but technically only 0..1114111).
 	 */
-	LARGE_CHARACTER (21,
+	LARGE_CHARACTER(
+		21,
 		BYTE.as("SMP codepoint high byte"),
 		BYTE.as("SMP codepoint middle byte"),
 		BYTE.as("SMP codepoint low byte"))
@@ -812,7 +731,7 @@ public enum SerializerOperation
 	 * A {@linkplain FloatDescriptor float}.  Convert the raw bits to an int
 	 * for writing.
 	 */
-	FLOAT (22, SIGNED_INT.as("raw bits"))
+	FLOAT(22, SIGNED_INT.as("raw bits"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -851,7 +770,8 @@ public enum SerializerOperation
 	 * A {@linkplain DoubleDescriptor double}.  Convert the raw bits to a long
 	 * and write it in big endian.
 	 */
-	DOUBLE (23,
+	DOUBLE(
+		23,
 		SIGNED_INT.as("upper raw bits"),
 		SIGNED_INT.as("lower raw bits"))
 	{
@@ -901,7 +821,7 @@ public enum SerializerOperation
 	 * A {@linkplain TupleDescriptor tuple} of arbitrary objects.  Write the
 	 * size of the tuple then the elements as object identifiers.
 	 */
-	GENERAL_TUPLE (24, TUPLE_OF_OBJECTS.as("tuple elements"))
+	GENERAL_TUPLE(24, TUPLE_OF_OBJECTS.as("tuple elements"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -925,8 +845,7 @@ public enum SerializerOperation
 	 * the range 0..255}.  Write the size of the tuple then the sequence of
 	 * character bytes.
 	 */
-	BYTE_STRING(25,
-		BYTE_CHARACTER_TUPLE.as("Latin-1 string"))
+	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.as("Latin-1 string"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -950,7 +869,8 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	SHORT_STRING(26,
+	SHORT_STRING(
+		26,
 		COMPRESSED_SHORT_CHARACTER_TUPLE.as("Basic Multilingual Plane string"))
 	{
 		@Override
@@ -975,7 +895,8 @@ public enum SerializerOperation
 	 * points.  Write the compressed number of characters then each compressed
 	 * character.
 	 */
-	ARBITRARY_STRING(27,
+	ARBITRARY_STRING(
+		27,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("arbitrary string"))
 	{
 		@Override
@@ -1142,7 +1063,8 @@ public enum SerializerOperation
 	 * reconstruction, recreating it if it's not present and supposed to have
 	 * been issued by the current module.
 	 */
-	ATOM(34,
+	ATOM(
+		34,
 		OBJECT_REFERENCE.as("atom name"),
 		OBJECT_REFERENCE.as("module name"))
 	{
@@ -1179,7 +1101,8 @@ public enum SerializerOperation
 	 * reconstruction, recreating it if it's not present and supposed to have
 	 * been issued by the current module.
 	 */
-	HERITABLE_ATOM(35,
+	HERITABLE_ATOM(
+		35,
 		OBJECT_REFERENCE.as("atom name"),
 		OBJECT_REFERENCE.as("module name"))
 	{
@@ -1216,7 +1139,8 @@ public enum SerializerOperation
 	 * A {@linkplain CompiledCodeDescriptor compiled code object}.  Output any
 	 * information needed to reconstruct the compiled code object.
 	 */
-	COMPILED_CODE (36,
+	COMPILED_CODE(
+		36,
 		COMPRESSED_SHORT.as("Total number of frame slots"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("Primitive name"),
 		OBJECT_REFERENCE.as("Function type"),
@@ -1230,7 +1154,6 @@ public enum SerializerOperation
 		COMPRESSED_INT_TUPLE.as("Encoded line number deltas"),
 		OBJECT_REFERENCE.as("Originating phrase"))
 	{
-
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
@@ -1326,8 +1249,7 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with no outer (lexically
 	 * captured) variables.
 	 */
-	CLEAN_FUNCTION (37,
-		OBJECT_REFERENCE.as("Compiled code"))
+	CLEAN_FUNCTION(37, OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -1353,7 +1275,8 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with one or more outer
 	 * (lexically captured) variables.
 	 */
-	GENERAL_FUNCTION (38,
+	GENERAL_FUNCTION(
+		38,
 		OBJECT_REFERENCE.as("Compiled code"),
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
@@ -1385,8 +1308,7 @@ public enum SerializerOperation
 	 * reconstructs a new one, since there's no way to know where the original
 	 * one came from.
 	 */
-	LOCAL_VARIABLE (39,
-		OBJECT_REFERENCE.as("variable type"))
+	LOCAL_VARIABLE(39, OBJECT_REFERENCE.as("variable type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -1436,7 +1358,8 @@ public enum SerializerOperation
 	 * malformed), so modules must ensure all their global variables and
 	 * constants are reconstructed when loading from serialized form.</p>
 	 */
-	GLOBAL_VARIABLE (40,
+	GLOBAL_VARIABLE(
+		40,
 		OBJECT_REFERENCE.as("variable type"),
 		OBJECT_REFERENCE.as("module name"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("variable name"),
@@ -1515,7 +1438,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	TOKEN (42,
+	TOKEN(
+		42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
@@ -1553,7 +1477,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenDescriptor literal token}.
 	 */
-	LITERAL_TOKEN (43,
+	LITERAL_TOKEN(
+		43,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		OBJECT_REFERENCE.as("literal value"),
 		SIGNED_INT.as("start position"),
@@ -1591,7 +1516,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	COMMENT_TOKEN (44,
+	COMMENT_TOKEN(
+		44,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"))
@@ -1624,7 +1550,8 @@ public enum SerializerOperation
 	 * previously built value to be assigned to it at this point during
 	 * deserialization.
 	 */
-	ASSIGN_TO_VARIABLE (45,
+	ASSIGN_TO_VARIABLE(
+		45,
 		OBJECT_REFERENCE.as("variable to assign"),
 		OBJECT_REFERENCE.as("value to assign"))
 	{
@@ -1653,7 +1580,8 @@ public enum SerializerOperation
 	/**
 	 * The representation of a continuation, which is just its level one state.
 	 */
-	CONTINUATION (46,
+	CONTINUATION(
+		46,
 		OBJECT_REFERENCE.as("calling continuation"),
 		OBJECT_REFERENCE.as("continuation's function"),
 		TUPLE_OF_OBJECTS.as("continuation frame slots"),
@@ -1716,7 +1644,7 @@ public enum SerializerOperation
 	 * is an atom, and if that atom has a bundle associated with it, that
 	 * bundle's method is used.
 	 */
-	METHOD (47, TUPLE_OF_OBJECTS.as("module name / atom name pairs"))
+	METHOD(47, TUPLE_OF_OBJECTS.as("module name / atom name pairs"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -1798,7 +1726,8 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDefinitionDescriptor method
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	METHOD_DEFINITION (48,
+	METHOD_DEFINITION(
+		48,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1840,7 +1769,8 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MacroDefinitionDescriptor macro
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	MACRO_DEFINITION (49,
+	MACRO_DEFINITION(
+		49,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1882,7 +1812,8 @@ public enum SerializerOperation
 	 * A reference to an {@linkplain AbstractDefinitionDescriptor abstract
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	ABSTRACT_DEFINITION (50,
+	ABSTRACT_DEFINITION(
+		50,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1924,7 +1855,8 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain ForwardDefinitionDescriptor forward
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	FORWARD_DEFINITION (51,
+	FORWARD_DEFINITION(
+		51,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1966,8 +1898,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MessageBundleDescriptor message bundle},
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE (52,
-		OBJECT_REFERENCE.as("message atom"))
+	MESSAGE_BUNDLE(52, OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2000,8 +1931,7 @@ public enum SerializerOperation
 	/**
 	 * A reference to a module, possibly the one being constructed.
 	 */
-	MODULE (53,
-		OBJECT_REFERENCE.as("module name"))
+	MODULE(53, OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2037,7 +1967,8 @@ public enum SerializerOperation
 	 * <P>This should be the same as {@link #ATOM}, other than adding the
 	 * special {@link SpecialAtom#EXPLICIT_SUBCLASSING_KEY} property.</P>
 	 */
-	EXPLICIT_SUBCLASS_ATOM(54,
+	EXPLICIT_SUBCLASS_ATOM(
+		54,
 		OBJECT_REFERENCE.as("atom name"),
 		OBJECT_REFERENCE.as("module name"))
 	{
@@ -2075,16 +2006,17 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * The {@linkplain RawPojoDescriptor raw pojo} for the Java {@code null}
+	 * value.
 	 */
-	RESERVED_55 (55)
+	RAW_POJO_NULL(55)
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array();
 		}
 
 		@Override
@@ -2092,21 +2024,66 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return rawNullPojo();
 		}
 	},
 
 	/**
-	 * Reserved for future use.
+	 * The serealization of a raw (unparameterized) Java {@link Class}.
 	 */
-	RESERVED_56 (56)
+	RAW_JAVA_CLASS(
+		56,
+		OBJECT_REFERENCE.as("class name"))
+		{
+			@Override
+			A_BasicObject[] decompose (
+				final AvailObject object,
+				final Serializer serializer)
+			{
+				final Class<?> javaClass = object.javaObjectNotNull();
+				return array(
+					stringFrom(javaClass.getName()));
+			}
+
+			@Override
+			A_BasicObject compose (
+				final AvailObject[] subobjects,
+				final Deserializer deserializer)
+			{
+				final A_String className = subobjects[0];
+				final Class<?> javaClass =
+					deserializer.runtime().lookupRawJavaClass(className);
+				return equalityPojo(javaClass);
+			}
+		},
+
+	/**
+	 * An instance of {@link java.lang.reflect.Method}, likely created as part
+	 * of {@link P_CreatePojoInstanceMethodFunction}. The method may be an
+	 * instance method or a static method.
+	 */
+	RAW_POJO_METHOD(
+		57,
+		OBJECT_REFERENCE.as("declaring class pojo"),
+		OBJECT_REFERENCE.as("method name string"),
+		OBJECT_REFERENCE.as("marshaled argument pojo types"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final Method method = object.javaObjectNotNull();
+			final Class<?> declaringClass = method.getDeclaringClass();
+			final String methodName = method.getName();
+			final Class<?>[] argumentTypes = method.getParameterTypes();
+
+			return array(
+				equalityPojo(declaringClass),
+				stringFrom(methodName),
+				generateObjectTupleFrom(
+					argumentTypes.length,
+					i -> equalityPojo(argumentTypes[i - 1])));
 		}
 
 		@Override
@@ -2114,21 +2091,48 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_Type receiverType = subobjects[0];
+			final A_String methodName = subobjects[1];
+			final A_Tuple argumentTypes = subobjects[2];
+
+			final Class<?> receiverClass = receiverType.javaObjectNotNull();
+			final Class<?>[] argumentClasses = marshalTypes(argumentTypes);
+			try
+			{
+				return equalityPojo(
+					receiverClass.getMethod(
+						methodName.asNativeString(), argumentClasses));
+			}
+			catch (final NoSuchMethodException e)
+			{
+				throw new AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE);
+			}
 		}
 	},
 
 	/**
-	 * Reserved for future use.
+	 * An instance of {@link java.lang.reflect.Constructor}, likely created as
+	 * part of {@link P_CreatePojoConstructorFunction}.
 	 */
-	RESERVED_57 (57)
+	RAW_POJO_CONSTRUCTOR(
+		58,
+		OBJECT_REFERENCE.as("declaring class pojo"),
+		OBJECT_REFERENCE.as("marshaled argument pojo types"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final Constructor<?> constructor = object.javaObjectNotNull();
+			final Class<?> declaringClass = constructor.getDeclaringClass();
+			final Class<?>[] argumentTypes = constructor.getParameterTypes();
+
+			return array(
+				equalityPojo(declaringClass),
+				generateObjectTupleFrom(
+					argumentTypes.length,
+					i -> equalityPojo(argumentTypes[i - 1])));
 		}
 
 		@Override
@@ -2136,36 +2140,27 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_Type receiverType = subobjects[0];
+			final A_Tuple argumentTypes = subobjects[1];
+
+			final Class<?> receiverClass = receiverType.javaObjectNotNull();
+			final Class<?>[] argumentClasses = marshalTypes(argumentTypes);
+			try
+			{
+				return equalityPojo(
+					receiverClass.getConstructor(argumentClasses));
+			}
+			catch (final NoSuchMethodException e)
+			{
+				throw new AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE);
+			}
 		}
 	},
 
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_58 (58)
-	{
-		@Override
-		A_BasicObject[] decompose (
-			final AvailObject object,
-			final Serializer serializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_59 (59)
+	RESERVED_59(59)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2187,7 +2182,8 @@ public enum SerializerOperation
 	/**
 	 * An {@link AssignmentPhraseDescriptor assignment phrase}.
 	 */
-	ASSIGNMENT_PHRASE (60,
+	ASSIGNMENT_PHRASE(
+		60,
 		BYTE.as("flags"),
 		OBJECT_REFERENCE.as("variable"),
 		OBJECT_REFERENCE.as("expression"),
@@ -2223,7 +2219,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link BlockPhraseDescriptor block phrase}.
 	 */
-	BLOCK_PHRASE (61,
+	BLOCK_PHRASE(
+		61,
 		TUPLE_OF_OBJECTS.as("arguments tuple"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("primitive name"),
 		TUPLE_OF_OBJECTS.as("statements tuple"),
@@ -2289,7 +2286,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link DeclarationPhraseDescriptor declaration phrase}.
 	 */
-	DECLARATION_PHRASE (62,
+	DECLARATION_PHRASE(
+		62,
 		BYTE.as("declaration kind ordinal"),
 		OBJECT_REFERENCE.as("token"),
 		OBJECT_REFERENCE.as("declared type"),
@@ -2346,8 +2344,7 @@ public enum SerializerOperation
 	 * An {@link ExpressionAsStatementPhraseDescriptor expression-as-statement
 	 * phrase}.
 	 */
-	EXPRESSION_AS_STATEMENT_PHRASE (63,
-		OBJECT_REFERENCE.as("expression"))
+	EXPRESSION_AS_STATEMENT_PHRASE(63, OBJECT_REFERENCE.as("expression"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2371,8 +2368,7 @@ public enum SerializerOperation
 	/**
 	 * A {@link FirstOfSequencePhraseDescriptor first-of-sequence phrase}.
 	 */
-	FIRST_OF_SEQUENCE_PHRASE (64,
-		TUPLE_OF_OBJECTS.as("statements"))
+	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS.as("statements"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2396,8 +2392,7 @@ public enum SerializerOperation
 	/**
 	 * A {@link ListPhraseDescriptor list phrase}.
 	 */
-	LIST_PHRASE (65,
-		TUPLE_OF_OBJECTS.as("expressions"))
+	LIST_PHRASE(65, TUPLE_OF_OBJECTS.as("expressions"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2421,8 +2416,7 @@ public enum SerializerOperation
 	/**
 	 * A {@link LiteralPhraseDescriptor literal phrase}.
 	 */
-	LITERAL_PHRASE (66,
-		OBJECT_REFERENCE.as("literal token"))
+	LITERAL_PHRASE(66, OBJECT_REFERENCE.as("literal token"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2446,7 +2440,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link MacroSubstitutionPhraseDescriptor macro substitution phrase}.
 	 */
-	MACRO_SUBSTITUTION_PHRASE(67,
+	MACRO_SUBSTITUTION_PHRASE(
+		67,
 		OBJECT_REFERENCE.as("original phrase"),
 		OBJECT_REFERENCE.as("output phrase"))
 	{
@@ -2474,7 +2469,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link PermutedListPhraseDescriptor permuted list phrase}.
 	 */
-	PERMUTED_LIST_PHRASE (68,
+	PERMUTED_LIST_PHRASE(
+		68,
 		OBJECT_REFERENCE.as("list phrase"),
 		TUPLE_OF_OBJECTS.as("permutation"))
 	{
@@ -2502,8 +2498,7 @@ public enum SerializerOperation
 	/**
 	 * A {@link PermutedListPhraseDescriptor permuted list phrase}.
 	 */
-	REFERENCE_PHRASE (69,
-		OBJECT_REFERENCE.as("variable use"))
+	REFERENCE_PHRASE(69, OBJECT_REFERENCE.as("variable use"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2527,7 +2522,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link SendPhraseDescriptor send phrase}.
 	 */
-	SEND_PHRASE (70,
+	SEND_PHRASE(
+		70,
 		OBJECT_REFERENCE.as("bundle"),
 		OBJECT_REFERENCE.as("arguments list phrase"),
 		OBJECT_REFERENCE.as("return type"),
@@ -2561,8 +2557,7 @@ public enum SerializerOperation
 	/**
 	 * A {@link SequencePhraseDescriptor sequence phrase}.
 	 */
-	SEQUENCE_PHRASE (71,
-		TUPLE_OF_OBJECTS.as("statements"))
+	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS.as("statements"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2586,7 +2581,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link SuperCastPhraseDescriptor super cast phrase}.
 	 */
-	SUPER_CAST_PHRASE (72,
+	SUPER_CAST_PHRASE(
+		72,
 		OBJECT_REFERENCE.as("expression"),
 		OBJECT_REFERENCE.as("type for lookup"))
 	{
@@ -2614,7 +2610,8 @@ public enum SerializerOperation
 	/**
 	 * A {@link VariableUsePhraseDescriptor variable use phrase}.
 	 */
-	VARIABLE_USE_PHRASE (73,
+	VARIABLE_USE_PHRASE(
+		73,
 		OBJECT_REFERENCE.as("use token"),
 		OBJECT_REFERENCE.as("declaration"))
 	{
@@ -2642,7 +2639,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_74 (74)
+	RESERVED_74(74)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2664,7 +2661,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_75 (75)
+	RESERVED_75(75)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2686,7 +2683,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_76 (76)
+	RESERVED_76(76)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2708,7 +2705,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_77 (77)
+	RESERVED_77(77)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2730,7 +2727,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_78 (78)
+	RESERVED_78(78)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2752,7 +2749,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_79 (79)
+	RESERVED_79(79)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2774,8 +2771,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain FiberTypeDescriptor fiber type}.
 	 */
-	FIBER_TYPE (80,
-		OBJECT_REFERENCE.as("Result type"))
+	FIBER_TYPE(80, OBJECT_REFERENCE.as("Result type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -2798,7 +2794,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	FUNCTION_TYPE (81,
+	FUNCTION_TYPE(
+		81,
 		OBJECT_REFERENCE.as("Arguments tuple type"),
 		OBJECT_REFERENCE.as("Return type"),
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
@@ -2830,7 +2827,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	TUPLE_TYPE (82,
+	TUPLE_TYPE(
+		82,
 		OBJECT_REFERENCE.as("Tuple sizes"),
 		TUPLE_OF_OBJECTS.as("Leading types"),
 		OBJECT_REFERENCE.as("Default type"))
@@ -2862,7 +2860,8 @@ public enum SerializerOperation
 	/**
 	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
-	INTEGER_RANGE_TYPE (83,
+	INTEGER_RANGE_TYPE(
+		83,
 		BYTE.as("Inclusive flags"),
 		OBJECT_REFERENCE.as("Lower bound"),
 		OBJECT_REFERENCE.as("Upper bound"))
@@ -2910,7 +2909,8 @@ public enum SerializerOperation
 	 * encountering the self type during tracing.
 	 * </p>
 	 */
-	UNFUSED_POJO_TYPE (84,
+	UNFUSED_POJO_TYPE(
+		84,
 		OBJECT_REFERENCE.as("class name"),
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
@@ -2992,8 +2992,7 @@ public enum SerializerOperation
 	 * interface name.  This is enough to reconstruct the self pojo type.
 	 * </p>
 	 */
-	FUSED_POJO_TYPE (85,
-		GENERAL_MAP.as("ancestor parameterizations map"))
+	FUSED_POJO_TYPE(85, GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3077,7 +3076,8 @@ public enum SerializerOperation
 	 * range of allowable sizes (a much stronger model than Java itself
 	 * supports).
 	 */
-	ARRAY_POJO_TYPE (86,
+	ARRAY_POJO_TYPE(
+		86,
 		OBJECT_REFERENCE.as("content type"),
 		OBJECT_REFERENCE.as("size range"))
 	{
@@ -3112,8 +3112,7 @@ public enum SerializerOperation
 	 * such a self type.  To reconstruct a self type all we need is a way to get
 	 * to the raw Java classes involved, so we serialize their names.
 	 */
-	SELF_POJO_TYPE_REPRESENTATIVE (87,
-		TUPLE_OF_OBJECTS.as("class names"))
+	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3138,7 +3137,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	BOTTOM_POJO_TYPE (88)
+	BOTTOM_POJO_TYPE(88)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3161,8 +3160,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	COMPILED_CODE_TYPE (89,
-		OBJECT_REFERENCE.as("function type for code type"))
+	COMPILED_CODE_TYPE(89, OBJECT_REFERENCE.as("function type for code type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3185,7 +3183,8 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	CONTINUATION_TYPE (90,
+	CONTINUATION_TYPE(
+		90,
 		OBJECT_REFERENCE.as("function type for continuation type"))
 	{
 		@Override
@@ -3209,8 +3208,7 @@ public enum SerializerOperation
 	 * An Avail {@link EnumerationTypeDescriptor enumeration}, a type that has
 	 * an explicit finite list of its instances.
 	 */
-	ENUMERATION_TYPE (91,
-		TUPLE_OF_OBJECTS.as("set of instances"))
+	ENUMERATION_TYPE(91, TUPLE_OF_OBJECTS.as("set of instances"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3234,8 +3232,7 @@ public enum SerializerOperation
 	 * An Avail {@link InstanceTypeDescriptor singular enumeration}, a type that
 	 * has a single (non-type) instance.
 	 */
-	INSTANCE_TYPE (92,
-		OBJECT_REFERENCE.as("type's instance"))
+	INSTANCE_TYPE(92, OBJECT_REFERENCE.as("type's instance"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3259,8 +3256,7 @@ public enum SerializerOperation
 	 * has an instance i, which is itself a type.  Subtypes of type i are also
 	 * considered instances of this instance meta.
 	 */
-	INSTANCE_META (93,
-		OBJECT_REFERENCE.as("meta's instance"))
+	INSTANCE_META(93, OBJECT_REFERENCE.as("meta's instance"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3282,7 +3278,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain SetTypeDescriptor set type}.
 	 */
-	SET_TYPE (94,
+	SET_TYPE(
+		94,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("element type"))
 	{
@@ -3310,7 +3307,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain MapTypeDescriptor map type}.
 	 */
-	MAP_TYPE (95,
+	MAP_TYPE(
+		95,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("key type"),
 		OBJECT_REFERENCE.as("value type"))
@@ -3342,8 +3340,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenTypeDescriptor token type}.
 	 */
-	TOKEN_TYPE (96,
-		OBJECT_REFERENCE.as("literal type"))
+	TOKEN_TYPE(96, OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3366,8 +3363,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenTypeDescriptor literal token type}.
 	 */
-	LITERAL_TOKEN_TYPE (97,
-		OBJECT_REFERENCE.as("literal type"))
+	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3390,7 +3386,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain PhraseTypeDescriptor parse phrase type}.
 	 */
-	PARSE_NODE_TYPE (98,
+	PARSE_NODE_TYPE(
+		98,
 		BYTE.as("kind"),
 		OBJECT_REFERENCE.as("expression type"))
 	{
@@ -3420,7 +3417,8 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain ListPhraseTypeDescriptor list phrase type}.
 	 */
-	LIST_NODE_TYPE (99,
+	LIST_NODE_TYPE(
+		99,
 		BYTE.as("list phrase kind"),
 		OBJECT_REFERENCE.as("expression type"),
 		OBJECT_REFERENCE.as("subexpressions tuple type"))
@@ -3455,8 +3453,7 @@ public enum SerializerOperation
 	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
 	 * type and write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE (100,
-		OBJECT_REFERENCE.as("content type"))
+	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3482,7 +3479,8 @@ public enum SerializerOperation
 	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
 	 * the read type and write type are (actually) unequal.
 	 */
-	READ_WRITE_VARIABLE_TYPE (101,
+	READ_WRITE_VARIABLE_TYPE(
+		101,
 		OBJECT_REFERENCE.as("read type"),
 		OBJECT_REFERENCE.as("write type"))
 	{
@@ -3514,7 +3512,7 @@ public enum SerializerOperation
 	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
 	 * other types.
 	 */
-	BOTTOM_TYPE (102)
+	BOTTOM_TYPE(102)
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -3549,17 +3547,9 @@ public enum SerializerOperation
 	}
 
 	/** The maximum number of operands of any SerializerOperation. */
-	static final int maxSubobjects;
-
-	static
-	{
-		int max = 0;
-		for (final SerializerOperation operation : all)
-		{
-			max = Math.max(max, operation.operands().length);
-		}
-		maxSubobjects = max;
-	}
+	static final int maxSubobjects = Arrays.stream(all)
+		.map(op -> op.operands().length)
+		.reduce(0, Math::max);
 
 	/**
 	 * The operands that this operation expects to see encoded after the tag.

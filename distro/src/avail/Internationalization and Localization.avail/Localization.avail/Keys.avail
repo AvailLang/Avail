@@ -113,7 +113,7 @@ Public method "_is localization key" is
 ];
 
 /**
- * {@method "Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_"
+ * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * Reject the current parse} unless the specified {@type "atom"} {@type "type"}
  * is an instance type and its instance is a {@type "localization key"}.
  *

@@ -45,6 +45,7 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -57,6 +58,7 @@ import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -94,6 +96,7 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteral
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.*;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
@@ -377,6 +380,85 @@ public final class AvailRuntime
 	public ClassLoader classLoader ()
 	{
 		return classLoader;
+	}
+
+	/**
+	 * Look up the given Java class name, and create a suitable Java POJO {@link
+	 * A_Type}.  Capture the classParameters, since the Avail POJO mechanism
+	 * doesn't erase generics.
+	 *
+	 * @param className
+	 *        The full name of the Java class.
+	 * @param classParameters
+	 *        The type parameters for specializing the Java class.
+	 * @return An {@link A_Type} representing the specialized Java class.
+	 * @throws AvailRuntimeException
+	 *         If the class can't be found or can't be parameterized as
+	 *         requested, or if it's within the forbidden com.avail namespace.
+	 */
+	public A_Type lookupJavaType (
+		final A_String className,
+		final A_Tuple classParameters)
+	throws AvailRuntimeException
+	{
+		final Class<?> rawClass = lookupRawJavaClass(className);
+		// Check that the correct number of type parameters have been
+		// supplied. Don't bother to check the bounds of the type
+		// parameters. Incorrect bounds will cause some method and
+		// constructor lookups to fail, but that's fine.
+		final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
+		if (typeVars.length != classParameters.tupleSize())
+		{
+			throw new AvailRuntimeException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		// Replace all occurrences of the pojo self type atom with actual
+		// pojo self types.
+		A_Tuple realParameters = generateObjectTupleFrom(
+			classParameters.tupleSize(),
+			i ->
+			{
+				final A_BasicObject parameter = classParameters.tupleAt(i);
+				return parameter.equals(pojoSelfType())
+					? selfTypeForClass(rawClass)
+					: parameter;
+			});
+		realParameters.makeImmutable();
+		// Construct and answer the pojo type.
+		return pojoTypeForClassWithTypeArguments(rawClass, realParameters);
+	}
+
+	/**
+	 * Look up the given Java class name, and create a suitable Java raw POJO
+	 * for this raw Java class.  The raw class does not capture type parameters.
+	 *
+	 * @param className
+	 *        The full name of the Java class.
+	 * @return The raw Java {@link Class} (i.e., without type parameters bound).
+	 * @throws AvailRuntimeException
+	 *         If the class can't be found, or if it's within the forbidden
+	 *         com.avail namespace.
+	 */
+	public Class<?> lookupRawJavaClass (final A_String className)
+	{
+		// Forbid access to the Avail implementation's packages.
+		final String nativeClassName = className.asNativeString();
+		if (nativeClassName.startsWith("com.avail"))
+		{
+			throw new AvailRuntimeException(E_JAVA_CLASS_NOT_AVAILABLE);
+		}
+		// Look up the raw Java class using the interpreter's runtime's
+		// class loader.
+		final Class<?> rawClass;
+		try
+		{
+			rawClass = Class.forName(
+				className.asNativeString(), true, classLoader());
+		}
+		catch (final ClassNotFoundException e)
+		{
+			throw new AvailRuntimeException(E_JAVA_CLASS_NOT_AVAILABLE);
+		}
+		return rawClass;
 	}
 
 	/**
@@ -757,7 +839,7 @@ public final class AvailRuntime
 	 * AvailRuntime runtime}.
 	 */
 	private static final AvailObject[] specialObjects =
-		new AvailObject[170];
+		new AvailObject[180];
 
 	/**
 	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
@@ -1016,6 +1098,7 @@ public final class AvailRuntime
 		specials[166] = inclusive(0, (1L << 32) - 1);
 		specials[167] = inclusive(0, (1L << 28) - 1);
 		specials[168] = inclusive(1L, 4L);
+		specials[169] = RAW_POJO.o();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

@@ -68,7 +68,7 @@ Names
 	"Mark for_character|characters of read ahead",
 	"Park current fiber",
 	"Print:_",
-	"Reject parse«silently|weakly|moderately⁇|strongly»!,expected:_",
+	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Remove current fiber[_]",
 	"Remove_[_]",
 	"Request termination of_",

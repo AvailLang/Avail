@@ -36,10 +36,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -78,6 +80,13 @@ public final class P_CreatePojoArray extends Primitive
 		interpreter.checkArgumentCount(2);
 		final AvailObject elementType = interpreter.argument(0);
 		final AvailObject length = interpreter.argument(1);
+
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final AvailObject pojoType = pojoArrayType(
 			elementType, singleInteger(length));
 		final Object array = Array.newInstance(

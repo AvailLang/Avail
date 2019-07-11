@@ -32,8 +32,6 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -41,23 +39,20 @@ import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.enumerationWith;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -108,54 +103,9 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		// Search for the method.
-		final Method method;
-		// If pojoType is not a fused type, then it has an immediate class
-		// that should be used to recursively look up the method.
-		if (!pojoType.isPojoFusedType())
-		{
-			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
-			try
-			{
-				method = javaClass.getMethod(
-					methodName.asNativeString(), marshaledTypes);
-			}
-			catch (final NoSuchMethodException e)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_NOT_AVAILABLE);
-			}
-		}
-		// If pojoType is a fused type, then iterate through its ancestry in
-		// an attempt to uniquely resolve the method.
-		else
-		{
-			final Set<Method> methods = new HashSet<>();
-			final A_Map ancestors = pojoType.javaAncestors();
-			for (final A_BasicObject ancestor : ancestors.keysAsSet())
-			{
-				final Class<?> javaClass = ancestor.javaObjectNotNull();
-				try
-				{
-					methods.add(javaClass.getMethod(
-						methodName.asNativeString(), marshaledTypes));
-				}
-				catch (final NoSuchMethodException e)
-				{
-					// Ignore -- this is not unexpected.
-				}
-			}
-			if (methods.isEmpty())
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_NOT_AVAILABLE);
-			}
-			if (methods.size() > 1)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS);
-			}
-			method = methods.iterator().next();
-		}
+		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
+		final @Nullable Method method = lookupMethod(
+			pojoType, methodName, marshaledTypes, errorOut);
 		assert method != null;
 		final A_Type returnType = resolvePojoType(
 			method.getGenericReturnType(), pojoType.typeVariables());
