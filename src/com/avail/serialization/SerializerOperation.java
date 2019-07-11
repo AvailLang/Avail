@@ -2029,9 +2029,10 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * The serealization of a raw (unparameterized) Java {@link Class}.
+	 * The serialization of a raw (unparameterized) Java {@linkplain
+	 * Class#isPrimitive() non-primitive} {@link Class}.
 	 */
-	RAW_JAVA_CLASS(
+	RAW_NONPRIMITIVE_JAVA_CLASS(
 		56,
 		OBJECT_REFERENCE.as("class name"))
 		{
@@ -2158,16 +2159,21 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * The serialization of a raw (unparameterized) Java {@linkplain
+	 * Class#isPrimitive() primitive} {@link Class}.
 	 */
-	RESERVED_59(59)
+	RAW_PRIMITIVE_JAVA_CLASS(
+		59,
+		OBJECT_REFERENCE.as("primitive class name"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final Class<?> javaClass = object.javaObjectNotNull();
+			return array(
+				stringFrom(javaClass.getName()));
 		}
 
 		@Override
@@ -2175,7 +2181,45 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_String className = subobjects[0];
+			final Class<?> javaClass;
+			switch (className.asNativeString())
+			{
+				case "void":
+					javaClass = Void.TYPE;
+					break;
+				case "boolean":
+					javaClass = Boolean.TYPE;
+					break;
+				case "byte":
+					javaClass = Byte.TYPE;
+					break;
+				case "short":
+					javaClass = Short.TYPE;
+					break;
+				case "int":
+					javaClass = Integer.TYPE;
+					break;
+				case "long":
+					javaClass = Long.TYPE;
+					break;
+				case "char":
+					javaClass = Character.TYPE;
+					break;
+				case "float":
+					javaClass = Float.TYPE;
+					break;
+				case "double":
+					javaClass = Double.TYPE;
+					break;
+				default:
+					assert false :
+						"There are only nine primitive types (and "
+						+ className
+						+ " is not one of them)!";
+					throw new RuntimeException();
+			}
+			return equalityPojo(javaClass);
 		}
 	},
 

@@ -43,6 +43,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
+import static com.avail.utility.Casts.cast;
 
 /**
  * A {@code RawPojoDescriptor} is a thin veneer over a plain-old Java object
@@ -184,7 +185,10 @@ extends Descriptor
 		}
 		if (javaObject instanceof Class)
 		{
-			return SerializerOperation.RAW_JAVA_CLASS;
+			final Class<?> o = cast(javaObject);
+			return o.isPrimitive()
+				? SerializerOperation.RAW_PRIMITIVE_JAVA_CLASS
+				: SerializerOperation.RAW_NONPRIMITIVE_JAVA_CLASS;
 		}
 		if (javaObject instanceof Method)
 		{

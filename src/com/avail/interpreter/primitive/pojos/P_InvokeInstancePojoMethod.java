@@ -55,6 +55,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -144,16 +145,30 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		{
 			return interpreter.primitiveSuccess(nullPojo());
 		}
+		// In the event that the receiver is not a pojo, but an Avail value, we
+		// need to synthesize a pojo equivalent to the receiver so that we can
+		// determine the correct pojo type for unmarshaling.
+		assert receiver != null;
 		final A_BasicObject receiverPojo = receiverPojoMaybe.isPojo()
 			? receiverPojoMaybe
 			: newPojo(
-				identityPojo(receiver),
+				equalityPojo(receiver),
 				pojoTypeForClass(method.getDeclaringClass()));
 		final A_Type expectedType = resolvePojoType(
 			method.getGenericReturnType(),
 			receiverPojo.kind().typeVariables());
-		final AvailObject unmarshaled = unmarshal(result, expectedType);
-		return interpreter.primitiveSuccess(unmarshaled);
+		try
+		{
+			final AvailObject unmarshaled = unmarshal(result, expectedType);
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+		catch (final MarshalingException e)
+		{
+			return interpreter.primitiveFailure(
+				newPojo(
+					identityPojo(e),
+					pojoTypeForClass(e.getClass())));
+		}
 	}
 
 	@Override

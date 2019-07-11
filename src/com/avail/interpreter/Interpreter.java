@@ -1240,10 +1240,6 @@ public final class Interpreter
 						final Primitive suspended =
 							stripNull(
 								joiner.suspendingFunction().code().primitive());
-						if (suspended == P_ParkCurrentFiber.instance)
-						{
-							System.out.println("### Found parked fiber ###");
-						}
 						assert suspended == P_AttemptJoinFiber.instance
 							|| suspended == P_ParkCurrentFiber.instance;
 						Interpreter.resumeFromSuccessfulPrimitive(

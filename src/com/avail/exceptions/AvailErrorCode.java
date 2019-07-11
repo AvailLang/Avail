@@ -800,8 +800,8 @@ public enum AvailErrorCode
 //	E_??? (503),
 
 	/**
-	 * Marshaling an {@linkplain AvailObject Avail object} to a Java counterpart
-	 * failed.
+	 * Marshaling an {@linkplain AvailObject Avail object} to/from a Java
+	 * counterpart failed.
 	 */
 	E_JAVA_MARSHALING_FAILED (504),
 

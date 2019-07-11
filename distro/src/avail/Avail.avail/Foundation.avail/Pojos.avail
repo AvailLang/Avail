@@ -142,102 +142,14 @@ Semantic restriction "`|_`|" is
 	||arrayType||
 ];
 
-/**
- * @method "constructor of_,⁇parameterized by_,⁇on failure doing_"
- * @restricts "pojo's type's type"
- * @restricts "<any's type…|>'s type"
- * @restricts "[pojo exception]→⊤'s type"
- */
-Semantic restriction "constructor of_,⁇parameterized by_,⁇on failure doing_" is
-[
-	pojoMeta : pojo's type's type,
-	parameterTypes : <any's type…|>'s type,
-	failFunction : [pojo exception]→⊤'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	if limit is finite then
-	[
-		args : <any's type…|> := <>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		function accepting args and returning pojoMeta's instance
-	]
-	else [⊤]
-];
+Method "constructor of_,⁇parameterized by_,⁇on failure doing_" is stable at
+	[pojo's type, any's type*, [pojo exception]→⊤]→any;
 
-/**
- * @method "method_._,⁇parameterized by_,⁇on failure doing_"
- * @restricts "pojo's type's type"
- * @restricts "string's type"
- * @restricts "<any's type…|>'s type"
- * @restricts "[pojo exception]→⊤'s type"
- */
-Semantic restriction "method_._,⁇parameterized by_,⁇on failure doing_" is
-[
-	pojoMeta : pojo's type's type,
-	methodName : string's type,
-	parameterTypes : <any's type…|>'s type,
-	failFunction : [pojo exception]→⊤'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	if limit is finite then
-	[
-		pojoType ::= pojoMeta's instance;
-		args : <any's type…|> := <pojoType>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		returnType ::=
-			if |methodName| = 1 then
-			[
-				return type of pojoType.(methodName's instance)
-					parameterized by args
-			]
-			else [⊤];
-		function accepting args and returning returnType
-	]
-	else [⊤]
-];
+Method "method_._,⁇parameterized by_,⁇on failure doing_" is stable at
+	[pojo's type, string's type, any's type*, [pojo exception]→⊤]→function;
 
-/**
- * @method "static method_._,⁇parameterized by_,⁇on failure doing_"
- * @restricts "pojo's type's type"
- * @restricts "string's type"
- * @restricts "<any's type…|>'s type"
- * @restricts "[pojo exception]→⊤'s type"
- */
-Semantic restriction "static method_._,⁇parameterized by_,⁇on failure doing_" is
-[
-	pojoMeta : pojo's type's type,
-	methodName : string's type,
-	parameterTypes : <any's type…|>'s type,
-	failFunction : [pojo exception]→⊤'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	If limit is finite then
-	[
-		args : <any's type…|> := <>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		returnType ::=
-			if |methodName| = 1 then
-			[
-				return type of (pojoMeta's instance).(methodName's instance)
-					parameterized by args
-			]
-			else [⊤];
-		function accepting args and returning returnType
-	]
-	else [⊤]
-];
+Method "static method_._,⁇parameterized by_,⁇on failure doing_" is stable at
+	[pojo's type, string's type, any's type*, [pojo exception]→⊤]→function;
 
 /**
  * @method "_[_]"
@@ -367,47 +279,23 @@ Public stable method "_<«_‡,»>" is
  * @method "constructor of_«parameterized by»⁇_"
  * @param "aPojoType" "pojo meta"
  *        A pojo type.
- * @param "parameterTypes" "<any's type…|>"
+ * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired constructor.
  * @returns "[…]→java.lang.Object"
  *          The requested constructor invocation function.
  * @raises "pojo-type-is-abstract exception"
  * @raises "Java-method-not-available exception"
  */
-Public method "constructor of_«parameterized by»⁇_" is
+Public stable method "constructor of_«parameterized by»⁇_" is
 [
 	aPojoType : pojo's type,
-	parameterTypes : <any's type…|>
+	parameterTypes : any's type*
 |
 	constructor of aPojoType,
 		parameterized by parameterTypes,
 		on failure doing
 			[e : pojo exception | Raise a Java exception caused by e]
 ] : pojo constructor;
-
-/**
- * @method "constructor of_«parameterized by»⁇_"
- * @restricts "pojo's type's type"
- * @restricts "<any's type…|>'s type"
- */
-Semantic restriction "constructor of_«parameterized by»⁇_" is
-[
-	pojoMeta : pojo's type's type,
-	parameterTypes : <any's type…|>'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	if limit is finite then
-	[
-		args : <any's type…|> := <>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		function accepting args and returning pojoMeta's instance
-	]
-	else [⊤]
-];
 
 /**
  * Construct and answer a {@type "function"} that, when applied with arguments
@@ -452,7 +340,7 @@ Semantic restriction "constructor of_«parameterized by»⁇_" is
  * @raises "Java-method-not-available exception"
  * @raises "Java-method-reference-is-ambiguous exception"
  */
-Public method "method_._«parameterized by»⁇_" is
+Public stable method "method_._«parameterized by»⁇_" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
@@ -463,42 +351,6 @@ Public method "method_._«parameterized by»⁇_" is
 		on failure doing
 			[e : pojo exception | Raise a Java exception caused by e]
 ] : function;
-
-/**
- * @method "method_._«parameterized by»⁇_"
- * @restricts "pojo's type's type"
- * @restricts "string's type"
- * @restricts "<any's type…|>'s type"
- */
-/*
-Semantic restriction "method_._«parameterized by»⁇_" is
-[
-	pojoMeta : pojo's type's type,
-	methodName : string's type,
-	parameterTypes : <any's type…|>'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	if limit is finite then
-	[
-		pojoType ::= pojoMeta's instance;
-		args : <any's type…|> := <pojoType>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		returnType ::=
-			if |methodName| = 1 then
-			[
-				return type of pojoType.(methodName's instance)
-					parameterized by args[2..]
-			]
-			else [⊤];
-		function accepting args and returning returnType
-	]
-	else [⊤]
-];
-*/
 
 /**
  * Construct and answer a {@type "function"} that, when applied with arguments
@@ -542,7 +394,7 @@ Semantic restriction "method_._«parameterized by»⁇_" is
  * @raises "Java-method-not-available exception"
  * @raises "Java-method-reference-is-ambiguous exception"
  */
-Public method "static method_._«parameterized by»⁇_" is
+Public stable method "static method_._«parameterized by»⁇_" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
@@ -553,41 +405,6 @@ Public method "static method_._«parameterized by»⁇_" is
 		on failure doing
 			[e : pojo exception | Raise a Java exception caused by e]
 ] : function;
-
-/**
- * @method "static method_._«parameterized by»⁇_"
- * @restricts "pojo's type's type"
- * @restricts "string's type"
- * @restricts "<any's type…|>'s type"
- */
-/*
-Semantic restriction "static method_._«parameterized by»⁇_" is
-[
-	pojoMeta : pojo's type's type,
-	methodName : string's type,
-	parameterTypes : <any's type…|>'s type
-|
-	limit ::= ⎡parameterTypes⎤;
-	If limit is finite then
-	[
-		args : <any's type…|> := <>;
-		For each index from 1 to limit do
-		[
-			arg ::= parameterTypes[index]'s instance;
-			args := eject args ++ <arg>;
-		];
-		returnType ::=
-			if |methodName| = 1 then
-			[
-				return type of (pojoMeta's instance).(methodName's instance)
-					parameterized by args
-			]
-			else [⊤];
-		function accepting args and returning returnType
-	]
-	else [⊤]
-];
-*/
 
 /* TODO: [TLS] Introduce defining methods that bind pojo methods and restrict
  * them appropriately.

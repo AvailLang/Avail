@@ -138,8 +138,18 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		{
 			return interpreter.primitiveSuccess(nullPojo());
 		}
-		final AvailObject unmarshaled = unmarshal(result, expectedType);
-		return interpreter.primitiveSuccess(unmarshaled);
+		try
+		{
+			final AvailObject unmarshaled = unmarshal(result, expectedType);
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+		catch (final MarshalingException e)
+		{
+			return interpreter.primitiveFailure(
+				newPojo(
+					identityPojo(e),
+					pojoTypeForClass(e.getClass())));
+		}
 	}
 
 	@Override

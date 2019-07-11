@@ -46,22 +46,21 @@ Body
 
 New test suite pojo test suite extends foundation test suite;
 
-jListOfString ::= "java.util.List"<string>;
-jArrayListOfString ::= "java.util.ArrayList"<string>;
-
 Test "pojo string list" in pojo test suite is
 [
+	jListOfString ::= "java.util.List"<string>;
+	jArrayListOfString ::= "java.util.ArrayList"<string>;
 	listConstructor ::= constructor of jArrayListOfString parameterized by <>;
-	listSize ::= method jListOfString."size" <> ?→ […]→Java int;
-	listAdd ::= method jListOfString."add" <any> ?→ […]→boolean;
-	listGet ::= method jListOfString."get" <Java int> ?→ […]→string;
+	listSize ::= method jListOfString."size" <>;
+	listAdd ::= method jListOfString."add" <any>;
+	listGet ::= method jListOfString."get" <Java int>;
 
 	/* Use these reflection pojos to create and poke a List<String>. */
-	list ::= invoke listConstructor with <>;
-	Require: (invoke listSize with <list>) = 0;
-	added ::= invoke listAdd with <list, "cat">;
+	list ::= listConstructor();
+	Require: listSize(list) = 0;
+	added ::= listAdd(list, "cat");
 	Require: added = true;
-	Require: (invoke listSize with <list>) = 1;
-	cat ::= invoke listGet with <list, 0>;
+	Require: listSize(list) = 1;
+	cat ::= listGet(list, 0);
 	Require: cat = "cat";
 ];
