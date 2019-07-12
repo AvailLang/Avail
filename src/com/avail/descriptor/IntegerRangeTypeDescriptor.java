@@ -52,10 +52,7 @@ import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND;
-import static com.avail.descriptor.PojoTypeDescriptor.byteRange;
-import static com.avail.descriptor.PojoTypeDescriptor.intRange;
-import static com.avail.descriptor.PojoTypeDescriptor.longRange;
-import static com.avail.descriptor.PojoTypeDescriptor.shortRange;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
@@ -231,6 +228,10 @@ extends TypeDescriptor
 		if (object.isSubtypeOf(byteRange()))
 		{
 			return Byte.TYPE;
+		}
+		if (object.isSubtypeOf(charRange()))
+		{
+			return Character.TYPE;
 		}
 		if (object.isSubtypeOf(shortRange()))
 		{

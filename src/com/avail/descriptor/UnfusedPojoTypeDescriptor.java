@@ -315,7 +315,9 @@ extends PojoTypeDescriptor
 		{
 			return pojoBottom();
 		}
-		return aPojoType.typeIntersectionOfPojoUnfusedType(object);
+		return canonicalPojoType(
+			aPojoType.typeIntersectionOfPojoUnfusedType(object),
+			false);
 	}
 
 	@Override @AvailMethod
@@ -407,7 +409,9 @@ extends PojoTypeDescriptor
 		{
 			return object.pojoSelfType().typeUnionOfPojoType(aPojoType);
 		}
-		return aPojoType.typeUnionOfPojoUnfusedType(object);
+		return canonicalPojoType(
+			aPojoType.typeUnionOfPojoUnfusedType(object),
+			false);
 	}
 
 	@Override @AvailMethod

@@ -50,8 +50,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PojoTypeDescriptor.marshalTypes;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -108,7 +107,7 @@ extends Primitive
 		final Constructor<?> constructor;
 		try
 		{
-			final Class<?> javaClass = marshalTypes(tuple(pojoType))[0];
+			final Class<?> javaClass = marshalDefiningType(pojoType);
 			if ((javaClass.getModifiers() & Modifier.ABSTRACT) != 0)
 			{
 				return interpreter.primitiveFailure(E_POJO_TYPE_IS_ABSTRACT);

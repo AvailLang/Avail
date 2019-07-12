@@ -506,25 +506,11 @@ public class TypeConsistencyTest
 		};
 
 		/**
-		 * The most general {@linkplain PojoTypeDescriptor pojo type}.
-		 */
-		static final Node MOST_GENERAL_POJO = new Node(
-			"MOST_GENERAL_POJO",
-			primitiveTypes.get(Types.NONTYPE))
-		{
-			@Override
-			A_Type get ()
-			{
-				return mostGeneralPojoType();
-			}
-		};
-
-		/**
 		 * The pojo type representing {@link Comparable}&lt;{@link Object}&gt;.
 		 */
 		static final Node COMPARABLE_OF_JAVA_OBJECT_POJO = new Node(
 			"COMPARABLE_OF_JAVA_OBJECT_POJO",
-			MOST_GENERAL_POJO)
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override
 			A_Type get ()
@@ -639,7 +625,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node COMPARABLE_OF_AVAIL_INTEGER_POJO = new Node(
 			"COMPARABLE_OF_AVAIL_INTEGER_POJO",
-			MOST_GENERAL_POJO)
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override
 			A_Type get ()
@@ -656,7 +642,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node JAVA_OBJECT_ARRAY_POJO = new Node(
 			"JAVA_OBJECT_ARRAY_POJO",
-			MOST_GENERAL_POJO)
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override
 			A_Type get ()

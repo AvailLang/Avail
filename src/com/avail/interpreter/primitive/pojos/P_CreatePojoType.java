@@ -40,14 +40,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
-
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.canonicalPojoType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -87,20 +84,8 @@ public final class P_CreatePojoType extends Primitive
 		{
 			final A_Type pojoType = interpreter.runtime().lookupJavaType(
 				className, classParameters);
-			if (classParameters.tupleSize() == 0)
-			{
-				// We need to resolve certain types to native Avail types.
-				final @Nullable Object javaObject =
-					pojoType.javaClass().javaObject();
-				assert javaObject != null;
-				final A_Type resolved = resolvePojoType(
-					(Class<?>) javaObject, emptyMap());
-				return interpreter.primitiveSuccess(resolved);
-			}
-			// If there are type parameters, then we do not need a resolution
-			// step, as none of the Avail-based marshaling targets are
-			// parametric.
-			return interpreter.primitiveSuccess(pojoType);
+			return interpreter.primitiveSuccess(
+				canonicalPojoType(pojoType, true));
 		}
 		catch (AvailRuntimeException e)
 		{
