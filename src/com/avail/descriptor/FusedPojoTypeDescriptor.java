@@ -313,7 +313,9 @@ extends PojoTypeDescriptor
 		{
 			return pojoBottom();
 		}
-		return aPojoType.typeIntersectionOfPojoFusedType(object);
+		return canonicalPojoType(
+			aPojoType.typeIntersectionOfPojoFusedType(object),
+			false);
 	}
 
 	@Override
@@ -337,7 +339,8 @@ extends PojoTypeDescriptor
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
-		final Class<?> otherJavaClass = object.javaClass().javaObjectNotNull();
+		final Class<?> otherJavaClass =
+			anUnfusedPojoType.javaClass().javaObjectNotNull();
 		final int otherModifiers = otherJavaClass.getModifiers();
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
@@ -386,7 +389,9 @@ extends PojoTypeDescriptor
 		{
 			return object.pojoSelfType().typeUnionOfPojoType(aPojoType);
 		}
-		return aPojoType.typeUnionOfPojoType(object);
+		return canonicalPojoType(
+			aPojoType.typeUnionOfPojoType(object),
+			false);
 	}
 
 	@Override

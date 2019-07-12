@@ -333,7 +333,9 @@ extends PojoTypeDescriptor
 		{
 			return object.pojoSelfType().typeUnionOfPojoType(aPojoType);
 		}
-		return aPojoType.typeUnionOfPojoFusedType(object);
+		return canonicalPojoType(
+			aPojoType.typeUnionOfPojoFusedType(object),
+			false);
 	}
 
 	@Override @AvailMethod

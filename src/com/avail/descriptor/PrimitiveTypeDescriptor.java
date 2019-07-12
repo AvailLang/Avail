@@ -383,14 +383,13 @@ extends TypeDescriptor
 						return Void.class;
 					case ANY:
 						return Object.class;
-					case CHARACTER:
-						return Character.TYPE;
 					case DOUBLE:
 						return Double.TYPE;
 					case FLOAT:
 						return Float.TYPE;
 					case ABSTRACT_DEFINITION:
 					case ATOM:
+					case CHARACTER:
 					case DEFINITION_PARSING_PLAN:
 					case FORWARD_DEFINITION:
 					case LEXER:

@@ -34,11 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
-import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.*;
@@ -69,8 +67,6 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
@@ -824,6 +820,60 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Marshal the supplied {@link A_Type}, as though it will be used for
+	 * {@link Executable} lookup, using a boxed Java class to represent a
+	 * primitive Java type.
+	 *
+	 * @param type
+	 *        A type.
+	 * @return The Java class that represents the supplied type.
+	 * @throws MarshalingException
+	 *         If marshaling fails for any reason.
+	 */
+	public static Class<?> marshalDefiningType(final A_Type type)
+	{
+		final @Nullable Class<?> aClass = nullableCast(
+			type.marshalToJava(null));
+		assert aClass != null;
+		if (aClass.isPrimitive())
+		{
+			if (aClass.equals(Boolean.TYPE))
+			{
+				return Boolean.class;
+			}
+			else if (aClass.equals(Byte.TYPE))
+			{
+				return Byte.class;
+			}
+			else if (aClass.equals(Short.TYPE))
+			{
+				return Short.class;
+			}
+			else if (aClass.equals(Integer.TYPE))
+			{
+				return Integer.class;
+			}
+			else if (aClass.equals(Long.TYPE))
+			{
+				return Long.class;
+			}
+			else if (aClass.equals(Float.TYPE))
+			{
+				return Float.class;
+			}
+			else if (aClass.equals(Double.TYPE))
+			{
+				return Double.class;
+			}
+			else if (aClass.equals(Character.TYPE))
+			{
+				return Character.class;
+			}
+		}
+		return aClass;
+	}
+
+	/**
 	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
 	 * {@linkplain AvailObject Avail object}.
 	 *
@@ -1069,6 +1119,44 @@ extends TypeDescriptor
 		}
 		assert false : "Unsupported generic declaration";
 		throw new RuntimeException();
+	}
+
+	/**
+	 * Answer the canonical pojo type for the specified pojo type. This marshals
+	 * certain pojo types to Avail types (e.g., java.lang.String -> string).
+	 *
+	 * @param probablePojoType
+	 *        An arbitrary Avail type, but one that might be a pojo type.
+	 * @param allowMetas
+	 *        {@code true} if metatypes are contextually possible outcomes,
+	 *        {@code false} if only nontype values are contextually possible
+	 *        outcomes.
+	 * @return The canonical Avail type for the given pojo type.
+	 */
+	public static A_Type canonicalPojoType (
+		final A_Type probablePojoType,
+		final boolean allowMetas)
+	{
+		if (probablePojoType.isPojoType()
+			&& !probablePojoType.equalsPojoBottomType())
+		{
+			final A_BasicObject pojoClass = probablePojoType.javaClass();
+			if (!pojoClass.equalsNil())
+			{
+				final Class<?> javaClass = pojoClass.javaObjectNotNull();
+				if (javaClass.getTypeParameters().length == 0)
+				{
+					final A_Type resolved =
+						resolvePojoType(javaClass, emptyMap());
+					if (!allowMetas && resolved.equals(ANY.o()))
+					{
+						return NONTYPE.o();
+					}
+					return resolved;
+				}
+			}
+		}
+		return probablePojoType;
 	}
 
 	/**

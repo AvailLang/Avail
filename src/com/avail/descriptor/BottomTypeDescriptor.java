@@ -395,7 +395,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override
 	boolean o_IsPojoSelfType (final AvailObject object)
 	{
-		return true;
+		return false;
 	}
 
 	@Override
