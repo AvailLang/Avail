@@ -88,9 +88,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
- * Test various consistency properties for {@linkplain TypeDescriptor types} in
- * Avail.  The type system is really pretty complex, so these tests are quite
- * important.
+ * Test various consistency properties for {@link A_Type}s in Avail.  The type
+ * system is really pretty complex, so these tests are quite important.
  *
  * <p>Here are some things to test.  T is the set of types, T(x) means the type
  * of x, Co(x) is some relation between a type and its parameters that's
@@ -171,14 +170,15 @@ public class TypeConsistencyTest
 	 * Node#Node(String, Node...) constructor} takes a variable number of
 	 * supertype nodes.  The node supertype declarations are checked against the
 	 * actual properties of the underlying types as one of the fundamental
-	 * {@linkplain TypeConsistencyTest consistency checks}.
+	 * consistency checks.
 	 *
 	 * <p>
-	 * All {@link Types} are included, as well as a few simple representative
-	 * samples, such as the one-element string type and the type of whole
-	 * numbers.
+	 * All primitive {@link Types} are included, as well as a few simple
+	 * representative samples, such as the one-element string type and the type
+	 * of whole numbers.
 	 * </p>
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	public abstract static class Node
 	{
 		/**
@@ -187,7 +187,7 @@ public class TypeConsistencyTest
 		static final List<Node> values = new ArrayList<>();
 
 		/**
-		 * A mapping from {@link Types} to their corresponding {@link Node}s.
+		 * A mapping from {@link Types} to their corresponding {@code Node}s.
 		 */
 		private static final EnumMap<Types, Node> primitiveTypes =
 			new EnumMap<>(Types.class);
@@ -1293,7 +1293,7 @@ public class TypeConsistencyTest
 		}
 
 		/**
-		 * The list of all {@link Node}s except BOTTOM.
+		 * The list of all {@code Node}s except BOTTOM.
 		 */
 		private static final List<Node> nonBottomTypes =
 			new ArrayList<>();
@@ -1367,20 +1367,19 @@ public class TypeConsistencyTest
 		private Boolean[] subtypeCache = new Boolean[0];
 
 		/**
-		 * Construct a new {@link Node}, capturing a varargs list of known
+		 * Construct a new {@code Node}, capturing a varargs list of known
 		 * supertypes.
 		 *
 		 * @param name
-		 *            The printable name of this {@link Node}.
+		 *        The printable name of this {@code Node}.
 		 * @param supernodes
-		 *            The array of {@linkplain Node nodes} that this node is
-		 *            asserted to descend from.  Transitive ancestors may be
-		 *            elided.
+		 *        The array of {@code Node}s that this node is asserted to
+		 *        descend from.  Transitive ancestors may be elided.
 		 */
 		Node (final String name, final Node... supernodes)
 		{
 			this.name = name;
-			this.supernodes = supernodes;
+			this.supernodes = supernodes.clone();
 			this.index = values.size();
 			final Set<Node> ancestors = new HashSet<>();
 			for (final Node supernode : supernodes)
@@ -1437,11 +1436,10 @@ public class TypeConsistencyTest
 
 		/**
 		 * Enumeration instances are required to implement this to construct the
-		 * actual Avail {@linkplain TypeDescriptor type} that this {@link Node}
-		 * represents.
+		 * actual Avail {@link A_Type} that this {@code Node} represents.
 		 *
-		 * @return The {@link AvailObject} that is the {@linkplain
-		 *         TypeDescriptor type} that this {@link Node} represents.
+		 * @return The {@link AvailObject} that is the {@link A_Type} that this
+		 *         {@code Node} represents.
 		 */
 		abstract A_Type get ();
 
@@ -1451,7 +1449,7 @@ public class TypeConsistencyTest
 		 * #t} and the argument's {@code t}.
 		 *
 		 * @param rightNode
-		 *            The {@linkplain Node} for the right side of the union.
+		 *            The {@code Node} for the right side of the union.
 		 * @return
 		 *            The {@linkplain AvailObject#typeUnion(A_Type) type
 		 *            union} of the receiver's {@link #t} and the argument's
@@ -1476,7 +1474,7 @@ public class TypeConsistencyTest
 		 * {@link #t} and the argument's {@code t}.
 		 *
 		 * @param rightNode
-		 *            The {@linkplain Node} for the right side of the
+		 *            The {@code Node} for the right side of the
 		 *            intersection.
 		 * @return
 		 *            The {@linkplain AvailObject#typeIntersection(A_Type)
@@ -1503,7 +1501,7 @@ public class TypeConsistencyTest
 		 * subtype of the argument's {@code t}.
 		 *
 		 * @param rightNode
-		 *            The {@linkplain Node} for the right side of the subtype
+		 *            The {@code Node} for the right side of the subtype
 		 *            test.
 		 * @return
 		 *            Whether the receiver's {@link #t} is a subtype of the
@@ -1594,8 +1592,8 @@ public class TypeConsistencyTest
 	 * </p>
 	 *
 	 * @param out
-	 *            A PrintStream on which to dump a representation of the current
-	 *            type graph.
+	 *        A PrintStream on which to dump a representation of the current
+	 *        type graph.
 	 */
 	private static void dumpGraphTo (final PrintStream out)
 	{
@@ -1658,7 +1656,7 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
+	 * Test fixture: clear all special objects, wiping each {@code Node}'s type.
 	 */
 	@SuppressWarnings("WeakerAccess")
 	@AfterAll
