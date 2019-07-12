@@ -32,14 +32,11 @@
 package com.avail.interpreter.primitive.pojos;
 
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
@@ -47,25 +44,22 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.*;
 
 /**
  * <strong>Primitive:</strong> Given the specified {@linkplain
@@ -75,7 +69,10 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
  * applied with arguments will invoke the reflected Java static {@linkplain
  * Method method}. The last argument is a function that should be invoked with a
  * pojo-wrapped {@link Exception} in the event that Java raises an exception.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("unused")
 public final class P_CreatePojoStaticMethodFunction
 extends Primitive
 {
@@ -104,96 +101,50 @@ extends Primitive
 		}
 
 		// Marshal the argument types.
-		final Class<?>[] marshaledTypes;
+		final @Nullable Method method;
+		final A_Tuple marshaledTypesTuple;
 		try
 		{
-			marshaledTypes = marshalTypes(paramTypes);
+			final Class<?>[] marshaledTypes = marshalTypes(paramTypes);
+			final MutableOrNull<AvailErrorCode> errorOut =
+				new MutableOrNull<>();
+			method = lookupMethod(
+				pojoType, methodName, marshaledTypes, errorOut);
+			if (errorOut.value != null)
+			{
+				return interpreter.primitiveFailure(errorOut.value);
+			}
+			marshaledTypesTuple =
+				generateObjectTupleFrom(
+					marshaledTypes.length,
+					i -> equalityPojo(marshaledTypes[i - 1]));
 		}
 		catch (final MarshalingException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		// Search for the method.
-		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
-		final @Nullable Method method = lookupMethod(
-			pojoType, methodName, marshaledTypes, errorOut);
-		// If pojoType is not a fused type, then it has an immediate class
-		// that should be used to recursively look up the method.
 		assert method != null;
-		assert errorOut.value == null;
-		// Wrap each of the marshaled argument types into raw pojos. These
-		// will be embedded into one of the generated functions below.
-		final A_Tuple marshaledTypesTuple =
-			generateObjectTupleFrom(
-				marshaledTypes.length,
-				i -> equalityPojo(marshaledTypes[i - 1]));
-		// Create a function wrapper for the pojo method invocation
-		// primitive. This function will be embedded as a literal into
-		// an outer function that holds the (unexposed) method pojo.
-		L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		writer.primitive(P_InvokeStaticPojoMethod.instance);
-		writer.argumentTypes(
-			RAW_POJO.o(),
-			mostGeneralTupleType(),
-			zeroOrMoreOf(RAW_POJO.o()),
-			topMeta());
-		writer.returnType(TOP.o());
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(failFunction));
-		writer.write(
-			0,
-			L1Operation.L1_doGetLocal,
-			writer.createLocal(
-				variableTypeFor(pojoTypeForClass(Throwable.class))));
-		writer.write(0, L1Operation.L1_doMakeTuple, 1);
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
-			writer.addLiteral(bottom()));
-		final A_Function innerFunction = createFunction(
-			writer.compiledCode(), emptyTuple()).makeImmutable();
-		// Create the outer function that pushes the arguments expected by
-		// the method invocation primitive. Various objects that we do
-		// not want to expose to the Avail program are embedded in this
-		// function as literals.
-		writer = new L1InstructionWriter(
-			nil, 0, nil);
-		writer.argumentTypesTuple(paramTypes);
-		final A_Type returnType = resolvePojoType(
-			method.getGenericReturnType(), pojoType.typeVariables());
-		writer.returnType(returnType);
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(innerFunction));
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(equalityPojo(method)));
-		final int limit = paramTypes.tupleSize();
-		for (int i = 1; i <= limit; i++)
-		{
-			writer.write(0, L1Operation.L1_doPushLocal, i);
-		}
-		writer.write(0, L1Operation.L1_doMakeTuple, paramTypes.tupleSize());
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(marshaledTypesTuple));
-		writer.write(0, L1Operation.L1_doPushLiteral, writer.addLiteral(pojoType));
-		writer.write(0, L1Operation.L1_doMakeTuple, 4);
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
-			writer.addLiteral(returnType));
-		final A_Function outerFunction =
-			createFunction(writer.compiledCode(), emptyTuple()).makeImmutable();
-		// TODO: [TLS] When functions can be made non-reflective, then make
-		// both these functions non-reflective for safety.
+		final A_Function innerFunction = pojoInvocationWrapperFunction(
+			failFunction,
+			writer ->
+			{
+				writer.primitive(P_InvokeStaticPojoMethod.instance);
+				writer.argumentTypes(
+					RAW_POJO.o(),
+					mostGeneralTupleType(),
+					zeroOrMoreOf(RAW_POJO.o()),
+					topMeta());
+				writer.returnType(TOP.o());
+			}
+		);
+		final A_Function outerFunction = pojoInvocationAdapterFunction(
+			method,
+			paramTypes,
+			marshaledTypesTuple,
+			resolvePojoType(
+				method.getGenericReturnType(),
+				pojoType.typeVariables()),
+			innerFunction);
 		return interpreter.primitiveSuccess(outerFunction);
 	}
 

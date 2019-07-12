@@ -3203,29 +3203,30 @@ Primitive "_'s⁇_field" is
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "constructor of_,⁇parameterized by_,⁇on failure doing_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any meta"
  *        A pojo type.
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired constructor.
  * @param "failFunction" "pojo failure function"
  *        The function to apply if an invocation of the constructor
  *        throws a Java exception.
- * @returns "[…]→java.lang.Object"
+ * @returns "[…]→any"
  *    The requested constructor invocation function.
  * @raises "pojo-type-is-abstract exception"
  * @raises "Java-method-not-available exception"
  */
 Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any meta,
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
 	Primitive CreatePojoConstructorFunction (failureCode : {
 		pojo-type-is-abstract code,
-		Java-method-not-available code}ᵀ);
+		Java-method-not-available code,
+		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : pojo constructor;
+] : function returning any;
 
 /**
  * Construct and answer a function that, when applied with arguments
@@ -3354,7 +3355,7 @@ Primitive "static method_._,⁇parameterized by_,⁇on failure doing_" is
  * @param "typeParameters" "tuple of any meta"
  *        The type arguments. The cardinality of this tuple must agree with the
  *        number of type parameters required by the Java class or interface.
- * @returns "(java.lang.Object)'s type"
+ * @returns "(any)'s type"
  *    The requested pojo type.
  * @raises "incorrect-number-of-arguments exception"
  * @raises "Java-class-not-available exception"
@@ -3368,7 +3369,7 @@ Primitive "_parameterized by_" is
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : pojo meta;
+] : any meta;
 
 /**
  * Answer the {@param "index"}-th element of the specified pojo array.

@@ -148,7 +148,7 @@ extends TypeDescriptor
 	 * @param object The primitive type.
 	 * @return The {@link Types} enum value's ordinal.
 	 */
-	private static int extractOrdinal (final AvailObject object)
+	public static int extractOrdinal (final AvailObject object)
 	{
 		return extractEnum(object).ordinal();
 	}
@@ -418,9 +418,9 @@ extends TypeDescriptor
 	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		// Any primitive type that can be serialized should occur in the special
-		// objects list.
-		throw unsupportedOperationException();
+		// Most of the primitive types are already handled as special objects,
+		// so this only kicks in as a backup.
+		return SerializerOperation.ARBITRARY_PRIMITIVE_TYPE;
 	}
 
 	@Override @AvailMethod

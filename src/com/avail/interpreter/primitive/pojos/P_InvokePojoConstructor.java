@@ -31,19 +31,14 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.RawPojoDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -51,16 +46,16 @@ import java.lang.reflect.InvocationTargetException;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
@@ -83,6 +78,7 @@ public final class P_InvokePojoConstructor extends Primitive
 		new P_InvokePojoConstructor().init(
 			4, Private);
 
+	@SuppressWarnings("Duplicates")
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
@@ -90,7 +86,7 @@ public final class P_InvokePojoConstructor extends Primitive
 		interpreter.checkArgumentCount(4);
 		final A_BasicObject constructorPojo = interpreter.argument(0);
 		final A_Tuple constructorArgs = interpreter.argument(1);
-		final A_Tuple marshaledTypePojos = interpreter.argument(2);
+		final A_Tuple marshaledTypes = interpreter.argument(2);
 		final A_Type expectedType = interpreter.argument(3);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
@@ -100,35 +96,29 @@ public final class P_InvokePojoConstructor extends Primitive
 		}
 
 		final Constructor<?> constructor = constructorPojo.javaObjectNotNull();
-		final Object[] marshaledArgs = new Object[constructorArgs.tupleSize()];
-		// Marshal the arguments.
-		try
+		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
+		final @Nullable Object[] marshaledArgs = marshalValues(
+			marshaledTypes,
+			constructorArgs,
+			errorOut);
+		if (errorOut.value != null)
 		{
-			for (int i = 0; i < marshaledArgs.length; i++)
-			{
-				final @Nullable Class<?> marshaledType =
-					marshaledTypePojos.tupleAt(i + 1).javaObject();
-				marshaledArgs[i] =
-					constructorArgs.tupleAt(i + 1).marshalToJava(marshaledType);
-			}
-		}
-		catch (final MarshalingException e)
-		{
+			final AvailErrorCode e = errorOut.value;
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
+
 		// Invoke the constructor.
-		final Object newObject;
+		final Object result;
 		try
 		{
-			newObject = constructor.newInstance(marshaledArgs);
+			result = constructor.newInstance(marshaledArgs);
 		}
 		catch (final InvocationTargetException e)
 		{
 			final Throwable cause = e.getCause();
-			return interpreter.primitiveFailure(
-				newPojo(
-					identityPojo(cause), pojoTypeForClass(cause.getClass())));
+			return interpreter.primitiveFailure(newPojo(
+				identityPojo(cause), pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{
@@ -136,9 +126,18 @@ public final class P_InvokePojoConstructor extends Primitive
 			error("reflected constructor call unexpectedly failed");
 			throw new Error();
 		}
-		final AvailObject newPojo = newPojo(
-			identityPojo(newObject), expectedType);
-		return interpreter.primitiveSuccess(newPojo);
+		try
+		{
+			final AvailObject unmarshaled = unmarshal(result, expectedType);
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+		catch (final MarshalingException e)
+		{
+			return interpreter.primitiveFailure(
+				newPojo(
+					identityPojo(e),
+					pojoTypeForClass(e.getClass())));
+		}
 	}
 
 	@Override
@@ -150,7 +149,7 @@ public final class P_InvokePojoConstructor extends Primitive
 					RAW_POJO.o(),
 					mostGeneralTupleType(),
 					zeroOrMoreOf(RAW_POJO.o()),
-					instanceMeta(mostGeneralPojoType())),
+					anyMeta()),
 				mostGeneralPojoType());
 	}
 

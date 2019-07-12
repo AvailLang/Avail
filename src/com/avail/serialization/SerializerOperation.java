@@ -93,6 +93,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.extractOrdinal;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
 import static com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse;
@@ -2681,16 +2682,21 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * An arbitrary primitive type that is not already a special object. Exists
+	 * primarily to support hidden types that are not exposed directly to an
+	 * Avail programmer but which must still be visible to the serialization
+	 * mechanism.
 	 */
-	RESERVED_74(74)
+	ARBITRARY_PRIMITIVE_TYPE(
+		74,
+		BYTE.as("primitive type ordinal"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array(fromInt(extractOrdinal(object)));
 		}
 
 		@Override
@@ -2698,7 +2704,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return Types.all()[subobjects[0].extractInt()].o();
 		}
 	},
 

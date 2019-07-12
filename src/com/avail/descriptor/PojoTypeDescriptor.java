@@ -41,29 +41,14 @@ import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
@@ -142,7 +127,7 @@ extends TypeDescriptor
 		 *        A Java class or interface.
 		 * @return A locally canonical raw pojo corresponding to the argument.
 		 */
-		public AvailObject canonize (final Class<?> javaClass)
+		AvailObject canonize (final Class<?> javaClass)
 		{
 			AvailObject rawPojo = get(javaClass);
 			if (rawPojo == null)
@@ -190,7 +175,7 @@ extends TypeDescriptor
 		public final Class<?> javaClass;
 
 		/** The type arguments. */
-		public final A_Tuple typeArgs;
+		final A_Tuple typeArgs;
 
 		@Override
 		public boolean equals (final @Nullable Object obj)
@@ -353,6 +338,24 @@ extends TypeDescriptor
 	public static A_Type longRange ()
 	{
 		return longRange;
+	}
+
+	/**
+	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
+	 * corresponds to Java {@code char}.
+	 */
+	private static final A_Type charRange =
+		inclusive(Character.MIN_VALUE, Character.MAX_VALUE).makeShared();
+
+	/**
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
+	 * that corresponds to Java {@code char}.
+	 *
+	 * @return {@code [-9223372036854775808..9223372036854775807]}.
+	 */
+	public static A_Type charRange ()
+	{
+		return charRange;
 	}
 
 	/**
@@ -821,80 +824,6 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Search for the requested Java {@link Method}.
-	 *
-	 * @param pojoType
-	 *        The pojo type (an {@link A_Type}) where the method is defined. The
-	 *        method may also be in a superclass of this class.
-	 * @param methodName
-	 *        The name of the method.
-	 * @param marshaledTypes
-	 *        The array of {@link Class}es for the arguments, used to
-	 *        disambiguate overloaded methods.
-	 * @param errorOut
-	 *        A {@link MutableOrNull} into which an {@link AvailErrorCode} can
-	 *        be written in the event that a unique {@link Method} is not found.
-	 * @return Either the successfully looked up {@link Method} or {@code null}.
-	 *         Note that either the return is non-null or the errorOut will
-	 *         have a non-null value written to it.
-	 */
-	public static @Nullable Method lookupMethod (
-		final A_Type pojoType,
-		final A_String methodName,
-		final Class<?>[] marshaledTypes,
-		final MutableOrNull<AvailErrorCode> errorOut)
-	{
-		// Search for the method.
-		// If pojoType is not a fused type, then it has an immediate class that
-		// should be used to recursively look up the method.
-		if (!pojoType.isPojoFusedType())
-		{
-			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
-			try
-			{
-				return javaClass.getMethod(
-					methodName.asNativeString(), marshaledTypes);
-			}
-			catch (final NoSuchMethodException e)
-			{
-				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE;
-				return null;
-			}
-		}
-		// If pojoType is a fused type, then iterate through its ancestry in an
-		// attempt to uniquely resolve the method.
-		else
-		{
-			final Set<Method> methods = new HashSet<>();
-			final A_Map ancestors = pojoType.javaAncestors();
-			for (final A_BasicObject ancestor : ancestors.keysAsSet())
-			{
-				final Class<?> javaClass = ancestor.javaObjectNotNull();
-				try
-				{
-					methods.add(javaClass.getMethod(
-						methodName.asNativeString(), marshaledTypes));
-				}
-				catch (final NoSuchMethodException e)
-				{
-					// Ignore -- this is not unexpected.
-				}
-			}
-			if (methods.isEmpty())
-			{
-				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE;
-				return null;
-			}
-			if (methods.size() > 1)
-			{
-				errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
-				return null;
-			}
-			return methods.iterator().next();
-		}
-	}
-
-	/**
 	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
 	 * {@linkplain AvailObject Avail object}.
 	 *
@@ -949,7 +878,7 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(Character.class))
 		{
-			availObject = fromCodePoint((Character) object);
+			availObject = fromInt((Character) object);
 		}
 		else if (javaClass.equals(String.class))
 		{
@@ -1034,13 +963,49 @@ extends TypeDescriptor
 				}
 				else if (aClass.equals(Character.TYPE))
 				{
-					return CHARACTER.o();
+					return charRange();
 				}
 				else
 				{
 					assert false : "There are only nine primitive types!";
 					throw new RuntimeException();
 				}
+			}
+			if (aClass.equals(Void.class))
+			{
+				return TOP.o();
+			}
+			if (aClass.equals(Boolean.class))
+			{
+				return booleanType();
+			}
+			if (aClass.equals(Byte.class))
+			{
+				return byteRange();
+			}
+			if (aClass.equals(Short.class))
+			{
+				return shortRange();
+			}
+			if (aClass.equals(Integer.class))
+			{
+				return intRange();
+			}
+			if (aClass.equals(Long.class))
+			{
+				return longRange();
+			}
+			if (aClass.equals(Float.class))
+			{
+				return FLOAT.o();
+			}
+			if (aClass.equals(Double.class))
+			{
+				return DOUBLE.o();
+			}
+			if (aClass.equals(Character.class))
+			{
+				return charRange();
 			}
 			if (aClass.equals(String.class))
 			{

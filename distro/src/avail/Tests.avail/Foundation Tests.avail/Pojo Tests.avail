@@ -46,6 +46,30 @@ Body
 
 New test suite pojo test suite extends foundation test suite;
 
+Test "pojo type marshaling identities" in pojo test suite is
+[
+	Require: "java.lang.Void"<> = ⊤;
+	Require: "java.lang.Object"<> = any;
+	Require: "java.lang.String"<> = string;
+	Require: "java.lang.Boolean"<> = boolean;
+	Require: "java.lang.Short"<> = Java short;
+	Require: "java.lang.Integer"<> = Java int;
+	Require: "java.lang.Long"<> = Java long;
+	Require: "java.lang.Character"<> = Java char;
+	Require: "java.lang.Float"<> = float;
+	Require: "java.lang.Double"<> = double;
+];
+
+Test "pojo constructors" in pojo test suite is
+[
+	emptyStringConstructor ::= constructor of string<>;
+	copyStringConstructor ::= constructor of string<string>;
+
+	Require: emptyStringConstructor() = "";
+	Require: copyStringConstructor("moo") = "moo";
+	Require: copyStringConstructor("初めまして") = "初めまして";
+];
+
 Test "pojo string list" in pojo test suite is
 [
 	jListOfString ::= "java.util.List"<string>;

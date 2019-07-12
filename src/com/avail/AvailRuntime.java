@@ -402,10 +402,10 @@ public final class AvailRuntime
 	throws AvailRuntimeException
 	{
 		final Class<?> rawClass = lookupRawJavaClass(className);
-		// Check that the correct number of type parameters have been
-		// supplied. Don't bother to check the bounds of the type
-		// parameters. Incorrect bounds will cause some method and
-		// constructor lookups to fail, but that's fine.
+		// Check that the correct number of type parameters have been supplied.
+		// Don't bother to check the bounds of the type parameters. Incorrect
+		// bounds will cause some method and constructor lookups to fail, but
+		// that's fine.
 		final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
 		if (typeVars.length != classParameters.tupleSize())
 		{
@@ -987,7 +987,7 @@ public final class AvailRuntime
 		specials[83] = pojoSelfType();
 		specials[84] = instanceMeta(mostGeneralPojoType());
 		specials[85] = instanceMeta(mostGeneralPojoArrayType());
-		specials[86] = functionTypeReturning(mostGeneralPojoType());
+		specials[86] = functionTypeReturning(ANY.o());
 		specials[87] = mostGeneralPojoArrayType();
 		specials[88] = pojoSelfTypeAtom();
 		specials[89] = pojoTypeForClass(Throwable.class);
@@ -1098,7 +1098,6 @@ public final class AvailRuntime
 		specials[166] = inclusive(0, (1L << 32) - 1);
 		specials[167] = inclusive(0, (1L << 28) - 1);
 		specials[168] = inclusive(1L, 4L);
-		specials[169] = RAW_POJO.o();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

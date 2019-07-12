@@ -92,6 +92,7 @@ Names
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
+	/*  86 */ "function returning any",
 	/* 146 */ "int32",
 	/* 147 */ "int64",
 	/*  17 */ "integer",
@@ -147,7 +148,6 @@ Names
 	/*  80 */ "pojo",
 	/*  87 */ "pojo array",
 	/*  85 */ "pojo array meta",
-	/*  86 */ "pojo constructor",
 	/*  89 */ "pojo exception",
 	/* 127 */ "pojo failure function",
 	/*  84 */ "pojo meta",
@@ -157,7 +157,6 @@ Names
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
 	/*  68 */ "primitive failure reason phrase",
-	/* 169 */ "raw pojo",
 	/* 131 */ "readable extended integer variable",
 	/* 144 */ "scope map key",
 	/* 149 */ "scope stack key",
@@ -1460,10 +1459,10 @@ Special object "pojo array meta" is special object 85;
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo constructor"
- * @alias "[…]→java.lang.Object"
+ * @type "function returning any"
+ * @alias "[…]→any"
  */
-Special object "pojo constructor" is special object 86;
+Special object "function returning any" is special object 86;
 
 /**
  * TODO: Special object description goes here.
@@ -2216,13 +2215,4 @@ Special object "source line number" is special object 167;
  * @alias "parse rejection level"
  */
 Special object "parse rejection level" is special object 168;
-
-/**
- * The type for raw pojos (Plain Old Java Objects).
- *
- * @category "Primitives" "Types"
- * @type "raw pojo"
- * @alias "raw pojo"
- */
-Special object "raw pojo" is special object 169;
 

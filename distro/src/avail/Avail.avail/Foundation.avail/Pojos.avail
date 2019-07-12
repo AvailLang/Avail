@@ -221,35 +221,50 @@ Public stable method "Java byte" is [[-2^7..2^7)];
 Public stable method "Java char" is [[0..2^16)];
 
 /**
- * Construct and answer a fully parameterized pojo type.
+ * Answer the type that represents the Java class specified by the given
+ * fully-qualified name and type parameters. To establish type conformance
+ * between Avail types and Java types, the following marshaling rules are
+ * applied:
+ *
+ * <ul>
+ * <li>{@code "java.lang.Void"} is marshaled to {@type "⊤"}.</li>
+ * <li>{@code "java.lang.Object"} is marshaled to {@type "any"}.</li>
+ * <li>{@code "java.lang.Boolean"} is marshaled to {@type "boolean"}.</li>
+ * <li>{@code "java.lang.Byte"} is marshaled to {@type "Java byte"}.</li>
+ * <li>{@code "java.lang.Short"} is marshaled to {@type "Java short"}.</li>
+ * <li>{@code "java.lang.Integer"} is marshaled to {@type "Java int"}.</li>
+ * <li>{@code "java.lang.Long"} is marshaled to {@type "Java long"}.</li>
+ * <li>{@code "java.lang.Character"} is marshaled to {@type "Java char"}.</li>
+ * <li>{@code "java.lang.Float"} is marshaled to {@type "float"}.</li>
+ * <li>{@code "java.lang.Double"} is marshaled to {@type "double"}.</li>
+ * <li>All other values are unmarshaled.</li>
+ * </ul>
  *
  * @category "Primitives" "Types" "POJO" "Constructors"
  * @method "_<«_‡,»>"
  * @param "javaName" "string"
  *        The fully qualified name of the Java class or interface.
- * @param "typeParameters" "tuple of any meta"
+ * @param "typeParameters" "any's type*"
  *        The type arguments. The cardinality of this tuple must agree with the
  *        number of type parameters required by the Java class or interface.
- * @returns "(java.lang.Object)'s type"
- *    The requested pojo type.
+ * @returns "any's type"
+ *          The requested type.
  * @raises "incorrect-number-of-arguments exception"
  * @raises "Java-class-not-available exception"
  */
 Public stable method "_<«_‡,»>" is
 [
 	javaName : string,
-	typeParameters : <any's type…|>
+	typeParameters : any's type*
 |
 	Primitive CreatePojoType (failureCode : {
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
 	Invoke early failure function with <failureCode>
-] : pojo's type;
+] : any's type;
 
 /**
- * Construct and answer a {@type "function"} that, when applied with arguments
- * corresponding to the specified parameter types, constructs a new {@type
- * "pojo"} of the specified type.
+ * Construct and answer a {@type "function"} that binds to a Java constructor.
  *
  * The answered function adapts a reflective invocation of the Java constructor,
  * if any, that accepts the specified number and types of arguments. To
@@ -263,16 +278,11 @@ Public stable method "_<«_‡,»>" is
  * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
  * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
  * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
+ * <li>{@type "Java char"} is marshaled to {@code
+ *     "java.lang.Character.TYPE"}.</li>
  * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
  * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
  * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@method "_[_]"} is marshaled to
- *     java.lang.reflect.Array.newInstance().getClass().</li>
- * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
- *     or interface.</li>
- * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.AvailObject"}.</li>
  * </ul>
  *
  * @category "Functions" "POJO" "Constructors"
@@ -288,14 +298,14 @@ Public stable method "_<«_‡,»>" is
  */
 Public stable method "constructor of_«parameterized by»⁇_" is
 [
-	aPojoType : pojo's type,
+	aPojoType : any's type,
 	parameterTypes : any's type*
 |
 	constructor of aPojoType,
 		parameterized by parameterTypes,
 		on failure doing
 			[e : pojo exception | Raise a Java exception caused by e]
-] : pojo constructor;
+] : […]→any;
 
 /**
  * Construct and answer a {@type "function"} that, when applied with arguments
