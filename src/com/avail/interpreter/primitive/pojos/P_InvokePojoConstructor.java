@@ -67,8 +67,11 @@ import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValue
  * answer the new instance. If the constructor fails, then store the actual
  * Java {@linkplain Throwable exception} into the primitive failure
  * {@linkplain VariableDescriptor variable}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_InvokePojoConstructor extends Primitive
+public final class P_InvokePojoConstructor
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

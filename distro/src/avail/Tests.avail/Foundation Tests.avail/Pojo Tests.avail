@@ -113,6 +113,22 @@ Test "pojo constructors" in pojo test suite is
 	Require: copyStringConstructor("初めまして") = "初めまして";
 ];
 
+Test "pojo static methods" in pojo test suite is
+[
+	valueOfIntMethod ::= static method string."valueOf"<Java int>;
+	emptySetMethod ::= static method "java.util.Collections"<>."emptySet"<>;
+	emptyListMethod ::= static method "java.util.Collections"<>."emptyList"<>;
+	emptyMapMethod ::= static method "java.util.Collections"<>."emptyMap"<>;
+	currentTimeMethod ::=
+		static method "java.lang.System"<>."currentTimeMillis"<>;
+
+	For each i in 1 to 10 do [Require: valueOfIntMethod(i) = “i”;];
+	Require: emptySetMethod() ∈ "java.util.Set"<⊥>;
+	Require: emptyListMethod() ∈ "java.util.List"<⊥>;
+	Require: emptyMapMethod() ∈ "java.util.Map"<⊥, ⊥>;
+	Require: currentTimeMethod() ∈ Java long;
+];
+
 Test "pojo string list" in pojo test suite is
 [
 	jListOfString ::= "java.util.List"<string>;

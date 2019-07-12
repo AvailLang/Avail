@@ -52,6 +52,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -93,9 +94,9 @@ class PrimitiveHelper
 	{
 		// If pojoType is not a fused type, then it has an immediate class that
 		// should be used to recursively look up the method.
-		if (!pojoType.isPojoFusedType())
+		if (!pojoType.isPojoType() || !pojoType.isPojoFusedType())
 		{
-			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
+			final Class<?> javaClass = marshalDefiningType(pojoType);
 			try
 			{
 				return javaClass.getMethod(
@@ -113,9 +114,9 @@ class PrimitiveHelper
 		{
 			final Set<Method> methods = new HashSet<>();
 			final A_Map ancestors = pojoType.javaAncestors();
-			for (final A_BasicObject ancestor : ancestors.keysAsSet())
+			for (final A_Type ancestor : ancestors.keysAsSet())
 			{
-				final Class<?> javaClass = ancestor.javaObjectNotNull();
+				final Class<?> javaClass = marshalDefiningType(ancestor);
 				try
 				{
 					methods.add(javaClass.getMethod(

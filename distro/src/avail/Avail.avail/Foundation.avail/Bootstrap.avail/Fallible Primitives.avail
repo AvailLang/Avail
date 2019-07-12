@@ -3318,7 +3318,7 @@ Primitive "method_._,⁇parameterized by_,⁇on failure doing_" is
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "static method_._,⁇parameterized by_,⁇on failure doing_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any meta"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
@@ -3334,7 +3334,7 @@ Primitive "method_._,⁇parameterized by_,⁇on failure doing_" is
  */
 Primitive "static method_._,⁇parameterized by_,⁇on failure doing_" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any meta,
 	methodName : string,
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function

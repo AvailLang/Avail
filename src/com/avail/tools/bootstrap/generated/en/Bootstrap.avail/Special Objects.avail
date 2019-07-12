@@ -47,6 +47,7 @@ Uses
 Names
 	/*  78 */ "-∞",
 	/* 111 */ "Euler's number",
+	/*  82 */ "Java null",
 	/*  21 */ "VM error codes",
 	/*  44 */ "abstract definition",
 	/* 145 */ "all tokens key",
@@ -131,7 +132,6 @@ Names
 	/* 137 */ "nonempty tuple",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
-	/*  82 */ "null",
 	/*  90 */ "nullary procedure",
 	/*  16 */ "number",
 	/* 101 */ "nybble",
@@ -1423,10 +1423,10 @@ Special object "pojo⊥" is special object 81;
  * Answer Java {@code "null"}.
  *
  * @category "Primitives" "Constants"
- * @method "null"
- * @returns "null's type"
+ * @method "Java null"
+ * @returns "Java null's type"
  */
-Special object "null" is special object 82;
+Special object "Java null" is special object 82;
 
 /**
  * TODO: Special object description goes here.

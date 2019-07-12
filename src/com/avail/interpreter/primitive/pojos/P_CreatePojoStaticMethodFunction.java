@@ -47,6 +47,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
@@ -143,7 +144,7 @@ extends Primitive
 			marshaledTypesTuple,
 			resolvePojoType(
 				method.getGenericReturnType(),
-				pojoType.typeVariables()),
+				pojoType.isPojoType() ? pojoType.typeVariables() : emptyMap()),
 			innerFunction);
 		return interpreter.primitiveSuccess(outerFunction);
 	}
@@ -153,7 +154,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(mostGeneralPojoType()),
+				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta()),
 				functionType(
