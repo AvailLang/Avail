@@ -1477,7 +1477,7 @@ public class TypeConsistencyTest
 			A_Type union = unionCache[rightIndex];
 			if (union == null)
 			{
-				union = t().typeUnion(rightNode.t()).makeImmutable();
+				union = t().typeUnion(rightNode.t()).makeShared();
 				assertTrue(t().isSubtypeOf(union));
 				assertTrue(rightNode.t().isSubtypeOf(union));
 				unionCache[rightIndex] = union;
@@ -1504,7 +1504,7 @@ public class TypeConsistencyTest
 			if (intersection == null)
 			{
 				intersection =
-					t().typeIntersection(rightNode.t()).makeImmutable();
+					t().typeIntersection(rightNode.t()).makeShared();
 				assertTrue(intersection.isSubtypeOf(t()));
 				assertTrue(intersection.isSubtypeOf(rightNode.t()));
 				intersectionCache[rightIndex] = intersection;
@@ -1914,34 +1914,44 @@ public class TypeConsistencyTest
 	@Test
 	public void testUnionAssociativity ()
 	{
-		for (final Node x : Node.values)
-		{
-			for (final Node y : Node.values)
+		Node.values.parallelStream().forEach(
+			x ->
 			{
-				final A_Type xy = x.union(y);
-				for (final Node z : Node.values)
+				for (final Node y : Node.values)
 				{
-					final A_Type xyUz = xy.typeUnion(z.t());
-					final A_Type yz = y.union(z);
-					final A_Type xUyz = x.t().typeUnion(yz);
-					if (!xyUz.equals(xUyz))
+					// Force the cache to be populated.
+					x.union(y);
+				}
+			});
+		Node.values.parallelStream().forEach(
+			x ->
+			{
+				for (final Node y : Node.values)
+				{
+					final A_Type xy = x.union(y);
+					for (final Node z : Node.values)
 					{
-						// These are useful trace points. Leave them in.
-						xy.typeUnion(z.t());
-						x.t().typeUnion(yz);
-						//noinspection ResultOfMethodCallIgnored
-						xyUz.equals(xUyz);
-						assertEQ(
-							xyUz,
-							xUyz,
-							"union associativity: %s, %s, %s",
-							x,
-							y,
-							z);
+						final A_Type xyUz = xy.typeUnion(z.t());
+						final A_Type yz = y.union(z);
+						final A_Type xUyz = x.t().typeUnion(yz);
+						if (!xyUz.equals(xUyz))
+						{
+							// These are useful trace points. Leave them in.
+							xy.typeUnion(z.t());
+							x.t().typeUnion(yz);
+							//noinspection ResultOfMethodCallIgnored
+							xyUz.equals(xUyz);
+							assertEQ(
+								xyUz,
+								xUyz,
+								"union associativity: %s, %s, %s",
+								x,
+								y,
+								z);
+						}
 					}
 				}
-			}
-		}
+			});
 	}
 
 	/**
@@ -2027,36 +2037,46 @@ public class TypeConsistencyTest
 	@Test
 	public void testIntersectionAssociativity ()
 	{
-		for (final Node x : Node.values)
-		{
-			for (final Node y : Node.values)
+		Node.values.parallelStream().forEach(
+			x ->
 			{
-				final A_Type xy = x.intersect(y);
-				for (final Node z : Node.values)
+				for (final Node y : Node.values)
 				{
-					final A_Type xyIz = xy.typeIntersection(z.t());
-					final A_Type yz = y.intersect(z);
-					final A_Type xIyz = x.t().typeIntersection(yz);
-					if (!xyIz.equals(xIyz))
+					// Force the cache to be populated.
+					x.intersect(y);
+				}
+			});
+		Node.values.parallelStream().forEach(
+			x ->
+			{
+				for (final Node y : Node.values)
+				{
+					final A_Type xy = x.intersect(y);
+					for (final Node z : Node.values)
 					{
-						// These are useful trace points. Leave them in.
-						x.t().typeIntersection(y.t());
-						y.t().typeIntersection(z.t());
-						xy.typeIntersection(z.t());
-						x.t().typeIntersection(yz);
-						//noinspection ResultOfMethodCallIgnored
-						xyIz.equals(xIyz);
-						assertEQ(
-							xyIz,
-							xIyz,
-							"intersection associativity: %s, %s, %s",
-							x,
-							y,
-							z);
+						final A_Type xyIz = xy.typeIntersection(z.t());
+						final A_Type yz = y.intersect(z);
+						final A_Type xIyz = x.t().typeIntersection(yz);
+						if (!xyIz.equals(xIyz))
+						{
+							// These are useful trace points. Leave them in.
+							x.t().typeIntersection(y.t());
+							y.t().typeIntersection(z.t());
+							xy.typeIntersection(z.t());
+							x.t().typeIntersection(yz);
+							//noinspection ResultOfMethodCallIgnored
+							xyIz.equals(xIyz);
+							assertEQ(
+								xyIz,
+								xIyz,
+								"intersection associativity: %s, %s, %s",
+								x,
+								y,
+								z);
+						}
 					}
 				}
-			}
-		}
+			});
 	}
 
 	/**
