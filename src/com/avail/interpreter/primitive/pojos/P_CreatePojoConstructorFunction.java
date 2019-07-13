@@ -64,14 +64,17 @@ import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.pojoInvocati
 import static java.util.stream.Collectors.toList;
 
 /**
- * <strong>Primitive:</strong> Given the specified {@linkplain
- * PojoTypeDescriptor pojo type} and {@linkplain TupleDescriptor
- * tuple} of {@linkplain TypeDescriptor types}, create a {@linkplain
- * FunctionDescriptor function} that when applied will produce a new
- * instance of the pojo type by invoking a reflected Java {@linkplain
- * Constructor constructor} with arguments conforming to the specified
- * types. The last argument is a function that should be invoked with a
- * pojo-wrapped {@link Exception} in the event that Java raises an exception.
+ * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
+ * successfully marshaled to a Java type, a {@linkplain A_Tuple tuple} of
+ * parameter {@linkplain A_Type types}, and a failure {@linkplain A_Function
+ * function}, create a {@linkplain A_Function function} that when applied will
+ * produce a new instance of the defining Java type. The instance is created by
+ * invoking a reflected Java {@linkplain Constructor constructor} with arguments
+ * conforming to the marshaling of the parameter types. If the new instance has
+ * a preferred Avail surrogate type, then marshal the value to the surrogate
+ * type prior to answering it. Should the Java constructor raise an exception,
+ * invoke the supplied failure function with a {@linkplain PojoDescriptor pojo}
+ * that wraps that exception.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

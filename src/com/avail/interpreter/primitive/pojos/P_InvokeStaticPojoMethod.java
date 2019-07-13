@@ -68,12 +68,12 @@ import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValue
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
- * pojo} that references a reflected static {@linkplain Method Java method},
- * a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of raw
- * pojos that reference the reflected {@linkplain Class Java classes} of the
- * marshaled arguments, invoke the method and answer the result. If the
- * method fails, then store the actual Java {@linkplain Throwable exception}
- * into the primitive failure {@linkplain VariableDescriptor variable}.
+ * pojo} that references a reflected {@code static} {@linkplain Method Java
+ * method}, a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of
+ * raw pojos that reference the reflected {@linkplain Class Java classes} of the
+ * marshaled arguments, invoke the method and answer the result. If the method
+ * fails, then store the actual Java {@linkplain Throwable exception} into the
+ * primitive failure {@linkplain VariableDescriptor variable}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

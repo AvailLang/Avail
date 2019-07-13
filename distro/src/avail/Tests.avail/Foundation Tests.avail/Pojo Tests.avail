@@ -60,6 +60,28 @@ Test "pojo type marshaling identities" in pojo test suite is
 	Require: "java.lang.Double"<> = double;
 ];
 
+Test "nonexistent pojo class" in pojo test suite is
+[
+	className : string := "no.way.doesnt.exist.NuhUh";
+	className<>
+]
+must raise Java-class-not-available exception;
+
+Test "Avail pojo classes are forbidden" in pojo test suite is
+[
+	// Try to look up some critical Avail classes.
+	For each className in
+	<
+		"com.avail.descriptor.AvailObject",
+		"com.avail.descriptor.Descriptor",
+		"com.avail.interpreter.Interpreter"
+	>
+	do
+	[
+		Require: [className<>] raises Java-class-not-available exception;
+	];
+];
+
 Test "pojo type relations" in pojo test suite is
 [
 	Require: "java.util.ArrayList"<any> ⊆ any;
@@ -113,6 +135,14 @@ Test "pojo constructors" in pojo test suite is
 	Require: copyStringConstructor("初めまして") = "初めまして";
 ];
 
+Test "nonexistent pojo constructor" in pojo test suite is
+[
+	className : string := "java.lang.String";
+	class ::= className<>;
+	constructor of class<⊥>
+]
+must raise Java-method-not-available exception;
+
 Test "pojo static methods" in pojo test suite is
 [
 	valueOfIntMethod ::= static method string."valueOf"<Java int>;
@@ -129,21 +159,56 @@ Test "pojo static methods" in pojo test suite is
 	Require: currentTimeMethod() ∈ Java long;
 ];
 
-Test "pojo string list" in pojo test suite is
+Test "nonexistent pojo static method" in pojo test suite is
 [
-	jListOfString ::= "java.util.List"<string>;
-	jArrayListOfString ::= "java.util.ArrayList"<string>;
-	listConstructor ::= constructor of jArrayListOfString parameterized by <>;
-	listSize ::= method jListOfString."size" <>;
-	listAdd ::= method jListOfString."add" <any>;
-	listGet ::= method jListOfString."get" <Java int>;
+	className : string := "java.lang.String";
+	class ::= className<>;
+	static method class."lovesDeliciousBeans"<boolean>
+]
+must raise Java-method-not-available exception;
 
-	/* Use these reflection pojos to create and poke a List<String>. */
-	list ::= listConstructor();
-	Require: listSize(list) = 0;
-	added ::= listAdd(list, "cat");
-	Require: added = true;
-	Require: listSize(list) = 1;
-	cat ::= listGet(list, 0);
-	Require: cat = "cat";
+Test "pojo instance methods" in pojo test suite is
+[
+	hashMethod ::= method any."hashCode"<>;
+	equalsMethod ::= method any."equals"<any>;
+	intValueMethod ::= method Java int."intValue"<>;
+	doubleValueMethod ::= method Java long."doubleValue"<>;
+	longValueMethod ::= method float."longValue"<>;
+	lengthMethod ::= method string."length"<>;
+	substringMethod ::= method string."substring"<Java int, Java int>;
+
+	For	each i in 1 to 10 do [Require: hashMethod(i) = i;];
+	For	each i in 1 to 10 do [Require: (hashMethod(i)=i) = equalsMethod(i,i);];
+	For each i in 1 to 10 do [Require: intValueMethod(i) = i;];
+	For each i in 1 to 10 do [Require: doubleValueMethod(i) = i→double;];
+	For each i in 1 to 10 do [Require: longValueMethod(i→float) = i;];
+	For each x in <"a", "aa", "aaa", "aaaa"> do
+		[Require: lengthMethod(x) = |x|;];
+	Require: substringMethod("mango", 0, 5) = "mango";
+	Require: substringMethod("mango", 1, 4) = "ang";
+	Require: substringMethod("mango", 2, 3) = "n";
+	Require: substringMethod("mango", 3, 3) = "";
+
+	list ::= "java.util.ArrayList"<string>;
+	listConstructor ::= constructor of list<>;
+	listSize ::= method list."size"<>;
+	listAdd ::= method list."add"<any>;
+	listGet ::= method list."get"<Java int>;
+	listClear ::= method list."clear"<>;
+
+	items ::= listConstructor();
+	Require: listSize(items) = 0;
+	For each i in 1 to 10 do [Require: listAdd(items, “i”) = true;];
+	Require: listSize(items) = 10;
+	For each i in 1 to 10 do [Require: listGet(items, i-1) = “i”;];
+	listClear(items);
+	Require: listSize(items) = 0;
 ];
+
+Test "nonexistent pojo instance method" in pojo test suite is
+[
+	className : string := "java.lang.String";
+	class ::= className<>;
+	method class."lovesDeliciousBeans"<boolean>
+]
+must raise Java-method-not-available exception;

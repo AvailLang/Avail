@@ -1790,7 +1790,7 @@ extends ExtendedIntegerDescriptor
 			return object.asBigInteger();
 		}
 		// Force marshaling to Java's primitive long type.
-		if (Long.TYPE.equals(classHint))
+		if (Long.TYPE.equals(classHint) || Long.class.equals(classHint))
 		{
 			if (!object.isLong())
 			{
@@ -1799,7 +1799,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractLong();
 		}
 		// Force marshaling to Java's primitive int type.
-		if (Integer.TYPE.equals(classHint))
+		if (Integer.TYPE.equals(classHint) || Integer.class.equals(classHint))
 		{
 			if (!object.isInt())
 			{
@@ -1808,7 +1808,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractInt();
 		}
 		// Force marshaling to Java's primitive short type.
-		if (Short.TYPE.equals(classHint))
+		if (Short.TYPE.equals(classHint) || Short.class.equals(classHint))
 		{
 			if (!object.isSignedShort())
 			{
@@ -1817,7 +1817,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractSignedShort();
 		}
 		// Force marshaling to Java's primitive byte type.
-		if (Byte.TYPE.equals(classHint))
+		if (Byte.TYPE.equals(classHint) || Byte.class.equals(classHint))
 		{
 			if (!object.isSignedByte())
 			{

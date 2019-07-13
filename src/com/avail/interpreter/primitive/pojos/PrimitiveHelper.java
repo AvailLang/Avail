@@ -229,8 +229,7 @@ class PrimitiveHelper
 		writer.write(
 			0,
 			L1_doPushLiteral,
-			writer.addLiteral(
-				equalityPojo(executable)));
+			writer.addLiteral(equalityPojo(executable)));
 		for (int i = 1, limit = paramTypes.tupleSize(); i <= limit; i++)
 		{
 			writer.write(0, L1_doPushLocal, i);
@@ -280,8 +279,8 @@ class PrimitiveHelper
 		{
 			for (int i = 0, limit = marshaled.length; i < limit; i++)
 			{
-				final @Nullable Class<?> marshaledType =
-					marshaledTypes.tupleAt(i + 1).javaObject();
+				final Class<?> marshaledType =
+					marshaledTypes.tupleAt(i + 1).javaObjectNotNull();
 				marshaled[i] =
 					args.tupleAt(i + 1).marshalToJava(marshaledType);
 			}

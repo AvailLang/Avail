@@ -288,7 +288,7 @@ Public stable method "_<«_‡,»>" is
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "constructor of_«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired constructor.
@@ -335,11 +335,11 @@ Public stable method "constructor of_«parameterized by»⁇_" is
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "method_._«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *          The requested instance method invocation function.
@@ -348,9 +348,9 @@ Public stable method "constructor of_«parameterized by»⁇_" is
  */
 Public stable method "method_._«parameterized by»⁇_" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any's type,
 	methodName : string,
-	parameterTypes : <any's type…|>
+	parameterTypes : any's type*
 |
 	method aPojoType.methodName,
 		parameterized by parameterTypes,
@@ -384,11 +384,11 @@ Public stable method "method_._«parameterized by»⁇_" is
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "static method_._«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "<any's type…|>"
+ * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested static method invocation function.
