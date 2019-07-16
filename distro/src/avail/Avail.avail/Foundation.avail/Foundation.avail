@@ -1060,7 +1060,9 @@ Extends
 		"Java long",
 		"Java short",
 		"constructor of_«parameterized by»⁇_",
+		"field_._",
 		"method_._«parameterized by»⁇_",
+		"static field_._",
 		"static method_._«parameterized by»⁇_",
 		"_[]",
 		"_<«_‡,»>"

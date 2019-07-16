@@ -44,6 +44,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -138,6 +139,74 @@ class PrimitiveHelper
 				return null;
 			}
 			return methods.iterator().next();
+		}
+	}
+
+	/**
+	 * Search for the requested Java {@link Field}.
+	 *
+	 * @param pojoType
+	 *        The pojo type (an {@link A_Type}) where the field is defined. The
+	 *        field may also be in a superclass of this class.
+	 * @param fieldName
+	 *        The name of the field.
+	 * @param errorOut
+	 *        A {@link MutableOrNull} into which an {@link AvailErrorCode} can
+	 *        be written in the event that a unique {@link Field} is not found.
+	 * @return Either the successfully looked up {@link Field} or {@code null}.
+	 *         Note that either the return is non-null or the errorOut will
+	 *         have a non-null value written to it.
+	 */
+	static @Nullable Field lookupField (
+		final A_Type pojoType,
+		final A_String fieldName,
+		final MutableOrNull<AvailErrorCode> errorOut)
+	{
+		// If pojoType is not a fused type, then it has an immediate class
+		// that should be used to recursively look up the field.
+		if (!pojoType.isPojoType() || !pojoType.isPojoFusedType())
+		{
+			final Class<?> javaClass = marshalDefiningType(pojoType);
+			try
+			{
+				return javaClass.getField(fieldName.asNativeString());
+			}
+			catch (final NoSuchFieldException e)
+			{
+				errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE;
+				return null;
+			}
+		}
+		// If pojoType is a fused type, then iterate through its ancestry in
+		// an attempt to uniquely resolve the field.
+		else
+		{
+			final Set<Field> fields = new HashSet<>();
+			final A_Map ancestors = pojoType.javaAncestors();
+			for (final A_Type ancestor : ancestors.keysAsSet())
+			{
+				final Class<?> javaClass = marshalDefiningType(ancestor);
+				try
+				{
+					fields.add(javaClass.getField(
+						fieldName.asNativeString()));
+				}
+				catch (final NoSuchFieldException e)
+				{
+					// Ignore -- this is not unexpected.
+				}
+			}
+			if (fields.isEmpty())
+			{
+				errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE;
+				return null;
+			}
+			if (fields.size() > 1)
+			{
+				errorOut.value = E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS;
+				return null;
+			}
+			return fields.iterator().next();
 		}
 	}
 

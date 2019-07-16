@@ -831,7 +831,7 @@ extends TypeDescriptor
 	 * @throws MarshalingException
 	 *         If marshaling fails for any reason.
 	 */
-	public static Class<?> marshalDefiningType(final A_Type type)
+	public static Class<?> marshalDefiningType (final A_Type type)
 	{
 		final @Nullable Class<?> aClass = nullableCast(
 			type.marshalToJava(null));

@@ -131,7 +131,6 @@ Uses
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"restricted send_with_:_",
-		"return type of_._«parameterized by»⁇_",
 		"semantic restrictions for_given_",
 		"send_with_:_",
 		"seq`«_`»",
@@ -3151,7 +3150,7 @@ Primitive "_'s⁇_field" is
  *
  * @category "Primitives" "Variables" "POJO" "Constructors"
  * @method "_'s⁇_field"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any meta"
  *        A pojo type whose static field should be bound to the answered
  *        variable.
  * @param "fieldName" "string"
@@ -3163,7 +3162,7 @@ Primitive "_'s⁇_field" is
  */
 Primitive "_'s⁇_field" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any meta,
 	fieldName : string
 |
 	Primitive BindPojoStaticField (failureCode : {
@@ -3425,56 +3424,6 @@ Primitive "_[_]:=_" is
 		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
-
-/**
- * Answer the return type of the Java method, if any, that has the specified
- * name and accepts the specified number and types of arguments. To establish
- * type conformance between Avail types and Java types for the purpose of
- * reflective method lookup and invocation, the following marshaling rules are
- * applied:
- *
- * <ul>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@method "_[_]"} is marshaled to {@code
- *     "java.lang.reflect.Array.newInstance().getClass()"}.</li>
- * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
- *     or interface.</li>
- * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.AvailObject"}.</li>
- * </ul>
- *
- * @category "Primitives" "Functions" "POJO" "Constructors"
- * @method "return type of_._«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
- *        A pojo type.
- * @param "methodName" "string"
- *        The name of the desired method.
- * @param "parameterTypes" "tuple of any meta"
- *        The parameter types accepted by the desired method.
- * @returns "(⊤)'s type"
- *    The Java method's return type.
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
- */
-Primitive "return type of_._«parameterized by»⁇_" is
-[
-	aPojoType : pojo meta,
-	methodName : string,
-	parameterTypes : tuple of any meta
-|
-	Primitive PojoMethodReturnType (failureCode : {
-		Java-method-not-available code,
-		Java-method-reference-is-ambiguous code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : type;
 
 /**
  * Construct and answer a slice (i.e. subtuple) of the specified tuple.

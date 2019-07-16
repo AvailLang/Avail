@@ -31,32 +31,27 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.PojoFieldDescriptor;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoFieldDescriptor.pojoFieldVariableForInnerType;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
 import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
@@ -67,15 +62,20 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupField;
 
 /**
- * <strong>Primitive:</strong> Bind the static {@linkplain Field Java
- * field} specified by the {@linkplain PojoTypeDescriptor pojo type} and
- * {@linkplain StringDescriptor field name} to a {@linkplain
- * PojoFieldDescriptor variable}. Reads/writes of this variable pass through
- * to the field. Answer this variable.
+ * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
+ * successfully marshaled to a Java type and a {@linkplain A_String string} that
+ * names a {@code static} {@linkplain Field field} of that type, bind the
+ * {@code static} field to a {@linkplain PojoFieldDescriptor variable} such that
+ * reads and writes of this variable pass through to the bound field.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_BindPojoStaticField extends Primitive
+@SuppressWarnings("unused")
+public final class P_BindPojoStaticField
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -92,7 +92,6 @@ public final class P_BindPojoStaticField extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_Type pojoType = interpreter.argument(0);
 		final A_String fieldName = interpreter.argument(1);
-		final Field field;
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
@@ -100,55 +99,17 @@ public final class P_BindPojoStaticField extends Primitive
 			loader.statementCanBeSummarized(false);
 		}
 
-		// If pojoType is not a fused type, then it has an immediate class
-		// that should be used to recursively look up the field.
-		if (!pojoType.isPojoFusedType())
+		final MutableOrNull<AvailErrorCode> errorOut =
+			new MutableOrNull<>();
+		final @Nullable Field field =
+			lookupField(pojoType, fieldName, errorOut);
+		if (field == null)
 		{
-			final Class<?> javaClass = pojoType.javaClass().javaObjectNotNull();
-			try
-			{
-				field = javaClass.getField(fieldName.asNativeString());
-			}
-			catch (final NoSuchFieldException e)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_FIELD_NOT_AVAILABLE);
-			}
+			return interpreter.primitiveFailure(errorOut.value());
 		}
-		// If pojoType is a fused type, then iterate through its ancestry in
-		// an attempt to uniquely resolve the field.
-		else
-		{
-			final Set<Field> fields = new HashSet<>();
-			final A_Map ancestors = pojoType.javaAncestors();
-			for (final A_BasicObject ancestor : ancestors.keysAsSet())
-			{
-				final Class<?> javaClass = ancestor.javaObjectNotNull();
-				try
-				{
-					fields.add(javaClass.getField(
-						fieldName.asNativeString()));
-				}
-				catch (final NoSuchFieldException e)
-				{
-					// Ignore -- this is not unexpected.
-				}
-			}
-			if (fields.isEmpty())
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_FIELD_NOT_AVAILABLE);
-			}
-			if (fields.size() > 1)
-			{
-				return interpreter.primitiveFailure(
-					E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS);
-			}
-			field = fields.iterator().next();
-		}
-		// This is not the right primitive to bind instance fields.
 		if (!Modifier.isStatic(field.getModifiers()))
 		{
+			// This is not the right primitive to bind instance fields.
 			return interpreter.primitiveFailure(
 				E_JAVA_FIELD_NOT_AVAILABLE);
 		}
@@ -167,7 +128,7 @@ public final class P_BindPojoStaticField extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(mostGeneralPojoType()),
+				anyMeta(),
 				stringType()),
 			mostGeneralVariableType());
 	}

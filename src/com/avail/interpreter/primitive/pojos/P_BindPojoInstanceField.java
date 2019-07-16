@@ -31,13 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.PojoDescriptor;
-import com.avail.descriptor.PojoFieldDescriptor;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -62,13 +56,17 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
- * <strong>Primitive:</strong> Bind the instance {@linkplain Field Java
- * field} specified by the {@linkplain PojoDescriptor pojo} and {@linkplain
- * StringDescriptor field name} to a {@linkplain PojoFieldDescriptor
- * variable}. Reads/writes of this variable pass through to the field.
- * Answer this variable.
+ * <strong>Primitive:</strong> Given a value that can be successfully marshaled
+ * to Java and a {@linkplain A_String string} that names an instance {@linkplain
+ * Field field} of that value, bind the field to a {@linkplain
+ * PojoFieldDescriptor variable} such that reads and writes of this variable
+ * pass through to the bound field.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_BindPojoInstanceField extends Primitive
+@SuppressWarnings("unused")
+public final class P_BindPojoInstanceField
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

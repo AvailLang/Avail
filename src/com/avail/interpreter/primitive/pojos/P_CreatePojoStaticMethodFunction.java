@@ -64,16 +64,16 @@ import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.*;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
- * successfully marshaled to a Java type, a {@linkplain A_String} that names a
- * {@code static} {@linkplain Method method} of that type, a {@linkplain A_Tuple
- * tuple} of parameter {@linkplain A_Type types}, and a failure {@linkplain
- * A_Function function}, create a {@linkplain A_Function function} that when
- * applied will invoke the {@code static} method. The {@code static} method is
- * invoked with arguments conforming to the marshaling of the parameter types.
- * If the return value has a preferred Avail surrogate type, then marshal the
- * value to the surrogate type prior to answering it. Should the Java method
- * raise an exception, invoke the supplied failure function with a {@linkplain
- * PojoDescriptor pojo} that wraps that exception.
+ * successfully marshaled to a Java type, a {@linkplain A_String string} that
+ * names a {@code static} {@linkplain Method method} of that type, a {@linkplain
+ * A_Tuple tuple} of parameter {@linkplain A_Type types}, and a failure
+ * {@linkplain A_Function function}, create a {@linkplain A_Function function}
+ * that when applied will invoke the {@code static} method. The {@code static}
+ * method is invoked with arguments conforming to the marshaling of the
+ * parameter types. If the return value has a preferred Avail surrogate type,
+ * then marshal the value to the surrogate type prior to answering it. Should
+ * the Java method raise an exception, invoke the supplied failure function with
+ * a {@linkplain PojoDescriptor pojo} that wraps that exception.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -115,9 +115,9 @@ extends Primitive
 				new MutableOrNull<>();
 			method = lookupMethod(
 				pojoType, methodName, marshaledTypes, errorOut);
-			if (errorOut.value != null)
+			if (method == null)
 			{
-				return interpreter.primitiveFailure(errorOut.value);
+				return interpreter.primitiveFailure(errorOut.value());
 			}
 			marshaledTypesTuple =
 				generateObjectTupleFrom(
@@ -128,7 +128,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		assert method != null;
 		final A_Function innerFunction = pojoInvocationWrapperFunction(
 			failFunction,
 			writer ->

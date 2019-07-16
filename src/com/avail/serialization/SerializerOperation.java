@@ -46,7 +46,9 @@ import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,6 +94,7 @@ import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode;
+import static com.avail.descriptor.PojoFieldDescriptor.pojoFieldVariableForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.extractOrdinal;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
@@ -2709,16 +2712,28 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A {@link A_Variable variable} bound to a {@code static} Java field.
 	 */
-	RESERVED_75(75)
+	STATIC_POJO_FIELD(
+		75,
+		OBJECT_REFERENCE.as("class name"),
+		OBJECT_REFERENCE.as("field name"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.descriptor() instanceof PojoFinalFieldDescriptor;
+			final Field field = object
+				.slot(PojoFinalFieldDescriptor.ObjectSlots.FIELD)
+				.javaObjectNotNull();
+			final Class<?> definingClass = field.getDeclaringClass();
+			final A_String className = stringFrom(definingClass.getName());
+			final A_String fieldName = stringFrom(field.getName());
+			return array(
+				className,
+				fieldName);
 		}
 
 		@Override
@@ -2726,7 +2741,24 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			try
+			{
+				final ClassLoader classLoader =
+					deserializer.runtime().classLoader();
+				final Class<?> definingClass = Class.forName(
+					subobjects[0].asNativeString(), true, classLoader);
+				final Field field = definingClass.getField(
+					subobjects[1].asNativeString());
+				assert (field.getModifiers() & Modifier.STATIC) != 0;
+				final A_Type fieldType = resolvePojoType(
+					field.getGenericType(), emptyMap());
+				return pojoFieldVariableForInnerType(
+					equalityPojo(field), rawNullPojo(), fieldType);
+			}
+			catch (final ClassNotFoundException|NoSuchFieldException e)
+			{
+				throw new RuntimeException(e);
+			}
 		}
 	},
 

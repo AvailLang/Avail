@@ -37,6 +37,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MarshalingException;
 import com.avail.exceptions.VariableGetException;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -45,12 +46,11 @@ import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.FIELD;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.RECEIVER;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.pojoFinalFieldForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static java.lang.reflect.Modifier.STATIC;
 
 /**
  * A {@code PojoFieldDescriptor} is an Avail {@linkplain VariableDescriptor
@@ -190,6 +190,18 @@ extends Descriptor
 	{
 		return object.slot(KIND);
 	}
+
+	@Override
+	SerializerOperation o_SerializerOperation(AvailObject object)
+	{
+		final Field field = object.slot(FIELD).javaObjectNotNull();
+		if ((field.getModifiers() & STATIC) != 0)
+		{
+			return SerializerOperation.STATIC_POJO_FIELD;
+		}
+		throw unsupportedOperationException();
+	}
+
 
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)

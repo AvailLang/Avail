@@ -212,3 +212,63 @@ Test "nonexistent pojo instance method" in pojo test suite is
 	method class."lovesDeliciousBeans"<boolean>
 ]
 must raise Java-method-not-available exception;
+
+Test "pojo static fields" in pojo test suite is
+[
+	Require: ↓static field boolean."TRUE" = true;
+	Require: ↓static field boolean."FALSE" = false;
+	For each t of <Java byte, Java short, Java int, Java long, Java char> do
+	[
+		min ::= static field t."MIN_VALUE";
+		max ::= static field t."MAX_VALUE";
+		Require: ↓min = ⎣t⎦;
+		Require: ↓max = ⎡t⎤;
+	];
+	For each p of <<float, 4>, <double, 8>> do
+	[
+		t, b ::= p;
+		bytes ::= static field t."BYTES";
+		Require: ↓bytes = b;
+	];
+	Require: ↓static field string."CASE_INSENSITIVE_ORDER"
+		∈ "java.util.Comparator"<string>;
+	Require: ↓static field "java.util.Collections"<>."EMPTY_LIST"
+		∈ "java.util.List"<any>;
+];
+
+Test "cannot modify static final pojo field" in pojo test suite is
+[
+	static field boolean."TRUE" ?= false;
+]
+must raise cannot-modify-final-Java-field exception;
+
+Test "pojo instance fields" in pojo test suite is
+[
+	point ::= "java.awt.Point"<>;
+	pointConstructor ::= constructor of point<Java int, Java int>;
+
+	p ::= pointConstructor(5, 12);
+	pX ::= field p."x";
+	pY ::= field p."y";
+	Require: ↓pX = 5;
+	Require: ↓pY = 12;
+	pX ?= 37;
+	pY ?= 54;
+	Require: ↓pX = 37;
+	Require: ↓pY = 54;
+];
+
+Test "pojo arrays" in pojo test suite is
+[
+	intArray ::= Java int[];
+	ints ::= new Java int[10];
+
+	Require: ||intArray|| = whole number;
+	Require: intArray's element type = Java int;
+	Require: ints ∈ intArray;
+	Require: |ints| = 10;
+	For each i in 1 to 10 do [Require: ints[i] = 0;];
+	For each i in 1 to 10 do [ints[i] := i;];
+	For each i in 1 to 10 do [Require: ints[i] = i;];
+	Require: ints→tuple = 1 to 10;
+];

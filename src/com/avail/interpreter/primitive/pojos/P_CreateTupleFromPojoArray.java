@@ -32,20 +32,19 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
+import java.lang.reflect.Array;
+
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
@@ -57,6 +56,7 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("unused")
 public final class P_CreateTupleFromPojoArray
 extends Primitive
 {
@@ -77,8 +77,12 @@ extends Primitive
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
 		array.lock(() ->
 		{
-			tuple.value = tupleFromArray(
-				array.<AvailObject[]>javaObjectNotNull());
+			final Object rawArray = array.rawPojo().javaObjectNotNull();
+			tuple.value = generateObjectTupleFrom(
+				Array.getLength(rawArray),
+				i -> unmarshal(
+					Array.get(rawArray, i - 1),
+					array.kind().contentType()));
 		});
 		return interpreter.primitiveSuccess(tuple.value());
 	}
