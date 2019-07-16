@@ -331,7 +331,7 @@ public final class AvailCompiler
 	 * @param module
 	 *        The current {@linkplain ModuleDescriptor module}.`
 	 * @param source
-	 *        The source {@link String}.
+	 *        The source {@link A_String}.
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this compiler.

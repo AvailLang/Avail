@@ -333,13 +333,6 @@ public class CompilerDiagnostics
 		problemHandler.handle(problem);
 	}
 
-	/**
-	 * This {@code boolean} is set when the {@link #problemHandler} decides that
-	 * an encountered {@link Problem} is sufficient to abort compilation of this
-	 * module at the earliest convenience.
-	 */
-	public volatile boolean isShuttingDown = false;
-
 	/** A way to quickly test if the client wishes to shut down prematurely. */
 	public final BooleanSupplier pollForAbort;
 
@@ -956,7 +949,6 @@ public class CompilerDiagnostics
 						@Override
 						public void abortCompilation ()
 						{
-							isShuttingDown = true;
 							stripNull(failureReporter).value();
 						}
 					});

@@ -2603,6 +2603,7 @@ extends JFrame
 		moduleTree = new JTree(
 			new DefaultMutableTreeNode("(packages hidden root)"));
 		moduleTree.setToolTipText("All modules, organized by module root.");
+		moduleTree.setComponentPopupMenu(buildMenu.getPopupMenu());
 		moduleTree.setEditable(false);
 		moduleTree.setEnabled(true);
 		moduleTree.setFocusable(true);

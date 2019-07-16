@@ -89,6 +89,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,6 +108,7 @@ import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.Interpreter.debugWorkUnits;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
@@ -380,7 +382,8 @@ public final class AvailBuilder
 	 * If not-null, an indication of why the current build should stop.
 	 * Otherwise the current build should continue.
 	 */
-	private volatile @Nullable String stopBuildReason = null;
+	private final AtomicReference<String> stopBuildReason =
+		new AtomicReference<>();
 
 	/**
 	 * Answer whether the current build should stop.
@@ -389,7 +392,7 @@ public final class AvailBuilder
 	 */
 	public boolean shouldStopBuild ()
 	{
-		return stopBuildReason != null;
+		return stopBuildReason.get() != null;
 	}
 
 	/**
@@ -400,7 +403,7 @@ public final class AvailBuilder
 	 */
 	public @Nullable String stopBuildReason ()
 	{
-		return stopBuildReason;
+		return stopBuildReason.get();
 	}
 
 	/**
@@ -411,7 +414,14 @@ public final class AvailBuilder
 	 */
 	public synchronized void stopBuildReason (final String why)
 	{
-		stopBuildReason = why;
+		final @Nullable String old = stopBuildReason.getAndSet(why);
+		if (debugWorkUnits)
+		{
+			System.out.println(
+				"*****************************************************\n" +
+				"*** stopBuildReason: " + old + " → " + why + "\n" +
+				"*****************************************************");
+		}
 	}
 
 	/**
@@ -420,7 +430,7 @@ public final class AvailBuilder
 	 */
 	public void clearShouldStopBuild ()
 	{
-		stopBuildReason = null;
+		stopBuildReason.set(null);
 	}
 
 	/** Create a {@link BooleanSupplier} for polling for abort requests. */
@@ -431,7 +441,7 @@ public final class AvailBuilder
 	 */
 	public void cancel ()
 	{
-		stopBuildReason = "Canceled";
+		stopBuildReason("Canceled");
 	}
 
 	/**

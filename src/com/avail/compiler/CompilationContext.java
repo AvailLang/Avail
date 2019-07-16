@@ -42,21 +42,8 @@ import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
+import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -72,6 +59,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -93,6 +81,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 
 /**
@@ -133,6 +122,11 @@ public class CompilationContext
 	 */
 	private final A_Module module;
 
+	/**
+	 * Answer the {@link A_Module} being compiled.
+	 *
+	 * @return This compilation context's {@link A_Module}.
+	 */
 	public A_Module module ()
 	{
 		return module;
@@ -144,7 +138,7 @@ public class CompilationContext
 	 *
 	 * @return The module name.
 	 */
-	private ModuleName moduleName ()
+	ModuleName moduleName ()
 	{
 		return new ModuleName(module().moduleName().asNativeString());
 	}
@@ -179,6 +173,12 @@ public class CompilationContext
 	 */
 	@InnerAccess final A_String source;
 
+	/**
+	 * The Avail {@link A_String} containing the entire content of the module
+	 * source file.
+	 *
+	 * @return The source code.
+	 */
 	public A_String source ()
 	{
 		return source;
@@ -244,8 +244,7 @@ public class CompilationContext
 			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 			final String trace = builder.toString().replaceAll(
 				"\\A.*\\R((.*\\R){6})(.|\\R)*\\z", "$1");
-			System.out.println(
-				hashCode() + " SetNoMoreWorkUnits:\n\t" + trace.trim());
+			logWorkUnits("SetNoMoreWorkUnits:\n\t" + trace.trim());
 		}
 		final AtomicBoolean ran = new AtomicBoolean(false);
 		this.noMoreWorkUnits = newNoMoreWorkUnits == null
@@ -256,7 +255,7 @@ public class CompilationContext
 					: "Attempting to invoke the same noMoreWorkUnits twice";
 				if (Interpreter.debugWorkUnits)
 				{
-					System.out.println("Running noMoreWorkUnits");
+					logWorkUnits("Running noMoreWorkUnits");
 				}
 				stripNull(newNoMoreWorkUnits).value();
 			};
@@ -287,6 +286,34 @@ public class CompilationContext
 	 */
 	final Serializer serializer;
 
+	/**
+	 * Create a {@code CompilationContext} for compiling an {@link A_Module}.
+	 *
+	 * @param moduleHeader
+	 *        The {@link ModuleHeader module header} of the module to compile.
+	 *        May be null for synthetic modules (for entry points), or when
+	 *        parsing the header.
+	 * @param module
+	 *        The current {@linkplain ModuleDescriptor module}.`
+	 * @param source
+	 *        The source {@link A_String}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
+	 * @param pollForAbort
+	 *        How to quickly check if the client wants to abort compilation.
+	 * @param progressReporter
+	 *        How to report progress to the client who instigated compilation.
+	 *        This {@linkplain CompilerProgressReporter continuation} that
+	 *        accepts the {@linkplain ModuleName name} of the {@linkplain
+	 *        ModuleDescriptor module} undergoing {@linkplain
+	 *        AvailCompiler compilation}, the line number on which the
+	 *        last complete statement concluded, the position of the ongoing
+	 *        parse (in bytes), and the size of the module (in bytes).
+	 * @param problemHandler
+	 *        The {@link ProblemHandler} used for reporting compilation
+	 *        problems.
+	 */
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
 		final A_Module module,
@@ -352,8 +379,40 @@ public class CompilationContext
 			});
 	}
 
+	/** The cached module name. */
+	private volatile @Nullable String debugModuleName = null;
+
+	/**
+	 * Lazily extract the module name, and prefix all relevant debug lines with
+	 * it.
+	 *
+	 * @param debugString
+	 *        The string to log, with the module name prefixed on each line.
+	 */
+	private void logWorkUnits (final String debugString)
+	{
+		@Nullable String moduleName = debugModuleName;
+		if (moduleName == null)
+		{
+			moduleName = moduleName().localName();
+			debugModuleName = moduleName;
+		}
+		final StringBuilder builder = new StringBuilder();
+		for (final String line : debugString.split("\n"))
+		{
+			builder.append(moduleName);
+			builder.append("   ");
+			builder.append(line);
+			builder.append('\n');
+		}
+		System.out.print(builder);
+	}
+
 	/**
 	 * Start N work units, which are about to be queued.
+	 *
+	 * @param countToBeQueued
+	 *        The number of new work units that are being queued.
 	 */
 	public void startWorkUnits (final int countToBeQueued)
 	{
@@ -366,12 +425,13 @@ public class CompilationContext
 			final StringBuilder builder = new StringBuilder();
 			final Throwable e = new Throwable().fillInStackTrace();
 			builder.append(trace(e));
-			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-			final String trace = builder.toString().replaceAll(
-				"\\A.*\\R((.*\\R){6})(.|\\R)*\\z", "$1");
-			System.out.println(
-				CompilationContext.this.hashCode()
-					+ " Starting work unit:  queued = "
+			String[] lines = builder.toString().split("\n", 7);
+			if (lines.length > 6)
+			{
+				lines = Arrays.copyOf(lines, lines.length - 1);
+			}
+			logWorkUnits(
+				"Starting work unit: queued = "
 					+ queued
 					+ ", completed = "
 					+ completed
@@ -381,7 +441,8 @@ public class CompilationContext
 					+ (countToBeQueued > 1
 						   ? " (bulk = +" + countToBeQueued + ')'
 						   : "")
-					+ "\n\t" + trace.trim());
+					+ "\n\t"
+					+ join("\n", lines).trim());
 		}
 		logger.log(
 			Level.FINEST,
@@ -404,6 +465,8 @@ public class CompilationContext
 	 *        transition from false to true only once.
 	 * @param continuation
 	 *        What to do as a work unit.
+	 * @param <ArgType>
+	 *        The type of value that will be passed to the continuation.
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
@@ -418,7 +481,7 @@ public class CompilationContext
 			: new AtomicBoolean(false);
 		if (Interpreter.debugWorkUnits)
 		{
-			System.out.println(
+			logWorkUnits(
 				"Creating unit for continuation @" + continuation.hashCode());
 		}
 		return value ->
@@ -427,18 +490,7 @@ public class CompilationContext
 			assert !hadRun;
 			try
 			{
-				// Don't actually run tasks if canceling.
-				if (!diagnostics.isShuttingDown)
-				{
-					if (diagnostics.pollForAbort.getAsBoolean())
-					{
-						diagnostics.isShuttingDown = true;
-					}
-					else
-					{
-						continuation.value(value);
-					}
-				}
+				continuation.value(value);
 			}
 			catch (final Exception e)
 			{
@@ -460,9 +512,8 @@ public class CompilationContext
 				assert completed <= queued;
 				if (Interpreter.debugWorkUnits)
 				{
-					System.out.println(
-						CompilationContext.this.hashCode()
-							+ " Completed work unit: queued = "
+					logWorkUnits(
+						"Completed work unit: queued = "
 							+ queued
 							+ ", completed = "
 							+ completed
@@ -506,6 +557,8 @@ public class CompilationContext
 	 *        A non-empty list of things to do at some point in the future.
 	 * @param argument
 	 *        The argument to pass to each continuation.
+	 * @param <ArgType>
+	 *        The type of the argument to pass to the continuations.
 	 */
 	public <ArgType> void workUnitsDo (
 		final LexingState lexingState,
@@ -782,7 +835,6 @@ public class CompilationContext
 		final int position,
 		final Throwable e)
 	{
-		diagnostics.isShuttingDown = true;
 		diagnostics.compilationIsInvalid = true;
 		final Problem problem = new Problem(
 			moduleName(),
@@ -796,7 +848,7 @@ public class CompilationContext
 			@Override
 			protected void abortCompilation ()
 			{
-				diagnostics.isShuttingDown = true;
+				// Nothing else needed
 			}
 		};
 		diagnostics.handleProblem(problem);
@@ -833,7 +885,7 @@ public class CompilationContext
 					@Override
 					public void abortCompilation ()
 					{
-						diagnostics.isShuttingDown = true;
+						// Nothing else needed
 					}
 				});
 		}
@@ -852,7 +904,7 @@ public class CompilationContext
 				@Override
 				public void abortCompilation ()
 				{
-					diagnostics.isShuttingDown = true;
+					// Nothing else needed
 				}
 			});
 		}
@@ -886,7 +938,7 @@ public class CompilationContext
 			@Override
 			public void abortCompilation ()
 			{
-				diagnostics.isShuttingDown = true;
+				// Nothing else needed
 			}
 		});
 	}
@@ -920,7 +972,7 @@ public class CompilationContext
 			@Override
 			public void abortCompilation ()
 			{
-				diagnostics.isShuttingDown = true;
+				// Nothing else needed
 			}
 		});
 	}
