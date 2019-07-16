@@ -32,7 +32,7 @@
 
 Module "Delimited Streams"
 Versions
-	"1.2.0 DEV 2019-07-09"
+	"1.3.0 DEV 2019-07-16"
 Uses
 	"Abstract Streams",
 	"Foundation" = (-"_'s⁇element type", …)
