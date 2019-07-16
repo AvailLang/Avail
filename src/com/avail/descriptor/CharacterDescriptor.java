@@ -215,13 +215,14 @@ extends Descriptor
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
 		// Force marshaling to Java's primitive int type.
-		if (Integer.TYPE.equals(classHint))
+		if (Integer.TYPE.equals(classHint) || Integer.class.equals(classHint))
 		{
 			return codePoint;
 		}
 		// Force marshaling to Java's primitive char type, throwing an exception
 		// if the code point is out of range.
-		if (Character.TYPE.equals(classHint))
+		if (Character.TYPE.equals(classHint)
+			|| Character.class.equals(classHint))
 		{
 			if (codePoint > 65535)
 			{

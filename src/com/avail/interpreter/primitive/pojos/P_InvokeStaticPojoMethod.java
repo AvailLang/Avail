@@ -38,11 +38,13 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.RawPojoDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.VariableDescriptor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -62,17 +64,21 @@ import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
- * pojo} that references a reflected static {@linkplain Method Java method},
- * a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of raw
- * pojos that reference the reflected {@linkplain Class Java classes} of the
- * marshaled arguments, invoke the method and answer the result. If the
- * method fails, then store the actual Java {@linkplain Throwable exception}
- * into the primitive failure {@linkplain VariableDescriptor variable}.
+ * pojo} that references a reflected {@code static} {@linkplain Method Java
+ * method}, a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of
+ * raw pojos that reference the reflected {@linkplain Class Java classes} of the
+ * marshaled arguments, invoke the method and answer the result. If the method
+ * fails, then store the actual Java {@linkplain Throwable exception} into the
+ * primitive failure {@linkplain VariableDescriptor variable}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_InvokeStaticPojoMethod extends Primitive
+public final class P_InvokeStaticPojoMethod
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -89,7 +95,7 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		interpreter.checkArgumentCount(4);
 		final A_BasicObject methodPojo = interpreter.argument(0);
 		final A_Tuple methodArgs = interpreter.argument(1);
-		final A_Tuple marshaledTypePojos = interpreter.argument(2);
+		final A_Tuple marshaledTypes = interpreter.argument(2);
 		final A_Type expectedType = interpreter.argument(3);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
@@ -100,22 +106,19 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 
 		// Marshal the arguments and invoke the method.
 		final Method method = methodPojo.javaObjectNotNull();
-		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
-		try
+		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
+		final @Nullable Object[] marshaledArgs = marshalValues(
+			marshaledTypes,
+			methodArgs,
+			errorOut);
+		if (errorOut.value != null)
 		{
-			for (int i = 0; i < marshaledArgs.length; i++)
-			{
-				final @Nullable Class<?> marshaledType =
-					marshaledTypePojos.tupleAt(i + 1).javaObject();
-				marshaledArgs[i] = methodArgs.tupleAt(
-					i + 1).marshalToJava(marshaledType);
-			}
-		}
-		catch (final MarshalingException e)
-		{
+			final AvailErrorCode e = errorOut.value;
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
+
+		// Invoke the method.
 		final Object result;
 		try
 		{
@@ -124,9 +127,8 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		catch (final InvocationTargetException e)
 		{
 			final Throwable cause = e.getCause();
-			return interpreter.primitiveFailure(
-				newPojo(
-					identityPojo(cause), pojoTypeForClass(cause.getClass())));
+			return interpreter.primitiveFailure(newPojo(
+				identityPojo(cause), pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{

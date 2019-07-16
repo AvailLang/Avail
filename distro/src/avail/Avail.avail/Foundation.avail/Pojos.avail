@@ -273,21 +273,22 @@ Public stable method "_<«_‡,»>" is
  * rules are applied:
  *
  * <ul>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
  * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
  * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
  * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java char"} is marshaled to {@code
  *     "java.lang.Character.TYPE"}.</li>
  * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
  * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
  * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
+ * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
  * </ul>
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "constructor of_«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired constructor.
@@ -320,30 +321,25 @@ Public stable method "constructor of_«parameterized by»⁇_" is
  * are applied:
  *
  * <ul>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
  * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
  * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
  * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
  * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
  * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
  * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@method "_[_]"} is marshaled to
- *     java.lang.reflect.Array.newInstance().getClass().</li>
- * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
- *     or interface.</li>
- * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.AvailObject"}.</li>
+ * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
  * </ul>
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "method_._«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *          The requested instance method invocation function.
@@ -352,9 +348,9 @@ Public stable method "constructor of_«parameterized by»⁇_" is
  */
 Public stable method "method_._«parameterized by»⁇_" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any's type,
 	methodName : string,
-	parameterTypes : <any's type…|>
+	parameterTypes : any's type*
 |
 	method aPojoType.methodName,
 		parameterized by parameterTypes,
@@ -374,30 +370,25 @@ Public stable method "method_._«parameterized by»⁇_" is
  * following marshaling rules are applied:
  *
  * <ul>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
  * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
  * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
  * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
  * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
  * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
  * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
  * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@method "_[_]"} is marshaled to
- *     java.lang.reflect.Array.newInstance().getClass().</li>
- * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
- *     or interface.</li>
- * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.AvailObject"}.</li>
+ * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
  * </ul>
  *
  * @category "Functions" "POJO" "Constructors"
  * @method "static method_._«parameterized by»⁇_"
- * @param "aPojoType" "pojo meta"
+ * @param "aPojoType" "any's type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "<any's type…|>"
+ * @param "parameterTypes" "any's type*"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested static method invocation function.
@@ -406,9 +397,9 @@ Public stable method "method_._«parameterized by»⁇_" is
  */
 Public stable method "static method_._«parameterized by»⁇_" is
 [
-	aPojoType : pojo meta,
+	aPojoType : any's type,
 	methodName : string,
-	parameterTypes : <any's type…|>
+	parameterTypes : any's type*
 |
 	static method aPojoType.methodName,
 		parameterized by parameterTypes,

@@ -37,7 +37,6 @@ import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
@@ -48,37 +47,35 @@ import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelOne.L1Operation.*;
-import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod;
-import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.pojoInvocationWrapperFunction;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.*;
 
 /**
- * <strong>Primitive:</strong> Given the specified {@linkplain
- * PojoTypeDescriptor pojo type}, {@linkplain StringDescriptor method name},
- * and {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
- * types}, create a {@linkplain FunctionDescriptor function} that when
- * applied with a {@linkplain PojoDescriptor receiver} and arguments will
- * invoke the reflected Java instance {@linkplain Method method}. The last
- * argument is a function that should be invoked with a pojo-wrapped {@link
- * Exception} in the event that Java raises an exception.
+ * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
+ * successfully marshaled to a Java type, a {@linkplain A_String} that names an
+ * instance {@linkplain Method method} of that type, a {@linkplain A_Tuple
+ * tuple} of parameter {@linkplain A_Type types}, and a failure {@linkplain
+ * A_Function function}, create a {@linkplain A_Function function} that when
+ * applied will invoke the instance method. The instance method is invoked with
+ * arguments conforming to the marshaling of the receiver type and then the
+ * parameter types. If the return value has a preferred Avail surrogate type,
+ * then marshal the value to the surrogate type prior to answering it. Should
+ * the Java method raise an exception, invoke the supplied failure function with
+ * a {@linkplain PojoDescriptor pojo} that wraps that exception.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -110,30 +107,33 @@ extends Primitive
 		}
 
 		// Marshal the argument types.
-		final Class<?>[] marshaledTypes;
+		final @Nullable Method method;
+		final A_Tuple marshaledTypesTuple;
 		try
 		{
-			marshaledTypes = marshalTypes(paramTypes);
+			final Class<?>[] marshaledTypes = marshalTypes(paramTypes);
+			final MutableOrNull<AvailErrorCode> errorOut =
+				new MutableOrNull<>();
+			method = lookupMethod(
+				pojoType, methodName, marshaledTypes, errorOut);
+			if (errorOut.value != null)
+			{
+				return interpreter.primitiveFailure(errorOut.value);
+			}
+			// The indices are fiddly because we need to make room for the
+			// receiver type at the front.
+			marshaledTypesTuple =
+				generateObjectTupleFrom(
+					marshaledTypes.length + 1,
+					i -> i == 1
+						? identityPojo(marshalDefiningType(pojoType))
+						: equalityPojo(marshaledTypes[i - 2]));
 		}
 		catch (final MarshalingException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		// Search for the method.
-		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
-		final @Nullable Method method =
-			lookupMethod(pojoType, methodName, marshaledTypes, errorCode);
 		assert method != null;
-		assert errorCode.value == null;
-		// Wrap each of the marshaled argument types into raw pojos. These
-		// will be embedded into one of the generated functions below.
-		final A_Tuple marshaledTypesTuple =
-			generateObjectTupleFrom(
-				marshaledTypes.length,
-				i -> equalityPojo(marshaledTypes[i - 1]));
-		// Create a function wrapper for the pojo method invocation
-		// primitive. This function will be embedded as a literal into
-		// an outer function that holds the (unexposed) method pojo.
 		final A_Function innerFunction = pojoInvocationWrapperFunction(
 			failFunction,
 			writer ->
@@ -141,58 +141,32 @@ extends Primitive
 				writer.primitive(P_InvokeInstancePojoMethod.instance);
 				writer.argumentTypes(
 					RAW_POJO.o(),
-					ANY.o(),
 					mostGeneralTupleType(),
-					zeroOrMoreOf(RAW_POJO.o()));
+					zeroOrMoreOf(RAW_POJO.o()),
+					topMeta());
 				writer.returnType(TOP.o());
 			}
 		);
-		// Create the outer function that pushes the arguments expected by
-		// the method invocation primitive. Various objects that we do
-		// not want to expose to the Avail program are embedded in this
-		// function as literals.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil, 0, nil);
+
+		// Create a list that starts with the receiver and ends with the
+		// arguments.
+		final A_Map typeVars = pojoType.isPojoType()
+			? pojoType.typeVariables()
+			: emptyMap();
 		final List<A_Type> allParamTypes =
 			new ArrayList<>(paramTypes.tupleSize() + 1);
 		allParamTypes.add(resolvePojoType(
-			method.getDeclaringClass(), pojoType.typeVariables()));
+			method.getDeclaringClass(), typeVars));
 		for (final AvailObject paramType : paramTypes)
 		{
 			allParamTypes.add(paramType);
 		}
-		writer.argumentTypesTuple(tupleFromList(allParamTypes));
-		final A_Type returnType = resolvePojoType(
-			method.getGenericReturnType(), pojoType.typeVariables());
-		writer.returnType(returnType);
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(innerFunction));
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(equalityPojo(method)));
-		for (int i = 1, limit = allParamTypes.size(); i <= limit; i++)
-		{
-			writer.write(0, L1_doPushLocal, i);
-		}
-		writer.write(
-			0,
-			L1_doMakeTuple,
-			allParamTypes.size() - 1);
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(marshaledTypesTuple));
-		writer.write(0, L1_doMakeTuple, 4);
-		writer.write(
-			0,
-			L1_doCall,
-			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(returnType));
-		final A_Function outerFunction =
-			createFunction(writer.compiledCode(), emptyTuple()).makeImmutable();
+		final A_Function outerFunction = pojoInvocationAdapterFunction(
+			method,
+			tupleFromList(allParamTypes),
+			marshaledTypesTuple,
+			resolvePojoType(method.getGenericReturnType(), typeVars),
+			innerFunction);
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// both these functions non-reflective for safety.
 		return interpreter.primitiveSuccess(outerFunction);
@@ -203,7 +177,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(mostGeneralPojoType()),
+				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta()),
 				functionType(

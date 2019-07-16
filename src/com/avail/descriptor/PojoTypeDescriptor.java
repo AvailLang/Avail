@@ -47,6 +47,7 @@ import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
@@ -1099,7 +1100,19 @@ extends TypeDescriptor
 			final A_String name = stringFrom(javaClass.getName()
 				+ "."
 				+ var.getName());
-			return typeVars.mapAt(name);
+			if (typeVars.hasKey(name))
+			{
+				// The type variable was bound, so answer the binding.
+				return typeVars.mapAt(name);
+			}
+			// The type variable was unbound, so compute the upper bound.
+			A_Type union = bottom();
+			for (final Type bound : var.getBounds())
+			{
+				union = union.typeIntersection(resolvePojoType(
+					bound, typeVars));
+			}
+			return union;
 		}
 		// If type is a parameterized type, then recursively resolve it using
 		// the map of type variables.

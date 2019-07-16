@@ -47,6 +47,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
@@ -62,13 +63,17 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.*;
 
 /**
- * <strong>Primitive:</strong> Given the specified {@linkplain
- * PojoTypeDescriptor pojo type}, {@linkplain StringDescriptor method name},
- * and {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
- * types}, create a {@linkplain FunctionDescriptor function} that when
- * applied with arguments will invoke the reflected Java static {@linkplain
- * Method method}. The last argument is a function that should be invoked with a
- * pojo-wrapped {@link Exception} in the event that Java raises an exception.
+ * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
+ * successfully marshaled to a Java type, a {@linkplain A_String} that names a
+ * {@code static} {@linkplain Method method} of that type, a {@linkplain A_Tuple
+ * tuple} of parameter {@linkplain A_Type types}, and a failure {@linkplain
+ * A_Function function}, create a {@linkplain A_Function function} that when
+ * applied will invoke the {@code static} method. The {@code static} method is
+ * invoked with arguments conforming to the marshaling of the parameter types.
+ * If the return value has a preferred Avail surrogate type, then marshal the
+ * value to the surrogate type prior to answering it. Should the Java method
+ * raise an exception, invoke the supplied failure function with a {@linkplain
+ * PojoDescriptor pojo} that wraps that exception.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -143,7 +148,7 @@ extends Primitive
 			marshaledTypesTuple,
 			resolvePojoType(
 				method.getGenericReturnType(),
-				pojoType.typeVariables()),
+				pojoType.isPojoType() ? pojoType.typeVariables() : emptyMap()),
 			innerFunction);
 		return interpreter.primitiveSuccess(outerFunction);
 	}
@@ -153,7 +158,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMeta(mostGeneralPojoType()),
+				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta()),
 				functionType(
