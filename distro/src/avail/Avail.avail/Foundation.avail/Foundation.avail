@@ -110,6 +110,8 @@ Extends
 		"Export_as a new name",
 		"Java null",
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
+		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
+			→ "Reject parse(confidence=_),expected:_",
 		"Remove_[_]",
 		"Remove current fiber[_]",
 		"Reset to mark",
@@ -1059,13 +1061,21 @@ Extends
 		"Java int",
 		"Java long",
 		"Java short",
-		"constructor of_«parameterized by»⁇_",
+		"constructor of_parameterized by_",
+		"constructor of_parameterized by_" → "constructor_(«_‡,»)",
 		"field_._",
-		"method_._«parameterized by»⁇_",
+		"field_.…",
+		"method_._parameterized by_",
+		"method_.…parameterized by_",
+		"method_.…parameterized by_" → "method_.…(«_‡,»)",
 		"static field_._",
-		"static method_._«parameterized by»⁇_",
+		"static field_.…",
+		"static method_._parameterized by_",
+		"static method_.…parameterized by_",
+		"static method_.…parameterized by_" → "static method_.…(«_‡,»)",
 		"_[]",
-		"_<«_‡,»>"
+		"_<«_‡,»>",
+		"«…‡.»«<«_‡,»>»?"
 	),
 	"Security" =
 	(

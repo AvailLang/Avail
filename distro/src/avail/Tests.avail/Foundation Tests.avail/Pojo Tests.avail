@@ -84,41 +84,41 @@ Test "Avail pojo classes are forbidden" in pojo test suite is
 
 Test "pojo type relations" in pojo test suite is
 [
-	Require: "java.util.ArrayList"<any> ⊆ any;
-	Require: "java.util.ArrayList"<any> ⊆ "java.util.List"<any>;
-	Require: "java.util.ArrayList"<Java int> ⊆ "java.util.List"<any>;
-	Require: "java.util.ArrayList"<Java int> ⊆ "java.util.List"<Java int>;
-	Require: "java.util.ArrayList"<any> ⊆ "java.util.Collection"<any>;
-	Require: "java.util.ArrayList"<Java int> ⊆ "java.util.Collection"<any>;
-	Require: "java.util.ArrayList"<Java int> ⊆ "java.util.Collection"<Java int>;
+	Require: java.util.ArrayList<any> ⊆ any;
+	Require: java.util.ArrayList<any> ⊆ java.util.List<any>;
+	Require: java.util.ArrayList<Java int> ⊆ java.util.List<any>;
+	Require: java.util.ArrayList<Java int> ⊆ java.util.List<Java int>;
+	Require: java.util.ArrayList<any> ⊆ java.util.Collection<any>;
+	Require: java.util.ArrayList<Java int> ⊆ java.util.Collection<any>;
+	Require: java.util.ArrayList<Java int> ⊆ java.util.Collection<Java int>;
 
 	Require:
-		"java.util.List"<any> ∪ "java.util.ArrayList"<any>
-			= "java.util.List"<any>;
+		java.util.List<any> ∪ java.util.ArrayList<any>
+			= java.util.List<any>;
 	Require:
-		"java.util.List"<type> ∪ "java.util.ArrayList"<nontype>
-			= "java.util.List"<any>;
+		java.util.List<type> ∪ java.util.ArrayList<nontype>
+			= java.util.List<any>;
 
 	Require:
-		"java.util.List"<any> ∩ "java.util.ArrayList"<any>
-			= "java.util.ArrayList"<any>;
+		java.util.List<any> ∩ java.util.ArrayList<any>
+			= java.util.ArrayList<any>;
 	Require:
-		"java.util.List"<type> ∩ "java.util.ArrayList"<nontype>
+		java.util.List<type> ∩ java.util.ArrayList<nontype>
 			= pojo ⊥;
 ];
 
 Test "pojo constructors" in pojo test suite is
 [
-	anyConstructor ::= constructor of any<>;
-	booleanConstructor ::= constructor of boolean<boolean>;
-	byteConstructor ::= constructor of Java byte<Java byte>;
-	shortConstructor ::= constructor of Java short<Java short>;
-	intConstructor ::= constructor of Java int<Java int>;
-	longConstructor ::= constructor of Java long<Java long>;
-	floatConstructor ::= constructor of float<float>;
-	doubleConstructor ::= constructor of double<double>;
-	emptyStringConstructor ::= constructor of string<>;
-	copyStringConstructor ::= constructor of string<string>;
+	anyConstructor ::= constructor any ();
+	booleanConstructor ::= constructor boolean (boolean);
+	byteConstructor ::= constructor Java byte (Java byte);
+	shortConstructor ::= constructor Java short (Java short);
+	intConstructor ::= constructor Java int (Java int);
+	longConstructor ::= constructor Java long (Java long);
+	floatConstructor ::= constructor float (float);
+	doubleConstructor ::= constructor double (double);
+	emptyStringConstructor ::= constructor string ();
+	copyStringConstructor ::= constructor string (string);
 
 	Require: anyConstructor() ≠ anyConstructor();
 	Require: booleanConstructor(true) = true;
@@ -139,23 +139,22 @@ Test "nonexistent pojo constructor" in pojo test suite is
 [
 	className : string := "java.lang.String";
 	class ::= className<>;
-	constructor of class<⊥>
+	constructor of class parameterized by <⊥>
 ]
 must raise Java-method-not-available exception;
 
 Test "pojo static methods" in pojo test suite is
 [
-	valueOfIntMethod ::= static method string."valueOf"<Java int>;
-	emptySetMethod ::= static method "java.util.Collections"<>."emptySet"<>;
-	emptyListMethod ::= static method "java.util.Collections"<>."emptyList"<>;
-	emptyMapMethod ::= static method "java.util.Collections"<>."emptyMap"<>;
-	currentTimeMethod ::=
-		static method "java.lang.System"<>."currentTimeMillis"<>;
+	valueOfIntMethod ::= static method string.valueOf (Java int);
+	emptySetMethod ::= static method java.util.Collections.emptySet ();
+	emptyListMethod ::= static method java.util.Collections.emptyList ();
+	emptyMapMethod ::= static method java.util.Collections.emptyMap ();
+	currentTimeMethod ::= static method java.lang.System.currentTimeMillis ();
 
 	For each i in 1 to 10 do [Require: valueOfIntMethod(i) = “i”;];
-	Require: emptySetMethod() ∈ "java.util.Set"<⊥>;
-	Require: emptyListMethod() ∈ "java.util.List"<⊥>;
-	Require: emptyMapMethod() ∈ "java.util.Map"<⊥, ⊥>;
+	Require: emptySetMethod() ∈ java.util.Set<⊥>;
+	Require: emptyListMethod() ∈ java.util.List<⊥>;
+	Require: emptyMapMethod() ∈ java.util.Map<⊥, ⊥>;
 	Require: currentTimeMethod() ∈ Java long;
 ];
 
@@ -163,19 +162,19 @@ Test "nonexistent pojo static method" in pojo test suite is
 [
 	className : string := "java.lang.String";
 	class ::= className<>;
-	static method class."lovesDeliciousBeans"<boolean>
+	static method class."lovesDeliciousBeans" parameterized by <boolean>
 ]
 must raise Java-method-not-available exception;
 
 Test "pojo instance methods" in pojo test suite is
 [
-	hashMethod ::= method any."hashCode"<>;
-	equalsMethod ::= method any."equals"<any>;
-	intValueMethod ::= method Java int."intValue"<>;
-	doubleValueMethod ::= method Java long."doubleValue"<>;
-	longValueMethod ::= method float."longValue"<>;
-	lengthMethod ::= method string."length"<>;
-	substringMethod ::= method string."substring"<Java int, Java int>;
+	hashMethod ::= method any.hashCode ();
+	equalsMethod ::= method any.equals (any);
+	intValueMethod ::= method Java int.intValue ();
+	doubleValueMethod ::= method Java long.doubleValue ();
+	longValueMethod ::= method float.longValue ();
+	lengthMethod ::= method string.length ();
+	substringMethod ::= method string.substring (Java int, Java int);
 
 	For	each i in 1 to 10 do [Require: hashMethod(i) = i;];
 	For	each i in 1 to 10 do [Require: (hashMethod(i)=i) = equalsMethod(i,i);];
@@ -189,12 +188,12 @@ Test "pojo instance methods" in pojo test suite is
 	Require: substringMethod("mango", 2, 3) = "n";
 	Require: substringMethod("mango", 3, 3) = "";
 
-	list ::= "java.util.ArrayList"<string>;
-	listConstructor ::= constructor of list<>;
-	listSize ::= method list."size"<>;
-	listAdd ::= method list."add"<any>;
-	listGet ::= method list."get"<Java int>;
-	listClear ::= method list."clear"<>;
+	list ::= java.util.ArrayList<string>;
+	listConstructor ::= constructor list ();
+	listSize ::= method list.size ();
+	listAdd ::= method list.add (any);
+	listGet ::= method list.get (Java int);
+	listClear ::= method list.clear ();
 
 	items ::= listConstructor();
 	Require: listSize(items) = 0;
@@ -209,47 +208,46 @@ Test "nonexistent pojo instance method" in pojo test suite is
 [
 	className : string := "java.lang.String";
 	class ::= className<>;
-	method class."lovesDeliciousBeans"<boolean>
+	method class."lovesDeliciousBeans" parameterized by <boolean>
 ]
 must raise Java-method-not-available exception;
 
 Test "pojo static fields" in pojo test suite is
 [
-	Require: ↓static field boolean."TRUE" = true;
-	Require: ↓static field boolean."FALSE" = false;
+	Require: ↓static field boolean.TRUE = true;
+	Require: ↓static field boolean.FALSE = false;
 	For each t of <Java byte, Java short, Java int, Java long, Java char> do
 	[
-		min ::= static field t."MIN_VALUE";
-		max ::= static field t."MAX_VALUE";
+		min ::= static field t.MIN_VALUE;
+		max ::= static field t.MAX_VALUE;
 		Require: ↓min = ⎣t⎦;
 		Require: ↓max = ⎡t⎤;
 	];
 	For each p of <<float, 4>, <double, 8>> do
 	[
 		t, b ::= p;
-		bytes ::= static field t."BYTES";
+		bytes ::= static field t.BYTES;
 		Require: ↓bytes = b;
 	];
-	Require: ↓static field string."CASE_INSENSITIVE_ORDER"
-		∈ "java.util.Comparator"<string>;
-	Require: ↓static field "java.util.Collections"<>."EMPTY_LIST"
-		∈ "java.util.List"<any>;
+	Require: ↓static field string.CASE_INSENSITIVE_ORDER
+		∈ java.util.Comparator<string>;
+	Require: ↓static field java.util.Collections.EMPTY_LIST
+		∈ java.util.List<any>;
 ];
 
 Test "cannot modify static final pojo field" in pojo test suite is
 [
-	static field boolean."TRUE" ?= false;
+	static field boolean.TRUE ?= false;
 ]
 must raise cannot-modify-final-Java-field exception;
 
 Test "pojo instance fields" in pojo test suite is
 [
-	point ::= "java.awt.Point"<>;
-	pointConstructor ::= constructor of point<Java int, Java int>;
+	pointConstructor ::= constructor java.awt.Point (Java int, Java int);
 
 	p ::= pointConstructor(5, 12);
-	pX ::= field p."x";
-	pY ::= field p."y";
+	pX ::= field p.x;
+	pY ::= field p.y;
 	Require: ↓pX = 5;
 	Require: ↓pY = 12;
 	pX ?= 37;
