@@ -39,6 +39,8 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
@@ -91,8 +93,22 @@ extends L2ControlFlowOperation
 	 */
 	public enum StatisticCategory
 	{
+		/**
+		 * For measuring reifications for interrupts in L2 code.
+		 */
 		INTERRUPT_OFF_RAMP_IN_L2,
+
+		/**
+		 * For measuring reifications required before label construction in L2
+		 * code.
+		 */
 		PUSH_LABEL_IN_L2,
+
+		/**
+		 * For measuring stack-clearing reifications prior to {@link
+		 * P_RestartContinuation} and {@link P_RestartContinuationWithArguments}
+		 * invocations in L2 code.
+		 */
 		ABANDON_BEFORE_RESTART_IN_L2;
 
 		/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */

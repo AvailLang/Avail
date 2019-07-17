@@ -216,19 +216,19 @@ import static java.util.Collections.singletonList;
 public final class Interpreter
 {
 	/** Whether to print detailed Level One debug information. */
-	public static boolean debugL1 = false;
+	public static volatile boolean debugL1 = false;
 
 	/** Whether to print detailed Level Two debug information. */
-	public static boolean debugL2 = false;
+	public static volatile boolean debugL2 = false;
 
 	/** Whether to print detailed Primitive debug information. */
-	public static boolean debugPrimitives = false;
+	public static volatile boolean debugPrimitives = false;
 
 	/**
 	 * Whether to print detailed debug information related to compiler/lexer
 	 * work unit tracking.
 	 * */
-	public static boolean debugWorkUnits = false;
+	public static volatile boolean debugWorkUnits = false;
 
 	/**
 	 * Whether to divert logging into fibers' {@link A_Fiber#debugLog()}, which
@@ -246,7 +246,7 @@ public final class Interpreter
 	 * debugged with a custom VM.  This is a convenience flag and will be
 	 * inaccessible in a production VM.
 	 */
-	public static boolean debugCustom = false;
+	public static volatile boolean debugCustom = false;
 
 	/** A {@linkplain Logger logger}. */
 	private static final Logger mainLogger =
@@ -1801,6 +1801,22 @@ public final class Interpreter
 			});
 	}
 
+	/**
+	 * Answer a {@link StackReifier} which can be used for reifying the current
+	 * stack by returning it out to Interpreter{@link #run()}.  When it reaches
+	 * there, a lambda embedded in this reifier will run, performing an action
+	 * suitable to the provided flags.
+	 *
+	 * @param actuallyReify
+	 *        Whether to actually record the stack frames as {@link
+	 *        A_Continuation}s.
+	 * @param processInterrupt
+	 *        Whether a pending interrupt should be processed after reification.
+	 * @param categoryIndex
+	 *        The ordinal of a {@link StatisticCategory} under which to record
+	 *        reification statistics.
+	 * @return The new {@link StackReifier}.
+	 */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public StackReifier reify (
@@ -2199,37 +2215,6 @@ public final class Interpreter
 		}
 		adjustUnreifiedCallDepthBy(-1);
 		return reifier;
-	}
-
-	/**
-	 * Throw a {@link StackReifier} to reify the Java stack into {@link
-	 * A_Continuation}s, then invoke the given {@link A_Function} with no
-	 * arguments.
-	 *
-	 * @param functionToCall
-	 *        What zero-argument function to invoke after reification.
-	 * @param reificationStatistic
-	 *        The {@link Statistic} under which to record this reification.
-	 * @param shouldReturnNow
-	 *        Whether an Avail return should happen after reification.
-	 * @return The {@link StackReifier} that collects reified continuations on
-	 *         the way out to {@link #run()}.
-	 */
-	public StackReifier reifyThenCall0 (
-		final A_Function functionToCall,
-		final Statistic reificationStatistic,
-		final boolean shouldReturnNow)
-	{
-		return reifyThen(
-			reificationStatistic,
-			() ->
-			{
-				argsBuffer.clear();
-				function = functionToCall;
-				chunk = functionToCall.code().startingChunk();
-				offset = 0;
-				returnNow = shouldReturnNow;
-			});
 	}
 
 	/**
