@@ -52,10 +52,12 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.values.L2SemanticPrimitiveInvocation;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -87,17 +89,47 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 /**
- * This enumeration represents the interface between Avail's Level One
+ * This abstraction represents the interface between Avail's Level One
  * nybblecode interpreter and the underlying interfaces of the built-in objects,
  * providing functionality that is (generally) inexpressible within Level One in
  * terms of other Level One operations.  A conforming Avail implementation must
- * provide these primitives with equivalent semantics.
+ * provide these primitives with equivalent semantics and names.
  *
- * <p>The enumeration defines an {@link #attempt(Interpreter)} operation that
- * takes a {@linkplain List list} of arguments of type {@link AvailObject}, as
- * well as the {@link Interpreter} on whose behalf the primitive attempt is
- * being made.  The specific enumeration values override the {@code attempt}
- * method with behavior specific to that primitive.</p>
+ * <p>The subclasses must define {@link #attempt(Interpreter)}, which expects
+ * its arguments to be accessed via {@link Interpreter#argument(int)}.  Each
+ * subclass operates on its arguments to produce a side-effect and/or produce a
+ * result.  The primitive's {@link Flag}s indicate any special preparations that
+ * must be made before the invocation, such as reifying the Java stack.</p>
+ *
+ * <p>Primitives may succeed or fail, or cause some other action like non-local
+ * control flow.  This is handled via {@link
+ * Interpreter#primitiveSuccess(A_BasicObject)} and {@link
+ * Interpreter#primitiveFailure(A_BasicObject)} and similar methods.  If a
+ * primitive fails, the statements in the containing function will be invoked,
+ * as though the primitive had never been attempted.</p>
+ *
+ * <p>In addition, the {@code Primitive} subclasses collaborate with the {@link
+ * L1Translator} and {@link L2Generator} to produce appropriate {@link
+ * L2Instruction}s and ultimately JVM bytecode instructions within a calling
+ * {@link ExecutableChunk}.  Again, the {@link Flag}s and some {@code Primitive}
+ * methods indicate general properties of the primitive, like whether it can be
+ * applied ahead of time ({@link Flag#CanFold}) to constant arguments, whether
+ * it could fail, given particular types of arguments, and what type it
+ * guarantees to provide, given particular argument types.</p>
+ *
+ * <p>The main hook for primitive-specific optimization is {@link
+ * #tryToGenerateSpecialPrimitiveInvocation(L2ReadBoxedOperand, A_RawFunction,
+ * List, List, L1Translator, CallSiteHelper)}.  Because of the way the L2
+ * translation makes use of {@link L2SemanticValue}s, and {@link
+ * L2SemanticPrimitiveInvocation}s in particular, a primitive can effectively
+ * examine the history of its arguments and compose or cancel a chain of actions
+ * in the L2 code.  For example, a primitive that extracts an element of a tuple
+ * might notice that the tuple was created by a tuple-building primitive, and
+ * then choose to directly use one of the inputs to the tuple-building
+ * primitive, rather than decompose the tuple. If all such uses of the tuple
+ * disappear, the invocation of the tuple-building primitive can be elided
+ * entirely, since it has no side-effects.  Arithmetic provides similar rich
+ * opportunities for these high-level optimizations.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -111,7 +143,7 @@ implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * The primitive succeeded, and the result, if any, has been stored for
-		 * subsequent use.
+		 * subsequent use in the {@link Interpreter#latestResult()}.
 		 */
 		@ReferencedInGeneratedCode
 		SUCCESS,
