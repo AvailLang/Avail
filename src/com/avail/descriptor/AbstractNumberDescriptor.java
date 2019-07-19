@@ -44,10 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;

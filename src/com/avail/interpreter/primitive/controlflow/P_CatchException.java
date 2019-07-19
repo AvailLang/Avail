@@ -51,14 +51,8 @@ import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE;
-import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CatchException;
-import static com.avail.interpreter.Primitive.Flag.PreserveArguments;
-import static com.avail.interpreter.Primitive.Flag.PreserveFailureVariable;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Always fail. The Avail failure code
@@ -73,7 +67,11 @@ public final class P_CatchException extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CatchException().init(
-			3, CatchException, PreserveFailureVariable, PreserveArguments, CanInline);
+			3,
+			CatchException,
+			PreserveFailureVariable,
+			PreserveArguments,
+			CanInline);
 
 	@Override
 	public Result attempt (

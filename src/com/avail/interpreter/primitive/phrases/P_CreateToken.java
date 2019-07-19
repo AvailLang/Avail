@@ -53,19 +53,12 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
-import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
-import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
-import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
-import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
-import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain TokenDescriptor token} with

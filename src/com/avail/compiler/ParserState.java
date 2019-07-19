@@ -64,7 +64,7 @@ public class ParserState
 	/**
 	 * The state of the lexer at this parse position.
 	 */
-	final LexingState lexingState;
+	public final LexingState lexingState;
 
 	/**
 	 * A {@linkplain MapDescriptor map} of interesting information used by the
@@ -138,7 +138,7 @@ public class ParserState
 	 *
 	 * @return A {@link String} describing this {@code ParserState}.
 	 */
-	public String shortString ()
+	String shortString ()
 	{
 		final A_String source = lexingState.compilationContext.source();
 		if (lexingState.position == 1)
@@ -167,7 +167,7 @@ public class ParserState
 	 *        #clientDataMap} in the new parser state.
 	 * @return The new {@code ParserState}.
 	 */
-	public ParserState withMap (final A_Map replacementMap)
+	ParserState withMap (final A_Map replacementMap)
 	{
 		return new ParserState(lexingState, replacementMap);
 	}
@@ -284,7 +284,7 @@ public class ParserState
 	 *        What to pass as an argument to the provided {@linkplain
 	 *        Continuation1NotNull one-argument continuation}.
 	 */
-	public <ArgType> void workUnitDo (
+	<ArgType> void workUnitDo (
 		final Continuation1NotNull<ArgType> continuation,
 		final ArgType argument)
 	{

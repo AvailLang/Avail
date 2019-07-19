@@ -33,12 +33,14 @@ package com.avail.compiler.problems;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
+import com.avail.compiler.ParserState;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
+import com.avail.utility.Locks.Auto;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -46,6 +48,7 @@ import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -64,11 +67,13 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
 import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
 import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.utility.Locks.auto;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.addLineNumbers;
 import static com.avail.utility.Strings.lineBreakPattern;
 import static com.avail.utility.evaluation.Combinator.recurse;
+import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 
@@ -106,8 +111,8 @@ public class CompilerDiagnostics
 
 		/**
 		 * Always report the parse problem at this location, unless there are
-		 * {@link #expectationsCountToTrack} or more places later in the parse
-		 * sequence at which non-{@link #SILENT} problems have been recorded.
+		 * too many places in the parse sequence past this, at which non-{@link
+		 * #SILENT} problems have been recorded.
 		 */
 		STRONG;
 
@@ -176,7 +181,6 @@ public class CompilerDiagnostics
 			final ParseNotificationLevel newLevel,
 			final Describer describer)
 		{
-			assert newLevel != SILENT;
 			if (newLevel.ordinal() < level.ordinal())
 			{
 				return;
@@ -219,52 +223,453 @@ public class CompilerDiagnostics
 	}
 
 	/** The source text as an Avail {@link A_String}. */
-	final A_String source;
+	private final A_String source;
 
 	/** The name of the module being compiled. */
-	final ModuleName moduleName;
+	private final ModuleName moduleName;
 
 	/**
-	 * The number of distinct (rightmost) positions for which to record
-	 * expectations.  Note that {@link ParseNotificationLevel#SILENT} entries
-	 * are never recorded, nor do they cause an error position to be occupied
-	 * in the {@link #expectations} map or {@link #expectationsIndexHeap}.
-	 */
-	static final int expectationsCountToTrack = 3;
-
-	/**
-	 * The one-based position in the source at which the current statement
+	 * The position in the source at which the current top-level statement
 	 * starts.
 	 */
-	int startOfStatement;
+	private @Nullable ParserState startOfStatement = null;
 
 	/**
-	 * Guards access to {@link #expectations} and {@link
-	 * #expectationsIndexHeap}.
-	 */
-	final ReadWriteLock expectationsLock = new ReentrantReadWriteLock();
-
-	/**
-	 * The rightmost few positions at which potential problems have been
-	 * recorded.  The keys of this {@link Map} always agree with the values in
-	 * the {@link #expectationsIndexHeap}.  The key is the one-based position of
-	 * the start of token, and the value is an {@link ExpectationsAtPosition}
-	 * that tracks the most likely causes of problems at this position.
+	 * A helper class for tracking the expectations at the rightmost N positions
+	 * at which expectations have been recorded.
 	 *
-	 * <p>Lexing problems are recorded here as well, although a suitable invalid
-	 * token is created for this purpose.  This allows positioning the problem
-	 * at an exact character position.</p>
+	 * <p>There's a private access lock, a map from character position in
+	 * the source to an {@link ExpectationsAtPosition} structure, and a
+	 * {@link PriorityQueue} that keeps track of the N rightmost positions
+	 * for which an expectation has been recorded.</p>
 	 */
-	private final Map<Integer, ExpectationsAtPosition> expectations =
-		new HashMap<>();
+	private class ExpectationsList
+	{
+		/**
+		 * The number of distinct (rightmost) positions for which to record
+		 * expectations.  Note that {@link ParseNotificationLevel#SILENT} entries
+		 * are recorded in their own {@code ExpectationsList}, and they are
+		 * only presented if there are no non-silent expectations recorded.
+		 */
+		private static final int positionsToTrack = 3;
+
+		/**
+		 * Guards access to {@link #expectations} and {@link
+		 * #expectationsIndexHeap}.
+		 */
+		final ReadWriteLock expectationsLock = new ReentrantReadWriteLock();
+
+		/**
+		 * The rightmost few positions at which potential problems have been
+		 * recorded.  The keys of this {@link Map} always agree with the
+		 * values in
+		 * the {@link #expectationsIndexHeap}.  The key is the one-based
+		 * position of
+		 * the start of token, and the value is an
+		 * {@link ExpectationsAtPosition}
+		 * that tracks the most likely causes of problems at this position.
+		 *
+		 * <p>Lexing problems are recorded here as well, although a suitable
+		 * invalid
+		 * token is created for this purpose.  This allows positioning the
+		 * problem
+		 * at an exact character position.</p>
+		 */
+		@GuardedBy("expectationsLock")
+		private final Map<Integer, ExpectationsAtPosition> expectations =
+			new HashMap<>();
+
+		/**
+		 * A priority heap that keeps track of the rightmost N positions at
+		 * which a
+		 * diagnostic message has been recorded.  The entries always agree
+		 * with the
+		 * keys of {@link #expectations}.
+		 */
+		@GuardedBy("expectationsLock")
+		private final PriorityQueue<Integer> expectationsIndexHeap =
+			new PriorityQueue<>();
+
+		/**
+		 * Remove all expectations in preparation for parsing another top-level
+		 * expression.
+		 */
+		public void clear ()
+		{
+			lockWhile(
+				expectationsLock.writeLock(),
+				() ->
+				{
+					expectations.clear();
+					expectationsIndexHeap.clear();
+				});
+		}
+
+		/**
+		 * Answer true iff there are no expectations recorded herein.
+		 *
+		 * @return Whether there are no expectations.
+		 */
+		private boolean isEmpty ()
+		{
+			return lockWhile(
+				expectationsLock.readLock(), expectations::isEmpty);
+		}
+
+		/**
+		 * Record an expectation at the given token.
+		 *
+		 * @param level
+		 *        The {@link ParseNotificationLevel} which indicates the
+		 *        priority of this theory about a failed parse.
+		 * @param describer
+		 *        A {@link Describer}, something which can be evaluated
+		 *        (including running Avail code) to produce a String, which is
+		 *        then passed to a provided continuation.
+		 * @param lexingState
+		 *        The {@link LexingState} at which the expectation occurred.
+		 */
+		private void expectedAt (
+			final ParseNotificationLevel level,
+			final Describer describer,
+			final LexingState lexingState)
+		{
+			try (final Auto ignored = auto(expectationsLock.writeLock()))
+			{
+				final Integer position = lexingState.position;
+				ExpectationsAtPosition localExpectations =
+					expectations.get(position);
+				if (localExpectations == null)
+				{
+					if (expectationsIndexHeap.size() == positionsToTrack
+						&& position < expectationsIndexHeap.peek())
+					{
+						// We have the maximum number of expectation sites,
+						// and the new one would come before them all, so
+						// ignore it.
+						return;
+					}
+					localExpectations = new ExpectationsAtPosition();
+					expectations.put(position, localExpectations);
+					// Also update expectationsIndexHeap.
+					expectationsIndexHeap.add(position);
+					if (expectationsIndexHeap.size() > positionsToTrack)
+					{
+						final int removed = expectationsIndexHeap.remove();
+						final ExpectationsAtPosition removedEntry =
+							expectations.remove(removed);
+						assert removedEntry != null;
+					}
+				}
+				localExpectations.recordProblem(lexingState, level, describer);
+			}
+		}
+
+		/**
+		 * Report a parsing problem.  After reporting it, execute the {@link
+		 * #failureReporter}.
+		 *
+		 * @param groupedProblems
+		 *        The {@link List} of {@link ProblemsAtPosition} to report.  Each
+		 *        {@code ProblemsAtPosition} describes the problems that occurred at
+		 *        some token's position.
+		 * @param headerMessagePattern
+		 *        The message pattern to be populated and written before each group
+		 *        of problems.  Its arguments are the group's {@linkplain
+		 *        ProblemsAtPosition#indicator} and the problematic token's line
+		 *        number.
+		 */
+		private void reportGroupedErrors (
+			final List<ProblemsAtPosition> groupedProblems,
+			final String headerMessagePattern)
+		{
+			if (pollForAbort.getAsBoolean())
+			{
+				// Never report errors during a client-initiated abort.
+				stripNull(failureReporter).value();
+				return;
+			}
+			final List<ProblemsAtPosition> ascending =
+				new ArrayList<>(groupedProblems);
+			sort(ascending);
+
+			// Figure out where to start showing the file content.  Never show
+			// the content before the line on which startOfStatement resides.
+			final int startOfFirstLine = 1 + lastIndexOf(
+				source, '\n', stripNull(startOfStatement).position() - 1, 1);
+			final int initialLineNumber = 1 + occurrencesInRange(
+				source, '\n', 1, min(source.tupleSize(), startOfFirstLine));
+			// Now figure out the last line to show, which if possible should be
+			// the line after the *end* of the last problem token.
+			final ProblemsAtPosition lastProblem =
+				ascending.get(ascending.size() - 1);
+			final int finalLineNumber = lastProblem.lineNumber();
+			int startOfNextLine = 1 + firstIndexOf(
+				source,
+				'\n',
+				lastProblem.lexingStateAfterToken.position,
+				source.tupleSize());
+			startOfNextLine = startOfNextLine != 1
+				? startOfNextLine
+				: source.tupleSize() + 1;
+			int startOfSecondNextLine = 1 + firstIndexOf(
+				source, '\n', startOfNextLine, source.tupleSize());
+			startOfSecondNextLine = startOfSecondNextLine != 1
+				? startOfSecondNextLine
+				: source.tupleSize() + 1;
+
+			// Insert the problem location indicators...
+			int sourcePosition = startOfFirstLine;
+			final List<A_String> parts = new ArrayList<>(10);
+			for (final ProblemsAtPosition eachProblem : ascending)
+			{
+				final int newPosition = eachProblem.position();
+				parts.add(
+					source.copyStringFromToCanDestroy(
+						sourcePosition, newPosition - 1, false));
+				parts.add(stringFrom(eachProblem.indicator));
+				sourcePosition = newPosition;
+			}
+			parts.add(
+				source.copyStringFromToCanDestroy(
+					sourcePosition, startOfSecondNextLine - 1, false));
+			// Ensure the last character is a newline.
+			A_Tuple unnumbered =
+				tupleFromList(parts).concatenateTuplesCanDestroy(true);
+			if (unnumbered.tupleSize() == 0
+				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
+			{
+				unnumbered = unnumbered.appendCanDestroy(
+					fromCodePoint('\n'), true);
+			}
+
+			// Insert line numbers...
+			final int maxDigits =
+				Integer.toString(finalLineNumber + 1).length();
+			final StringBuilder builder = new StringBuilder();
+			//noinspection StringConcatenationMissingWhitespace
+			builder.append(
+				addLineNumbers(
+					((A_String) unnumbered).asNativeString(),
+					">>> %" + maxDigits + "d: %s",
+					initialLineNumber));
+			builder.append(">>>").append(rowOfDashes);
+
+			// Now output all the problems, in the original group order.  Start
+			// off with an empty problemIterator to keep the code simple.
+			final Iterator<ProblemsAtPosition> groupIterator =
+				groupedProblems.iterator();
+			final Mutable<Iterator<Describer>> problemIterator =
+				new Mutable<>(emptyIterator());
+			final Set<String> alreadySeen = new HashSet<>();
+			// Initiate all the grouped error printing.
+			recurse(continueReport ->
+			{
+				if (!problemIterator.value.hasNext())
+				{
+					// End this group.
+					if (!groupIterator.hasNext())
+					{
+						// Done everything.  Pass the complete text forward.
+						compilationIsInvalid = true;
+						// Generate the footer that indicates the module and
+						// line where the last indicator was found.
+						builder.append(
+							format(
+								"%n(file=\"%s\", line=%d)%n>>>%s",
+								moduleName.qualifiedName(),
+								lastProblem.lineNumber(),
+								rowOfDashes));
+						handleProblem(new Problem(
+							moduleName,
+							lastProblem.lineNumber(),
+							lastProblem.position(),
+							PARSE,
+							"{0}",
+							builder.toString())
+						{
+							@Override
+							public void abortCompilation ()
+							{
+								stripNull(failureReporter).value();
+							}
+						});
+						// Generate the footer that indicates the module and
+						// line where the last indicator was found.
+						return;
+					}
+					// Advance to the next problem group...
+					final ProblemsAtPosition newGroup = groupIterator.next();
+					builder.append("\n>>> ");
+					builder.append(
+						format(
+							headerMessagePattern,
+							newGroup.indicator,
+							newGroup.lineNumber()));
+					problemIterator.value = newGroup.describers.iterator();
+					alreadySeen.clear();
+					assert problemIterator.value.hasNext();
+				}
+				problemIterator.value.next().describeThen(
+					message ->
+					{
+						// Suppress duplicate messages.
+						if (!alreadySeen.contains(message))
+						{
+							alreadySeen.add(message);
+							builder.append("\n>>>\t\t");
+							builder.append(
+								lineBreakPattern.matcher(message).replaceAll(
+									Matcher.quoteReplacement("\n>>>\t\t")));
+						}
+						// Avoid using direct recursion to keep the stack
+						// from getting too deep.
+						currentRuntime().execute(
+							FiberDescriptor.compilerPriority,
+							continueReport);
+					});
+			});
+		}
+
+		/**
+		 * Report the rightmost accumulated errors, then invoke the {@link
+		 * #failureReporter}.  The receiver must not be {@link #isEmpty()}.
+		 *
+		 * @param headerMessagePattern
+		 *        The message pattern that introduces each group of problems.
+		 *        The first argument is where the indicator string goes, and the
+		 *        second is for the line number.
+		 */
+		private void reportError (
+			final String headerMessagePattern)
+		{
+			assert !isEmpty();
+			final List<Integer> descendingIndices = lockWhile(
+				expectationsLock.readLock(),
+				() -> new ArrayList<>(expectationsIndexHeap));
+			descendingIndices.sort(reverseOrder());
+			accumulateErrorsThen(
+				descendingIndices.iterator(),
+				new IndicatorGenerator(),
+				new ArrayList<>(),
+				groups -> reportGroupedErrors(groups, headerMessagePattern));
+		}
+
+		/**
+		 * Report one specific terminal problem and call the failure
+		 * continuation to abort compilation.
+		 *
+		 * @param lexingState
+		 *        The position at which to report the problem.
+		 * @param headerMessagePattern
+		 *        The problem header pattern, where the first pattern argument
+		 *        is the indicator string (e.g., circled-A), and the second
+		 *        pattern argument is the line number.
+		 * @param message
+		 *        The message text for this problem.
+		 */
+		private void reportError (
+			final LexingState lexingState,
+			final String headerMessagePattern,
+			final String message)
+		{
+			try (final Auto ignored = auto(expectationsLock.writeLock()))
+			{
+				// Delete any potential parsing errors already encountered,
+				// and replace them with the new error.
+				expectations.clear();
+				expectationsIndexHeap.clear();
+				final ExpectationsAtPosition localExpectations =
+					new ExpectationsAtPosition();
+				localExpectations.recordProblem(
+					lexingState, STRONG, new SimpleDescriber(message));
+				expectations.put(lexingState.position, localExpectations);
+				expectationsIndexHeap.add(lexingState.position);
+			}
+			reportError(headerMessagePattern);
+		}
+
+		/**
+		 * Accumulate the errors, then pass the {@link List} of {@link
+		 * ProblemsAtPosition}s to the given {@link Continuation1NotNull}.
+		 *
+		 * @param descendingIterator
+		 *        An {@link Iterator} that supplies source positions at which
+		 *        problems have been recorded, ordered by descending position.
+		 * @param indicatorGenerator
+		 *        An {@link IndicatorGenerator} for producing marker strings to
+		 *        label the successive (descending) positions in the source where
+		 *        problems occurred.
+		 * @param groupedProblems
+		 *        The {@link List} of {@link ProblemsAtPosition}s accumulated so
+		 *        far.
+		 * @param afterGrouping
+		 *        What to do after producing the grouped error reports.
+		 */
+		private void accumulateErrorsThen (
+			final Iterator<Integer> descendingIterator,
+			final IndicatorGenerator indicatorGenerator,
+			final List<ProblemsAtPosition> groupedProblems,
+			final Continuation1NotNull<List<ProblemsAtPosition>> afterGrouping)
+		{
+			if (!descendingIterator.hasNext())
+			{
+				// Done assembling each of the problems.  Report them.
+				assert !groupedProblems.isEmpty();
+				afterGrouping.value(groupedProblems);
+				return;
+			}
+			final int sourcePosition = descendingIterator.next();
+			final List<Describer> describers;
+			final Set<LexingState> lexingStates;
+			try (final Auto ignored = auto(expectationsLock.readLock()))
+			{
+				final ExpectationsAtPosition localExpectations =
+					expectations.get(sourcePosition);
+				describers = new ArrayList<>(localExpectations.problems);
+				lexingStates = new HashSet<>(localExpectations.lexingStates);
+			}
+			assert !describers.isEmpty();
+			// Due to local lexer ambiguity, there may be multiple possible
+			// tokens at this position.  Choose the longest for the purpose
+			// of displaying the diagnostics.  We only care about the tokens
+			// that have already been formed, not ones in progress.
+			findLongestTokenThen(
+				lexingStates,
+				longestToken ->
+				{
+					final LexingState before = lexingStates.iterator().next();
+					groupedProblems.add(
+						new ProblemsAtPosition(
+							before,
+							longestToken.tokenType() == END_OF_FILE
+								? before
+								: longestToken.nextLexingState(),
+							indicatorGenerator.next(),
+							describers));
+					accumulateErrorsThen(
+						descendingIterator,
+						indicatorGenerator,
+						groupedProblems,
+						afterGrouping);
+				});
+		}
+
+	}
 
 	/**
-	 * A priority heap that keeps track of the rightmost N positions at which a
-	 * diagnostic message has been recorded.  The entries always agree with the
-	 * keys of {@link #expectations}.
+	 * The non-silent expectations collected during a top-level expression
+	 * parsing.
 	 */
-	private final PriorityQueue<Integer> expectationsIndexHeap =
-		new PriorityQueue<>();
+	private ExpectationsList expectationsList = new ExpectationsList();
+
+	/**
+	 * The {@link ParseNotificationLevel#SILENT} expectations collected during a
+	 * top-level expression parsing.  These are tracked separately from the
+	 * other expectations, and are only presented if there are no non-silent
+	 * expectations at all, anywhere in the top-level expression being parsed.
+	 */
+	private ExpectationsList silentExpectationsList = new ExpectationsList();
 
 	/**
 	 * A collection of tokens that have been encountered during parsing since
@@ -280,19 +685,15 @@ public class CompilerDiagnostics
 	 * indicated one-based position in the source.  Clear any already recorded
 	 * expectations.
 	 *
-	 * @param initialPosition
-	 *        The position at which we're starting to parse a statement.
+	 * @param initialPositionInSource
+	 *        The {@link ParserState} at the earliest source position for which
+	 *        we should record problem information.
 	 */
-	public void startParsingAt (final int initialPosition)
+	public void startParsingAt (final ParserState initialPositionInSource)
 	{
-		startOfStatement = initialPosition;
-		lockWhile(
-			expectationsLock.writeLock(),
-			() ->
-			{
-				expectations.clear();
-				expectationsIndexHeap.clear();
-			});
+		startOfStatement = initialPositionInSource;
+		expectationsList.clear();
+		silentExpectationsList.clear();
 		// Tidy up all tokens from the previous top-level statement.
 		final List<A_Token> priorTokens =
 			lockWhile(
@@ -319,7 +720,7 @@ public class CompilerDiagnostics
 	/**
 	 * The {@link ProblemHandler} used for reporting compilation problems.
 	 */
-	final ProblemHandler problemHandler;
+	private final ProblemHandler problemHandler;
 
 	/**
 	 * Handle a {@linkplain Problem problem} via the {@linkplain #problemHandler
@@ -349,7 +750,7 @@ public class CompilerDiagnostics
 	 * The {@linkplain Continuation0 continuation} that reports success of
 	 * compilation.
 	 */
-	@InnerAccess volatile @Nullable Continuation0 successReporter;
+	private volatile @Nullable Continuation0 successReporter;
 
 	/**
 	 * Get the success reporter.
@@ -365,7 +766,7 @@ public class CompilerDiagnostics
 	 * The {@linkplain Continuation0 continuation} that runs after compilation
 	 * fails.
 	 */
-	@InnerAccess volatile @Nullable Continuation0 failureReporter;
+	private volatile @Nullable Continuation0 failureReporter;
 
 	/**
 	 * Set the success reporter and failure reporter.
@@ -395,11 +796,11 @@ public class CompilerDiagnostics
 	}
 
 	/** A bunch of dash characters, wide enough to catch the eye. */
-	public static final String rowOfDashes =
+	private static final String rowOfDashes =
 		"---------------------------------------------------------------------";
 
 	/** The 26 letters of the English alphabet, inside circles. */
-	public static final String circledLetters =
+	private static final String circledLetters =
 		"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
 
 	/**
@@ -435,41 +836,10 @@ public class CompilerDiagnostics
 		final Describer describer,
 		final LexingState lexingState)
 	{
-		if (level == SILENT)
-		{
-			// Always ignore silent potential parse errors.
-			return;
-		}
-		lockWhile(
-			expectationsLock.writeLock(),
-			() ->
-			{
-				final Integer position = lexingState.position;
-				ExpectationsAtPosition localExpectations =
-					expectations.get(position);
-				if (localExpectations == null)
-				{
-					if (expectationsIndexHeap.size() == expectationsCountToTrack
-						&& position < expectationsIndexHeap.peek())
-					{
-						// We have the maximum number of expectation sites, and
-						// the new one would come before them all, so ignore it.
-						return;
-					}
-					localExpectations = new ExpectationsAtPosition();
-					expectations.put(position, localExpectations);
-					// Also update expectationsIndexHeap.
-					expectationsIndexHeap.add(position);
-					if (expectationsIndexHeap.size() > expectationsCountToTrack)
-					{
-						final int removed = expectationsIndexHeap.remove();
-						final ExpectationsAtPosition removedEntry =
-							expectations.remove(removed);
-						assert removedEntry != null;
-					}
-				}
-				localExpectations.recordProblem(lexingState, level, describer);
-			});
+
+		final ExpectationsList list =
+			level == SILENT ? silentExpectationsList : expectationsList;
+		list.expectedAt(level, describer, lexingState);
 	}
 
 	/**
@@ -553,7 +923,7 @@ public class CompilerDiagnostics
 	 * @param continuation
 	 *        What to do when the longest {@link A_Token} has been found.
 	 */
-	static void findLongestTokenThen (
+	private static void findLongestTokenThen (
 		final Collection<LexingState> startLexingStates,
 		final Continuation1NotNull<A_Token> continuation)
 	{
@@ -586,103 +956,39 @@ public class CompilerDiagnostics
 	}
 
 	/**
+	 * The message pattern that introduces each group of problems.  The first
+	 * pattern argument is where the indicator string goes, and the second is
+	 * for the line number.
+	 */
+	private final static String expectationHeaderMessagePattern =
+		"Expected at %s, line %d...";
+
+	/**
 	 * Report the rightmost accumulated errors, then invoke the {@link
 	 * #failureReporter}.
 	 */
 	public void reportError ()
 	{
-		reportError("Expected at %s, line %d...");
-	}
-
-	/**
-	 * Report the rightmost accumulated errors, then invoke the {@link
-	 * #failureReporter}.
-	 *
-	 * @param headerMessagePattern
-	 *        The message pattern that introduces each group of problems.  The
-	 *        first argument is where the indicator string goes, and the second
-	 *        is for the line number.
-	 */
-	private void reportError (
-		final String headerMessagePattern)
-	{
-		final List<Integer> descendingIndices = lockWhile(
-			expectationsLock.readLock(),
-			() -> new ArrayList<>(expectationsIndexHeap));
-		descendingIndices.sort(reverseOrder());
-		accumulateErrorsThen(
-			descendingIndices.iterator(),
-			new IndicatorGenerator(),
-			new ArrayList<>(),
-			groups -> reportGroupedErrors(groups, headerMessagePattern));
-	}
-
-	/**
-	 * Accumulate the errors, then pass the {@link List} of {@link
-	 * ProblemsAtPosition}s to the given {@link Continuation1NotNull}.
-	 *
-	 * @param descendingIterator
-	 *        An {@link Iterator} that supplies source positions at which
-	 *        problems have been recorded, ordered by descending position.
-	 * @param indicatorGenerator
-	 *        An {@link IndicatorGenerator} for producing marker strings to
-	 *        label the successive (descending) positions in the source where
-	 *        problems occurred.
-	 * @param groupedProblems
-	 *        The {@link List} of {@link ProblemsAtPosition}s accumulated so
-	 *        far.
-	 * @param afterGrouping
-	 *        What to do after producing the grouped error reports.
-	 */
-	private void accumulateErrorsThen (
-		final Iterator<Integer> descendingIterator,
-		final IndicatorGenerator indicatorGenerator,
-		final List<ProblemsAtPosition> groupedProblems,
-		final Continuation1NotNull<List<ProblemsAtPosition>> afterGrouping)
-	{
-		if (!descendingIterator.hasNext())
+		ExpectationsList list = expectationsList;
+		if (list.isEmpty())
 		{
-			// Done assembling each of the problems.  Report them.
-//			assert !groupedProblems.isEmpty();
-			afterGrouping.value(groupedProblems);
-			return;
+			// Only silent expectations were recorded.  Show them.
+			list = silentExpectationsList;
+			if (list.isEmpty())
+			{
+				// No expectations of any strength were record.  Synthesize
+				// something to say about it.
+				list = new ExpectationsList();
+				list.expectedAt(
+					STRONG,
+					then -> then.value(
+						"to be able to parse a top-level statement here, "
+							+ "but undescribed impediments were encountered."),
+					stripNull(startOfStatement).lexingState);
+			}
 		}
-		final int sourcePosition = descendingIterator.next();
-		final List<Describer> describers = new ArrayList<>();
-		final Set<LexingState> lexingStates = new HashSet<>();
-		lockWhile(
-			expectationsLock.readLock(),
-			() ->
-			{
-				final ExpectationsAtPosition localExpectations =
-					expectations.get(sourcePosition);
-				describers.addAll(localExpectations.problems);
-				lexingStates.addAll(localExpectations.lexingStates);
-			});
-		assert !describers.isEmpty();
-		// Due to local lexer ambiguity, there may be multiple possible
-		// tokens at this position.  Choose the longest for the purpose
-		// of displaying the diagnostics.  We only care about the tokens
-		// that have already been formed, not ones in progress.
-		findLongestTokenThen(
-			lexingStates,
-			longestToken ->
-			{
-				final LexingState before = lexingStates.iterator().next();
-				groupedProblems.add(
-					new ProblemsAtPosition(
-						before,
-						longestToken.tokenType() == END_OF_FILE
-							? before
-							: longestToken.nextLexingState(),
-						indicatorGenerator.next(),
-						describers));
-				accumulateErrorsThen(
-					descendingIterator,
-					indicatorGenerator,
-					groupedProblems,
-					afterGrouping);
-			});
+		assert !list.isEmpty();
+		list.reportError(expectationHeaderMessagePattern);
 	}
 
 	/**
@@ -703,22 +1009,8 @@ public class CompilerDiagnostics
 		final String headerMessagePattern,
 		final String message)
 	{
-		lockWhile(
-			expectationsLock.writeLock(),
-			() ->
-			{
-				// Delete any potential parsing errors already encountered, and
-				// replace them with the new error.
-				expectations.clear();
-				expectationsIndexHeap.clear();
-				final ExpectationsAtPosition localExpectations =
-					new ExpectationsAtPosition();
-				localExpectations.recordProblem(
-					lexingState, STRONG, new SimpleDescriber(message));
-				expectations.put(lexingState.position, localExpectations);
-				expectationsIndexHeap.add(lexingState.position);
-			});
-		reportError(headerMessagePattern);
+		expectationsList.reportError(
+			lexingState, headerMessagePattern, message);
 	}
 
 	/**
@@ -740,7 +1032,7 @@ public class CompilerDiagnostics
 	 *         found, answer 0.
 	 */
 	@SuppressWarnings("SameParameterValue")
-	static int firstIndexOf (
+	private static int firstIndexOf (
 		final A_String string,
 		final int codePoint,
 		final int startIndex,
@@ -775,7 +1067,7 @@ public class CompilerDiagnostics
 	 *         found, answer 0.
 	 */
 	@SuppressWarnings("SameParameterValue")
-	static int lastIndexOf (
+	private static int lastIndexOf (
 		final A_String string,
 		final int codePoint,
 		final int startIndex,
@@ -808,7 +1100,7 @@ public class CompilerDiagnostics
 	 *         of the {@link A_String}.
 	 */
 	@SuppressWarnings("SameParameterValue")
-	static int occurrencesInRange (
+	private static int occurrencesInRange (
 		final A_String string,
 		final int codePoint,
 		final int startIndex,
@@ -823,169 +1115,5 @@ public class CompilerDiagnostics
 			}
 		}
 		return count;
-	}
-
-	/**
-	 * Report a parsing problem.  After reporting it, execute the {@link
-	 * #failureReporter}.
-	 *
-	 * @param groupedProblems
-	 *        The {@link List} of {@link ProblemsAtPosition} to report.  Each
-	 *        {@code ProblemsAtPosition} describes the problems that occurred at
-	 *        some token's position.
-	 * @param headerMessagePattern
-	 *        The message pattern to be populated and written before each group
-	 *        of problems.  Its arguments are the group's {@linkplain
-	 *        ProblemsAtPosition#indicator} and the problematic token's line
-	 *        number.
-	 */
-	public void reportGroupedErrors (
-		final List<ProblemsAtPosition> groupedProblems,
-		final String headerMessagePattern)
-	{
-		if (pollForAbort.getAsBoolean())
-		{
-			// Never report errors during a client-initiated abort.
-			stripNull(failureReporter).value();
-			return;
-		}
-		final List<ProblemsAtPosition> ascending =
-			new ArrayList<>(groupedProblems);
-		sort(ascending);
-
-		// Figure out where to start showing the file content.  Never show the
-		// content before the line on which startOfStatement resides.
-		final int startOfFirstLine =
-			lastIndexOf(source, '\n', startOfStatement - 1, 1) + 1;
-		final int initialLineNumber = 1 + occurrencesInRange(
-			source, '\n', 1, Math.min(source.tupleSize(), startOfFirstLine));
-		// Now figure out the last line to show, which if possible should be the
-		// line after the *end* of the last problem token.
-		final ProblemsAtPosition lastProblem =
-			ascending.get(ascending.size() - 1);
-		final int finalLineNumber = lastProblem.lineNumber();
-		int startOfNextLine = 1 + firstIndexOf(
-			source,
-			'\n',
-			lastProblem.lexingStateAfterToken.position,
-			source.tupleSize());
-		startOfNextLine = startOfNextLine != 1
-			? startOfNextLine
-			: source.tupleSize() + 1;
-		int startOfSecondNextLine = 1 + firstIndexOf(
-			source, '\n', startOfNextLine, source.tupleSize());
-		startOfSecondNextLine = startOfSecondNextLine != 1
-			? startOfSecondNextLine
-			: source.tupleSize() + 1;
-
-		// Insert the problem location indicators...
-		int sourcePosition = startOfFirstLine;
-		final List<A_String> parts = new ArrayList<>(10);
-		for (final ProblemsAtPosition eachProblem : ascending)
-		{
-			final int newPosition = eachProblem.position();
-			parts.add(
-				source.copyStringFromToCanDestroy(
-					sourcePosition, newPosition - 1, false));
-			parts.add(stringFrom(eachProblem.indicator));
-			sourcePosition = newPosition;
-		}
-		parts.add(
-			source.copyStringFromToCanDestroy(
-				sourcePosition, startOfSecondNextLine - 1, false));
-		// Ensure the last character is a newline.
-		A_Tuple unnumbered =
-			tupleFromList(parts).concatenateTuplesCanDestroy(true);
-		if (unnumbered.tupleSize() == 0
-			|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
-		{
-			unnumbered = unnumbered.appendCanDestroy(fromCodePoint('\n'), true);
-		}
-
-		// Insert line numbers...
-		final int maxDigits = Integer.toString(finalLineNumber + 1).length();
-		final StringBuilder builder = new StringBuilder();
-		//noinspection StringConcatenationMissingWhitespace
-		builder.append(
-			addLineNumbers(
-				((A_String) unnumbered).asNativeString(),
-				">>> %" + maxDigits + "d: %s",
-				initialLineNumber));
-		builder.append(">>>").append(rowOfDashes);
-
-		// Now output all the problems, in the original group order.  Start off
-		// with an empty problemIterator to keep the code simple.
-		final Iterator<ProblemsAtPosition> groupIterator =
-			groupedProblems.iterator();
-		final Mutable<Iterator<Describer>> problemIterator =
-			new Mutable<>(emptyIterator());
-		final Set<String> alreadySeen = new HashSet<>();
-		// Initiate all the grouped error printing.
-		recurse(continueReport ->
-		{
-			if (!problemIterator.value.hasNext())
-			{
-				// End this group.
-				if (!groupIterator.hasNext())
-				{
-					// Done everything.  Pass the complete text forward.
-					compilationIsInvalid = true;
-					// Generate the footer that indicates the module and
-					// line where the last indicator was found.
-					builder.append(
-						format(
-							"%n(file=\"%s\", line=%d)%n>>>%s",
-							moduleName.qualifiedName(),
-							lastProblem.lineNumber(),
-							rowOfDashes));
-					handleProblem(new Problem(
-						moduleName,
-						lastProblem.lineNumber(),
-						lastProblem.position(),
-						PARSE,
-						"{0}",
-						builder.toString())
-					{
-						@Override
-						public void abortCompilation ()
-						{
-							stripNull(failureReporter).value();
-						}
-					});
-					// Generate the footer that indicates the module and
-					// line where the last indicator was found.
-					return;
-				}
-				// Advance to the next problem group...
-				final ProblemsAtPosition newGroup = groupIterator.next();
-				builder.append("\n>>> ");
-				builder.append(
-					format(
-						headerMessagePattern,
-						newGroup.indicator,
-						newGroup.lineNumber()));
-				problemIterator.value = newGroup.describers.iterator();
-				alreadySeen.clear();
-				assert problemIterator.value.hasNext();
-			}
-			problemIterator.value.next().describeThen(
-				message ->
-				{
-					// Suppress duplicate messages.
-					if (!alreadySeen.contains(message))
-					{
-						alreadySeen.add(message);
-						builder.append("\n>>>\t\t");
-						builder.append(
-							lineBreakPattern.matcher(message).replaceAll(
-								Matcher.quoteReplacement("\n>>>\t\t")));
-					}
-					// Avoid using direct recursion to keep the stack
-					// from getting too deep.
-					currentRuntime().execute(
-						FiberDescriptor.compilerPriority,
-						continueReport);
-				});
-		});
 	}
 }

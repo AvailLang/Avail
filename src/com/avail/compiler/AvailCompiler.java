@@ -4091,7 +4091,7 @@ public final class AvailCompiler
 				{
 					// Done with all the pragmas, if any.  Report any new
 					// problems relative to the body section.
-					recordExpectationsRelativeTo(state.position());
+					recordExpectationsRelativeTo(state);
 					success.value();
 					return;
 				}
@@ -4317,14 +4317,14 @@ public final class AvailCompiler
 	/**
 	 * Clear any information about potential problems encountered during
 	 * parsing.  Reset the problem information to record relative to the
-	 * provided one-based source position.
+	 * given {@link ParserState}.
 	 *
 	 * @param positionInSource
-	 *        The earliest source position for which we should record problem
-	 *        information.
+	 *        The {@link ParserState} at the earliest source position for which
+	 *        we should record problem information.
 	 */
 	private synchronized void recordExpectationsRelativeTo (
-		final int positionInSource)
+		final ParserState positionInSource)
 	{
 		compilationContext.diagnostics.startParsingAt(positionInSource);
 	}
@@ -4416,7 +4416,7 @@ public final class AvailCompiler
 				}
 				onSuccess.value(solutions, this::rollbackModuleTransaction);
 			});
-		recordExpectationsRelativeTo(1);
+		recordExpectationsRelativeTo(start);
 		parseExpressionThen(
 			start,
 			Con(
@@ -4806,7 +4806,7 @@ public final class AvailCompiler
 		final ParserState state = new ParserState(
 			new LexingState(compilationContext, 1, 1, emptyList()), clientData);
 
-		recordExpectationsRelativeTo(1);
+		recordExpectationsRelativeTo(state);
 
 		// Parse an invocation of the special module header macro.
 		parseOutermostStatement(
@@ -4913,7 +4913,7 @@ public final class AvailCompiler
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
-		recordExpectationsRelativeTo(start.position());
+		recordExpectationsRelativeTo(start);
 		tryIfUnambiguousThen(
 			start,
 			whenFoundStatement ->

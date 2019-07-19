@@ -46,12 +46,8 @@ import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.scalb;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.*;
 
 /**
  * <strong>Primitive:</strong> Compute {@linkplain FloatDescriptor

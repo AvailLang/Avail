@@ -33,17 +33,8 @@
 package com.avail.interpreter.primitive.phrases;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListPhraseDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SendPhraseDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

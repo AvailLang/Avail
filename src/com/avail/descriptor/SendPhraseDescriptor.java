@@ -47,10 +47,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_NODE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.BUNDLE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.TOKENS;
+import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.*;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.

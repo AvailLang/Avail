@@ -45,9 +45,7 @@ import static com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpr
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.list;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.*;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;
@@ -56,10 +54,7 @@ import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHR
 import static com.avail.descriptor.SendPhraseDescriptor.newSendNode;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_ModuleHeaderPseudoMacro} primitive is used to parse module

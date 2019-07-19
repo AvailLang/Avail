@@ -45,11 +45,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.DELTA;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.END;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.START;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 

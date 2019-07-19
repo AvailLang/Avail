@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static com.avail.descriptor.TupleDescriptor.toList;

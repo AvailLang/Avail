@@ -51,10 +51,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
-import static com.avail.tools.bootstrap.Resources.errorCodeKey;
-import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
-import static com.avail.tools.bootstrap.Resources.escape;
+import static com.avail.tools.bootstrap.Resources.*;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that

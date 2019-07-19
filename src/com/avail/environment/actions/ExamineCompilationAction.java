@@ -42,7 +42,6 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.persistence.IndexedRepositoryManagerDescriber;
-import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import javax.swing.*;

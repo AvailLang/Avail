@@ -32,16 +32,7 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.MethodDefinitionDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
 
 import java.io.ByteArrayOutputStream;
 

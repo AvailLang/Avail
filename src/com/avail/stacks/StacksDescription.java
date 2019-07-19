@@ -34,7 +34,6 @@ package com.avail.stacks;
 
 import com.avail.utility.json.JSONWriter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

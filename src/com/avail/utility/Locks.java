@@ -141,14 +141,29 @@ public final class Locks
 		final Lock lock)
 	{
 		lock.lock();
-		return lock::unlock;
+		return new Auto(lock);
 	}
 
 	/** A convenient non-throwing form of {@link AutoCloseable}. */
-	@FunctionalInterface
-	public interface Auto extends AutoCloseable
+	public static class Auto implements AutoCloseable
 	{
+		/** The lock to unlock during a {@link #close()}. */
+		private final Lock lock;
+
+		/**
+		 * Create an Auto to unlock a given {@link Lock}.
+		 *
+		 * @param lock The {@link Lock} to be eventually unlocked.
+		 */
+		public Auto (final Lock lock)
+		{
+			this.lock = lock;
+		}
+
 		@Override
-		void close ();
+		public void close ()
+		{
+			lock.unlock();
+		}
 	}
 }

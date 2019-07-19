@@ -42,11 +42,7 @@ import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.ABORTED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.RETIRED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.RUNNING;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.TERMINATED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 

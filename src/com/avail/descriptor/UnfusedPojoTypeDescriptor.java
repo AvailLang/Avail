@@ -52,13 +52,8 @@ import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_CLASS;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES;
-import static java.lang.reflect.Modifier.isAbstract;
-import static java.lang.reflect.Modifier.isFinal;
-import static java.lang.reflect.Modifier.isInterface;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
+import static java.lang.reflect.Modifier.*;
 
 /**
  * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java

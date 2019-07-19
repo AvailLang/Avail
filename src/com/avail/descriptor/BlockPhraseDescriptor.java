@@ -55,23 +55,14 @@ import java.util.Set;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;
 import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.ARGUMENTS_TUPLE;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.NEEDED_VARIABLES;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE;
-import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.TOKENS;
+import static com.avail.descriptor.BlockPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**

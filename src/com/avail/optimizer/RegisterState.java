@@ -45,9 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.utility.PrefixSharingList.append;
-import static com.avail.utility.PrefixSharingList.last;
-import static com.avail.utility.PrefixSharingList.withoutLast;
+import static com.avail.utility.PrefixSharingList.*;
 
 /**
  * This class maintains information about one {@linkplain L2Register} on behalf

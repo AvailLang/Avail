@@ -44,18 +44,10 @@ import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.BIN_SIZE;
-import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.BIT_VECTOR;
-import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.COMBINED_HASHES;
-import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.KEYS_HASH;
-import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO;
-import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL;
-import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL;
-import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_;
+import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.createSingleLinearMapBin;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;
 

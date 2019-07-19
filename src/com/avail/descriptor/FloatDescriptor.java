@@ -41,14 +41,9 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.INDETERMINATE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.NEGATIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.POSITIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.ZERO;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DoubleDescriptor.addDoubleAndIntegerCanDestroy;
-import static com.avail.descriptor.DoubleDescriptor.compareDoubleAndInteger;
-import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.RAW_INT;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 
