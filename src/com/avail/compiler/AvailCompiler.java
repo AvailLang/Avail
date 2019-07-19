@@ -264,7 +264,7 @@ public final class AvailCompiler
 	 *
 	 * @return The module name.
 	 */
-	ModuleName moduleName ()
+	private ModuleName moduleName ()
 	{
 		return new ModuleName(
 			compilationContext.module().moduleName().asNativeString());
@@ -427,7 +427,7 @@ public final class AvailCompiler
 	 * @param builder
 	 *        Where to describe the chain of superexpressions.
 	 */
-	private static void describeOn (
+	private void describeOn (
 		final @Nullable PartialSubexpressionList partialSubexpressions,
 		final StringBuilder builder)
 	{
@@ -445,46 +445,49 @@ public final class AvailCompiler
 			builder.append(pointer.depth);
 			builder.append(". ");
 			final A_BundleTree bundleTree = pointer.bundleTree;
-			// Reduce to the plans' unique bundles.
-			final A_Map bundlesMap = bundleTree.allParsingPlansInProgress();
-			final List<A_Bundle> bundles =
-				toList(bundlesMap.keysAsSet().asTuple());
-			bundles.sort((b1, b2) ->
+			if (bundleTree.equals(compilationContext.loader().rootBundleTree()))
 			{
-				assert b1 != null && b2 != null;
-				return b1.message().atomName().asNativeString()
-					.compareTo(b2.message().atomName().asNativeString());
-			});
-			boolean first = true;
-			final int maxBundles = 3;
-			for (final A_Bundle bundle :
-				bundles.subList(0, min(bundles.size(), maxBundles)))
-			{
-				if (!first)
-				{
-					builder.append(", ");
-				}
-				final A_Map plans = bundlesMap.mapAt(bundle);
-				// Pick an active plan arbitrarily for this bundle.
-				final A_Set plansInProgress =
-					plans.mapIterable().next().value();
-				final A_ParsingPlanInProgress planInProgress =
-					plansInProgress.iterator().next();
-				// Adjust the pc to refer to the actual instruction that caused
-				// the argument parse, not the successor instruction that was
-				// captured.
-				final A_ParsingPlanInProgress adjustedPlanInProgress =
-					newPlanInProgress(
-						planInProgress.parsingPlan(),
-						planInProgress.parsingPc() - 1);
-				builder.append(adjustedPlanInProgress.nameHighlightingPc());
-				first = false;
+				builder.append("an expression");
 			}
-			if (bundles.size() > maxBundles)
+			else
 			{
-				builder.append("… (and ");
-				builder.append(bundles.size() - maxBundles);
-				builder.append(" others)");
+				// Reduce to the plans' unique bundles.
+				final A_Map bundlesMap = bundleTree.allParsingPlansInProgress();
+				final List<A_Bundle> bundles =
+					toList(bundlesMap.keysAsSet().asTuple());
+				bundles.sort(
+					comparing(b -> b.message().atomName().asNativeString()));
+				boolean first = true;
+				final int maxBundles = 3;
+				for (final A_Bundle bundle :
+					bundles.subList(0, min(bundles.size(), maxBundles)))
+				{
+					if (!first)
+					{
+						builder.append(", ");
+					}
+					final A_Map plans = bundlesMap.mapAt(bundle);
+					// Pick an active plan arbitrarily for this bundle.
+					final A_Set plansInProgress =
+						plans.mapIterable().next().value();
+					final A_ParsingPlanInProgress planInProgress =
+						plansInProgress.iterator().next();
+					// Adjust the pc to refer to the actual instruction that
+					// caused the argument parse, not the successor instruction
+					// that was captured.
+					final A_ParsingPlanInProgress adjustedPlanInProgress =
+						newPlanInProgress(
+							planInProgress.parsingPlan(),
+							planInProgress.parsingPc() - 1);
+					builder.append(adjustedPlanInProgress.nameHighlightingPc());
+					first = false;
+				}
+				if (bundles.size() > maxBundles)
+				{
+					builder.append("… (and ");
+					builder.append(bundles.size() - maxBundles);
+					builder.append(" others)");
+				}
 			}
 			pointer = pointer.parent;
 		}
@@ -1765,7 +1768,6 @@ public final class AvailCompiler
 				attemptToConsumeToken(
 					start,
 					initialTokenPosition,
-					consumedAnything,
 					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
@@ -1781,7 +1783,6 @@ public final class AvailCompiler
 				attemptToConsumeToken(
 					start,
 					initialTokenPosition,
-					consumedAnything,
 					consumedAnythingBeforeLatestArgument,
 					consumedTokens,
 					argsSoFar,
@@ -1940,9 +1941,6 @@ public final class AvailCompiler
 	 *        Where to start consuming the token.
 	 * @param initialTokenPosition
 	 *        Where the current potential send phrase started.
-	 * @param consumedAnything
-	 *        Whether any tokens have been consumed so far for this potential
-	 *        send phrase.
 	 * @param consumedAnythingBeforeLatestArgument
 	 *        Whether any tokens or arguments had been consumed before
 	 *        encountering the most recent argument.  This is to improve
@@ -1968,7 +1966,6 @@ public final class AvailCompiler
 	private void attemptToConsumeToken (
 		final ParserState start,
 		final ParserState initialTokenPosition,
-		final boolean consumedAnything,
 		final boolean consumedAnythingBeforeLatestArgument,
 		final List<A_Token> consumedTokens,
 		final List<A_Phrase> argsSoFar,
@@ -4874,9 +4871,14 @@ public final class AvailCompiler
 		if (!rendezvous.getAndSetStartedParsing())
 		{
 			// We're the (only) cause of the transition from hasn't-started to
-			// has-started.
+			// has-started.  Suppress reporting if there are no superexpressions
+			// being parsed, or if we're at the root of the bundle tree.
+			final boolean isRoot =
+				originalContinuation.superexpressions == null
+				|| originalContinuation.superexpressions().bundleTree.equals(
+					compilationContext.loader().rootBundleTree());
 			start.expected(
-				MEDIUM,
+				isRoot ? SILENT : WEAK,
 				withDescription ->
 				{
 					final StringBuilder builder = new StringBuilder();

@@ -32,10 +32,12 @@
 
 package com.avail.interpreter.levelTwo.operand;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
@@ -43,6 +45,7 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -55,8 +58,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.SetDescriptor.toSet;
+import static com.avail.descriptor.SetDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.TypeDescriptor.isProperSubtype;
@@ -235,7 +237,7 @@ public final class TypeRestriction
 		final int typesSize = excludedTypes.size();
 		this.excludedTypes =
 			typesSize == 0
-				? emptySet()
+				? Collections.emptySet()
 				: typesSize == 1
 					? singleton(excludedTypes.iterator().next())
 					: unmodifiableSet(new HashSet<>(excludedTypes));
@@ -243,7 +245,7 @@ public final class TypeRestriction
 		final int constantsSize = excludedValues.size();
 		this.excludedValues =
 			constantsSize == 0
-				? emptySet()
+				? Collections.emptySet()
 				: constantsSize == 1
 					? singleton(excludedValues.iterator().next())
 					: unmodifiableSet(new HashSet<>(excludedValues));
@@ -307,7 +309,7 @@ public final class TypeRestriction
 			TOP.o(),
 			nil,
 			singleton(ANY.o()),
-			emptySet(),
+			Collections.emptySet(),
 			true,
 			true,
 			false,
@@ -321,8 +323,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			TOP.o(),
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			false,
 			true,
 			false,
@@ -336,8 +338,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			TOP.o(),
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			true,
 			true,
 			false,
@@ -351,8 +353,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			ANY.o(),
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			false,
 			true,
 			false,
@@ -366,8 +368,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			ANY.o(),
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			true,
 			true,
 			false,
@@ -384,8 +386,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			bottom(),
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			true,
 			false,
 			false,
@@ -405,8 +407,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			instanceMeta(bottom()),
 			bottom(),
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			true,
 			true,
 			false,
@@ -457,8 +459,8 @@ public final class TypeRestriction
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(givenConstantOrNull),
 				givenConstantOrNull,
-				emptySet(),
-				emptySet(),
+				Collections.emptySet(),
+				Collections.emptySet(),
 				flags);
 		}
 
@@ -491,8 +493,8 @@ public final class TypeRestriction
 				return new TypeRestriction(
 					givenType,
 					instance,
-					emptySet(),
-					emptySet(),
+					Collections.emptySet(),
+					Collections.emptySet(),
 					flags);
 			}
 		}
@@ -602,8 +604,8 @@ public final class TypeRestriction
 					return fromCanonical(
 						instanceTypeOrMetaOn(instance),
 						instance,
-						emptySet(),
-						emptySet(),
+						Collections.emptySet(),
+						Collections.emptySet(),
 						flags);
 				}
 				default:
@@ -613,8 +615,8 @@ public final class TypeRestriction
 					return new TypeRestriction(
 						enumerationWith(setFromCollection(instances)),
 						null,
-						emptySet(),
-						emptySet(),
+						Collections.emptySet(),
+						Collections.emptySet(),
 						flags);
 				}
 			}
@@ -650,8 +652,8 @@ public final class TypeRestriction
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(constantOrNull),
 				constantOrNull,
-				emptySet(),
-				emptySet(),
+				Collections.emptySet(),
+				Collections.emptySet(),
 				flags);
 		}
 
@@ -728,8 +730,8 @@ public final class TypeRestriction
 		return restriction(
 			type,
 			constantOrNull,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			false,
 			true,
 			false,
@@ -756,8 +758,8 @@ public final class TypeRestriction
 		return restriction(
 			type,
 			null,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			encoding.mask());
 	}
 
@@ -789,8 +791,8 @@ public final class TypeRestriction
 		return restriction(
 			constant.equalsNil() ? TOP.o() : instanceTypeOrMetaOn(constant),
 			constant,
-			emptySet(),
-			emptySet(),
+			Collections.emptySet(),
+			Collections.emptySet(),
 			encoding.mask()
 				| (encoding == BOXED ? IMMUTABLE.mask() : 0));
 	}
@@ -1108,30 +1110,30 @@ public final class TypeRestriction
 
 	/**
 	 * If this restriction has only a finite set of possible values, and the
-	 * number of such values is no more than the given maximum, answer a Java
-	 * {@link Set} of them, otherwise {@code null}.
+	 * number of such values is no more than the given maximum, answer an {@link
+	 * A_Set} of them, otherwise {@code null}.
 	 *
 	 * @param maximumCount
 	 *        The threshold above which {@code null} should be answered, even if
 	 *        there is a finite set of potential values.
-	 * @return The {@link Set} of possible instances or {@code null}.
+	 * @return The {@link A_Set} of possible instances or {@code null}.
 	 */
-	public @Nullable Set<A_BasicObject> enumerationValuesOrNull (
+	public @Nullable A_Set enumerationValuesOrNull (
 		final int maximumCount)
 	{
 		if (maximumCount >= 0 && this == bottomRestriction)
 		{
-			return emptySet();
+			return SetDescriptor.emptySet();
 		}
 		if (maximumCount >= 1 && constantOrNull != null)
 		{
-			return singleton(constantOrNull);
+			return set(constantOrNull);
 		}
 		if (type.isEnumeration()
 			&& !type.isInstanceMeta()
 			&& type.instanceCount().lessOrEqual(fromInt(maximumCount)))
 		{
-			return toSet(type.instances());
+			return type.instances();
 		}
 		return null;
 	}

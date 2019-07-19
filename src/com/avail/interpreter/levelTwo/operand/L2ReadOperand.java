@@ -80,7 +80,7 @@ extends L2Operand
 	 * The {@link L2WriteOperand} that produced the value that this read is
 	 * consuming.
 	 */
-	L2WriteOperand<R> definition;
+	private L2WriteOperand<R> definition;
 
 	/**
 	 * The actual {@link L2Register}.  This is only set during late optimization

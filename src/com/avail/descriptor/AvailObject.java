@@ -5669,7 +5669,7 @@ implements
 	@Override
 	public A_Phrase lastExpression () {
 		return descriptor.o_LastExpression(this);
-	};
+	}
 
 	@Override
 	public int parsingPc ()

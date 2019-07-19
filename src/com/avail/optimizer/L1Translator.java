@@ -71,7 +71,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.*;
@@ -157,13 +156,13 @@ public final class L1Translator
 	 * The current level one nybblecode position during naive translation to
 	 * level two.
 	 */
-	@InnerAccess final L1InstructionDecoder instructionDecoder =
+	private final L1InstructionDecoder instructionDecoder =
 		new L1InstructionDecoder();
 
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	@InnerAccess int stackp;
+	private int stackp;
 
 	/**
 	 * The exact function that we're translating, if known.  This is only
@@ -176,7 +175,7 @@ public final class L1Translator
 	 *
 	 * @return The top {@link Frame},
 	 */
-	public Frame topFrame ()
+	private Frame topFrame ()
 	{
 		return generator.topFrame;
 	}
@@ -217,7 +216,7 @@ public final class L1Translator
 	 *        The {@link A_RawFunction} which is the source of the chunk being
 	 *        created.
 	 */
-	L1Translator (
+	private L1Translator (
 		final L2Generator generator,
 		final Interpreter interpreter,
 		final A_RawFunction code)
@@ -321,7 +320,7 @@ public final class L1Translator
 	 *        The {@link L2ReadBoxedOperand} that should now be considered the
 	 *        current register-read representing that slot.
 	 */
-	@InnerAccess void forceSlotRegister (
+	private void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
 		final L2ReadBoxedOperand registerRead)
@@ -348,7 +347,7 @@ public final class L1Translator
 	 *        The {@link TypeRestriction} that currently bounds the synonym's
 	 *        possible values.
 	 */
-	@InnerAccess void forceSlotRegister (
+	private void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
 		final L2SemanticValue sourceSemanticValue,
@@ -391,16 +390,6 @@ public final class L1Translator
 		final L2WriteBoxedOperand write)
 	{
 		return generator.readBoxed(write);
-	}
-
-	/**
-	 * Answer the next register number, unique within the chunk.
-	 *
-	 * @return An integer unique within this translator.
-	 */
-	public int nextUnique ()
-	{
-		return generator.nextUnique();
 	}
 
 	/**
@@ -770,13 +759,6 @@ public final class L1Translator
 		final L2BasicBlock failCheckBasicBlock;
 
 		/**
-		 * A read of the argument register being tested.  This register is the
-		 * original input, and has not been strengthened for having passed or
-		 * failed the type test.
-		 */
-		final L2ReadBoxedOperand argumentBeforeComparison;
-
-		/**
 		 * Construct a new memento.  Make the label something meaningful to
 		 * make it easier to decipher.
 		 *
@@ -784,23 +766,17 @@ public final class L1Translator
 		 *        The one-based subscript of the argument being tested.
 		 * @param typeToTest
 		 *        The type to test the argument against.
-		 * @param argumentBeforeComparison
-		 *        The register holding the argument prior to the type test.  The
-		 *        test produces new register-reads with narrowed types to hold
-		 *        the stronger-typed argument.
 		 * @param branchLabelCounter
 		 *        An int unique to this dispatch tree, monotonically
 		 *        allocated at each branch.
 		 */
-		@InnerAccess InternalNodeMemento (
+		private InternalNodeMemento (
 			final int argumentIndexToTest,
 			final A_Type typeToTest,
-			final L2ReadBoxedOperand argumentBeforeComparison,
 			final int branchLabelCounter)
 		{
 			this.argumentIndexToTest = argumentIndexToTest;
 			this.typeToTest = typeToTest;
-			this.argumentBeforeComparison = argumentBeforeComparison;
 			//noinspection DynamicRegexReplaceableByCompiledPattern
 			final String shortTypeName =
 				branchLabelCounter
@@ -826,10 +802,10 @@ public final class L1Translator
 		public final A_Bundle bundle;
 
 		/** A Java {@link String} naming the {@link A_Bundle}. */
-		public final String quotedBundleName;
+		final String quotedBundleName;
 
 		/** A counter for generating unique branch names for this dispatch. */
-		public final MutableInt branchLabelCounter = new MutableInt(1);
+		final MutableInt branchLabelCounter = new MutableInt(1);
 
 		/**
 		 * The type expected to be returned by invoking the function.  This may
@@ -848,45 +824,45 @@ public final class L1Translator
 		public final A_Type superUnionType;
 
 		/** Whether this call site is a super lookup. */
-		public final boolean isSuper;
+		final boolean isSuper;
 
 		/** Where to jump to perform the slow lookup. */
-		public final L2BasicBlock onFallBackToSlowLookup;
+		final L2BasicBlock onFallBackToSlowLookup;
 
 		/**
 		 * Where to jump to perform reification, eventually leading to a return
 		 * type check after completion.
 		 */
-		public final L2BasicBlock onReificationWithCheck;
+		final L2BasicBlock onReificationWithCheck;
 
 		/**
 		 * Where to jump to perform reification without the need for an eventual
 		 * return type check.
 		 */
-		public final L2BasicBlock onReificationNoCheck;
+		final L2BasicBlock onReificationNoCheck;
 
 		/**
 		 * Where to jump to perform reification during a call that cannot ever
 		 * return.
 		 */
-		public final L2BasicBlock onReificationUnreturnable;
+		final L2BasicBlock onReificationUnreturnable;
 
 		/**
 		 * Where to jump after a completed call to perform a return type check.
 		 */
-		public final L2BasicBlock afterCallWithCheck;
+		final L2BasicBlock afterCallWithCheck;
 
 		/**
 		 * Where to jump after a completed call if a return type check isn't
 		 * needed.
 		 */
-		public final L2BasicBlock afterCallNoCheck;
+		final L2BasicBlock afterCallNoCheck;
 
 		/**
 		 * Where it ends up after the entire call, regardless of whether the
 		 * returned value had to be checked or not.
 		 */
-		public final L2BasicBlock afterEverything;
+		final L2BasicBlock afterEverything;
 
 		/**
 		 * A map from each reachable looked-up {@link A_Function} to a {@link
@@ -902,7 +878,7 @@ public final class L1Translator
 		 * only one particular definition that a successful slow lookup could
 		 * produce.</em>
 		 */
-		public final Map<A_Function, Pair<L2BasicBlock, Continuation0>>
+		final Map<A_Function, Pair<L2BasicBlock, Continuation0>>
 			invocationSitesToCreate;
 
 		/**
@@ -946,7 +922,7 @@ public final class L1Translator
 		 * that is reachable, generate an invocation of the corresponding
 		 * {@link A_Function}.
 		 */
-		public void generateAllInvocationSites ()
+		void generateAllInvocationSites ()
 		{
 			invocationSitesToCreate.forEach(
 				(function, pair) -> pair.second().value());
@@ -1026,14 +1002,10 @@ public final class L1Translator
 		final A_Method method = bundle.bundleMethod();
 		generator.addContingentValue(method);
 		final int nArgs = method.numArgs();
-		final List<L2ReadBoxedOperand> arguments = new ArrayList<>(nArgs);
-		final List<TypeRestriction> argumentRestrictions =
-			new ArrayList<>(nArgs);
+		final List<L2SemanticValue> semanticArguments = new ArrayList<>(nArgs);
 		for (int i = nArgs - 1; i >= 0; i--)
 		{
-			final L2ReadBoxedOperand argument = readSlot(stackp + i);
-			arguments.add(argument);
-			argumentRestrictions.add(argument.restriction());
+			semanticArguments.add(semanticSlot(stackp + i));
 			// No point nilling the first argument, since it'll be overwritten
 			// below with a constant move of the expectedType.
 			if (i != nArgs - 1)
@@ -1052,6 +1024,10 @@ public final class L1Translator
 		// the lookup tree.
 		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
 			method.testingTree();
+		final List<TypeRestriction> argumentRestrictions =
+			semanticArguments.stream()
+				.map(a -> currentManifest().restrictionFor(a))
+				.collect(toList());
 		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
 
 		final LookupTreeTraverser<A_Definition, A_Tuple, Boolean, Boolean>
@@ -1106,7 +1082,10 @@ public final class L1Translator
 					final A_Type argumentType)
 				{
 					return preInternalVisit(
-						callSiteHelper, arguments, argumentIndex, argumentType);
+						callSiteHelper,
+						semanticArguments,
+						argumentIndex,
+						argumentType);
 				}
 
 				@Override
@@ -1118,31 +1097,15 @@ public final class L1Translator
 					// unreachableBlock.
 					assert !generator.currentlyReachable();
 					generator.startBlock(memento.failCheckBasicBlock);
-					if (generator.currentlyReachable())
-					{
-						final L2ReadBoxedOperand argBeforeTest =
-							memento.argumentBeforeComparison;
-						final L2ReadBoxedOperand argUponFailure =
-							new L2ReadBoxedOperand(
-								argBeforeTest.semanticValue(),
-								argBeforeTest.restriction().minusType(
-									memento.typeToTest),
-								currentManifest());
-						arguments.set(
-							memento.argumentIndexToTest - 1, argUponFailure);
-					}
 				}
 
 				@Override
 				public void visitPostInternalNode (
 					final InternalNodeMemento memento)
 				{
-					// Restore the argument type restriction to what it was
-					// prior to this node's type test.
-					arguments.set(
-						memento.argumentIndexToTest - 1,
-						memento.argumentBeforeComparison);
-					// The leaves already end with jumps.
+					// The leaves already end with jumps, and the manifest
+					// at the next site should have the weaker types that
+					// were known before this test.
 					assert !generator.currentlyReachable();
 				}
 
@@ -1162,7 +1125,7 @@ public final class L1Translator
 				@Override
 				public void visitLeafNode (final A_Tuple lookupResult)
 				{
-					leafVisit(arguments, callSiteHelper, lookupResult);
+					leafVisit(semanticArguments, callSiteHelper, lookupResult);
 					assert !generator.currentlyReachable();
 				}
 			};
@@ -1238,7 +1201,7 @@ public final class L1Translator
 		generator.startBlock(callSiteHelper.onFallBackToSlowLookup);
 		if (generator.currentlyReachable())
 		{
-			generateSlowPolymorphicCall(callSiteHelper, arguments);
+			generateSlowPolymorphicCall(callSiteHelper, semanticArguments);
 		}
 
 		// #1b: At this point, invocationSitesToCreate is fully populated with
@@ -1329,9 +1292,9 @@ public final class L1Translator
 	 * If it's a singular method definition, embed a call to it, otherwise jump
 	 * to the fallback lookup code to reproduce and handle lookup errors.
 	 *
-	 * @param arguments
-	 *        The list of argument register readers, strengthened by prior type
-	 *        tests.
+	 * @param semanticArguments
+	 *        The list of {@link L2SemanticValue}s supplying argument values.
+	 *        These become strengthened by type tests in the current manifest.
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
 	 * @param solutions
@@ -1340,8 +1303,8 @@ public final class L1Translator
 	 *        the lookup is considered successful, otherwise it's a failed
 	 *        lookup.
 	 */
-	@InnerAccess void leafVisit (
-		final List<L2ReadBoxedOperand> arguments,
+	private void leafVisit (
+		final List<L2SemanticValue> semanticArguments,
 		final CallSiteHelper callSiteHelper,
 		final A_Tuple solutions)
 	{
@@ -1355,7 +1318,7 @@ public final class L1Translator
 			if (solution.isMethodDefinition())
 			{
 				promiseToHandleCallForDefinitionBody(
-					solution.bodyBlock(), arguments, callSiteHelper);
+					solution.bodyBlock(), semanticArguments, callSiteHelper);
 				return;
 			}
 		}
@@ -1373,15 +1336,15 @@ public final class L1Translator
 	 *
 	 * @param function
 	 *        The {@link A_Definition} body {@link A_Function} to be invoked.
-	 * @param arguments
-	 *        The list of argument register readers, strengthened by prior type
-	 *        tests.
+	 * @param semanticArguments
+	 *        The list of {@link L2SemanticValue}s supplying argument values.
+	 *        These become strengthened by type tests in the current manifest.
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
 	\	 */
 	private void promiseToHandleCallForDefinitionBody (
 		final A_Function function,
-		final List<L2ReadBoxedOperand> arguments,
+		final List<L2SemanticValue> semanticArguments,
 		final CallSiteHelper callSiteHelper)
 	{
 		final @Nullable Pair<L2BasicBlock, Continuation0> existingPair =
@@ -1400,6 +1363,10 @@ public final class L1Translator
 				if (block.predecessorEdgesCount() > 0)
 				{
 					generator.startBlock(block);
+					final List<L2ReadBoxedOperand> arguments =
+						semanticArguments.stream()
+							.map(a -> currentManifest().readBoxed(a))
+							.collect(toList());
 					generateGeneralFunctionInvocation(
 						generator.boxedConstant(function),
 						arguments,
@@ -1429,9 +1396,9 @@ public final class L1Translator
 	 *
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
-	 * @param arguments
-	 *        The list of argument register readers, strengthened by prior type
-	 *        tests.
+	 * @param semanticArguments
+	 *        The list of {@link L2SemanticValue}s supplying argument values.
+	 *        These become strengthened by type tests in the current manifest.
 	 * @param argumentIndexToTest
 	 *        The argument number to test here.  This is a one-based index into
 	 *        the list of arguments (which is zero-based).
@@ -1441,14 +1408,14 @@ public final class L1Translator
 	 *         callbacks for this particular type test node.  It captures branch
 	 *         labels, for example.
 	 */
-	@InnerAccess InternalNodeMemento preInternalVisit (
+	private InternalNodeMemento preInternalVisit (
 		final CallSiteHelper callSiteHelper,
-		final List<L2ReadBoxedOperand> arguments,
+		final List<L2SemanticValue> semanticArguments,
 		final int argumentIndexToTest,
 		final A_Type typeToTest)
 	{
 		final InternalNodeMemento memento = preInternalVisitForJustTheJumps(
-			callSiteHelper, arguments, argumentIndexToTest, typeToTest);
+			callSiteHelper, semanticArguments, argumentIndexToTest, typeToTest);
 
 		// Prepare to generate the pass block, if reachable.
 		generator.startBlock(memento.passCheckBasicBlock);
@@ -1460,20 +1427,14 @@ public final class L1Translator
 		// be replaced with a fail-strengthened reader during the
 		// intraInternalNode, then replaced with whatever it was upon entry to
 		// this subtree during the postInternalNode.
-		final L2ReadBoxedOperand arg = arguments.get(argumentIndexToTest - 1);
-		final TypeRestriction intersection =
-			arg.restriction().intersectionWithType(typeToTest);
-		if (intersection == bottomRestriction)
+		final L2SemanticValue semanticArgument =
+			semanticArguments.get(argumentIndexToTest - 1);
+		final TypeRestriction argumentRestriction =
+			currentManifest().restrictionFor(semanticArgument);
+		if (!argumentRestriction.intersectsType(typeToTest))
 		{
 			generator.addUnreachableCode();
-			return memento;
 		}
-		final L2ReadBoxedOperand passedTestArg =
-			new L2ReadBoxedOperand(
-				arg.semanticValue(),
-				intersection,
-				currentManifest());
-		arguments.set(argumentIndexToTest - 1, passedTestArg);
 		return memento;
 	}
 
@@ -1485,9 +1446,9 @@ public final class L1Translator
 	 *
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
-	 * @param arguments
-	 *        The list of argument register readers, strengthened by prior type
-	 *        tests.
+	 * @param semanticArguments
+	 *        The list of {@link L2SemanticValue}s supplying argument values.
+	 *        These become strengthened by type tests in the current manifest.
 	 * @param argumentIndexToTest
 	 *        The argument number to test here.  This is a one-based index into
 	 *        the list of arguments (which is zero-based).
@@ -1499,17 +1460,18 @@ public final class L1Translator
 	 */
 	private InternalNodeMemento preInternalVisitForJustTheJumps (
 		final CallSiteHelper callSiteHelper,
-		final List<L2ReadBoxedOperand> arguments,
+		final List<L2SemanticValue> semanticArguments,
 		final int argumentIndexToTest,
 		final A_Type typeToTest)
 	{
+		final L2SemanticValue semanticArgument =
+			semanticArguments.get(argumentIndexToTest - 1);
 		final L2ReadBoxedOperand argRead =
-			arguments.get(argumentIndexToTest - 1);
+			currentManifest().readBoxed(semanticArgument);
 		final InternalNodeMemento memento =
 			new InternalNodeMemento(
 				argumentIndexToTest,
 				typeToTest,
-				argRead,
 				callSiteHelper.branchLabelCounter.value++);
 		if (!generator.currentlyReachable())
 		{
@@ -1522,15 +1484,6 @@ public final class L1Translator
 		}
 
 		final TypeRestriction argRestriction = argRead.restriction();
-		final TypeRestriction intersection =
-			argRestriction.intersectionWithType(typeToTest);
-		if (intersection == bottomRestriction)
-		{
-			// It will always fail the test.
-			addInstruction(
-				L2_JUMP.instance, edgeTo(memento.failCheckBasicBlock));
-			return memento;
-		}
 
 		// Tricky here.  We have the type we want to test for, and we have the
 		// argument for which we want to test the type, but we also have an
@@ -1544,6 +1497,16 @@ public final class L1Translator
 		{
 			// It's not a super call, or at least this test isn't related to any
 			// parts that are supercast upward.
+			final TypeRestriction intersection =
+				argRestriction.intersectionWithType(typeToTest);
+			if (intersection == bottomRestriction)
+			{
+				// It will always fail the test.
+				addInstruction(
+					L2_JUMP.instance, edgeTo(memento.failCheckBasicBlock));
+				return memento;
+			}
+
 			if (argRestriction.type.isSubtypeOf(typeToTest))
 			{
 				// It will always pass the test.
@@ -1553,33 +1516,33 @@ public final class L1Translator
 			}
 
 			// A runtime test is needed.  Try to special-case small enumeration.
-			final @Nullable Set<A_BasicObject> possibleValues =
+			final @Nullable A_Set possibleValues =
 				intersection.enumerationValuesOrNull(maxExpandedEqualityChecks);
 			if (possibleValues != null)
 			{
 				// The restriction has a small number of values.  Use equality
 				// checks rather than the more general type checks.
-				final Iterator<A_BasicObject> iterator =
+				final Iterator<AvailObject> iterator =
 					possibleValues.iterator();
+				A_BasicObject instance = iterator.next();
 				while (iterator.hasNext())
 				{
-					final A_BasicObject instance = iterator.next();
-					final boolean last = !iterator.hasNext();
 					final L2BasicBlock nextCheckOrFail =
-						last
-							? memento.failCheckBasicBlock
-							: generator.createBasicBlock(
-								"test next case of enumeration");
+						generator.createBasicBlock(
+							"test next case of enumeration");
 					generateJumpIfEqualsConstant(
 						argRead,
 						instance,
 						edgeTo(memento.passCheckBasicBlock),
 						edgeTo(nextCheckOrFail));
-					if (!last)
-					{
-						generator.startBlock(nextCheckOrFail);
-					}
+					generator.startBlock(nextCheckOrFail);
+					instance = iterator.next();
 				}
+				generateJumpIfEqualsConstant(
+					argRead,
+					instance,
+					edgeTo(memento.passCheckBasicBlock),
+					edgeTo(memento.failCheckBasicBlock));
 				return memento;
 			}
 			// A runtime test is needed, and it's not a small enumeration.
@@ -1934,6 +1897,11 @@ public final class L1Translator
 		final boolean canReturn = !guaranteedResultType.isVacuousType();
 		final L2BasicBlock successBlock =
 			generator.createBasicBlock("successful invocation");
+		final L2BasicBlock targetBlock = !canReturn
+			? callSiteHelper.onReificationUnreturnable
+			: skipCheck
+				? callSiteHelper.onReificationNoCheck
+				: callSiteHelper.onReificationWithCheck;
 		if (constantFunction != null)
 		{
 			addInstruction(
@@ -1943,12 +1911,7 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(
-					!canReturn
-						? callSiteHelper.onReificationUnreturnable
-						: skipCheck
-							? callSiteHelper.onReificationNoCheck
-							: callSiteHelper.onReificationWithCheck));
+				edgeTo(targetBlock));
 		}
 		else
 		{
@@ -1959,12 +1922,7 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(
-					!canReturn
-						? callSiteHelper.onReificationUnreturnable
-						: skipCheck
-							? callSiteHelper.onReificationNoCheck
-							: callSiteHelper.onReificationWithCheck));
+				edgeTo(targetBlock));
 		}
 		generator.startBlock(successBlock);
 		if (generator.currentlyReachable())
@@ -2352,12 +2310,13 @@ public final class L1Translator
 	 *
 	 * @param callSiteHelper
 	 *        Information about the method call site.
-	 * @param arguments
-	 *        The list of argument registers to use for the call.
+	 * @param semanticArguments
+	 *        The list of {@link L2SemanticValue}s supplying argument values.
+	 *        These become strengthened by type tests in the current manifest.
 	 */
 	private void generateSlowPolymorphicCall (
 		final CallSiteHelper callSiteHelper,
-		final List<L2ReadBoxedOperand> arguments)
+		final List<L2SemanticValue> semanticArguments)
 	{
 		final A_Bundle bundle = callSiteHelper.bundle;
 		final A_Method method = bundle.bundleMethod();
@@ -2379,10 +2338,12 @@ public final class L1Translator
 			new ArrayList<>(nArgs);
 		for (int i = 1; i <= nArgs; i++)
 		{
-			argumentRestrictions.add(
-				arguments.get(i - 1).restriction().union(
-					restrictionForType(
-						callSiteHelper.superUnionType.typeAtIndex(i), BOXED)));
+			final TypeRestriction argumentRestriction =
+				currentManifest().restrictionFor(semanticArguments.get(i - 1));
+			final TypeRestriction unionRestriction = argumentRestriction.union(
+				restrictionForType(
+					callSiteHelper.superUnionType.typeAtIndex(i), BOXED));
+			argumentRestrictions.add(unionRestriction);
 		}
 
 		final List<A_Function> possibleFunctions = new ArrayList<>();
@@ -2401,13 +2362,17 @@ public final class L1Translator
 		final L2WriteBoxedOperand functionWrite =
 			generator.boxedWriteTemp(
 				restrictionForType(functionTypeUnion, BOXED));
+		final List<L2ReadBoxedOperand> argumentReads =
+			semanticArguments.stream()
+				.map(a -> currentManifest().readBoxed(a))
+				.collect(toList());
 		if (!callSiteHelper.isSuper)
 		{
 			// Not a super-call.
 			addInstruction(
 				L2_LOOKUP_BY_VALUES.instance,
 				new L2SelectorOperand(bundle),
-				new L2ReadBoxedVectorOperand(arguments),
+				new L2ReadBoxedVectorOperand(argumentReads),
 				functionWrite,
 				errorCodeWrite,
 				edgeTo(lookupSucceeded),
@@ -2421,7 +2386,7 @@ public final class L1Translator
 			final List<L2ReadBoxedOperand> argTypeRegs = new ArrayList<>(nArgs);
 			for (int i = 1; i <= nArgs; i++)
 			{
-				final L2ReadBoxedOperand argReg = arguments.get(i - 1);
+				final L2ReadBoxedOperand argReg = argumentReads.get(i - 1);
 				final A_Type argStaticType = argReg.type();
 				final A_Type superUnionElementType =
 					callSiteHelper.superUnionType.typeAtIndex(i);
@@ -2429,8 +2394,7 @@ public final class L1Translator
 				if (argStaticType.isSubtypeOf(superUnionElementType))
 				{
 					// The lookup is entirely determined by the super-union.
-					argTypeReg =
-						generator.boxedConstant(superUnionElementType);
+					argTypeReg = generator.boxedConstant(superUnionElementType);
 				}
 				else
 				{
@@ -2490,17 +2454,15 @@ public final class L1Translator
 			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 			invalidSendReg);
 		// Collect the argument types into a tuple type.
-		final List<A_Type> argTypes = new ArrayList<>(nArgs);
-		for (final L2ReadBoxedOperand argument : arguments)
-		{
-			argTypes.add(argument.type());
-		}
+		final List<A_Type> argTypes = argumentRestrictions.stream()
+			.map(argumentRestriction -> argumentRestriction.type)
+			.collect(toList());
 		final L2WriteBoxedOperand argumentsTupleWrite =
 			generator.boxedWriteTemp(
 				restrictionForType(tupleTypeForTypes(argTypes), BOXED));
 		addInstruction(
 			L2_CREATE_TUPLE.instance,
-			new L2ReadBoxedVectorOperand(arguments),
+			new L2ReadBoxedVectorOperand(argumentReads),
 			argumentsTupleWrite);
 		addInstruction(
 			L2_INVOKE.instance,
@@ -2531,12 +2493,15 @@ public final class L1Translator
 			// Jump into the same block that will be generated for a positive
 			// inlined lookup of the same function.
 			promiseToHandleCallForDefinitionBody(
-				constantFunction, arguments, callSiteHelper);
+				constantFunction, semanticArguments, callSiteHelper);
 		}
 		else
 		{
 			generateGeneralFunctionInvocation(
-				readBoxed(functionWrite), arguments, true, callSiteHelper);
+				readBoxed(functionWrite),
+				argumentReads,
+				true,
+				callSiteHelper);
 		}
 	}
 
@@ -2751,7 +2716,7 @@ public final class L1Translator
 	 * For each level one instruction, write a suitable transliteration into
 	 * level two instructions.
 	 */
-	void translateL1Instructions ()
+	private void translateL1Instructions ()
 	{
 		final long timeAtStartOfTranslation = captureNanos();
 		generator.initialBlock.makeIrremovable();

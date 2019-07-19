@@ -114,3 +114,34 @@ Test "circled numbers" in decompiler test suite is
 	Check round-trip for [Circles that 120.1];
 	Check round-trip for [Circles foo bar none this ∞];
 ];
+
+
+/*
+ * Test a regression related to super calls in L2. Given types A ⊇ B ⊇ C, and
+ * implementations at each of A, B, and C, we had a super call with a C cast up
+ * to an A. If the testing tree tested for a B first, the tested-false path
+ * would attempt to subtract B from the register's restriction (which was a C),
+ * leading to it be incorrectly bottom-typed, and therefore unavailable as a
+ * read in subsequent tests and uses.
+ */
+tt ::= tuple;
+t1 ::= <any…|1>;
+t2 ::= <any, any…|2>;
+t1s ::= <string…|1>;
+t2s ::= <string, string…|2>;
+
+Method "foo_" is [a : tt | "tt:" ++ “a”] : string;
+Method "foo_" is [a : t1 | "t1:" ++ “a”] : string;
+Method "foo_" is [a : t2 | "t2:" ++ “a”] : string;
+Method "foo_" is [a : t1s | "t1s:" ++ “a”] : string;
+Method "foo_" is [a : t2s | "t2s:" ++ “a”] : string;
+
+Test "super call L2 restriction" in decompiler test suite is
+[
+	/* Exercise the tt/t1/t1s portion of the lookup tree, to ensure that part is
+	 * eligible for polymorphic dispatch inlining.
+	 */
+	Repeat [Ignore: foo <"x">;] 100 times;
+	/* Now try the once troublesome super call. */
+	Repeat [Ignore: foo (<"x"> :: tt);] 100 times;
+];

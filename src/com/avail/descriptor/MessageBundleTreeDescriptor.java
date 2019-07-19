@@ -451,7 +451,11 @@ extends Descriptor
 			final List<String> sorted = new ArrayList<>();
 			for (final Map.Entry<String, Integer> entry : strings.entrySet())
 			{
-				sorted.add(entry.getKey() + "(×" + entry.getValue() + ")");
+				final int count = entry.getValue();
+				sorted.add(
+					count == 1
+						? entry.getKey()
+						: entry.getKey() + "(×" + count + ")");
 			}
 			Collections.sort(sorted);
 			boolean first = true;

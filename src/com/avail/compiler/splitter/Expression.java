@@ -316,5 +316,5 @@ abstract class Expression
 	{
 		// Most expressions can't match an empty sequence of tokens.
 		return false;
-	};
+	}
 }

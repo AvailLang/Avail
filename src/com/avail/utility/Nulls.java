@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 public final class Nulls
 {
 	/** Prevent instantiation. */
-	private Nulls () {};
+	private Nulls () {}
 
 	/**
 	 * Strip the nullness from the value. If the value is null, throw an {@link

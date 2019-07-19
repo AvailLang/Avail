@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.avail.descriptor.TupleDescriptor.toList;
@@ -286,8 +287,12 @@ public class InternalLookupTree<
 		A_Type bestSignature = null;
 		int smallestMax = Integer.MAX_VALUE;
 		int smallestMin = Integer.MAX_VALUE;
-		for (final Element criterion : undecidedElements)
+		final int undecidedCount = undecidedElements.size();
+		for (int criterionIndex = 0;
+			criterionIndex < undecidedCount;
+			criterionIndex++)
 		{
+			final Element criterion = undecidedElements.get(criterionIndex);
 			final List<TypeRestriction> criterionRestrictions =
 				new ArrayList<>(knownArgumentRestrictions);
 			final A_Type boundedCriterionSignature =
@@ -309,13 +314,16 @@ public class InternalLookupTree<
 					0,
 					criterionRestrictions.get(0).intersectionWithType(
 						boundedCriterionSignature));
-			};
+			}
 			int undecidedCountIfTrue = 0;
 			int undecidedCountIfFalse = 0;
-			for (final Element each : undecidedElements)
+			for (int eachIndex = 0; eachIndex < undecidedCount; eachIndex++)
 			{
-				if (!each.equals(criterion))
+				// Skip the element itself, since after a comparison it'll
+				// be known to be included or be known not to be included.
+				if (eachIndex != criterionIndex)
 				{
+					final Element each = undecidedElements.get(eachIndex);
 					final A_Type eachSignature =
 						adaptor.restrictedSignature(each, bound);
 					final TypeComparison comparison = adaptor.compareTypes(
@@ -323,21 +331,19 @@ public class InternalLookupTree<
 					switch (comparison)
 					{
 						case SAME_TYPE:
+							// This might occur if the projection of two
+							// elements under call-site-specific type bounds
+							// yields the same type.  Or something unforeseen.
 							break;
 						case PROPER_ANCESTOR_TYPE:
-							if (!adaptor.subtypesHideSupertypes())
-							{
-								undecidedCountIfFalse++;
-							}
+						case DISJOINT_TYPE:
+							undecidedCountIfFalse++;
 							break;
 						case PROPER_DESCENDANT_TYPE:
 							undecidedCountIfTrue++;
 							break;
 						case UNRELATED_TYPE:
 							undecidedCountIfTrue++;
-							undecidedCountIfFalse++;
-							break;
-						case DISJOINT_TYPE:
 							undecidedCountIfFalse++;
 							break;
 					}
@@ -384,7 +390,6 @@ public class InternalLookupTree<
 				}
 			}
 			assert positionToTest >= 1;
-			assert selectedTypeToTest != null;
 		}
 		else
 		{
@@ -392,8 +397,7 @@ public class InternalLookupTree<
 			selectedTypeToTest = bestSignature;
 		}
 
-		buildChildren(
-			adaptor, memento, positionToTest, selectedTypeToTest);
+		buildChildren(adaptor, memento, positionToTest, selectedTypeToTest);
 	}
 
 	/**
@@ -472,10 +476,12 @@ public class InternalLookupTree<
 			undecidedIfTrue,
 			positiveKnownRestrictions,
 			memento);
-		// If the test fails, it can't certify any new elements.
-		assert positiveIfFalse.isEmpty();
+		// Since we're using TypeRestrictions, there are cases with instance
+		// enumerations in which a failed test can actually certify a new
+		// answer.  Merge the newly certified and already certified results.
+		positiveIfFalse.addAll(positiveElements);
 		ifCheckFails = adaptor.createTree(
-			positiveElements,  // The ones that were *already* proven.
+			positiveIfFalse,
 			undecidedIfFalse,
 			negativeKnownRestrictions,
 			memento);

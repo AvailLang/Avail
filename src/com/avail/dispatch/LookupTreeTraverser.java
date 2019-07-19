@@ -40,6 +40,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.utility.Casts.cast;
+
 /**
  * {@code LookupTreeTraverser} is used to enumerate the nodes of a {@link
  * LookupTree}.  Visitor methods are invoked at various stages of the traversal,
@@ -65,19 +67,19 @@ public abstract class LookupTreeTraverser<
 	TraversalMemento>
 {
 	/** The {@link LookupTreeAdaptor} with which to interpret the tree. */
-	final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor;
+	private final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor;
 
 	/** A contextual parameter to assist the {@link #adaptor}. */
-	final AdaptorMemento adaptorMemento;
+	private final AdaptorMemento adaptorMemento;
 
 	/**
 	 * The stack of outstanding actions, which allows the tree to be traversed
 	 * without recursion, only iteration.
 	 */
-	final List<Continuation0> actionStack = new ArrayList<>();
+	private final List<Continuation0> actionStack = new ArrayList<>();
 
 	/** Whether this traverser should expand every encountered internal node. */
-	final boolean expandAll;
+	private final boolean expandAll;
 
 	/**
 	 * Create a new lookup tree traverser.
@@ -87,9 +89,9 @@ public abstract class LookupTreeTraverser<
 	 * @param adaptorMemento
 	 *        A contextual parameter for the adaptor.
 	 * @param expandAll
-	 *        Whether to automatically expand every encountered internal node.
+	 *        Whether to force expansion of every path of the tree.
 	 */
-	public LookupTreeTraverser (
+	protected LookupTreeTraverser (
 		final LookupTreeAdaptor<Element, Result, AdaptorMemento> adaptor,
 		final AdaptorMemento adaptorMemento,
 		final boolean expandAll)
@@ -128,7 +130,7 @@ public abstract class LookupTreeTraverser<
 		final TraversalMemento memento)
 	{
 		// Do nothing by default.
-	};
+	}
 
 	/**
 	 * An {@link InternalLookupTree} has now had both of its children fully
@@ -137,7 +139,7 @@ public abstract class LookupTreeTraverser<
 	public void visitPostInternalNode (final TraversalMemento memento)
 	{
 		// Do nothing by default.
-	};
+	}
 
 	/**
 	 * Traversal has reached a leaf node representing the given Result.
@@ -154,7 +156,7 @@ public abstract class LookupTreeTraverser<
 	public void visitUnexpanded ()
 	{
 		// Do nothing by default.
-	};
+	}
 
 	/**
 	 * A {@link LookupTree} node has just been reached.  Perform and/or queue
@@ -170,9 +172,8 @@ public abstract class LookupTreeTraverser<
 			visitLeafNode(solution);
 			return;
 		}
-		final InternalLookupTree<Element, Result, AdaptorMemento>
-			internalNode =
-				(InternalLookupTree<Element, Result, AdaptorMemento>) node;
+		final InternalLookupTree<Element, Result, AdaptorMemento> internalNode =
+			cast(node);
 		if (expandAll)
 		{
 			internalNode.expandIfNecessary(adaptor, adaptorMemento);

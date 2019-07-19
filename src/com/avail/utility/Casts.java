@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 public final class Casts
 {
 	/** Prevent instantiation. */
-	private Casts () {};
+	private Casts () {}
 
 	/**
 	 * When you know better, this bypasses static type-safety, while leaving

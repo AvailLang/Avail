@@ -118,7 +118,7 @@ extends L2Operand
 			registers.add(rr.register());
 		}
 		return registers;
-	};
+	}
 
 	@Override
 	public abstract void dispatchOperand (final L2OperandDispatcher dispatcher);

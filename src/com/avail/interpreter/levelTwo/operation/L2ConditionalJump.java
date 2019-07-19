@@ -120,8 +120,10 @@ extends L2ControlFlowOperation
 		final L2PcOperand isSubtype,
 		final L2PcOperand notSubtype)
 	{
-		final L2InternalCounterOperand taken = instruction.operand(instruction.operands().length - 2);
-		final L2InternalCounterOperand notTaken = instruction.operand(instruction.operands().length - 1);
+		final L2InternalCounterOperand taken =
+			instruction.operand(instruction.operands().length - 2);
+		final L2InternalCounterOperand notTaken =
+			instruction.operand(instruction.operands().length - 1);
 		translator.branch(
 			method,
 			instruction,
