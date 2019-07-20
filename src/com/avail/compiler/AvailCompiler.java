@@ -494,9 +494,9 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * A simple static factory for constructing {@link Con1}s.  Java is crummy at
-	 * deducing parameter types for constructors, so this static method can be
-	 * used to elide the CompilerSolution type.
+	 * A simple static factory for constructing {@link Con1}s.  Java is crummy
+	 * at deducing parameter types for constructors, so this static method can
+	 * be used to elide the CompilerSolution type.
 	 *
 	 * @param superexpressions
 	 *        The {@link PartialSubexpressionList} that explains why this
@@ -1393,7 +1393,8 @@ public final class AvailCompiler
 				final StringBuilder builder = new StringBuilder(200);
 				if (caseInsensitive)
 				{
-					builder.append("one of the following case-insensitive tokens:");
+					builder.append(
+						"one of the following case-insensitive tokens:");
 				}
 				else
 				{
@@ -1451,7 +1452,8 @@ public final class AvailCompiler
 								}
 							}
 						}
-						final List<String> sortedStrings = new ArrayList<>(strings);
+						final List<String> sortedStrings =
+							new ArrayList<>(strings);
 						Collections.sort(sortedStrings);
 						final StringBuilder buffer = new StringBuilder();
 						buffer.append(availTokenString.asNativeString());
@@ -1869,7 +1871,7 @@ public final class AvailCompiler
 					if (!consumedTokens.isEmpty())
 					{
 						start.expected(
-							WEAK,
+							MEDIUM,
 							continueWithDescription -> stringifyThen(
 								compilationContext.runtime,
 								compilationContext.getTextInterface(),

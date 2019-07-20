@@ -1835,13 +1835,14 @@ public enum ParsingOperation
 
 	/**
 	 * Given an instruction and program counter, answer the list of successor
-	 * program counters that should be explored. For example, a {@link #BRANCH_FORWARD}
-	 * instruction will need to visit both the next program counter <em>and</em>
-	 * the branch target.
+	 * program counters that should be explored. For example, a {@link
+	 * #BRANCH_FORWARD} instruction will need to visit both the next program
+	 * counter <em>and</em> the branch target.
 	 *
-	 * @param instruction The encoded parsing instruction at the specified
-	 *                    program counter.
-	 * @param currentPc The current program counter.
+	 * @param instruction
+	 *        The encoded parsing instruction at the specified program counter.
+	 * @param currentPc
+	 *        The current program counter.
 	 * @return The list of successor program counters.
 	 */
 	public List<Integer> successorPcs (
