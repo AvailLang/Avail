@@ -38,7 +38,9 @@ import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter;
 import com.avail.utility.evaluation.Continuation0;
@@ -187,7 +189,7 @@ public final class AvailCodeGenerator
 	 *        The literal to look up.
 	 * @return The index of the literal.
 	 */
-	public int indexOfLiteral (
+	private int indexOfLiteral (
 		final A_BasicObject aLiteral)
 	{
 		int index = literals.indexOf(aLiteral) + 1;
@@ -391,14 +393,26 @@ public final class AvailCodeGenerator
 				// The block immediately answers a constant.
 				primitive(P_PushConstant.instance);
 			}
-			if (numArgs() == 1
-				&& onlyInstruction instanceof AvailPushLocalVariable
-				&& ((AvailPushLocalVariable) onlyInstruction).index() == 1)
+			else if (numArgs() >= 1
+				&& onlyInstruction instanceof AvailPushLocalVariable)
 			{
-				// The block immediately answers the first argument.
-				primitive(P_PushArgument.instance);
+				// The block immediately answers the specified argument.
+				final int argumentIndex =
+					((AvailPushLocalVariable) onlyInstruction).index();
+				switch (argumentIndex)
+				{
+					case 1:
+						primitive(P_PushArgument1.instance);
+						break;
+					case 2:
+						primitive(P_PushArgument2.instance);
+						break;
+					case 3:
+						primitive(P_PushArgument3.instance);
+						break;
+				}
 			}
-			if (onlyInstruction instanceof AvailPushOuterVariable)
+			else if (onlyInstruction instanceof AvailPushOuterVariable)
 			{
 				// The block immediately answers the sole captured outer
 				// variable or constant.  There can only be one such outer since
@@ -503,7 +517,7 @@ public final class AvailCodeGenerator
 	 * @param delta
 	 *        The number of things popped off the stack.
 	 */
-	public void decreaseDepth (
+	private void decreaseDepth (
 		final int delta)
 	{
 		depth -= delta;
@@ -512,15 +526,11 @@ public final class AvailCodeGenerator
 	}
 
 	/**
-	 * Increase the tracked stack depth by the given amount.
-	 *
-	 * @param delta
-	 *        The number of things pushed onto the stack.
+	 * Increase the tracked stack depth by one.
 	 */
-	public void increaseDepth (
-		final int delta)
+	private void increaseDepth ()
 	{
-		depth += delta;
+		depth ++;
 		if (depth > maxDepth)
 		{
 			maxDepth = depth;
@@ -530,7 +540,7 @@ public final class AvailCodeGenerator
 	/**
 	 * Verify that the stack is empty at this point.
 	 */
-	public void stackShouldBeEmpty ()
+	private void stackShouldBeEmpty ()
 	{
 		assert depth == 0 : "The stack should be empty here";
 	}
@@ -587,7 +597,7 @@ public final class AvailCodeGenerator
 		// Pops off arguments.
 		decreaseDepth(nArgs);
 		// Pushes expected return type, to be overwritten by return value.
-		increaseDepth(1);
+		increaseDepth();
 	}
 
 	/**
@@ -622,7 +632,7 @@ public final class AvailCodeGenerator
 		// Pops all arguments.
 		decreaseDepth(nArgs);
 		// Pushes expected return type, to be overwritten by return value.
-		increaseDepth(1);
+		increaseDepth();
 	}
 
 	/**
@@ -656,7 +666,7 @@ public final class AvailCodeGenerator
 		// Copied variables are popped.
 		decreaseDepth(neededVariables.tupleSize());
 		// Function is pushed.
-		increaseDepth(1);
+		increaseDepth();
 	}
 
 	/**
@@ -664,7 +674,7 @@ public final class AvailCodeGenerator
 	 */
 	public void emitDuplicate ()
 	{
-		increaseDepth(1);
+		increaseDepth();
 		addInstruction(new AvailDuplicate(emptyTuple()));
 	}
 
@@ -682,7 +692,7 @@ public final class AvailCodeGenerator
 		final A_Tuple tokens,
 		final A_BasicObject aLiteral)
 	{
-		increaseDepth(1);
+		increaseDepth();
 		final int index = indexOfLiteral(aLiteral);
 		addInstruction(new AvailGetLiteralVariable(tokens, index));
 	}
@@ -701,7 +711,7 @@ public final class AvailCodeGenerator
 		final A_Tuple tokens,
 		final A_Phrase localOrOuter)
 	{
-		increaseDepth(1);
+		increaseDepth();
 		if (varMap.containsKey(localOrOuter))
 		{
 			addInstruction(
@@ -751,7 +761,7 @@ public final class AvailCodeGenerator
 	{
 		addInstruction(new AvailMakeTuple(tokens, count));
 		decreaseDepth(count);
-		increaseDepth(1);
+		increaseDepth();
 	}
 
 	/**
@@ -794,7 +804,7 @@ public final class AvailCodeGenerator
 		final A_Tuple tokens,
 		final A_BasicObject aLiteral)
 	{
-		increaseDepth(1);
+		increaseDepth();
 		final int index = indexOfLiteral(aLiteral);
 		addInstruction(new AvailPushLiteral(tokens, index));
 	}
@@ -813,7 +823,7 @@ public final class AvailCodeGenerator
 		final A_Tuple tokens,
 		final A_Phrase variableDeclaration)
 	{
-		increaseDepth(1);
+		increaseDepth();
 		if (varMap.containsKey(variableDeclaration))
 		{
 			addInstruction(new AvailPushLocalVariable(
@@ -954,7 +964,7 @@ public final class AvailCodeGenerator
 	 * point, at their final use points, while always cleaning up final uses of
 	 * local non-argument variables.
 	 */
-	public void fixFinalUses ()
+	private void fixFinalUses ()
 	{
 		final List<AvailVariableAccessNote> localData =
 			asList(new AvailVariableAccessNote[varMap.size()]);

@@ -135,7 +135,7 @@ extends TupleDescriptor
 	int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer maximum integer value so that any other representation
-		// for comparison is used in favor of a Reverse Tuple representation
+		// for comparison is used in favor of a Reverse Tuple representation.
 		return Integer.MAX_VALUE;
 	}
 

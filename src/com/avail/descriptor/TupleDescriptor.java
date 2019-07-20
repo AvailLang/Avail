@@ -1383,7 +1383,7 @@ extends Descriptor
 	 *        the new tuple, if it was present.
 	 * @return The new tuple.
 	 */
-	public static A_Tuple tupleWithout (
+	static A_Tuple tupleWithout (
 		final A_Tuple originalTuple,
 		final A_BasicObject elementToExclude)
 	{

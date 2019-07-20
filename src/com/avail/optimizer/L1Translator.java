@@ -2252,24 +2252,12 @@ public final class L1Translator
 			return null;
 		}
 
-		// Check the tuple elements for type safety.
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				requiredTypes.get(i - 1)))
-			{
-				// This tuple element's type isn't strong enough.
-				return null;
-			}
-		}
-
 		// Check the tuple element types against the required types.
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				requiredTypes.get(i - 1)))
+			if (!tupleType.typeAtIndex(i).isSubtypeOf(requiredTypes.get(i - 1)))
 			{
-				// This tuple element's type isn't strong enough.  Give up.
+				// This tuple element's type isn't strong enough.
 				return null;
 			}
 		}
@@ -2281,8 +2269,19 @@ public final class L1Translator
 			tupleReg.definitionSkippingMoves(false);
 		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
 		{
+			// Use the registers that were used to assemble the tuple.
 			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
 				tupleDefinitionInstruction);
+		}
+
+		if (tupleDefinitionInstruction.operation() == L2_MOVE_CONSTANT.boxed)
+		{
+			// Extract the elements of the constant tuple as constant elements.
+			final A_Tuple tuple =
+				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
+			return TupleDescriptor.toList(tuple).stream()
+				.map(generator::boxedConstant)
+				.collect(toList());
 		}
 
 		// We have to extract the elements.

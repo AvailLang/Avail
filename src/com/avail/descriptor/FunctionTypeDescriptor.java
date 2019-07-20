@@ -830,8 +830,7 @@ extends TypeDescriptor
 		final A_Tuple argTypes,
 		final A_Type returnType)
 	{
-		return
-			functionType(argTypes, returnType, emptySet());
+		return functionType(argTypes, returnType, emptySet());
 	}
 
 	/**

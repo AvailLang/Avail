@@ -168,12 +168,15 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(ATOM.o(), functionType(
-			emptyTuple(),
-			TOP.o()), functionType(
+		return functionType(
 			tuple(
-				instanceType(E_IO_ERROR.numericCode())),
-			TOP.o()), bytes()), fiberType(TOP.o()));
+				ATOM.o(),
+				functionType(emptyTuple(), TOP.o()),
+				functionType(
+					tuple(instanceType(E_IO_ERROR.numericCode())),
+					TOP.o()),
+				bytes()),
+			fiberType(TOP.o()));
 	}
 
 	@Override

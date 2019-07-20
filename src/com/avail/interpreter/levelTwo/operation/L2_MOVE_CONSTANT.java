@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -79,7 +78,8 @@ public class L2_MOVE_CONSTANT <
 extends L2Operation
 {
 	/** A {@link Continuation3NotNull} to invoke to push the constant value. */
-	final Continuation3NotNull<JVMTranslator, MethodVisitor, C> pushConstant;
+	private final Continuation3NotNull<JVMTranslator, MethodVisitor, C>
+		pushConstant;
 
 	/**
 	 * Construct an {@code L2_MOVE_CONSTANT} operation.
@@ -92,8 +92,7 @@ extends L2Operation
 	 *        particular L2Operation, allowing it to be specialized by register
 	 *        type.
 	 */
-	@InnerAccess
-	L2_MOVE_CONSTANT (
+	private L2_MOVE_CONSTANT (
 		final Continuation3NotNull<JVMTranslator, MethodVisitor, C> pushConstant,
 		final L2NamedOperandType... theNamedOperandTypes)
 	{

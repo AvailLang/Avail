@@ -183,14 +183,17 @@ Test "file iterator (scattered write)" in file iterator test suite is
 			segment ::= map 1 to size through [n : any | prng's next byte];
 			aWriter's position := start;
 			Write segment to aWriter;
-			If start > |memory| + 1 then
+			If size > 0 then
 			[
-				extension ::= start - |memory| ?→ natural number;
-				memory := eject memory ++ extension of 0;
+				If start > |memory| + 1 then
+				[
+					extension ::= start - |memory| - 1 ?→ natural number;
+					memory := eject memory ++ extension of 0;
+				];
+				memory := memory
+					[start .. (start + size - 1) min |memory|]
+					→ segment;
 			];
-			memory := memory
-				[start .. (start + size - 1) min |memory|]
-				→ segment;
 		] 50 times;
 		Synchronize aWriter;
 		Refresh aReader;

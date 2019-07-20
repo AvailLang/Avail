@@ -71,10 +71,12 @@ import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.Math.min;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -292,7 +294,7 @@ extends Primitive
 							{
 								ioSystem.discardBuffer(key);
 							}
-							Interpreter.runOutermostFunction(
+							runOutermostFunction(
 								runtime,
 								newFiber,
 								fail,
@@ -384,8 +386,7 @@ extends Primitive
 					offsetInBuffer = 1;
 				}
 				assert subscriptInTuple == totalBytes + 1;
-				Interpreter.runOutermostFunction(
-					runtime, newFiber, succeed, Collections.emptyList());
+				runOutermostFunction(runtime, newFiber, succeed, emptyList());
 			}
 		});
 		return interpreter.primitiveSuccess(newFiber);

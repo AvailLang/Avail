@@ -1,5 +1,5 @@
 /*
- * P_PushArgument.java
+ * P_PushArgument2.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,30 +44,26 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> The only argument is being returned.
+ * <strong>Primitive:</strong> The second argument is being returned.
  */
-public final class P_PushArgument extends Primitive
+public final class P_PushArgument2 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_PushArgument().init(
-			1, SpecialForm, Private, CanInline, CannotFail);
+		new P_PushArgument2().init(
+			-1, SpecialForm, Private, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(1);
-		final AvailObject argument = interpreter.argument(0);
+		final AvailObject argument = interpreter.argument(1);
 		return interpreter.primitiveSuccess(argument);
 	}
 
@@ -76,14 +72,14 @@ public final class P_PushArgument extends Primitive
 		final A_RawFunction rawFunction,
 		final List<? extends A_Type> argumentTypes)
 	{
-		assert argumentTypes.size() == 1;
-		return argumentTypes.get(0);
+		assert argumentTypes.size() >= 2;
+		return argumentTypes.get(1);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		// This primitive is suitable for any actual one-argument function.
+		// This primitive is suitable for any two-or-more-argument function.
 		// It may seem strange that ⊥ is the return type, but that's to allow
 		// functions like [x : map | x] to type-check correctly!  The argument
 		// x has type map, so the last expression does also.  If we made this
@@ -91,10 +87,7 @@ public final class P_PushArgument extends Primitive
 		// strengthening it by appending a return type declaration like ": map".
 		// However, the L2 translator will have to ignore the primitive block
 		// type restriction for this particular primitive.
-		return functionType(
-			tuple(
-				ANY.o()),
-			bottom());
+		return bottom();
 	}
 
 	@Override
@@ -106,10 +99,10 @@ public final class P_PushArgument extends Primitive
 		final L1Translator translator,
 		final CallSiteHelper callSiteHelper)
 	{
-		// The value is available in this register.  Doesn't even need a move.
-		// The translator may still need to strengthen the value due to semantic
-		// restrictions.
-		callSiteHelper.useAnswer(arguments.get(0));
+		// The value is available in the second argument register.  Doesn't even
+		// need a move. The translator deals with strengthening separately,
+		// through the call return type checks.
+		callSiteHelper.useAnswer(arguments.get(1));
 		return true;
 	}
 }
