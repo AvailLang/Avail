@@ -618,3 +618,17 @@ Public method "real source line number" is
 [
 	integer range from 1 (inclusive=true) to 268435455 (inclusive=true)
 ];
+
+Method "“_”" is
+[
+	lit : literal token ⇒ any
+|
+	“lit's value”
+];
+
+Method "“_”" is
+[
+	lit : literal phrase ⇒ any
+|
+	“lit's token”
+];
