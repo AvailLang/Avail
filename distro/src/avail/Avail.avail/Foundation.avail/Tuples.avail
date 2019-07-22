@@ -1778,7 +1778,7 @@ Semantic restriction "right fold_through_" is
 			++ “transformer[2]”
 			++ ")"
 	];
-	finalType
+	returnType
 ];
 
 /**
