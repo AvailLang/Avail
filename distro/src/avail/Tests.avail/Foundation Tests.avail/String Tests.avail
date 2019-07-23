@@ -164,3 +164,12 @@ Test "base n (lower case, bad digits)" in string test suite is
 		Require: a = e (format "base “①”" with index);
 	];
 ];
+
+Test "UUIDs" in string test suite is
+[
+	Repeat
+	[
+		u ::= a UUID;
+		Require: “u” (UUID) → UUID = u;
+	] 20 times;
+];

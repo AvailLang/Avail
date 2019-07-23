@@ -1098,10 +1098,12 @@ Extends
 	"Strings" =
 	(
 		"Require:_contains no Avail message⁇metacharacters",
+		"UUID string",
 		"format_with unchecked_",
 		"format_with_",
 		"format_with«…!::=_‡,»",
 		"format_with«_‡,»",
+		"hexadecimal character",
 		"partially format_with_",
 		"partially format_with«…::=_‡,»",
 		"trim_",
@@ -1112,6 +1114,7 @@ Extends
 		"_contains Avail message⁇metacharacters",
 		"_with Avail message⁇metacharacters escaped",
 		"_(base_)",
+		"_→UUID",
 		"_→code points",
 		"_→string",
 		"“_”(hex)",
