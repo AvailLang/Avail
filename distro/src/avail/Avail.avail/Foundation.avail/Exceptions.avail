@@ -1855,6 +1855,15 @@ Private method "unassigned variable read function:=_" is
 unassigned variable read function :=
 	[Raise a cannot-read-unassigned-variable exception];
 
+/* Revert the unassigned variable read reflex to the bootstrap mechanism upon
+ * unloading this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	unassigned variable read function :=
+		[Crash: "unassigned variable read function"];
+];
+
 "bad message" is a new field atom;
 "expected type" is a new field atom;
 "actual value" is a new field atom;
@@ -1910,6 +1919,21 @@ unexpected result function :=
 			actual value ::= reportedValue;
 		Raise e
 	];
+
+/* Revert the unexpected result reflex to the bootstrap mechanism upon unloading
+* this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	unexpected result function :=
+		[
+    		badMessage : function,
+    		expectedType : type,
+    		actualValue : ↑any
+    	|
+    		Crash: <badMessage, expectedType, actualValue>
+    	];
+];
 
 /**
  * Set the function that should be invoked whenever a message send encounters
@@ -1970,6 +1994,26 @@ invalid method send function :=
 			looked up arguments ::= arguments;
 		Raise e
 	] : ⊥;
+
+/* Revert the invalid method send reflex to the bootstrap mechanism upon
+ * unloading this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	invalid method send function :=
+		[
+			code : {
+				no-method code,
+				no-method-definition code,
+				ambiguous-method-definition code,
+				forward-method-definition code,
+				abstract-method-definition code}ᵀ,
+			theMethod : method,
+			arguments : tuple
+		|
+			Crash: <code, theMethod, arguments>
+		] : ⊥;
+];
 
 /*
  * Even though we can in general allow unintended "subexpressions" like <⊥>[2]
