@@ -39,6 +39,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeTraverser;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -92,6 +93,7 @@ import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
@@ -2324,14 +2326,6 @@ public final class L1Translator
 			"lookup succeeded for " + callSiteHelper.quotedBundleName);
 		final L2BasicBlock lookupFailed = generator.createBasicBlock(
 			"lookup failed for " + callSiteHelper.quotedBundleName);
-		final L2BasicBlock onReificationDuringFailure =
-			generator.createBasicBlock(
-				"reify in method lookup failure handler for "
-					+ callSiteHelper.quotedBundleName);
-		final L2WriteBoxedOperand errorCodeWrite =
-			generator.boxedWriteTemp(
-				restrictionForType(
-					L2_LOOKUP_BY_VALUES.lookupErrorsType, BOXED));
 
 		final List<TypeRestriction> argumentRestrictions =
 			new ArrayList<>(nArgs);
@@ -2356,15 +2350,36 @@ public final class L1Translator
 		}
 		final A_Type functionTypeUnion = enumerationWith(
 			setFromCollection(possibleFunctions));
-		// At some point we might want to introduce a SemanticValue for tagging
-		// this register.
-		final L2WriteBoxedOperand functionWrite =
-			generator.boxedWriteTemp(
-				restrictionForType(functionTypeUnion, BOXED));
 		final List<L2ReadBoxedOperand> argumentReads =
 			semanticArguments.stream()
 				.map(a -> currentManifest().readBoxed(a))
 				.collect(toList());
+		// At some point we might want to introduce a SemanticValue for tagging
+		// this register.
+		if (functionTypeUnion.isBottom())
+		{
+			// There were no possible method definitions, so jump immediately to
+			// the lookup failure clause.  Don't generate the success case.
+			// For consistency, generate a jump to the lookupFailed exit point,
+			// then generate it immediately.
+			generator.addInstruction(L2_JUMP.instance, edgeTo(lookupFailed));
+			generator.startBlock(lookupFailed);
+			generateLookupFailure(
+				method,
+				callSiteHelper,
+				generator.boxedConstant(E_NO_METHOD_DEFINITION.numericCode()),
+				argumentRestrictions,
+				argumentReads);
+			return;
+		}
+		// It doesn't necessarily always fail, so try a lookup.
+		final L2WriteBoxedOperand functionWrite =
+			generator.boxedWriteTemp(
+				restrictionForType(functionTypeUnion, BOXED));
+		final L2WriteBoxedOperand errorCodeWrite =
+			generator.boxedWriteTemp(
+				restrictionForType(
+					L2_LOOKUP_BY_VALUES.lookupErrorsType, BOXED));
 		if (!callSiteHelper.isSuper)
 		{
 			// Not a super-call.
@@ -2440,43 +2455,18 @@ public final class L1Translator
 				edgeTo(lookupFailed));
 		}
 		// At this point, we've attempted to look up the method, and either
-		// jumped to lookupSucceeded with functionWrite set to the body function,
-		// or jumped to lookupFailed with errorCodeWrite set to the lookup error
-		// code.
+		// jumped to lookupSucceeded with functionWrite set to the body
+		// function, or jumped to lookupFailed with errorCodeWrite set to
+		// the lookup error code.
 
 		// Emit the lookup failure case.
 		generator.startBlock(lookupFailed);
-		final L2WriteBoxedOperand invalidSendReg =
-			generator.boxedWriteTemp(
-				restrictionForType(invalidMessageSendFunctionType, BOXED));
-		addInstruction(
-			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
-			invalidSendReg);
-		// Collect the argument types into a tuple type.
-		final List<A_Type> argTypes = argumentRestrictions.stream()
-			.map(argumentRestriction -> argumentRestriction.type)
-			.collect(toList());
-		final L2WriteBoxedOperand argumentsTupleWrite =
-			generator.boxedWriteTemp(
-				restrictionForType(tupleTypeForTypes(argTypes), BOXED));
-		addInstruction(
-			L2_CREATE_TUPLE.instance,
-			new L2ReadBoxedVectorOperand(argumentReads),
-			argumentsTupleWrite);
-		addInstruction(
-			L2_INVOKE.instance,
-			readBoxed(invalidSendReg),
-			new L2ReadBoxedVectorOperand(
-				asList(
-					readBoxed(errorCodeWrite),
-					generator.boxedConstant(method),
-					readBoxed(argumentsTupleWrite))),
-			generator.unreachablePcOperand(),
-			edgeTo(onReificationDuringFailure));
-
-		// Reification has been requested while the failure call is in progress.
-		generator.startBlock(onReificationDuringFailure);
-		reify(bottom(), TO_RETURN_INTO);
+		generateLookupFailure(
+			method,
+			callSiteHelper,
+			readBoxed(errorCodeWrite),
+			argumentRestrictions,
+			argumentReads);
 
 		// Now invoke the method definition's body.  We've already examined all
 		// possible method definition bodies to see if they all conform with the
@@ -2502,6 +2492,66 @@ public final class L1Translator
 				true,
 				callSiteHelper);
 		}
+	}
+
+	/**
+	 * Generate code to report a lookup failure.
+	 *
+	 * @param method
+	 *        The
+	 * @param callSiteHelper
+	 *        Information about the method call site.
+	 * @param errorCodeRead
+	 *        The register containing the numeric {@link AvailErrorCode}
+	 *        indicating the lookup problem.
+	 * @param argumentRestrictions
+	 *        The {@link TypeRestriction}s on the arguments.
+	 * @param argumentReads
+	 *        The source {@link L2ReadBoxedVectorOperand}s supplying arguments.
+	 */
+	private void generateLookupFailure (
+		final A_Method method,
+		final CallSiteHelper callSiteHelper,
+		final L2ReadBoxedOperand errorCodeRead,
+		final List<TypeRestriction> argumentRestrictions,
+		final List<L2ReadBoxedOperand> argumentReads)
+	{
+		final L2WriteBoxedOperand invalidSendReg =
+			generator.boxedWriteTemp(
+				restrictionForType(invalidMessageSendFunctionType, BOXED));
+		addInstruction(
+			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+			invalidSendReg);
+		// Collect the argument types into a tuple type.
+		final List<A_Type> argTypes = argumentRestrictions.stream()
+			.map(argumentRestriction -> argumentRestriction.type)
+			.collect(toList());
+		final L2WriteBoxedOperand argumentsTupleWrite =
+			generator.boxedWriteTemp(
+				restrictionForType(tupleTypeForTypes(argTypes), BOXED));
+		addInstruction(
+			L2_CREATE_TUPLE.instance,
+			new L2ReadBoxedVectorOperand(argumentReads),
+			argumentsTupleWrite);
+		final L2BasicBlock onReificationDuringFailure =
+			generator.createBasicBlock(
+				"reify in method lookup failure handler for "
+					+ callSiteHelper.quotedBundleName);
+		addInstruction(
+			L2_INVOKE.instance,
+			readBoxed(invalidSendReg),
+			new L2ReadBoxedVectorOperand(
+				asList(
+					errorCodeRead,
+					generator.boxedConstant(method),
+					readBoxed(argumentsTupleWrite))),
+			generator.unreachablePcOperand(),
+			edgeTo(onReificationDuringFailure));
+
+		// Reification has been requested while the failure call is in
+		// progress.
+		generator.startBlock(onReificationDuringFailure);
+		reify(bottom(), TO_RETURN_INTO);
 	}
 
 	/**
