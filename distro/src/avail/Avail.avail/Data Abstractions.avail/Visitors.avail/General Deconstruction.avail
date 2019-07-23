@@ -127,5 +127,5 @@ Public method "_'s⁇subcomponents" is
 [
 	value : variable
 |
-	<↓value>
+	if value is assigned then [<↓value>] else [<>]
 ];
