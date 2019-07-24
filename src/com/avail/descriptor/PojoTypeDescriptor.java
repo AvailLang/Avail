@@ -956,7 +956,7 @@ extends TypeDescriptor
 		}
 		else
 		{
-			availObject = newPojo(identityPojo(object), type);
+			availObject = newPojo(equalityPojo(object), type);
 		}
 
 		if (!availObject.isInstanceOf(type))
