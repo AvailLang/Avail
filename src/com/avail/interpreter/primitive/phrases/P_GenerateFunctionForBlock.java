@@ -38,6 +38,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -85,18 +86,13 @@ extends Primitive
 		{
 			recursivelyValidate(block);
 		}
+		catch (final AvailRuntimeException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
 		catch (final Exception e)
 		{
 			return interpreter.primitiveFailure(E_BLOCK_IS_INVALID);
-		}
-		// The block is treated as a top-level construct, so it must not refer
-		// to any outer variables. Any blocks contained by this block may, of
-		// course, refer to outer variables – so long as they are defined by
-		// this block!
-		if (block.neededVariables().tupleSize() > 0)
-		{
-			return interpreter.primitiveFailure(
-				E_BLOCK_MUST_NOT_CONTAIN_OUTERS);
 		}
 		final A_RawFunction compiledCode;
 		try

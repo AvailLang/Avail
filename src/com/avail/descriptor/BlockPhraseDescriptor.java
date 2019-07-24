@@ -37,6 +37,7 @@ import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.serialization.SerializerOperation;
@@ -64,6 +65,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -716,7 +718,12 @@ extends PhraseDescriptor
 		final A_Phrase blockNode)
 	{
 		treeDoWithParent(blockNode, A_Phrase::validateLocally, null);
-		assert blockNode.neededVariables().tupleSize() == 0;
+		if (blockNode.neededVariables().tupleSize() != 0)
+		{
+			throw new AvailRuntimeException(
+				E_BLOCK_MUST_NOT_CONTAIN_OUTERS);
+
+		}
 	}
 
 	/**
