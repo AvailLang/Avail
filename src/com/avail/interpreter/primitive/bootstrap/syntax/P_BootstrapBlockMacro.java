@@ -104,16 +104,16 @@ public final class P_BootstrapBlockMacro extends Primitive
 			7, CanInline, Bootstrap);
 
 	/** The key to the client parsing data in the fiber's environment. */
-	final A_Atom clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom;
+	private final A_Atom clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom;
 
 	/** The key to the variable scope map in the client parsing data. */
-	final A_Atom scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom;
+	private final A_Atom scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom;
 
 	/** The key to the tuple of scopes to pop as blocks complete parsing. */
-	final A_Atom scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom;
+	private final A_Atom scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom;
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
+	private final A_Atom staticTokensKey = STATIC_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (
@@ -331,27 +331,40 @@ public final class P_BootstrapBlockMacro extends Primitive
 				throw new AvailRejectedParseException(
 					STRONG,
 					labelReturnType == null
-						? "final expression's type to agree with the declared "
-							+ "return type"
-						: "the union of the final expression's type and the "
+						? "final expression's type ("
+							+ deducedReturnType
+							+ ") to agree with the declared return type ("
+							+ declaredReturnType
+							+ ")"
+						: "the union ("
+							+ deducedReturnType
+							+ ") of the final expression's type and the "
 							+ "label's declared type to agree with the "
-							+ "declared return type");
+							+ "declared return type ("
+							+ declaredReturnType
+							+ ")");
 			}
 			if (primitiveReturnType != null
 				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
 					STRONG,
-					"primitive's intrinsic return type to agree with the "
-					+ "declared return type");
+					"primitive's intrinsic return type ("
+					+ primitiveReturnType
+					+ ") to agree with the declared return type ("
+					+ declaredReturnType
+					+ ")");
 			}
 			if (labelReturnType != null
 				&& !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
 					STRONG,
-					"label's declared return type to agree with the "
-					+ "function's declared return type");
+					"label's declared return type ("
+					+ labelReturnType
+					+ ") to agree with the function's declared return type ("
+					+ declaredReturnType
+					+ ")");
 			}
 		}
 		else if (primitiveReturnType != null)
