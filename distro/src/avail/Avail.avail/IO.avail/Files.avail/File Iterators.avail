@@ -584,13 +584,6 @@ Method "Write_to_" is
 ];
 
 
-
-/* TODO[MvG] Clean up when we have super sends. */
-_superRefresh ::= (method definition
-	of $"Refresh_"
-	for <random access buffered reader>
-)'s function;
-
 /**
  * Discard any buffers cached on behalf of this file, including the current
  * buffer.  This is intended to expose the cache coherence protocol underlying
@@ -612,14 +605,8 @@ Method "Refresh_" is
 	aReader : file reader
 |
 	Refresh aReader's element source with file system;
-	_superRefresh(aReader);
+	Refresh (aReader :: random access buffered reader);
 ] : ⊤;
-
-/* TODO[MvG] Clean up when we have super sends. */
-_superSynchronize ::= (method definition
-		of $"Synchronize_"
-		for <buffered writer>
-	)'s function;
 
 /**
  * Wait for all outstanding writes on this iterator to complete writing to the
@@ -638,7 +625,7 @@ Method "Synchronize_" is
 	/* First, flush the buffer if it's dirty. */
 	_privateWriteBuffer(aFileWriter);
 	/* Now abandon the buffer. */
-	_superSynchronize(aFileWriter);
+	Synchronize (aFileWriter :: buffered writer);
 	/* Finally, wait for the file system to say it has synchronized the file. */
 	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
 	hadError : boolean := false;

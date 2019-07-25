@@ -193,12 +193,6 @@ Method "_'s⁇position:=_" is
 	Assert: anIterator's position = newPosition;
 ];
 
-/* TODO[MvG] Clean up when we have super sends. */
-_superIsExhausted ::= (method definition
-		of $"_is exhausted"
-		for <random access buffered reader>
-	)'s function;
-
 Method "_is exhausted" is
 [
 	aReader : random access buffered reader
@@ -206,7 +200,7 @@ Method "_is exhausted" is
 	(¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|)
 		∧ [
 			oldPosition ::= aReader's position;
-			result ::= _superIsExhausted(aReader);
+			result ::= (aReader :: buffered reader) is exhausted;
 			aReader's buffer start := oldPosition;
 			result
 		]
