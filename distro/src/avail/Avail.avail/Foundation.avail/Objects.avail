@@ -75,14 +75,7 @@ Semantic restriction "_[_]" is
 	anObjectType : object's type,
 	field : atom's type
 |
-	if |field| = 1 then
-	[
-		anObjectType[field's instance]
-	]
-	else
-	[
-		any
-	]
+	if |field| = 1 then [anObjectType[field's instance]] else [any]
 ] : any's type;
 
 Method "_→object type" is stable at [field type map]→object meta;
@@ -1924,12 +1917,10 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	[
 		def ::= optional[1][index];
 		atomType ::= def[1];
+		If |def[2]| ≠ 1 then [Exit body with objectType];
 		assign ::= ¬def[2]'s instance;
 		valueType ::= def[3];
-		If |atomType| ≠ 1 then
-		[
-			Exit body with objectType
-		];
+		If |atomType| ≠ 1 then [Exit body with objectType];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[
@@ -2085,10 +2076,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	For each index from 1 to relevant |optional[1]| do
 	[
 		atomType, valueType ::= optional[1][index];
-		If |atomType| ≠ 1 then
-		[
-			Exit body with objectType
-		];
+		If |atomType| ≠ 1 then [Exit body with objectType];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[
