@@ -1916,6 +1916,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	meta : object meta's type,
 	optional : <<<atom, boolean, any…|3>…|1..>…|0..1>'s type
 |
+	$body : object meta;
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
 	assignments : field type map := {};
@@ -1927,7 +1928,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		valueType ::= def[3];
 		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "all field atoms to be known statically"
+			Exit body with objectType
 		];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
@@ -2077,6 +2078,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	meta : object meta's type,
 	optional : <<<atom, any…|2>…|1..>…|0..1>'s type
 |
+	$body : object meta;
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
 	assignments : field type map := instance→map;
@@ -2085,7 +2087,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 		atomType, valueType ::= optional[1][index];
 		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "all field atoms to be known statically"
+			Exit body with objectType
 		];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
