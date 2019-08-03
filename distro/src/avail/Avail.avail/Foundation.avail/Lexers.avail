@@ -390,7 +390,7 @@ is
 		delimiterSize ::= |startDelimiter|;
 		if delimiterSize < 3 then
 		[
-			Reject parse, expected:
+			Reject parse silently, expected:
 				format
 					"raw string to begin with three (3) or more “①” \
 					\|characters"
