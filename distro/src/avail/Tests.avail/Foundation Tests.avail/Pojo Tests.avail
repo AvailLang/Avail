@@ -151,7 +151,7 @@ Test "pojo static methods" in pojo test suite is
 	emptyMapMethod ::= static method java.util.Collections.emptyMap ();
 	currentTimeMethod ::= static method java.lang.System.currentTimeMillis ();
 
-	For each i in 1 to 10 do [Require: valueOfIntMethod(i) = “i”;];
+	For each i in 1 to 100 do [Require: valueOfIntMethod(i) = “i”;];
 	Require: emptySetMethod() ∈ java.util.Set<⊥>;
 	Require: emptyListMethod() ∈ java.util.List<⊥>;
 	Require: emptyMapMethod() ∈ java.util.Map<⊥, ⊥>;
@@ -176,11 +176,11 @@ Test "pojo instance methods" in pojo test suite is
 	lengthMethod ::= method string.length ();
 	substringMethod ::= method string.substring (Java int, Java int);
 
-	For	each i in 1 to 10 do [Require: hashMethod(i) = i;];
-	For	each i in 1 to 10 do [Require: (hashMethod(i)=i) = equalsMethod(i,i);];
-	For each i in 1 to 10 do [Require: intValueMethod(i) = i;];
-	For each i in 1 to 10 do [Require: doubleValueMethod(i) = i→double;];
-	For each i in 1 to 10 do [Require: longValueMethod(i→float) = i;];
+	For	each i in 1 to 100 do [Require: hashMethod(i) = i;];
+	For	each i in 1 to 100 do [Require: (hashMethod(i)=i) = equalsMethod(i,i);];
+	For each i in 1 to 100 do [Require: intValueMethod(i) = i;];
+	For each i in 1 to 100 do [Require: doubleValueMethod(i) = i→double;];
+	For each i in 1 to 100 do [Require: longValueMethod(i→float) = i;];
 	For each x in <"a", "aa", "aaa", "aaaa"> do
 		[Require: lengthMethod(x) = |x|;];
 	Require: substringMethod("mango", 0, 5) = "mango";
