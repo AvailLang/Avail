@@ -434,13 +434,13 @@ extends Descriptor
 		}
 		if (smaller.setSize() == 0)
 		{
-			if (larger.descriptor().isMutable() && !canDestroy)
+			if (!canDestroy && larger.descriptor().isMutable())
 			{
 				larger.makeImmutable();
 			}
 			return larger;
 		}
-		if (larger.descriptor().isMutable() && !canDestroy)
+		if (!canDestroy && larger.descriptor().isMutable())
 		{
 			larger.makeImmutable();
 		}

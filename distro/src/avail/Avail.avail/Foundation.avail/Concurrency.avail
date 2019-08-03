@@ -2973,3 +2973,87 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
  * @forbids 1 "future"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"future"}, ∅, ∅>;
+
+"variables encountered atom" is a new atom;
+"next variable ordinal atom" is a new atom;
+
+/**
+ * Answer the {@type "variable"}s encountered during the stringification ongoing
+ * on the {@method "current fiber"}, as a {@type "map"} from {@type "variable"}s
+ * to {@type "natural number" ordinals}.
+ *
+ * @method "variables encountered"
+ * @returns "{variable→natural number|}"
+ */
+Private method "variables encountered" is
+[
+	current fiber[variables encountered atom] else [{}]
+		?→ {variable→natural number|}
+];
+
+/**
+ * Update the {@type "map"} of {@type "variable"}s encountered during the
+ * stringification ongoing on the {@method "current fiber"}.
+ *
+ * @method "variables encountered"
+ * @param "var" "variable"
+ * @param "ordinal" "natural number"
+ * @returns "⊤"
+ */
+Private method "variables encountered[_]:=_" is
+[
+	var : variable,
+	ordinal : natural number
+|
+	current fiber[variables encountered atom] :=
+		variables encountered + var → ordinal;
+];
+
+/**
+ * Answer the next ordinal to use for a newly encountered {@type "variable"}
+ * during the stringification ongoing on the {@method "current fiber"}.
+ *
+ * @method "next variable ordinal"
+ * @returns "natural number"
+ */
+Private method "next variable ordinal" is
+[
+	next ::=
+		current fiber[next variable ordinal atom] else [1] ?→ natural number;
+	current fiber[next variable ordinal atom] := next + 1;
+	next
+];
+
+/**
+ * Suppress primitive description printing for {@type "variable"}s, as it leads
+ * to long, ugly compiler diagnostics.
+ *
+ * @method "“_”"
+ * @param "var" "variable"
+ * @returns "string"
+ */
+Method "“_”" is
+[
+	var : variable
+|
+	encountered ::= variables encountered;
+	if var ∈ variables encountered then ["var#" ++ “encountered[var]”]
+	else
+	[
+		ordinal ::= next variable ordinal;
+		variables encountered[var] := ordinal;
+		mustKill ::= ordinal = 1;
+		vT ::= var's type;
+		st : string := "var#" ++ “ordinal” ++ " : ";
+		st ++=
+			if vT's read type = vT's write type then [“vT's read type”]
+			else ["read "++“vT's read type” ++ "/write "++“vT's write type”];
+		If var is assigned then [st ++= " = " ++ “↓var”;];
+		If mustKill then
+		[
+			Remove current fiber[variables encountered atom];
+			Remove current fiber[next variable ordinal atom];
+		];
+		st
+	]
+];

@@ -126,7 +126,7 @@ Method "“_”" is
 [
 	t : tuple meta
 |
-	if |t| < ∞ then [primitive description of t]
+	if |t| < ∞ then [“(t :: nontype's type)”]
 	else
 	[
 		s : nonempty string := "<";
@@ -1778,7 +1778,7 @@ Semantic restriction "right fold_through_" is
 			++ “transformer[2]”
 			++ ")"
 	];
-	finalType
+	returnType
 ];
 
 /**

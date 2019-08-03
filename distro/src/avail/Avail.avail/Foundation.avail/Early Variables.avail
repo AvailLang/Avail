@@ -141,7 +141,8 @@ Public method "implicit observe function:=_" is
 ] : ⊤;
 
 /* Provide a bootstrap definition of the implicit observe function that crashes
- * whenever the implicit observe function is invoked.
+ * whenever the implicit observe function is invoked. We don't need to arrange
+ * to reset this behavior on unload, since it wouldn't help to do so.
  */
 implicit observe function :=
 	[

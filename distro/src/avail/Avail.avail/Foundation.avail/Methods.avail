@@ -70,33 +70,6 @@ Method "method for_" is
 ] : method;
 
 /**
- * @method "method definition of_for_"
- * @restricts "atom's type"
- * @restricts "<any meta…|>'s type"
- */
-Semantic restriction "method definition of_for_" is
-[
-	methodNameType : atom's type,
-	parametersType : <any meta…|>'s type
-|
-	result : type := ⊤;
-	If |methodNameType| = 1 ∧ ⎣parametersType⎦ = ⎡parametersType⎤ then
-	[
-		args : <any meta…|> := <>;
-		For each index from 1 to ⎣parametersType⎦ do
-		[
-			args := (eject args) ++ <parametersType[index]'s instance>;
-		];
-		methodName ::= methodNameType's instance;
-		If methodName has definition for args then
-		[
-			result := (method definition of methodName for args)'s type;
-		];
-	];
-	result
-];
-
-/**
  * @method "_'s⁇function"
  * @restricts "method definition's type"
  */

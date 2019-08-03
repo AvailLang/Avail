@@ -75,14 +75,7 @@ Semantic restriction "_[_]" is
 	anObjectType : object's type,
 	field : atom's type
 |
-	if |field| = 1 then
-	[
-		anObjectType[field's instance]
-	]
-	else
-	[
-		any
-	]
+	if |field| = 1 then [anObjectType[field's instance]] else [any]
 ] : any's type;
 
 Method "_→object type" is stable at [field type map]→object meta;
@@ -1447,95 +1440,93 @@ is
 		reconstructible ::= def[2]'s instance;
 		atomType ::= def[3];
 		newType ::= def[4]'s instance;
-		If |atomType| ≠ 1 then
+		If |atomType| = 1 then
 		[
-			Reject parse, expected:
-				"all field atoms to be known statically"
-		];
-		fieldAtom ::= atomType's instance;
-		nameType ::= if def[5][1] = ⊥
-			then [fieldAtom's default accessor name's type]
-			else [def[5][1]];
-		If publicField then
-		[
-			If ¬public then
+			fieldAtom ::= atomType's instance;
+			nameType ::= if def[5][1] = ⊥
+				then [fieldAtom's default accessor name's type]
+				else [def[5][1]];
+			If publicField then
 			[
-				Reject parse, expected:
-					"field atom \""
-					++ fieldAtom's name
-					++ "\" to be private (because the class is private)"
-			];
-			If |nameType| ≠ 1 then
-			[
-				Reject parse, expected:
-					"accessor name for public field atom \""
-					++ fieldAtom's name
-					++ "\" to be statically known"
-			];
-			accessorName ::= nameType's instance;
-			If |message accessorName's parameters| ≠ 1 then
-			[
-				Reject parse, expected:
-					"accessor name \""
-					++ accessorName
-					++ "\" to specify exactly one underscore"
-			];
-			namesByAtom := eject namesByAtom + fieldAtom → accessorName;
-			extantName ::= cast fieldAtom[accessor name] else [accessorName]
-				into [t : nonempty string | t];
-			If accessorName ≠ extantName then
-			[
-				Reject parse, expected:
-					"accessor name \""
-					++ accessorName
-					++ "\" to agree with previous definition ("
-					++ extantName
-					++ ")"
-			];
-			If ¬accessorName ∈ publicNames then
-			[
-				Reject parse, expected:
-					"\""
-					++ accessorName
-					++ "\" to be included in the module's \"Names\" section\
-					\| (because it is public)"
-			];
-			If reconstructible then
-			[
-				reconstructorName ::= reconstructor name for <accessorName>;
-				If ¬reconstructorName ∈ publicNames then
+				If ¬public then
+				[
+					Reject parse, expected:
+						"field atom \""
+						++ fieldAtom's name
+						++ "\" to be private (because the class is private)"
+				];
+				If |nameType| ≠ 1 then
+				[
+					Reject parse, expected:
+						"accessor name for public field atom \""
+						++ fieldAtom's name
+						++ "\" to be statically known"
+				];
+				accessorName ::= nameType's instance;
+				If |message accessorName's parameters| ≠ 1 then
+				[
+					Reject parse, expected:
+						"accessor name \""
+						++ accessorName
+						++ "\" to specify exactly one underscore"
+				];
+				namesByAtom := eject namesByAtom + fieldAtom → accessorName;
+				extantName ::= cast fieldAtom[accessor name] else [accessorName]
+					into [t : nonempty string | t];
+				If accessorName ≠ extantName then
+				[
+					Reject parse, expected:
+						"accessor name \""
+						++ accessorName
+						++ "\" to agree with previous definition ("
+						++ extantName
+						++ ")"
+				];
+				If ¬accessorName ∈ publicNames then
 				[
 					Reject parse, expected:
 						"\""
-						++ reconstructorName
-						++ "\" to be included in the module's \"Names\"\
-							\| section (because it is public)"
+						++ accessorName
+						++ "\" to be included in the module's \"Names\" section\
+						\| (because it is public)"
 				];
+				If reconstructible then
+				[
+					reconstructorName ::= reconstructor name for <accessorName>;
+					If ¬reconstructorName ∈ publicNames then
+					[
+						Reject parse, expected:
+							"\""
+							++ reconstructorName
+							++ "\" to be included in the module's \"Names\"\
+								\| section (because it is public)"
+					];
+				];
+				allNamesTuple := eject allNamesTuple ++ <accessorName>;
 			];
-			allNamesTuple := eject allNamesTuple ++ <accessorName>;
+			If fieldAtom ∈ newDefinitions then
+			[
+				Reject parse, expected:
+					fieldAtom's name
+					++ " to appear only once during extension (but it already\
+					\| appeared with type = "
+					++ “newDefinitions[fieldAtom]”
+					++ ")"
+			];
+			oldType ::= oldDefinitions[fieldAtom] else [any];
+			If ¬newType ⊆ oldType then
+			[
+				Reject parse, expected:
+					"covariant specialization of "
+					++ fieldAtom's name
+					++ " (but new field type "
+					++ “newType”
+					++ " is not a subtype of "
+					++ “oldType”
+					++ ")"
+			];
+			newDefinitions := eject newDefinitions + fieldAtom→newType;
 		];
-		If fieldAtom ∈ newDefinitions then
-		[
-			Reject parse, expected:
-				fieldAtom's name
-				++ " to appear only once during extension (but it already\
-				\| appeared with type = "
-				++ “newDefinitions[fieldAtom]”
-				++ ")"
-		];
-		oldType ::= oldDefinitions[fieldAtom] else [any];
-		If ¬newType ⊆ oldType then
-		[
-			Reject parse, expected:
-				"covariant specialization of "
-				++ fieldAtom's name
-				++ " (but new field type "
-				++ “newType”
-				++ " is not a subtype of "
-				++ “oldType”
-				++ ")"
-		];
-		newDefinitions := eject newDefinitions + fieldAtom→newType;
 	];
 	For each index from 1 to relevant |optionalMutable[1]| do
 	[
@@ -1545,203 +1536,201 @@ is
 		readOnly ::= def[4]'s instance;
 		atomType ::= def[5];
 		newType ::= def[6]'s instance;
-		If |atomType| ≠ 1 then
+		If |atomType| = 1 then
 		[
-			Reject parse, expected:
-				"all field atoms to be known statically"
-		];
-		fieldAtom ::= atomType's instance;
-		orderedNames : <nonempty string's type…|3> :=
-		<
-			fieldAtom's default accessor name's type,
-			fieldAtom's default mutator name's type,
-			fieldAtom's default referrer name's type
-		>;
-		If def[7][1] ≠ ⊥ then
-		[
-			namesType ::= def[7][1];
-			choicesSeen : {[1..3]|} := ∅;
-			For each nameIndex from 1 to relevant |namesType| do
+			fieldAtom ::= atomType's instance;
+			orderedNames : <nonempty string's type…|3> :=
+			<
+				fieldAtom's default accessor name's type,
+				fieldAtom's default mutator name's type,
+				fieldAtom's default referrer name's type
+			>;
+			If def[7][1] ≠ ⊥ then
 			[
-				nameTuple ::= namesType[nameIndex];
-				choice ::= nameTuple[1]'s instance;
-				If choice ∈ choicesSeen then
+				namesType ::= def[7][1];
+				choicesSeen : {[1..3]|} := ∅;
+				For each nameIndex from 1 to relevant |namesType| do
 				[
-					choiceNames ::= <"accessor", "mutator", "referrer">;
-					Reject parse, expected:
-						choiceNames[choice]
-						++ " name not to be supplied more than once"
+					nameTuple ::= namesType[nameIndex];
+					choice ::= nameTuple[1]'s instance;
+					If choice ∈ choicesSeen then
+					[
+						choiceNames ::= <"accessor", "mutator", "referrer">;
+						Reject parse, expected:
+							choiceNames[choice]
+							++ " name not to be supplied more than once"
+					];
+					choicesSeen := eject choicesSeen + choice;
+					orderedNames := eject orderedNames[choice]→nameTuple[2];
 				];
-				choicesSeen := eject choicesSeen + choice;
-				orderedNames := eject orderedNames[choice]→nameTuple[2];
 			];
-		];
-		If publicField then
-		[
-			If ¬public then
+			If publicField then
 			[
-				Reject parse, expected:
-					"field atom \""
-					++ fieldAtom's name
-					++ "\" to be private (because the class is private)"
-			];
-			If |orderedNames[1]| ≠ 1 then
-			[
-				Reject parse, expected:
-					"accessor name for public field atom \""
-					++ fieldAtom's name
-					++ "\" to be statically known"
-			];
-			accessorName ::= orderedNames[1]'s instance;
-			If |message accessorName's parameters| ≠ 1 then
-			[
-				Reject parse, expected:
-					"accessor name \""
-					++ accessorName
-					++ "\" to specify exactly one underscore"
-			];
-			extantAccessorName ::=
-				cast fieldAtom[accessor name] else [accessorName]
-				into [t : nonempty string | t];
-			If accessorName ≠ extantAccessorName then
-			[
-				Reject parse, expected:
-					"accessor name \""
-					++ accessorName
-					++ "\" to agree with previous definition ("
-					++ extantAccessorName
-					++ ")"
-			];
-			If ¬accessorName ∈ publicNames then
-			[
-				Reject parse, expected:
-					"\""
-					++ accessorName
-					++ "\" to be included in the module's \"Names\" section\
-					\| (because it is public)"
-			];
-			allNamesTuple := eject allNamesTuple ++ <accessorName>;
-			If referable then
-			[
-				If |orderedNames[3]| ≠ 1 then
+				If ¬public then
 				[
 					Reject parse, expected:
-						"referrer name for public field atom \""
+						"field atom \""
+						++ fieldAtom's name
+						++ "\" to be private (because the class is private)"
+				];
+				If |orderedNames[1]| ≠ 1 then
+				[
+					Reject parse, expected:
+						"accessor name for public field atom \""
 						++ fieldAtom's name
 						++ "\" to be statically known"
 				];
-				referrerName ::= orderedNames[3]'s instance;
-				If |message referrerName's parameters| ≠ 1 then
+				accessorName ::= orderedNames[1]'s instance;
+				If |message accessorName's parameters| ≠ 1 then
 				[
 					Reject parse, expected:
-						"referrer name \""
-						++ referrerName
+						"accessor name \""
+						++ accessorName
 						++ "\" to specify exactly one underscore"
 				];
-				extantReferrerName ::=
-					cast fieldAtom[referrer name] else [referrerName]
+				extantAccessorName ::=
+					cast fieldAtom[accessor name] else [accessorName]
 					into [t : nonempty string | t];
-				If referrerName ≠ extantReferrerName then
+				If accessorName ≠ extantAccessorName then
 				[
 					Reject parse, expected:
-						"referrer name \""
-						++ referrerName
+						"accessor name \""
+						++ accessorName
 						++ "\" to agree with previous definition ("
-						++ extantReferrerName
+						++ extantAccessorName
 						++ ")"
 				];
-				If ¬referrerName ∈ publicNames then
+				If ¬accessorName ∈ publicNames then
 				[
 					Reject parse, expected:
 						"\""
-						++ referrerName
-						++ "\" to be included in the module's \"Names\"\
-							\| section (because it is public)"
+						++ accessorName
+						++ "\" to be included in the module's \"Names\" section\
+						\| (because it is public)"
 				];
-				allNamesTuple := eject allNamesTuple ++ <referrerName>;
-			]
-			else
-			[
-				If def[7][1] ≠ ⊥ then
+				allNamesTuple := eject allNamesTuple ++ <accessorName>;
+				If referable then
 				[
-					namesType ::= def[7][1];
-					For each nameIndex from 1 to relevant |namesType| do
+					If |orderedNames[3]| ≠ 1 then
 					[
-						nameTuple ::= namesType[nameIndex];
-						choice ::= nameTuple[1]'s instance;
-						If choice = 3 then
+						Reject parse, expected:
+							"referrer name for public field atom \""
+							++ fieldAtom's name
+							++ "\" to be statically known"
+					];
+					referrerName ::= orderedNames[3]'s instance;
+					If |message referrerName's parameters| ≠ 1 then
+					[
+						Reject parse, expected:
+							"referrer name \""
+							++ referrerName
+							++ "\" to specify exactly one underscore"
+					];
+					extantReferrerName ::=
+						cast fieldAtom[referrer name] else [referrerName]
+						into [t : nonempty string | t];
+					If referrerName ≠ extantReferrerName then
+					[
+						Reject parse, expected:
+							"referrer name \""
+							++ referrerName
+							++ "\" to agree with previous definition ("
+							++ extantReferrerName
+							++ ")"
+					];
+					If ¬referrerName ∈ publicNames then
+					[
+						Reject parse, expected:
+							"\""
+							++ referrerName
+							++ "\" to be included in the module's \"Names\"\
+								\| section (because it is public)"
+					];
+					allNamesTuple := eject allNamesTuple ++ <referrerName>;
+				]
+				else
+				[
+					If def[7][1] ≠ ⊥ then
+					[
+						namesType ::= def[7][1];
+						For each nameIndex from 1 to relevant |namesType| do
 						[
-							Reject parse, expected:
-								"referrer name to be omitted for non-referable \
-								\|field \""
-								++ fieldAtom's name
-								++ "\""
+							nameTuple ::= namesType[nameIndex];
+							choice ::= nameTuple[1]'s instance;
+							If choice = 3 then
+							[
+								Reject parse, expected:
+									"referrer name to be omitted for \
+									\|non-referable field \""
+									++ fieldAtom's name
+									++ "\""
+							];
 						];
 					];
 				];
+				Unless readOnly then
+				[
+					If |orderedNames[2]| ≠ 1 then
+					[
+						Reject parse, expected:
+							"mutator name for public field atom \""
+							++ fieldAtom's name
+							++ "\" to be statically known"
+					];
+					mutatorName ::= orderedNames[2]'s instance;
+					If |message mutatorName's parameters| ≠ 2 then
+					[
+						Reject parse, expected:
+							"mutator name \""
+							++ mutatorName
+							++ "\" to specify exactly two underscores"
+					];
+					extantMutatorName ::=
+						cast fieldAtom[mutator name] else [mutatorName]
+						into [t : nonempty string | t];
+					If mutatorName ≠ extantMutatorName then
+					[
+						Reject parse, expected:
+							"mutator name \""
+							++ mutatorName
+							++ "\" to agree with previous definition ("
+							++ extantMutatorName
+							++ ")"
+					];
+					If ¬mutatorName ∈ publicNames then
+					[
+						Reject parse, expected:
+							"\""
+							++ mutatorName
+							++ "\" to be included in the module's \"Names\"\
+								\| section (because it is public)"
+					];
+					allNamesTuple := eject allNamesTuple ++ <mutatorName>;
+				];
 			];
-			Unless readOnly then
+			If fieldAtom ∈ newDefinitions then
 			[
-				If |orderedNames[2]| ≠ 1 then
-				[
-					Reject parse, expected:
-						"mutator name for public field atom \""
-						++ fieldAtom's name
-						++ "\" to be statically known"
-				];
-				mutatorName ::= orderedNames[2]'s instance;
-				If |message mutatorName's parameters| ≠ 2 then
-				[
-					Reject parse, expected:
-						"mutator name \""
-						++ mutatorName
-						++ "\" to specify exactly two underscores"
-				];
-				extantMutatorName ::=
-					cast fieldAtom[mutator name] else [mutatorName]
-					into [t : nonempty string | t];
-				If mutatorName ≠ extantMutatorName then
-				[
-					Reject parse, expected:
-						"mutator name \""
-						++ mutatorName
-						++ "\" to agree with previous definition ("
-						++ extantMutatorName
-						++ ")"
-				];
-				If ¬mutatorName ∈ publicNames then
-				[
-					Reject parse, expected:
-						"\""
-						++ mutatorName
-						++ "\" to be included in the module's \"Names\"\
-							\| section (because it is public)"
-				];
-				allNamesTuple := eject allNamesTuple ++ <mutatorName>;
+				Reject parse, expected:
+					fieldAtom's name
+					++ " to appear only once during extension (but it already\
+					\| appeared with type = "
+					++ “newDefinitions[fieldAtom]”
+					++ ")"
 			];
+			oldType ::= oldDefinitions[fieldAtom] else [newType];
+			Unless newType = oldType then
+			[
+				Reject parse, expected:
+					"equivalent specification of "
+					++ fieldAtom's name
+					++ " (but new field type "
+					++ “newType”
+					++ " is not equivalent to "
+					++ “oldType”
+					++ ")"
+			];
+			newDefinitions := eject newDefinitions + fieldAtom→newType;
 		];
-		If fieldAtom ∈ newDefinitions then
-		[
-			Reject parse, expected:
-				fieldAtom's name
-				++ " to appear only once during extension (but it already\
-				\| appeared with type = "
-				++ “newDefinitions[fieldAtom]”
-				++ ")"
-		];
-		oldType ::= oldDefinitions[fieldAtom] else [newType];
-		Unless newType = oldType then
-		[
-			Reject parse, expected:
-				"equivalent specification of "
-				++ fieldAtom's name
-				++ " (but new field type "
-				++ “newType”
-				++ " is not equivalent to "
-				++ “oldType”
-				++ ")"
-		];
-		newDefinitions := eject newDefinitions + fieldAtom→newType;
 	];
 	For each index from 1 to relevant |optionalReconstructors[1]| do
 	[
@@ -1752,14 +1741,12 @@ is
 		For each atomTypeIndex from 1 to relevant |atomsType| do
 		[
 			atomType ::= atomsType[atomTypeIndex];
-			If |atomType| ≠ 1 then
+			If |atomType| = 1 then
 			[
-				Reject parse, expected:
-					"all reconstructor field atoms to be known statically"
+				fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
 			];
-			fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
 		];
-		If publicSpec then
+		If publicSpec ∧ |fieldAtoms| = relevant |atomsType| then
 		[
 			nonemptyFieldAtoms ::= cast fieldAtoms into [ t : atom+ | t ];
 			reconstructorName ::= reconstructor name for
@@ -1922,6 +1909,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	meta : object meta's type,
 	optional : <<<atom, boolean, any…|3>…|1..>…|0..1>'s type
 |
+	$body : object meta;
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
 	assignments : field type map := {};
@@ -1929,12 +1917,10 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	[
 		def ::= optional[1][index];
 		atomType ::= def[1];
+		If |def[2]| ≠ 1 then [Exit body with objectType];
 		assign ::= ¬def[2]'s instance;
 		valueType ::= def[3];
-		If |atomType| ≠ 1 then
-		[
-			Reject parse, expected: "all field atoms to be known statically"
-		];
+		If |atomType| ≠ 1 then [Exit body with objectType];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[
@@ -2083,16 +2069,14 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	meta : object meta's type,
 	optional : <<<atom, any…|2>…|1..>…|0..1>'s type
 |
+	$body : object meta;
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
 	assignments : field type map := instance→map;
 	For each index from 1 to relevant |optional[1]| do
 	[
 		atomType, valueType ::= optional[1][index];
-		If |atomType| ≠ 1 then
-		[
-			Reject parse, expected: "all field atoms to be known statically"
-		];
+		If |atomType| ≠ 1 then [Exit body with objectType];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[

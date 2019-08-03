@@ -131,6 +131,12 @@ extends Descriptor
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
+	@Override boolean o_HasValue (AvailObject object)
+	{
+		// A pojo final field has a value by definition.
+		return true;
+	}
+
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{

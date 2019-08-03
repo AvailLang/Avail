@@ -81,8 +81,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
 	{
-		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO))
-			|| !object.slot(KIND).equals(aPojo.slot(KIND)))
+		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO)))
 		{
 			return false;
 		}

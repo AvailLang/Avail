@@ -314,6 +314,30 @@ Public method "`«<«_‡,»>`»" is
 	aTuple → list phrase
 ] : list phrase;
 
+Semantic restriction "`«<«_‡,»>`»" is
+[
+	tTuple : <<>, expression phrase⇒any…|whole number>'s type
+|
+	leadingTypesSize ::= |tTuple's leading types|;
+	defaultTypeIndex ::= cast leadingTypesSize + 1 into [x : natural number|x];
+	semanticTypes : tuple of any meta := <>;
+	From 1 to defaultTypeIndex do
+	[
+		i : natural number
+	|
+		phraseType ::= cast tTuple[i] into [x : phrase meta | x];
+		semanticType ::= phraseType's semantic type;
+		semanticTypes :=
+			cast concatenate <semanticTypes, <semanticType>>
+			into [x : tuple of any meta | x];
+		true
+	];
+	defaultType ::= cast semanticTypes[defaultTypeIndex] into [x : any meta|x];
+	leadingSemanticTypes ::=
+		cast semanticTypes[1..leadingTypesSize] into [x : tuple of any meta|x];
+	list phrase ⇒ <leadingSemanticTypes, defaultType… | ||tTuple||>
+];
+
 /**
  * Construct and answer a block from the specified argument declarations,
  * statements, and return type.
@@ -617,4 +641,18 @@ Public method "real source position" is
 Public method "real source line number" is
 [
 	integer range from 1 (inclusive=true) to 268435455 (inclusive=true)
+];
+
+Method "“_”" is
+[
+	lit : literal token ⇒ any
+|
+	“lit's value”
+];
+
+Method "“_”" is
+[
+	lit : literal phrase ⇒ any
+|
+	“lit's token”
 ];

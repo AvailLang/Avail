@@ -47,6 +47,7 @@ Uses
 	"Literals",
 	"Logic",
 	"Maps",
+	"Macro Support",
 	"Math",
 	"Sets",
 	"Tuples",
@@ -79,8 +80,13 @@ Names
 	"_→string",
 
 	/* Hexadecimal. */
+	"hexadecimal character",
 	"“_”(hex)",
+
+	/* UUIDs. */
+	"UUID string",
 	"“_”(UUID)",
+	"_→UUID",
 
 	/* Trimming. */
 	"trim_",
@@ -1896,6 +1902,33 @@ Semantic restriction "“_”(hex)" is
 	<<>, character… | [⎣bytes⎦ × 2 .. ⎡bytes⎤ × 2 + 1)>
 ];
 
+hexChar ::= enumeration of ¢0 to ¢9 ++ ¢A to ¢F → set;
+
+Public macro "hexadecimal character" is [‘hexChar’];
+
+uuidString ::=
+	<
+		hexChar, hexChar, hexChar, hexChar,
+			hexChar, hexChar, hexChar, hexChar,
+		{¢-}ᵀ,
+		hexChar, hexChar, hexChar, hexChar,
+		{¢-}ᵀ,
+		hexChar, hexChar, hexChar, hexChar,
+		{¢-}ᵀ,
+		hexChar, hexChar, hexChar, hexChar,
+		{¢-}ᵀ,
+		hexChar…
+	|36>;
+
+/**
+ * A {@type "UUID string"} is a standard 36-character hexadecimal rendition of a
+ * {@type "UUID"}.
+ *
+ * @type "UUID string"
+ * @alias "<character…|36>"
+ */
+Public macro "UUID string" is [‘uuidString’];
+
 /**
  * Render the supplied {@type "UUID"} as a hexadecimal textual representation.
  *
@@ -1917,11 +1950,34 @@ Public stable method "“_”(UUID)" is
 		(hex[21..32])
 ] : nonempty string;
 
-Semantic restriction "“_”(UUID)" is
+Semantic restriction "“_”(UUID)" is [uuid : UUID's type | UUID string];
+
+hexToValue ::= map each c, i of baseAlphabetTuple[1..16] through [<c, i-1>]→map;
+
+/**
+ * Convert the supplied {@type "UUID string"} to a {@type "UUID"}.
+ *
+ * @method "_→UUID"
+ * @param "s" "UUID string"
+ * @returns "UUID"
+ */
+Public stable method "_→UUID" is
 [
-	uuid : UUID's type
+	s : UUID string
 |
-	<character…|36>
+	hex ::= concatenate <s[1..8], s[10..13], s[15..18], s[20..23], s[25..36]>;
+	uuid : UUID := 16 of 0;
+	For each index from 1 to 16 do
+	[
+		hexIndex ::= ((index - 1) << 1) + 1;
+		highChar ::= hex[hexIndex];
+		lowChar ::= hex[hexIndex + 1];
+		high ::= (hexToValue[highChar] bit∧ 15) << 4;
+		low ::= hexToValue[lowChar] bit∧ 15;
+		b ::= cast high bit∨ low into [b : byte | b];
+		uuid := uuid[index] → b;
+	];
+	uuid
 ];
 
 /**

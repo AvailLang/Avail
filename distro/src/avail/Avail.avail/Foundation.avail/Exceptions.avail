@@ -1849,6 +1849,15 @@ Private method "unassigned variable read function:=_" is
 	Primitive SetUnassignedVariableAccessFunction;
 ] : ⊤;
 
+/* Revert the unassigned variable read reflex to the bootstrap mechanism upon
+ * unloading this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	unassigned variable read function :=
+		[Crash: "unassigned variable read function"];
+];
+
 /* Raise a cannot-read-unassigned-variable exception whenever an unassigned
  * variable is read.
  */
@@ -1878,6 +1887,21 @@ Private method "unexpected result function:=_" is
 |
 	Primitive SetResultDisagreedWithExpectedTypeFunction;
 ] : ⊤;
+
+/* Revert the unexpected result reflex to the bootstrap mechanism upon unloading
+ * this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	unexpected result function :=
+		[
+    		badMessage : function,
+    		expectedType : type,
+    		actualValue : ↑any
+    	|
+    		Crash: <badMessage, expectedType, actualValue>
+    	];
+];
 
 /* Raise a result-disagreed-with-expected-type whenever a method send produces
  * a result whose type disagrees with the expected type as determined at
@@ -1941,6 +1965,26 @@ Private method "invalid method send function:=_" is
 
 "looked up method" is a new atom;
 "looked up arguments" is a new atom;
+
+/* Revert the invalid method send reflex to the bootstrap mechanism upon
+ * unloading this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	invalid method send function :=
+		[
+			code : {
+				no-method code,
+				no-method-definition code,
+				ambiguous-method-definition code,
+				forward-method-definition code,
+				abstract-method-definition code}ᵀ,
+			theMethod : method,
+			arguments : tuple
+		|
+			Crash: <code, theMethod, arguments>
+		] : ⊥;
+];
 
 /* Raise the appropriate exception whenever a message send fails dynamically. */
 invalid method send function :=
