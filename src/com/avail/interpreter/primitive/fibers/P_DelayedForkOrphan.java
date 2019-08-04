@@ -64,6 +64,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
@@ -139,7 +140,9 @@ extends Primitive
 			() -> formatString(
 				"Delayed fork orphan, %s, %s:%d",
 				code.methodName(),
-				code.module().moduleName(),
+				code.module().equalsNil()
+					? emptyTuple()
+					: code.module().moduleName(),
 				code.startingLineNumber()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

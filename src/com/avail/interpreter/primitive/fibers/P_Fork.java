@@ -57,6 +57,7 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
@@ -92,7 +93,8 @@ extends Primitive
 		final A_Number priority = interpreter.argument(2);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
-		if (function.code().numArgs() != numArgs)
+		final A_RawFunction code = function.code();
+		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -121,13 +123,13 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			() ->
-			{
-				final A_RawFunction code = function.code();
-				return
-					formatString("Fork, %s, %s:%d", code.methodName(),
-						code.module().moduleName(), code.startingLineNumber());
-			});
+			() -> formatString(
+				"Fork, %s, %s:%d",
+				code.methodName(),
+				code.module().equalsNil()
+					? emptyTuple()
+					: code.module().moduleName(),
+				code.startingLineNumber()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
