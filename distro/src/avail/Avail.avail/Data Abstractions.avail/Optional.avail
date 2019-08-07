@@ -37,37 +37,45 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
-	"absent",
+	/* Optional. */
 	"optional_",
-	"present_",
-	"none",
-	"+_",
+		/* subclasses */
+		"absent",
+			/* constructors */
+			"none",
+		"present_",
+			/* constructors */
+			"``_",
+		/* methods */
+		"_'s⁇value",
+
+	/* Control structures. */
 	"When_is present do_",
 	"When|when_is present do_else_",
-	"_'s⁇value",
 
 	/* Test suites. */
 	"optional test suite"
 Body
 
-_actualValue ::= $"actual value";
-Private method "actual value" is [_actualValue];
+"actual value" is a new atom;
 
 /**
  * The null antipattern is generally to be avoided, because it effectively
  * asserts the existence of an instance of the bottom type. There are times,
  * however, when the presence of a value should be structurally optional. The
- * "optional" type satisfies this niche. Its concrete subtypes, "present" and
- * "absent", indicate the presence and absence of a value, respectively.
+ * {@type "optional"} type satisfies this niche. Its concrete subtypes,
+ * {@type "present"} and {@type "absent"}, indicate the presence and absence of
+ * a value, respectively.
  *
- * Note that this facility offers nothing technical beyond what tuple types
- * provide, though it is intended to satisfy its niche in a more first-order
- * fashion.
+ * What this facility offers beyond what {@type "any?"} offers is 1) a more
+ * first-order mechanism and 2) another dispatch opportunity for cases where
+ * {@type "tuple"} must be used generally and cannot be understood specially in
+ * its {@type "any?"} specialization.
  *
  * @type "optional"
  */
 Explicit class "optional" extends object
-	with fields
+	with field
 		actual value : any?;
 
 /**
@@ -80,7 +88,7 @@ Explicit class "optional" extends object
  * @returns "optional's type"
  *          An {@type "optional"} type parameterized by the argument.
  */
-Public method "optional_" is
+Public stable method "optional_" is
 [
 	valueType : any's type
 |
@@ -99,7 +107,7 @@ Semantic restriction "optional_" is
 ];
 
 /**
- * "present" is an {@type "optional"} that actually contains a value.
+ * {@type "present"} is an {@type "optional"} that actually contains a value.
  *
  * @type "present"
  * @supertype "optional"
@@ -117,7 +125,7 @@ Explicit class "present" extends optional
  * @returns "present's type"
  *          A {@type "present"} type parameterized by the argument.
  */
-Public method "present_" is
+Public stable method "present_" is
 [
 	valueType : any's type
 |
@@ -138,13 +146,13 @@ Semantic restriction "present_" is
 /**
  * Construct and answer a {@type "present"} that contains {@param "value"}.
  *
- * @method "+_"
+ * @method "``_"
  * @param "value" "any"
  *        A value.
  * @returns "present"
  *          A {@type "present"} that contains {@param "value"}.
  */
-Public method "+_" is
+Public stable method "``_" is
 [
 	value : any
 |
@@ -152,10 +160,10 @@ Public method "+_" is
 ] : present;
 
 /**
- * @method "+_"
+ * @method "``_"
  * @restricts "any's type"
  */
-Semantic restriction "+_" is
+Semantic restriction "``_" is
 [
 	valueType : any's type
 |
@@ -163,7 +171,7 @@ Semantic restriction "+_" is
 ];
 
 /**
- * "absent" is an {@type "optional"} that does not contain a value.
+ * {@type "absent"} is an {@type "optional"} that does not contain a value.
  *
  * @type "absent"
  * @supertype "optional"
@@ -181,7 +189,7 @@ _none ::= an absent with actual value ::= <>;
  * @returns "absent"
  *          An {@type "absent"}.
  */
-Public method "none" is [_none];
+Public stable method "none" is [_none];
 
 /**
  * Answer the value encapsulated by the argument.
@@ -192,7 +200,7 @@ Public method "none" is [_none];
  * @returns "any"
  *          The value encapsulated by the argument.
  */
-Public abstract method "_'s⁇value" is [optional]→any;
+Public stable abstract method "_'s⁇value" is [optional]→any;
 
 /**
  * Reject the current parse if the argument type is not statically known to be
@@ -236,6 +244,22 @@ Method "_'s⁇value" is
 	someValue : present
 |
 	someValue's actual value[1]
+] : any;
+
+/**
+ * Answer the value encapsulated by the argument.
+ *
+ * @method "_'s⁇value"
+ * @param "someValue" "present"
+ *        {@type "present" Some} value.
+ * @returns "any"
+ *          The encapsulated value.
+ */
+Method "_'s⁇value" is
+[
+	noValue : absent
+|
+	Shouldn't happen ("synthetic call extracted a value from an absent")
 ] : any;
 
 /**
@@ -329,22 +353,3 @@ Semantic restriction "When|when_is present do_else_" is
 	else if optionalType ⊆ absent then [elseBlock's return type]
 	else [presentBlock's return type ∪ elseBlock's return type]
 ];
-
-/*
-"optional test suite" is a new atom;
-New test suite optional test suite extends data abstractions test suite;
-
-Test "optional (present)" in optional test suite is
-[
-	opt : optional 5's type := +5;
-	value ::= when opt is present do [t : 5's type | t] else ["no"];
-	Require: value = 5;
-];
-
-Test "optional (absent)" in optional test suite is
-[
-	opt : optional 5's type := none;
-	value ::= when opt is present do [t : 5's type | t] else ["no"];
-	Require: value = "no";
-];
-*/

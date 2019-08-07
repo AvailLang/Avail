@@ -38,6 +38,7 @@ Extends
 	"Dates and Times",
 	"Graphs",
 	"Iterators",
+	"Optional",
 	"Pseudorandom Number Generation",
 	"Sequences",
 	"Streams",
