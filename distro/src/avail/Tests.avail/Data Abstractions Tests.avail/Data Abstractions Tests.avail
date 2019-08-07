@@ -43,6 +43,7 @@ Extends
 	),
 	"Dates and Times Tests",
 	"Iterators Tests",
+	"Optional Tests",
 	"Pseudorandom Number Generation Tests" = (
 		"Mersenne Twister test suite",
 		"pRNG test suite"
