@@ -38,7 +38,14 @@ Extends
 	"Dates and Times",
 	"Graphs",
 	"Iterators",
-	"Optional",
+	"Optional" =
+	(
+		"optional_",
+		"optional_" → "_`⁇",
+		"present_",
+		"present_" → "_‼",
+		…
+	),
 	"Pseudorandom Number Generation",
 	"Sequences",
 	"Streams",
