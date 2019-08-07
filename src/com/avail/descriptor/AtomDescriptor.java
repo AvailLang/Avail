@@ -408,8 +408,11 @@ extends Descriptor
 		writer.write("atom");
 		writer.write("atom name");
 		object.slot(NAME).writeTo(writer);
-		writer.write("issuing module");
-		object.slot(ISSUING_MODULE).writeSummaryTo(writer);
+		if (!object.slot(ISSUING_MODULE).equalsNil())
+		{
+			writer.write("issuing module");
+			object.slot(ISSUING_MODULE).writeSummaryTo(writer);
+		}
 		writer.endObject();
 	}
 

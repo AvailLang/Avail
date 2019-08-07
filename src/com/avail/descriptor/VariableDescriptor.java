@@ -669,8 +669,11 @@ extends Descriptor
 		writer.write("variable");
 		writer.write("variable type");
 		object.slot(KIND).writeTo(writer);
-		writer.write("value");
-		object.slot(VALUE).writeSummaryTo(writer);
+		if (!object.slot(VALUE).equalsNil())
+		{
+			writer.write("value");
+			object.slot(VALUE).writeSummaryTo(writer);
+		}
 		writer.endObject();
 	}
 
