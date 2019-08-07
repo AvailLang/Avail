@@ -91,11 +91,13 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
-import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
@@ -2893,7 +2895,10 @@ public final class Interpreter
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
-		newPrimitiveFunction(instance, nil, 0);
+		createFunction(
+			newPrimitiveRawFunction(instance, nil, 0),
+			emptyTuple()
+		).makeShared();
 
 	/**
 	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}

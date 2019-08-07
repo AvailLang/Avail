@@ -1085,7 +1085,7 @@ public final class AvailServer
 			for (final ModuleRoot root :
 				runtime.moduleNameResolver().moduleRoots().roots())
 			{
-				root.repository().clear();
+				root.clearRepository();
 			}
 			message = newSimpleSuccessMessage(command);
 		}

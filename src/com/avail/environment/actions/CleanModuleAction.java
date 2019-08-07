@@ -65,7 +65,7 @@ extends AbstractWorkbenchAction
 			// Delete an entire repository.
 			try
 			{
-				root.repository().clear();
+				root.clearRepository();
 			}
 			catch (final IndexedFileException e)
 			{

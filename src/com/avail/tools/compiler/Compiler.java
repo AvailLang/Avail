@@ -219,7 +219,7 @@ public final class Compiler
 	 * @return A global tracker to store information about the progress on
 	 *         all modules to be compiled.
 	 */
-	private static GlobalProgressReporter globalTracker(
+	private static GlobalProgressReporter globalTracker (
 		final CompilerConfiguration configuration)
 	{
 		return (processedBytes, totalBytes) ->
@@ -254,7 +254,7 @@ public final class Compiler
 			final @Nullable File dir = root.sourceDirectory();
 			if (dir != null && dir.isDirectory())
 			{
-				root.repository().clear();
+				root.clearRepository();
 			}
 		}
 	}
@@ -309,21 +309,10 @@ public final class Compiler
 
 		try
 		{
-			final @Nullable AvailBuilder builder;
-			if (configuration.compileModules()
-				|| configuration.generateDocumentation())
-			{
-				builder = new AvailBuilder(runtime);
-			}
-			else
-			{
-				builder = null;
-			}
-
 			// Compile modules.
 			if (configuration.compileModules())
 			{
-				assert builder != null;
+				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.buildTarget(
 					moduleName,
 					localTracker(configuration),
@@ -341,7 +330,7 @@ public final class Compiler
 			// Generate Stacks documentation.
 			if (configuration.generateDocumentation())
 			{
-				assert builder != null;
+				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.generateDocumentation(
 					moduleName, configuration.documentationPath());
 			}

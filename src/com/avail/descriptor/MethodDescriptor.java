@@ -73,7 +73,6 @@ import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,8 @@ import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
-import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
 import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
@@ -108,8 +108,7 @@ import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
 import static com.avail.utility.Locks.auto;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.nCopies;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -250,9 +249,13 @@ extends Descriptor
 		LEXER_OR_NIL;
 	}
 
+	/** An indication of whether a method or a macro is being created. */
 	public enum CreateMethodOrMacroEnum
 	{
+		/** Indicates a method is being created. */
 		CREATE_METHOD,
+
+		/** Indicates a macro is being created. */
 		CREATE_MACRO;
 	}
 
@@ -866,9 +869,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new {@code MethodDescriptor method}. It has no name yet,
-	 * but will before it gets used in a send phrase.  It gets named by virtue of
-	 * it being referenced by one or more {@linkplain MessageBundleDescriptor
+	 * Answer a new {@code MethodDescriptor method}. It has no name yet, but
+	 * will before it gets used in a send phrase.  It gets named by virtue of it
+	 * being referenced by one or more {@linkplain MessageBundleDescriptor
 	 * message bundle}s, each of which keeps track of how to parse it using that
 	 * bundle's name.  The bundles will be grouped into a bundle tree to allow
 	 * parsing of many possible message sends in aggregate.
@@ -894,8 +897,8 @@ extends Descriptor
 		result.setSlot(
 			SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple());
 		result.setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple());
-		final Set<L2Chunk> chunkSet = Collections.newSetFromMap(
-			new WeakHashMap<>());
+		final Set<L2Chunk> chunkSet =
+			synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 		result.setSlot(
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			identityPojo(chunkSet).makeShared());
@@ -1213,7 +1216,8 @@ extends Descriptor
 
 		/**
 		 * Define a macro.  Note that the variadic argument is for alternative
-		 * overrides, whereas the explicit list is for prefix functions.
+		 * overrides, whereas the explicit list is for prefix functions.  A
+		 * variant of this constructor elides that (uncommon) list.
 		 *
 		 * @param name
 		 *        The name of the method or macro being defined.
@@ -1239,9 +1243,9 @@ extends Descriptor
 		}
 
 		/**
-		 * Define a method.  Note that the variadic argument is for alternative
-		 * overrides, whereas the explicit list is for prefix functions.  A
-		 * variant of this constructor elides that (uncommon) list.
+		 * Define a method.  Note that another variant of this constructor
+		 * includes a list of prefix functions, indicating a macro should be
+		 * constructed.
 		 *
 		 * @param name
 		 *        The name of the method or macro being defined.
@@ -1305,27 +1309,41 @@ extends Descriptor
 			final A_Method method = bundle.bundleMethod();
 			for (final Primitive primitive : primitives)
 			{
-				final A_Function function = newPrimitiveFunction(
-					primitive, nil, 0);
+				final A_Function function =
+					createFunction(
+						newPrimitiveRawFunction(primitive, nil, 0),
+						emptyTuple());
 				final A_Definition definition;
-				if (createMethodOrMacro == CREATE_METHOD)
+				switch (createMethodOrMacro)
 				{
-					assert prefixFunctions.isEmpty();
-					definition = newMethodDefinition(
-						method,
-						nil,  // System definitions have no module.
-						function);
-				}
-				else
-				{
-					definition = newMacroDefinition(
-						method,
-						nil,  // System definitions have no module.
-						function,
-						tupleFromList(
-							prefixFunctions.stream()
-								.map(p -> newPrimitiveFunction(p, nil, 0))
-								.collect(toList())));
+					case CREATE_METHOD:
+					{
+						assert prefixFunctions.isEmpty();
+						definition = newMethodDefinition(
+							method,
+							nil,  // System definitions have no module.
+							function);
+						break;
+					}
+					case CREATE_MACRO:
+					{
+						definition = newMacroDefinition(
+							method,
+							nil,  // System definitions have no module.
+							function,
+							tupleFromList(
+								prefixFunctions.stream()
+									.map(p -> createFunction(
+										newPrimitiveRawFunction(p, nil, 0),
+										emptyTuple()))
+									.collect(toList())));
+						break;
+					}
+					default:
+					{
+						throw new RuntimeException(
+							"Unrecognized special method/macro enum");
+					}
 				}
 
 				try

@@ -61,7 +61,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
@@ -115,7 +114,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.*;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -138,16 +137,6 @@ public final class AvailRuntime
 		return AvailThread.current().runtime;
 	}
 
-	/**
-	 * The {@linkplain ThreadFactory thread factory} for creating {@link
-	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
-	 */
-	@SuppressWarnings("ThisEscapedInObjectConstruction")
-	private final ThreadFactory executorThreadFactory =
-		runnable -> new AvailThread(
-			runnable,
-			new Interpreter(AvailRuntime.this));
-
 	/** The {@link IOSystem} for this runtime. */
 	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	private final IOSystem ioSystem = new IOSystem(this);
@@ -160,6 +149,20 @@ public final class AvailRuntime
 	public IOSystem ioSystem ()
 	{
 		return ioSystem;
+	}
+
+	/** The {@link CallbackSystem} for this runtime. */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	private final CallbackSystem callbackSystem = new CallbackSystem(this);
+
+	/**
+	 * Answer this runtime's {@link CallbackSystem}.
+	 *
+	 * @return An {@link CallbackSystem}.
+	 */
+	public CallbackSystem callbackSystem ()
+	{
+		return callbackSystem;
 	}
 
 	/**
@@ -185,14 +188,15 @@ public final class AvailRuntime
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for
 	 * this {@linkplain AvailRuntime Avail runtime}.
 	 */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	private final ThreadPoolExecutor executor =
 		new ThreadPoolExecutor(
 			min(availableProcessors, maxInterpreters),
 			maxInterpreters,
 			10L,
 			TimeUnit.SECONDS,
-			new PriorityBlockingQueue<>(100),
-			executorThreadFactory,
+			new PriorityBlockingQueue<>(),
+			runnable -> new AvailThread(runnable, new Interpreter(this)),
 			new AbortPolicy());
 
 	/**
@@ -396,6 +400,7 @@ public final class AvailRuntime
 	 *         If the class can't be found or can't be parameterized as
 	 *         requested, or if it's within the forbidden com.avail namespace.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public A_Type lookupJavaType (
 		final A_String className,
 		final A_Tuple classParameters)
@@ -413,7 +418,7 @@ public final class AvailRuntime
 		}
 		// Replace all occurrences of the pojo self type atom with actual
 		// pojo self types.
-		A_Tuple realParameters = generateObjectTupleFrom(
+		final A_Tuple realParameters = generateObjectTupleFrom(
 			classParameters.tupleSize(),
 			i ->
 			{
@@ -766,8 +771,7 @@ public final class AvailRuntime
 	 * collection.
 	 */
 	private final Set<A_Fiber> allFibers =
-		Collections.synchronizedSet(
-			Collections.newSetFromMap(new WeakHashMap<>()));
+		synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 
 	/**
 	 * Add the specified {@linkplain A_Fiber fiber} to this {@linkplain
@@ -809,7 +813,7 @@ public final class AvailRuntime
 	 */
 	public Set<A_Fiber> allFibers ()
 	{
-		return Collections.unmodifiableSet(new HashSet<>(allFibers));
+		return unmodifiableSet(new HashSet<>(allFibers));
 	}
 
 	/**
@@ -1173,9 +1177,8 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The loaded Avail {@linkplain ModuleDescriptor modules}: a
-	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
-	 * names} to {@linkplain ModuleDescriptor modules}.
+	 * The loaded Avail modules: a {@link A_Map} from {@link A_String} to {@link
+	 * A_Module}.
 	 */
 	private A_Map modules = emptyMap();
 
@@ -1696,5 +1699,4 @@ public final class AvailRuntime
 		}
 		modules = nil;
 	}
-
 }

@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="AvailWorkbench:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/AvailWorkbench</output-path>
-    <root id="archive" name="Avail.jar">
-      <element id="module-output" name="Avail" />
-    </root>
-  </artifact>
-</component>

@@ -347,7 +347,11 @@ public class L1InstructionWriter
 	 * {@linkplain L1OperandType operands}.  Validate that the right number of
 	 * operands are provided.
 	 *
-	 * @param operation The {@link L1Operation} to write.
+	 * @param lineNumber
+	 *        The source code line number responsible for generating this
+	 *        instruction.
+	 * @param operation
+	 *        The {@link L1Operation} to write.
 	 * @param operands The {@code int} operands for the operation.
 	 */
 	public void write (

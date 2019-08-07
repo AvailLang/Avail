@@ -51,6 +51,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimerTask;
@@ -74,6 +75,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.synchronizedMap;
 
 /**
  * An Avail {@code FiberDescriptor fiber} represents an independently
@@ -1094,8 +1096,7 @@ extends Descriptor
 		assert object.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) == 1
 			^ object.mutableSlot(_TRACE_VARIABLE_WRITES) == 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		final WeakHashMap<A_Variable, Boolean> map =
-			rawPojo.javaObjectNotNull();
+		final Map<A_Variable, Boolean> map = rawPojo.javaObjectNotNull();
 		if (!map.containsKey(var))
 		{
 			map.put(var, wasRead);
@@ -1107,8 +1108,7 @@ extends Descriptor
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		final WeakHashMap<A_Variable, Boolean> map =
-			rawPojo.javaObjectNotNull();
+		final Map<A_Variable, Boolean> map = rawPojo.javaObjectNotNull();
 		A_Set set = emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
@@ -1126,8 +1126,7 @@ extends Descriptor
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
-		final WeakHashMap<A_Variable, Boolean> map =
-			rawPojo.javaObjectNotNull();
+		final Map<A_Variable, Boolean> map = rawPojo.javaObjectNotNull();
 		A_Set set = emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
@@ -1489,34 +1488,8 @@ extends Descriptor
 		final int priority,
 		final Supplier<A_String> nameSupplier)
 	{
-		assert (priority & ~255) == 0 : "Priority must be [0..255]";
-		final AvailObject fiber = FiberDescriptor.mutable.create();
-		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		fiber.setSlot(NAME_SUPPLIER, identityPojo(nameSupplier));
-		fiber.setSlot(NAME_OR_NIL, nil);
-		fiber.setSlot(PRIORITY, priority);
-		fiber.setSlot(CONTINUATION, nil);
-		fiber.setSlot(SUSPENDING_FUNCTION, nil);
-		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
-		fiber.setSlot(BREAKPOINT_BLOCK, nil);
-		fiber.setSlot(FIBER_GLOBALS, emptyMap());
-		fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap());
-		fiber.setSlot(RESULT, nil);
-		fiber.setSlot(LOADER, nil);
-		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
-		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
-		fiber.setSlot(JOINING_FIBERS, emptySet());
-		fiber.setSlot(WAKEUP_TASK, nil);
-		fiber.setSlot(
-			TRACED_VARIABLES,
-			identityPojo(new WeakHashMap<A_Variable, Boolean>()));
-		fiber.setSlot(REIFICATION_WAITERS, emptySet());
-		final AvailRuntime runtime = currentRuntime();
-		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
-		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
-		fiber.setSlot(DEBUG_LOG, identityPojo(new StringBuilder()));
-		runtime.registerFiber(fiber);
-		return fiber;
+		return createFiber(
+			resultType, priority, nil, nameSupplier, currentRuntime());
 	}
 
 	/**
@@ -1542,10 +1515,52 @@ extends Descriptor
 		final AvailLoader loader,
 		final Supplier<A_String> nameSupplier)
 	{
+		return createFiber(
+			resultType,
+			loaderPriority,
+			identityPojo(loader),
+			nameSupplier,
+			currentRuntime());
+	}
+
+	/**
+	 * Construct an {@linkplain ExecutionState#UNSTARTED unstarted} {@link
+	 * A_Fiber} with the specified result {@linkplain A_Type type}, name {@link
+	 * Supplier}, and {@link AvailLoader}. The priority is initially set to
+	 * {@linkplain #loaderPriority}.
+	 *
+	 * @param resultType
+	 *        The expected result type.
+	 * @param priority
+	 *        An {@code int} between 0 and 255 that affects how much of the CPU
+	 *        time will be allocated to the fiber.
+	 * @param loaderPojoOrNil
+	 *        Either a pojo holding an AvailLoader or {@linkplain
+	 *        NilDescriptor#nil nil}.
+	 * @param nameSupplier
+	 *        A {@link Supplier} that produces an Avail {@link A_String string}
+	 *        to name this fiber on demand.  Please don't run Avail code to do
+	 *        so, since if this is evaluated during fiber execution it will
+	 *        cause the current {@link Thread}'s execution to block, potentially
+	 *        starving the execution pool.
+	 * @param runtime
+	 *        The {@link AvailRuntime} that will eventually be given the fiber
+	 *        to run.
+	 * @return The new fiber.
+	 */
+	public static A_Fiber createFiber (
+		final A_Type resultType,
+		final int priority,
+		final AvailObject loaderPojoOrNil,
+		final Supplier<A_String> nameSupplier,
+		final AvailRuntime runtime)
+	{
+		assert (priority & ~255) == 0 : "Priority must be [0..255]";
 		final AvailObject fiber = mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(NAME_SUPPLIER, identityPojo(nameSupplier));
-		fiber.setSlot(PRIORITY, loaderPriority);
+		fiber.setSlot(NAME_OR_NIL, nil);
+		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, nil);
 		fiber.setSlot(SUSPENDING_FUNCTION, nil);
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
@@ -1553,16 +1568,16 @@ extends Descriptor
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(RESULT, nil);
-		fiber.setSlot(LOADER, identityPojo(loader));
+		fiber.setSlot(LOADER, loaderPojoOrNil);
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, emptySet());
 		fiber.setSlot(WAKEUP_TASK, nil);
 		fiber.setSlot(
 			TRACED_VARIABLES,
-			identityPojo(new WeakHashMap<A_Variable, Boolean>()));
+			identityPojo(
+				synchronizedMap(new WeakHashMap<A_Variable, Boolean>())));
 		fiber.setSlot(REIFICATION_WAITERS, emptySet());
-		final AvailRuntime runtime = currentRuntime();
 		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_LOG, identityPojo(new StringBuilder()));

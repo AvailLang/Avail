@@ -73,6 +73,8 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
 import static java.lang.String.format;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -193,9 +195,7 @@ implements ExecutableChunk
 		 * The weak set of {@link L2Chunk}s in this generation.
 		 */
 		private final Set<L2Chunk> chunks =
-			Collections.synchronizedSet(
-				Collections.newSetFromMap(
-					new WeakHashMap<>()));
+			synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 
 		/**
 		 * Record a newly created chunk in the latest generation, triggering

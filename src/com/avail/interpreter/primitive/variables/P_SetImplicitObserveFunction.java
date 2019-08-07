@@ -50,7 +50,7 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntime.implicitObserveFunctionType;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionDescriptor.createWithOuters1;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -61,6 +61,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static com.avail.utility.Casts.cast;
 
 /**
  * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor
@@ -92,12 +93,14 @@ extends Primitive
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
-		final A_Function wrapper = createFunction(rawFunction, tuple(function));
+		final A_Function wrapper =
+			createWithOuters1(rawFunction, cast(function));
 		// Now set the wrapper as the implicit observe function.
 		currentRuntime().setImplicitObserveFunction(wrapper);
 		return interpreter.primitiveSuccess(nil);
 	}
 
+	/** The {@link A_RawFunction} that wraps the supplied observe function. */
 	private static final A_RawFunction rawFunction = createRawFunction();
 
 	/**

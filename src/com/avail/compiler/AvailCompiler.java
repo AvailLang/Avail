@@ -66,7 +66,7 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation2NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.FormattingDescriber;
 import com.avail.utility.evaluation.Transformer3;
@@ -106,8 +106,7 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
-import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
-import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.FunctionDescriptor.*;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
@@ -2573,7 +2572,8 @@ public final class AvailCompiler
 				final A_RawFunction code = prefixFunction.code();
 				return
 					formatString("Macro prefix %s, in %s:%d",
-						code.methodName(), code.module().moduleName(),
+						code.methodName(),
+						code.module().moduleName(),
 						code.startingLineNumber());
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
@@ -3863,10 +3863,14 @@ public final class AvailCompiler
 		final A_String availName = stringFrom(methodName);
 		final A_Phrase nameLiteral = syntheticLiteralNodeFor(availName);
 		final Primitive primitive = stripNull(primitiveByName(primitiveName));
-		final A_Function function = newPrimitiveFunction(
-			primitive,
-			compilationContext.module(),
-			token.lineNumber());
+		final A_Function function =
+			createFunction(
+				newPrimitiveRawFunction(
+					primitive,
+					compilationContext.module(),
+					token.lineNumber()),
+				emptyTuple());
+		function.makeShared();
 		final A_Phrase send = newSendNode(
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
@@ -3925,10 +3929,12 @@ public final class AvailCompiler
 					stripNull(primitiveByName(primitiveName));
 				functionLiterals.add(
 					syntheticLiteralNodeFor(
-						newPrimitiveFunction(
-							prim,
-							compilationContext.module(),
-							token.lineNumber())));
+						createFunction(
+							newPrimitiveRawFunction(
+								prim,
+								compilationContext.module(),
+								token.lineNumber()),
+							emptyTuple())));
 			}
 		}
 		catch (final RuntimeException e)
@@ -3946,8 +3952,9 @@ public final class AvailCompiler
 			emptyTuple(),
 			MACRO_DEFINER.bundle,
 			newListNode(
-				tuple(nameLiteral, newListNode(
-					tupleFromList(functionLiterals)),
+				tuple(
+					nameLiteral,
+					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral)),
 			TOP.o());
 		evaluateModuleStatementThen(
@@ -4018,10 +4025,12 @@ public final class AvailCompiler
 			return;
 		}
 		final A_Function filterFunction =
-			newPrimitiveFunction(
-				filterPrimitive,
-				compilationContext.module(),
-				token.lineNumber());
+			createFunction(
+				newPrimitiveRawFunction(
+					filterPrimitive,
+					compilationContext.module(),
+					token.lineNumber()),
+				emptyTuple());
 
 		// Process the body primitive.
 		final @Nullable Primitive bodyPrimitive =
@@ -4044,10 +4053,12 @@ public final class AvailCompiler
 				+ bodyFunctionType);
 		}
 		final A_Function bodyFunction =
-			newPrimitiveFunction(
-				bodyPrimitive,
-				compilationContext.module(),
-				token.lineNumber());
+			createFunction(
+				newPrimitiveRawFunction(
+					bodyPrimitive,
+					compilationContext.module(),
+					token.lineNumber()),
+				emptyTuple());
 
 		// Process the lexer name.
 		final A_Phrase nameLiteral = syntheticLiteralNodeFor(lexerAtom);
@@ -4369,8 +4380,8 @@ public final class AvailCompiler
 	 *
 	 * @param onSuccess
 	 *        What to do after compilation succeeds. This {@linkplain
-	 *        Continuation2 continuation} is invoked with a {@linkplain List
-	 *        list} of {@link A_Phrase phrases} that represent the possible
+	 *        Continuation2NotNull continuation} is invoked with a {@linkplain
+	 *        List list} of {@link A_Phrase phrases} that represent the possible
 	 *        solutions of compiling the command and a {@linkplain
 	 *        Continuation1NotNull continuation} that cleans up this compiler
 	 *        and its module (and then continues with a post-cleanup {@linkplain
@@ -4379,7 +4390,8 @@ public final class AvailCompiler
 	 *        What to do after compilation fails.
 	 */
 	public synchronized void parseCommand (
-		final Continuation2<List<A_Phrase>, Continuation1NotNull<Continuation0>>
+		final Continuation2NotNull
+			      <List<A_Phrase>, Continuation1NotNull<Continuation0>>
 			onSuccess,
 		final Continuation0 afterFail)
 	{

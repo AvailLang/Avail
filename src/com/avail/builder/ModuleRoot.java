@@ -52,7 +52,7 @@ public final class ModuleRoot
 	private final String name;
 
 	/**
-	 * Answer the {@linkplain ModuleRoot module root} name.
+	 * Answer the {@code ModuleRoot}'s name.
 	 *
 	 * @return The name.
 	 */
@@ -70,14 +70,22 @@ public final class ModuleRoot
 
 	/**
 	 * Answer the {@linkplain IndexedRepositoryManager indexed repository} that
-	 * contains compiled {@linkplain ModuleDescriptor modules} for this
-	 * {@linkplain ModuleRoot root}.
+	 * contains compiled {@linkplain ModuleDescriptor modules} for this module
+	 * root.
 	 *
 	 * @return The requested path.
 	 */
 	public IndexedRepositoryManager repository ()
 	{
 		return repository;
+	}
+
+	/**
+	 * Clear the content of the repository for this root.
+	 */
+	public void clearRepository ()
+	{
+		repository.clear();
 	}
 
 	/**
@@ -89,8 +97,7 @@ public final class ModuleRoot
 
 	/**
 	 * The {@linkplain File path} to the directory that contains source
-	 * {@linkplain ModuleDescriptor modules} for this {@linkplain ModuleRoot
-	 * root}.
+	 * {@linkplain ModuleDescriptor modules} for this module root.
 	 *
 	 * @return The requested path, or {@code null} if no source path is
 	 *         available.
@@ -101,15 +108,14 @@ public final class ModuleRoot
 	}
 
 	/**
-	 * Construct a new {@link ModuleRoot}.
+	 * Construct a new {@code ModuleRoot}.
 	 *
 	 * @param name
 	 *        The name of the module root.
 	 * @param repository
 	 *        The {@linkplain File path} to the {@linkplain
 	 *        IndexedRepositoryManager indexed repository} that contains
-	 *        compiled {@linkplain ModuleDescriptor modules} for this
-	 *        {@linkplain ModuleRoot root}.
+	 *        compiled {@linkplain ModuleDescriptor modules} for this root.
 	 * @param sourceDirectory
 	 *        The {@linkplain File path} to the directory that contains source
 	 *        {@linkplain ModuleDescriptor modules} for this {@linkplain
@@ -117,11 +123,12 @@ public final class ModuleRoot
 	 * @throws IndexedFileException
 	 *         If the indexed repository could not be opened.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public ModuleRoot (
-			final String name,
-			final File repository,
-			final @Nullable File sourceDirectory)
-		throws IndexedFileException
+		final String name,
+		final File repository,
+		final @Nullable File sourceDirectory)
+	throws IndexedFileException
 	{
 		this.name = name;
 		this.repository = new IndexedRepositoryManager(name, repository);

@@ -45,7 +45,6 @@ import com.avail.performance.StatisticReport;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +55,8 @@ import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.synchronizedSet;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -384,7 +385,7 @@ extends VariableDescriptor
 			final Set<L2Chunk> chunkSet;
 			if (pojo.equalsNil())
 			{
-				chunkSet = Collections.newSetFromMap(new WeakHashMap<>());
+				chunkSet = synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 				object.setSlot(
 					DEPENDENT_CHUNKS_WEAK_SET_POJO,
 					identityPojo(chunkSet).makeShared());

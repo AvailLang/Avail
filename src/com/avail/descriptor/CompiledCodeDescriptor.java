@@ -86,6 +86,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.synchronizedSet;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -569,9 +571,7 @@ extends Descriptor
 
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
 	@InnerAccess static final Set<A_RawFunction> activeRawFunctions =
-		Collections.synchronizedSet(
-			Collections.newSetFromMap(
-				new WeakHashMap<>()));
+		synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 
 	/**
 	 * Reset the code coverage details of all {@link A_RawFunction}s by

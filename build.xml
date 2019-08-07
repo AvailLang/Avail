@@ -308,7 +308,10 @@ POSSIBILITY OF SUCH DAMAGE.
 					**/tests/**,
 					com/avail/environment/**,
 					com/avail/tools/**,
-					com/avail/utility/fsm/**"/>
+					com/avail/utility/fsm/**,
+					resources/workbench/**,
+					resources/stacks/**
+					*"/>
 			<fileset
 				dir="${path.avail}"
 				includes="resources/build-time.txt"/>

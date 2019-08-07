@@ -56,7 +56,7 @@ extends AbstractWorkbenchAction
 		// Clear all repositories.
 		for (final ModuleRoot root : workbench.resolver.moduleRoots().roots())
 		{
-			root.repository().clear();
+			root.clearRepository();
 		}
 		workbench.writeText(
 			format("Repository has been cleared.%n"),

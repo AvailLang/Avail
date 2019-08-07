@@ -41,7 +41,10 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -76,8 +79,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -443,29 +448,26 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A {@linkplain TypeDescriptor type} to constrain the {@linkplain
 	 * AvailObject#writeType() content type} of the variable declaration within
 	 * the primitive declaration of a block.  The actual variable's inner type
-	 * must this or a supertype.
+	 * must be this or a supertype.
 	 */
-	private @Nullable A_Type cachedFailureVariableType;
+	@SuppressWarnings({
+		"OverridableMethodCallDuringObjectConstruction",
+		"OverriddenMethodCallDuringObjectConstruction"
+	})
+	private final A_Type failureVariableType =
+		privateFailureVariableType().makeShared();
 
 	/**
 	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
 	 * must accept in order to be compliant with this primitive.  A more general
 	 * type is acceptable for the variable.  The type is cached for performance.
 	 *
-	 * @return
-	 *         A type which is at least as specific as the type of the failure
+	 * @return A type which is at least as specific as the type of the failure
 	 *         variable declared in a block using this primitive.
 	 */
 	public final A_Type failureVariableType ()
 	{
-		@Nullable A_Type failureType = cachedFailureVariableType;
-		if (failureType == null)
-		{
-			failureType = privateFailureVariableType().makeShared();
-			assert failureType.isType();
-			cachedFailureVariableType = failureType;
-		}
-		return failureType;
+		return failureVariableType;
 	}
 
 	/**
@@ -941,6 +943,45 @@ implements IntegerEnumSlotDescriptionEnum
 			return null;
 		}
 		return builder.toString();
+	}
+
+	/**
+	 * Generate suitable primitive failure code on the given {@link
+	 * L1InstructionWriter}. Some primitives may have special requirements, but
+	 * most (fallible) primitives follow the same pattern.
+	 *
+	 * @param lineNumber
+	 *        The line number at which to consider these
+	 * @param writer
+	 *        Where to write the failure code.
+	 * @param numArgs
+	 *        The number of arguments that the function will accept.
+	 */
+	public void writeDefaultFailureCode (
+		final int lineNumber,
+		final L1InstructionWriter writer,
+		final int numArgs)
+	{
+		if (!hasFlag(CannotFail))
+		{
+			// Produce failure code.  First declare the local that holds
+			// primitive failure information.
+			final int failureLocal = writer.createLocal(
+				variableTypeFor(failureVariableType()));
+			for (int i = 1; i <= numArgs; i++)
+			{
+				writer.write(lineNumber, L1Operation.L1_doPushLastLocal, i);
+			}
+			// Get the failure code.
+			writer.write(lineNumber, L1Operation.L1_doGetLocal, failureLocal);
+			// Put the arguments and failure code into a tuple.
+			writer.write(lineNumber, L1Operation.L1_doMakeTuple, numArgs + 1);
+			writer.write(
+				lineNumber,
+				L1Operation.L1_doCall,
+				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
+				writer.addLiteral(bottom()));
+		}
 	}
 
 	/** Capture the name of the primitive class once for performance. */

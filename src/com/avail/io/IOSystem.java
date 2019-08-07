@@ -40,6 +40,7 @@ import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.PojoDescriptor;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.SimpleThreadFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -54,19 +55,19 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.utility.Nulls.stripNull;
 import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.util.Collections.synchronizedMap;
 
 /**
  * This aggregates socket and file I/O information and behavior specific to an
@@ -89,47 +90,6 @@ public class IOSystem
 	}
 
 	/**
-	 * The {@linkplain ThreadFactory thread factory} for creating {@link
-	 * Thread}s for processing file I/O on behalf of this {@code IOSystem}.
-	 */
-	private final ThreadFactory fileThreadFactory = new ThreadFactory()
-	{
-		/**
-		 * Used for uniquely naming threads for easier debugging.  Numbers
-		 * eventually are reused.
-		 */
-		final AtomicInteger counter = new AtomicInteger();
-
-		@Override
-		public Thread newThread (final Runnable runnable)
-		{
-			return new Thread(
-				runnable, "AvailFile-" + counter.incrementAndGet());
-		}
-	};
-
-	/**
-	 * The {@linkplain ThreadFactory thread factory} for creating {@link
-	 * Thread}s for processing socket I/O on behalf of this {@linkplain
-	 * AvailRuntime Avail runtime}.
-	 */
-	private final ThreadFactory socketThreadFactory = new ThreadFactory()
-	{
-		/**
-		 * Used for uniquely naming threads for easier debugging.  Numbers
-		 * eventually are reused.
-		 */
-		final AtomicInteger counter = new AtomicInteger();
-
-		@Override
-		public Thread newThread (final Runnable runnable)
-		{
-			return new Thread(
-				runnable, "AvailSocket-" + counter.incrementAndGet());
-		}
-	};
-
-	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
 	 * file operations performed on behalf of this {@linkplain AvailRuntime
 	 * Avail runtime}.
@@ -140,8 +100,8 @@ public class IOSystem
 			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<>(10),
-			fileThreadFactory,
+			new LinkedBlockingQueue<>(),
+			new SimpleThreadFactory("AvailFile"),
 			new CallerRunsPolicy());
 
 	/**
@@ -170,7 +130,7 @@ public class IOSystem
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<>(),
-			socketThreadFactory,
+			new SimpleThreadFactory("AvailSocket"),
 			new CallerRunsPolicy());
 
 	/**
@@ -426,8 +386,8 @@ public class IOSystem
 		 * the file is closed.  This weak set allows the cache removals to
 		 * happen efficiently.
 		 */
-		public final WeakHashMap<BufferKey, Void> bufferKeys =
-			new WeakHashMap<>();
+		public final Map<BufferKey, Void> bufferKeys =
+			synchronizedMap(new WeakHashMap<>());
 
 		/**
 		 * Construct a new file handle.

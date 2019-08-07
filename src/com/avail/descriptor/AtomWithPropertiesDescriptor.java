@@ -46,6 +46,7 @@ import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HAS
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static java.util.Collections.synchronizedMap;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -237,7 +238,8 @@ extends AtomDescriptor
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(
 			PROPERTY_MAP_POJO,
-			identityPojo(new WeakHashMap<A_Atom, A_BasicObject>()));
+			identityPojo(
+				synchronizedMap(new WeakHashMap<A_Atom, A_BasicObject>())));
 		instance.setSlot(HASH_OR_ZERO, 0);
 		return instance.makeShared();
 	}
@@ -272,13 +274,14 @@ extends AtomDescriptor
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(
 			PROPERTY_MAP_POJO,
-			identityPojo(new WeakHashMap<A_Atom, A_BasicObject>()));
+			identityPojo(
+				synchronizedMap(new WeakHashMap<A_Atom, A_BasicObject>())));
 		instance.setSlot(HASH_OR_ZERO, originalHash);
 		return instance.makeShared();
 	}
 
 	/**
-	 * Construct a new {@link AtomWithPropertiesDescriptor}.
+	 * Construct a new {@code AtomWithPropertiesDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

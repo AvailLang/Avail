@@ -80,7 +80,8 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.ForwardDefinitionDescriptor.newForwardDefinition;
-import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.newGrammaticalRestriction;
 import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
@@ -93,6 +94,7 @@ import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.Locks.lockWhile;
@@ -1625,9 +1627,13 @@ public final class AvailLoader
 		final String atomName)
 	{
 		final A_Function stringLexerFilter =
-			newPrimitiveFunction(filterPrimitive, nil, 0);
+			createFunction(
+				newPrimitiveRawFunction(filterPrimitive, nil, 0),
+				emptyTuple());
 		final A_Function stringLexerBody =
-			newPrimitiveFunction(bodyPrimitive, nil, 0);
+			createFunction(
+				newPrimitiveRawFunction(bodyPrimitive, nil, 0),
+				emptyTuple());
 		final A_Atom atom = createSpecialAtom(atomName);
 		final A_Bundle bundle;
 		try

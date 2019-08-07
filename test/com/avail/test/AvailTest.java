@@ -33,21 +33,11 @@
 package com.avail.test;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
-import com.avail.io.TextInterface;
-import com.avail.io.TextOutputChannel;
-import com.avail.utility.IO;
+import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,21 +47,11 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.CharBuffer;
-import java.nio.channels.CompletionHandler;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Semaphore;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Build the Avail standard library and run all Avail test units.
@@ -81,162 +61,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(Lifecycle.PER_CLASS)
 public class AvailTest
 {
-	/** The {@linkplain ModuleRoots Avail roots}. */
-	final ModuleRoots roots;
-
-	/**
-	 * Create {@link ModuleRoots} from the information supplied in the
-	 * {@code availRoots} system property.
-	 *
-	 * @return The specified Avail roots.
-	 */
-	private static ModuleRoots createModuleRoots ()
-	{
-		final @Nullable String rootsString = System.getProperty(
-			"availRoots", null);
-		if (rootsString == null)
-		{
-			fail("system property \"availRoots\" is not set");
-		}
-		return new ModuleRoots(rootsString);
-	}
-
-	/** The {@linkplain ModuleNameResolver module name resolver}. */
-	final ModuleNameResolver resolver;
-
-	/**
-	 * Create a {@link ModuleNameResolver} using the already created {@linkplain
-	 * ModuleRoots Avail roots} and an option renames file supplied in the
-	 * {@code availRenames} system property.
-	 *
-	 * @return The Avail module name resolver.
-	 * @throws FileNotFoundException
-	 *         If the renames file was specified but not found.
-	 * @throws RenamesFileParserException
-	 *         If the renames file exists but could not be interpreted correctly
-	 *         for any reason.
-	 */
-	private ModuleNameResolver createModuleNameResolver ()
-	throws FileNotFoundException, RenamesFileParserException
-	{
-		@Nullable Reader reader = null;
-		try
-		{
-			final String renames = System.getProperty("availRenames", null);
-			if (renames == null)
-			{
-				reader = new StringReader("");
-			}
-			else
-			{
-				final File renamesFile = new File(renames);
-				//noinspection IOResourceOpenedButNotSafelyClosed
-				reader = new BufferedReader(new InputStreamReader(
-					new FileInputStream(renamesFile), StandardCharsets.UTF_8));
-			}
-			final RenamesFileParser renameParser = new RenamesFileParser(
-				reader, roots);
-			return renameParser.parse();
-		}
-		finally
-		{
-			IO.closeIfNotNull(reader);
-		}
-	}
-
-	/** The {@linkplain AvailRuntime Avail runtime}. */
-	final AvailRuntime runtime;
-
-	/**
-	 * Create an {@link AvailRuntime} from the previously created {@linkplain
-	 * ModuleNameResolver Avail module name resolver}.
-	 *
-	 * @return An Avail runtime.
-	 */
-	private AvailRuntime createAvailRuntime ()
-	{
-		return new AvailRuntime(resolver);
-	}
-
-	/** The {@linkplain AvailBuilder Avail builder}. */
-	final AvailBuilder builder;
-
-	/**
-	 * A {@code TestErrorChannel} augments a {@link TextOutputChannel} with
-	 * error detection.
-	 */
-	private static final class TestErrorChannel
-	implements TextOutputChannel
-	{
-		/** The original {@linkplain TextOutputChannel error channel}. */
-		private final TextOutputChannel errorChannel;
-
-		/** Has an error been detected? */
-		public boolean errorDetected = false;
-
-		/**
-		 * Construct a {@code TestErrorChannel} that decorates the specified
-		 * {@link TextOutputChannel} with error detection.
-		 *
-		 * @param errorChannel
-		 *        The underlying channel.
-		 */
-		TestErrorChannel (final TextOutputChannel errorChannel)
-		{
-			this.errorChannel = errorChannel;
-		}
-
-		@Override
-		public <A> void write (
-			final CharBuffer buffer,
-			@Nullable final A attachment,
-			final CompletionHandler<Integer, A> handler)
-		{
-			errorDetected = true;
-			errorChannel.write(buffer, attachment, handler);
-		}
-
-		@Override
-		public <A> void write (
-			final String data,
-			@Nullable final A attachment,
-			final CompletionHandler<Integer, A> handler)
-		{
-			errorDetected = true;
-			errorChannel.write(data, attachment, handler);
-		}
-
-		@Override
-		public boolean isOpen ()
-		{
-			return errorChannel.isOpen();
-		}
-
-		@Override
-		public void close () throws IOException
-		{
-			errorChannel.close();
-		}
-	}
-
-	/**
-	 * Create an {@link AvailBuilder} from the previously created {@linkplain
-	 * AvailRuntime Avail runtime}.
-	 *
-	 * @return An Avail builder.
-	 */
-	private AvailBuilder createAvailBuilder ()
-	{
-		final AvailBuilder b = new AvailBuilder(runtime);
-		@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-		final TestErrorChannel errorChannel = new TestErrorChannel(
-			b.textInterface.errorChannel());
-		b.setTextInterface(new TextInterface(
-			b.textInterface.inputChannel(),
-			b.textInterface.outputChannel(),
-			errorChannel));
-		return b;
-	}
+	/** Setup for the test. */
+	final AvailRuntimeTestHelper helper;
 
 	/**
 	 * Construct an {@code AvailTest}.
@@ -251,10 +77,7 @@ public class AvailTest
 	public AvailTest ()
 	throws FileNotFoundException, RenamesFileParserException
 	{
-		roots = createModuleRoots();
-		resolver = createModuleNameResolver();
-		runtime = createAvailRuntime();
-		builder = createAvailBuilder();
+		helper = new AvailRuntimeTestHelper();
 	}
 
 	/**
@@ -266,17 +89,8 @@ public class AvailTest
 	{
 		if (System.getProperty("clearAllRepositories", null) != null)
 		{
-			clearAllRepositories();
+			helper.clearAllRepositories();
 		}
-	}
-
-	/**
-	 * Clear all Avail binary repositories.
-	 */
-	private void clearAllRepositories ()
-	{
-		resolver.moduleRoots().roots().forEach(root ->
-			root.repository().clear());
 	}
 
 	/**
@@ -285,87 +99,25 @@ public class AvailTest
 	@BeforeEach
 	private void clearError ()
 	{
-		((TestErrorChannel) builder
-			.textInterface
-			.errorChannel()).errorDetected = false;
+		helper.clearError();
 	}
 
 	/**
-	 * Was an error detected on the {@link TestErrorChannel}?
-	 *
-	 * @return {@code true} if an error was detected, {@code false} otherwise.
+	 * Shut down the {@link AvailRuntime} after the tests.
 	 */
-	private boolean errorDetected ()
+	@AfterAll
+	void tearDownRuntime ()
 	{
-		return ((TestErrorChannel) builder
-			.textInterface
-			.errorChannel()).errorDetected;
-	}
-
-	/** The global status notification text. */
-	@InnerAccess static volatile String globalStatus = "";
-
-	/**
-	 * Create a global tracker to store information about the progress on all
-	 * modules to be compiled.
-	 *
-	 * @return A global tracker.
-	 */
-	private static GlobalProgressReporter globalTracker ()
-	{
-		return (processedBytes, totalBytes) ->
-		{
-			final int perThousand =
-				(int) ((processedBytes * 1000) / totalBytes);
-			final float percent = perThousand / 10.0f;
-			globalStatus = String.format(
-				"\033[33mGlobal\033[0m - %5.1f%%", percent);
-		};
+		helper.tearDownRuntime();
 	}
 
 	/**
-	 * Create a local tracker to share information about the progress of the
-	 * compilation of the current module.
+	 * Check that we can compile or load the standard Avail libraries.
 	 *
-	 * @return A local tracker.
+	 * @param moduleName Each module or package name.
+	 * @throws UnresolvedDependencyException
+	 *         If a module can't be resolved.
 	 */
-	private static CompilerProgressReporter localTracker ()
-	{
-		return (module, moduleSize, position) ->
-		{
-			final int percent = (int) ((position * 100) / moduleSize);
-			String modName = module.qualifiedName();
-			final int maxModuleNameLength = 61;
-			final int len = modName.length();
-			if (len > maxModuleNameLength)
-			{
-				modName = "…" + modName.substring(
-					len - maxModuleNameLength + 1, len);
-			}
-			final String status = String.format(
-				"%s  |  \033[34m%-61s\033[0m - %3d%%",
-				globalStatus,
-				modName,
-				percent);
-			if (System.console() != null)
-			{
-				final int statusLength = status.length();
-				final String finalStatus =
-					position == moduleSize
-						? "\n"
-						: String.format(
-							"%s\033[%dD\033[K",
-							status,
-							statusLength);
-				System.out.print(finalStatus);
-			}
-			else
-			{
-				System.out.println(status);
-			}
-		};
-	}
-
 	@DisplayName("Avail standard libraries")
 	@ParameterizedTest
 	@ValueSource(strings =
@@ -381,14 +133,19 @@ public class AvailTest
 	public void testLoadStandardLibraries (final String moduleName)
 	throws UnresolvedDependencyException
 	{
-		final ResolvedModuleName library = resolver.resolve(
-			new ModuleName(moduleName), null);
-		builder.buildTarget(library, localTracker(), globalTracker());
-		builder.checkStableInvariants();
-		assertNotNull(builder.getLoadedModule(library));
-		assertFalse(errorDetected());
+		final boolean loaded = helper.loadModule(moduleName);
+		assertTrue(loaded, "Failed to load module: " + moduleName);
+		assertFalse(helper.errorDetected());
 	}
 
+	/**
+	 * Check that we can compile or load the builder test modules.  Each of
+	 * these should fail, writing some message to the error channel.
+	 *
+	 * @param moduleName Each module or package name.
+	 * @throws UnresolvedDependencyException
+	 *         If a module can't be resolved.
+	 */
 	@DisplayName("Invalid modules")
 	@ParameterizedTest
 	@ValueSource(strings =
@@ -407,27 +164,30 @@ public class AvailTest
 	public void testBuildInvalidModules (final String moduleName)
 	throws UnresolvedDependencyException
 	{
-		final ResolvedModuleName library = resolver.resolve(
-			new ModuleName(moduleName), null);
-		builder.buildTarget(library, localTracker(), globalTracker());
-		builder.checkStableInvariants();
-		assertNull(builder.getLoadedModule(library));
-		assertTrue(errorDetected());
+		final boolean loaded = helper.loadModule(moduleName);
+		assertFalse(
+			loaded,
+			"Should not have successfully loaded module: " + moduleName);
+		assertTrue(helper.errorDetected());
 	}
 
+	/**
+	 * Load all Avail tests and verify that they run successfully.
+	 *
+	 * @throws UnresolvedDependencyException
+	 *         If a module can't be resolved.
+	 */
 	@DisplayName("Avail library unit tests")
 	@Test
 	public void testAvailUnitTests ()
 	throws UnresolvedDependencyException
 	{
-		final ResolvedModuleName library = resolver.resolve(
-			new ModuleName("/avail/Avail Tests"), null);
-		builder.buildTarget(library, localTracker(), globalTracker());
-		builder.checkStableInvariants();
-		assertNotNull(builder.getLoadedModule(library));
+		final String testModuleName = "/avail/Avail Tests";
+		final boolean loaded = helper.loadModule(testModuleName);
+		assertTrue(loaded, "Failed to load module: " + testModuleName);
 		final Semaphore semaphore = new Semaphore(0);
 		final Mutable<Boolean> ok = new Mutable<>(false);
-		builder.attemptCommand(
+		helper.builder.attemptCommand(
 			"Run all tests",
 			(commands, proceed) -> proceed.value(commands.get(0)),
 			(result, cleanup) ->
@@ -436,11 +196,10 @@ public class AvailTest
 					ok.value = true;
 					semaphore.release();
 				}),
-			semaphore::release
-		);
+			semaphore::release);
 		semaphore.acquireUninterruptibly();
 		assertTrue(ok.value);
-		assertFalse(errorDetected());
+		assertFalse(helper.errorDetected());
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
 		// otherwise this test isn't nearly as useful as it could be.

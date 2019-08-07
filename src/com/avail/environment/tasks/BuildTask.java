@@ -33,7 +33,6 @@
 package com.avail.environment.tasks;
 
 import com.avail.builder.ResolvedModuleName;
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
@@ -62,16 +61,6 @@ extends AbstractWorkbenchTask
 		super(workbench, targetModuleName);
 	}
 
-	/**
-	 * Answer a suitable {@linkplain GlobalProgressReporter global tracker}.
-	 *
-	 * @return A global tracker.
-	 */
-	private GlobalProgressReporter globalTracker ()
-	{
-		return workbench::eventuallyUpdateBuildProgress;
-	}
-
 	@Override
 	protected void executeTask ()
 	{
@@ -79,7 +68,7 @@ extends AbstractWorkbenchTask
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,
-			globalTracker());
+			workbench::eventuallyUpdateBuildProgress);
 	}
 
 	@Override

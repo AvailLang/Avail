@@ -116,8 +116,7 @@ import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.String.format;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
-import static java.util.Collections.singleton;
-import static java.util.Collections.sort;
+import static java.util.Collections.*;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
@@ -2003,10 +2002,7 @@ public final class AvailBuilder
 									+ " Running precompiled -- " + function);
 						}
 						runOutermostFunction(
-							runtime,
-							fiber,
-							function,
-							Collections.emptyList());
+							runtime, fiber, function, emptyList());
 					}
 					else if (shouldStopBuild())
 					{
@@ -3536,11 +3532,7 @@ public final class AvailBuilder
 							onFailure.value();
 						}
 					});
-				runOutermostFunction(
-					runtime,
-					fiber,
-					function,
-					Collections.emptyList());
+				runOutermostFunction(runtime, fiber, function, emptyList());
 			};
 
 		// If the command was unambiguous, then go ahead and run it.

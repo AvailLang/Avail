@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="annotations">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/libraries/annotations-java8.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/jsr305.jar!/" />
     </CLASSES>
     <JAVADOC />

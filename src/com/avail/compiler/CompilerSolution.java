@@ -112,7 +112,7 @@ final class CompilerSolution implements AbstractSolution
 	}
 
 	/**
-	 * Construct a new {@link CompilerSolution}.
+	 * Construct a new {@code CompilerSolution}.
 	 *
 	 * @param endState
 	 *            The {@link ParserState} after the specified phrase's

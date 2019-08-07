@@ -48,15 +48,12 @@ import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 
 /**
@@ -480,7 +477,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a bootstrapped {@link A_Function} that uses the specified
+	 * Construct a bootstrapped {@link A_RawFunction} that uses the specified
 	 * primitive.  The primitive failure code should invoke the {@link
 	 * SpecialMethodAtom#CRASH}'s bundle with a tuple of passed arguments
 	 * followed by the primitive failure value.
@@ -493,7 +490,7 @@ extends Descriptor
 	 *        The line number on which the new function should be said to occur.
 	 * @return A function.
 	 */
-	public static A_Function newPrimitiveFunction (
+	public static A_RawFunction newPrimitiveRawFunction (
 		final Primitive primitive,
 		final A_Module module,
 		final int lineNumber)
@@ -511,30 +508,8 @@ extends Descriptor
 		}
 		writer.argumentTypes(argTypes);
 		writer.returnType(functionType.returnType());
-		if (!primitive.hasFlag(CannotFail))
-		{
-			// Produce failure code.  First declare the local that holds
-			// primitive failure information.
-			final int failureLocal = writer.createLocal(
-				variableTypeFor(naturalNumbers()));
-			for (int i = 1; i <= numArgs; i++)
-			{
-				writer.write(lineNumber, L1Operation.L1_doPushLastLocal, i);
-			}
-			// Get the failure code.
-			writer.write(lineNumber, L1Operation.L1_doGetLocal, failureLocal);
-			// Put the arguments and failure code into a tuple.
-			writer.write(lineNumber, L1Operation.L1_doMakeTuple, numArgs + 1);
-			writer.write(
-				lineNumber,
-				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
-				writer.addLiteral(bottom()));
-		}
-		final A_Function function =
-			createFunction(writer.compiledCode(), emptyTuple());
-		function.makeShared();
-		return function;
+		primitive.writeDefaultFailureCode(lineNumber, writer, numArgs);
+		return writer.compiledCode();
 	}
 
 	/**
@@ -576,8 +551,7 @@ extends Descriptor
 			writer.addLiteral(bottom()));
 		final A_RawFunction code = writer.compiledCode();
 		code.setMethodName(stringFrom("VM crash function: " + messageString));
-		final A_Function function =
-			createFunction(code, emptyTuple());
+		final A_Function function = createFunction(code, emptyTuple());
 		function.makeShared();
 		return function;
 	}

@@ -843,10 +843,10 @@ extends Descriptor
 
 	/**
 	 * Create a new {@link A_Map map} whose contents correspond to the specified
-	 * {@link A_Tuple tuple} of key-value bindings.
+	 * {@link A_Tuple tuple} of alternating keys and values.
 	 *
 	 * @param keysAndValues
-	 *        A tuple of key-value bindings, i.e. 2-element tuples.
+	 *        A tuple of alternating keys and values.
 	 * @return A new map.
 	 */
 	public static A_Map mapFromPairs (final A_BasicObject... keysAndValues)
