@@ -44,8 +44,11 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.LONG_BITS;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static java.lang.Math.*;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -141,15 +144,15 @@ extends AbstractNumberDescriptor
 		}
 		// The integer is beyond an int's range.  Perhaps even beyond a double.
 		// For boundary purposes, check now if it's exactly integral.
-		final double floorD = Math.floor(aDouble);
+		final double floorD = floor(aDouble);
 		// Produce an Avail integer with the exact value from floorD.  If it's
 		// more than about 2^60, scale it down to have about 60 bits of data.
 		// Since the mantissa is only 53 bits, this will be exact.  Since floorD
 		// is an integer, it also can't lose any information if it's *not*
 		// scaled before being converted to a long.
-		final int exponent = Math.getExponent(aDouble);
-		final int exponentAdjustment = Math.max(exponent - 60, 0);
-		final double normalD = Math.scalb(floorD, -exponentAdjustment);
+		final int exponent = getExponent(aDouble);
+		final int exponentAdjustment = max(exponent - 60, 0);
+		final double normalD = scalb(floorD, -exponentAdjustment);
 		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
 		A_Number integer = fromLong((long) normalD);
 		if (exponentAdjustment > 0)
@@ -201,7 +204,7 @@ extends AbstractNumberDescriptor
 		// necessarily.  Split the double operand into truncation toward
 		// zero and residue,  Add the truncation (as an integer) to the
 		// integer, convert to double, and add the residue (-1<r<1).
-		final double adjustment = Math.floor(aDouble);
+		final double adjustment = floor(aDouble);
 		final A_Number adjustmentAsInteger = truncatedFromDouble(adjustment);
 		final A_Number adjustedInteger =
 			anInteger.minusCanDestroy(adjustmentAsInteger, canDestroy);
@@ -221,9 +224,8 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
-	 * floating point object} from the passed {@code double}.  Do not answer an
-	 * existing object.
+	 * Construct an Avail double-precision floating point object from the passed
+	 * {@code double}.  Do not answer an existing object.
 	 *
 	 * @param aDouble
 	 *            The Java {@code double} to box.
@@ -241,19 +243,18 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
-	 * floating point object} from the passed {@code double}.
+	 * Construct an Avail boxed double-precision floating point object from the
+	 * passed {@code double}.
 	 *
 	 * @param aDouble
-	 *            The Java {@code double} to box.
+	 *        The Java {@code double} to box.
 	 * @param recyclable1
-	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
-	 *            reused if it's mutable.
+	 *        An Avail {@code double} that may be reused if it's mutable.
 	 * @param canDestroy
-	 *            Whether the passed recyclable can be replaced if it's mutable.
+	 *        Whether the passed recyclable can be replaced if it's mutable.
 	 * @return
-	 *            The boxed Avail {@code DoubleDescriptor double-precision
-	 *            floating point object}.
+	 *        The boxed Avail {@code DoubleDescriptor double-precision floating
+	 *        point object}.
 	 */
 	public static A_Number fromDoubleRecycling (
 		final double aDouble,
@@ -270,23 +271,19 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
-	 * floating point object} from the passed {@code double}.
+	 * Construct an Avail boxed double-precision floating point object from the
+	 * passed {@code double}.
 	 *
 	 * @param aDouble
-	 *            The Java {@code double} to box.
+	 *        The Java {@code double} to box.
 	 * @param recyclable1
-	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
-	 *            reused if it's mutable.
+	 *        An Avail {@code double} that may be reused if it's mutable.
 	 * @param recyclable2
-	 *            Another {@linkplain DoubleDescriptor boxed Avail double} that
-	 *            may be reused if it's mutable.
+	 *        Another Avail {@code double} that may be reused if it's mutable.
 	 * @param canDestroy
-	 *            Whether one of the passed recyclables can be replaced if it's
-	 *            mutable.
-	 * @return
-	 *            The boxed Avail {@code DoubleDescriptor double-precision
-	 *            floating point object}.
+	 *        Whether one of the passed recyclables can be replaced if it's
+	 *        mutable.
+	 * @return The boxed Avail {@code double}.
 	 */
 	public static A_Number objectFromDoubleRecycling (
 		final double aDouble,
@@ -310,6 +307,53 @@ extends AbstractNumberDescriptor
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(LONG_BITS, castAsLong);
 		return result;
+	}
+
+	/**
+	 * Given a {@code double}, produce the {@code extended integer} that is
+	 * nearest it but rounding toward zero.  Double infinities are converted to
+	 * extended integer {@linkplain InfinityDescriptor infinities}.  Do not call
+	 * with a {@code NaN} value.
+	 *
+	 * @param inputD The input {@code double}.
+	 * @return The output {@code extended integer}.
+	 */
+	public static A_Number doubleTruncatedToExtendedInteger (
+		final double inputD)
+	{
+		assert !Double.isNaN(inputD);
+		if (inputD >= Long.MIN_VALUE && inputD <= Long.MAX_VALUE)
+		{
+			// Common case -- it fits in a long.
+			return fromLong((long) inputD);
+		}
+		final boolean neg = inputD < 0.0d;
+		if (Double.isInfinite(inputD))
+		{
+			// Return the corresponding integral infinity.
+			return neg ? negativeInfinity() : positiveInfinity();
+		}
+		double d = abs(inputD);
+		final int exponent = getExponent(d);
+		final int slots = (exponent + 33) >> 5;  // probably needs work
+		A_Number out = createUninitializedInteger(slots);
+		d = scalb(d, (1 - slots) << 5);
+		// In theory we could extract just the top three 32-bit sections.  That
+		// would guarantee 65 bits of mantissa, which is more than a double
+		// actually captures.
+		for (int i = slots; i >= 1; --i)
+		{
+			final long unsignedIntSlice = (long) d;
+			out.rawUnsignedIntegerAtPut(i, (int) unsignedIntSlice);
+			d -= unsignedIntSlice;
+			d = scalb(d, 32);
+		}
+		out.trimExcessInts();
+		if (neg)
+		{
+			out = zero().noFailMinusCanDestroy(out, true);
+		}
+		return out;
 	}
 
 	/**
@@ -540,7 +584,7 @@ extends AbstractNumberDescriptor
 			return false;
 		}
 		//noinspection FloatingPointEquality
-		return Math.floor(value) == value;
+		return floor(value) == value;
 	}
 
 	@Override @AvailMethod
@@ -751,7 +795,7 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct a new {@link DoubleDescriptor}.
+	 * Construct a new {@code DoubleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

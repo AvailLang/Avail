@@ -46,6 +46,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.RAW_INT;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static java.lang.Float.floatToRawIntBits;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
@@ -101,24 +102,24 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
-	 * object} from the passed {@code float}.  Don't answer an existing object.
+	 * Construct an Avail boxed floating point object from the passed {@code
+	 * float}.  Don't answer an existing object.
 	 *
 	 * @param aFloat The Java {@code float} to box.
-	 * @return The boxed Avail {@linkplain FloatDescriptor float}.
+	 * @return The boxed Avail {@code float}.
 	 */
 	public static A_Number fromFloat (final float aFloat)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(
 			RAW_INT,
-			Float.floatToRawIntBits(aFloat));
+			floatToRawIntBits(aFloat));
 		return result;
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
-	 * object} from the passed {@code float}.
+	 * Construct an Avail boxed floating point object from the passed {@code
+	 * float}.
 	 *
 	 * @param aFloat
 	 *            The Java {@code float} to box.
@@ -140,24 +141,25 @@ extends AbstractNumberDescriptor
 			: mutable.create();
 		result.setSlot(
 			RAW_INT,
-			Float.floatToRawIntBits(aFloat));
+			floatToRawIntBits(aFloat));
 		return result;
 	}
 
 	/**
-	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
-	 * object} from the passed {@code float}.
+	 * Construct an Avail boxed floating point object from the passed {@code
+	 * float}.
 	 *
 	 * @param aFloat
-	 *            The Java {@code float} to box.
+	 *        The Java {@code float} to box.
 	 * @param recyclable1
-	 *            A boxed float that may be reused if it's mutable.
+	 *        A boxed Avail {@code float} that may be reused if it's mutable.
 	 * @param recyclable2
-	 *            Another boxed float that may be reused if it's mutable.
+	 *        Another boxed Avail {@code float} that may be reused if it's
+	 *        mutable.
 	 * @param canDestroy
-	 *            Whether one of the given floats can be reused if it's mutable.
-	 * @return
-	 *            The boxed Avail {@code FloatDescriptor floating point object}.
+	 *        Whether one of the given boxed Avail floats can be reused if it's
+	 *        mutable.
+	 * @return The boxed Avail {@code float}.
 	 */
 	public static A_Number objectFromFloatRecycling (
 		final float aFloat,
@@ -180,7 +182,7 @@ extends AbstractNumberDescriptor
 		}
 		result.setSlot(
 			RAW_INT,
-			Float.floatToRawIntBits(aFloat));
+			floatToRawIntBits(aFloat));
 		return result;
 	}
 
@@ -391,8 +393,7 @@ extends AbstractNumberDescriptor
 		// Java float equality is irreflexive, and therefore useless to us,
 		// since Avail sets (at least) require reflexive equality.  Compare the
 		// exact bits instead.
-		return Float.floatToRawIntBits(getFloat(object))
-			== Float.floatToRawIntBits(aFloat);
+		return floatToRawIntBits(getFloat(object)) == floatToRawIntBits(aFloat);
 	}
 
 	@Override @AvailMethod

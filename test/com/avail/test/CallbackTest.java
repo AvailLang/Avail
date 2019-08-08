@@ -92,7 +92,7 @@ public final class CallbackTest
 	 *
 	 * @return An {@link A_Function} that adds two numbers.
 	 */
-	public A_Function plusOneCallback ()
+	public static A_Function plusOneCallback ()
 	{
 		final Callback callback = (arguments, completion, failure) ->
 		{
@@ -123,7 +123,7 @@ public final class CallbackTest
 	 *
 	 * @return An {@link A_Function} that divides two numbers.
 	 */
-	public A_Function divisionCallback ()
+	public static A_Function divisionCallback ()
 	{
 		final Callback callback = (arguments, completion, failure) ->
 		{
@@ -188,16 +188,8 @@ public final class CallbackTest
 		assertTrue(loaded, "Failed to load module: " + harnessModuleName);
 		assertFalse(helper.errorDetected());
 
-		final A_Module module =
-			helper.runtime.moduleAt(stringFrom(harnessModuleName));
-		final A_Map entryPointsNames = module.entryPoints();
-
-		final A_Atom callOnceAtom = entryPointsNames.mapAt(
-			stringFrom("Invoke Once_with_"));
-		final A_Tuple definitions =
-			callOnceAtom.bundleOrNil().bundleMethod().definitionsTuple();
-		assert definitions.tupleSize() == 1;
-		final A_Function body = definitions.tupleAt(1).bodyBlock();
+		final A_Function body = monomorphicDefinitionBody(
+			stringFrom(harnessModuleName), stringFrom("Invoke Once_with_"));
 
 		final A_Fiber fiber = createFiber(
 			NUMBER.o(),

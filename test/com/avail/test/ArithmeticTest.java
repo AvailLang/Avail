@@ -38,13 +38,20 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Stream;
 
+import static com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Avail arithmetic types.
@@ -64,6 +71,16 @@ public final class ArithmeticTest
 		1.1,
 		0.1,
 		0.01,
+		// Near 31/32 bit boundary
+		1.0e9,
+		3.0e9,
+		5.0e9,
+		// Near 63/64 bit boundary
+		5.0e18,
+		9.0e18,
+		18.0e18,
+		19.0e18,
+		// Near minimum and maximum ranges *of floats*.
 		-3.7e-37,
 		-3.7e37,
 		3.7e-37,
@@ -91,17 +108,24 @@ public final class ArithmeticTest
 	 */
 	static final double DoubleEpsilon = Math.pow(0.5, 50.0);
 
-	/**
-	 * An array of floats with which to test the arithmetic primitives.
-	 */
-	static final float[] sampleFloats =
-	{
+	/** An array of floats with which to test arithmetic. */
+	static final List<Float> sampleFloats = asList(
 		0.0f,
 		-0.0f,
 		1.0f,
 		1.1f,
 		0.1f,
 		0.01f,
+		// Near 31/32 bit boundary
+		1.0e9f,
+		3.0e9f,
+		5.0e9f,
+		// Near 63/64 bit boundary
+		5.0e18f,
+		9.0e18f,
+		18.0e18f,
+		19.0e18f,
+		// Near minimum and maximum ranges of floats.
 		-3.7e-37f,
 		-3.7e37f,
 		3.7e-37f,
@@ -110,8 +134,31 @@ public final class ArithmeticTest
 		(float) Math.E,
 		Float.NaN,
 		Float.NEGATIVE_INFINITY,
-		Float.POSITIVE_INFINITY
-	};
+		Float.POSITIVE_INFINITY);
+
+	/**
+	 * Answer the sample floats list.
+	 *
+	 * @return A {@link List} of {@link Float}s.
+	 */
+	private static List<Float> sampleFloats ()
+	{
+		return sampleFloats;
+	}
+
+	/**
+	 * Produce all pairs of sample Avail {@linkplain FloatDescriptor floats}.
+	 *
+	 * @return A stream of {@link Arguments}, each containing two sample {@code
+	 *         float}s.
+	 */
+	private static Stream<Arguments> floatPairs ()
+	{
+		return sampleFloats.stream()
+			.flatMap(
+				f1 -> sampleFloats.stream()
+					.map(f2 -> Arguments.of(f1, f2)));
+	}
 
 	/**
 	 * The precision to which the basic calculations should conform.  This
@@ -125,6 +172,13 @@ public final class ArithmeticTest
 	 */
 	static final float FloatEpsilon = (float) Math.pow(0.5, 20.0);
 
+	/**
+	 * Check that two floats are either both NaNs or neither Nans but within a
+	 * reasonable epsilon of each other.
+	 *
+	 * @param a A {@code float}.
+	 * @param b A {@code float} to compare the first one to.
+	 */
 	static void assertEqualFloatsOrNan (final float a, final float b)
 	{
 		assertEquals(Float.isNaN(a), Float.isNaN(b));
@@ -139,39 +193,67 @@ public final class ArithmeticTest
 
 	/**
 	 * Test some basic properties of {@linkplain FloatDescriptor Avail floats}.
+	 *
+	 * @param f The float to check.
 	 */
-	@Test
-	public void testFloats ()
+	@ParameterizedTest
+	@MethodSource("sampleFloats")
+	public void testFloats (final float f)
 	{
-		for (final float f1 : sampleFloats)
+		final A_Number availFloat = fromFloat(f);
+		if (!Float.isNaN(f))
 		{
-			final A_Number F1 = fromFloat(f1);
-			assertEquals(F1, F1);
-			for (final float f2 : sampleFloats)
+			assertEquals(f, availFloat.extractFloat());
+
+			final A_Number availInt = doubleTruncatedToExtendedInteger(f);
+			if (Long.MIN_VALUE <= f && f <= Long.MAX_VALUE)
 			{
-				final A_Number F2 = fromFloat(f2);
-				assertEqualFloatsOrNan(
-					F1.plusCanDestroy(F2, false).extractFloat(),
-					f1+f2);
-				assertEqualFloatsOrNan(
-					F1.minusCanDestroy(F2, false).extractFloat(),
-					f1-f2);
-				assertEqualFloatsOrNan(
-					F1.timesCanDestroy(F2, false).extractFloat(),
-					f1*f2);
-				assertEqualFloatsOrNan(
-					F1.divideCanDestroy(F2, false).extractFloat(),
-					f1/f2);
+				assertTrue(availInt.isLong());
+				assertEquals(availInt.extractLong(), (long)f);
+			}
+			if (Float.isInfinite(f))
+			{
+				assertFalse(availInt.isFinite());
+				assertEquals(f > 0, availInt.isPositive());
+			}
+			else
+			{
+				final A_Number lower = doubleTruncatedToExtendedInteger(f - 1);
+				final A_Number upper = doubleTruncatedToExtendedInteger(f + 1);
+				assert lower.lessOrEqual(availInt)
+					&& availInt.lessOrEqual(upper);
 			}
 		}
+	}
+
+	/**
+	 * Test some basic properties of pairs of {@linkplain FloatDescriptor Avail
+	 * floats}.
+	 *
+	 * @param f1 The first of two floats to combine.
+	 * @param f2 The second of two floats to combine.
+	 */
+	@ParameterizedTest
+	@MethodSource("floatPairs")
+	public void testFloatPairs (final float f1, final float f2)
+	{
+		final A_Number availF1 = fromFloat(f1);
+		final A_Number availF2 = fromFloat(f2);
+		assertEqualFloatsOrNan(
+			f1+f2, availF1.plusCanDestroy(availF2, false).extractFloat());
+		assertEqualFloatsOrNan(
+			f1-f2, availF1.minusCanDestroy(availF2, false).extractFloat());
+		assertEqualFloatsOrNan(
+			f1*f2, availF1.timesCanDestroy(availF2, false).extractFloat());
+		assertEqualFloatsOrNan(
+			f1/f2, availF1.divideCanDestroy(availF2, false).extractFloat());
 	}
 
 	/**
 	 * Values with which to test {@link BigInteger} conversion.  Their negations
 	 * are also tested.
 	 */
-	static final String [] bigIntegerHexConversions =
-	{
+	static final List<String> bigIntegerHexConversions = asList(
 		"1", "2",
 		"7F", "80", "81",
 		"FF", "100", "101", "102",
@@ -193,8 +275,17 @@ public final class ArithmeticTest
 		"FFFFFFFFFFFFFFFFFF", "1000000000000000000", "1000000000000000001",
 		"7FFFFFFFFFFFFFFFFFFF", "80000000000000000000", "80000000000000000001",
 		"FFFFFFFFFFFFFFFFFFFF", "100000000000000000000", "100000000000000000001",
-		"123456789ABCDEF0123456789ABCDEF"
-	};
+		"123456789ABCDEF0123456789ABCDEF");
+
+	/**
+	 * Answer the big integer hex strings to test.
+	 *
+	 * @return a {@link List} of hexadecimal {@link String}s.
+	 */
+	private static List<String> bigIntegerHexConversions ()
+	{
+		return bigIntegerHexConversions;
+	}
 
 	/**
 	 * Check that the {@link BigInteger} produced from the provided hex string
@@ -218,16 +309,15 @@ public final class ArithmeticTest
 	/**
 	 * Test {@link BigInteger} to {@linkplain IntegerDescriptor Avail integer}
 	 * conversion.
+	 *
+	 * @param bigIntString A hexadecimal string to test.
 	 */
-	@Test
-	public void testFromBigInteger ()
+	@ParameterizedTest
+	@MethodSource("bigIntegerHexConversions")
+	public void testFromBigInteger (final String bigIntString)
 	{
-		checkBigIntegerHexString("0");
-		for (final String bigIntString : bigIntegerHexConversions)
-		{
-			checkBigIntegerHexString(bigIntString);
-			checkBigIntegerHexString("-" + bigIntString);
-		}
+		checkBigIntegerHexString(bigIntString);
+		checkBigIntegerHexString("-" + bigIntString);
 	}
 
 	/**

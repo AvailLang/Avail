@@ -1115,7 +1115,7 @@ public abstract class AbstractDescriptor
 			builder.append(String.format("0x%02X", value & 0xFF));
 			return;
 		}
-		// Present signed 16-bits as unsigned, and unsigned 16-bits unchanged.
+		// Present signed short as unsigned, and unsigned short unchanged.
 		if (numBits <= 16 && -0x8000 <= value && value <= 0xFFFF)
 		{
 			builder.append(String.format("0x%04X", value & 0xFFFF));

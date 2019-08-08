@@ -250,7 +250,7 @@ extends ExtendedIntegerDescriptor
 			final long longValue = object.extractLong();
 			describeLong(
 				longValue,
-				longValue == (int) longValue ? 32 : 64,
+				intCount(object) == 1 ? 32 : 64,
 				builder);
 			builder.append(" = ");
 			builder.append(longValue);

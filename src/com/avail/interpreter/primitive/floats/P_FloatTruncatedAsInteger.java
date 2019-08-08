@@ -40,10 +40,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
-import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -51,7 +49,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static java.lang.Math.*;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain FloatDescriptor
@@ -76,42 +73,15 @@ public final class P_FloatTruncatedAsInteger extends Primitive
 		final A_Number a = interpreter.argument(0);
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
-		float f = a.extractFloat();
+		final float f = a.extractFloat();
 		if (Float.isNaN(f))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
 		}
-		final boolean neg = f < 0.0f;
-		if (Float.isInfinite(f))
-		{
-			// Return the corresponding integral infinity.
-			return interpreter.primitiveSuccess(
-				neg ? negativeInfinity() : positiveInfinity());
-		}
-		if (f >= Integer.MIN_VALUE && f <= Integer.MAX_VALUE)
-		{
-			// Common case -- it fits in an int.
-			return interpreter.primitiveSuccess(fromInt((int) f));
-		}
-		f = abs(f);
-		final int exponent = getExponent(f);
-		final int slots = (exponent + 31) >> 5;  // probably needs work
-		A_Number out = createUninitializedInteger(slots);
-		f = scalb(f, (1 - slots) << 5);
-		for (int i = slots; i >= 1; --i)
-		{
-			final long intSlice = (int) f;
-			out.rawUnsignedIntegerAtPut(i, (int) intSlice);
-			f -= intSlice;
-			f = scalb(f, 32);
-		}
-		out.trimExcessInts();
-		if (neg)
-		{
-			out = zero().noFailMinusCanDestroy(out, true);
-		}
-		return interpreter.primitiveSuccess(out);
+		// Do the conversion as a Double.
+		return interpreter.primitiveSuccess(
+			doubleTruncatedToExtendedInteger(f));
 	}
 
 	@Override
