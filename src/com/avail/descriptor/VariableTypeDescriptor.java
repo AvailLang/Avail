@@ -299,7 +299,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@codeVariableTypeDescriptor}.
+	 * Construct a new {@code VariableTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

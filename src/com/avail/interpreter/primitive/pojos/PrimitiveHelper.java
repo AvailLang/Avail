@@ -71,8 +71,11 @@ import static com.avail.interpreter.levelOne.L1Operation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class PrimitiveHelper
+final class PrimitiveHelper
 {
+	/** Prevent instantiation. */
+	private PrimitiveHelper () { }
+
 	/**
 	 * Search for the requested Java {@link Method}.
 	 *
@@ -235,7 +238,7 @@ class PrimitiveHelper
 		final A_Function failFunction,
 		final Continuation1NotNull<L1InstructionWriter> interfaceHeader)
 	{
-		L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
+		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		interfaceHeader.value(writer);
 		writer.write(
 			0,

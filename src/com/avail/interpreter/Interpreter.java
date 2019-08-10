@@ -33,6 +33,7 @@
 package com.avail.interpreter;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.HookType;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
@@ -82,8 +83,10 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.avail.AvailRuntime.HookType.STRINGIFICATION;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
@@ -92,7 +95,6 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UN
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -2587,9 +2589,8 @@ public final class Interpreter
 	}
 
 	/**
-	 * Stringify an {@linkplain AvailObject Avail value}, using the
-	 * {@linkplain AvailRuntime#stringificationFunction() stringification
-	 * function} associated with the specified {@linkplain AvailRuntime
+	 * Stringify an {@linkplain AvailObject Avail value}, using the {@link
+	 * HookType#STRINGIFICATION} hook in the specified {@linkplain AvailRuntime
 	 * runtime}. Stringification will run in a new {@linkplain FiberDescriptor
 	 * fiber}. If stringification fails for any reason, then the built-in
 	 * mechanism, available via {@link AvailObject#toString()} will be used.
@@ -2613,17 +2614,9 @@ public final class Interpreter
 		final A_BasicObject value,
 		final Continuation1NotNull<String> continuation)
 	{
-		final @Nullable A_Function stringifierFunction =
-			runtime.stringificationFunction();
+		final A_Function stringifierFunction = STRINGIFICATION.get(runtime);
 		// If the stringifier function is not defined, then use the basic
 		// mechanism for stringification.
-		if (stringifierFunction == null)
-		{
-			continuation.value(format(
-				"(stringifier undefined) %s",
-				value.toString()));
-			return;
-		}
 		// Create the fiber that will execute the function.
 		final A_Fiber fiber = newFiber(
 			stringType(),
@@ -2646,14 +2639,13 @@ public final class Interpreter
 
 	/**
 	 * Stringify a {@linkplain List list} of {@linkplain AvailObject Avail
-	 * values}, using the {@linkplain AvailRuntime#stringificationFunction()
-	 * stringification function} associated with the specified {@linkplain
-	 * AvailRuntime runtime}. Stringification will run in parallel, with each
-	 * value being processed by its own new {@linkplain FiberDescriptor fiber}.
-	 * If stringification fails for a value for any reason, then the built-in
-	 * mechanism, available via {@link AvailObject#toString()} will be used for
-	 * that value. Invoke the specified continuation with the resulting list,
-	 * preserving the original order.
+	 * values}, using the {@link HookType#STRINGIFICATION} hook associated with
+	 * the specified {@linkplain AvailRuntime runtime}. Stringification will run
+	 * in parallel, with each value being processed by its own new {@linkplain
+	 * FiberDescriptor fiber}. If stringification fails for a value for any
+	 * reason, then the built-in mechanism, available via {@link
+	 * AvailObject#toString()} will be used for that value. Invoke the specified
+	 * continuation with the resulting list, preserving the original order.
 	 *
 	 * @param runtime
 	 *        An Avail runtime.

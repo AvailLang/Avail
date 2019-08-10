@@ -63,7 +63,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 /**
  * <strong>Primitive:</strong> Replace the range of values in a tuple given
  * a replacement tuple and a tuple of values to chart the path to get to the
- * desired range to replace
+ * desired range to replace.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

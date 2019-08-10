@@ -45,6 +45,11 @@ public final class Casts
 	/**
 	 * When you know better, this bypasses static type-safety, while leaving
 	 * dynamic type-safety intact, other than generics and nulls.
+	 *
+	 * @param value The value to cast, of type {@code I}.
+	 * @return The argument, strengthened to the indicated type {@code O}.
+	 * @param <I> The input type.
+	 * @param <O> The output type.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <I, O> O cast (final I value)
@@ -55,6 +60,11 @@ public final class Casts
 	/**
 	 * When you know better, this bypasses static type-safety, while leaving
 	 * dynamic type-safety intact, other than generics and nulls.
+	 *
+	 * @param value The nullable value to cast, of type {@code I}.
+	 * @return The argument, strengthened to the indicated type {@code O}.
+	 * @param <I> The input type.
+	 * @param <O> The output type.
 	 */
 	@SuppressWarnings("unchecked")
 	public static @Nullable <I, O> O nullableCast (final @Nullable I value)

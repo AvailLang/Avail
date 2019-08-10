@@ -33,6 +33,8 @@
 package com.avail;
 
 import com.avail.AvailRuntimeSupport.Clock;
+import com.avail.CallbackSystem.Callback;
+import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
@@ -49,7 +51,10 @@ import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.general.P_EmergencyExit;
+import com.avail.interpreter.primitive.general.P_ToString;
 import com.avail.interpreter.primitive.phrases.P_CreateToken;
 import com.avail.io.IOSystem;
 import com.avail.io.TextInterface;
@@ -65,15 +70,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
@@ -81,6 +89,7 @@ import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionDescriptor.newCrashFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
@@ -103,8 +112,8 @@ import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.*;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -115,6 +124,8 @@ import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -540,89 +551,184 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain FunctionDescriptor function} that performs
-	 * stringification. It accepts a single argument, the value to stringify.
+	 * A {@code HookType} describes an abstract missing behavior in the virtual
+	 * machine, where an actual hook will have to be constructed to hold an
+	 * {@link A_Function} within each separate {@code AvailRuntime}.
 	 */
-	private volatile @Nullable A_Function stringificationFunction;
-
-	/**
-	 * Answer the {@linkplain FunctionDescriptor atom} that performs
-	 * stringification.
-	 *
-	 * @return The requested function, or {@code null} if no such function has
-	 *         been made known to the implementation.
-	 */
-	@ThreadSafe
-	public @Nullable A_Function stringificationFunction ()
+	public enum HookType
 	{
-		return stringificationFunction;
+		/**
+		 * The {@code HookType} for a hook that holds the stringification
+		 * function.
+		 */
+		STRINGIFICATION(
+			"«stringification»",
+			functionType(tuple(ANY.o()), stringType()),
+			P_ToString.instance),
+
+		/**
+		 * The {@code HookType} for a hook that holds the function to invoke
+		 * whenever an unassigned variable is read.
+		 */
+		READ_UNASSIGNED_VARIABLE(
+			"«cannot read unassigned variable»",
+			functionType(emptyTuple(), bottom()),
+			null),
+
+		/**
+		 * The {@code HookType} for a hook that holds the function to invoke
+		 * whenever a returned value disagrees with the expected type.
+		 */
+		RESULT_DISAGREED_WITH_EXPECTED_TYPE(
+			"«return result disagreed with expected type»",
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					topMeta(),
+					variableTypeFor(ANY.o())),
+				bottom()),
+			null),
+
+		/**
+		 * The {@code HookType} for a hook that holds the function to invoke
+		 * whenever an {@link A_Method} send fails for a definitional reason.
+		 */
+		INVALID_MESSAGE_SEND(
+			"«failed method lookup»",
+			functionType(
+				tuple(
+					enumerationWith(
+						SetDescriptor.set(
+							E_NO_METHOD,
+							E_NO_METHOD_DEFINITION,
+							E_AMBIGUOUS_METHOD_DEFINITION,
+							E_FORWARD_METHOD_DEFINITION,
+							E_ABSTRACT_METHOD_DEFINITION)),
+					METHOD.o(),
+					mostGeneralTupleType()),
+				bottom()),
+			null),
+
+		/**
+		 * The {@code HookType} for a hook that holds the {@link A_Function} to
+		 * invoke whenever an {@link A_Variable} with {@linkplain
+		 * VariableAccessReactor write reactors} is written to when {@linkplain
+		 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+		 */
+		IMPLICIT_OBSERVE(
+			"«variable with a write reactor was written without write-tracing»",
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					mostGeneralTupleType()),
+				TOP.o()),
+			null),
+
+		/**
+		 * The {@code HookType} for a hook that holds the {@link A_Function} to
+		 * invoke when an exception is caught in a Pojo invocation of a Java
+		 * method or {@link Callback}.
+		 */
+		RAISE_JAVA_EXCEPTION_IN_AVAIL(
+			"«raise Java exception in Avail»",
+			functionType(
+				tuple(
+					pojoTypeForClass(Throwable.class)),
+				bottom()),
+			null);
+
+		/** The name to attach to functions plugged into this hook. */
+		final A_String hookName;
+
+		/**
+		 * The {@link A_Function} {@link A_Type} that hooks of this type use.
+		 */
+		public final A_Type functionType;
+
+		/** A default {@link A_Function} to use for this hook type. */
+		public final A_Function defaultFunction;
+
+		/**
+		 * Create a hook type.
+		 *
+		 * @param hookName
+		 *        The name to attach to the {@link A_Function}s that are plugged
+		 *        into hooks of this type.
+		 * @param functionType
+		 *        The signature of functions that may be plugged into hook of
+		 *        this type.
+		 * @param primitive
+		 *        The {@link Primitive} around which to synthesize a default
+		 *        {@link A_Function} for hooks of this type.  If this is {@code
+		 *        null}, a function that invokes {@link P_EmergencyExit} will be
+		 *        synthesized instead.
+		 */
+		HookType (
+			final String hookName,
+			final A_Type functionType,
+			final @Nullable Primitive primitive)
+		{
+			this.hookName = stringFrom(hookName);
+			this.functionType = functionType;
+			if (primitive == null)
+			{
+				// Create an invocation of P_EmergencyExit.
+				final A_Type argumentsTupleType = functionType.argsTupleType();
+				final A_Tuple argumentTypesTuple =
+					argumentsTupleType.tupleOfTypesFromTo(
+						1,
+						argumentsTupleType.sizeRange().upperBound()
+							.extractInt());
+				this.defaultFunction =
+					newCrashFunction(hookName, argumentTypesTuple);
+			}
+			else
+			{
+				final A_RawFunction code =
+					newPrimitiveRawFunction(primitive, nil, 0);
+				code.setMethodName(this.hookName);
+				this.defaultFunction = createFunction(code, emptyTuple());
+			}
+			assert defaultFunction.isInstanceOf(functionType);
+		}
+
+		/**
+		 * Extract the current {@link A_Function} for this hook from the given
+		 * runtime.
+		 *
+		 * @param runtime The {@link AvailRuntime} to examine.
+		 * @return The {@link A_Function} currently in that hook.
+		 */
+		public A_Function get (final AvailRuntime runtime)
+		{
+			return runtime.hooks.get(this).get();
+		}
+
+		/**
+		 * Set this hook for the given runtime to the given function.
+		 *
+		 * @param runtime
+		 *        The {@link AvailRuntime} to examine.
+		 * @param function
+		 *        The {@link A_Function} to plug into this hook.
+		 */
+		public void set (final AvailRuntime runtime, final A_Function function)
+		{
+			assert function.isInstanceOf(functionType);
+			function.code().setMethodName(hookName);
+			runtime.hooks.get(this).set(function);
+		}
 	}
 
-	/**
-	 * Set the {@linkplain FunctionDescriptor function} that performs
-	 * stringification.
-	 *
-	 * @param function
-	 *        The stringification function.
-	 */
-	@ThreadSafe
-	public void setStringificationFunction (final A_Function function)
-	{
-		stringificationFunction = function;
-	}
-
-	/**
-	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
-	 * unassigned variable is read.
-	 */
-	private volatile A_Function unassignedVariableReadFunction =
-		newCrashFunction(
-			"attempted to read from unassigned variable",
-			emptyTuple());
-
-	/**
-	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever an
-	 * unassigned variable is read.
-	 *
-	 * @return The requested function.
-	 */
-	@ThreadSafe
-	@ReferencedInGeneratedCode
-	public A_Function unassignedVariableReadFunction ()
-	{
-		return unassignedVariableReadFunction;
-	}
-
-	/**
-	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever an
-	 * unassigned variable is read.
-	 *
-	 * @param function
-	 *        The function to invoke whenever an unassigned variable is read.
-	 */
-	@ThreadSafe
-	public void setUnassignedVariableReadFunction (final A_Function function)
-	{
-		unassignedVariableReadFunction = function;
-	}
-
-	/**
-	 * The type for the failure handler for reading from an unassigned variable.
-	 */
-	public static final A_Type unassignedVariableReadFunctionType =
-		functionType(emptyTuple(), bottom());
-
-	/**
-	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * returned value disagrees with the expected type.
-	 */
-	private volatile A_Function resultDisagreedWithExpectedTypeFunction =
-		newCrashFunction(
-			"return result disagreed with expected type",
-			tuple(
-				mostGeneralFunctionType(),
-				topMeta(),
-				variableTypeFor(ANY.o())));
+	/** The collection of hooks for this runtime. */
+	@InnerAccess final EnumMap<HookType, AtomicReference<A_Function>> hooks =
+		new EnumMap<>(
+			Arrays.stream(HookType.values())
+				.collect(
+					toMap(
+						identity(),
+						hookType -> new AtomicReference<>(
+							hookType.defaultFunction))));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -639,35 +745,8 @@ public final class AvailRuntime
 	@ReferencedInGeneratedCode
 	public A_Function resultDisagreedWithExpectedTypeFunction ()
 	{
-		return resultDisagreedWithExpectedTypeFunction;
+		return RESULT_DISAGREED_WITH_EXPECTED_TYPE.get(this);
 	}
-
-	/**
-	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever
-	 * the value produced by a {@linkplain MethodDescriptor method} send
-	 * disagrees with the {@linkplain TypeDescriptor type} expected.
-	 *
-	 * @param function
-	 *        The function to invoke whenever the value produced by a method
-	 *        send disagrees with the type expected.
-	 */
-	@ThreadSafe
-	public void setResultDisagreedWithExpectedTypeFunction (
-		final A_Function function)
-	{
-		resultDisagreedWithExpectedTypeFunction = function;
-	}
-
-	/**
-	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * {@linkplain VariableDescriptor variable} with {@linkplain
-	 * VariableAccessReactor write reactors} is written when {@linkplain
-	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
-	 */
-	private volatile A_Function implicitObserveFunction =
-		newCrashFunction(
-			"variable with a write reactor was written with write-tracing off",
-			tuple(mostGeneralFunctionType(), mostGeneralTupleType()));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -681,59 +760,8 @@ public final class AvailRuntime
 	@ReferencedInGeneratedCode
 	public A_Function implicitObserveFunction ()
 	{
-		return implicitObserveFunction;
+		return IMPLICIT_OBSERVE.get(this);
 	}
-
-	/**
-	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * {@linkplain VariableDescriptor variable} with {@linkplain
-	 * VariableAccessReactor write reactors} is written when {@linkplain
-	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
-	 *
-	 * @param function
-	 *        The function to invoke whenever a variable with write reactors is
-	 *        written when write tracing is not enabled.
-	 */
-	@ThreadSafe
-	public void setImplicitObserveFunction (final A_Function function)
-	{
-		implicitObserveFunction = function;
-	}
-
-	/** The type of the {@link #implicitObserveFunction}. */
-	public static final A_Type implicitObserveFunctionType =
-		functionType(
-			tuple(
-				mostGeneralFunctionType(),
-				mostGeneralTupleType()),
-			TOP.o());
-
-	/**
-	 * The required type of the invalid message send function.
-	 */
-	public static final A_Type invalidMessageSendFunctionType =
-		functionType(
-			tuple(
-				enumerationWith(
-					set(
-						E_NO_METHOD,
-						E_NO_METHOD_DEFINITION,
-						E_AMBIGUOUS_METHOD_DEFINITION,
-						E_FORWARD_METHOD_DEFINITION,
-						E_ABSTRACT_METHOD_DEFINITION)),
-				METHOD.o(),
-				mostGeneralTupleType()),
-			bottom());
-
-	/**
-	 * The {@link A_Function} to invoke whenever a {@linkplain A_Method} send
-	 * fails for a definitional reason.
-	 */
-	private volatile A_Function invalidMessageSendFunction =
-		newCrashFunction(
-			"failed method lookup",
-			invalidMessageSendFunctionType
-				.argsTupleType().tupleOfTypesFromTo(1, 3));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
@@ -747,22 +775,7 @@ public final class AvailRuntime
 	@ReferencedInGeneratedCode
 	public A_Function invalidMessageSendFunction ()
 	{
-		return invalidMessageSendFunction;
-	}
-
-	/**
-	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * {@linkplain MethodDescriptor method} send fails for a definitional
-	 * reason.
-	 *
-	 * @param function
-	 *        The function to invoke whenever a message send fails dynamically
-	 *        because of an ambiguous, invalid, or incomplete lookup.
-	 */
-	@ThreadSafe
-	public void setInvalidMessageSendFunction (final A_Function function)
-	{
-		invalidMessageSendFunction = function;
+		return INVALID_MESSAGE_SEND.get(this);
 	}
 
 	/**
@@ -1689,6 +1702,7 @@ public final class AvailRuntime
 		timer.cancel();
 		executor.shutdownNow();
 		ioSystem.destroy();
+		callbackSystem.destroy();
 		try
 		{
 			executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -1697,6 +1711,8 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
+		moduleNameResolver.clearCache();
+		moduleNameResolver.destroy();
 		modules = nil;
 	}
 }

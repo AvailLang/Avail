@@ -90,10 +90,6 @@ public final class P_InvokeCallback extends Primitive
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-//		interpreter.checkArgumentCount(2);
-//		final AvailObject callbackPojo = interpreter.argument(0);
-//		final AvailObject argumentsTuple = interpreter.argument(1);
-
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{

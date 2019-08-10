@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.utility.MutableInt;
 import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
@@ -523,18 +524,10 @@ extends NumericTupleDescriptor
 		if (tupleSize > 0 && tupleSize < maximumCopySize)
 		{
 			// It's not empty and it's reasonably small.
+			final MutableInt sourceIndex = new MutableInt(tupleSize);
 			return generateByteTupleFrom(
 				tupleSize,
-				new IntUnaryOperator()
-				{
-					int sourceIndex = tupleSize;
-
-					@Override
-					public int applyAsInt (final int operand)
-					{
-						return object.byteSlot(RAW_LONG_AT_, sourceIndex--);
-					}
-				});
+				ignored -> object.byteSlot(RAW_LONG_AT_, sourceIndex.value--));
 		}
 		return super.o_TupleReverse(object);
 	}

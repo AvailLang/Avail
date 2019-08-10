@@ -1,6 +1,6 @@
 /*
  * P_SetImplicitObserveFunction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.variables;
+package com.avail.interpreter.primitive.hooks;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
@@ -46,8 +46,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.AvailRuntime.implicitObserveFunctionType;
+import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionDescriptor.createWithOuters1;
@@ -88,15 +87,13 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Function function = interpreter.argument(0);
-		function.code().setMethodName(
-			stringFrom("«implicit observe function»"));
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
 		final A_Function wrapper =
 			createWithOuters1(rawFunction, cast(function));
 		// Now set the wrapper as the implicit observe function.
-		currentRuntime().setImplicitObserveFunction(wrapper);
+		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper);
 		return interpreter.primitiveSuccess(nil);
 	}
 
@@ -115,7 +112,8 @@ extends Primitive
 	private static A_RawFunction createRawFunction ()
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		final int outerIndex = writer.createOuter(implicitObserveFunctionType);
+		final int outerIndex =
+			writer.createOuter(IMPLICIT_OBSERVE.functionType);
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
 		writer.returnType(bottom());
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex);
@@ -154,7 +152,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				implicitObserveFunctionType),
+				IMPLICIT_OBSERVE.functionType),
 			TOP.o());
 	}
 }

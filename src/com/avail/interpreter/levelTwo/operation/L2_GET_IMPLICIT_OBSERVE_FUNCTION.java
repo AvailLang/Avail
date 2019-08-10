@@ -47,7 +47,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.AvailRuntime.implicitObserveFunctionType;
+import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
@@ -86,7 +86,7 @@ extends L2Operation
 		final L2WriteBoxedOperand function = instruction.operand(0);
 		registerSet.typeAtPut(
 			function.register(),
-			implicitObserveFunctionType,
+			IMPLICIT_OBSERVE.functionType,
 			instruction);
 	}
 

@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.HookType;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -48,15 +49,15 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.AvailRuntime.unassignedVariableReadFunctionType;
+import static com.avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.*;
 
 /**
- * Store the {@linkplain AvailRuntime#unassignedVariableReadFunction()
- * unassigned variable read function} into the supplied {@linkplain
+ * Store the current {@link A_Function} from the {@linkplain
+ * HookType#READ_UNASSIGNED_VARIABLE} into the supplied {@linkplain
  * L2BoxedRegister object register}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -89,7 +90,7 @@ extends L2Operation
 
 		registerSet.typeAtPut(
 			function.register(),
-			unassignedVariableReadFunctionType,
+			READ_UNASSIGNED_VARIABLE.functionType,
 			instruction);
 	}
 

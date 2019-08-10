@@ -97,7 +97,7 @@ extends Descriptor
 		}
 
 		/**
-		 * Is the {@code VariableAccessReactor} invalid?
+		 * Answer whether the {@code VariableAccessReactor} is invalid.
 		 *
 		 * @return {@code true} if the reactor is invalid, {@code false}
 		 *         otherwise.
@@ -198,9 +198,10 @@ extends Descriptor
 		return object.slot(VALUE);
 	}
 
+	@SuppressWarnings("ThrowsRuntimeException")
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
-		throws VariableGetException
+	throws VariableGetException
 	{
 		try
 		{
@@ -284,8 +285,9 @@ extends Descriptor
 	 *         If variable write tracing is disabled, but the variable has
 	 *         write reactors.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	private static void handleVariableWriteTracing (final AvailObject object)
-		throws VariableSetException
+	throws VariableSetException
 	{
 		try
 		{
@@ -321,7 +323,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
-		throws VariableSetException
+	throws VariableSetException
 	{
 		handleVariableWriteTracing(object);
 		final A_Type outerKind = object.slot(KIND);

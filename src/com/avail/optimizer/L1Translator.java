@@ -74,7 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static com.avail.AvailRuntime.*;
+import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -322,7 +322,7 @@ public final class L1Translator
 	 *        The {@link L2ReadBoxedOperand} that should now be considered the
 	 *        current register-read representing that slot.
 	 */
-	private void forceSlotRegister (
+	void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
 		final L2ReadBoxedOperand registerRead)
@@ -427,6 +427,10 @@ public final class L1Translator
 	 * Write instructions to extract a numbered outer from the current function,
 	 * and answer an {@link L2ReadBoxedOperand} for the register that will
 	 * hold the outer value afterward.
+	 *
+	 * @param outerIndex The index of the outer to get.
+	 * @param outerType The type that the outer is known to be.
+	 * @return The {@link L2ReadBoxedOperand} where the outer was written.
 	 */
 	private L2ReadBoxedOperand getOuterRegister (
 		final int outerIndex,
@@ -477,6 +481,8 @@ public final class L1Translator
 	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
 	 * the continuation afterward.  Move the caller of this continuation back
 	 * into the interpreter's current reified continuation field.
+	 *
+	 * @return The {@link L2ReadBoxedOperand} where the continuation is written.
 	 */
 	private L2ReadBoxedOperand popCurrentContinuation ()
 	{
@@ -772,7 +778,7 @@ public final class L1Translator
 		 *        An int unique to this dispatch tree, monotonically
 		 *        allocated at each branch.
 		 */
-		private InternalNodeMemento (
+		InternalNodeMemento (
 			final int argumentIndexToTest,
 			final A_Type typeToTest,
 			final int branchLabelCounter)
@@ -2518,7 +2524,7 @@ public final class L1Translator
 	{
 		final L2WriteBoxedOperand invalidSendReg =
 			generator.boxedWriteTemp(
-				restrictionForType(invalidMessageSendFunctionType, BOXED));
+				restrictionForType(INVALID_MESSAGE_SEND.functionType, BOXED));
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 			invalidSendReg);
@@ -2652,7 +2658,8 @@ public final class L1Translator
 		generator.startBlock(failure);
 		final L2WriteBoxedOperand unassignedReadFunction =
 			generator.boxedWriteTemp(
-				restrictionForType(unassignedVariableReadFunctionType, BOXED));
+				restrictionForType(
+					READ_UNASSIGNED_VARIABLE.functionType, BOXED));
 		addInstruction(
 			L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
 			unassignedReadFunction);
@@ -2712,7 +2719,7 @@ public final class L1Translator
 		generator.startBlock(failure);
 		final L2WriteBoxedOperand observeFunction =
 			generator.boxedWriteTemp(
-				restrictionForType(implicitObserveFunctionType, BOXED));
+				restrictionForType(IMPLICIT_OBSERVE.functionType, BOXED));
 		addInstruction(
 			L2_GET_IMPLICIT_OBSERVE_FUNCTION.instance,
 			observeFunction);
@@ -2755,6 +2762,7 @@ public final class L1Translator
 			"(generate preamble)",
 			StatisticReport.L1_NAIVE_TRANSLATION_TIME);
 
+	/** Statistics for timing the translation per L1Operation. */
 	private static final Statistic[] levelOneGenerationStats =
 		Arrays.stream(L1Operation.values())
 			.map(operation -> new Statistic(
@@ -2930,6 +2938,8 @@ public final class L1Translator
 	 *        The entry point for returning into a reified continuation.
 	 * @param reenterFromInterruptBlock
 	 *        The entry point for resuming from an interrupt.
+	 * @param unreachableBlock
+	 *        A basic block that should be dynamically unreachable.
 	 * @return The {@link L2ControlFlowGraph} for the default chunk.
 	 */
 	public static L2ControlFlowGraph generateDefaultChunkControlFlowGraph (

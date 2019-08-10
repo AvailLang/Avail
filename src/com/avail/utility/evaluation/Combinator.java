@@ -73,6 +73,8 @@ public final class Combinator
 	 *        The first argument to pass to the body.
 	 * @param body
 	 *        The {@link Continuation2NotNull} to invoke.
+	 * @param <A>
+	 *        The type of the argument.
 	 */
 	public static <A> void recurse (
 		final A argument,

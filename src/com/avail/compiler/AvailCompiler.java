@@ -103,10 +103,12 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTyp
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
-import static com.avail.descriptor.FunctionDescriptor.*;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;

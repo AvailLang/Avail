@@ -37,6 +37,7 @@ import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
+import com.avail.utility.Nulls;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.util.concurrent.Semaphore;
 
@@ -62,10 +64,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AvailTest
 {
 	/** Setup for the test. */
-	final AvailRuntimeTestHelper helper;
+	@Nullable AvailRuntimeTestHelper helper = null;
 
 	/**
-	 * Construct an {@code AvailTest}.
+	 * Answer the {@link AvailRuntimeTestHelper}, ensuring it's not {@code
+	 * null}.
+	 *
+	 * @return The {@link AvailRuntimeTestHelper}.
+	 */
+	AvailRuntimeTestHelper helper ()
+	{
+		return Nulls.stripNull(helper);
+	}
+
+	/**
+	 * Clear all repositories iff the {@code clearAllRepositories} system
+	 * property is defined.
 	 *
 	 * @throws FileNotFoundException
 	 *         If the renames file was specified but not found.
@@ -73,23 +87,14 @@ public class AvailTest
 	 *         If the renames file exists but could not be interpreted correctly
 	 *         for any reason.
 	 */
-	@SuppressWarnings("unused")
-	public AvailTest ()
+	@BeforeAll
+	void maybeClearAllRepositories ()
 	throws FileNotFoundException, RenamesFileParserException
 	{
 		helper = new AvailRuntimeTestHelper();
-	}
-
-	/**
-	 * Clear all repositories iff the {@code clearAllRepositories} system
-	 * property is defined.
-	 */
-	@BeforeAll
-	private void maybeClearAllRepositories ()
-	{
 		if (System.getProperty("clearAllRepositories", null) != null)
 		{
-			helper.clearAllRepositories();
+			helper().clearAllRepositories();
 		}
 	}
 
@@ -97,9 +102,9 @@ public class AvailTest
 	 * Clear any error detected on the {@link TestErrorChannel}.
 	 */
 	@BeforeEach
-	private void clearError ()
+	void clearError ()
 	{
-		helper.clearError();
+		helper().clearError();
 	}
 
 	/**
@@ -108,7 +113,7 @@ public class AvailTest
 	@AfterAll
 	void tearDownRuntime ()
 	{
-		helper.tearDownRuntime();
+		helper().tearDownRuntime();
 	}
 
 	/**
@@ -133,9 +138,9 @@ public class AvailTest
 	public void testLoadStandardLibraries (final String moduleName)
 	throws UnresolvedDependencyException
 	{
-		final boolean loaded = helper.loadModule(moduleName);
+		final boolean loaded = helper().loadModule(moduleName);
 		assertTrue(loaded, "Failed to load module: " + moduleName);
-		assertFalse(helper.errorDetected());
+		assertFalse(helper().errorDetected());
 	}
 
 	/**
@@ -164,11 +169,11 @@ public class AvailTest
 	public void testBuildInvalidModules (final String moduleName)
 	throws UnresolvedDependencyException
 	{
-		final boolean loaded = helper.loadModule(moduleName);
+		final boolean loaded = helper().loadModule(moduleName);
 		assertFalse(
 			loaded,
 			"Should not have successfully loaded module: " + moduleName);
-		assertTrue(helper.errorDetected());
+		assertTrue(helper().errorDetected());
 	}
 
 	/**
@@ -183,11 +188,11 @@ public class AvailTest
 	throws UnresolvedDependencyException
 	{
 		final String testModuleName = "/avail/Avail Tests";
-		final boolean loaded = helper.loadModule(testModuleName);
+		final boolean loaded = helper().loadModule(testModuleName);
 		assertTrue(loaded, "Failed to load module: " + testModuleName);
 		final Semaphore semaphore = new Semaphore(0);
 		final Mutable<Boolean> ok = new Mutable<>(false);
-		helper.builder.attemptCommand(
+		helper().builder.attemptCommand(
 			"Run all tests",
 			(commands, proceed) -> proceed.value(commands.get(0)),
 			(result, cleanup) ->
@@ -199,7 +204,7 @@ public class AvailTest
 			semaphore::release);
 		semaphore.acquireUninterruptibly();
 		assertTrue(ok.value);
-		assertFalse(helper.errorDetected());
+		assertFalse(helper().errorDetected());
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
 		// otherwise this test isn't nearly as useful as it could be.

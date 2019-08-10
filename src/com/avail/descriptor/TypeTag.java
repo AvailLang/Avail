@@ -56,6 +56,7 @@ import static com.avail.utility.Nulls.stripNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("JavaDoc")
 public enum TypeTag
 {
 	UNKNOWN_TAG(),

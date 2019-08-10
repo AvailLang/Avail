@@ -40,8 +40,10 @@ import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1OperandType;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -56,7 +58,6 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
@@ -147,7 +148,7 @@ extends Descriptor
 		 * function, the number of arguments, the number of local variables, and
 		 * the number of local constants.
 		 */
-		NUM_SLOTS_ARGS_LOCALS_AND_CONSTS,
+		NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS,
 
 		/**
 		 * The sequence of nybbles, in little-endian order, starting with an
@@ -207,7 +208,7 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		static final BitField FRAME_SLOTS = bitField(
-			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 48, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 48, 16);
 
 		/**
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
@@ -217,7 +218,7 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		static final BitField NUM_ARGS = bitField(
-			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 32, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 32, 16);
 
 		/**
 		 * The number of local variables declared in this code.  This does not
@@ -227,7 +228,7 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		static final BitField NUM_LOCALS = bitField(
-			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 16, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 16, 16);
 
 		/**
 		 * The number of local constants declared in this code.  These occur in
@@ -237,7 +238,7 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		static final BitField NUM_CONSTANTS = bitField(
-			NUM_SLOTS_ARGS_LOCALS_AND_CONSTS, 0, 16);
+			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 0, 16);
 	}
 
 	/**
@@ -1421,6 +1422,42 @@ extends Descriptor
 		activeRawFunctions.add(code);
 
 		return code;
+	}
+
+	/**
+	 * Construct a bootstrapped {@link A_RawFunction} that uses the specified
+	 * primitive.  The primitive failure code should invoke the {@link
+	 * SpecialMethodAtom#CRASH}'s bundle with a tuple of passed arguments
+	 * followed by the primitive failure value.
+	 *
+	 * @param primitive
+	 *        The {@link Primitive} to use.
+	 * @param module
+	 *        The {@link A_Module module} making this primitive function.
+	 * @param lineNumber
+	 *        The line number on which the new function should be said to occur.
+	 * @return A function.
+	 */
+	public static A_RawFunction newPrimitiveRawFunction (
+		final Primitive primitive,
+		final A_Module module,
+		final int lineNumber)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			module, lineNumber, nil);
+		writer.primitive(primitive);
+		final A_Type functionType = primitive.blockTypeRestriction();
+		final A_Type argsTupleType = functionType.argsTupleType();
+		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
+		final A_Type [] argTypes = new AvailObject[numArgs];
+		for (int i = 0; i < numArgs; i++)
+		{
+			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
+		}
+		writer.argumentTypes(argTypes);
+		writer.returnType(functionType.returnType());
+		primitive.writeDefaultFailureCode(lineNumber, writer, numArgs);
+		return writer.compiledCode();
 	}
 
 	/**

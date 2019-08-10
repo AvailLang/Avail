@@ -61,13 +61,13 @@ import static com.avail.utility.Nulls.stripNull;
  *
  * <ol>
  * <li>Obtain the canonical name <strong>/R'/A/B/C/M'</strong> by applying an
- * existing renaming rule for <strong>/R/X/Y/Z/M</strong>.
+ * existing renaming rule for <strong>/R/X/Y/Z/M</strong>.</li>
  * <li>If package <strong>/R'/A/B/C</strong> contains a module
- * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <strong>M'</strong>, then capture its file reference <strong>F</strong>.</li>
  * <li>If package <strong>/R'/A/B</strong> contains a module
- * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <strong>M'</strong>, then capture its file reference <strong>F</strong>.</li>
  * <li>If package <strong>/R'/A</strong> contains a module
- * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <strong>M'</strong>, then capture its file reference <strong>F</strong>.</li>
  * <li>If module root <strong>/R</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
  * <li>If module root <strong>/S</strong> contains a module <strong>M'</strong>,
@@ -110,7 +110,7 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * Construct a new {@link ModuleNameResolver}.
+	 * Construct a new {@code ModuleNameResolver}.
 	 *
 	 * @param roots The Avail {@linkplain ModuleRoots module roots}.
 	 */
@@ -136,8 +136,8 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
-	 * rule for the specified fully-qualified module name?
+	 * Does the resolver have a transformation rule for the specified
+	 * fully-qualified module name?
 	 *
 	 * @param modulePath
 	 *        A fully-qualified module name.
@@ -217,6 +217,10 @@ public final class ModuleNameResolver
 	private final LRUCache<ModuleName, ModuleNameResolutionResult>
 		resolutionCache = new LRUCache<>(10_000, 100, this::privateResolve);
 
+	/**
+	 * Clear all cached module resolutions.  Also release all file locks on
+	 * repositories and close them.
+	 */
 	public void clearCache ()
 	{
 		try
@@ -227,6 +231,15 @@ public final class ModuleNameResolver
 		{
 			// Do nothing.
 		}
+	}
+
+	/**
+	 * Release all external locks and handles associated with this resolver.  It
+	 * must not be used again.
+	 */
+	public void destroy ()
+	{
+		moduleRoots().forEach(root -> root.repository().close());
 	}
 
 	/**
@@ -350,26 +363,23 @@ public final class ModuleNameResolver
 		// We found a candidate.
 		if (repository != null)
 		{
-			if (sourceFile != null)
+			// If the candidate is a package, then substitute
+			// the package representative.
+			if (sourceFile.isDirectory())
 			{
-				// If the candidate is a package, then substitute
-				// the package representative.
-				if (sourceFile.isDirectory())
+				sourceFile = new File(
+					sourceFile,
+					canonicalName.localName() + availExtension);
+				canonicalName = new ModuleName(
+					canonicalName.qualifiedName(),
+					canonicalName.localName(),
+					canonicalName.isRename());
+				if (!sourceFile.isFile())
 				{
-					sourceFile = new File(
-						sourceFile,
-						canonicalName.localName() + availExtension);
-					canonicalName = new ModuleName(
-						canonicalName.qualifiedName(),
-						canonicalName.localName(),
-						canonicalName.isRename());
-					if (!sourceFile.isFile())
-					{
-						// Alas, the package representative did not exist.
-						return new ModuleNameResolutionResult(
-							new UnresolvedModuleException(
-								null, qualifiedName.localName(), checkedPaths));
-					}
+					// Alas, the package representative did not exist.
+					return new ModuleNameResolutionResult(
+						new UnresolvedModuleException(
+							null, qualifiedName.localName(), checkedPaths));
 				}
 			}
 			return new ModuleNameResolutionResult(
@@ -428,7 +438,7 @@ public final class ModuleNameResolver
 		}
 
 		/**
-		 * Construct a new {@link ModuleNameResolutionResult}, upon successful
+		 * Construct a new {@code ModuleNameResolutionResult}, upon successful
 		 * resolution, with the {@linkplain ResolvedModuleName resolved module}.
 		 *
 		 * @param resolvedModule The module that was successfully resolved.
@@ -441,7 +451,7 @@ public final class ModuleNameResolver
 		}
 
 		/**
-		 * Construct a new {@link ModuleNameResolutionResult}, upon an
+		 * Construct a new {@code ModuleNameResolutionResult}, upon an
 		 * unsuccessful resolution, with an {@linkplain
 		 * UnresolvedDependencyException exception} containing the paths that
 		 * did not have the missing module.

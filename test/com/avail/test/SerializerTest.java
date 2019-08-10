@@ -55,6 +55,8 @@ import com.avail.serialization.Serializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -92,18 +94,19 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@TestInstance(Lifecycle.PER_CLASS)
 public final class SerializerTest
 {
 	/**
 	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
 	 * {@link #deserializer}.
 	 */
-	static @Nullable AvailRuntime runtime = null;
+	@Nullable AvailRuntime runtime = null;
 
 	/**
 	 * @return The {@link AvailRuntime} used by the serializer and deserializer.
 	 */
-	static AvailRuntime runtime ()
+	AvailRuntime runtime ()
 	{
 		return stripNull(runtime);
 	}
@@ -113,7 +116,7 @@ public final class SerializerTest
 	 * Avail runtime.
 	 */
 	@BeforeAll
-	public static void initializeAllWellKnownObjects ()
+	public void initializeAllWellKnownObjects ()
 	{
 		final IndexedRepositoryManager repository =
 			IndexedRepositoryManager.createTemporary(
@@ -142,7 +145,7 @@ public final class SerializerTest
 	 * Test fixture: clear all special objects.
 	 */
 	@AfterAll
-	public static void clearAllWellKnownObjects ()
+	public void clearAllWellKnownObjects ()
 	{
 		final @Nullable AvailRuntime theRuntime = runtime;
 		if (theRuntime != null)

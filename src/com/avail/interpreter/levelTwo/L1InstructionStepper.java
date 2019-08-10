@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.HookType;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
@@ -60,6 +61,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
@@ -777,8 +779,7 @@ public final class L1InstructionStepper
 
 	/**
 	 * Get the value from the given variable, reifying and invoking the {@link
-	 * AvailRuntime#unassignedVariableReadFunction()} if the variable has no
-	 * value.
+	 * HookType#READ_UNASSIGNED_VARIABLE} hook if the variable has no value.
 	 *
 	 * @param variable
 	 *        The variable to read.
@@ -803,7 +804,7 @@ public final class L1InstructionStepper
 			final int savedStackp = stackp;
 
 			final A_Function implicitObserveFunction =
-				interpreter.runtime().unassignedVariableReadFunction();
+				IMPLICIT_OBSERVE.get(interpreter.runtime());
 			interpreter.argsBuffer.clear();
 			final @Nullable StackReifier reifier =
 				interpreter.invokeFunction(implicitObserveFunction);

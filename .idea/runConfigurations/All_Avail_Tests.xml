@@ -13,7 +13,7 @@
     </option>
     <dir value="$PROJECT_DIR$/test/com/avail/test" />
     <method v="2">
-      <option name="Make" enabled="true" />
+      <option name="MakeProject" enabled="true" />
     </method>
   </configuration>
 </component>

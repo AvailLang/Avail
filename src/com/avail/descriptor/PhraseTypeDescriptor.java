@@ -431,7 +431,12 @@ extends TypeDescriptor
 			mostGeneralType = createNoCheck(mostGeneralYieldType());
 		}
 
-		/** Create a descriptor for this kind. */
+		/**
+		 * Create a descriptor for this kind.
+		 *
+		 * @param mutability The {@link Mutability} of the descriptor.
+		 * @return The new descriptor.
+		 */
 		PhraseTypeDescriptor createDescriptor (final Mutability mutability)
 		{
 			return new PhraseTypeDescriptor(

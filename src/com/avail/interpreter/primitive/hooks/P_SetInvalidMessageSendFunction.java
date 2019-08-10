@@ -1,6 +1,6 @@
 /*
  * P_SetInvalidMessageSendFunction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.general;
+package com.avail.interpreter.primitive.hooks;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
@@ -40,12 +40,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
+import static com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
@@ -74,8 +72,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Function function = interpreter.argument(0);
-		function.code().setMethodName(stringFrom("«invalid message send»"));
-		currentRuntime().setInvalidMessageSendFunction(function);
+		INVALID_MESSAGE_SEND.set(interpreter.runtime(), function);
 		return interpreter.primitiveSuccess(nil);
 	}
 
@@ -84,7 +81,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				invalidMessageSendFunctionType),
+				INVALID_MESSAGE_SEND.functionType),
 			TOP.o());
 	}
 }

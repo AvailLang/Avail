@@ -32,15 +32,23 @@
 
 package com.avail.test;
 
+import com.avail.AvailRuntime;
 import com.avail.CallbackSystem.Callback;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
+import com.avail.utility.Nulls;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.util.concurrent.SynchronousQueue;
 
@@ -67,22 +75,56 @@ import static org.junit.jupiter.api.Assertions.*;
 public final class CallbackTest
 {
 	/** Setup for the test. */
-	final AvailRuntimeTestHelper helper;
+	@Nullable AvailRuntimeTestHelper helper = null;
 
 	/**
-	 * Construct a {@code CallbackTest}.
+	 * Answer the {@link AvailRuntimeTestHelper}, ensuring it's not {@code
+	 * null}.
 	 *
-	 * @throws FileNotFoundException
-	 *         If the renames file was specified but not found.
-	 * @throws RenamesFileParserException
-	 *         If the renames file exists but could not be interpreted correctly
-	 *         for any reason.
+	 * @return The {@link AvailRuntimeTestHelper}.
 	 */
-	@SuppressWarnings("unused")
-	public CallbackTest ()
+	AvailRuntimeTestHelper helper ()
+	{
+		return Nulls.stripNull(helper);
+	}
+
+	/**
+	 * Clear all repositories iff the {@code clearAllRepositories} system
+	 * property is defined.
+	 *
+ 	 * @throws FileNotFoundException
+ 	 *         If the renames file was specified but not found.
+ 	 * @throws RenamesFileParserException
+ 	 *         If the renames file exists but could not be interpreted correctly
+ 	 *         for any reason.
+	 */
+	@BeforeAll
+	void maybeClearAllRepositories ()
 	throws FileNotFoundException, RenamesFileParserException
 	{
 		helper = new AvailRuntimeTestHelper();
+		if (System.getProperty("clearAllRepositories", null) != null)
+		{
+			helper().clearAllRepositories();
+		}
+	}
+
+	/**
+	 * Clear any error detected on the {@link TestErrorChannel}.
+	 */
+	@BeforeEach
+	void clearError ()
+	{
+		helper().clearError();
+	}
+
+	/**
+	 * Shut down the {@link AvailRuntime} after the tests.
+	 */
+	@AfterAll
+	void tearDownRuntime ()
+	{
+		helper().tearDownRuntime();
 	}
 
 	/**
@@ -163,7 +205,7 @@ public final class CallbackTest
 		final A_String moduleName,
 		final A_String entryPointMethodName)
 	{
-		final A_Module module = helper.runtime.moduleAt(moduleName);
+		final A_Module module = helper().runtime.moduleAt(moduleName);
 		final A_Map entryPointsNames = module.entryPoints();
 		final A_Atom atom = entryPointsNames.mapAt(entryPointMethodName);
 		final A_Tuple definitions =
@@ -179,14 +221,15 @@ public final class CallbackTest
 	 * @throws UnresolvedDependencyException
 	 *         If a module can't be resolved.
 	 */
+	@DisplayName("Division callback")
 	@Test
 	public void testDivisionCallback ()
 	throws UnresolvedDependencyException
 	{
 		final String harnessModuleName = "/experimental/Callback Test Harness";
-		final boolean loaded = helper.loadModule(harnessModuleName);
+		final boolean loaded = helper().loadModule(harnessModuleName);
 		assertTrue(loaded, "Failed to load module: " + harnessModuleName);
-		assertFalse(helper.errorDetected());
+		assertFalse(helper().errorDetected());
 
 		final A_Function body = monomorphicDefinitionBody(
 			stringFrom(harnessModuleName), stringFrom("Invoke Once_with_"));
@@ -196,7 +239,7 @@ public final class CallbackTest
 			commandPriority,
 			nil,
 			() -> stringFrom("testDivisionCallback"),
-			helper.runtime);
+			helper().runtime);
 		final AvailObject expectedAnswer = fromInt(14);
 		final SynchronousQueue<Runnable> mailbox = new SynchronousQueue<>();
 		fiber.setSuccessAndFailureContinuations(
@@ -224,7 +267,7 @@ public final class CallbackTest
 				}
 			});
 		Interpreter.runOutermostFunction(
-			helper.runtime,
+			helper().runtime,
 			fiber,
 			body,
 			asList(divisionCallback(), tuple(fromInt(42), fromInt(3))));

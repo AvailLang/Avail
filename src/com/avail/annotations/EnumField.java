@@ -68,8 +68,13 @@ public @interface EnumField
 	 */
 	final class Converter implements IntegerEnumSlotDescriptionEnum
 	{
+		/** The {@link String} to present for this field. */
 		final String string;
 
+		/**
+		 * Create a new instance for presenting the given {@link String}.
+		 * @param string The {@link String} to present.
+		 */
 		private Converter (final String string)
 		{
 			this.string = string;
@@ -107,6 +112,9 @@ public @interface EnumField
 	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.  If a
 	 * {@link #lookupMethodName()} is also specified then the int value may be
 	 * something other than the Enum's ordinal.
+	 *
+	 * @return The {@link IntegerEnumSlotDescriptionEnum} class used to present
+	 *         the enum field.
 	 */
 	Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
 
@@ -120,6 +128,9 @@ public @interface EnumField
 	 * is treated as the {@linkplain Enum#ordinal() ordinal} to look up.
 	 * Similarly, in this case an ordinal that is out of range will only display
 	 * its numeric value.
+	 *
+	 * @return The optional name of a method to invoke to describe the enum
+	 *         field.
 	 */
 	String lookupMethodName () default "";
 }

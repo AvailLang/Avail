@@ -1,6 +1,6 @@
 /*
- * P_SetUnassignedVariableAccessFunction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * P_SetRaiseJavaExceptionInAvailFunction.java
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.general;
+package com.avail.interpreter.primitive.hooks;
 
+import com.avail.CallbackSystem.Callback;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
- * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor
- * function} to invoke whenever the value produced by a {@linkplain
- * MethodDescriptor method} send disagrees with the {@linkplain TypeDescriptor
- * type} expected.
+ * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor function}
+ * to invoke whenever a whenever a Java {@link Throwable} is caught in a Pojo
+ * method or {@link Callback} invocation.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_SetUnassignedVariableAccessFunction
+public final class P_SetRaiseJavaExceptionInAvailFunction
 extends Primitive
 {
 	/**
@@ -68,7 +63,7 @@ extends Primitive
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_SetUnassignedVariableAccessFunction().init(
+		new P_SetRaiseJavaExceptionInAvailFunction().init(
 			1, CannotFail, HasSideEffect);
 
 	@Override
@@ -77,9 +72,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Function function = interpreter.argument(0);
-		function.code().setMethodName(
-			stringFrom("«cannot read unassigned variable»"));
-		currentRuntime().setUnassignedVariableReadFunction(function);
+		RAISE_JAVA_EXCEPTION_IN_AVAIL.set(interpreter.runtime(), function);
 		return interpreter.primitiveSuccess(nil);
 	}
 
@@ -88,9 +81,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				functionType(
-					emptyTuple(),
-					bottom())),
+				RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType),
 			TOP.o());
 	}
 }
