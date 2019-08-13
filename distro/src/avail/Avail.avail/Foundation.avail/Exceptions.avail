@@ -1868,6 +1868,7 @@ unassigned variable read function :=
 "expected type" is a new field atom;
 "actual value" is a new field atom;
 
+
 /**
  * Set the function that should be invoked whenever a method send produces a
  * result whose type disagrees with the expected type as determined at compile
@@ -1934,6 +1935,7 @@ unexpected result function :=
 			actual value ::= reportedValue;
 		Raise e
 	];
+
 
 /**
  * Set the function that should be invoked whenever a message send encounters
@@ -2014,6 +2016,46 @@ invalid method send function :=
 			looked up arguments ::= arguments;
 		Raise e
 	] : ⊥;
+
+
+/**
+ * Set the function that should be invoked whenever a Java throwable is caught
+ * inside a Java pojo method invocation or callback.
+ *
+ * @method "raise Java exception function:=_"
+ * @param "aFunction" "<pojo exception>"
+ *        The argument is the pojo exception that was caught.
+ * @returns "⊤"
+ * @category "Bootstrap" "Primitives" "Exceptions" "Methods"
+ */
+Private method "raise Java exception function:=_" is
+[
+	aFunction : [pojo exception]→⊥
+|
+	Primitive SetRaiseJavaExceptionInAvailFunction;
+] : ⊤;
+
+/* Revert the raise Java exception reflex to the bootstrap mechanism upon
+ * unloading this module for any reason.
+ */
+After the current module is unloaded, do
+[
+	raise Java exception function :=
+		[
+			e : pojo exception
+		|
+			Crash: e
+		] : ⊥;
+];
+
+/* Raise the appropriate exception whenever a pojo exception is caught. */
+raise Java exception function :=
+	[
+		e : pojo exception
+	|
+		Raise a Java exception caused by e
+	] : ⊥;
+
 
 /*
  * Even though we can in general allow unintended "subexpressions" like <⊥>[2]

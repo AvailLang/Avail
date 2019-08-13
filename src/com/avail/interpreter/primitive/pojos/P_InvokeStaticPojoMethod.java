@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.AvailRuntime.HookType;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
@@ -44,30 +50,28 @@ import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.Private;
 import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
- * pojo} that references a reflected {@code static} {@linkplain Method Java
- * method}, a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of
- * raw pojos that reference the reflected {@linkplain Class Java classes} of the
- * marshaled arguments, invoke the method and answer the result. If the method
- * fails, then store the actual Java {@linkplain Throwable exception} into the
- * primitive failure {@linkplain VariableDescriptor variable}.
+ * <strong>Primitive:</strong> Invoke a static Java {@link Method}, passing
+ * marshaled forms of this primitive's arguments.  Unmarshal the resulting
+ * object as needed.
+ *
+ * <p>If an exception is thrown during evaluation, raise it as an Avail
+ * exception via the {@link HookType#RAISE_JAVA_EXCEPTION_IN_AVAIL} hook.</p>
+ *
+ * <p>The current function was constructed via {@link
+ * P_CreatePojoStaticMethodFunction}, and has two outer values: the Java {@link
+ * Method} and the tuple of marshaled types.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -80,17 +84,23 @@ extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_InvokeStaticPojoMethod().init(
-			4, Private);
+			-1, Private);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(4);
-		final A_BasicObject methodPojo = interpreter.argument(0);
-		final A_Tuple methodArgs = interpreter.argument(1);
-		final A_Tuple marshaledTypes = interpreter.argument(2);
-		final A_Type expectedType = interpreter.argument(3);
+		final A_Tuple methodArgs = tupleFromList(interpreter.argsBuffer);
+
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		final A_RawFunction primitiveRawFunction = primitiveFunction.code();
+		assert primitiveRawFunction.primitive() == this;
+
+		final A_BasicObject methodPojo = primitiveFunction.outerVarAt(1);
+		final A_Tuple marshaledTypes = primitiveFunction.outerVarAt(2);
+		// The exact return kind was captured in the function type.
+		final A_Type expectedType =
+			primitiveRawFunction.functionType().returnType();
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
@@ -98,13 +108,11 @@ extends Primitive
 			loader.statementCanBeSummarized(false);
 		}
 
-		// Marshal the arguments and invoke the method.
+		// Marshal the arguments.
 		final Method method = methodPojo.javaObjectNotNull();
 		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
 		final @Nullable Object[] marshaledArgs = marshalValues(
-			marshaledTypes,
-			methodArgs,
-			errorOut);
+			marshaledTypes, methodArgs, errorOut);
 		if (errorOut.value != null)
 		{
 			final AvailErrorCode e = errorOut.value;
@@ -112,7 +120,7 @@ extends Primitive
 				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
 
-		// Invoke the method.
+		// Invoke the static method.
 		final Object result;
 		try
 		{
@@ -126,14 +134,17 @@ extends Primitive
 		}
 		catch (final Throwable e)
 		{
-			// This is an unexpected failure.
-			error("reflected method call unexpectedly failed");
-			throw new Error();
+			// This is an unexpected failure in the invocation mechanism.  For
+			// now, report it like an expected InvocationTargetException.
+			return interpreter.primitiveFailure(
+				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
+
 		if (result == null)
 		{
 			return interpreter.primitiveSuccess(nullPojo());
 		}
+
 		try
 		{
 			final AvailObject unmarshaled = unmarshal(result, expectedType);
@@ -151,13 +162,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(
-				RAW_POJO.o(),
-				mostGeneralTupleType(),
-				zeroOrMoreOf(RAW_POJO.o()),
-				topMeta()),
-			TOP.o());
+		// This primitive is suitable for any block signature, although really
+		// the primitive could only be applied if the function returns any.
+		return bottom();
 	}
 
 	@Override

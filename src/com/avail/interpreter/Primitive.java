@@ -398,6 +398,7 @@ implements IntegerEnumSlotDescriptionEnum
 			final A_Type argsTupleType = restriction.argsTupleType();
 			final A_Type sizeRange = argsTupleType.sizeRange();
 			assert restriction.isBottom()
+				|| argCount() == -1
 				|| (sizeRange.lowerBound().extractInt() == argCount()
 					&& sizeRange.upperBound().extractInt() == argCount());
 		}

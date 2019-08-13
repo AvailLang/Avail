@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.AvailRuntime.HookType;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
@@ -44,31 +50,30 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.interpreter.Primitive.Flag.Private;
 import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
- * pojo} that references a reflected {@linkplain Constructor Java
- * constructor}, a {@linkplain TupleDescriptor tuple} of arguments, a
- * tuple of raw pojos that reference the reflected {@linkplain Class Java
- * classes} of the marshaled arguments, and an expected {@linkplain
- * TypeDescriptor type} of the new instance, invoke the constructor and
- * answer the new instance. If the constructor fails, then store the actual
- * Java {@linkplain Throwable exception} into the primitive failure
- * {@linkplain VariableDescriptor variable}.
+ * <strong>Primitive:</strong> Invoke a Java {@link Constructor}, passing
+ * marshaled forms of this primitive's arguments.  Unmarshal the resulting
+ * object as needed.
+ *
+ * <p>If an exception is thrown during evaluation, raise it as an Avail
+ * exception via the {@link HookType#RAISE_JAVA_EXCEPTION_IN_AVAIL} hook.</p>
+ *
+ * <p>The current function was constructed via {@link
+ * P_CreatePojoConstructorFunction}, and has two outer values: the Java
+ * {@link Constructor} and the tuple of marshaled types.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class P_InvokePojoConstructor
 extends Primitive
@@ -79,18 +84,24 @@ extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_InvokePojoConstructor().init(
-			4, Private);
+			-1, Private);
 
 	@SuppressWarnings("Duplicates")
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(4);
-		final A_BasicObject constructorPojo = interpreter.argument(0);
-		final A_Tuple constructorArgs = interpreter.argument(1);
-		final A_Tuple marshaledTypes = interpreter.argument(2);
-		final A_Type expectedType = interpreter.argument(3);
+		final A_Tuple constructorArgs = tupleFromList(interpreter.argsBuffer);
+
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		final A_RawFunction primitiveRawFunction = primitiveFunction.code();
+		assert primitiveRawFunction.primitive() == this;
+
+		final A_BasicObject constructorPojo = primitiveFunction.outerVarAt(1);
+		final A_Tuple marshaledTypes = primitiveFunction.outerVarAt(2);
+		// The exact return kind was captured in the function type.
+		final A_Type expectedType =
+			primitiveRawFunction.functionType().returnType();
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
@@ -98,12 +109,11 @@ extends Primitive
 			loader.statementCanBeSummarized(false);
 		}
 
+		// Marshal the arguments.
 		final Constructor<?> constructor = constructorPojo.javaObjectNotNull();
 		final MutableOrNull<AvailErrorCode> errorOut = new MutableOrNull<>();
 		final @Nullable Object[] marshaledArgs = marshalValues(
-			marshaledTypes,
-			constructorArgs,
-			errorOut);
+			marshaledTypes, constructorArgs, errorOut);
 		if (errorOut.value != null)
 		{
 			final AvailErrorCode e = errorOut.value;
@@ -120,15 +130,18 @@ extends Primitive
 		catch (final InvocationTargetException e)
 		{
 			final Throwable cause = e.getCause();
-			return interpreter.primitiveFailure(newPojo(
-				identityPojo(cause), pojoTypeForClass(cause.getClass())));
+			return interpreter.primitiveFailure(
+				newPojo(
+					identityPojo(cause), pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{
-			// This is an unexpected failure.
-			error("reflected constructor call unexpectedly failed");
-			throw new Error();
+			// This is an unexpected failure in the invocation mechanism.  For
+			// now, report it like an expected InvocationTargetException.
+			return interpreter.primitiveFailure(
+				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
+
 		try
 		{
 			final AvailObject unmarshaled = unmarshal(result, expectedType);
@@ -146,14 +159,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return
-			functionType(
-				tuple(
-					RAW_POJO.o(),
-					mostGeneralTupleType(),
-					zeroOrMoreOf(RAW_POJO.o()),
-					anyMeta()),
-				mostGeneralPojoType());
+		// This primitive is suitable for any block signature, although really
+		// the primitive could only be applied if the function returns any.
+		return bottom();
 	}
 
 	@Override

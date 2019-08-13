@@ -32,9 +32,9 @@
 package com.avail.interpreter.primitive.pojos;
 
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.PojoDescriptor;
 import com.avail.descriptor.RawPojoDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
@@ -46,39 +46,43 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionDescriptor.createWithOuters2;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType;
+import static com.avail.descriptor.PojoTypeDescriptor.marshalTypes;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.pojoInvocationAdapterFunction;
-import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.pojoInvocationWrapperFunction;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType;
+import static com.avail.utility.Casts.cast;
+import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain A_Type type} that can be
- * successfully marshaled to a Java type, a {@linkplain A_Tuple tuple} of
- * parameter {@linkplain A_Type types}, and a failure {@linkplain A_Function
- * function}, create a {@linkplain A_Function function} that when applied will
- * produce a new instance of the defining Java type. The instance is created by
- * invoking a reflected Java {@linkplain Constructor constructor} with arguments
- * conforming to the marshaling of the parameter types. If the new instance has
- * a preferred Avail surrogate type, then marshal the value to the surrogate
- * type prior to answering it. Should the Java constructor raise an exception,
- * invoke the supplied failure function with a {@linkplain PojoDescriptor pojo}
- * that wraps that exception.
+ * successfully marshaled to a Java type, and a {@linkplain A_Tuple tuple} of
+ * parameter {@linkplain A_Type types}, create a {@linkplain A_Function
+ * function} that when applied will produce a new instance of the defining Java
+ * type. The instance is created by invoking a reflected Java {@linkplain
+ * Constructor constructor} with arguments conforming to the marshaling of the
+ * parameter types. If the new instance has a preferred Avail surrogate type,
+ * then marshal the value to the surrogate type prior to answering it.
+ *
+ * <p>Should the Java method raise an exception, re-raise it within Avail as a
+ * pojo exception.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -91,16 +95,15 @@ extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreatePojoConstructorFunction().init(
-			3, CanFold, CanInline);
+			2, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(3);
+		interpreter.checkArgumentCount(2);
 		final A_Type pojoType = interpreter.argument(0);
 		final A_Tuple paramTypes = interpreter.argument(1);
-		final A_Function failFunction = interpreter.argument(2);
 
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
@@ -135,25 +138,32 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_JAVA_METHOD_NOT_AVAILABLE);
 		}
-		final A_Function innerFunction = pojoInvocationWrapperFunction(
-			failFunction,
-			writer -> {
-				writer.primitive(P_InvokePojoConstructor.instance);
-				writer.argumentTypes(
-					RAW_POJO.o(),
-					mostGeneralTupleType(),
-					zeroOrMoreOf(RAW_POJO.o()),
-					anyMeta());
-				writer.returnType(ANY.o());
-			});
-		final A_Function outerFunction = pojoInvocationAdapterFunction(
-			constructor,
-			paramTypes,
-			marshaledTypesTuple,
-			pojoType,
-			innerFunction);
-		return interpreter.primitiveSuccess(outerFunction);
+		final A_Type functionType = functionType(paramTypes, pojoType);
+
+		final A_RawFunction rawFunction = rawFunctionCache.computeIfAbsent(
+			functionType,
+			fType -> rawPojoInvokerFunctionFromFunctionType(
+				P_InvokePojoConstructor.instance,
+				fType,
+				// Outer#1 = Constructor to invoke.
+				RAW_POJO.o(),
+				// Outer#2 = Marshaled type parameters.
+				zeroOrMoreOf(RAW_POJO.o())));
+		final A_Function function =
+			createWithOuters2(
+				rawFunction,
+				// Outer#1 = Constructor to invoke.
+				equalityPojo(constructor),
+				// Outer#2 = Marshaled type parameters.
+				cast(marshaledTypesTuple));
+		return interpreter.primitiveSuccess(function);
 	}
+
+	/**
+	 * Cache of {@link A_RawFunction}s, keyed by the function {@link A_Type}.
+	 */
+	private static final Map<A_Type, A_RawFunction> rawFunctionCache =
+		synchronizedMap(new WeakHashMap<>());
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
@@ -161,10 +171,7 @@ extends Primitive
 		return functionType(
 			tuple(
 				anyMeta(),
-				zeroOrMoreOf(anyMeta()),
-				functionType(
-					tuple(pojoTypeForClass(Throwable.class)),
-					bottom())),
+				zeroOrMoreOf(anyMeta())),
 			functionTypeReturning(ANY.o()));
 	}
 

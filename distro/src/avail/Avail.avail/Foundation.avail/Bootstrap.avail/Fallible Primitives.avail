@@ -112,7 +112,7 @@ Uses
 		"`«supercast(_::_)`»",
 		"all atoms for_",
 		"atom for_",
-		"constructor of_,⁇parameterized by_,⁇on failure doing_",
+		"constructor of_,⁇parameterized by_",
 		"current fiber[_]",
 		"current macro name",
 		"current module",
@@ -125,7 +125,7 @@ Uses
 		"message_contains groups",
 		"method definition of_for_",
 		"method for_",
-		"method_._,⁇parameterized by_,⁇on failure doing_",
+		"method_._,⁇parameterized by_",
 		"new atom named_",
 		"new explicit subclass atom named_",
 		"new⁇heritable«fiber-local»⁇atom named_",
@@ -134,7 +134,7 @@ Uses
 		"semantic restrictions for_given_",
 		"send_with_:_",
 		"seq`«_`»",
-		"static method_._,⁇parameterized by_,⁇on failure doing_",
+		"static method_._,⁇parameterized by_",
 		"↓_"
 	)
 Names
@@ -3201,24 +3201,20 @@ Primitive "_'s⁇_field" is
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
- * @method "constructor of_,⁇parameterized by_,⁇on failure doing_"
+ * @method "constructor of_,⁇parameterized by_"
  * @param "aPojoType" "any meta"
  *        A pojo type.
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired constructor.
- * @param "failFunction" "pojo failure function"
- *        The function to apply if an invocation of the constructor
- *        throws a Java exception.
  * @returns "[…]→any"
  *    The requested constructor invocation function.
  * @raises "pojo-type-is-abstract exception"
  * @raises "Java-method-not-available exception"
  */
-Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
+Primitive "constructor of_,⁇parameterized by_" is
 [
 	aPojoType : any meta,
-	parameterTypes : tuple of any meta,
-	failFunction : pojo failure function
+	parameterTypes : tuple of any meta
 |
 	Primitive CreatePojoConstructorFunction (failureCode : {
 		pojo-type-is-abstract code,
@@ -3258,27 +3254,23 @@ Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
- * @method "method_._,⁇parameterized by_,⁇on failure doing_"
+ * @method "method_._,⁇parameterized by_"
  * @param "aPojoType" "any meta"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired method.
- * @param "failFunction" "pojo failure function"
- *        The function to apply if an invocation of the method
- *       throws a Java exception.
  * @returns "[…]→⊤"
  *    The requested instance method invocation function.
  * @raises "Java-method-not-available exception"
  * @raises "Java-method-reference-is-ambiguous exception"
  */
-Primitive "method_._,⁇parameterized by_,⁇on failure doing_" is
+Primitive "method_._,⁇parameterized by_" is
 [
 	aPojoType : any meta,
 	methodName : string,
-	parameterTypes : tuple of any meta,
-	failFunction : pojo failure function
+	parameterTypes : tuple of any meta
 |
 	Primitive CreatePojoInstanceMethodFunction (failureCode : {
 		Java-method-not-available code,
@@ -3316,27 +3308,23 @@ Primitive "method_._,⁇parameterized by_,⁇on failure doing_" is
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
- * @method "static method_._,⁇parameterized by_,⁇on failure doing_"
+ * @method "static method_._,⁇parameterized by_"
  * @param "aPojoType" "any meta"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types accepted by the desired method.
- * @param "failFunction" "pojo failure function"
- *        The function to apply if an invocation of the method
- *       throws a Java exception.
  * @returns "[…]→⊤"
  *    The requested static method invocation function.
  * @raises "Java-method-not-available exception"
  * @raises "Java-method-reference-is-ambiguous exception"
  */
-Primitive "static method_._,⁇parameterized by_,⁇on failure doing_" is
+Primitive "static method_._,⁇parameterized by_" is
 [
 	aPojoType : any meta,
 	methodName : string,
-	parameterTypes : tuple of any meta,
-	failFunction : pojo failure function
+	parameterTypes : tuple of any meta
 |
 	Primitive CreatePojoStaticMethodFunction (failureCode : {
 		Java-method-not-available code,

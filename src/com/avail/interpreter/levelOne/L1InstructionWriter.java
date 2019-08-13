@@ -86,7 +86,7 @@ public class L1InstructionWriter
 	 */
 	public int addLiteral (final A_BasicObject literal)
 	{
-		Integer index = reverseLiterals.get(literal);
+		@Nullable Integer index = reverseLiterals.get(literal);
 		if (index == null)
 		{
 			literals.add((AvailObject) literal);

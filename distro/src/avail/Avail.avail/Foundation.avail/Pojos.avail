@@ -69,13 +69,8 @@ Names
 	"_<«_‡,»>",
 	"«…‡.»«<«_‡,»>»?",
 
-	/* Java constructor binding. */
-	"constructor of_parameterized by_",
-
 	/* Java method binding. */
-	"method_._parameterized by_",
 	"method_.…parameterized by_",
-	"static method_._parameterized by_",
 	"static method_.…parameterized by_",
 
 	/* Java field binding. */
@@ -163,13 +158,13 @@ Semantic restriction "`|_`|" is
 	||arrayType||
 ];
 
-Method "constructor of_,⁇parameterized by_,⁇on failure doing_" is stable at
+Method "constructor of_,⁇parameterized by_" is stable at
 	[pojo's type, any's type*, [pojo exception]→⊤]→any;
 
-Method "method_._,⁇parameterized by_,⁇on failure doing_" is stable at
+Method "method_._,⁇parameterized by_" is stable at
 	[pojo's type, string's type, any's type*, [pojo exception]→⊤]→function;
 
-Method "static method_._,⁇parameterized by_,⁇on failure doing_" is stable at
+Method "static method_._,⁇parameterized by_" is stable at
 	[pojo's type, string's type, any's type*, [pojo exception]→⊤]→function;
 
 /**
@@ -285,136 +280,6 @@ Public stable method "_<«_‡,»>" is
 ] : any's type;
 
 /**
- * Construct and answer a {@type "function"} that binds to a Java constructor.
- *
- * The answered function adapts a reflective invocation of the Java constructor,
- * if any, that accepts the specified number and types of arguments. To
- * establish type conformance between Avail types and Java types for the purpose
- * of reflective constructor definer resolution, the following marshaling rules
- * are applied for the target type:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * To establish type conformance between Avail types and Java types for the
- * purpose of reflective constructor parameter resolution, the following
- * marshaling rules are applied for the target type:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code
- *     "java.lang.Character.TYPE"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * @category "Functions" "POJO" "Constructors"
- * @method "constructor of_parameterized by_"
- * @param "aPojoType" "any's type"
- *        Any type that may be treated as a valid pojo type.
- * @param "parameterTypes" "any's type*"
- *        The parameter types accepted by the desired constructor.
- * @returns "[…]→java.lang.Object"
- *          The requested constructor invocation function.
- * @raises "pojo-type-is-abstract exception"
- * @raises "Java-method-not-available exception"
- */
-Public stable method "constructor of_parameterized by_" is
-[
-	aPojoType : any's type,
-	parameterTypes : any's type*
-|
-	constructor of aPojoType,
-		parameterized by parameterTypes,
-		on failure doing
-			[e : pojo exception | Raise a Java exception caused by e]
-] : […]→any;
-
-/**
- * Construct and answer a {@type "function"} that, when applied with arguments
- * corresponding to the specified parameter types, invokes a particular
- * instance method.
- *
- * The answered function adapts a reflective invocation of the Java method,
- * if any, that has the specified name and accepts the specified number and
- * types of arguments. The receiver is specified as the first argument. To
- * establish type conformance between Avail types and Java types for the purpose
- * of reflective method definer resolution, the following marshaling rules
- * are applied:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * To establish type conformance between Avail types and Java types for the
- * purpose of reflective method parameter resolution, the following marshaling
- * rules are applied for the target type:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code
- *     "java.lang.Character.TYPE"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * @category "Functions" "POJO" "Constructors"
- * @method "method_._parameterized by_"
- * @param "aPojoType" "any's type"
- *        Any type that may be treated as a valid pojo type.
- * @param "methodName" "string"
- *        The name of the desired method.
- * @param "parameterTypes" "any's type*"
- *        The parameter types accepted by the desired method.
- * @returns "[…]→⊤"
- *          The requested instance method invocation function.
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
- */
-Public stable method "method_._parameterized by_" is
-[
-	aPojoType : any's type,
-	methodName : string,
-	parameterTypes : any's type*
-|
-	method aPojoType.methodName,
-		parameterized by parameterTypes,
-		on failure doing
-			[e : pojo exception | Raise a Java exception caused by e]
-] : function;
-
-/**
  * Construct and answer a {@type "function"} that, when applied with arguments
  * corresponding to the specified parameter types, invokes a particular
  * instance method.
@@ -477,77 +342,7 @@ Public stable method "method_.…parameterized by_" is
 	parameterTypes : any's type*
 |
 	method aPojoType.methodName's lexeme,
-		parameterized by parameterTypes,
-		on failure doing
-			[e : pojo exception | Raise a Java exception caused by e]
-] : function;
-
-/**
- * Construct and answer a {@type "function"} that, when applied with arguments
- * corresponding to the specified parameter types, invokes a particular
- * static method.
- *
- * The answered function adapts a reflective invocation of the Java method,
- * if any, that has the specified name and accepts the specified number and
- * types of arguments. The receiver is specified as the first argument. To
- * establish type conformance between Avail types and Java types for the purpose
- * of reflective method definer resolution, the following marshaling rules
- * are applied:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * To establish type conformance between Avail types and Java types for the
- * purpose of reflective method parameter resolution, the following marshaling
- * rules are applied for the target type:
- *
- * <ul>
- * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
- * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
- * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
- * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
- * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
- * <li>{@type "Java char"} is marshaled to {@code
- *     "java.lang.Character.TYPE"}.</li>
- * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
- * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
- * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
- * <li>{@type "any"} is marshaled to {@code "java.lang.Object"}.</li>
- * </ul>
- *
- * @category "Functions" "POJO" "Constructors"
- * @method "static method_._parameterized by_"
- * @param "aPojoType" "any's type"
- *        Any type that may be treated as a valid pojo type.
- * @param "methodName" "string"
- *        The name of the desired method.
- * @param "parameterTypes" "any's type*"
- *        The parameter types accepted by the desired method.
- * @returns "[…]→⊤"
- *    The requested static method invocation function.
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
- */
-Public stable method "static method_._parameterized by_" is
-[
-	aPojoType : any's type,
-	methodName : string,
-	parameterTypes : any's type*
-|
-	static method aPojoType.methodName,
-		parameterized by parameterTypes,
-		on failure doing
-			[e : pojo exception | Raise a Java exception caused by e]
+		parameterized by parameterTypes
 ] : function;
 
 /**
@@ -613,9 +408,7 @@ Public stable method "static method_.…parameterized by_" is
 	parameterTypes : any's type*
 |
 	static method aPojoType.methodName's lexeme,
-		parameterized by parameterTypes,
-		on failure doing
-			[e : pojo exception | Raise a Java exception caused by e]
+		parameterized by parameterTypes
 ] : function;
 
 /**

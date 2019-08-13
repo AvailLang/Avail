@@ -56,6 +56,7 @@ import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom;
+import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction;
 import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_AddUnloadFunction;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
@@ -1184,6 +1185,11 @@ extends Descriptor
 		RESUME_CONTINUATION(
 			"vm resume_",
 			P_ResumeContinuation.instance),
+
+		/** The special atom for rethrowing a Java exception in Avail. */
+		GET_RETHROW_JAVA_EXCEPTION(
+			"vm get rethrow in Avail hook",
+			P_GetRaiseJavaExceptionInAvailFunction.instance),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(

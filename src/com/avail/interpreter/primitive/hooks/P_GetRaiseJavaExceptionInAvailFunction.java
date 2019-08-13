@@ -1,5 +1,5 @@
 /*
- * P_SetRaiseJavaExceptionInAvailFunction.java
+ * P_GetRaiseJavaExceptionInAvailFunction.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,21 +42,19 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
- * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor function}
+ * <strong>Primitive:</strong> Get the {@linkplain FunctionDescriptor function}
  * to invoke to raise a Java {@link Throwable} (wrapped in a pojo) as an Avail
  * exception.  That function is invoked whenever a Java {@link Throwable} is
  * caught in a Pojo method or {@link Callback} invocation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_SetRaiseJavaExceptionInAvailFunction
+public final class P_GetRaiseJavaExceptionInAvailFunction
 extends Primitive
 {
 	/**
@@ -64,25 +62,25 @@ extends Primitive
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_SetRaiseJavaExceptionInAvailFunction().init(
-			1, CannotFail, HasSideEffect);
+		new P_GetRaiseJavaExceptionInAvailFunction().init(
+			0, CannotFail, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(1);
-		final A_Function function = interpreter.argument(0);
-		RAISE_JAVA_EXCEPTION_IN_AVAIL.set(interpreter.runtime(), function);
-		return interpreter.primitiveSuccess(nil);
+		interpreter.checkArgumentCount(0);
+
+		final A_Function raiseFunction =
+			RAISE_JAVA_EXCEPTION_IN_AVAIL.get(interpreter.runtime());
+		return interpreter.primitiveSuccess(raiseFunction);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
-				RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType),
-			TOP.o());
+			emptyTuple(),
+			RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType);
 	}
 }

@@ -38,11 +38,8 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.PojoDescriptor;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback;
 import com.avail.utility.SimpleThreadFactory;
 
@@ -55,15 +52,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.createWithOuters1;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -191,19 +185,6 @@ public class CallbackSystem
 	private static final A_Type callbackTypePojo =
 		resolvePojoType(Callback.class, emptyMap());
 
-	/** The {@link AvailRuntime} containing this {@code CallbackSystem}. */
-	private final AvailRuntime runtime;
-
-	/**
-	 * Create a new {@code CallbackSystem} for the given {@link AvailRuntime}.
-	 *
-	 * @param runtime The {@link AvailRuntime}.
-	 */
-	CallbackSystem (final AvailRuntime runtime)
-	{
-		this.runtime = runtime;
-	}
-
 	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for performing
 	 * asynchronous callbacks on behalf of this {@link AvailRuntime}.
@@ -302,55 +283,10 @@ public class CallbackSystem
 		final A_RawFunction rawFunction =
 			rawFunctionCache.computeIfAbsent(
 				functionType,
-				CallbackSystem::rawFunctionFromFunctionType);
+				fType -> rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeCallback.instance,
+					fType,
+					callbackTypePojo));
 		return createWithOuters1(rawFunction, callbackPojo);
-	}
-
-	/**
-	 * Synthesize an {@link A_RawFunction} for the given function {@link
-	 * A_Type}.
-	 *
-	 * @param functionType
-	 *        The {@link A_Type} of the {@link A_Function}s that will be created
-	 *        from the {@link A_RawFunction} that is produced here.
-	 * @return An {@link A_RawFunction} with the exact given signature.
-	 */
-	private static A_RawFunction rawFunctionFromFunctionType (
-		final A_Type functionType)
-	{
-		final A_Type argTypes = functionType.argsTupleType();
-		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
-		final A_Type[] argTypesArray = new AvailObject[numArgs];
-		for (int i = 1; i <= numArgs; i++)
-		{
-			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
-		}
-		final A_Type returnType = functionType.returnType();
-		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		writer.primitive(P_InvokeCallback.instance);
-		writer.argumentTypes(argTypesArray);
-		writer.returnType(returnType);
-		// Produce failure code.  First declare the local that holds
-		// primitive failure information.
-		final int failureLocal = writer.createLocal(
-			variableTypeFor(pojoTypeForClass(Throwable.class)));
-		assert failureLocal == numArgs + 1;
-		final int outerIndex = writer.createOuter(callbackTypePojo);
-		assert outerIndex == 1;
-		writer.write(0, L1Operation.L1_doPushOuter, 1);
-		writer.write(0, L1Operation.L1_doPushLocal, failureLocal);
-		for (int i = 1; i <= numArgs; i++)
-		{
-			writer.write(0, L1Operation.L1_doPushLocal, i);
-		}
-		writer.write(0, L1Operation.L1_doMakeTuple, numArgs);
-		// TODO - For now, crash with the tuple <callback, throwable, args>
-		writer.write(0, L1Operation.L1_doMakeTuple, 3);
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
-			writer.addLiteral(bottom()));
-		return writer.compiledCode();
 	}
 }

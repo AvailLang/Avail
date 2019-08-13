@@ -212,18 +212,21 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 	originalFunction : function's type,
 	pairs : <any?, boolean…|2>*'s type
 |
-	Assert: ⎣pairs⎦ = ⎡pairs⎤ (
-		"Need a definite number of arguments and underscores");
+	If ⎣pairs⎦ ≠ ⎡pairs⎤ then
+	[
+		Reject parse weakly, expected:
+			"Need a definite number of arguments and underscores"
+	];
 	paramTypes ::= originalFunction's parameters' type;
 	If paramTypes = ⊥ ∨ ⎣paramTypes⎦ ≠ ⎡paramTypes⎤ then
 	[
-		Reject parse, expected:
+		Reject parse weakly, expected:
 			"function for partial application to have \
 			\|a statically known number of arguments"
 	];
 	If ⎣paramTypes⎦ ≠ ⎣pairs⎦ then
 	[
-		Reject parse, expected:
+		Reject parse weakly, expected:
 			"agreement between number of supplied arguments and function \
 			\|parameters (for partial application)"
 	];
@@ -237,7 +240,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [0..0] then
 			[
-				Reject parse, expected:
+				Reject parse weakly, expected:
 					"either no argument or no underscore for partial \
 					\|function application, index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -249,7 +252,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [1..1] then
 			[
-				Reject parse, expected:
+				Reject parse weakly, expected:
 					"either an argument or an underscore for partial \
 					\|function application, at index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -257,7 +260,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 			valueType ::= pairType[1][1];
 			If ¬ valueType ⊆ originalFunction[index] then
 			[
-				Reject parse, expected:
+				Reject parse weakly, expected:
 					"type of argument #" ++ “index” ++
 					" to be a subtype of " ++ “originalFunction[index]” ++
 					", not of type " ++ “valueType”
@@ -265,18 +268,18 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		]
 		else
 		[
-			Reject parse, expected:
+			Reject parse weakly, expected:
 				"statically determined presence or absence of an underscore"
 		];
 	];
 	If |argumentTypes| = 0 then
 	[
-		Reject parse, expected:
+		Reject parse weakly, expected:
 			"at least one underscore for partial function application"
 	];
 	If |argumentTypes| = |pairTypes| then
 	[
-		Reject parse, expected:
+		Reject parse weakly, expected:
 			"at least one argument value for partial function application"
 	];
 	function accepting argumentTypes

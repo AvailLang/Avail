@@ -740,6 +740,7 @@ extends TupleDescriptor
 	 *        The list of {@linkplain AvailObject Avail objects} from which
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
+	 * @param <E> The specialization of the input {@link List}'s elements.
 	 */
 	public static <E extends A_BasicObject> A_Tuple tupleFromList (
 		final List<E> list)

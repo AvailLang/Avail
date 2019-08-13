@@ -61,6 +61,7 @@ import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.OnceSupplier;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
@@ -73,6 +74,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
@@ -163,8 +165,7 @@ public final class AvailRuntime
 	}
 
 	/** The {@link CallbackSystem} for this runtime. */
-	@SuppressWarnings("ThisEscapedInObjectConstruction")
-	private final CallbackSystem callbackSystem = new CallbackSystem(this);
+	private final CallbackSystem callbackSystem = new CallbackSystem();
 
 	/**
 	 * Answer this runtime's {@link CallbackSystem}.
@@ -645,8 +646,11 @@ public final class AvailRuntime
 		 */
 		public final A_Type functionType;
 
-		/** A default {@link A_Function} to use for this hook type. */
-		public final A_Function defaultFunction;
+		/**
+		 * A {@link Supplier} of a default {@link A_Function} to use for this
+		 * hook type.
+		 */
+		final Supplier<A_Function> defaultFunctionSupplier;
 
 		/**
 		 * Create a hook type.
@@ -679,17 +683,19 @@ public final class AvailRuntime
 						1,
 						argumentsTupleType.sizeRange().upperBound()
 							.extractInt());
-				this.defaultFunction =
-					newCrashFunction(hookName, argumentTypesTuple);
+				this.defaultFunctionSupplier =
+					new OnceSupplier<>(
+						() -> newCrashFunction(hookName, argumentTypesTuple));
 			}
 			else
 			{
 				final A_RawFunction code =
 					newPrimitiveRawFunction(primitive, nil, 0);
 				code.setMethodName(this.hookName);
-				this.defaultFunction = createFunction(code, emptyTuple());
+				this.defaultFunctionSupplier =
+					new OnceSupplier<>(
+						() -> createFunction(code, emptyTuple()));
 			}
-			assert defaultFunction.isInstanceOf(functionType);
 		}
 
 		/**
@@ -728,7 +734,7 @@ public final class AvailRuntime
 					toMap(
 						identity(),
 						hookType -> new AtomicReference<>(
-							hookType.defaultFunction))));
+							hookType.defaultFunctionSupplier.get()))));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -1148,6 +1154,7 @@ public final class AvailRuntime
 			SpecialMethodAtom.CREATE_LITERAL_TOKEN.atom,
 			SpecialMethodAtom.DECLARE_STRINGIFIER.atom,
 			SpecialMethodAtom.FORWARD_DEFINER.atom,
+			SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.atom,
 			SpecialMethodAtom.GET_VARIABLE.atom,
 			SpecialMethodAtom.GRAMMATICAL_RESTRICTION.atom,
 			SpecialMethodAtom.MACRO_DEFINER.atom,

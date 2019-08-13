@@ -32,35 +32,33 @@
 
 package com.avail.interpreter.primitive.pojos;
 
+import com.avail.AvailRuntime.HookType;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
-import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelOne.L1Operation.*;
@@ -71,7 +69,7 @@ import static com.avail.interpreter.levelOne.L1Operation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class PrimitiveHelper
+public final class PrimitiveHelper
 {
 	/** Prevent instantiation. */
 	private PrimitiveHelper () { }
@@ -218,116 +216,66 @@ final class PrimitiveHelper
 	}
 
 	/**
-	 * Create a {@linkplain A_Function function} wrapper for a pojo constructor
-	 * or method invocation {@linkplain Primitive primitive}.
+	 * Synthesize an {@link A_RawFunction}.  It should have the given function
+	 * type, and expect to be instantiated as an {@link A_Function} with the
+	 * given types of outers.  It should also be {@link Primitive}, with failure
+	 * code to invoke the {@link HookType#RAISE_JAVA_EXCEPTION_IN_AVAIL} if a
+	 * Java {@link Throwable} is caught and made available in the failure
+	 * variable.
 	 *
-	 * @param failFunction
-	 *        A function that should be applied to a pojo-wrapped {@link
-	 *        Exception} in the event that Java raises an exception.
-	 * @param interfaceHeader
-	 *        A {@linkplain Continuation1 function} that accepts an {@link
-	 *        L1InstructionWriter} and sets the {@linkplain
-	 *        L1InstructionWriter#primitive(Primitive) primitive}, {@link
-	 *        L1InstructionWriter#argumentTypes(A_Type...) argument types}, and
-	 *        {@link L1InstructionWriter#returnType(A_Type) return type}.
-	 * @return A {@linkplain A_Function function} wrapper for a pojo constructor
-	 *         or method. This function will be embed various literals that we
-	 *         do not want to expose to the Avail program.
+	 * @param primitive
+	 *        The {@link Primitive} to invoke.
+	 * @param functionType
+	 *        The {@link A_Type} of the {@link A_Function}s that will be created
+	 *        from the {@link A_RawFunction} that is produced here.
+	 * @param outerTypes
+	 *        The {@link A_Type}s of the outers that will be supplied later to
+	 *        the raw function to make an {@link A_Function}.
+	 * @return An {@link A_RawFunction} with the exact given signature.
 	 */
-	static A_Function pojoInvocationWrapperFunction (
-		final A_Function failFunction,
-		final Continuation1NotNull<L1InstructionWriter> interfaceHeader)
+	public static A_RawFunction rawPojoInvokerFunctionFromFunctionType (
+		final Primitive primitive,
+		final A_Type functionType,
+		final A_Type... outerTypes)
 	{
+		final A_Type argTypes = functionType.argsTupleType();
+		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
+		final A_Type[] argTypesArray = new AvailObject[numArgs];
+		for (int i = 1; i <= numArgs; i++)
+		{
+			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
+		}
+		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		interfaceHeader.value(writer);
+		writer.primitive(primitive);
+		writer.argumentTypes(argTypesArray);
+		writer.returnType(returnType);
+		// Produce failure code.  First declare the local that holds primitive
+		// failure information.
+		final int failureLocal = writer.createLocal(
+			variableTypeFor(pojoTypeForClass(Throwable.class)));
+		assert failureLocal == numArgs + 1;
+		for (final A_Type outerType : outerTypes)
+		{
+			writer.createOuter(outerType);
+		}
 		writer.write(
 			0,
-			L1_doPushLiteral,
-			writer.addLiteral(failFunction));
-		writer.write(
-			0,
-			L1_doGetLocal,
-			writer.createLocal(variableTypeFor(
-				pojoTypeForClass(Throwable.class))));
+			L1_doCall,
+			writer.addLiteral(
+				SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.bundle),
+			writer.addLiteral(RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType));
+		writer.write(0, L1_doPushLocal, failureLocal);
 		writer.write(0, L1_doMakeTuple, 1);
 		writer.write(
 			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(bottom()));
+			writer.addLiteral(bottom())
+		);
 		// TODO: [TLS] When functions can be made non-reflective, then make
-		// this function non-reflective for safety.
-		return createFunction(
-			writer.compiledCode(), emptyTuple()).makeImmutable();
-	}
-
-	/**
-	 * Create a {@linkplain A_Function function} that adapts unmarshaled Avail
-	 * types to the specified inner function.
-	 *
-	 * @param executable
-	 *        The reflected Java {@link Executable}, either a {@link
-	 *        Constructor} or a {@link Method}.
-	 * @param paramTypes
-	 *        The unmarshaled Avail types that correspond to the formal
-	 *        parameters of the desired function.
-	 * @param marshaledTypes
-	 *        The marshaled Avail types that correspond to the formal parameters
-	 *        of the {@link Executable}, needed for invocation of the inner
-	 *        function.
-	 * @param returnType
-	 *        The unmarshaled Avail type that corresponds to the return type of
-	 *        the {@link Executable}.
-	 * @param innerFunction
-	 *        A {@linkplain A_Function function} produced by {@link
-	 *        #pojoInvocationWrapperFunction(A_Function, Continuation1NotNull)
-	 *        pojoInvocationWrapperFunction}.
-	 * @return A {@linkplain A_Function function} that pushes the arguments
-	 *         expected by the inner function. This function will be embed
-	 *         various literals that we do not want to expose to the Avail
-	 *         program.
-	 */
-	static A_Function pojoInvocationAdapterFunction (
-		final Executable executable,
-		final A_Tuple paramTypes,
-		final A_Tuple marshaledTypes,
-		final A_Type returnType,
-		final A_Function innerFunction)
-	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil, 0, nil);
-		writer.argumentTypesTuple(paramTypes);
-		writer.returnType(returnType);
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(innerFunction));
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(equalityPojo(executable)));
-		for (int i = 1, limit = paramTypes.tupleSize(); i <= limit; i++)
-		{
-			writer.write(0, L1_doPushLocal, i);
-		}
-		writer.write(0, L1_doMakeTuple, paramTypes.tupleSize());
-		writer.write(
-			0,
-			L1_doPushLiteral,
-			writer.addLiteral(marshaledTypes));
-		writer.write(0, L1_doPushLiteral, writer.addLiteral(returnType));
-		writer.write(0, L1_doMakeTuple, 4);
-		writer.write(
-			0,
-			L1_doCall,
-			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(returnType));
-		// TODO: [TLS] When functions can be made non-reflective, then make
-		// this function non-reflective for safety.
-		return createFunction(
-			writer.compiledCode(),
-			emptyTuple()
-		).makeImmutable();
+		// this raw function non-reflective for safety.
+		return writer.compiledCode();
 	}
 
 	/**
