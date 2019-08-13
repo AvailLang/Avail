@@ -32,7 +32,7 @@
 
 Module "ShouldFailScanner"
 Versions
-	"1.3.0 DEV 2019-07-16"
+	"1.4.0"
 Uses
 	"Avail"
 Body

@@ -31,7 +31,7 @@
  */
 
 Module "ShouldFailPragmas"
-Versions "1.3.0 DEV 2019-07-16"
+Versions "1.4.0"
 Uses
 	"Avail"
 Pragma

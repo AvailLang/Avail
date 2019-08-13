@@ -32,7 +32,7 @@
 
 Module "Filtered Readers"
 Versions
-	"1.3.0 DEV 2019-07-16"
+	"1.4.0"
 Extends
 	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =

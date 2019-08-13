@@ -32,7 +32,7 @@
 
 Module "Synchronous"
 Versions
-	"1.3.0 DEV 2019-07-16"
+	"1.4.0"
 Extends
 	"Common" = ("Write_to_", "read«at most»?_byte|bytes from_")
 Uses

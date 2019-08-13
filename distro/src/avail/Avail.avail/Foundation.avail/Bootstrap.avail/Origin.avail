@@ -40,7 +40,7 @@
 
 Module "Origin"
 Versions
-	"1.3.0 DEV 2019-07-16"
+	"1.4.0"
 Extends
 Uses
 Names
@@ -73,7 +73,7 @@ Names
 	"…$",
 	"…#"
 Pragma
-	"check=version=1.3.0 DEV 2019-07-16",
+	"check=version=1.4.0",
 	"lexer=BootstrapLexerWhitespaceFilter,BootstrapLexerWhitespaceBody=whitespace lexer",
 	"lexer=BootstrapLexerSlashStarCommentFilter,BootstrapLexerSlashStarCommentBody=comment lexer",
 	"lexer=BootstrapLexerStringFilter,BootstrapLexerStringBody=string token lexer",
