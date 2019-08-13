@@ -8,7 +8,6 @@ set temp_cp=%temp_cp%;%AVAIL_HOME%\distro\lib\AvailServer.jar
 set temp_cp=%temp_cp%;%AVAIL_HOME%\libraries\asm-6.0.jar
 set temp_cp=%temp_cp%;%AVAIL_HOME%\libraries\asm-analysis-6.0.jar
 set temp_cp=%temp_cp%;%AVAIL_HOME%\libraries\asm-util-6.0.jar
-set temp_cp=%temp_cp%;%AVAIL_HOME%\libraries\annotations-java8.jar
 set temp_cp=%temp_cp%;%AVAIL_HOME%\libraries\jsr305.jar
 
 REM ***  This sets up the "avail" and "examples" roots.  Editing and saving

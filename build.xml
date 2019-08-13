@@ -42,13 +42,11 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property
 		name="path.asm"
 		value="${path.avail.libraries}/asm-6.0.jar:${path.avail.libraries}/asm-util-6.0.jar:${path.avail.libraries}/asm-tree-6.0.jar:${path.avail.libraries}/asm-analysis-6.0.jar"/>
-	<property
-		name="path.annotations"
-		value="${path.avail.libraries}/jsr305.jar:${path.avail.libraries}/annotations-java8.jar"/>
 
 	<property name="jar.avail" value="Avail.jar"/>
+	<property name="jar.dev" value="AvailDev.jar"/>
 	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
-	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
+	<property name="path.jar.dev" value="${path.avail.jar}/${jar.dev}"/>
 	<property name="path.jar.server" value="${path.avail.jar}/AvailServer.jar"/>
 	<property name="path.osx.app" value="${path.avail.distro}/Apps"/>
 	<property name="osx.app.name" value="AvailWorkbench.app"/>
@@ -213,7 +211,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.ErrorCodeNamesGenerator"/>
 	</target>
 
@@ -225,7 +223,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate SpecialObjectNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.SpecialObjectNamesGenerator"/>
 	</target>
 
@@ -237,7 +235,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.PrimitiveNamesGenerator"/>
 	</target>
 
@@ -264,7 +262,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			depends="relocate-generated-properties-files"
 			description="Generate the bootstrap Avail library.">
 		<java
-				classpath="${path.avail.bin}:${path.asm}:${path.annotations}"
+				classpath="${path.avail.bin}:${path.asm}"
 				classname="com.avail.tools.bootstrap.BootstrapGenerator"/>
 		<copy todir="${path.distro.bootstrap}">
 			<fileset
@@ -307,17 +305,29 @@ POSSIBILITY OF SUCH DAMAGE.
 				excludes="
 					**/tests/**,
 					com/avail/environment/**,
+					com/avail/test/**,
 					com/avail/tools/**,
 					com/avail/utility/fsm/**,
-					resources/workbench/**,
-					resources/stacks/**
+					resources/**
 					*"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-analysis-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-tree-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="asm-util-6.0.jar"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="jsr305.jar"/>
 			<fileset
 				dir="${path.avail}"
 				includes="resources/build-time.txt"/>
-            <zipgroupfileset
-                    dir="${path.avail.distro}/lib"
-                    includes="annotations-java8.jar"/>
 		</jar>
 	</target>
 
@@ -344,24 +354,6 @@ POSSIBILITY OF SUCH DAMAGE.
 			<fileset
 				dir="${path.avail}"
 				includes="resources/**"/>
-			<zipgroupfileset
-					dir="${path.avail}/libraries"
-					includes="asm-6.0.jar"/>
-			<zipgroupfileset
-					dir="${path.avail}/libraries"
-					includes="asm-analysis-6.0.jar"/>
-			<zipgroupfileset
-					dir="${path.avail}/libraries"
-					includes="asm-tree-6.0.jar"/>
-			<zipgroupfileset
-					dir="${path.avail}/libraries"
-					includes="asm-util-6.0.jar"/>
-            <zipgroupfileset
-                    dir="${path.avail.distro}/lib"
-                    includes="annotations-java8.jar"/>
-			<zipgroupfileset
-					dir="${path.avail}/libraries"
-					includes="jsr305.jar"/>
 		</jar>
 		<copy todir="${path.avail.bin}/resources">
 			<fileset dir="${path.avail.resources}"/>
@@ -399,14 +391,9 @@ POSSIBILITY OF SUCH DAMAGE.
 					 includes="*" />
 		</copy>
 		<copy todir="${app.base}/Contents/Java" flatten="true">
-			<fileset dir="${path.avail.jar}"
-					 includes="*.jar"
-					 excludes="junit.jar" />
-			<filelist dir="${path.avail.libraries}">
-				<file name="${path.avail.libraries}/asm-6.0.jar" />
-				<file name="${path.avail.libraries}/asm-util-6.0.jar" />
-				<file name="${path.avail.libraries}/asm-tree-6.0.jar" />
-				<file name="${path.avail.libraries}/asm-analysis-6.0.jar" />
+			<filelist dir="${path.avail.jar}">
+				<file name="${jar.avail}" />
+				<file name="${jar.dev}" />
 			</filelist>
 		</copy>
 		<!-- Make the java app launcher executable... -->
@@ -457,9 +444,6 @@ POSSIBILITY OF SUCH DAMAGE.
 			<zipgroupfileset
 					dir="${path.avail}/libraries"
 					includes="asm-util-6.0.jar"/>
-            <zipgroupfileset
-                    dir="${path.avail.distro}/lib"
-                    includes="annotations-java8.jar"/>
 			<zipgroupfileset
 					dir="${path.avail}/libraries"
 					includes="jsr305.jar"/>

@@ -120,6 +120,18 @@ public final class AvailRuntimeConfiguration
 		return versions;
 	}
 
+	/**
+	 * Answer a short string indicating the most recent version of Avail
+	 * supported by the current virtual machine.
+	 *
+	 * @return A short {@link String}.
+	 */
+	public static String activeVersionSummary ()
+	{
+		final String lastVersion = activeVersions[activeVersions.length - 1];
+		return lastVersion.split(" ", 2)[0];
+	}
+
 	/** The number of available processors. */
 	public static final int availableProcessors =
 		Runtime.getRuntime().availableProcessors();

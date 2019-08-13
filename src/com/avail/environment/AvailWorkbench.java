@@ -108,11 +108,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import static com.avail.AvailRuntimeConfiguration.activeVersionSummary;
 import static com.avail.builder.ModuleNameResolver.availExtension;
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Nulls.stripNull;
+import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -352,7 +354,7 @@ extends JFrame
 	 * with respect to writes from other threads, and will not have content from
 	 * other writes interspersed with its characters.
 	 */
-	final class BuildOutputStreamEntry
+	static final class BuildOutputStreamEntry
 	{
 		/** The {@link StreamStyle} for this entry. */
 		public final StreamStyle style;
@@ -739,7 +741,7 @@ extends JFrame
 	}
 
 	/** A PrintStream specialization for better println handling. */
-	public class BuildPrintStream extends PrintStream
+	static class BuildPrintStream extends PrintStream
 	{
 		/**
 		 * Because you can't inherit constructors.
@@ -2160,7 +2162,7 @@ extends JFrame
 				int nameInt;
 				try
 				{
-					nameInt = Integer.valueOf(oldChildName);
+					nameInt = parseInt(oldChildName);
 				}
 				catch (final NumberFormatException e)
 				{
@@ -2337,10 +2339,10 @@ extends JFrame
 				try
 				{
 
-					final int x = max(0, Integer.parseInt(substrings[0]));
-					final int y = max(0, Integer.parseInt(substrings[1]));
-					final int w = max(50, Integer.parseInt(substrings[2]));
-					final int h = max(50, Integer.parseInt(substrings[3]));
+					final int x = max(0, parseInt(substrings[0]));
+					final int y = max(0, parseInt(substrings[1]));
+					final int w = max(50, parseInt(substrings[2]));
+					final int h = max(50, parseInt(substrings[3]));
 					placement = new Rectangle(x, y, w, h);
 				}
 				catch (final NumberFormatException e)
@@ -2350,7 +2352,7 @@ extends JFrame
 
 				try
 				{
-					leftSectionWidth = max(0, Integer.parseInt(substrings[4]));
+					leftSectionWidth = max(0, parseInt(substrings[4]));
 				}
 				catch (final NumberFormatException e)
 				{
@@ -2369,10 +2371,10 @@ extends JFrame
 				{
 					if (substrings.length >= 9)
 					{
-						final int x = max(0, Integer.parseInt(substrings[6]));
-						final int y = max(0, Integer.parseInt(substrings[7]));
-						final int w = max(50, Integer.parseInt(substrings[8]));
-						final int h = max(50, Integer.parseInt(substrings[9]));
+						final int x = max(0, parseInt(substrings[6]));
+						final int y = max(0, parseInt(substrings[7]));
+						final int w = max(50, parseInt(substrings[8]));
+						final int h = max(50, parseInt(substrings[9]));
 						moduleViewerPlacement = new Rectangle(x, y, w, h);
 					}
 				}
@@ -3008,7 +3010,8 @@ extends JFrame
 				"true");
 
 			final Object application = OSXUtility.macOSXApplication;
-			OSXUtility.setDockIconBadgeMethod.invoke(application, "DEV");
+			OSXUtility.setDockIconBadgeMethod.invoke(
+				application, activeVersionSummary());
 		}
 		catch (final Exception e)
 		{
