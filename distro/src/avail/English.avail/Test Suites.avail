@@ -1,0 +1,131 @@
+/*
+ * Test Suites.avail
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Test Suites"
+Versions
+	"1.4.0"
+Uses
+	"Avail"
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"comment lexer",
+		"keyword lexer"
+	)
+Names
+	/* Test suites. */
+	"English test suite",
+		"gender test suite",
+		"person test suite",
+		"pronoun test suite"
+Entries
+	/* Test runners. */
+	"Run all tests in_"
+Body
+
+/**
+ * Herein are test suites for English language generation and processing.
+ *
+ * @module
+ * @author Todd L Smith <todd@availlang.org>
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test suites.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+// The base test suite.
+"English test suite" is a new atom;
+English test suite is a new test suite;
+
+/**
+ * Every test suite name defined herein.
+ *
+ * @global "allEnglishTestSuiteNames" "nonempty string*"
+ */
+allEnglishTestSuiteNames ::=
+<
+	"gender test suite",
+	"person test suite",
+	"pronoun test suite"
+>;
+
+/**
+ * Every test suite composing the {@type "English test suite"}, including
+ * the {@type "English test suite"} itself.
+ *
+ * @global "allEnglishTestSuites" "{atom|}"
+ */
+allEnglishTestSuites ::=
+	left fold <{English test suite}> ++ allEnglishTestSuiteNames through
+	[
+		testSuiteName : nonempty string,
+		suites : {atom|}
+	|
+		id ::= atom for testSuiteName;
+		Method id is [id];
+		Semantic restriction id is [id's type];
+		New test suite id extends English test suite;
+		suites + id
+	];
+
+/**
+ * {@type "English test suite atom"} is an {@type "atom"} {@type "type"} whose
+ * members are the identifiers of test suites belonging to the {@type
+ * "English test suite"}.
+ *
+ * @type "English test suite atom"
+ * @returns "atom's type"
+ */
+Private stable method "English test suite atom" is
+[
+	enumeration of allEnglishTestSuites
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Test runners.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Run every {@type "unit test"} in the {@type "English test suite"}.
+ *
+ * @method "Run all tests in_"
+ * @param "id" "English test suite atom"
+ * @returns "⊤"
+ */
+Private method "Run all tests in_" is
+[
+	id : English test suite atom
+|
+	Print: test suite-oriented “report on all tests in id”;
+];

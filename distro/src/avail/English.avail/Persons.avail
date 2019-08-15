@@ -1,0 +1,230 @@
+/*
+ * Persons.avail
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Persons"
+Versions
+	"1.4.0"
+Uses
+	"Avail",
+	"Common",
+	"Test Suites"
+Names
+	/* Persons. */
+	"person",
+		/* fields */
+		"grammatical person identity",
+			/*"_'s⁇identity",*/
+		/* subtypes */
+		"English person",
+			/* subtypes */
+			"English first person",
+				/* instances */
+				"first person",
+			"English second person",
+				/* instances */
+				"second person",
+			"English third person",
+				/* instances */
+				"third person",
+		/* type constructors */
+		"_-personed",
+
+	/* Classically personed objects. */
+	"personed",
+		/* fields */
+		"grammatical person",
+			/* accessor */
+			"_'s⁇person",
+			/* reconstructor */
+			"_'s⁇person::=_",
+
+	/* Low-level English person identities. */
+	"first person identity",
+	"second person identity",
+	"third person identity"
+Body
+
+/**
+ * Herein are representations of English grammatical person. {@type "person"}
+ * establishes the classical three-person system of first, second, and third
+ * person, but the model supports extension to nontraditional concepts of
+ * person.
+ *
+ * @module
+ * @author Todd L Smith <todd@availlang.org>
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Persons.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical person identity" is a new field atom;
+
+/**
+ * English categorizes nouns, pronouns, and verbs according to three grammatical
+ * persons, {@method "first person"}, {@method "second person"}, and {@method
+ * "third person"}.
+ *
+ * The type {@type "person"} flies above the traditional concepts of grammatical
+ * person, providing an opportunity for authors to extend the concepts of
+ * grammatical person as necessary for exotic or experimental applications. All
+ * library methods are designed to work abstractly with {@type "person"} rather
+ * than specifically with {@type "English person"}, though overrides to library
+ * methods may be necessary to provide full support for new {@type "person"}s.
+ *
+ * @type "person"
+ * @supertype "object"
+ * @field "grammatical person identity" "atom"
+ *        The {@type "atom"} that distinguishes one {@type "person"} instance
+ *        from another.
+ */
+Public explicit class "person" extends object
+	with field
+		grammatical person identity : atom ("_'s⁇identity");
+
+////////////////////////////////////////////////////////////////////////////////
+//                              English persons.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+// Construct the classical person identities, subtypes, and instances
+// systematically, to reduce boilerplate and constructively assure correctness.
+For each aPerson of <"first", "second", "third"> do
+[
+	identityAtomName ::= aPerson ++ " person identity";
+	className ::= "English " ++ aPerson ++ " person";
+	methodName ::= aPerson ++ " person";
+
+	identityAtom ::= atom for identityAtomName;
+	Method identityAtom is [identityAtom];
+	Class className extends person
+		with field
+			grammatical person identity : {identityAtom}ᵀ ("_'s⁇identity");
+	instance ::=
+		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
+		«<
+			send atom for className with «<>» : person's type,
+			«<>»
+		>» : person;
+	Stable method methodName is [instance];
+	Semantic restriction methodName is [instance's type];
+];
+
+/**
+ * {@type "English person"} is simply the union of {@type
+ * "English first person"}, {@type "English second person"}, and {@type
+ * "English third person"}.
+ *
+ * @type "English person"
+ * @supertype "person"
+ * @alias "English first person ∪ English second person ∪ English third person"
+ */
+Public class "English person"
+extends English first person ∪ English second person ∪ English third person;
+
+////////////////////////////////////////////////////////////////////////////////
+//                              Personed values.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical person" is a new field atom;
+
+/**
+ * Any {@type "object"} that wishes to express {@type "person"} immutably may
+ * extend {@type "personed"}. The class offers a {@method "_'s⁇person::=_"
+ * reconstructor} for convenience.
+ *
+ * Note that {@type "personed"} automatically supports {@type "person"}s beyond
+ * the traditional {@type "English person"}s.
+ *
+ * @type "personed"
+ * @supertype "object"
+ * @field "grammatical person" "person"
+ *        The grammatical {@type "person"}.
+ */
+Public class "personed" extends object
+	with field
+		public reconstructible grammatical person : person ("_'s⁇person");
+
+/**
+ * Construct a {@type "personed"} {@type "type"} that is parameterized by the
+ * specified {@type "person"}.
+ *
+ * @method "_-personed"
+ * @param "aPerson" "person"
+ *        An arbitrary {@type "person"}.
+ * @returns "personed"
+ */
+Public stable method "_-personed" is
+[
+	aPerson : person
+|
+	extend personed with grammatical person : (aPerson's type)
+];
+
+/**
+ * The result is always constrained by the supplied {@type "person"}.
+ *
+ * @method "_-personed"
+ * @restricts "person's type"
+ */
+Semantic restriction "_-personed" is
+[
+	tPerson : person's type
+|
+	(extend personed with grammatical person : tPerson)'s type
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test cases.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+Test "English persons" in person test suite is
+[
+	Require:
+		¬English first person = English second person = English third person;
+	Require: English first person's identity = {first person identity}ᵀ;
+	Require: English second person's identity = {second person identity}ᵀ;
+	Require: English third person's identity = {third person identity}ᵀ;
+	Require: English first person ⊆ English person;
+	Require: English second person ⊆ English person;
+	Require: English second person ⊆ English person;
+	Require: English first person ∪ English second person ∪ English third person
+		= English person;
+	Require: first person ∈ English first person;
+	Require: second person ∈ English second person;
+	Require: third person ∈ English third person;
+	Require: first person-personed
+		⊆ (extend personed with grammatical person : English first person);
+	Require: second person-personed
+		⊆ (extend personed with grammatical person : English second person);
+	Require: third person-personed
+		⊆ (extend personed with grammatical person : English third person);
+];
