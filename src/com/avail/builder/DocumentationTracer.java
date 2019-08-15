@@ -59,7 +59,7 @@ import static com.avail.descriptor.FiberDescriptor.loaderPriority;
 /**
  * Used for parallel documentation generation.
  */
-class DocumentationTracer
+final class DocumentationTracer
 {
 	/** The {@link AvailBuilder} for which to generate documentation. */
 	@InnerAccess final AvailBuilder availBuilder;
@@ -97,8 +97,7 @@ class DocumentationTracer
 	 * @return A module version, or {@code null} if no version was
 	 *         available.
 	 */
-	private @Nullable
-	ModuleVersion getVersion (
+	private @Nullable ModuleVersion getVersion (
 		final ResolvedModuleName moduleName)
 	{
 		final IndexedRepositoryManager repository =
@@ -122,8 +121,7 @@ class DocumentationTracer
 	 *        What to do when comments have been loaded for the named
 	 *        module (or an error occurs).
 	 */
-	@InnerAccess
-	void loadComments (
+	@InnerAccess void loadComments (
 		final ResolvedModuleName moduleName,
 		final Continuation0 completionAction)
 	{
@@ -232,7 +230,7 @@ class DocumentationTracer
 	 *        What to do when comments have been loaded for the named
 	 *        module.
 	 */
-	@InnerAccess void scheduleLoadComments (
+	private void scheduleLoadComments (
 		final ResolvedModuleName moduleName,
 		final Continuation0 completionAction)
 	{

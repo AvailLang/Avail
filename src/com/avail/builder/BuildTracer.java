@@ -56,8 +56,7 @@ import static com.avail.utility.Nulls.stripNull;
 /**
  * Used for constructing the module dependency graph.
  */
-@InnerAccess
-class BuildTracer
+final class BuildTracer
 {
 	/** The {@link AvailBuilder} for which to trace modules. */
 	@InnerAccess final AvailBuilder availBuilder;
@@ -182,7 +181,7 @@ class BuildTracer
 	 *        along this branch of the trace, and the order they were
 	 *        encountered.
 	 */
-	@InnerAccess void traceModuleImports (
+	private void traceModuleImports (
 		final ResolvedModuleName resolvedName,
 		final @Nullable ResolvedModuleName resolvedSuccessor,
 		final LinkedHashSet<ResolvedModuleName> recursionSet)

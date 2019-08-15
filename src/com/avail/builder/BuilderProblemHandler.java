@@ -47,9 +47,7 @@ import static java.lang.String.format;
  * The {@code BuilderProblemHandler} handles {@linkplain Problem problems}
  * encountered during a build.
  */
-@InnerAccess
-class BuilderProblemHandler
-extends ProblemHandler
+class BuilderProblemHandler extends ProblemHandler
 {
 	/** The {@link AvailBuilder} for which we handle problems. */
 	private final AvailBuilder availBuilder;

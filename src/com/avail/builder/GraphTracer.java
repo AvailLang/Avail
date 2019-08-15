@@ -31,7 +31,6 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.AvailBuilder.ModuleTree;
 import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
@@ -59,7 +58,7 @@ import static java.util.Collections.singleton;
 /**
  * Used for graphics generation.
  */
-class GraphTracer
+final class GraphTracer
 {
 	/** The {@link AvailBuilder} for which to generate a graph. */
 	private final AvailBuilder availBuilder;
@@ -140,8 +139,7 @@ class GraphTracer
 	 * @param input The fully qualified module name.
 	 * @return A unique node name.
 	 */
-	@InnerAccess
-	final String asNodeName (final String input)
+	private String asNodeName (final String input)
 	{
 		if (encounteredNames.containsKey(input))
 		{

@@ -91,7 +91,7 @@ import static java.util.Collections.emptyList;
  * Used for parallel-loading modules in the {@linkplain
  * AvailBuilder#moduleGraph}.
  */
-class BuildLoader
+final class BuildLoader
 {
 	/** The {@link AvailBuilder} for which we're loading. */
 	@InnerAccess final AvailBuilder availBuilder;
@@ -107,8 +107,7 @@ class BuildLoader
 	 * <li>the current token at which parsing is taking place.</li>
 	 * </ol>
 	 */
-	@InnerAccess
-	final CompilerProgressReporter localTracker;
+	private final CompilerProgressReporter localTracker;
 
 	/**
 	 * A {@linkplain Continuation3} that is updated to show global progress
@@ -120,7 +119,7 @@ class BuildLoader
 	 * <li>the global size (in bytes) of all modules that will be built.</li>
 	 * </ol>
 	 */
-	@InnerAccess final GlobalProgressReporter globalTracker;
+	private final GlobalProgressReporter globalTracker;
 
 	/**
 	 * Construct a new {@code BuildLoader}.
@@ -145,7 +144,6 @@ class BuildLoader
 	 *        built.</li>
 	 *        </ol>
 	 */
-	@InnerAccess
 	BuildLoader (
 		final AvailBuilder availBuilder,
 		final CompilerProgressReporter localTracker,
@@ -164,7 +162,7 @@ class BuildLoader
 	private long globalCodeSize = 0L;
 
 	/** The number of bytes compiled so far. */
-	@InnerAccess final AtomicLong bytesCompiled = new AtomicLong(0L);
+	private final AtomicLong bytesCompiled = new AtomicLong(0L);
 
 	/**
 	 * Answer the size, in bytes, of all source files that will be
@@ -173,7 +171,7 @@ class BuildLoader
 	 * @return The number of bytes in all source files that will be
 	 *         built.
 	 */
-	@InnerAccess synchronized long globalCodeSize ()
+	private synchronized long globalCodeSize ()
 	{
 		return globalCodeSize;
 	}
@@ -190,7 +188,7 @@ class BuildLoader
 	 *        The {@linkplain Continuation0 action} to perform after
 	 *        this module has been loaded.
 	 */
-	@InnerAccess void scheduleLoadModule (
+	private void scheduleLoadModule (
 		final ResolvedModuleName target,
 		final Continuation0 completionAction)
 	{
@@ -237,7 +235,7 @@ class BuildLoader
 	 * @param completionAction
 	 *        What to do after loading the module successfully.
 	 */
-	@InnerAccess void loadModule (
+	private void loadModule (
 		final ResolvedModuleName moduleName,
 		final Continuation0 completionAction)
 	{
@@ -640,7 +638,7 @@ class BuildLoader
 	 * @param lastPosition
 	 *        The last local file position previously reported.
 	 */
-	@InnerAccess void postLoad (
+	private void postLoad (
 		final ResolvedModuleName moduleName,
 		final long lastPosition)
 	{
@@ -654,7 +652,7 @@ class BuildLoader
 	/**
 	 * Load the modules in the {@linkplain AvailBuilder#moduleGraph}.
 	 */
-	@InnerAccess void load ()
+	void load ()
 	{
 		bytesCompiled.set(0L);
 		final int vertexCountBefore = availBuilder.moduleGraph.vertexCount();

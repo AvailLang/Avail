@@ -31,7 +31,6 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.A_Module;
 import com.avail.interpreter.AvailLoader;
@@ -52,7 +51,7 @@ import static com.avail.utility.Nulls.stripNull;
 /**
  * Used for unloading changed modules prior to tracing.
  */
-class BuildUnloader
+final class BuildUnloader
 {
 	/** The {@link AvailBuilder} in which to unload modules. */
 	private final AvailBuilder availBuilder;
@@ -232,7 +231,6 @@ class BuildUnloader
 	 * Find all loaded modules that have changed since compilation, then
 	 * unload them and all successors in reverse dependency order.
 	 */
-	@InnerAccess
 	void unloadModified ()
 	{
 		availBuilder.moduleGraph.parallelVisit(this::determineDirtyModules);
@@ -260,7 +258,7 @@ class BuildUnloader
 	 *        should be unloaded, or {@code null} if all modules are to be
 	 *        unloaded.
 	 */
-	@InnerAccess void unload (final @Nullable ResolvedModuleName targetName)
+	void unload (final @Nullable ResolvedModuleName targetName)
 	{
 		if (targetName == null)
 		{

@@ -65,6 +65,7 @@ import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Continuation2NotNull;
+import com.avail.utility.evaluation.Continuation3NotNull;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -83,6 +84,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -110,7 +112,7 @@ import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.Locks.auto;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
+import static java.util.Collections.*;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
@@ -124,13 +126,13 @@ import static java.util.Collections.emptyList;
 public final class AvailBuilder
 {
 	/** The {@linkplain Logger logger}. */
-	@InnerAccess static final Logger logger = Logger.getLogger(
+	private static final Logger logger = Logger.getLogger(
 		AvailBuilder.class.getName());
 
 	/**
 	 * Whether to debug the builder.
 	 */
-	@InnerAccess static final boolean debugBuilder = false;
+	private static final boolean debugBuilder = false;
 
 	/** A lock for safely manipulating internals of this builder. */
 	private final ReadWriteLock builderLock = new ReentrantReadWriteLock();
@@ -146,7 +148,7 @@ public final class AvailBuilder
 	 * @param args
 	 *        The format arguments.
 	 */
-	@InnerAccess static void log (
+	static void log (
 		final Level level,
 		final String format,
 		final Object... args)
@@ -175,7 +177,7 @@ public final class AvailBuilder
 	 *        The format arguments.
 	 */
 	@SuppressWarnings("SameParameterValue")
-	@InnerAccess static void log (
+	static void log (
 		final Level level,
 		final Throwable exception,
 		final String format,
@@ -197,14 +199,13 @@ public final class AvailBuilder
 	 * repeat a bit more work if the previous build attempt failed before its
 	 * data could be committed.
 	 */
-	@InnerAccess static final long maximumStaleRepositoryMs = 2000L;
+	static final long maximumStaleRepositoryMs = 2000L;
 
 	/**
 	 * The file extension for an Avail source {@linkplain ModuleDescriptor
 	 * module}.
 	 */
-	@InnerAccess static final String availExtension =
-		ModuleNameResolver.availExtension;
+	static final String availExtension = ModuleNameResolver.availExtension;
 
 	/**
 	 * The {@linkplain AvailRuntime runtime} into which the
@@ -881,12 +882,50 @@ public final class AvailBuilder
 	 * simultaneously, so the client may need to provide suitable
 	 * synchronization.</p>
 	 *
-	 * @param action What to do with each module version.
+	 * <p>Also note that the method only returns after all tracing has
+	 * completed.</p>
+	 *
+	 * @param action
+	 *        What to do with each module version.  The third argument to it is
+	 *        a {@link Continuation0} to invoke when the module is considered
+	 *        processed.
 	 */
 	public void traceDirectories (
-		final Continuation2NotNull<ResolvedModuleName, ModuleVersion> action)
+		final Continuation3NotNull
+			<ResolvedModuleName, ModuleVersion, Continuation0> action)
 	{
-		new BuildDirectoryTracer(this).traceAllModuleHeaders(action);
+		final Semaphore semaphore = new Semaphore(0);
+		traceDirectories(action, semaphore::release);
+		// Trace is not currently interruptible.
+		semaphore.acquireUninterruptibly();
+	}
+
+	/**
+	 * Scan all module files in all visible source directories, passing each
+	 * {@link ResolvedModuleName} and corresponding {@link ModuleVersion} to the
+	 * provided {@link Continuation2NotNull}.
+	 *
+	 * <p>Note that the action may be invoked in multiple {@link Thread}s
+	 * simultaneously, so the client may need to provide suitable
+	 * synchronization.</p>
+	 *
+	 * <p>The method may return before tracing has completed, but {@code
+	 * afterAll} will eventually be invoked in some {@link Thread} after all
+	 * modules have been processed.</p>
+	 *
+	 * @param action
+	 *        What to do with each module version.  A {@link Continuation0} will
+	 *        be passed, which should be evaluated to indicate the module has
+	 *        been processed.
+	 * @param afterAll
+	 *        What to do after all of the modules have been processed.
+	 */
+	public void traceDirectories (
+		final Continuation3NotNull
+			<ResolvedModuleName, ModuleVersion, Continuation0> action,
+		final Continuation0 afterAll)
+	{
+		new BuildDirectoryTracer(this, afterAll).traceAllModuleHeaders(action);
 	}
 
 	/**
@@ -1053,10 +1092,12 @@ public final class AvailBuilder
 			return;
 		}
 
-		final Map<LoadedModule, List<A_Phrase>> allSolutions = new HashMap<>();
+		final Map<LoadedModule, List<A_Phrase>> allSolutions =
+			synchronizedMap(new HashMap<>());
 		final List<Continuation1NotNull<Continuation0>> allCleanups =
-			new ArrayList<>();
-		final Map<LoadedModule, List<Problem>> allProblems = new HashMap<>();
+			synchronizedList(new ArrayList<>());
+		final Map<LoadedModule, List<Problem>> allProblems =
+			synchronizedMap(new HashMap<>());
 		final AtomicInteger outstanding =
 			new AtomicInteger(modulesWithEntryPoints.size());
 		final Continuation0 decrement = () ->
@@ -1064,11 +1105,11 @@ public final class AvailBuilder
 			if (outstanding.decrementAndGet() == 0)
 			{
 				processParsedCommand(
-					allSolutions,
-					allProblems,
+					allSolutions,  // no longer changing
+					allProblems,   // no longer changing
 					onAmbiguity,
 					onSuccess,
-					parallelCombine(allCleanups),
+					parallelCombine(allCleanups),  // no longer changing
 					onFailure);
 			}
 		};
@@ -1103,9 +1144,9 @@ public final class AvailBuilder
 						final Problem problem,
 						final Continuation1NotNull<Boolean> decider)
 					{
-						// Clone the problem message into a new problem to
-						// avoid running any cleanup associated with aborting
-						// the problem a second time.
+						// Clone the problem message into a new problem to avoid
+						// running any cleanup associated with aborting the
+						// problem a second time.
 						final Problem copy = new Problem(
 							problem.moduleName,
 							problem.lineNumber,
@@ -1120,13 +1161,14 @@ public final class AvailBuilder
 								// Do nothing.
 							}
 						};
-						synchronized (allProblems)
-						{
-							final List<Problem> problems =
-								allProblems.computeIfAbsent(
-									loadedModule, k -> new ArrayList<>());
-							problems.add(copy);
-						}
+						allProblems.compute(
+							loadedModule,
+							(k, oldV) -> {
+								final List<Problem> v =
+									oldV == null ? new ArrayList<>() : oldV;
+								v.add(copy);
+								return v;
+							});
 						decider.value(false);
 					}
 
@@ -1190,11 +1232,8 @@ public final class AvailBuilder
 			compiler.parseCommand(
 				(solutions, cleanup) ->
 				{
-					synchronized (allSolutions)
-					{
-						allSolutions.put(loadedModule, solutions);
-						allCleanups.add(cleanup);
-					}
+					allSolutions.put(loadedModule, solutions);
+					allCleanups.add(cleanup);
 					decrement.value();
 				},
 				decrement);

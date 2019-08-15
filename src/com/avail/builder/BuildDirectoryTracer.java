@@ -42,8 +42,10 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2NotNull;
+import com.avail.utility.evaluation.Continuation3NotNull;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -56,8 +58,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import static com.avail.builder.AvailBuilder.availExtension;
 import static com.avail.utility.Nulls.stripNull;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -68,29 +72,55 @@ import static java.util.Collections.sort;
  * Used for scanning all modules in all visible Avail directories and their
  * subdirectories.
  */
-class BuildDirectoryTracer
+final class BuildDirectoryTracer
 {
 	/** The {@link AvailBuilder} for which we're tracing. */
 	AvailBuilder availBuilder;
 
-	/**
-	 * The trace requests that have been scheduled.
-	 */
+	/** The trace requests that have been scheduled. */
+	@GuardedBy("this")
 	private final Set<Path> traceRequests = new HashSet<>();
 
-	/**
-	 * The traces that have been completed.
-	 */
+	/** The traces that have been completed. */
+	@GuardedBy("this")
 	private final Set<Path> traceCompletions = new HashSet<>();
+
+	/** A flag to indicate when all requests have been queued. */
+	@GuardedBy("this")
+	private boolean allQueued = false;
+
+	/**
+	 * How to indicate to the caller that the tracing has completed.  Note that
+	 * this may be executed in another {@link Thread} than the one that started
+	 * the trace.
+	 */
+	private final Continuation0 afterTraceCompletes;
 
 	/**
 	 * Create a new tracer.
 	 *
-	 * @param builder The {@link AvailBuilder} for which we're tracing.
+	 * @param builder
+	 *        The {@link AvailBuilder} for which we're tracing.
+	 * @param originalAfterTraceCompletes
+	 *        The {@link Continuation0} to run when after module has been
+	 *        recursively traced.
 	 */
-	BuildDirectoryTracer (final AvailBuilder builder)
+	BuildDirectoryTracer (
+		final AvailBuilder builder,
+		final Continuation0 originalAfterTraceCompletes)
 	{
 		this.availBuilder = builder;
+		this.afterTraceCompletes = () ->
+		{
+			// Force each repository to commit, since we may have changed the
+			// last-access order of some of the caches.
+			final ModuleRoots moduleRoots = availBuilder.runtime.moduleRoots();
+			for (final ModuleRoot root : moduleRoots.roots())
+			{
+				root.repository().commit();
+			}
+			originalAfterTraceCompletes.value();
+		};
 	}
 
 	/**
@@ -101,28 +131,30 @@ class BuildDirectoryTracer
 	 * caches to treat the current versions as having been accessed most
 	 * recently.
 	 *
-	 * <p>When a module header parsing starts, add the module name to
-	 * traceRequests. When a module header parsing is complete, add it to
-	 * traceCompletions, and if the two now have the same size, send {@link
-	 * #notifyAll()} to the {@link BuildTracer}.</p>
+	 * <p>Before a module header parsing starts, add the module name to
+	 * traceRequests. When a module header's parsing is complete, add it to
+	 * traceCompletions, and if the two now have the same size (and all files
+	 * have been scanned), commit all repositories and invoke the {@link
+	 * #afterTraceCompletes} that was provided in the constructor.</p>
 	 *
-	 * <p>{@linkplain IndexedRepositoryManager#commit() Commit} all affected
-	 * repositories at the end.  Return only after all relevant files have
-	 * been scanned or looked up in the repositories, or failed somehow.</p>
+	 * <p>Note that this method may return before the parsing completes, but
+	 * {@link #afterTraceCompletes} will be invoked in some {@link Thread}
+	 * either while or after this method runs.</p>
 	 *
 	 * @param moduleAction
 	 *        What to do each time we've extracted or replayed a {@link
-	 *        ModuleVersion} from a valid module file.
+	 *        ModuleVersion} from a valid module file.  It's passed a {@link
+	 *        Continuation0} to invoke when the module is considered effectively
+	 *        processed.
 	 */
 	void traceAllModuleHeaders (
-		final Continuation2NotNull<ResolvedModuleName, ModuleVersion>
-			moduleAction)
+		final Continuation3NotNull
+			<ResolvedModuleName, ModuleVersion, Continuation0> moduleAction)
 	{
 		final ModuleRoots moduleRoots = availBuilder.runtime.moduleRoots();
 		for (final ModuleRoot moduleRoot : moduleRoots)
 		{
-			final File rootDirectory =
-				stripNull(moduleRoot.sourceDirectory());
+			final File rootDirectory = stripNull(moduleRoot.sourceDirectory());
 			final Path rootPath = rootDirectory.toPath();
 			@SuppressWarnings("TooBroadScope")
 			final FileVisitor<Path> visitor = new FileVisitor<Path>()
@@ -139,7 +171,7 @@ class BuildDirectoryTracer
 						return CONTINUE;
 					}
 					final String localName = dir.toFile().getName();
-					if (localName.endsWith(AvailBuilder.availExtension))
+					if (localName.endsWith(availExtension))
 					{
 						return CONTINUE;
 					}
@@ -152,7 +184,7 @@ class BuildDirectoryTracer
 					final BasicFileAttributes unused)
 				{
 					final String localName = file.toFile().getName();
-					if (!localName.endsWith(AvailBuilder.availExtension))
+					if (!localName.endsWith(availExtension))
 					{
 						return CONTINUE;
 					}
@@ -171,12 +203,10 @@ class BuildDirectoryTracer
 							{
 								final String part = element.toString();
 								builder.append("/");
-								assert part.endsWith(AvailBuilder.availExtension);
-								final String noExtension =
-									part.substring(
-										0,
-										part.length()
-											- AvailBuilder.availExtension.length());
+								assert part.endsWith(availExtension);
+								final String noExtension = part.substring(
+									0,
+									part.length() - availExtension.length());
 								builder.append(noExtension);
 							}
 							final ModuleName moduleName =
@@ -184,10 +214,16 @@ class BuildDirectoryTracer
 							final ResolvedModuleName resolved =
 								new ResolvedModuleName(
 									moduleName, moduleRoots, false);
+							final AtomicBoolean ran = new AtomicBoolean(false);
 							traceOneModuleHeader(
 								resolved,
 								moduleAction,
-								() -> indicateTraceCompleted(file));
+								() ->
+								{
+									final boolean oldRan = ran.getAndSet(true);
+									assert !oldRan;
+									indicateFileCompleted(file);
+								});
 						});
 					return CONTINUE;
 				}
@@ -197,9 +233,9 @@ class BuildDirectoryTracer
 					final Path file,
 					final IOException exception)
 				{
-					// Ignore the exception and continue.  We're just
-					// trying to populate the list of entry points, so it's
-					// not something worth reporting.
+					// Ignore the exception and continue.  We're just trying to
+					// populate the list of entry points, so it's not something
+					// worth reporting.
 					return CONTINUE;
 				}
 
@@ -224,16 +260,11 @@ class BuildDirectoryTracer
 				// Ignore it.
 			}
 		}
-		final boolean interrupted = waitAndCheckInterrupts();
-		// Force each repository to commit, since we may have changed the
-		// last-access order of some of the caches.
-		for (final ModuleRoot root : moduleRoots.roots())
+		//noinspection SynchronizeOnThis
+		synchronized (this)
 		{
-			root.repository().commit();
-		}
-		if (interrupted)
-		{
-			Thread.currentThread().interrupt();
+			allQueued = true;
+			checkForCompletion();
 		}
 	}
 
@@ -255,6 +286,7 @@ class BuildDirectoryTracer
 	 *
 	 * @return Whether the thread was interrupted.
 	 */
+	@Deprecated
 	private synchronized boolean waitAndCheckInterrupts ()
 	{
 		final long period = 10000;
@@ -271,13 +303,11 @@ class BuildDirectoryTracer
 				wait(nextReportMillis - System.currentTimeMillis() + 5);
 				if (System.currentTimeMillis() > nextReportMillis)
 				{
-					final Set<Path> outstanding =
-						new HashSet<>(traceRequests);
+					final Set<Path> outstanding = new HashSet<>(traceRequests);
 					outstanding.removeAll(traceCompletions);
 					if (!outstanding.isEmpty())
 					{
-						final List<Path> sorted =
-							new ArrayList<>(outstanding);
+						final List<Path> sorted = new ArrayList<>(outstanding);
 						sort(sorted);
 						final StringBuilder builder = new StringBuilder();
 						builder.append("Still tracing files:\n");
@@ -321,12 +351,11 @@ class BuildDirectoryTracer
 	 */
 	@InnerAccess void traceOneModuleHeader (
 		final ResolvedModuleName resolvedName,
-		final Continuation2NotNull<ResolvedModuleName, ModuleVersion>
-			action,
+		final Continuation3NotNull
+			<ResolvedModuleName, ModuleVersion, Continuation0> action,
 		final Continuation0 completedAction)
 	{
-		final IndexedRepositoryManager repository =
-			resolvedName.repository();
+		final IndexedRepositoryManager repository = resolvedName.repository();
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs);
 		final File sourceFile = resolvedName.sourceReference();
 		final ModuleArchive archive = repository.getArchive(
@@ -340,8 +369,7 @@ class BuildDirectoryTracer
 		{
 			// This version was already traced and recorded for a
 			// subsequent replay... like right now.  Reuse it.
-			action.value(resolvedName, existingVersion);
-			completedAction.value();
+			action.value(resolvedName, existingVersion, completedAction);
 			return;
 		}
 		// Trace the source and write it back to the repository.
@@ -356,8 +384,7 @@ class BuildDirectoryTracer
 			compiler ->
 			{
 				compiler.compilationContext.diagnostics
-					.setSuccessAndFailureReporters(
-						() -> { }, completedAction);
+					.setSuccessAndFailureReporters(() -> { }, completedAction);
 				compiler.parseModuleHeader(
 					afterHeader ->
 					{
@@ -374,8 +401,7 @@ class BuildDirectoryTracer
 								entryPoints);
 						availBuilder.serialize(header, newVersion);
 						archive.putVersion(versionKey, newVersion);
-						action.value(resolvedName, newVersion);
-						completedAction.value();
+						action.value(resolvedName, newVersion, completedAction);
 					});
 			},
 			completedAction,
@@ -395,12 +421,12 @@ class BuildDirectoryTracer
 	}
 
 	/**
-	 * A module was just traced, so record that fact.  Note that the
-	 * trace was either successful or unsuccessful.
+	 * A module was just traced, so record that fact.  Note that the trace was
+	 * either successful or unsuccessful.
 	 *
 	 * @param modulePath The {@link Path} for which a trace just completed.
 	 */
-	@InnerAccess synchronized void indicateTraceCompleted (
+	@InnerAccess synchronized void indicateFileCompleted (
 		final Path modulePath)
 	{
 		final boolean added = traceCompletions.add(modulePath);
@@ -408,13 +434,22 @@ class BuildDirectoryTracer
 		AvailBuilder.log(
 			Level.FINEST,
 			"Build-directory traced one (%d/%d)",
-			traceCompletions,
-			traceRequests);
-		// Avoid spurious wake-ups.
-		if (traceRequests.size() == traceCompletions.size())
+			traceCompletions.size(),
+			traceRequests.size());
+		checkForCompletion();
+	}
+
+	/**
+	 * A transition just happened that might indicate the entire trace has now
+	 * completed.
+	 */
+	private void checkForCompletion ()
+	{
+		assert Thread.holdsLock(this);
+		//noinspection FieldAccessNotGuarded
+		if (allQueued && traceRequests.size() == traceCompletions.size())
 		{
-			//noinspection SynchronizeOnThis
-			notifyAll();
+			afterTraceCompletes.value();
 		}
 	}
 }
