@@ -3,6 +3,7 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-jupiter-api-5.0.0-RC2.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-jupiter-engine-5.0.0-RC2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libraries/junit/junit-jupiter-params-5.0.0-RC2.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-platform-commons-1.0.0-RC2.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-platform-engine-1.0.0-RC2.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-platform-launcher-1.0.0-RC2.jar!/" />
@@ -11,8 +12,6 @@
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit-rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/junit5-rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/libraries/junit/opentest4j-1.0.0-RC1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/libraries/junit/junit-jupiter-params-5.0.0-RC2.jar!/" />
-      <root url="jar://$PROJECT_DIR$/libraries/junit/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

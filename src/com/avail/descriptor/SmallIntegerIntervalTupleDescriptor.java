@@ -36,8 +36,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
 import java.util.IdentityHashMap;
-import java.util.function.IntFunction;
-import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
@@ -167,24 +165,13 @@ extends NumericTupleDescriptor
 			// The new value isn't consecutive, but it's still an int.
 			if (originalSize < maximumCopySize)
 			{
+				final int start = object.slot(START);
 				return generateIntTupleFrom(
 					originalSize + 1,
-					new IntUnaryOperator()
-					{
-						int value = object.slot(START);
-
-						@Override
-						public int applyAsInt (final int counter)
-						{
-							if (counter == originalSize)
-							{
-								return newElementValue;
-							}
-							final int oldValue = value;
-							value += (int) deltaValue;
-							return oldValue;
-						}
-					});
+					counter ->
+						counter == originalSize
+							? newElementValue
+							: start + (int)((counter - 1) * deltaValue));
 			}
 			// Too big; fall through and make a tree-tuple.
 		}
@@ -479,40 +466,20 @@ extends NumericTupleDescriptor
 			// Everything will be bytes.  Synthesize a byte tuple.
 			result = generateByteTupleFrom(
 				object.slot(SIZE),
-				new IntUnaryOperator()
-				{
-					private int currentValue = start;
-
-					@Override
-					public int applyAsInt (final int counter)
-					{
-						final int element = counter == index
-							? ((A_Number)newValueObject).extractUnsignedByte()
-							: currentValue;
-						currentValue += (int) delta;
-						return element;
-					}
-				});
+				counter ->
+					counter == index
+						? ((A_Number)newValueObject).extractUnsignedByte()
+						: start + (int)((counter - 1) * delta));
 		}
 		else
 		{
 			// Synthesize a general object tuple instead.
 			result = generateObjectTupleFrom(
 				object.slot(SIZE),
-				new IntFunction<A_BasicObject>()
-				{
-					private long currentValue = start;
-
-					@Override
-					public A_BasicObject apply (final int counter)
-					{
-						final A_BasicObject element = counter == index
-							? newValueObject
-							: fromInt((int) currentValue);
-						currentValue += delta;
-						return element;
-					}
-				});
+				counter ->
+					counter == index
+						? newValueObject
+						: fromInt(start + (int)((counter - 1) * delta)));
 		}
 		if (!canDestroy)
 		{

@@ -65,7 +65,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.IntUnaryOperator;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
@@ -314,8 +313,10 @@ extends Descriptor
 		 */
 		final AtomicLong countdownToReoptimize = new AtomicLong(0);
 
+		/** A statistic for all functions that return. */
 		volatile @Nullable Statistic returnerCheckStat = null;
 
+		/** A statistic for all functions that are returned into. */
 		volatile @Nullable Statistic returneeCheckStat = null;
 
 		/**
@@ -392,7 +393,7 @@ extends Descriptor
 		 *
 		 * @return The consumed nybble.
 		 */
-		private int getNybble ()
+		@InnerAccess int getNybble ()
 		{
 			final int result =
 				(int) ((encodedInstructionsArray[longIndex] >> shift) & 15);
@@ -839,26 +840,12 @@ extends Descriptor
 			// Special case: when there are no nybbles, don't reserve any longs.
 			return emptyTuple();
 		}
-		final long firstLong = object.slot(NYBBLECODES_, 1);
-		final int unusedNybbles = (int) firstLong & 15;
-		final int nybbleCount = (longCount << 4) - unusedNybbles - 1;
+		final L1InstructionDecoder decoder = new L1InstructionDecoder();
+		object.setUpInstructionDecoder(decoder);
+		decoder.pc(1);
 		return generateNybbleTupleFrom(
-			nybbleCount,
-			new IntUnaryOperator()
-			{
-				long currentLong = firstLong;
-
-				@Override
-				public int applyAsInt (final int i)
-				{
-					final int subIndex = i & 15;
-					if (subIndex == 0)
-					{
-						currentLong = object.slot(NYBBLECODES_, (i >> 4) + 1);
-					}
-					return (int) (currentLong >> (subIndex << 2)) & 15;
-				}
-			});
+			o_NumNybbles(object),
+			i -> decoder.getNybble());
 	}
 
 	@Override @AvailMethod

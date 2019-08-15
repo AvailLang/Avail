@@ -39,6 +39,7 @@ import com.avail.utility.IO;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.DatatypeConverter;
@@ -64,6 +65,7 @@ import java.util.regex.Pattern;
 
 import static com.avail.server.AvailServer.logger;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.evaluation.Combinator.recurse;
 
 /**
  * A {@code WebSocketAdapter} provides a WebSocket interface to an {@linkplain
@@ -692,6 +694,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					if ("upgrade".equalsIgnoreCase(token))
 					{
 						includesUpgrade = true;
+						break;
 					}
 				}
 				if (!includesUpgrade)
@@ -1455,18 +1458,14 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
 		final Continuation0 processMessage = () ->
 		{
-			final Message message = new Message(new String(
-				bytes.toByteArray(), StandardCharsets.UTF_8));
+			final Message message = new Message(
+				new String(bytes.toByteArray(), StandardCharsets.UTF_8));
 			channel.receiveMessage(message);
 		};
-		readFrameThen(
-			channel,
-			new Continuation1<Frame>()
-			{
-				@Override
-				public void value (final @Nullable Frame frame)
-				{
-					assert frame != null;
+		recurse(
+			readFrame -> readFrameThen(
+				channel,
+				frame -> {
 					try
 					{
 						bytes.write(frame.payloadData().array());
@@ -1479,7 +1478,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					switch (frame.opcode())
 					{
 						case CONTINUATION:
-							// This isn't legal as the first frame of a message.
+							// This isn't legal as the first frame of a
+							// message.
 							fail(
 								channel,
 								WebSocketStatusCode.PROTOCOL_ERROR,
@@ -1539,8 +1539,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								channel,
 								WebSocketStatusCode.PROTOCOL_ERROR,
 								"opcode "
-								+ frame.opcode().ordinal()
-								+ " is reserved");
+									+ frame.opcode().ordinal()
+									+ " is reserved");
 							return;
 					}
 					// A text frame was processed.
@@ -1552,46 +1552,39 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						readFrameThen(
 							channel,
-							new Continuation1<Frame>()
-							{
-								@Override
-								public void value (
-									final @Nullable Frame continuationFrame)
+							continuationFrame -> {
+								try
 								{
-									assert continuationFrame != null;
-									try
-									{
-										bytes.write(continuationFrame
-											.payloadData().array());
-									}
-									catch (final IOException e)
-									{
-										assert false : "This never happens!";
-										throw new RuntimeException(e);
-									}
-									if (continuationFrame.opcode
-										!= Opcode.CONTINUATION)
-									{
-										fail(
-											channel,
-											WebSocketStatusCode.PROTOCOL_ERROR,
-											"received "
+									bytes.write(
+										continuationFrame.payloadData()
+											.array());
+								}
+								catch (final IOException e)
+								{
+									assert false : "This never happens!";
+									throw new RuntimeException(e);
+								}
+								if (continuationFrame.opcode
+									!= Opcode.CONTINUATION)
+								{
+									fail(
+										channel,
+										WebSocketStatusCode.PROTOCOL_ERROR,
+										"received "
 											+ continuationFrame.opcode().name()
 											+ " instead of continuation frame");
-									}
-									else if (!continuationFrame.isFinalFragment)
-									{
-										readFrameThen(channel, this);
-									}
-									else
-									{
-										processMessage.value();
-									}
+								}
+								else if (!continuationFrame.isFinalFragment)
+								{
+									readFrame.value();
+								}
+								else
+								{
+									processMessage.value();
 								}
 							});
 					}
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1604,7 +1597,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 */
 	@InnerAccess void readFrameThen (
 		final WebSocketChannel channel,
-		final Continuation1<Frame> continuation)
+		final Continuation1NotNull<Frame> continuation)
 	{
 		final Frame frame = new Frame();
 		readOpcodeThen(

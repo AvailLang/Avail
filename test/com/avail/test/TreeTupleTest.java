@@ -37,7 +37,6 @@ import com.avail.descriptor.*;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
-import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
 import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
@@ -238,18 +237,7 @@ public class TreeTupleTest
 		final AvailObject myByteTupleSmall = generateByteTupleFrom(
 			3, index -> (short) index);
 		final AvailObject myByteTupleSmallReversed =
-			generateByteTupleFrom(
-				3,
-				new IntUnaryOperator()
-				{
-					private short counter = 3;
-
-					@Override
-					public int applyAsInt (final int ignored)
-					{
-						return counter--;
-					}
-				});
+			generateByteTupleFrom(3, i -> 4 - i);
 		assertEquals(
 			myByteTupleSmall.tupleReverse(),
 			myByteTupleSmallReversed);
