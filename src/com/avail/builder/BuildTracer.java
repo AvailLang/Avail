@@ -367,10 +367,7 @@ class BuildTracer
 			traceRequests = 1;
 			traceCompletions = 0;
 		}
-		scheduleTraceModuleImports(
-			target,
-			null,
-			new LinkedHashSet<>());
+		scheduleTraceModuleImports(target, null, new LinkedHashSet<>());
 		// Wait until the parallel recursive trace completes.
 		synchronized (this)
 		{
