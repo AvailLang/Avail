@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/avail-bootstrap" />
+            <option value="$PROJECT_DIR$/avail-server" />
             <option value="$PROJECT_DIR$/avail-workbench" />
           </set>
         </option>
