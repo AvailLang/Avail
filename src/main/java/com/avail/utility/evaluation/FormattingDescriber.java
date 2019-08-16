@@ -52,7 +52,7 @@ public final class FormattingDescriber implements Describer
 	final Object[] arguments;
 
 	/**
-	 * Construct a new {@link FormattingDescriber}.
+	 * Construct a new {@code FormattingDescriber}.
 	 *
 	 * @param patternString The pattern {@link String}.
 	 * @param arguments The arguments to populate the pattern.
@@ -62,6 +62,7 @@ public final class FormattingDescriber implements Describer
 		final Object... arguments)
 	{
 		this.patternString = patternString;
+		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		this.arguments = arguments;
 	}
 

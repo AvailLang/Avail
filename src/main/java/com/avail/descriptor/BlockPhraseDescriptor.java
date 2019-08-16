@@ -66,6 +66,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS;
+import static com.avail.utility.evaluation.Combinator.recurse;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -732,51 +733,51 @@ extends PhraseDescriptor
 	 *
 	 * @param object The block phrase to analyze.
 	 */
-	private void collectNeededVariablesOfOuterBlocks (final A_Phrase object)
+	private static void collectNeededVariablesOfOuterBlocks (
+		final A_Phrase object)
 	{
 		final Set<A_Phrase> providedByMe =
 			new HashSet<>(allLocallyDefinedVariables(object));
 		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
 		final List<A_Phrase> neededDeclarations = new ArrayList<>();
-		object.childrenDo(new Continuation1NotNull<A_Phrase>()
-		{
-			@Override
-			public void value (final @Nullable A_Phrase phrase)
-			{
-				assert phrase != null;
-				if (phrase.phraseKindIsUnder(BLOCK_PHRASE))
-				{
-					for (final A_Phrase declaration : phrase.neededVariables())
+		recurse(
+			object,
+			(parent, again) ->
+				parent.childrenDo(child -> {
+					if (child.phraseKindIsUnder(BLOCK_PHRASE))
 					{
+						for (final A_Phrase declaration :
+							child.neededVariables())
+						{
+							if (!providedByMe.contains(declaration)
+								&& !neededDeclarationsSet.contains(declaration))
+							{
+								neededDeclarationsSet.add(declaration);
+								neededDeclarations.add(declaration);
+							}
+						}
+					}
+					else if (child.phraseKindIsUnder(VARIABLE_USE_PHRASE))
+					{
+						final A_Phrase declaration = child.declaration();
 						if (!providedByMe.contains(declaration)
+							&& declaration.declarationKind() != MODULE_VARIABLE
+							&& declaration.declarationKind() != MODULE_CONSTANT
 							&& !neededDeclarationsSet.contains(declaration))
 						{
 							neededDeclarationsSet.add(declaration);
 							neededDeclarations.add(declaration);
 						}
+						// Avoid visiting the declaration explicitly, otherwise
+						// uses of declarations that have initializations will
+						// cause variables used in those initializations to
+						// accidentally be captured as well.
 					}
-					return;
-				}
-				if (phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE))
-				{
-					final A_Phrase declaration = phrase.declaration();
-					if (!providedByMe.contains(declaration)
-						&& declaration.declarationKind() != MODULE_VARIABLE
-						&& declaration.declarationKind() != MODULE_CONSTANT
-						&& !neededDeclarationsSet.contains(declaration))
+					else
 					{
-						neededDeclarationsSet.add(declaration);
-						neededDeclarations.add(declaration);
+						again.value(child);
 					}
-					// Avoid visiting the declaration explicitly, otherwise
-					// uses of declarations that have initializations will cause
-					// variables used in those initializations to accidentally
-					// be captured as well.
-					return;
-				}
-				phrase.childrenDo(this);
-			}
-		});
+				}));
 		object.neededVariables(tupleFromList(neededDeclarations));
 	}
 

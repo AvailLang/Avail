@@ -85,8 +85,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
-import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableSet;
+import static java.util.Collections.*;
 
 /**
  * A {@code AvailServer} manages an Avail environment.
@@ -579,7 +578,7 @@ public final class AvailServer
 				{
 					help.add(c.syntaxHelp());
 				}
-				Collections.sort(help);
+				sort(help);
 				writer.startArray();
 				for (final String h : help)
 				{
@@ -1026,19 +1025,18 @@ public final class AvailServer
 			command,
 			writer ->
 			{
-				final Map<String, List<String>> map = new HashMap<>();
+				final Map<String, List<String>> map =
+					synchronizedMap(new HashMap<>());
 				builder.traceDirectories(
-					(name, version) ->
+					(name, version, after) ->
 					{
 						final List<String> entryPoints =
 							version.getEntryPoints();
 						if (!entryPoints.isEmpty())
 						{
-							synchronized (map)
-							{
-								map.put(name.qualifiedName(), entryPoints);
-							}
+							map.put(name.qualifiedName(), entryPoints);
 						}
+						after.value();
 					});
 				writer.startArray();
 				for (final Entry<String, List<String>> entry :

@@ -42,6 +42,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 import static com.avail.server.AvailServer.receiveMessageThen;
+import static com.avail.utility.evaluation.Combinator.recurse;
 
 /**
  * An {@code AbstractTransportChannel} represents an abstract connection between
@@ -144,10 +145,8 @@ extends AvailServerChannel
 		adapter.sendUserData(
 			this,
 			message,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
+			() -> recurse(
+				sendMore ->
 				{
 					final Message nextMessage;
 					final @Nullable Pair<Message, Continuation0> pair;
@@ -159,7 +158,7 @@ extends AvailServerChannel
 						final Message sentMessage = sendQueue.removeFirst();
 						if (sentMessage.closeAfterSending())
 						{
-							adapter.sendClose(AbstractTransportChannel.this);
+							adapter.sendClose(this);
 							return;
 						}
 						// Remove the oldest sender, but release the monitor
@@ -175,11 +174,7 @@ extends AvailServerChannel
 					// Begin transmission of the next message.
 					if (nextMessage != null)
 					{
-						adapter.sendUserData(
-							AbstractTransportChannel.this,
-							nextMessage,
-							this,
-							null);
+						adapter.sendUserData(this, nextMessage, sendMore, null);
 					}
 					// If a close is in progress, but awaiting the queue to
 					// empty, then finish the close.
@@ -189,8 +184,7 @@ extends AvailServerChannel
 						{
 							if (shouldCloseAfterEmptyingSendQueue())
 							{
-								adapter.sendClose(
-									AbstractTransportChannel.this);
+								adapter.sendClose(this);
 								return;
 							}
 						}
@@ -200,8 +194,7 @@ extends AvailServerChannel
 					{
 						pair.second().value();
 					}
-				}
-			},
+				}),
 			null);
 	}
 
@@ -282,10 +275,8 @@ extends AvailServerChannel
 		receiveMessageThen(
 			message,
 			this,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
+			() -> recurse(
+				receiveMore ->
 				{
 					final Message nextMessage;
 					final boolean resumeReading;
@@ -305,18 +296,14 @@ extends AvailServerChannel
 					// Begin receipt of the next message.
 					if (resumeReading)
 					{
-						adapter().readMessage(AbstractTransportChannel.this);
+						adapter().readMessage(this);
 					}
 					// Process the next message.
 					if (nextMessage != null)
 					{
-						receiveMessageThen(
-							nextMessage,
-							AbstractTransportChannel.this,
-							this);
+						receiveMessageThen(nextMessage, this, receiveMore);
 					}
-				}
-			});
+				}));
 	}
 
 	@Override

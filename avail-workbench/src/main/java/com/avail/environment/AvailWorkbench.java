@@ -1547,7 +1547,7 @@ extends JFrame
 		final ReadWriteLock mutex = new ReentrantReadWriteLock();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
 		availBuilder.traceDirectories(
-			(resolvedName, moduleVersion) ->
+			(resolvedName, moduleVersion, after) ->
 			{
 				final List<String> entryPoints = moduleVersion.getEntryPoints();
 				if (!entryPoints.isEmpty())
@@ -1566,6 +1566,7 @@ extends JFrame
 						() -> moduleNodes.put(
 							resolvedName.qualifiedName(), moduleNode));
 				}
+				after.value();
 			});
 		final String [] mapKeys = moduleNodes.keySet().toArray(new String[0]);
 		Arrays.sort(mapKeys);

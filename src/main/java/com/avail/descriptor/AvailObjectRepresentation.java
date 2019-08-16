@@ -38,6 +38,7 @@ import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;

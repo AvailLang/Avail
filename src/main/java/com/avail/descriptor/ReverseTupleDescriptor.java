@@ -35,8 +35,6 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
-import java.util.function.IntFunction;
-
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -215,31 +213,12 @@ extends TupleDescriptor
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
+			final A_Tuple dereversedFirstTuple = object.slot(ORIGIN_TUPLE);
 			return generateObjectTupleFrom(
 				newSize,
-				new IntFunction<A_BasicObject>()
-				{
-					private A_Tuple currentTuple = object.slot(ORIGIN_TUPLE);
-					private int sourceIndex = size1;
-					private int direction = -1;
-
-					@Override
-					public A_BasicObject apply (final int ignored)
-					{
-						if (sourceIndex == 0)
-						{
-							// Reached start of (de-reversed) first tuple.
-							// Next, visit the second tuple ascending.
-							currentTuple = otherTuple;
-							sourceIndex = 1;
-							direction = 1;
-						}
-						final AvailObject element =
-							currentTuple.tupleAt(sourceIndex);
-						sourceIndex += direction;
-						return element;
-					}
-				});
+				i -> i <= size1
+					? dereversedFirstTuple.tupleAt(size1 + 1 - i)
+					: otherTuple.tupleAt(i - size1));
 		}
 		if (!canDestroy)
 		{
