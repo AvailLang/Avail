@@ -47,6 +47,10 @@ repositories {
 	mavenCentral()
 }
 
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
 dependencies {
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
