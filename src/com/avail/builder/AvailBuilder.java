@@ -71,7 +71,6 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
@@ -85,6 +84,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -245,7 +245,7 @@ public final class AvailBuilder
 	 * {@link LoadedModule}.
 	 */
 	private final Map<ResolvedModuleName, LoadedModule> allLoadedModules =
-		new HashMap<>();
+		synchronizedMap(new HashMap<>());
 
 	/** Whom to notify when modules load and unload. */
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
@@ -312,7 +312,7 @@ public final class AvailBuilder
 	 * @param resolvedModuleName The module's resolved name.
 	 * @param loadedModule The loaded module.
 	 */
-	@InnerAccess void putLoadedModule (
+	void putLoadedModule (
 		final ResolvedModuleName resolvedModuleName,
 		final LoadedModule loadedModule)
 	{
@@ -333,7 +333,7 @@ public final class AvailBuilder
 	 *
 	 * @param resolvedModuleName The unloaded module's resolved name.
 	 */
-	@InnerAccess void removeLoadedModule (
+	void removeLoadedModule (
 		final ResolvedModuleName resolvedModuleName)
 	{
 		try (final Auto ignore = auto(builderLock.writeLock()))
@@ -350,7 +350,7 @@ public final class AvailBuilder
 	 * Reconcile the {@link #moduleGraph} against the loaded modules, removing
 	 * any modules from the graph that are not currently loaded.
 	 */
-	@InnerAccess void trimGraphToLoadedModules ()
+	void trimGraphToLoadedModules ()
 	{
 		for (final ResolvedModuleName moduleName :
 			new ArrayList<>(moduleGraph.vertices()))
@@ -713,8 +713,8 @@ public final class AvailBuilder
 		 * @param depth The depth of the current invocation.
 		 */
 		void recursiveDo (
-			final Continuation2<ModuleTree, Integer> enter,
-			final Continuation2<ModuleTree, Integer> exit,
+			final Continuation2NotNull<ModuleTree, Integer> enter,
+			final Continuation2NotNull<ModuleTree, Integer> exit,
 			final int depth)
 		{
 			enter.value(this, depth);
@@ -768,23 +768,80 @@ public final class AvailBuilder
 	 *        <li>the global size (in bytes) of all modules that will be
 	 *        built.</li>
 	 *        </ol>
+	 * @param originalAfterAll
+	 *        What to do after building everything.  This may run in another
+	 *        {@link Thread}, possibly long after this method returns.
+	 */
+	public void buildTargetThen (
+		final ModuleName target,
+		final CompilerProgressReporter localTracker,
+		final GlobalProgressReporter globalTracker,
+		final Continuation0 originalAfterAll)
+	{
+		final AtomicBoolean ran = new AtomicBoolean(false);
+		final Continuation0 safeAfterAll = () ->
+		{
+			final boolean old = ran.getAndSet(true);
+			assert !old;
+			trimGraphToLoadedModules();
+			originalAfterAll.value();
+		};
+		clearShouldStopBuild();
+		new BuildUnloader(this).unloadModified();
+		if (shouldStopBuild())
+		{
+			safeAfterAll.value();
+			return;
+		}
+		new BuildTracer(this).traceThen(
+			target,
+			() ->
+			{
+				if (shouldStopBuild())
+				{
+					safeAfterAll.value();
+					return;
+				}
+				final BuildLoader buildLoader =
+					new BuildLoader(this, localTracker, globalTracker);
+				buildLoader.loadThen(safeAfterAll);
+			});
+	}
+
+	/**
+	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
+	 * Block the current {@link Thread} until it's done.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName canonical name} of the module that the
+	 *        builder must (recursively) load into the {@link AvailRuntime}.
+	 * @param localTracker
+	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module currently undergoing {@linkplain
+	 *        AvailCompiler compilation} as part of the recursive build
+	 *        of target,</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the most recently compiled {@linkplain A_Phrase phrase}.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@link GlobalProgressReporter} that accepts
+	 *        <ol>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
 	 */
 	public void buildTarget (
 		final ModuleName target,
 		final CompilerProgressReporter localTracker,
 		final GlobalProgressReporter globalTracker)
 	{
-		clearShouldStopBuild();
-		new BuildUnloader(this).unloadModified();
-		if (!shouldStopBuild())
-		{
-			new BuildTracer(this).trace(target);
-		}
-		if (!shouldStopBuild())
-		{
-			new BuildLoader(this, localTracker, globalTracker).load();
-		}
-		trimGraphToLoadedModules();
+		final Semaphore semaphore = new Semaphore(0);
+		buildTargetThen(
+			target, localTracker, globalTracker, semaphore::release);
+		semaphore.acquireUninterruptibly();
 	}
 
 	/**
@@ -819,25 +876,23 @@ public final class AvailBuilder
 		final Path documentationPath)
 	{
 		clearShouldStopBuild();
-		try
-		{
-			final BuildTracer tracer = new BuildTracer(this);
-			tracer.trace(target);
-			final DocumentationTracer documentationTracer =
-				new DocumentationTracer(this, documentationPath);
-			if (!shouldStopBuild())
+		final BuildTracer tracer = new BuildTracer(this);
+		tracer.traceThen(
+			target,
+			() ->
 			{
-				documentationTracer.load();
-			}
-			if (!shouldStopBuild())
-			{
-				documentationTracer.generate(target);
-			}
-		}
-		finally
-		{
-			trimGraphToLoadedModules();
-		}
+				final DocumentationTracer documentationTracer =
+					new DocumentationTracer(this, documentationPath);
+				if (!shouldStopBuild())
+				{
+					documentationTracer.load();
+				}
+				if (!shouldStopBuild())
+				{
+					documentationTracer.generate(target);
+				}
+				trimGraphToLoadedModules();
+			});
 	}
 
 	/**
@@ -847,25 +902,26 @@ public final class AvailBuilder
 	 *        The resolved name of the module whose ancestors to trace.
 	 * @param destinationFile
 	 *        Where to write the .gv <strong>dot</strong> format file.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public void generateGraph (
-			final ResolvedModuleName target,
-			final File destinationFile)
-		throws IOException
+		final ResolvedModuleName target,
+		final File destinationFile)
 	{
 		clearShouldStopBuild();
+		final BuildTracer tracer = new BuildTracer(this);
 		try
 		{
-			final BuildTracer tracer = new BuildTracer(this);
-			tracer.trace(target);
-			final GraphTracer graphTracer = new GraphTracer(
-				this, target, destinationFile);
-			if (!shouldStopBuild())
-			{
-				graphTracer.traceGraph();
-			}
+			tracer.traceThen(
+				target,
+				() ->
+				{
+					final GraphTracer graphTracer = new GraphTracer(
+						this, target, destinationFile);
+					if (!shouldStopBuild())
+					{
+						graphTracer.traceGraph();
+					}
+				});
 		}
 		finally
 		{

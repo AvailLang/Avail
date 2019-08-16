@@ -185,14 +185,12 @@ final class BuildUnloader
 	 * @param moduleName The name of a module to unload.
 	 * @param completionAction What to do after unloading completes.
 	 */
-	private void unloadModules (
-		final @Nullable ResolvedModuleName moduleName,
-		final @Nullable Continuation0 completionAction)
+	private void unloadOneModule (
+		final ResolvedModuleName moduleName,
+		final Continuation0 completionAction)
 	{
 		// No need to lock dirtyModules any more, since it's
 		// purely read-only at this point.
-		assert moduleName != null;
-		assert completionAction != null;
 		availBuilder.runtime.whenLevelOneSafeDo(
 			loaderPriority,
 			() ->
@@ -234,7 +232,7 @@ final class BuildUnloader
 	void unloadModified ()
 	{
 		availBuilder.moduleGraph.parallelVisit(this::determineDirtyModules);
-		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadModules);
+		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadOneModule);
 		// Unloading of each A_Module is complete.  Update my local
 		// structures to agree.
 		for (final LoadedModule loadedModule : availBuilder.loadedModulesCopy())
@@ -262,8 +260,8 @@ final class BuildUnloader
 	{
 		if (targetName == null)
 		{
-			for (final LoadedModule loadedModule : availBuilder
-				.loadedModulesCopy())
+			for (final LoadedModule loadedModule :
+				availBuilder.loadedModulesCopy())
 			{
 				loadedModule.deletionRequest = true;
 			}
@@ -279,7 +277,7 @@ final class BuildUnloader
 		}
 		int moduleCount = availBuilder.moduleGraph.vertexCount();
 		availBuilder.moduleGraph.parallelVisit(this::determineSuccessorModules);
-		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadModules);
+		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadOneModule);
 		// Unloading of each A_Module is complete.  Update my local
 		// structures to agree.
 		for (final LoadedModule loadedModule : availBuilder.loadedModulesCopy())

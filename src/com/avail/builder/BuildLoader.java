@@ -68,6 +68,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -97,12 +98,12 @@ final class BuildLoader
 	@InnerAccess final AvailBuilder availBuilder;
 
 	/**
-	 * A {@linkplain CompilerProgressReporter} that is updated to show
-	 * progress while compiling or loading a module.  It accepts:
+	 * A {@linkplain CompilerProgressReporter} that is updated to show progress
+	 * while compiling or loading a module.  It accepts:
+	 *
 	 * <ol>
-	 * <li>the name of the module currently undergoing {@linkplain
-	 * AvailCompiler compilation} as part of the recursive build
-	 * of target,</li>
+	 * <li>the name of the module currently undergoing {@linkplain AvailCompiler
+	 * compilation} as part of the recursive build of target,</li>
 	 * <li>the size of the module in bytes,</li>
 	 * <li>the current token at which parsing is taking place.</li>
 	 * </ol>
@@ -152,41 +153,30 @@ final class BuildLoader
 		this.availBuilder = availBuilder;
 		this.localTracker = localTracker;
 		this.globalTracker = globalTracker;
+		long size = 0L;
 		for (final ResolvedModuleName mod : availBuilder.moduleGraph.vertices())
 		{
-			globalCodeSize += mod.moduleSize();
+			size += mod.moduleSize();
 		}
+		globalCodeSize = size;
 	}
 
 	/** The size, in bytes, of all source files that will be built. */
-	private long globalCodeSize = 0L;
+	private final long globalCodeSize;
 
 	/** The number of bytes compiled so far. */
 	private final AtomicLong bytesCompiled = new AtomicLong(0L);
 
 	/**
-	 * Answer the size, in bytes, of all source files that will be
-	 * built.
-	 *
-	 * @return The number of bytes in all source files that will be
-	 *         built.
-	 */
-	private synchronized long globalCodeSize ()
-	{
-		return globalCodeSize;
-	}
-
-	/**
-	 * Schedule a build of the specified {@linkplain ModuleDescriptor
-	 * module}, on the assumption that its predecessors have already
-	 * been built.
+	 * Schedule a build of the specified {@linkplain ModuleDescriptor module},
+	 * on the assumption that its predecessors have already been built.
 	 *
 	 * @param target
-	 *        The {@linkplain ResolvedModuleName resolved name} of the
-	 *        module that should be loaded.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that should be loaded.
 	 * @param completionAction
-	 *        The {@linkplain Continuation0 action} to perform after
-	 *        this module has been loaded.
+	 *        The {@linkplain Continuation0 action} to perform after this module
+	 *        has been loaded.
 	 */
 	private void scheduleLoadModule (
 		final ResolvedModuleName target,
@@ -205,8 +195,8 @@ final class BuildLoader
 			{
 				if (availBuilder.shouldStopBuild())
 				{
-					// An exception has been encountered since the
-					// earlier check.  Exit quickly.
+					// An exception has been encountered since the earlier
+					// check.  Exit quickly.
 					completionAction.value();
 				}
 				else
@@ -218,20 +208,17 @@ final class BuildLoader
 
 	/**
 	 * Load the specified {@linkplain ModuleDescriptor module} into the
-	 * {@linkplain AvailRuntime Avail runtime}. If a current compiled
-	 * module is available from the {@linkplain IndexedRepositoryManager
-	 * repository}, then simply load it. Otherwise, {@linkplain
-	 * AvailCompiler compile} the module, store it into the
-	 * repository, and then load it.
+	 * {@linkplain AvailRuntime Avail runtime}. If a current compiled module is
+	 * available from the {@linkplain IndexedRepositoryManager repository}, then
+	 * simply load it. Otherwise, {@linkplain AvailCompiler compile} the module,
+	 * store it into the repository, and then load it.
 	 *
-	 * <p>
-	 * Note that the predecessors of this module must have already been
-	 * loaded.
-	 * </p>
+	 * <p>Note that the predecessors of this module must have already been
+	 * loaded.</p>
 	 *
 	 * @param moduleName
-	 *        The {@linkplain ResolvedModuleName resolved name} of the
-	 *        module that should be loaded.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that should be loaded.
 	 * @param completionAction
 	 *        What to do after loading the module successfully.
 	 */
@@ -239,14 +226,11 @@ final class BuildLoader
 		final ResolvedModuleName moduleName,
 		final Continuation0 completionAction)
 	{
-		globalTracker.value(bytesCompiled.get(), globalCodeSize());
-		// If the module is already loaded into the runtime, then we must
-		// not reload it.
-		final boolean isLoaded;
-		synchronized (availBuilder)
-		{
-			isLoaded = availBuilder.getLoadedModule(moduleName) != null;
-		}
+		globalTracker.value(bytesCompiled.get(), globalCodeSize);
+		// If the module is already loaded into the runtime, then we must not
+		// reload it.
+		final boolean isLoaded =
+			availBuilder.getLoadedModule(moduleName) != null;
 		//noinspection AssertWithSideEffects
 		assert isLoaded == availBuilder.runtime.includesModuleNamed(
 			stringFrom(moduleName.qualifiedName()));
@@ -262,8 +246,7 @@ final class BuildLoader
 		}
 		else
 		{
-			final IndexedRepositoryManager repository =
-				moduleName.repository();
+			final IndexedRepositoryManager repository = moduleName.repository();
 			final ModuleArchive archive = repository.getArchive(
 				moduleName.rootRelativeName());
 			final byte [] digest = archive.digestForFile(moduleName);
@@ -290,8 +273,8 @@ final class BuildLoader
 				{
 					availBuilder.stopBuildReason(
 						format(
-							"A module predecessor was malformed or "
-								+ "absent: %s -> %s\n",
+							"A module predecessor was malformed or absent: "
+								+ "%s -> %s\n",
 							moduleName.qualifiedName(),
 							localName));
 					completionAction.value();
@@ -316,8 +299,8 @@ final class BuildLoader
 				version.getCompilation(compilationKey);
 			if (compilation != null)
 			{
-				// The current version of the module is already
-				// compiled, so load the repository's version.
+				// The current version of the module is already compiled, so
+				// load the repository's version.
 				loadRepositoryModule(
 					moduleName,
 					version,
@@ -335,24 +318,21 @@ final class BuildLoader
 
 	/**
 	 * Load the specified {@linkplain ModuleDescriptor module} from the
-	 * {@linkplain IndexedRepositoryManager repository} and into the
-	 * {@linkplain AvailRuntime Avail runtime}.
+	 * {@linkplain IndexedRepositoryManager repository} and into the {@linkplain
+	 * AvailRuntime Avail runtime}.
 	 *
-	 * <p>
-	 * Note that the predecessors of this module must have already been
-	 * loaded.
-	 * </p>
+	 * <p>Note that the predecessors of this module must have already been
+	 * loaded.</p>
 	 *
 	 * @param moduleName
-	 *        The {@linkplain ResolvedModuleName resolved name} of the
-	 *        module that should be loaded.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that should be loaded.
 	 * @param version
 	 *        The {@link ModuleVersion} containing information about this
 	 *        module.
 	 * @param compilation
-	 *        The {@link ModuleCompilation} containing information about
-	 *        the particular stored compilation of this module in the
-	 *        repository.
+	 *        The {@link ModuleCompilation} containing information about the
+	 *        particular stored compilation of this module in the repository.
 	 * @param sourceDigest
 	 *        The cryptographic digest of the module's source code.
 	 * @param completionAction
@@ -472,11 +452,10 @@ final class BuildLoader
 						ignored ->
 						{
 							final long after = captureNanos();
-							Interpreter.current().
-								recordTopStatementEvaluation(
-									after - before,
-									module,
-									function.code().startingLineNumber());
+							Interpreter.current().recordTopStatementEvaluation(
+								after - before,
+								module,
+								function.code().startingLineNumber());
 							runNext.value();
 						},
 						fail);
@@ -510,10 +489,7 @@ final class BuildLoader
 						module,
 						version,
 						compilation);
-					synchronized (availBuilder)
-					{
-						availBuilder.putLoadedModule(moduleName, loadedModule);
-					}
+					availBuilder.putLoadedModule(moduleName, loadedModule);
 					postLoad(moduleName, 0L);
 					completionAction.value();
 				}
@@ -521,24 +497,21 @@ final class BuildLoader
 	}
 
 	/**
-	 * Compile the specified {@linkplain ModuleDescriptor module}, store it
-	 * into the {@linkplain IndexedRepositoryManager repository}, and then
-	 * load it into the {@linkplain AvailRuntime Avail runtime}.
+	 * Compile the specified {@linkplain ModuleDescriptor module}, store it into
+	 * the {@linkplain IndexedRepositoryManager repository}, and then load it
+	 * into the {@linkplain AvailRuntime Avail runtime}.
 	 *
-	 * <p>
-	 * Note that the predecessors of this module must have already been
-	 * loaded.
-	 * </p>
+	 * <p>Note that the predecessors of this module must have already been
+	 * loaded.</p>
 	 *
 	 * @param moduleName
-	 *        The {@linkplain ResolvedModuleName resolved name} of the
-	 *        module that should be loaded.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that should be loaded.
 	 * @param compilationKey
-	 *        The circumstances of compilation of this module.  Currently
-	 *        this is just the compilation times ({@code long}s) of the
-	 *        module's currently loaded predecessors, listed in the same
-	 *        order as the module's {@linkplain ModuleHeader#importedModules
-	 *        imports}.
+	 *        The circumstances of compilation of this module.  Currently this
+	 *        is just the compilation times ({@code long}s) of the module's
+	 *        currently loaded predecessors, listed in the same order as the
+	 *        module's {@linkplain ModuleHeader#importedModules imports}.
 	 * @param completionAction
 	 *        What to do after loading the module successfully or
 	 *        unsuccessfully.
@@ -615,7 +588,7 @@ final class BuildLoader
 				localTracker.value(moduleName, moduleSize, position);
 				globalTracker.value(
 					bytesCompiled.addAndGet(position - lastPosition.value),
-					globalCodeSize());
+					globalCodeSize);
 				lastPosition.value = position;
 			},
 			continuation,
@@ -629,12 +602,12 @@ final class BuildLoader
 
 	/**
 	 * Report progress related to this module.  In particular, note that the
-	 * current module has advanced from its provided lastPosition to the end
-	 * of the module.
+	 * current module has advanced from its provided lastPosition to the end of
+	 * the module.
 	 *
 	 * @param moduleName
-	 *        The {@linkplain ResolvedModuleName resolved name} of the
-	 *        module that just finished loading.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that just finished loading.
 	 * @param lastPosition
 	 *        The last local file position previously reported.
 	 */
@@ -645,27 +618,52 @@ final class BuildLoader
 		final long moduleSize = moduleName.moduleSize();
 		globalTracker.value(
 			bytesCompiled.addAndGet(moduleSize - lastPosition),
-			globalCodeSize());
+			globalCodeSize);
 		localTracker.value(moduleName, moduleSize, moduleSize);
 	}
 
 	/**
 	 * Load the modules in the {@linkplain AvailBuilder#moduleGraph}.
+	 *
+	 * @param afterAll
+	 *        What to do after all module loading completes, whether successful
+	 *        or not.
 	 */
-	void load ()
+	void loadThen (final Continuation0 afterAll)
 	{
 		bytesCompiled.set(0L);
 		final int vertexCountBefore = availBuilder.moduleGraph.vertexCount();
-		availBuilder.moduleGraph.parallelVisit(this::scheduleLoadModule);
-		assert availBuilder.moduleGraph.vertexCount() == vertexCountBefore;
-		availBuilder.runtime.moduleNameResolver().commitRepositories();
-		// Parallel load has now completed or failed.
-		if (availBuilder.shouldStopBuild())
-		{
-			// Clean up any modules that didn't load.  There can be no
-			// loaded successors of unloaded modules, so they can all be
-			// excised safely.
-			availBuilder.trimGraphToLoadedModules();
-		}
+		availBuilder.moduleGraph.parallelVisitThen(
+			this::scheduleLoadModule,
+			() ->
+			{
+				try
+				{
+					assert availBuilder.moduleGraph.vertexCount()
+						== vertexCountBefore;
+					availBuilder.runtime.moduleNameResolver()
+						.commitRepositories();
+					// Parallel load has now completed or failed.
+					// Clean up any modules that didn't load.  There can be
+					// no loaded successors of unloaded modules, so they can
+					// all be excised safely.
+					availBuilder.trimGraphToLoadedModules();
+				}
+				finally
+				{
+					afterAll.value();
+				}
+			});
+	}
+
+	/**
+	 * Load the modules in the {@linkplain AvailBuilder#moduleGraph}, blocking
+	 * until all loading completes, whether successful or not.
+	 */
+	void load ()
+	{
+		final Semaphore semaphore = new Semaphore(0);
+		loadThen(semaphore::release);
+		semaphore.acquireUninterruptibly();
 	}
 }

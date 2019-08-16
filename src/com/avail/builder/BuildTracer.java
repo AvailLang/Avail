@@ -40,6 +40,7 @@ import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
+import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -83,28 +84,27 @@ final class BuildTracer
 	}
 
 	/**
-	 * Schedule tracing of the imports of the {@linkplain
-	 * ModuleDescriptor module} specified by the given {@linkplain
-	 * ModuleName module name}.  The {@link #traceRequests} counter has
-	 * been incremented already for this tracing, and the {@link
-	 * #traceCompletions} will eventually be incremented by this method,
-	 * but only <em>after</em> increasing the {@link #traceRequests} for
-	 * each recursive trace that is scheduled here.  That ensures the
-	 * two counters won't accidentally be equal at any time except after
-	 * the last trace has completed.
+	 * Schedule tracing of the imports of the {@linkplain ModuleDescriptor
+	 * module} specified by the given {@linkplain ModuleName module name}.  The
+	 * {@link #traceRequests} counter has been incremented already for this
+	 * tracing, and the {@link #traceCompletions} will eventually be incremented
+	 * by this method, but only <em>after</em> increasing the {@link
+	 * #traceRequests} for each recursive trace that is scheduled here.  That
+	 * ensures the two counters won't accidentally be equal at any time except
+	 * after the last trace has completed.
 	 *
-	 * <p>When traceCompletions finally does reach traceRequests, a
-	 * {@link #notifyAll()} will be sent to the {@code BuildTracer}.</p>
+	 * <p>When traceCompletions finally does reach traceRequests, a {@link
+	 * #notifyAll()} will be sent to the {@code BuildTracer}.</p>
 	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @param resolvedSuccessor
-	 *        The resolved name of the module using or extending this
-	 *        module, or {@code null} if this module is the start of the
-	 *        recursive resolution (i.e., it will be the last one compiled).
+	 *        The resolved name of the module using or extending this module, or
+	 *        {@code null} if this module is the start of the recursive
+	 *        resolution (i.e., it will be the last one compiled).
 	 * @param recursionSet
-	 *        An insertion-ordered {@linkplain Set set} that remembers
-	 *        all modules visited along this branch of the trace.
+	 *        An insertion-ordered {@linkplain Set set} that remembers all
+	 *        modules visited along this branch of the trace.
 	 */
 	private void scheduleTraceModuleImports (
 		final ModuleName qualifiedName,
@@ -117,17 +117,19 @@ final class BuildTracer
 			{
 				if (availBuilder.shouldStopBuild())
 				{
-					// Even though we're shutting down, we still have to
-					// account for the previous increment of traceRequests.
+					// Even though we're shutting down, we still have to account
+					// for the previous increment of traceRequests.
 					indicateTraceCompleted();
 					return;
 				}
 				final ResolvedModuleName resolvedName;
 				try
 				{
-					AvailBuilder.log(Level.FINEST, "Resolve: %s", qualifiedName);
-					resolvedName = availBuilder.runtime.moduleNameResolver().resolve(
-						qualifiedName, resolvedSuccessor);
+					AvailBuilder.log(
+						Level.FINEST, "Resolve: %s", qualifiedName);
+					resolvedName =
+						availBuilder.runtime.moduleNameResolver().resolve(
+							qualifiedName, resolvedSuccessor);
 				}
 				catch (final Exception e)
 				{
@@ -172,14 +174,12 @@ final class BuildTracer
 	 * @param resolvedName
 	 *        A resolved {@linkplain ModuleName module name} to trace.
 	 * @param resolvedSuccessor
-	 *        The resolved name of the module using or extending this
-	 *        module, or {@code null} if this module is the start of the
-	 *        recursive resolution (i.e., it will be the last one
-	 *        compiled).
+	 *        The resolved name of the module using or extending this module, or
+	 *        {@code null} if this module is the start of the recursive
+	 *        resolution (i.e., it will be the last one compiled).
 	 * @param recursionSet
-	 *        A {@link LinkedHashSet} that remembers all modules visited
-	 *        along this branch of the trace, and the order they were
-	 *        encountered.
+	 *        A {@link LinkedHashSet} that remembers all modules visited along
+	 *        this branch of the trace, and the order they were encountered.
 	 */
 	private void traceModuleImports (
 		final ResolvedModuleName resolvedName,
@@ -211,17 +211,18 @@ final class BuildTracer
 		final boolean alreadyTraced;
 		synchronized (availBuilder)
 		{
-			alreadyTraced = availBuilder.moduleGraph.includesVertex(resolvedName);
+			alreadyTraced =
+				availBuilder.moduleGraph.includesVertex(resolvedName);
 			if (!alreadyTraced)
 			{
 				availBuilder.moduleGraph.addVertex(resolvedName);
 			}
 			if (resolvedSuccessor != null)
 			{
-				// Note that a module can be both Extended and Used from
-				// the same module.  That's to support selective import
-				// and renames.
-				availBuilder.moduleGraph.includeEdge(resolvedName, resolvedSuccessor);
+				// Note that a module can be both Extended and Used from the
+				// same module.  That's to support selective import and renames.
+				availBuilder.moduleGraph.includeEdge(
+					resolvedName, resolvedSuccessor);
 			}
 		}
 		if (alreadyTraced)
@@ -229,8 +230,7 @@ final class BuildTracer
 			indicateTraceCompleted();
 			return;
 		}
-		final IndexedRepositoryManager repository =
-			resolvedName.repository();
+		final IndexedRepositoryManager repository = resolvedName.repository();
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs);
 		final File sourceFile = resolvedName.sourceReference();
 		final ModuleArchive archive = repository.getArchive(
@@ -238,8 +238,7 @@ final class BuildTracer
 		final byte [] digest = archive.digestForFile(resolvedName);
 		final ModuleVersionKey versionKey =
 			new ModuleVersionKey(resolvedName, digest);
-		final @Nullable ModuleVersion version =
-			archive.getVersion(versionKey);
+		final @Nullable ModuleVersion version = archive.getVersion(versionKey);
 		if (version != null)
 		{
 			// This version was already traced and recorded for a
@@ -279,15 +278,11 @@ final class BuildTracer
 							header.entryPointNames();
 						final ModuleVersion newVersion =
 							repository.new ModuleVersion(
-								sourceFile.length(),
-								importNames,
-								entryPoints);
+								sourceFile.length(), importNames, entryPoints);
 						availBuilder.serialize(header, newVersion);
 						archive.putVersion(versionKey, newVersion);
 						traceModuleNames(
-							resolvedName,
-							importNames,
-							recursionSet);
+							resolvedName, importNames, recursionSet);
 						indicateTraceCompleted();
 					});
 			},
@@ -298,25 +293,24 @@ final class BuildTracer
 	/**
 	 * Trace the imports of the {@linkplain ResolvedModuleName specified}
 	 * {@linkplain ModuleDescriptor module}.  Return only when these new
-	 * <em>requests</em> have been accounted for, so that the current
-	 * request can be considered completed in the caller.
+	 * <em>requests</em> have been accounted for, so that the current request
+	 * can be considered completed in the caller.
 	 *
 	 * @param moduleName
 	 *        The name of the module being traced.
 	 * @param importNames
-	 *        The local names of the modules referenced by the current
-	 *        one.
+	 *        The local names of the modules referenced by the current one.
 	 * @param recursionSet
-	 *        An insertion-ordered {@linkplain Set set} that remembers
-	 *        all modules visited along this branch of the trace.
+	 *        An insertion-ordered {@linkplain Set set} that remembers all
+	 *        modules visited along this branch of the trace.
 	 */
 	@InnerAccess void traceModuleNames (
 		final ResolvedModuleName moduleName,
 		final List<String> importNames,
 		final LinkedHashSet<ResolvedModuleName> recursionSet)
 	{
-		// Copy the recursion set to ensure the independence of each
-		// path of the tracing algorithm.
+		// Copy the recursion set to ensure the independence of each path of the
+		// tracing algorithm.
 		final LinkedHashSet<ResolvedModuleName> newSet =
 			new LinkedHashSet<>(recursionSet);
 		newSet.add(moduleName);
@@ -335,8 +329,8 @@ final class BuildTracer
 	}
 
 	/**
-	 * A module was just traced, so record that fact.  Note that the
-	 * trace was either successful or unsuccessful.
+	 * A module was just traced, so record that fact.  Note that the trace was
+	 * either successful or unsuccessful.
 	 */
 	@InnerAccess synchronized void indicateTraceCompleted ()
 	{
@@ -354,12 +348,15 @@ final class BuildTracer
 	}
 
 	/**
-	 * Determine the ancestry graph of the indicated module, recording it in
-	 * the {@link AvailBuilder#moduleGraph}.
+	 * Determine the ancestry graph of the indicated module, recording it in the
+	 * {@link AvailBuilder#moduleGraph}.
 	 *
 	 * @param target The ultimate module to load.
+	 * @param afterAll What to do after the entire trace completes.
 	 */
-	@InnerAccess void trace (final ModuleName target)
+	public void traceThen (
+		final ModuleName target,
+		final Continuation0 afterAll)
 	{
 		synchronized (this)
 		{
@@ -409,14 +406,17 @@ final class BuildTracer
 		}
 		else
 		{
+			final int graphSize;
 			synchronized (this)
 			{
-				AvailBuilder.log(
-					Level.FINER,
-					"Traced or kept %d modules (%d edges)",
-					availBuilder.moduleGraph.size(),
-					traceCompletions);
+				graphSize = availBuilder.moduleGraph.size();
 			}
+			AvailBuilder.log(
+				Level.FINER,
+				"Traced or kept %d modules (%d edges)",
+				graphSize,
+				traceCompletions);
 		}
+		afterAll.value();
 	}
 }

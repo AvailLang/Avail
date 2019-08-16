@@ -96,17 +96,13 @@ final class GraphTracer
 	/**
 	 * Scan all module files in all visible source directories, writing the
 	 * graph as a Graphviz .gv file in <strong>dot</strong> format.
-	 *
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public void traceGraph () throws IOException
+	public void traceGraph ()
 	{
 		if (!availBuilder.shouldStopBuild())
 		{
 			final Graph<ResolvedModuleName> ancestry =
-				availBuilder.moduleGraph.ancestryOfAll(
-					singleton(targetModule));
+				availBuilder.moduleGraph.ancestryOfAll(singleton(targetModule));
 			final Graph<ResolvedModuleName> reduced =
 				ancestry.dagWithoutRedundantEdges();
 			renderGraph(reduced);
@@ -207,11 +203,8 @@ final class GraphTracer
 	 * (<strong>dot</strong>) file suitable for layout via Graphviz.
 	 *
 	 * @param ancestry The graph of fully qualified module names.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void renderGraph (final Graph<ResolvedModuleName> ancestry)
-		throws IOException
 	{
 		final Map<String, ModuleTree> trees = new HashMap<>();
 		final ModuleTree root =
@@ -236,7 +229,7 @@ final class GraphTracer
 						asNodeName(string),
 						string.substring(string.lastIndexOf('/') + 1),
 						null);
-					trees.put(string,  node);
+					trees.put(string, node);
 					node.addChild(previous);
 				}
 				else
@@ -251,10 +244,9 @@ final class GraphTracer
 		final Continuation1NotNull<Integer> tab =
 			count -> Strings.tab(out, count);
 		root.recursiveDo(
+			// Before the node.
 			(node, depth) ->
 			{
-				assert node != null;
-				assert depth != null;
 				tab.value(depth);
 				if (node == root)
 				{
@@ -308,10 +300,9 @@ final class GraphTracer
 					out.append("];\n");
 				}
 			},
+			// After the node.
 			(node, depth) ->
 			{
-				assert node != null;
-				assert depth != null;
 				if (node == root)
 				{
 					out.append("\n");
@@ -358,14 +349,21 @@ final class GraphTracer
 				}
 			},
 			0);
-		final AsynchronousFileChannel channel = availBuilder.runtime.ioSystem().openFile(
-			outputFile.toPath(),
-			EnumSet.of(
-				StandardOpenOption.WRITE,
-				StandardOpenOption.CREATE,
-				StandardOpenOption.TRUNCATE_EXISTING));
-		final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
-			out.toString());
+		final AsynchronousFileChannel channel;
+		try
+		{
+			channel = availBuilder.runtime.ioSystem().openFile(
+				outputFile.toPath(),
+				EnumSet.of(
+					StandardOpenOption.WRITE,
+					StandardOpenOption.CREATE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+		}
+		catch (final IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+		final ByteBuffer buffer = StandardCharsets.UTF_8.encode(out.toString());
 		final MutableInt position = new MutableInt(0);
 		channel.write(
 			buffer,
@@ -381,8 +379,7 @@ final class GraphTracer
 					position.value += stripNull(result);
 					if (buffer.hasRemaining())
 					{
-						channel.write(
-							buffer, position.value, null, this);
+						channel.write(buffer, position.value, null, this);
 					}
 				}
 
