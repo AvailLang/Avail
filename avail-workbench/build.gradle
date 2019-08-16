@@ -90,3 +90,46 @@ jar {
 		}
 	}
 }
+
+// Build the Avail workbench as an OS X application.
+task osx {
+	def appSrc = fileTree("$projectDir/osx")
+	def appDst = "${rootProject.projectDir}/distro/Apps/Avail Workbench.app"
+	inputs.files appSrc
+	outputs.files appDst
+
+	group = 'build'
+	dependsOn assemble
+
+	mkdir appDst
+
+	copy {
+		from appSrc
+		into appDst
+	}
+
+	def resDir = "$projectDir/src/main/resources/resources/avail-workbench"
+	def resSrc = "$resDir/AvailHammer.icns"
+	def resDst = "$appDst/Contents/Resources"
+	copy {
+		from resSrc
+		into resDst
+	}
+
+	def jarSrc = jar.outputs.files
+	def jarDst = "$appDst/Contents/Java"
+	mkdir jarDst
+	copy {
+		from jarSrc
+		into jarDst
+	}
+
+	exec {
+		def launcher = "$appDst/Contents/MacOS/JavaAppLauncher"
+		commandLine 'chmod', '+x', launcher
+	}
+
+	exec {
+		commandLine 'setfile', '-a', 'B', "$appDst"
+	}
+}
