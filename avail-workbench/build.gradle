@@ -91,7 +91,19 @@ jar {
 	}
 }
 
-// Build the Avail workbench as an OS X application.
+// Copy the JAR into the distribution directory.
+task releaseAvailWorkbench (type: Copy) {
+	group = 'release'
+	from jar.outputs.files
+	into "${rootProject.projectDir}/distro/lib"
+}
+
+// Update the dependencies of "assemble".
+assemble.dependsOn releaseAvailWorkbench
+
+// Build the Avail workbench as an OS X application. Note that the result will
+// not work for the combination of Mojave and Java 11; we will need to actually
+// package a complete JRE, but that's a problem for another day …
 task osx {
 	def appSrc = fileTree("$projectDir/osx")
 	def appDst = "${rootProject.projectDir}/distro/Apps/Avail Workbench.app"

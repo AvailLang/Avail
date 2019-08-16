@@ -147,3 +147,23 @@ jar {
 		}
 	}
 }
+
+// Copy the JAR into the distribution directory.
+task releaseAvail (type: Copy) {
+	group = 'release'
+	from jar.outputs.files
+	into "$projectDir/distro/lib"
+}
+
+// Update the dependencies of "assemble".
+assemble.dependsOn releaseAvail
+
+// Remove released libraries.
+task scrubReleases (type: Delete) {
+	delete fileTree("$projectDir/distro/lib") {
+		include '**/*.jar'
+	}
+}
+
+// Update the dependencies of "clean".
+clean.dependsOn scrubReleases
