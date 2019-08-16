@@ -95,7 +95,7 @@ jar {
 task releaseAvailWorkbench (type: Copy) {
 	group = 'release'
 	from jar.outputs.files
-	into "${rootProject.projectDir}/distro/lib"
+	into file("${rootProject.projectDir}/distro/lib")
 }
 
 // Update the dependencies of "assemble".
@@ -118,19 +118,19 @@ task osx {
 
 		copy {
 			from appSrc
-			into appDst
+			into file(appDst)
 		}
 
 		def resDir = "$projectDir/src/main/resources/resources/avail-workbench"
-		def resSrc = "$resDir/AvailHammer.icns"
-		def resDst = "$appDst/Contents/Resources"
+		def resSrc = file("$resDir/AvailHammer.icns")
+		def resDst = file("$appDst/Contents/Resources")
 		copy {
 			from resSrc
 			into resDst
 		}
 
 		def jarSrc = jar.outputs.files
-		def jarDst = "$appDst/Contents/Java"
+		def jarDst = file("$appDst/Contents/Java")
 		mkdir jarDst
 		copy {
 			from jarSrc

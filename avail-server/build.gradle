@@ -95,7 +95,7 @@ jar {
 task releaseAvailServer (type: Copy) {
 	group = 'release'
 	from jar.outputs.files
-	into "${rootProject.projectDir}/distro/lib"
+	into file("${rootProject.projectDir}/distro/lib")
 }
 
 // Update the dependencies of "assemble".

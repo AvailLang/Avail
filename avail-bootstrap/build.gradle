@@ -59,7 +59,7 @@ task relocateGeneratedPropertyFiles (type: Copy) {
 	def pathBootstrap =
 		fileTree("$projectDir/src/main/java/com/avail/tools/bootstrap")
 	def movedPropertyFiles =
-		"$buildDir/classes/java/main/com/avail/tools/bootstrap"
+		file("$buildDir/classes/java/main/com/avail/tools/bootstrap")
 	def lang = System.getProperty("user.language")
 	pathBootstrap.include "**/*_${lang}.properties"
 	// This is a lie, but it ensures that this rule will not run until after the
@@ -126,7 +126,7 @@ task generateBootstrap (type: Copy) {
 
 	def distro = "${rootProject.projectDir}/distro"
 	def distroBootstrap =
-		"$distro/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail"
+		file("$distro/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
 	outputs.dir distroBootstrap
 
 	group = 'bootstrap'
