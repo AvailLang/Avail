@@ -170,6 +170,10 @@ clean.dependsOn scrubReleases
 
 // Show the release banner upon final completion of the recursive build.
 gradle.buildFinished {
+	if (!('build' in gradle.startParameter.taskNames))
+	{
+		return;
+	}
 	println """
 ATTENTION ==========================================================
 Be sure to set AVAIL_HOME to:
