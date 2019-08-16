@@ -119,10 +119,12 @@ task generateBuildTime {
 // Generate the list of all primitives, which a running Avail system uses during
 // setup to reflectively identify the complete catalog of primitives.
 task generatePrimitivesList {
-	def pathAvailBuildMain = "$buildDir/classes/java/main"
+	// Un-Windows the path, if necessary.
+	def pathAvailBuildMain =
+		"$buildDir/classes/java/main".replaceAll('\\\\', '/')
 	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
 	def pathToPrimitivesList =
-		"$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt"
+		file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
 	allPrimitives.include "**/P_*.class"
 	allPrimitives.exclude '**/*$*.class'
 	allPrimitives.builtBy "compileJava"
@@ -137,7 +139,7 @@ task generatePrimitivesList {
 				.replaceAll("/", ".")
 		}.sort()
 
-		file(pathToPrimitivesList).text = allPrimitiveNames.join("")
+		pathToPrimitivesList.text = allPrimitiveNames.join("")
 	}
 }
 
