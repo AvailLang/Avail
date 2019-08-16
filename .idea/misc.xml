@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="EntryPointsManager">
-    <list size="2">
-      <item index="0" class="java.lang.String" itemvalue="com.avail.optimizer.jvm.ReferencedInGeneratedCode" />
-      <item index="1" class="java.lang.String" itemvalue="org.junit.jupiter.api.BeforeAll" />
-    </list>
-    <pattern value="com.avail.interpreter.Primitive" hierarchically="true" />
-  </component>
-  <component name="ExcludeFromValidation">
-    <file url="file://$PROJECT_DIR$/src/com/avail/interpreter/primitive/sockets/P_ServerSocketSetOption.java" />
-  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="NullableNotNullManager">
     <option name="myDefaultNullable" value="javax.annotation.Nullable" />
     <option name="myDefaultNotNull" value="org.jetbrains.annotations.NotNull" />
@@ -47,5 +38,7 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
 </project>

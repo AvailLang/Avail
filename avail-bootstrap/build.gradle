@@ -1,0 +1,140 @@
+/*
+ * build.gradle
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ *  Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ *  Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+plugins {
+	id 'java'
+}
+
+group 'org.availlang'
+version '1.4'
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Avail.
+	implementation rootProject
+
+	// JSR-305 null analysis framework.
+	implementation group: 'com.google.code.findbugs',
+		name: 'jsr305',
+		version: "$jsr_version"
+}
+
+// Copy the generated bootstrap property files into the build directory, so that
+// the executable tools can find them as resources.
+task relocateGeneratedPropertyFiles (type: Copy) {
+	def pathBootstrap =
+		fileTree("$projectDir/src/main/java/com/avail/tools/bootstrap")
+	def movedPropertyFiles =
+		"$buildDir/classes/java/main/com/avail/tools/bootstrap"
+	def lang = System.getProperty("user.language")
+	pathBootstrap.include "**/*_${lang}.properties"
+	// This is a lie, but it ensures that this rule will not run until after the
+	// Java source is compiled.
+	pathBootstrap.builtBy "compileJava"
+	inputs.files pathBootstrap
+	outputs.dir movedPropertyFiles
+
+	from pathBootstrap
+	into movedPropertyFiles
+}
+
+// Update the dependencies of "classes".
+classes.dependsOn relocateGeneratedPropertyFiles
+
+// Bootstrap Primitive_<lang>.properties for the current locale.
+task generatePrimitiveNames (type: JavaExec) {
+	group = 'bootstrap'
+	main = 'com.avail.tools.bootstrap.PrimitiveNamesGenerator'
+	classpath = sourceSets.main.runtimeClasspath
+	dependsOn classes
+}
+
+// Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
+task generateErrorCodeNames (type: JavaExec) {
+	group = 'bootstrap'
+	main = 'com.avail.tools.bootstrap.ErrorCodeNamesGenerator'
+	classpath = sourceSets.main.runtimeClasspath
+	dependsOn classes
+}
+
+// Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
+task generateSpecialObjectNames (type: JavaExec) {
+	group = 'bootstrap'
+	main = 'com.avail.tools.bootstrap.SpecialObjectNamesGenerator'
+	classpath = sourceSets.main.runtimeClasspath
+	dependsOn classes
+}
+
+// Generate all bootstrap .properties files for the current locale.
+task generateAllNames {
+	group = 'bootstrap'
+	dependsOn generatePrimitiveNames
+	dependsOn generateErrorCodeNames
+	dependsOn generateSpecialObjectNames
+}
+
+// Generate the new bootstrap Avail modules for the current locale.
+task internalGenerateBootstrap (type: JavaExec) {
+	group = 'internal'
+	main = 'com.avail.tools.bootstrap.BootstrapGenerator'
+	classpath = sourceSets.main.runtimeClasspath
+	dependsOn classes
+}
+
+// Generate the new bootstrap Avail modules for the current locale and copy them
+// to the appropriate location for distribution.
+task generateBootstrap (type: Copy) {
+	def source = "$projectDir/src/main/java"
+	def lang = System.getProperty("user.language")
+	def pathBootstrap = fileTree(
+		"$source/com/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
+	inputs.files pathBootstrap
+
+	def distro = "${rootProject.projectDir}/distro"
+	def distroBootstrap =
+		"$distro/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail"
+	outputs.dir distroBootstrap
+
+	group = 'bootstrap'
+	dependsOn internalGenerateBootstrap
+
+	from pathBootstrap
+	into distroBootstrap
+}
+
+// Don't build any JAR files, since these are bootstrap tools only.
+jar.enabled = false

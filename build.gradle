@@ -1,0 +1,149 @@
+/*
+ * build.gradle
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+plugins {
+	id 'java'
+}
+
+group 'org.availlang'
+version '1.4'
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// JSR-305 null analysis framework.
+	implementation group: 'com.google.code.findbugs',
+		name: 'jsr305',
+		version: "$jsr_version"
+
+	// ObjectWeb JVM code generation/analysis framework.
+	implementation group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
+	implementation group: 'org.ow2.asm',
+		name: 'asm-analysis',
+		version: "$asm_version"
+	implementation group: 'org.ow2.asm',
+		name: 'asm-tree',
+		version: "$asm_version"
+	implementation group: 'org.ow2.asm',
+		name: 'asm-util',
+		version: "$asm_version"
+
+	// JUnit 5.
+	testRuntimeOnly group: 'org.junit.jupiter',
+		name: 'junit-jupiter-engine',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-api',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-params',
+		version: "$junit_version"
+}
+
+// Compute the Avail roots. This is needed to properly configure "test".
+ext.computeAvailRoots = {
+	def pathRepos = "$projectDir/repositories"
+	def pathRootsSrc = "$projectDir/distro/src"
+	def roots = "avail=$pathRepos/avail.repo,$pathRootsSrc/avail"
+	roots += ";experimental=$pathRepos/experimental.repo,$projectDir/experimental/even-newer-avail"
+	roots += ";examples=$pathRepos/examples.repo,$pathRootsSrc/examples"
+	roots += ";website=$pathRepos/website.repo,$pathRootsSrc/website"
+	roots
+}
+
+test {
+	useJUnitPlatform()
+	systemProperty "availRoots", computeAvailRoots()
+}
+
+// Capture the time at which the build began and record it into a resource file.
+task generateBuildTime {
+	def pathAvailBuildResources = "$buildDir/resources/main/resources"
+	def pathToBuildTime = "$pathAvailBuildResources/build-time.txt"
+	outputs.files pathToBuildTime
+
+	doLast {
+		def formatter = DateTimeFormatter
+			.ofPattern("yyyyMMdd.HHmmss.SSS")
+			.withLocale(Locale.default)
+			.withZone(ZoneId.systemDefault())
+		def now = formatter.format(Instant.now())
+
+		file(pathToBuildTime).text = "$now\n"
+	}
+}
+
+// Generate the list of all primitives, which a running Avail system uses during
+// setup to reflectively identify the complete catalog of primitives.
+task generatePrimitivesList {
+	def pathAvailBuildMain = "$buildDir/classes/java/main"
+	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
+	def pathToPrimitivesList =
+		"$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt"
+	allPrimitives.include "**/P_*.class"
+	allPrimitives.exclude '**/*$*.class'
+	allPrimitives.builtBy "compileJava"
+	inputs.files allPrimitives
+	outputs.files pathToPrimitivesList
+
+	doLast {
+		def allPrimitiveNames = allPrimitives.collect {
+			it.absolutePath
+				.replaceFirst("^$pathAvailBuildMain/", "")
+				.replaceFirst('\\.class', "\n")
+				.replaceAll("/", ".")
+		}.sort()
+
+		file(pathToPrimitivesList).text = allPrimitiveNames.join("")
+	}
+}
+
+// Update the dependencies of "classes".
+classes.dependsOn generateBuildTime
+classes.dependsOn generatePrimitivesList
+
+// Produce a fat JAR for the Avail library.
+jar {
+	from {
+		configurations.compileClasspath.collect {
+			it.isDirectory() ? it : zipTree(it)
+		}
+	}
+}

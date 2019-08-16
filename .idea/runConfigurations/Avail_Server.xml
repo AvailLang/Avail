@@ -1,12 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail Server" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.avail.server.AvailServer" />
-    <module name="Avail" />
+    <module name="avail.main" />
     <option name="PASS_PARENT_ENVS" value="false" />
     <option name="VM_PARAMETERS" value="-ea -Xdock:name=&quot;Avail Server&quot; -Xdock:icon=$PROJECT_DIR$/distro/images/AvailHammer.png -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/repositories/website.repo,$PROJECT_DIR$/distro/src/website" />
     <method v="2">
       <option name="MakeProject" enabled="true" />
-      <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/build.xml" target="generate-primitives-list" />
     </method>
   </configuration>
 </component>

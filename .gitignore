@@ -1,13 +1,6 @@
-/.apt_generated
-/.metadata
-/bin
+**/.DS_Store
+**/*.jpage
+/.gradle
+/build
 /debug
-/.cdtproject
-/.classpath
-/.idea/workspace.xml
-/.settings
 /stacks
-/unicode.json
-/Scrappy.jpage
-/scrappy.jpage
-.DS_Store

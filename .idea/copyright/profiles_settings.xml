@@ -1,3 +1,7 @@
 <component name="CopyrightManager">
-  <settings default="Avail Foundation BSD" />
+  <settings default="Avail Foundation BSD">
+    <module2copyright>
+      <element module="All" copyright="Avail Foundation BSD" />
+    </module2copyright>
+  </settings>
 </component>
