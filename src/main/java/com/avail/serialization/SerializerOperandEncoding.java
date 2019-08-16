@@ -41,11 +41,11 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.utility.MutableInt;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
@@ -594,22 +594,16 @@ enum SerializerOperandEncoding
 				// Reasonably common case.
 				return emptyTuple();
 			}
+			final MutableInt twoNybbles = new MutableInt(0);
 			return generateNybbleTupleFrom(
 				tupleSize,
-				new IntUnaryOperator()
-				{
-					int twoNybbles;
-
-					@Override
-					public int applyAsInt (final int index)
+				index -> {
+					if ((index & 1) != 0)
 					{
-						if ((index & 1) != 0)
-						{
-							twoNybbles = deserializer.readByte();
-							return (twoNybbles >> 4) & 0xF;
-						}
-						return twoNybbles & 0xF;
+						twoNybbles.value = deserializer.readByte();
+						return (twoNybbles.value >> 4) & 0xF;
 					}
+					return twoNybbles.value & 0xF;
 				});
 		}
 	},

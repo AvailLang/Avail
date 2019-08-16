@@ -102,7 +102,7 @@ public final class P_InvokeCallback extends Primitive
 		final A_BasicObject callbackPojo = primitiveFunction.outerVarAt(1);
 		final List<AvailObject> copiedArgs =
 			new ArrayList<>(interpreter.argsBuffer);
-		final A_Tuple argumentsTuple = tupleFromList(copiedArgs);
+		final A_Tuple argumentsTuple = tupleFromList(copiedArgs).makeShared();
 		final A_Fiber fiber = interpreter.fiber();
 		final Callback callback = callbackPojo.javaObjectNotNull();
 		final AtomicBoolean ranCompletion = new AtomicBoolean(false);
@@ -117,7 +117,7 @@ public final class P_InvokeCallback extends Primitive
 					runtime,
 					fiber,
 					P_InvokeCallback.this,
-					result);
+					result.makeShared());
 			}
 		};
 		final CallbackFailure failure = throwable ->
@@ -132,7 +132,8 @@ public final class P_InvokeCallback extends Primitive
 					fiber,
 					newPojo(
 						identityPojo(throwable),
-						pojoTypeForClass(throwable.getClass())),
+						pojoTypeForClass(throwable.getClass())
+					).makeShared(),
 					primitiveFunction,
 					copiedArgs);
 			}

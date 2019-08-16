@@ -101,6 +101,7 @@ import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
+import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.util.Collections.*;
 
 /**
@@ -113,6 +114,10 @@ import static java.util.Collections.*;
  */
 public final class AvailLoader
 {
+	/**
+	 * A class that tracks all visible {@link A_Lexer}s while compiling a
+	 * module.
+	 */
 	public static class LexicalScanner
 	{
 		/**
@@ -124,6 +129,9 @@ public final class AvailLoader
 		/** When set, fail on attempts to change the lexical scanner. */
 		volatile boolean frozen = false;
 
+		/**
+		 * Ensure new {@link A_Lexer}s are not added after this point.
+		 */
 		@InnerAccess void freezeFromChanges()
 		{
 			assert !frozen;
@@ -172,11 +180,6 @@ public final class AvailLoader
 		 */
 		final Map<A_Set, A_Tuple> canonicalLexerTuples = new HashMap<>();
 
-		public LexicalScanner ()
-		{
-			// Nothing else to initialize.
-		}
-
 		/**
 		 * Add an {@link A_Lexer}.  Update not just the current lexing
 		 * information for this loader, but also the specified atom's bundle's
@@ -193,6 +196,7 @@ public final class AvailLoader
 		public synchronized void addLexer (
 			final A_Lexer lexer)
 		{
+			//noinspection NonPrivateFieldAccessedInSynchronizedContext
 			assert !frozen;
 			lexer.lexerMethod().setLexer(lexer);
 			final A_Module module = lexer.definitionModule();
@@ -605,6 +609,8 @@ public final class AvailLoader
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
 	 * code for this {@code AvailLoader}.
+	 *
+	 * @return The {@link LexicalScanner}.
 	 */
 	public LexicalScanner lexicalScanner ()
 	{
@@ -662,6 +668,7 @@ public final class AvailLoader
 	{
 		if (determiningSummarizability)
 		{
+			//noinspection NonPrivateFieldAccessedInSynchronizedContext
 			if (debugUnsummarizedStatements
 				&& !summarizable
 				&& statementCanBeSummarized)
@@ -715,6 +722,7 @@ public final class AvailLoader
 	{
 		assert !determiningSummarizability;
 		determiningSummarizability = true;
+		//noinspection NonPrivateFieldAccessedInSynchronizedContext
 		statementCanBeSummarized = enableFastLoader;
 		effectsAddedByTopStatement.clear();
 	}
@@ -1383,30 +1391,27 @@ public final class AvailLoader
 		final Continuation0 afterRunning)
 	{
 		final int size = unloadFunctions.tupleSize();
-		final Continuation0 onExit = new Continuation0()
-		{
-			/** The index into the tuple of unload functions. */
-			@InnerAccess int index = 1;
-
-			@Override
-			public void value ()
-			{
-				if (index <= size)
+		// The index into the tuple of unload functions.
+		final MutableInt index = new MutableInt(1);
+		recurse(
+			again -> {
+				if (index.value <= size)
 				{
-					final int currentIndex = index++;
+					final int currentIndex = index.value++;
 					final A_Function unloadFunction =
 						unloadFunctions.tupleAt(currentIndex);
 					final A_Fiber fiber = newFiber(
 						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
 						() -> formatString(
-							"Unload function #%d for module %s",
+							"Unload function #%d/%d for module %s",
 							currentIndex,
+							size,
 							module().moduleName()));
 					fiber.textInterface(textInterface);
 					fiber.setSuccessAndFailureContinuations(
-						ignored -> value(),
-						ignored -> value());
+						ignored -> again.value(),
+						ignored -> again.value());
 					Interpreter.runOutermostFunction(
 						runtime(), fiber, unloadFunction, emptyList());
 				}
@@ -1414,9 +1419,7 @@ public final class AvailLoader
 				{
 					afterRunning.value();
 				}
-			}
-		};
-		onExit.value();
+			});
 	}
 
 	/**
