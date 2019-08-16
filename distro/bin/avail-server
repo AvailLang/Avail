@@ -101,5 +101,5 @@ fi
 VMARGS=-Xmx2g\ -classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
 # Launch the Avail server in the background.
-SERVJAR=$AVAIL_HOME/lib/AvailServer.jar
+SERVJAR=$AVAIL_HOME/lib/avail-server-1.4.jar
 $VM $VMARGS -jar $SERVJAR $* &
