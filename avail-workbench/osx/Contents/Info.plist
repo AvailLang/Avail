@@ -9,17 +9,17 @@
 	<key>CFBundleIconFile</key>
 	<string>AvailHammer.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.avail.AvailWorkbench</string>
+	<string>com.avail.environment.AvailWorkbench</string>
 	<key>CFBundleDisplayName</key>
 	<string>Workbench</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>AvailWorkbench</string>
+	<string>Avail Workbench</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1</string>
+	<string>1.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>

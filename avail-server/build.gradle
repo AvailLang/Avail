@@ -90,3 +90,13 @@ jar {
 		}
 	}
 }
+
+// Copy the JAR into the distribution directory.
+task releaseAvailServer (type: Copy) {
+	group = 'release'
+	from jar.outputs.files
+	into "${rootProject.projectDir}/distro/lib"
+}
+
+// Update the dependencies of "assemble".
+assemble.dependsOn releaseAvailServer
