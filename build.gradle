@@ -90,6 +90,8 @@ ext.computeAvailRoots = {
 
 test {
 	useJUnitPlatform()
+	minHeapSize = "4g"
+	maxHeapSize = "6g"
 	systemProperty "availRoots", computeAvailRoots()
 }
 
@@ -172,7 +174,7 @@ clean.dependsOn scrubReleases
 gradle.buildFinished {
 	if (!('build' in gradle.startParameter.taskNames))
 	{
-		return;
+		return
 	}
 	println """
 ATTENTION ==========================================================

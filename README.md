@@ -73,7 +73,7 @@ Oracle (or some other vendor). You can do so like this:
 
 And hopefully you get back something like this:
 
-	javac 1.8.0_131
+	javac 1.8.0_152
 
 Otherwise, the latest version of the JDK can be obtained at:
 
@@ -81,7 +81,7 @@ Otherwise, the latest version of the JDK can be obtained at:
 
 Please follow any installation directions provided by the Oracle website or
 included with the JDK. Be warned that the Java installer may offer to install
-sponsored software from third parties (i.e. malware) or change settings on your
+sponsored software from third parties (i.e., malware) or change settings on your
 computer to favor their sponsors. You are encouraged to read the install screens
 carefully, and to uncheck any of the sponsor options which are checked by
 default.
@@ -89,158 +89,78 @@ default.
 The commands of interest are "java" and "javac". Please make sure that these are
 on your path.
 
-2) Apache Ant: This is the build software used to compile and install Avail. You
-will need version 1.8.2 or later. Most modern Unix systems already have some
-version of Ant installed, but, if you are a Windows user, then you will
-definitely need to download it yourself if you have not previously done so. You
-can check to see if ant is installed and has the correct version like this:
-
-	$ ant -version
-
-And maybe get back something like this:
-
-	Apache Ant(TM) version 1.8.2 compiled on October 14 2011
-
-If you want to download a recent binary distribution of Ant, then go here:
-
-	https://ant.apache.org/bindownload.cgi
-
-Or you can obtain a source distribution here:
-
-	http://ant.apache.org/srcdownload.cgi
-
-Please follow any installation directions provided by the Apache Ant website or
-included with the distribution of your choice.
-
-The main command is "ant". Please make sure that "ant" is on your path.
-
 
 BUILDING
 --------------------------------------------------------------------------------
 
-You will need to compile Avail using the provided build script, "build.xml". To
-build Avail:
+You will need to compile Avail using the provided build script, "build.gradle".
+To build Avail on a Unix-based system, such as Linux or Mac OS X:
 
 	$ cd $PROJ
-	$ ant
+	$ ./gradlew build
 
-(When no arguments are provided, Ant will search the current directory for a
-"build.xml" and, if one was found, run its default target. If you are invoking
-Ant from a different directory than $PROJ, your invocation should read
-"ant -f $PROJ/build.xml".)
+To build Avail on Windows:
+
+    $ cd $PROJ
+    $ .\gradlew.bat build
 
 You should see output similar to this:
 
-	Buildfile: $PROJ/build.xml
+    ATTENTION ==========================================================
+    Be sure to set AVAIL_HOME to:
+    
+            $PROJ/distro
+    
+    And update your path to include:
+    
+            $PROJ/distro/bin
+    
+    For example, a user of bash might include something like the
+    following in the appropriate shell config file:
+    
+            export AVAIL_HOME=$PROJ/distro
+            export PATH=$PATH:$PROJ/distro/bin
+    
+    Once your path has been updated, from any directory you can launch
+    the Avail workbench like this:
+    
+            avail-dev
+    
+    Or the Avail server like this:
+    
+            avail-server
+    
+    (The server is currently hard-wired to run on port 40000. This will
+    change at some point.)
+    
+    To develop Avail code, you will also need to set AVAIL_ROOTS to a
+    valid module root path. If AVAIL_ROOTS is not set, then avail-dev
+    temporarily sets it to:
+    
+            avail=$HOME/.avail/repos/avail.repo,$PROJ/distro/src/avail;\
+            examples=$HOME/.avail/repos/examples.repo,$PROJ/distro/src/examples
+    
+    This is convenient for experimenting with Avail, but must be
+    extended with custom module roots as you develop your own modules.
+    ====================================================================
 
-	build-sources:
-		[mkdir] Created dir: $PROJ/bin
-		[javac] Compiling 1022 source files to $PROJ/bin
-
-	generate-build-time:
-
-	generate-primitives-list:
-
-	avail-vm:
-		[jar] Building jar: $PROJ/distro/lib/Avail.jar
-
-	avail-dev:
-		[jar] Building jar: $PROJ/distro/lib/AvailDev.jar
-
-	BUILD SUCCESSFUL
-	Total time: 14 seconds
+    BUILD SUCCESSFUL in 23s
+    19 actionable tasks: 19 executed
 
 If your transcript ends with "BUILD SUCCESSFUL", then your build is ready for
-installation.
+use. You may, of course, move the "distro" subdirectory to another user-specific
+or even system-wide location, and then update your AVAIL_HOME and PATH variables
+accordingly. Hereinafter we use $INSTALL to refer to the final destination of
+the "distro" directory.
 
 
-INSTALLATION
---------------------------------------------------------------------------------
-
-Once you have successfully built the Avail project, you can then install it for
-either user-specific or system-wide usage. The installation directory
-(hereinafter, $INSTALL) is specified by an Ant property, "path.install". You can
-set this property by providing the -Dpath.install=... option to Ant.
-
-You can install Avail into a specific installation directory like this:
-
-	$ cd $PROJ
-	$ ant -Dpath.install=$INSTALL install
-
-If you do not specify -Dpath.install=... explicitly, then $INSTALL defaults to
-/usr/local/avail on Unix and C:\Program Files\Avail on Windows. Note that these
-are system directories, and in order to install to such a location you may need
-to escalate your privileges by using a tool like "sudo" or logging in with an
-administrative account.
-
-Your transcript should look similar to this:
-
-	Buildfile: $PROJ/build.xml
-
-	build-sources:
-
-	generate-build-time:
-
-	generate-primitives-list:
-
-	avail-vm:
-		[jar] Building jar: $PROJ/distro/lib/Avail.jar
-
-	avail-dev:
-		[jar] Building jar: $PROJ/distro/lib/AvailDev.jar
-
-	install:
-		[copy] Copying 229 files to $INSTALL
-		[echo]
-		[echo] ATTENTION =======================================================
-		[echo] Be sure to set AVAIL_HOME to:
-		[echo]
-		[echo]   $INSTALL
-		[echo]
-		[echo] And update your path to include:
-		[echo]
-		[echo]   $INSTALL/bin
-		[echo]
-		[echo] For example, a user of bash might include something like the
-		[echo] following in the appropriate shell config file:
-		[echo]
-		[echo]   export AVAIL_HOME=$INSTALL
-		[echo]   export PATH=$PATH:$INSTALL/bin
-		[echo]
-		[echo] Once your path has been updated, from any directory you can
-		[echo] launch the Avail workbench like this:
-		[echo]
-		[echo]   avail-dev
-		[echo]
-		[echo] To develop Avail code, you will also need to set AVAIL_ROOTS to a
-		[echo] valid module root path. If AVAIL_ROOTS is not set, then avail-dev
-		[echo] temporarily sets it to:
-		[echo]
-		[echo]   avail=$HOME/.avail/repos/avail.repo,$INSTALL/src/avail;\
-		[echo]   examples=$HOME/.avail/repos/examples.repo,$INSTALL/src/examples
-		[echo]
-		[echo] This is convenient for experimenting with Avail, but must be
-		[echo] extended with custom module roots as you develop your own
-		[echo] modules.
-		[echo] =================================================================
-		[echo]
-
-	BUILD SUCCESSFUL
-	Total time: 3 seconds
-
-If your transcript ends with "BUILD SUCCESSFUL", then the installation has
-completed. The transcript contains information about how to configure your
-environment for Avail development. Please be sure to follow these instructions
-(reiterated in more detail below).
-
-
-AFTER INSTALLING
+AFTER BUILDING
 --------------------------------------------------------------------------------
 
 In order to develop Avail libraries and programs, you will need to configure
-your environment appropriately. On Unix, this is best accomplished by updating
-your shell configuration file. On Windows, you can use the Control Panel to
-adjust the environment variables.
+your environment appropriately. On Unix systems, this is best accomplished by
+updating your shell configuration file. On Windows, you can use the Control
+Panel to adjust the environment variables.
 
 The following steps should be taken to prepare your environment for Avail
 development:
@@ -338,51 +258,39 @@ the Avail project directory from Git every once in a while:
 	$ cd $PROJ
 	$ git pull
 
-Then build and install:
+On Unix, then build:
 
-	$ ant
-	$ ant install
+	$ ./gradlew build
+
+On Windows, then build:
+
+    $ .\gradlew.bat build
 
 For more elaborate instructions, please refer back to the BUILDING and
 INSTALLATION sections of this document.
 
 Following a rebuild, if you should encounter any problems while running
 "avail-dev", especially an unhandled java.lang.NoClassDefinitionError, then
-please try a clean rebuild before reporting the problem:
+please try a clean rebuild before reporting the problem.
 
-	$ ant clean
-	$ ant
-	$ ant install
+On Unix:
 
-Be sure to visit the official Avail website frequently for updates and news:
+	$ ./gradlew clean
+	$ ./gradlew build
+	
+On Windows:
+
+    $ .\gradlew.bat clean
+    $ .\gradlew.bat build
+
+Be sure to visit the official Avail website for updates and news:
 
 	http://www.availlang.org
 
-
-UNINSTALLATION
---------------------------------------------------------------------------------
-
-Once you have installed Avail, should you decide to uninstall it, you can do so
-with a command like:
-
-	$ cd $PROJ
-	$ ant uninstall
-
-Even if you do not wish to discontinue use of Avail, you may find that the
-installation directory structure accumulates craft from ancient versions as a
-consequence of staying current and reinstalling. This is because, at the time of
-writing, the build process makes no effort to remove files that are not part of
-the current version of the software. Though this is undoubtedly inconvenient for
-general usage, it is a nicety for users who may be installing additional
-resources in this directory structure — even though this is not a recommended
-practice. Should you wish to reclaim this storage and/or tidy this directory
-structure, you may wish to uninstall Avail preceding a rebuild:
-
-	$ cd $PROJ
-	$ git pull
-	$ ant uninstall
-	$ ant
-	$ ant install
+With some shame, I am forced to confess that the website does not undergo much
+maintenance. Our active team has shrunk in recent years, and the website suffers
+for it. Development of Avail itself is quite active, however, so GitHub might be
+your best source of Avail news.
 
 
 REPORTING PROBLEMS
@@ -400,7 +308,7 @@ yours – so that we can concentrate our efforts on fixing our own bugs!
 verify that the bug has not already been reported. You can do this by searching
 for the bug using our issue tracking system:
 
-	https://trac.availlang.org/report
+	https://github.com/AvailLang/Avail/issues
 
 If you do locate the bug, then please feel free to add any information not
 already reported in the history of the existing issue. If this bug is
@@ -410,7 +318,7 @@ current priorities and adjust them accordingly.
 3) If you could not locate the bug in our database, then please create a new
 ticket in our issue system:
 
-	https://trac.availlang.org/newticket
+	https://github.com/AvailLang/Avail/issues/new
 
 Please try to find the minimal test case that reproduces the problem, and attach
 any relevant source files, resources, and screenshots to the new issue.
@@ -422,15 +330,7 @@ yourself! This may be a trivial matter or a serious ordeal, depending on the
 nature of the bug, and providing advice to the ambitious is beyond the scope of
 this humble document. If you do decide to attempt a resolution yourself, then
 please include a statement of your intentions in the issue report. Should your
-efforts prove successful, then please use Git to create a patch file:
-
-	$ git diff > $PATCH
-
-Where $PATCH denotes the name of the patch file. Please attach this patch file
-to the relevant issue. Once we have had an opportunity to review the patch for
-vulnerabilities and stylistic issues, then we will apply your patch to the
-appropriate project branches in Git.
-
+efforts prove successful, then please create a new pull request for your fix.
 If you start but give up before achieving a resolution, then simply update the
 issue to let us know that you are no longer working on the problem.
 
