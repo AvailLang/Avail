@@ -94,12 +94,13 @@ BUILDING
 --------------------------------------------------------------------------------
 
 You will need to compile Avail using the provided build script, "build.gradle".
-To build Avail on a Unix-based system, such as Linux or Mac OS X:
+To build Avail on a Unix-based system, such as Linux, Mac OS X, Minimalist GNU
+for Windows (MinGW), or Windows Subsystem for Linux (WSL):
 
 	$ cd $PROJ
 	$ ./gradlew build
 
-To build Avail on Windows:
+To build Avail on vanilla Windows:
 
     $ cd $PROJ
     $ .\gradlew.bat build
@@ -166,15 +167,21 @@ The following steps should be taken to prepare your environment for Avail
 development:
 
 1) Set the AVAIL_HOME environment variable to $INSTALL. The Avail workbench,
-"avail-dev", uses this information to locate Avail, and will not run correctly
-without AVAIL_HOME being set.
+"avail-dev" on Unix and "avail-dev.bat" on vanilla Windows, uses this
+information to locate Avail, and will not run correctly without AVAIL_HOME being
+set.  
 
 2) Update your path to include $INSTALL/bin. This is where "avail-dev" is
 located. This enables your shell to find the command without the user needing to
 prefix its exact path or change the working directory.
 
 3) Set the AVAIL_ROOTS environment variable to a valid module roots path so
-that Avail can find its modules.
+that Avail can find its modules, or …
+
+4) … alternatively, you may start the Avail workbench without specifying
+AVAIL_HOME and use the "Preferences…" menu item to enter the module roots path,
+one module root at a time. Upon exiting the Avail workbench, this information is
+persisted for future sessions.
 
 A "module roots path" is a specification of locations that contain Avail code,
 in either binary or source form. A module roots path comprises several
@@ -200,8 +207,9 @@ repository path does not refer to an existing file, then "avail-dev" will create
 and populate this file as needed. A source path must always refer to an existing
 directory that is readable by the user running "avail-dev".
 
-If AVAIL_ROOTS is not defined, then "avail-dev" will use the following module
-roots path by default:
+If AVAIL_ROOTS is not defined and the Avail workbench has not been used to
+define module roots, then "avail-dev" will use the following module roots path
+by default:
 
 	avail=$HOME/.avail/repos/avail.repo,$INSTALL/src/avail;
 	examples=$HOME/.avail/repos/examples.repo,$INSTALL/src/examples
@@ -214,6 +222,12 @@ Avail Foundation, but not for developing your own Avail modules. To develop your
 own Avail modules, your AVAIL_ROOTS environment variable must at least include a
 module root specification for the Avail standard library, and it must also
 include module root specifications for your own Avail projects.
+
+Note that "avail-dev.bat" makes no effort to configure the environment. You must
+preconfigure the environment yourself, customize "avail-dev.bat" to suit your
+own needs, or use the Avail workbench to establish the module roots. (A lack of
+Windows expertise on the part of The Avail Foundation is responsible for this
+minimality; hopefully "avail-dev.bat" will be richer in a future release.)
 
 For more information on this topic, please visit this webpage:
 
@@ -262,7 +276,7 @@ On Unix, then build:
 
 	$ ./gradlew build
 
-On Windows, then build:
+On vanilla Windows, then build:
 
     $ .\gradlew.bat build
 
@@ -278,7 +292,7 @@ On Unix:
 	$ ./gradlew clean
 	$ ./gradlew build
 	
-On Windows:
+On vanilla Windows:
 
     $ .\gradlew.bat clean
     $ .\gradlew.bat build
