@@ -236,9 +236,13 @@ For more information on this topic, please visit this webpage:
 RUNNING AVAIL
 --------------------------------------------------------------------------------
 
-To run an Avail program, launch the Avail development workbench:
+To run an Avail program, launch the Avail development workbench. On Unix:
 
 	$ avail-dev
+
+On Windows:
+
+    $ avail-dev.bat
 
 This will open a graphical user interface (GUI) whose window bar is titled
 "Avail Workbench". Using the workbench is beyond the scope of this document.
