@@ -171,9 +171,9 @@ development:
 information to locate Avail, and will not run correctly without AVAIL_HOME being
 set.  
 
-2) Update your path to include $INSTALL/bin. This is where "avail-dev" is
-located. This enables your shell to find the command without the user needing to
-prefix its exact path or change the working directory.
+2) Update your path to include $INSTALL/bin. This is where "avail-dev" and
+"avail-dev.bat" are located. This enables your shell to find the command without
+the user needing to prefix its exact path or change the working directory.
 
 3) Set the AVAIL_ROOTS environment variable to a valid module roots path so
 that Avail can find its modules, or …
