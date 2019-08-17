@@ -93,9 +93,9 @@ on your path.
 BUILDING
 --------------------------------------------------------------------------------
 
-You will need to compile Avail using the provided build script, "build.gradle".
-To build Avail on a Unix-based system, such as Linux, Mac OS X, Minimalist GNU
-for Windows (MinGW), or Windows Subsystem for Linux (WSL):
+You will need to compile Avail using the provided Gradle wrapper. To build Avail
+on a Unix-based system, such as Linux, Mac OS X, Minimalist GNU for Windows
+(MinGW), or Windows Subsystem for Linux (WSL):
 
 	$ cd $PROJ
 	$ ./gradlew build
