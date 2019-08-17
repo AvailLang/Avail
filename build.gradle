@@ -134,6 +134,7 @@ task generatePrimitivesList {
 	doLast {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
+				.replaceAll('\\\\', '/')
 				.replaceFirst("^$pathAvailBuildMain/", "")
 				.replaceFirst('\\.class', "\n")
 				.replaceAll("/", ".")
