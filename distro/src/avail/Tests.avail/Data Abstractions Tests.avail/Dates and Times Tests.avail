@@ -195,7 +195,7 @@ Test "timestamp fields" in dates and times test suite is
  	Require: theOneTrueDate's year = 1979;
  	Require: theOneTrueDate's month = March;
  	Require: theOneTrueDate's day in month = 29;
- 	Require: theOneTrueDate's day of week = Wednesday;
+ 	Require: theOneTrueDate's day of week = Thursday;
  	Require: theOneTrueDate's hour = 11;
  	Require: theOneTrueDate's minute = 25;
  	Require: theOneTrueDate's second = 42;
