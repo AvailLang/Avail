@@ -357,10 +357,10 @@ public enum L1Operation
 	 *
 	 * <p>
 	 * As an example, if the nybblecodes have already pushed A, B, and C, in
-	 * that order, the permute nybblecode with the tuple <2,3,1> would transfer
-	 * A into array slot 2, B into array slot 3, and C into array slot 1,
-	 * yielding the array [C,A,B].  These would then replace the original values
-	 * as though C, A, and B had been pushed, in that order.
+	 * that order, the permute nybblecode with the tuple &lt;2,3,1&gt; would
+	 * transfer A into array slot 2, B into array slot 3, and C into array slot
+	 * 1, yielding the array [C,A,B].  These would then replace the original
+	 * values as though C, A, and B had been pushed, in that order.
 	 * </p>
 	 */
 	L1Ext_doPermute(20, L1OperandType.LITERAL)

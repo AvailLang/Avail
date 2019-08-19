@@ -78,6 +78,7 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Skatje Myers &lt;skatje.myers@gmail.com&gt;
  */
+@SuppressWarnings("unused")
 public abstract class IndexedFile
 {
 	/**
@@ -561,6 +562,7 @@ public abstract class IndexedFile
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private FileLock acquireLockForWriting (final boolean wait)
 	throws IOException
 	{
@@ -988,6 +990,7 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	private void readHeaderData (
 		final Transformer2NotNull<Integer, Integer, Boolean> versionCheck)
 	throws IOException, IndexedFileException
@@ -1096,6 +1099,7 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public void add (
 		final byte[] record,
 		final int start,
@@ -1131,6 +1135,7 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public void add (final byte[] record)
 	throws IndexedFileException
 	{
@@ -1298,6 +1303,7 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public byte[] get (final long index)
 	throws IndexOutOfBoundsException, IndexedFileException
 	{
@@ -1443,6 +1449,7 @@ public abstract class IndexedFile
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public void refresh ()
 	throws IOException, IndexedFileException
 	{
@@ -1557,6 +1564,7 @@ public abstract class IndexedFile
 	 * @return The new indexed file.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
+	 * @param <F> The specialization of {@code IndexedFile} to create.
 	 */
 	public static <F extends IndexedFile> F newFile (
 		final Class<F> subclass,
@@ -1621,6 +1629,7 @@ public abstract class IndexedFile
 	 * @return The new indexed file.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
+	 * @param <F> The specialization of {@code IndexedFile} to create.
 	 */
 	public static <F extends IndexedFile> F newFile (
 		final Class<F> subclass,
@@ -1663,6 +1672,7 @@ public abstract class IndexedFile
 	 * @return The indexed file.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
+	 * @param <F> The specialization of {@code IndexedFile} to open.
 	 */
 	public static <F extends IndexedFile> F openFile (
 		final Class<F> subclass,

@@ -51,7 +51,7 @@ import static com.avail.utility.Nulls.stripNull;
  * assigned in the order of definition, but each type keeps track of the maximum
  * ordinal of all of its descendants (which occupy a contiguous span of ordinals
  * just after the type's ordinal).  We can test if type A is a subtype of B by
- * checking if a.ordinal >= b.ordinal and a.highOrdinal <= b.highOrdinal.  For a
+ * checking if a.ordinal ≥ b.ordinal and a.highOrdinal ≤ b.highOrdinal.  For a
  * proper subtype test, we turn the first condition into an inequality.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

@@ -77,7 +77,7 @@ extends A_BasicObject
 	 *        bundle tree (and extant successors).
 	 * @param treesToVisit
 	 *        A collection of {@link Pair}s to visit.  Updated to include
-	 *        successors of this <bundle, planInProgress>.
+	 *        successors of this &lt;bundle, planInProgress&gt;.
 	 */
 	void updateForNewGrammaticalRestriction (
 		final A_ParsingPlanInProgress planInProgress,
@@ -98,11 +98,11 @@ extends A_BasicObject
 	A_Set lazyComplete ();
 
 	/**
-	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
-	 * specific token to be parsed.  These are organized as a map where each key
-	 * is the string form of an expected token, and the corresponding value is
-	 * the successor {@link A_BundleTree bundle tree} representing the situation
-	 * where a token matching the key was consumed.
+	 * Answer the bundle trees that are waiting for a specific token to be
+	 * parsed.  These are organized as a map where each key is the string form
+	 * of an expected token, and the corresponding value is the successor {@link
+	 * A_BundleTree bundle tree} representing the situation where a token
+	 * matching the key was consumed.
 	 *
 	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
 	 * been invoked since the last modification via methods like {@link
@@ -113,12 +113,11 @@ extends A_BasicObject
 	A_Map lazyIncomplete ();
 
 	/**
-	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
-	 * specific case-insensitive token to be parsed.  These are organized as a
-	 * map where each key is the lower-case string form of an expected
-	 * case-insensitive token, and the corresponding value is the successor
-	 * {@link A_BundleTree bundle tree} representing the situation where a token
-	 * case-insensitively matching the key was consumed.
+	 * Answer the bundle trees that are waiting for a specific case-insensitive
+	 * token to be parsed.  These are organized as a map where each key is the
+	 * lower-case string form of an expected case-insensitive token, and the
+	 * corresponding value is the successor bundle tree representing the
+	 * situation where a token case-insensitively matching the key was consumed.
 	 *
 	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
 	 * been invoked since the last modification via methods like {@link
@@ -129,11 +128,11 @@ extends A_BasicObject
 	A_Map lazyIncompleteCaseInsensitive ();
 
 	/**
-	 * Answer the {@link A_BundleTree bundle trees} that will be reached when
-	 * specific parse instructions run.  During normal processing, all such
-	 * instructions are attempted in parallel.  Certain instructions like
-	 * {@link ParsingOperation#PARSE_PART} do not get added to this map, and are
-	 * added to other structures such as {@link #lazyIncomplete()}.
+	 * Answer the bundle trees that will be reached when specific parse
+	 * instructions run.  During normal processing, all such instructions are
+	 * attempted in parallel.  Certain instructions like {@link
+	 * ParsingOperation#PARSE_PART} do not get added to this map, and are added
+	 * to other structures such as {@link #lazyIncomplete()}.
 	 *
 	 * <p>Each key is an {@link IntegerDescriptor integer} that encodes a
 	 * parsing instruction, and the value is a tuple of successor {@link
@@ -155,13 +154,13 @@ extends A_BasicObject
 	 * Answer a map used by the {@link ParsingOperation#CHECK_ARGUMENT}
 	 * instruction to quickly eliminate arguments that are forbidden by
 	 * grammatical restrictions.  The map is from each restricted argument
-	 * {@link A_Bundle bundle} to the successor {@link A_BundleTree bundle tree}
-	 * that includes every bundle that <em>is</em> allowed when an argument is
-	 * an invocation of a restricted argument bundle.  Each argument bundle that
-	 * is restricted by at least one parent bundle at this point (just after
-	 * having parsed an argument) has an entry in this map.  Argument bundles
-	 * that are not restricted do not occur in this map, and are instead dealt
-	 * with by an entry in the {@link #lazyActions()} map.
+	 * {@link A_Bundle bundle} to the successor bundle tree that includes every
+	 * bundle that <em>is</em> allowed when an argument is an invocation of a
+	 * restricted argument bundle.  Each argument bundle that is restricted by
+	 * at least one parent bundle at this point (just after having parsed an
+	 * argument) has an entry in this map.  Argument bundles that are not
+	 * restricted do not occur in this map, and are instead dealt with by an
+	 * entry in the {@link #lazyActions()} map.
 	 *
 	 * <p>This technique leads to an increase in the number of bundle trees, but
 	 * is very fast at eliminating illegal parses, even when expressions are

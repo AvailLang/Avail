@@ -123,6 +123,7 @@ import static java.util.Collections.singletonList;
  * Level One nybblecodes are designed to be compact and very simple, but not
  * particularly efficiently executable. Level Two is designed for a clean model
  * for optimization, including:
+ * </p>
  * <ul>
  * <li>primitive folding.</li>
  * <li>register coloring/allocation.</li>
@@ -138,6 +139,8 @@ import static java.util.Collections.singletonList;
  * into the bytecode verifier, concurrency semantics, and HotSpot's low-level
  * optimizations.</li>
  * </ul>
+ *
+ * <p>
  * As of 2011.05.09, only the first of these optimizations has been implemented,
  * although a translation into Smalltalk blocks was implemented experimentally
  * by Mark van Gulik in the mid-1990s.

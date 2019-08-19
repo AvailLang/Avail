@@ -131,6 +131,8 @@ public final class L2ControlFlowGraph
 
 	/**
 	 * Optimize the graph of instructions.
+	 *
+	 * @param interpreter The current running {@link Interpreter}.
 	 */
 	public void optimize (final Interpreter interpreter)
 	{

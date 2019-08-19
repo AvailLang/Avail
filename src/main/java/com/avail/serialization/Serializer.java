@@ -393,6 +393,7 @@ public class Serializer
 	 * Construct a new {@code Serializer}.
 	 *
 	 * @param output An {@link OutputStream} on which to write the module.
+	 * @param module The {@link A_Module} being compiled.
 	 */
 	public Serializer (
 		final OutputStream output,

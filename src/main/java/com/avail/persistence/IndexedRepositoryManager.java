@@ -334,11 +334,12 @@ public class IndexedRepositoryManager implements Closeable
 				// same file in multiple threads.  At worst it's extra work, and
 				// it's not likely that maintenance on the build mechanism would
 				// *ever* cause it to do that anyhow.
-				final MessageDigest hasher;
+				final byte[] newDigest;
 				try (final RandomAccessFile reader =
 					new RandomAccessFile(sourceFile, "r"))
 				{
-					hasher = MessageDigest.getInstance(DIGEST_ALGORITHM);
+					final MessageDigest hasher =
+						MessageDigest.getInstance(DIGEST_ALGORITHM);
 					final byte[] buffer = new byte[4096];
 					while (true)
 					{
@@ -349,12 +350,12 @@ public class IndexedRepositoryManager implements Closeable
 						}
 						hasher.update(buffer, 0, bufferSize);
 					}
+					newDigest = hasher.digest();
 				}
 				catch (final NoSuchAlgorithmException | IOException e)
 				{
 					throw new RuntimeException(e);
 				}
-				final byte[] newDigest = hasher.digest();
 				assert newDigest.length == DIGEST_SIZE;
 				digest = newDigest;
 				lockWhile(
@@ -666,6 +667,12 @@ public class IndexedRepositoryManager implements Closeable
 			this.hash = computeHash();
 		}
 
+		/**
+		 * Answer a short identifier of the module version.  Use a short prefix
+		 * of the digest.
+		 *
+		 * @return A short {@link String} to help identify this module version.
+		 */
 		public String shortString ()
 		{
 			final byte[] prefix = Arrays.copyOf(sourceDigest, 3);
@@ -1113,7 +1120,9 @@ public class IndexedRepositoryManager implements Closeable
 		public final long recordNumber;
 
 		/**
-		 * @return
+		 * Answer the byte array containing a serialization of this compilation.
+		 *
+		 * @return The serialized compilation.
 		 */
 		public @Nullable byte [] getBytes ()
 		{
@@ -1234,6 +1243,7 @@ public class IndexedRepositoryManager implements Closeable
 	 * @throws IndexedFileException
 	 *         If any other {@linkplain Exception exception} occurs.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public void clear ()
 	throws IndexedFileException
 	{
@@ -1307,6 +1317,7 @@ public class IndexedRepositoryManager implements Closeable
 	 * @throws IndexedFileException
 	 *         If anything goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public void commit () throws IndexedFileException
 	{
 		lockWhile(
@@ -1403,6 +1414,7 @@ public class IndexedRepositoryManager implements Closeable
 	 * @throws IndexedFileException
 	 *         If anything goes wrong.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	private void openOrCreate ()
 	throws IndexedFileException
 	{

@@ -56,12 +56,12 @@ import static com.avail.utility.Nulls.stripNull;
  * Extract the first literal from the {@linkplain CompiledCodeDescriptor
  * compiled code} that the interpreter has squirreled away for this purpose.
  *
- * <p>This mechanism relies on {@link #tryToGenerateSpecialPrimitiveInvocation(
- * L2ReadBoxedOperand, A_RawFunction, List, List, L1Translator,
- * CallSiteHelper)} always producing specialized L2 code – i.e., a constant
- * move.  Note that {@link Flag#CanInline} normally skips making the actual
- * called function available, so we must be careful to expose it for the
- * customized code generator.</p>
+ * <p>This mechanism relies on
+ * {@link #tryToGenerateSpecialPrimitiveInvocation(L2ReadBoxedOperand, A_RawFunction, List, List, L1Translator, CallSiteHelper)}
+ * always producing specialized L2 code – i.e., a constant move.  Note that
+ * {@link Flag#CanInline} normally skips making the actual called function
+ * available, so we must be careful to expose it for the customized code
+ * generator.</p>
  */
 public final class P_PushConstant extends Primitive
 {

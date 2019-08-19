@@ -843,8 +843,19 @@ public final class L2Optimizer
 	 */
 	private static class UsedRegisters
 	{
+		/**
+		 * Which registers are live here, organized by {@link RegisterKind}'s
+		 * ordinal.
+		 */
 		final BitSet[] liveRegistersByKind;
 
+		/**
+		 * Reduce the collection of registers live here by intersecting it with
+		 * the argument.  Answer whether it changed.
+		 *
+		 * @param another The other {@code UsedRegisters}.
+		 * @return Whether the intersection made a change.
+		 */
 		boolean restrictTo (final UsedRegisters another)
 		{
 			boolean changed = false;
@@ -1300,6 +1311,8 @@ public final class L2Optimizer
 
 	/**
 	 * Optimize the graph of instructions.
+	 *
+	 * @param interpreter The current {@link Interpreter}.
 	 */
 	public void optimize (final Interpreter interpreter)
 	{

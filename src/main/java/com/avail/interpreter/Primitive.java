@@ -122,19 +122,18 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * it could fail, given particular types of arguments, and what type it
  * guarantees to provide, given particular argument types.</p>
  *
- * <p>The main hook for primitive-specific optimization is {@link
- * #tryToGenerateSpecialPrimitiveInvocation(L2ReadBoxedOperand, A_RawFunction,
- * List, List, L1Translator, CallSiteHelper)}.  Because of the way the L2
- * translation makes use of {@link L2SemanticValue}s, and {@link
- * L2SemanticPrimitiveInvocation}s in particular, a primitive can effectively
- * examine the history of its arguments and compose or cancel a chain of actions
- * in the L2 code.  For example, a primitive that extracts an element of a tuple
- * might notice that the tuple was created by a tuple-building primitive, and
- * then choose to directly use one of the inputs to the tuple-building
- * primitive, rather than decompose the tuple. If all such uses of the tuple
- * disappear, the invocation of the tuple-building primitive can be elided
- * entirely, since it has no side-effects.  Arithmetic provides similar rich
- * opportunities for these high-level optimizations.</p>
+ * <p>The main hook for primitive-specific optimization is
+ * {@link #tryToGenerateSpecialPrimitiveInvocation(L2ReadBoxedOperand, A_RawFunction, List, List, L1Translator, CallSiteHelper)}.
+ * Because of the way the L2 translation makes use of {@link L2SemanticValue}s,
+ * and {@link L2SemanticPrimitiveInvocation}s in particular, a primitive can
+ * effectively examine the history of its arguments and compose or cancel a
+ * chain of actions in the L2 code.  For example, a primitive that extracts an
+ * element of a tuple might notice that the tuple was created by a
+ * tuple-building primitive, and then choose to directly use one of the inputs
+ * to the tuple-building primitive, rather than decompose the tuple. If all such
+ * uses of the tuple disappear, the invocation of the tuple-building primitive
+ * can be elided entirely, since it has no side-effects.  Arithmetic provides
+ * similar rich opportunities for these high-level optimizations.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -333,7 +332,7 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * Attempt this primitive with the given {@link Interpreter}.  The
-	 * interpreter's {@linkplain Interpreter#argsBuffer's argument list} must be
+	 * interpreter's {@linkplain Interpreter#argsBuffer argument list} must be
 	 * set up prior to this call.  If the primitive fails, it should set the
 	 * primitive failure code by calling {@link Interpreter#primitiveFailure(
 	 * A_BasicObject)} and returning its result from the primitive.  Otherwise

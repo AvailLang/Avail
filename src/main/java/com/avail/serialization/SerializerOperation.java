@@ -1642,11 +1642,11 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
 	 * looked up during deserialization.  A method can have multiple {@linkplain
 	 * MessageBundleDescriptor message bundles}, and <em>each</em> &lt;module
-	 * name, atom name> pair is recorded during serialization.  For system atoms
-	 * we output nil for the module name.  During deserialization, the list is
-	 * searched for a module that has been loaded, and if the corresponding name
-	 * is an atom, and if that atom has a bundle associated with it, that
-	 * bundle's method is used.
+	 * name, atom name&gt; pair is recorded during serialization.  For system
+	 * atoms we output nil for the module name.  During deserialization, the
+	 * list is searched for a module that has been loaded, and if the
+	 * corresponding name is an atom, and if that atom has a bundle associated
+	 * with it, that bundle's method is used.
 	 */
 	METHOD(47, TUPLE_OF_OBJECTS.as("module name / atom name pairs"))
 	{
@@ -2063,9 +2063,9 @@ public enum SerializerOperation
 		},
 
 	/**
-	 * An instance of {@link java.lang.reflect.Method}, likely created as part
-	 * of {@link P_CreatePojoInstanceMethodFunction}. The method may be an
-	 * instance method or a static method.
+	 * An instance of {@link Method}, likely created as part of {@link
+	 * P_CreatePojoInstanceMethodFunction}. The method may be an instance method
+	 * or a static method.
 	 */
 	RAW_POJO_METHOD(
 		57,
@@ -2116,8 +2116,8 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * An instance of {@link java.lang.reflect.Constructor}, likely created as
-	 * part of {@link P_CreatePojoConstructorFunction}.
+	 * An instance of {@link Constructor}, likely created as part of {@link
+	 * P_CreatePojoConstructorFunction}.
 	 */
 	RAW_POJO_CONSTRUCTOR(
 		58,
@@ -3622,6 +3622,7 @@ public enum SerializerOperation
 	 * Answer the enum value having the given ordinal.
 	 *
 	 * @param ordinal The ordinal to look up.
+	 * @return The {@code SerializerOperation} having the given ordinal.
 	 */
 	static SerializerOperation byOrdinal (final int ordinal)
 	{
@@ -3643,6 +3644,10 @@ public enum SerializerOperation
 	 *
 	 * @return My {@code SerializerOperand}s.
 	 */
+	@SuppressWarnings({
+		"AssignmentOrReturnOfFieldWithMutableType",
+		"SingleElementAnnotation"
+	})
 	SerializerOperand[] operands ()
 	{
 		return operands;

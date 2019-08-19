@@ -124,6 +124,8 @@ public final class L2BasicBlock
 	/**
 	 * Answer the L2 offset at which the block starts.  Only populated after
 	 * code generation has completed.
+	 *
+	 * @return The offset of the start of the block.
 	 */
 	public int offset ()
 	{
@@ -190,7 +192,8 @@ public final class L2BasicBlock
 	 * Answer the predecessor {@linkplain L2PcOperand edge} with the given index
 	 * in my list of predecessors.
 	 *
-	 * @return The indicated predecessor
+	 * @param index The index of the incoming edge.
+	 * @return The indicated predecessor.
 	 */
 	public L2PcOperand predecessorEdgeAt (final int index)
 	{
@@ -279,7 +282,8 @@ public final class L2BasicBlock
 	 * Answer the successor {@linkplain L2PcOperand edge} with the given index
 	 * in my list of successors.
 	 *
-	 * @return The indicated successor
+	 * @param index The index of the outgoing edge.
+	 * @return The indicated successor.
 	 */
 	public L2PcOperand successorEdgeAt (final int index)
 	{
@@ -460,6 +464,8 @@ public final class L2BasicBlock
 
 	/**
 	 * Create a new basic block.
+	 *
+	 * @param name A descriptive name for the block.
 	 */
 	public L2BasicBlock (final String name)
 	{

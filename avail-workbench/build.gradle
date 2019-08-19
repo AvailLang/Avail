@@ -108,7 +108,7 @@ task osx {
 	def appSrc = fileTree("$projectDir/osx")
 	def appDst = "${rootProject.projectDir}/distro/Apps/Avail Workbench.app"
 	inputs.files appSrc
-	outputs.files appDst
+	outputs.dir appDst
 
 	group = 'build'
 	dependsOn assemble

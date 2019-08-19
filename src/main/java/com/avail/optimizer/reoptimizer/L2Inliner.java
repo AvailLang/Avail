@@ -66,7 +66,8 @@ import static java.util.stream.Collectors.toList;
  *     <li>passes parameters in and result out with moves that are easily
  *     eliminated,</li>
  *     <li>allows stronger call-site types to narrow method lookups,</li>
- *     <li>exposes primitive cancellation patterns like &lt;x, y>[1] → x,</li>
+ *     <li>exposes primitive cancellation patterns like &lt;x, y&gt;[1] → x,
+ *     </li>
  *     <li>exposes L1 instruction cancellation, like avoiding creation of
  *     closures and label continuations,</li>
  *     <li>allows nearly all conditional and loop control flow to be expressed
@@ -317,9 +318,23 @@ public final class L2Inliner
 	 *        each manifest of the callee, including embedded inside other
 	 *        {@link L2SemanticValue}s, must be transformed into the provided
 	 *        inlineFrame.
+	 * @param invokeInstruction
+	 *        The {@link L2Instruction} that invokes the function being inlined.
+	 * @param code
+	 *        The {@link A_RawFunction} being inlined.
+	 * @param outers
+	 *        The {@link List} of {@link L2ReadBoxedOperand}s that were captured
+	 *        by the function being inlined.
 	 * @param arguments
 	 *        The {@link List} of {@link L2ReadBoxedOperand}s corresponding to
 	 *        the arguments to this function invocation.
+	 * @param result
+	 *        Where to cause the function's result to be written.
+	 * @param completionBlock
+	 *        Where to arrange to jump after the function invocation.
+	 * @param reificationBlock
+	 *        Where to arrange to jump on reification while executing the
+	 *        inlined function.
 	 */
 	L2Inliner (
 		final L2Generator targetGenerator,
@@ -408,6 +423,7 @@ public final class L2Inliner
 	 * the old manifest, but shifted into a sub-{@link Frame}, combined with the
 	 * {@link #targetGenerator}'s {@link L2Generator#currentManifest()}.
 	 *
+	 * @param oldManifest The original {@link L2ValueManifest}.
 	 * @return The new {@link L2ValueManifest}.
 	 */
 	public L2ValueManifest mapManifest (final L2ValueManifest oldManifest)

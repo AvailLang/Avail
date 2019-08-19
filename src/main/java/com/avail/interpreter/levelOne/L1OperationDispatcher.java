@@ -181,7 +181,7 @@ public interface L1OperationDispatcher
 	/**
 	 * Permute the top N stack elements as specified by a literal permutation
 	 * tuple.  For example, if A, B, and C have been pushed, in that order, a
-	 * permute tuple of <2, 3, 1> indicates the stack should have A in the
+	 * permute tuple of &lt;2, 3, 1&gt; indicates the stack should have A in the
 	 * second slot, B in the 3rd, and C in the 1st.  It has the same effect as
 	 * having pushed C, and A, and B, in that order.
 	 */
