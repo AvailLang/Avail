@@ -1419,6 +1419,7 @@ Public stable method "_exploded" is
 	d ::= private doy and mp's day of month;
 	mOrd ::= private mp's month ordinal;
 	y ::= if mOrd ≤ 2 then [yAdj+1] else [yAdj];
+	dowOrd ::= (days + 4) mod 7 + 1;
 	time : integer := ts' Epoch milliseconds mod 86400000;
 	hr ::= time ÷ 3600000;
 	time := time - hr × 3600000;
@@ -1432,7 +1433,7 @@ Public stable method "_exploded" is
 		exploded years ::= y,
 		exploded months ::= months[mOrd],
 		exploded days ::= d,
-		exploded day of week ::= days of week[(days + 3) mod 7 + 1],
+		exploded day of week ::= days of week[dowOrd],
 		exploded hours ::= hr ?→ [0..23],
 		exploded minutes ::= min ?→ [0..59],
 		exploded seconds ::= sec ?→ [0..59],
