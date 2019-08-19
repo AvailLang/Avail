@@ -1599,7 +1599,7 @@ extends JFrame
 	@SuppressWarnings("unchecked")
 	public @Nullable TreePath modulePath (final String moduleName)
 	{
-		final String[] path = moduleName.split("/");
+		final String[] path = moduleName.split("/|\\\\");
 		final TreeModel model = moduleTree.getModel();
 		final DefaultMutableTreeNode treeRoot =
 			(DefaultMutableTreeNode) model.getRoot();
