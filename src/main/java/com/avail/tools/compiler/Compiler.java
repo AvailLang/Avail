@@ -316,7 +316,8 @@ public final class Compiler
 				builder.buildTarget(
 					moduleName,
 					localTracker(configuration),
-					globalTracker(configuration));
+					globalTracker(configuration),
+					builder.buildProblemHandler);
 
 				// Successful compilation.
 				if (configuration.hasReports())

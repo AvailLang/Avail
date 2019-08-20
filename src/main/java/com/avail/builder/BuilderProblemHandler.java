@@ -31,7 +31,6 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
@@ -80,7 +79,8 @@ class BuilderProblemHandler extends ProblemHandler
 	 *        The {@link String} with which to report the problem.
 	 */
 	BuilderProblemHandler (
-		final AvailBuilder availBuilder, final String pattern)
+		final AvailBuilder availBuilder,
+		final String pattern)
 	{
 		this.availBuilder = availBuilder;
 		this.pattern = pattern;

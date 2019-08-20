@@ -44,6 +44,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
+import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -1177,7 +1178,8 @@ public final class AvailServer
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
 	 * support {@linkplain AvailBuilder#buildTarget(ModuleName,
-	 * CompilerProgressReporter, GlobalProgressReporter) module loading}.
+	 * CompilerProgressReporter, GlobalProgressReporter, ProblemHandler) module
+	 * loading}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1314,7 +1316,8 @@ public final class AvailServer
 				{
 					globalUpdates.add(writer);
 				}
-			});
+			},
+			builder.buildProblemHandler);
 		updater.cancel();
 		updater.run();
 		assert localUpdates.isEmpty();

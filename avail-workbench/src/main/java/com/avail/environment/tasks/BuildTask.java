@@ -68,7 +68,8 @@ extends AbstractWorkbenchTask
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,
-			workbench::eventuallyUpdateBuildProgress);
+			workbench::eventuallyUpdateBuildProgress,
+			workbench.availBuilder.buildProblemHandler);
 	}
 
 	@Override

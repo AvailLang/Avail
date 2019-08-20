@@ -231,7 +231,11 @@ public class ModuleHeader
 		final A_String name = stripNull(deserializer.deserialize());
 		if (!name.asNativeString().equals(moduleName.qualifiedName()))
 		{
-			throw new RuntimeException("Incorrect module name");
+			throw new RuntimeException(
+				"Incorrect module name.  Expected: "
+					+ moduleName.qualifiedName()
+					+ " but found "
+					+ name);
 		}
 		final A_Tuple theVersions = stripNull(deserializer.deserialize());
 		versions.clear();

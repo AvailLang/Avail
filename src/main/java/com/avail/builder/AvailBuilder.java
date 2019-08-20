@@ -526,12 +526,12 @@ public final class AvailBuilder
 	/**
 	 * How to handle problems during a build.
 	 */
-	@InnerAccess final ProblemHandler buildProblemHandler;
+	public final ProblemHandler buildProblemHandler;
 
 	/**
 	 * How to handle problems during command execution.
 	 */
-	@InnerAccess final ProblemHandler commandProblemHandler;
+	public final ProblemHandler commandProblemHandler;
 
 	/**
 	 * A LoadedModule holds state about what the builder knows about a currently
@@ -771,11 +771,15 @@ public final class AvailBuilder
 	 * @param originalAfterAll
 	 *        What to do after building everything.  This may run in another
 	 *        {@link Thread}, possibly long after this method returns.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	public void buildTargetThen (
 		final ModuleName target,
 		final CompilerProgressReporter localTracker,
 		final GlobalProgressReporter globalTracker,
+		final ProblemHandler problemHandler,
 		final Continuation0 originalAfterAll)
 	{
 		final AtomicBoolean ran = new AtomicBoolean(false);
@@ -803,7 +807,8 @@ public final class AvailBuilder
 					return;
 				}
 				final BuildLoader buildLoader =
-					new BuildLoader(this, localTracker, globalTracker);
+					new BuildLoader(
+						this, localTracker, globalTracker, problemHandler);
 				buildLoader.loadThen(safeAfterAll);
 			});
 	}
@@ -832,15 +837,23 @@ public final class AvailBuilder
 	 *        <li>the global size (in bytes) of all modules that will be
 	 *        built.</li>
 	 *        </ol>
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	public void buildTarget (
 		final ModuleName target,
 		final CompilerProgressReporter localTracker,
-		final GlobalProgressReporter globalTracker)
+		final GlobalProgressReporter globalTracker,
+		final ProblemHandler problemHandler)
 	{
 		final Semaphore semaphore = new Semaphore(0);
 		buildTargetThen(
-			target, localTracker, globalTracker, semaphore::release);
+			target,
+			localTracker,
+			globalTracker,
+			problemHandler,
+			semaphore::release);
 		semaphore.acquireUninterruptibly();
 	}
 

@@ -39,6 +39,7 @@ import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Module;
@@ -144,15 +145,20 @@ final class BuildLoader
 	 *        <li>the global size (in bytes) of all modules that will be
 	 *        built.</li>
 	 *        </ol>
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	BuildLoader (
 		final AvailBuilder availBuilder,
 		final CompilerProgressReporter localTracker,
-		final GlobalProgressReporter globalTracker)
+		final GlobalProgressReporter globalTracker,
+		final ProblemHandler problemHandler)
 	{
 		this.availBuilder = availBuilder;
 		this.localTracker = localTracker;
 		this.globalTracker = globalTracker;
+		this.problemHandler = problemHandler;
 		long size = 0L;
 		for (final ResolvedModuleName mod : availBuilder.moduleGraph.vertices())
 		{
@@ -163,6 +169,12 @@ final class BuildLoader
 
 	/** The size, in bytes, of all source files that will be built. */
 	private final long globalCodeSize;
+
+	/**
+	 * The {@link ProblemHandler} to use when compilation {@link Problem}s are
+	 * encountered.
+	 */
+	private final ProblemHandler problemHandler;
 
 	/** The number of bytes compiled so far. */
 	private final AtomicLong bytesCompiled = new AtomicLong(0L);
@@ -373,7 +385,7 @@ final class BuildLoader
 							completionAction.value();
 						}
 					};
-					availBuilder.buildProblemHandler.handle(problem);
+					problemHandler.handle(problem);
 				});
 		// Read the module header from the repository.
 		try
@@ -597,7 +609,7 @@ final class BuildLoader
 				postLoad(moduleName, lastPosition.value);
 				completionAction.value();
 			},
-			availBuilder.buildProblemHandler);
+			problemHandler);
 	}
 
 	/**

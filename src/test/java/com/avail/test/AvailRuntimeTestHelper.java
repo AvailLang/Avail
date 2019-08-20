@@ -376,7 +376,11 @@ public class AvailRuntimeTestHelper
 	{
 		final ResolvedModuleName library = resolver.resolve(
 			new ModuleName(moduleName), null);
-		builder.buildTarget(library, this::localTrack, this::globalTrack);
+		builder.buildTarget(
+			library,
+			this::localTrack,
+			this::globalTrack,
+			builder.buildProblemHandler);
 		builder.checkStableInvariants();
 		return builder.getLoadedModule(library) != null;
 	}
