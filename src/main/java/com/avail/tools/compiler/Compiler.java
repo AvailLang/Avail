@@ -333,7 +333,9 @@ public final class Compiler
 			{
 				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.generateDocumentation(
-					moduleName, configuration.documentationPath());
+					moduleName,
+					configuration.documentationPath(),
+					builder.buildProblemHandler);
 			}
 		}
 		finally

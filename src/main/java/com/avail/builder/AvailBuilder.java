@@ -799,6 +799,7 @@ public final class AvailBuilder
 		}
 		new BuildTracer(this).traceThen(
 			target,
+			problemHandler,
 			() ->
 			{
 				if (shouldStopBuild())
@@ -883,26 +884,31 @@ public final class AvailBuilder
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for Stacks
 	 *        documentation and data files.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	public void generateDocumentation (
 		final ModuleName target,
-		final Path documentationPath)
+		final Path documentationPath,
+		final ProblemHandler problemHandler)
 	{
 		clearShouldStopBuild();
 		final BuildTracer tracer = new BuildTracer(this);
 		tracer.traceThen(
 			target,
+			problemHandler,
 			() ->
 			{
 				final DocumentationTracer documentationTracer =
 					new DocumentationTracer(this, documentationPath);
 				if (!shouldStopBuild())
 				{
-					documentationTracer.load();
+					documentationTracer.load(problemHandler);
 				}
 				if (!shouldStopBuild())
 				{
-					documentationTracer.generate(target);
+					documentationTracer.generate(target, problemHandler);
 				}
 				trimGraphToLoadedModules();
 			});
@@ -915,10 +921,14 @@ public final class AvailBuilder
 	 *        The resolved name of the module whose ancestors to trace.
 	 * @param destinationFile
 	 *        Where to write the .gv <strong>dot</strong> format file.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	public void generateGraph (
 		final ResolvedModuleName target,
-		final File destinationFile)
+		final File destinationFile,
+		final ProblemHandler problemHandler)
 	{
 		clearShouldStopBuild();
 		final BuildTracer tracer = new BuildTracer(this);
@@ -926,6 +936,7 @@ public final class AvailBuilder
 		{
 			tracer.traceThen(
 				target,
+				problemHandler,
 				() ->
 				{
 					final GraphTracer graphTracer = new GraphTracer(
@@ -1405,7 +1416,7 @@ public final class AvailBuilder
 			}
 			for (final Problem problem : deepestProblems)
 			{
-				buildProblemHandler.handle(problem);
+				commandProblemHandler.handle(problem);
 			}
 			onFailure.value();
 			return;

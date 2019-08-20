@@ -35,6 +35,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
@@ -105,11 +106,15 @@ final class BuildTracer
 	 * @param recursionSet
 	 *        An insertion-ordered {@linkplain Set set} that remembers all
 	 *        modules visited along this branch of the trace.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	private void scheduleTraceModuleImports (
 		final ModuleName qualifiedName,
 		final @Nullable ResolvedModuleName resolvedSuccessor,
-		final LinkedHashSet<ResolvedModuleName> recursionSet)
+		final LinkedHashSet<ResolvedModuleName> recursionSet,
+		final ProblemHandler problemHandler)
 	{
 		availBuilder.runtime.execute(
 			tracerPriority,
@@ -155,12 +160,15 @@ final class BuildTracer
 							indicateTraceCompleted();
 						}
 					};
-					availBuilder.buildProblemHandler.handle(problem);
+					problemHandler.handle(problem);
 					return;
 				}
 				AvailBuilder.log(Level.FINEST, "Trace: %s", resolvedName);
 				traceModuleImports(
-					resolvedName, resolvedSuccessor, recursionSet);
+					resolvedName,
+					resolvedSuccessor,
+					recursionSet,
+					problemHandler);
 			});
 	}
 
@@ -180,11 +188,15 @@ final class BuildTracer
 	 * @param recursionSet
 	 *        A {@link LinkedHashSet} that remembers all modules visited along
 	 *        this branch of the trace, and the order they were encountered.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	private void traceModuleImports (
 		final ResolvedModuleName resolvedName,
 		final @Nullable ResolvedModuleName resolvedSuccessor,
-		final LinkedHashSet<ResolvedModuleName> recursionSet)
+		final LinkedHashSet<ResolvedModuleName> recursionSet,
+		final ProblemHandler problemHandler)
 	{
 		// Detect recursion into this module.
 		if (recursionSet.contains(resolvedName))
@@ -205,7 +217,7 @@ final class BuildTracer
 					indicateTraceCompleted();
 				}
 			};
-			availBuilder.buildProblemHandler.handle(problem);
+			problemHandler.handle(problem);
 			return;
 		}
 		final boolean alreadyTraced;
@@ -244,7 +256,8 @@ final class BuildTracer
 			// This version was already traced and recorded for a
 			// subsequent replay… like right now.  Reuse it.
 			final List<String> importNames = version.getImports();
-			traceModuleNames(resolvedName, importNames, recursionSet);
+			traceModuleNames(
+				resolvedName, importNames, recursionSet, problemHandler);
 			indicateTraceCompleted();
 			return;
 		}
@@ -282,12 +295,15 @@ final class BuildTracer
 						availBuilder.serialize(header, newVersion);
 						archive.putVersion(versionKey, newVersion);
 						traceModuleNames(
-							resolvedName, importNames, recursionSet);
+							resolvedName,
+							importNames,
+							recursionSet,
+							problemHandler);
 						indicateTraceCompleted();
 					});
 			},
 			this::indicateTraceCompleted,
-			availBuilder.buildProblemHandler);
+			problemHandler);
 	}
 
 	/**
@@ -303,11 +319,15 @@ final class BuildTracer
 	 * @param recursionSet
 	 *        An insertion-ordered {@linkplain Set set} that remembers all
 	 *        modules visited along this branch of the trace.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
 	@InnerAccess void traceModuleNames (
 		final ResolvedModuleName moduleName,
 		final List<String> importNames,
-		final LinkedHashSet<ResolvedModuleName> recursionSet)
+		final LinkedHashSet<ResolvedModuleName> recursionSet,
+		final ProblemHandler problemHandler)
 	{
 		// Copy the recursion set to ensure the independence of each path of the
 		// tracing algorithm.
@@ -324,7 +344,8 @@ final class BuildTracer
 		for (final String localImport : importNames)
 		{
 			final ModuleName importName = moduleName.asSibling(localImport);
-			scheduleTraceModuleImports(importName, moduleName, newSet);
+			scheduleTraceModuleImports(
+				importName, moduleName, newSet, problemHandler);
 		}
 	}
 
@@ -351,11 +372,17 @@ final class BuildTracer
 	 * Determine the ancestry graph of the indicated module, recording it in the
 	 * {@link AvailBuilder#moduleGraph}.
 	 *
-	 * @param target The ultimate module to load.
-	 * @param afterAll What to do after the entire trace completes.
+	 * @param target
+	 *        The ultimate module to load.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
+	 * @param afterAll
+	 *        What to do after the entire trace completes.
 	 */
 	public void traceThen (
 		final ModuleName target,
+		final ProblemHandler problemHandler,
 		final Continuation0 afterAll)
 	{
 		synchronized (this)
@@ -363,7 +390,8 @@ final class BuildTracer
 			traceRequests = 1;
 			traceCompletions = 0;
 		}
-		scheduleTraceModuleImports(target, null, new LinkedHashSet<>());
+		scheduleTraceModuleImports(
+			target, null, new LinkedHashSet<>(), problemHandler);
 		// Wait until the parallel recursive trace completes.
 		synchronized (this)
 		{

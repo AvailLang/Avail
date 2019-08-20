@@ -34,6 +34,7 @@ package com.avail.builder;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CommentTokenDescriptor;
@@ -117,12 +118,16 @@ final class DocumentationTracer
 	 *
 	 * @param moduleName
 	 *        A module name.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 * @param completionAction
 	 *        What to do when comments have been loaded for the named
 	 *        module (or an error occurs).
 	 */
 	@InnerAccess void loadComments (
 		final ResolvedModuleName moduleName,
+		final ProblemHandler problemHandler,
 		final Continuation0 completionAction)
 	{
 		final @Nullable ModuleVersion version = getVersion(moduleName);
@@ -143,7 +148,7 @@ final class DocumentationTracer
 					completionAction.value();
 				}
 			};
-			availBuilder.buildProblemHandler.handle(problem);
+			problemHandler.handle(problem);
 			return;
 		}
 		final @Nullable A_Tuple tuple;
@@ -180,7 +185,7 @@ final class DocumentationTracer
 					completionAction.value();
 				}
 			};
-			availBuilder.buildProblemHandler.handle(problem);
+			problemHandler.handle(problem);
 			return;
 		}
 		final ModuleHeader header;
@@ -212,7 +217,7 @@ final class DocumentationTracer
 					completionAction.value();
 				}
 			};
-			availBuilder.buildProblemHandler.handle(problem);
+			problemHandler.handle(problem);
 			return;
 		}
 		generator.add(header, tuple);
@@ -226,12 +231,16 @@ final class DocumentationTracer
 	 *
 	 * @param moduleName
 	 *        A module name.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 * @param completionAction
 	 *        What to do when comments have been loaded for the named
 	 *        module.
 	 */
 	private void scheduleLoadComments (
 		final ResolvedModuleName moduleName,
+		final ProblemHandler problemHandler,
 		final Continuation0 completionAction)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
@@ -252,7 +261,7 @@ final class DocumentationTracer
 				}
 				else
 				{
-					loadComments(moduleName, completionAction);
+					loadComments(moduleName, problemHandler, completionAction);
 				}
 			});
 	}
@@ -260,10 +269,18 @@ final class DocumentationTracer
 	/**
 	 * Load the {@linkplain CommentTokenDescriptor comments} for all {@linkplain
 	 * ModuleDescriptor modules} in the {@link AvailBuilder#moduleGraph}.
+	 *
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
-	void load ()
+	void load (
+		final ProblemHandler problemHandler)
 	{
-		availBuilder.moduleGraph.parallelVisit(this::scheduleLoadComments);
+		availBuilder.moduleGraph.parallelVisit(
+			(moduleName, completionAction) ->
+				scheduleLoadComments(
+					moduleName, problemHandler, completionAction));
 	}
 
 	/**
@@ -272,8 +289,13 @@ final class DocumentationTracer
 	 * @param target
 	 *        The outermost {@linkplain ModuleDescriptor module} for the
 	 *        generation request.
+	 * @param problemHandler
+	 *        How to handle or report {@link Problem}s that arise during the
+	 *        build.
 	 */
-	void generate (final ModuleName target)
+	void generate (
+		final ModuleName target,
+		final ProblemHandler problemHandler)
 	{
 		try
 		{
@@ -296,7 +318,7 @@ final class DocumentationTracer
 						"Unable to generate Stacks documentation");
 				}
 			};
-			availBuilder.buildProblemHandler.handle(problem);
+			problemHandler.handle(problem);
 		}
 	}
 }

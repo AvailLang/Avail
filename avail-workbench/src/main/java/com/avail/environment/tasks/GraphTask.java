@@ -50,14 +50,19 @@ import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 public final class GraphTask
 extends AbstractWorkbenchTask
 {
+	@SuppressWarnings("RedundantThrows")
 	@Override
-	protected void executeTask () throws Exception
+	protected void executeTask ()
+	throws Exception
 	{
 		//noinspection CaughtExceptionImmediatelyRethrown
 		try
 		{
 			final File file = new File("modules.dot");
-			workbench.availBuilder.generateGraph(targetModuleName(), file);
+			workbench.availBuilder.generateGraph(
+				targetModuleName(),
+				file,
+				workbench.availBuilder.buildProblemHandler);
 			workbench.writeText(
 				String.format(
 					"Module graph '%s' was created.\n",
