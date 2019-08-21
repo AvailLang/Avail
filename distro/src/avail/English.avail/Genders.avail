@@ -42,7 +42,7 @@ Names
 	"gender",
 		/* fields */
 		"grammatical gender identity",
-			/*"_'s⁇identity",*/
+			"_'s⁇gender identity",
 		/* subtypes */
 		"English gender",
 			/* subtypes */
@@ -107,14 +107,14 @@ Public "grammatical gender identity" is a new field atom;
  * for new {@type "gender"}s.
  *
  * @type "gender"
- * @supertype "object"
+ * @supertype "attribute"
  * @field "grammatical gender identity" "atom"
  *        The {@type "atom"} that distinguishes one {@type "gender"} instance
  *        from another.
  */
-Public explicit class "gender" extends object
+Public class "gender" extends attribute
 	with field
-		grammatical gender identity : atom ("_'s⁇identity");
+		public grammatical gender identity : atom ("_'s⁇gender identity");
 
 ////////////////////////////////////////////////////////////////////////////////
 //                              English genders.                              //
@@ -122,17 +122,19 @@ Public explicit class "gender" extends object
 
 // Construct the classical gender identities, subtypes, and instances
 // systematically, to reduce boilerplate and constructively assure correctness.
-For each aGender of <"feminine", "masculine", "neuter"> do
+For each aGender, index of <"feminine", "masculine", "neuter"> do
 [
 	identityAtomName ::= aGender ++ " gender identity";
 	className ::= aGender ++ " gender";
 	methodName ::= aGender;
 
 	identityAtom ::= atom for identityAtomName;
+	identityAtom's index ::= index;
 	Method identityAtom is [identityAtom];
 	Class className extends gender
 		with field
-			grammatical gender identity : {identityAtom}ᵀ ("_'s⁇identity");
+			grammatical gender identity : {identityAtom}ᵀ
+				("_'s⁇gender identity");
 	instance ::=
 		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
 		«<
@@ -141,6 +143,12 @@ For each aGender of <"feminine", "masculine", "neuter"> do
 		>» : gender;
 	Stable method methodName is [instance];
 	Semantic restriction methodName is [instance's type];
+	Stable method "“_”" is
+	«[
+		<arg «this token: x : instance's type»>
+	|
+		<‘methodName’>
+	] : nonempty string» → function;
 ];
 
 /**
@@ -213,9 +221,9 @@ Semantic restriction "_-gendered" is
 Test "English genders" in gender test suite is
 [
 	Require: ¬feminine gender = masculine gender = neuter gender;
-	Require: feminine gender's identity = {feminine gender identity}ᵀ;
-	Require: masculine gender's identity = {masculine gender identity}ᵀ;
-	Require: neuter gender's identity = {neuter gender identity}ᵀ;
+	Require: feminine gender's gender identity = {feminine gender identity}ᵀ;
+	Require: masculine gender's gender identity = {masculine gender identity}ᵀ;
+	Require: neuter gender's gender identity = {neuter gender identity}ᵀ;
 	Require: feminine gender ⊆ English gender;
 	Require: masculine gender ⊆ English gender;
 	Require: neuter gender ⊆ English gender;
@@ -223,6 +231,9 @@ Test "English genders" in gender test suite is
 	Require: feminine ∈ feminine gender;
 	Require: masculine ∈ masculine gender;
 	Require: neuter ∈ neuter gender;
+	Require: feminine's gender identity's index = 1;
+	Require: masculine's gender identity's index = 2;
+	Require: neuter's gender identity's index = 3;
 	Require: feminine-gendered
 		⊆ (extend gendered with grammatical gender : feminine gender);
 	Require: masculine-gendered

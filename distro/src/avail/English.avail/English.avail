@@ -40,9 +40,12 @@ Uses
 		"comment lexer"
 	)
 Extends
+	"Common" = ("English exception"),
+	"Cases",
 	"Genders",
 	"Persons",
-	"Pronouns"
+	"Pronouns",
+	"Numbers"
 Body
 
 /**
