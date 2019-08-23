@@ -36,12 +36,21 @@ import java.time.format.DateTimeFormatter
 
 plugins {
 	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
 }
 
 group 'org.availlang'
 version '1.4'
 
 sourceCompatibility = 1.8
+
+compileKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
 
 repositories {
 	mavenCentral()
@@ -50,6 +59,11 @@ repositories {
 dependencies {
 	// Avail.
 	implementation rootProject
+
+	// Kotlin.
+	implementation group: 'org.jetbrains.kotlin',
+		name: 'kotlin-stdlib-jdk8',
+		version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
