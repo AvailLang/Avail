@@ -51,6 +51,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
@@ -72,7 +73,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -523,15 +523,15 @@ public final class AvailBuilder
 		version.putModuleHeader(bytes);
 	}
 
-	/**
-	 * How to handle problems during a build.
-	 */
-	public final ProblemHandler buildProblemHandler;
+	/** How to handle problems during a build. */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	public final ProblemHandler buildProblemHandler =
+		new BuilderProblemHandler(this, "[%s]: module \"%s\", line %d:%n%s%n");
 
-	/**
-	 * How to handle problems during command execution.
-	 */
-	public final ProblemHandler commandProblemHandler;
+	/** How to handle problems during command execution. */
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	public final ProblemHandler commandProblemHandler =
+		new BuilderProblemHandler(this, "[%1$s]: %4$s%n");
 
 	/**
 	 * A LoadedModule holds state about what the builder knows about a currently
@@ -539,9 +539,7 @@ public final class AvailBuilder
 	 */
 	public static class LoadedModule
 	{
-		/**
-		 * The resolved name of this module.
-		 */
+		/** The resolved name of this module. */
 		public final ResolvedModuleName name;
 
 		/**
@@ -734,15 +732,10 @@ public final class AvailBuilder
 	 *        The {@link AvailRuntime} in which to load modules and execute
 	 *        commands.
 	 */
-	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	public AvailBuilder (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
 		this.textInterface = runtime.textInterface();
-		buildProblemHandler = new BuilderProblemHandler(
-			this, "[%s]: module \"%s\", line %d:%n%s%n");
-		commandProblemHandler = new BuilderProblemHandler(
-			this, "[%1$s]: %4$s%n");
 	}
 
 	/**
@@ -1220,7 +1213,7 @@ public final class AvailBuilder
 				new BuilderProblemHandler(this, "«collection only»")
 				{
 					@Override
-					protected void handleGeneric (
+					public void handleGeneric (
 						final Problem problem,
 						final Continuation1NotNull<Boolean> decider)
 					{
@@ -1260,24 +1253,9 @@ public final class AvailBuilder
 						textInterface.errorChannel().write(
 							problem.toString(),
 							null,
-							new CompletionHandler<Integer, Void>()
-							{
-								@Override
-								public void completed (
-									final @Nullable Integer result,
-									final @Nullable Void attachment)
-								{
-									handleGeneric(problem, decider);
-								}
-
-								@Override
-								public void failed (
-									final @Nullable Throwable exc,
-									final @Nullable Void attachment)
-								{
-									handleGeneric(problem, decider);
-								}
-							});
+							new SimpleCompletionHandler<>(
+								r -> handleGeneric(problem, decider),
+								t -> handleGeneric(problem, decider)));
 					}
 
 					@Override
@@ -1289,24 +1267,9 @@ public final class AvailBuilder
 						textInterface.errorChannel().write(
 							problem.toString(),
 							null,
-							new CompletionHandler<Integer, Void>()
-							{
-								@Override
-								public void completed (
-									final @Nullable Integer result,
-									final @Nullable Void attachment)
-								{
-									handleGeneric(problem, decider);
-								}
-
-								@Override
-								public void failed (
-									final @Nullable Throwable exc,
-									final @Nullable Void attachment)
-								{
-									handleGeneric(problem, decider);
-								}
-							});
+							new SimpleCompletionHandler<>(
+								r -> handleGeneric(problem, decider),
+								t -> handleGeneric(problem, decider)));
 					}
 				});
 			compiler.parseCommand(

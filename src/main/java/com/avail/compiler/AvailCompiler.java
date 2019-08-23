@@ -55,6 +55,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -77,7 +78,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
@@ -653,83 +653,102 @@ public final class AvailCompiler
 			problemHandler.handle(problem);
 			return;
 		}
-		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
-			new MutableOrNull<>();
 		final StringBuilder sourceBuilder = new StringBuilder(4096);
 		final MutableLong filePosition = new MutableLong(0L);
-		handler.value = new CompletionHandler<Integer, Void>()
-		{
-			@Override
-			public void completed (
-				final @Nullable Integer bytesRead,
-				final @Nullable Void nothing)
-			{
-				try
+		// Kick off the asynchronous read.
+		file.read(
+			input,
+			0L,
+			null,
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
-					assert bytesRead != null;
-					boolean moreInput = true;
-					if (bytesRead == -1)
+					try
 					{
-						moreInput = false;
-					}
-					else
-					{
-						filePosition.value += bytesRead;
-					}
-					input.flip();
-					final CoderResult result = decoder.decode(
-						input, output, !moreInput);
-					// UTF-8 never compresses data, so the number of
-					// characters encoded can be no greater than the number
-					// of bytes encoded. The input buffer and the output
-					// buffer are equally sized (in units), so an overflow
-					// cannot occur.
-					assert !result.isOverflow();
-					assert !result.isError();
-					// If the decoder didn't consume all of the bytes, then
-					// preserve the unconsumed bytes in the next buffer (for
-					// decoding).
-					if (input.hasRemaining())
-					{
-						input.compact();
-					}
-					else
-					{
-						input.clear();
-					}
-					output.flip();
-					sourceBuilder.append(output);
-					// If more input remains, then queue another read.
-					if (moreInput)
-					{
-						output.clear();
-						file.read(
-							input,
-							filePosition.value,
-							null,
-							handler.value);
-					}
-					// Otherwise, close the file channel and queue the
-					// original continuation.
-					else
-					{
-						decoder.flush(output);
+						boolean moreInput = true;
+						if (bytesRead == -1)
+						{
+							moreInput = false;
+						}
+						else
+						{
+							filePosition.value += bytesRead;
+						}
+						input.flip();
+						final CoderResult result = decoder.decode(
+							input, output, !moreInput);
+						// UTF-8 never compresses data, so the number of
+						// characters encoded can be no greater than the number
+						// of bytes encoded. The input buffer and the output
+						// buffer are equally sized (in units), so an overflow
+						// cannot occur.
+						assert !result.isOverflow();
+						assert !result.isError();
+						// If the decoder didn't consume all of the bytes, then
+						// preserve the unconsumed bytes in the next buffer (for
+						// decoding).
+						if (input.hasRemaining())
+						{
+							input.compact();
+						}
+						else
+						{
+							input.clear();
+						}
+						output.flip();
 						sourceBuilder.append(output);
-						file.close();
-						runtime.execute(
-							FiberDescriptor.compilerPriority,
-							() -> continuation.value(sourceBuilder.toString()));
+						// If more input remains, then queue another read.
+						if (moreInput)
+						{
+							output.clear();
+							file.read(
+								input,
+								filePosition.value,
+								null,
+								handler);
+						}
+						// Otherwise, close the file channel and queue the
+						// original continuation.
+						else
+						{
+							decoder.flush(output);
+							sourceBuilder.append(output);
+							file.close();
+							runtime.execute(
+								FiberDescriptor.compilerPriority,
+								() -> continuation.value(sourceBuilder.toString()));
+						}
 					}
-				}
-				catch (final IOException e)
-				{
+					catch (final IOException e)
+					{
+						final Problem problem = new Problem(
+							resolvedName,
+							1,
+							0,
+							PARSE,
+							"Invalid UTF-8 encoding in source module "
+								+ "\"{0}\": {1}\n{2}",
+							resolvedName,
+							e.getLocalizedMessage(),
+							trace(e))
+						{
+							@Override
+							public void abortCompilation ()
+							{
+								fail.value();
+							}
+						};
+						problemHandler.handle(problem);
+					}
+				},
+				// failure
+				(e, ignored, handler) -> {
 					final Problem problem = new Problem(
 						resolvedName,
 						1,
 						0,
-						PARSE,
-						"Invalid UTF-8 encoding in source module "
-						+ "\"{0}\": {1}\n{2}",
+						EXTERNAL,
+						"Unable to read source module \"{0}\": {1}\n{2}",
 						resolvedName,
 						e.getLocalizedMessage(),
 						trace(e))
@@ -741,36 +760,7 @@ public final class AvailCompiler
 						}
 					};
 					problemHandler.handle(problem);
-				}
-			}
-
-			@Override
-			public void failed (
-				final @Nullable Throwable e,
-				final @Nullable Void attachment)
-			{
-				assert e != null;
-				final Problem problem = new Problem(
-					resolvedName,
-					1,
-					0,
-					EXTERNAL,
-					"Unable to read source module \"{0}\": {1}\n{2}",
-					resolvedName,
-					e.getLocalizedMessage(),
-					trace(e))
-				{
-					@Override
-					public void abortCompilation ()
-					{
-						fail.value();
-					}
-				};
-				problemHandler.handle(problem);
-			}
-		};
-		// Kick off the asynchronous read.
-		file.read(input, 0L, null, handler.value);
+				}));
 	}
 
 	/**

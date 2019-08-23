@@ -37,13 +37,11 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -67,6 +65,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.lang.Integer.MAX_VALUE;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -141,38 +140,24 @@ extends Primitive
 			socket.read(
 				buffer,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer bytesRead,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<>(
+					bytesRead ->
 					{
-						assert bytesRead != null;
 						buffer.flip();
 						Interpreter.runOutermostFunction(
 							runtime,
 							newFiber,
 							succeed,
-							Arrays.asList(
+							asList(
 								tupleForByteBuffer(buffer),
 								objectFromBoolean(bytesRead == -1)));
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable killer,
-						final @Nullable Void attachment)
-					{
-						assert killer != null;
-						Interpreter.runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							singletonList(
-								E_IO_ERROR.numericCode()));
-					}
-				});
+					},
+					killer -> Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						singletonList(
+							E_IO_ERROR.numericCode()))));
 		}
 		catch (final IllegalArgumentException e)
 		{

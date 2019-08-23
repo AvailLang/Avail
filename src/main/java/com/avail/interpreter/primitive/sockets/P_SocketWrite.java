@@ -37,13 +37,11 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.util.Collections;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -63,6 +61,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -151,18 +150,14 @@ extends Primitive
 			socket.write(
 				buffer,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer bytesWritten,
-						final @Nullable Void attachment)
+				new SimpleCompletionHandler<>(
+					(bytesWritten, unused, handler) ->
 					{
 						// If not all bytes have been written yet, then keep
 						// writing.
 						if (buffer.hasRemaining())
 						{
-							socket.write(buffer, null, this);
+							socket.write(buffer, null, handler);
 						}
 						// Otherwise, report success.
 						else
@@ -171,23 +166,16 @@ extends Primitive
 								runtime,
 								newFiber,
 								succeed,
-								Collections.emptyList());
+								emptyList());
 						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable killer,
-						final @Nullable Void attachment)
-					{
+					},
+					(killer, unused, handler) ->
 						Interpreter.runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
 							singletonList(
-								E_IO_ERROR.numericCode()));
-					}
-				});
+								E_IO_ERROR.numericCode()))));
 		}
 		catch (final IllegalStateException e)
 		{

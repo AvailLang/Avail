@@ -37,12 +37,11 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -136,14 +135,9 @@ extends Primitive
 			final A_Module module = currentModule();
 			socket.accept(
 				null,
-				new CompletionHandler<AsynchronousSocketChannel, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable AsynchronousSocketChannel newSocket,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<AsynchronousSocketChannel, Void>(
+					newSocket ->
 					{
-						assert newSocket != null;
 						final A_Atom newHandle = createAtom(name, module);
 						final AvailObject newPojo = identityPojo(newSocket);
 						newHandle.setAtomProperty(SOCKET_KEY.atom, newPojo);
@@ -152,22 +146,13 @@ extends Primitive
 							newFiber,
 							succeed,
 							singletonList(newHandle));
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable killer,
-						final @Nullable Void unused)
-					{
-						assert killer != null;
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							singletonList(
-								E_IO_ERROR.numericCode()));
-					}
-				});
+					},
+					killer -> runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						singletonList(
+							E_IO_ERROR.numericCode()))));
 		}
 		catch (final IllegalStateException e)
 		{

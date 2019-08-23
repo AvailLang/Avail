@@ -34,10 +34,9 @@ package com.avail.builder;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
-import javax.annotation.Nullable;
-import java.nio.channels.CompletionHandler;
 import java.util.Formatter;
 
 import static java.lang.String.format;
@@ -46,7 +45,7 @@ import static java.lang.String.format;
  * The {@code BuilderProblemHandler} handles {@linkplain Problem problems}
  * encountered during a build.
  */
-class BuilderProblemHandler extends ProblemHandler
+class BuilderProblemHandler implements ProblemHandler
 {
 	/** The {@link AvailBuilder} for which we handle problems. */
 	private final AvailBuilder availBuilder;
@@ -87,7 +86,7 @@ class BuilderProblemHandler extends ProblemHandler
 	}
 
 	@Override
-	protected void handleGeneric (
+	public void handleGeneric (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -101,23 +100,8 @@ class BuilderProblemHandler extends ProblemHandler
 		availBuilder.textInterface.errorChannel().write(
 			formatted,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void attachment)
-				{
-					decider.value(false);
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable Void attachment)
-				{
-					decider.value(false);
-				}
-			});
+			new SimpleCompletionHandler<Integer, Void>(
+				r -> decider.value(false),
+				t -> decider.value(false)));
 	}
 }

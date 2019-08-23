@@ -34,15 +34,14 @@ package com.avail.stacks;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.utility.IO;
 import com.avail.utility.MutableLong;
 import com.avail.utility.Nulls;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -103,35 +102,26 @@ public class StacksOutputFile
 			buffer,
 			pos.value,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesWritten,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesWritten, unused, handler) ->
 				{
 					if (buffer.hasRemaining())
 					{
 						pos.value += Nulls.stripNull(bytesWritten);
-						outputFile.write(buffer, pos.value, null, this);
+						outputFile.write(buffer, pos.value, null, handler);
 					}
 					else
 					{
 						IO.close(outputFile);
 						synchronizer.decrementWorkCounter();
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable Void unused)
+				},
+				(exc, unused, handler) ->
 				{
 					// Log something?
 					IO.close(outputFile);
 					synchronizer.decrementWorkCounter();
-				}
-			});
+				}));
 	}
 
 	/**

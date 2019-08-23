@@ -33,6 +33,7 @@
 package com.avail.server.io;
 
 import com.avail.annotations.InnerAccess;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;
@@ -50,7 +51,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AcceptPendingException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -391,27 +391,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			transport.write(
 				bytes,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<>(
+					(result, unused, handler) ->
 					{
 						if (bytes.hasRemaining())
 						{
-							transport.write(bytes, unused, this);
+							transport.write(bytes, null, handler);
 						}
 						else
 						{
 							IO.close(channel);
 						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable e,
-						final @Nullable Void unused)
+					},
+					(e, unused, handler) ->
 					{
 						//noinspection ObjectToString
 						logger.log(
@@ -419,8 +411,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
-					}
-				});
+					}));
 		}
 
 		/**
@@ -544,12 +535,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			transport.read(
 				buffer,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer bytesRead,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<>(
+					(bytesRead, unused, handler) ->
 					{
 						if (remoteEndClosed(transport, bytesRead))
 						{
@@ -579,7 +566,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							if (!state.value().isAcceptState())
 							{
 								buffer.clear();
-								transport.read(buffer, unused, this);
+								transport.read(buffer, null, handler);
 							}
 							else
 							{
@@ -596,20 +583,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								}
 							}
 						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable e,
-						final @Nullable Void unused)
+					},
+					(e, unused, handler) ->
 					{
 						logger.log(
 							Level.WARNING,
 							"failed while attempting to read client handshake",
 							e);
 						IO.close(channel);
-					}
-				});
+					}));
 		}
 	}
 
@@ -785,27 +767,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			transport.write(
 				bytes,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<>(
+					(result, unused, handler) ->
 					{
 						if (bytes.hasRemaining())
 						{
-							transport.write(bytes, unused, this);
+							transport.write(bytes, null, handler);
 						}
 						else
 						{
 							IO.close(channel);
 						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable e,
-						final @Nullable Void unused)
+					},
+					(e, unused, handler) ->
 					{
 						//noinspection ObjectToString
 						logger.log(
@@ -813,8 +787,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
-					}
-				});
+					}));
 		}
 	}
 
@@ -938,35 +911,26 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			channel.write(
 				bytes,
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable Void unused)
+				new SimpleCompletionHandler<>(
+					(result, unused, handler) ->
 					{
 						if (bytes.hasRemaining())
 						{
-							channel.write(bytes, unused, this);
+							channel.write(bytes, null, handler);
 						}
 						else
 						{
 							continuation.value();
 						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable e,
-						final @Nullable Void unused)
+					},
+					(e, unused, handler) ->
 					{
 						logger.log(
 							Level.WARNING,
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
-					}
-				});
+					}));
 		}
 	}
 
@@ -977,16 +941,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	{
 		serverChannel.accept(
 			null,
-			new CompletionHandler<AsynchronousSocketChannel, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable AsynchronousSocketChannel transport,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(transport, unused, handler) ->
 				{
-					assert transport != null;
 					// Asynchronously accept a subsequent connection.
-					serverChannel.accept(unused, this);
+					serverChannel.accept(null, handler);
 					final WebSocketChannel channel =
 						new WebSocketChannel(WebSocketAdapter.this, transport);
 					// Process the client request.
@@ -998,14 +957,9 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							assert request != null;
 							processRequest(request, channel);
 						});
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
-					assert e != null;
 					// If there was a race between two accepts, then simply
 					// ignore one of them.
 					if (!(e instanceof AcceptPendingException))
@@ -1016,8 +970,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							e);
 						close();
 					}
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1216,6 +1169,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * {@code WebSocketStatusCode} represents one of the generic WebSocket
 	 * status codes.
 	 */
+	@SuppressWarnings("unused")
 	private enum WebSocketStatusCode
 	{
 		/** Normal closure. */
@@ -1626,12 +1580,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -1639,7 +1589,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -1650,20 +1600,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						frame.opcode = Opcode.all()[b & 0x0F];
 						readPayloadLengthThen(channel, frame, continuation);
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read opcode",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1686,12 +1631,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -1699,7 +1640,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -1733,20 +1674,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								break;
 						}
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read payload size",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1769,12 +1705,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -1782,7 +1714,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -1811,20 +1743,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							}
 						}
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read 2-byte payload size",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1847,12 +1774,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -1860,7 +1783,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -1901,20 +1824,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							}
 						}
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read 8-byte payload size",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1937,12 +1855,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -1950,7 +1864,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -1958,20 +1872,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						frame.maskingKey = buffer;
 						readPayloadDataThen(channel, frame, continuation);
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read masking key",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -1996,12 +1905,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(bytesRead, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
@@ -2009,7 +1914,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -2030,20 +1935,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						// continuation now.
 						continuation.value();
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read payload",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -2080,27 +1980,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.write(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(result, unused, handler) ->
 				{
 					if (buffer.hasRemaining())
 					{
-						transport.write(buffer, null, this);
+						transport.write(buffer, null, handler);
 					}
 					else if (success != null)
 					{
 						success.value();
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
@@ -2119,8 +2011,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						failure.value(e);
 					}
-				}
-			});
+				}));
 		}
 
 	/**

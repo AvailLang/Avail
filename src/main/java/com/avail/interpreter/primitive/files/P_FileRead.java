@@ -38,6 +38,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem;
 import com.avail.io.IOSystem.BufferKey;
 import com.avail.io.IOSystem.FileHandle;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
@@ -45,7 +46,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -286,14 +286,10 @@ extends Primitive
 			buffer,
 			oneBasedPositionLong - 1,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer bytesRead,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<Integer, Void>(
+				// completion
+				bytesRead ->
 				{
-					assert bytesRead != null;
 					buffer.flip();
 					final A_Tuple bytesTuple;
 					if (bytesRead == -1)
@@ -346,22 +342,14 @@ extends Primitive
 						newFiber,
 						succeed,
 						singletonList(bytesTuple));
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable killer,
-					final @Nullable Void attachment)
-				{
-					assert killer != null;
-					runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						singletonList(
-							E_IO_ERROR.numericCode()));
-				}
-			});
+				},
+				// failed
+				killer -> runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					singletonList(
+						E_IO_ERROR.numericCode()))));
 		return interpreter.primitiveSuccess(newFiber);
 	}
 

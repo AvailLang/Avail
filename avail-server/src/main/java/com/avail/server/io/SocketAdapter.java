@@ -33,6 +33,7 @@
 package com.avail.server.io;
 
 import com.avail.annotations.InnerAccess;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;
@@ -47,7 +48,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AcceptPendingException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
@@ -117,27 +117,17 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	{
 		serverChannel.accept(
 			null,
-			new CompletionHandler<AsynchronousSocketChannel, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable AsynchronousSocketChannel transport,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(transport, unused, handler) ->
 				{
-					assert transport != null;
 					// Asynchronously accept a subsequent connection.
-					serverChannel.accept(unused, this);
+					serverChannel.accept(null, handler);
 					final SocketChannel channel =
 						new SocketChannel(SocketAdapter.this, transport);
 					readMessage(channel);
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
-					assert e != null;
 					// If there was a race between two accepts, then simply
 					// ignore one of them.
 					if (!(e instanceof AcceptPendingException))
@@ -148,8 +138,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							e);
 						close();
 					}
-				}
-			});
+				}));
 	}
 
 	/**
@@ -165,9 +154,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 */
 	@InnerAccess static boolean remoteEndClosed (
 		final AsynchronousSocketChannel transport,
-		final @Nullable Integer result)
+		final Integer result)
 	{
-		assert result != null;
 		if (result == -1)
 		{
 			logger.log(Level.INFO, transport + " closed");
@@ -194,12 +182,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<>(
+				(result, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, result))
 					{
@@ -207,7 +191,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
@@ -242,20 +226,15 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								});
 						}
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read payload length",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	/**
@@ -269,7 +248,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do with the payload.
 	 */
-	@InnerAccess void readPayloadThen (
+	static void readPayloadThen (
 		final SocketChannel channel,
 		final int payloadLength,
 		final Continuation1NotNull<ByteBuffer> continuation)
@@ -279,12 +258,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.read(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void attachment)
+			new SimpleCompletionHandler<>(
+				(result, unused, handler) ->
 				{
 					if (remoteEndClosed(transport, result))
 					{
@@ -292,27 +267,22 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					if (buffer.hasRemaining())
 					{
-						transport.read(buffer, null, this);
+						transport.read(buffer, null, handler);
 					}
 					else
 					{
 						buffer.flip();
 						continuation.value(buffer);
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to read payload",
 						e);
 					IO.close(channel);
-				}
-			});
+				}));
 	}
 
 	@Override
@@ -329,27 +299,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.write(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void attachment)
+			new SimpleCompletionHandler<>(
+				(result, unused, handler) ->
 				{
 					if (buffer.hasRemaining())
 					{
-						transport.write(buffer, null, this);
+						transport.write(buffer, null, handler);
 					}
 					else if (success != null)
 					{
 						success.value();
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
@@ -360,8 +322,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						failure.value(e);
 					}
-				}
-			});
+				}));
 	}
 
 	@Override
@@ -376,35 +337,26 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		transport.write(
 			buffer,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void unused)
+			new SimpleCompletionHandler<Integer, Void>(
+				(result, unused, handler) ->
 				{
 					if (buffer.hasRemaining())
 					{
-						transport.write(buffer, null, this);
+						transport.write(buffer, null, handler);
 					}
 					else
 					{
 						IO.close(transport);
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable e,
-					final @Nullable Void unused)
+				},
+				(e, unused, handler) ->
 				{
 					logger.log(
 						Level.WARNING,
 						"failed while attempting to send close notification",
 						e);
 					IO.close(transport);
-				}
-			});
+				}));
 	}
 
 	@Override
