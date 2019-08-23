@@ -31,6 +31,7 @@
  */
 
 package com.avail.optimizer;
+
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
@@ -51,15 +52,7 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -259,7 +252,6 @@ public class L2ControlFlowGraphVisualizer
 			{
 				builder.appendCodePoint(cp);
 			}
-			//noinspection AssignmentToForLoopParameter
 			i += Character.charCount(cp);
 		}
 		return builder.toString();
@@ -317,6 +309,9 @@ public class L2ControlFlowGraphVisualizer
 	 *        A {@code L2BasicBlock}.
 	 * @param writer
 	 *        The {@link GraphWriter} for emission.
+	 * @param started
+	 *        {@code true} if the basic block is starting, {@code false}
+	 *        otherwise.
 	 */
 	private void basicBlock (
 		final L2BasicBlock basicBlock,

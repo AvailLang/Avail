@@ -103,6 +103,7 @@
       <w>gmail</w>
       <w>guillemet</w>
       <w>guillemets</w>
+      <w>headlabel</w>
       <w>heritability</w>
       <w>heritable</w>
       <w>hexadecimal</w>
@@ -241,6 +242,7 @@
       <w>subclassing</w>
       <w>subdirectories</w>
       <w>subdirectory</w>
+      <w>subgraph</w>
       <w>subkind</w>
       <w>subnodes</w>
       <w>subobject</w>
@@ -256,6 +258,7 @@
       <w>supernodes</w>
       <w>supertype</w>
       <w>supertypes</w>
+      <w>taillabel</w>
       <w>tally</w>
       <w>tastier</w>
       <w>throwable</w>
