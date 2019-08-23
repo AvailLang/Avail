@@ -84,9 +84,11 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.utility.Casts.cast;
@@ -2558,6 +2560,24 @@ implements
 	public IteratorNotNull<AvailObject> iterator ()
 	{
 		return descriptor.o_Iterator(this);
+	}
+
+	@Override
+	public Spliterator<AvailObject> spliterator ()
+	{
+		return descriptor.o_Spliterator(this);
+	}
+
+	@Override
+	public Stream<AvailObject> stream ()
+	{
+		return descriptor.o_Stream(this);
+	}
+
+	@Override
+	public Stream<AvailObject> parallelStream ()
+	{
+		return descriptor.o_ParallelStream(this);
 	}
 
 	@Override

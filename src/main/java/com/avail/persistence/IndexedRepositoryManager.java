@@ -248,7 +248,6 @@ public class IndexedRepositoryManager implements Closeable
 	 * @param <K> The keys of the cache.
 	 * @param <V> The values associated with keys of the cache.
 	 */
-	@SuppressWarnings("serial")
 	public static class LimitedCache<K, V>
 	extends LinkedHashMap<K, V>
 	{
@@ -327,7 +326,7 @@ public class IndexedRepositoryManager implements Closeable
 			final File sourceFile = resolvedModuleName.sourceReference();
 			// assert sourceFile != null;
 			final long lastModification = sourceFile.lastModified();
-			byte [] digest = digestCache.get(lastModification);
+			@Nullable byte [] digest = digestCache.get(lastModification);
 			if (digest == null)
 			{
 				// Don't bother protecting against computing the digest for the

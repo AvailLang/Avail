@@ -92,6 +92,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
@@ -4325,6 +4326,25 @@ public abstract class AbstractDescriptor
 	 */
 	abstract IteratorNotNull<AvailObject> o_Iterator (
 		AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Spliterator<AvailObject> o_Spliterator (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Stream<AvailObject> o_Stream (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Stream<AvailObject> o_ParallelStream (AvailObject object);
+
 
 	/**
 	 * @param object

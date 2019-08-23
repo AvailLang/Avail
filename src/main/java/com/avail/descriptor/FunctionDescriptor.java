@@ -294,9 +294,9 @@ extends Descriptor
 	 * @param function
 	 *        The function which the new function should invoke when itself
 	 *        invoked.
-	 * @return Any appropriate function.
+	 * @return An appropriate function with the given signature.
 	 */
-	public static A_Function createStubWithArgTypes (
+	public static A_Function createStubWithSignature (
 		final A_Type functionType,
 		final A_Function function)
 	{
@@ -308,10 +308,7 @@ extends Descriptor
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
 		final A_Type returnType = functionType.returnType();
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil,
-			0,
-			nil);
+		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
@@ -327,6 +324,70 @@ extends Descriptor
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
+			writer.addLiteral(returnType));
+		final AvailObject code = writer.compiledCode();
+		final A_Function newFunction =
+			createFunction(code, emptyTuple());
+		newFunction.makeImmutable();
+		return newFunction;
+	}
+
+	/**
+	 * Create a function that takes arguments of the specified types, then calls
+	 * the {@link A_Method} for the {@link A_Bundle} of the given {@link A_Atom}
+	 * with those arguments.
+	 *
+	 * @param functionType
+	 *        The type to which the resultant function should conform.
+	 * @param atom
+	 *        The {@link A_Atom} which names the {@link A_Method} to be invoked
+	 *        by the new function.
+	 * @return An appropriate function.
+	 * @throws IllegalArgumentException
+	 *         If the atom has no associated bundle/method, or the function
+	 *         signature is inconsistent with the available method definitions.
+	 */
+	public static A_Function createStubToCallMethod (
+		final A_Type functionType,
+		final A_Atom atom)
+	{
+		final A_Bundle bundle = atom.bundleOrNil();
+		if (bundle.equalsNil())
+		{
+			throw new IllegalArgumentException("Atom to invoke has no method");
+		}
+		final A_Method method = bundle.bundleMethod();
+		final A_Type argTypes = functionType.argsTupleType();
+		// Check that there's a definition, even abstract, that will catch all
+		// invocations for the given function type's argument types.
+		final boolean ok = method.definitionsTuple().stream()
+			.anyMatch(definition ->
+				!definition.isMacroDefinition()
+					&& definition.bodySignature().isSubtypeOf(functionType));
+		if (!ok)
+		{
+			throw new IllegalArgumentException(
+				"Function signature is not strong enough to call method "
+					+ "safely");
+		}
+		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
+		final A_Type[] argTypesArray = new AvailObject[numArgs];
+		for (int i = 1; i <= numArgs; i++)
+		{
+			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
+		}
+		final A_Type returnType = functionType.returnType();
+		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
+		writer.argumentTypes(argTypesArray);
+		writer.returnType(returnType);
+		for (int i = 1; i <= numArgs; i++)
+		{
+			writer.write(0, L1Operation.L1_doPushLastLocal, i);
+		}
+		writer.write(
+			0,
+			L1Operation.L1_doCall,
+			writer.addLiteral(bundle),
 			writer.addLiteral(returnType));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction =

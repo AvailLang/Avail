@@ -37,6 +37,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * {@code A_Tuple} is an interface that specifies the tuple-specific operations
@@ -513,7 +517,33 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return An {@linkplain Iterator iterator}.
 	 */
-	@Override Iterator<AvailObject> iterator ();
+	@Override
+	Iterator<AvailObject> iterator ();
+
+	/**
+	 * Returns a Java {@link Spliterator} over the elements, which are {@link
+	 * AvailObject}s.  Note that this is an {@link Override} because {@code
+	 * A_Tuple} extends {@link Iterable}.
+	 *
+	 * @return A {@link Spliterator} of {@link AvailObject}s.
+	 */
+	@Override
+	Spliterator<AvailObject> spliterator();
+
+	/**
+	 * Returns a sequential {@code Stream} with this tuple as its source.
+	 *
+	 * @return A {@link Stream} of {@link AvailObject}s.
+	 */
+	Stream<AvailObject> stream();
+
+	/**
+	 * Returns a possibly parallel {@code Stream} with this tuple as its source.
+	 * It is allowable for this method to return a sequential stream.
+	 *
+	 * @return A {@link Spliterator} of {@link AvailObject}s.
+	 */
+	Stream<AvailObject> parallelStream();
 
 	/**
 	 * The receiver is a {@linkplain ByteStringDescriptor byte string}; extract

@@ -39,7 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.FunctionDescriptor.createStubWithArgTypes;
+import static com.avail.descriptor.FunctionDescriptor.createStubWithSignature;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -68,7 +68,7 @@ public final class P_CreateStubFunction extends Primitive
 		final A_Type newFunctionType = interpreter.argument(0);
 		final A_Function function = interpreter.argument(1);
 		return interpreter.primitiveSuccess(
-			createStubWithArgTypes(newFunctionType, function));
+			createStubWithSignature(newFunctionType, function));
 	}
 
 	@Override

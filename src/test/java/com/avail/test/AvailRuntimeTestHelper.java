@@ -320,8 +320,8 @@ public class AvailRuntimeTestHelper
 	 * @param moduleSize
 	 *        The module's source size in bytes.
 	 * @param position
-	 *        The number of bytes of the module source that have been parsed
-	 *        and executed so far.
+	 *        The number of bytes of the module source that have been parsed and
+	 *        executed so far.
 	 * @return A local tracker.
 	 */
 	private void localTrack (

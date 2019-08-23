@@ -51,6 +51,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -1164,11 +1168,114 @@ extends Descriptor
 		}
 	}
 
+	/** Index-based split-by-two, lazily initialized Spliterator */
+	private static final class TupleSpliterator
+		implements Spliterator<AvailObject>
+	{
+		/** The tuple being spliterated. */
+		private final A_Tuple tuple;
+
+		/** The current one-based index into the tuple. */
+		private int index;
+
+		/** One past the last one-based index to visit. */
+		private final int fence;
+
+		/**
+		 * Create an instance for spliterating over the tuple starting at the
+		 * origin and stopping just before the fence.  Both indices are
+		 * one-based.
+		 *
+		 * @param tuple The tuple to spliterate.
+		 * @param origin The starting one-based index.
+		 * @param fence One past the last index to visit.
+		 */
+		@InnerAccess TupleSpliterator(
+			final A_Tuple tuple,
+			final int origin,
+			final int fence)
+		{
+			this.tuple = tuple;
+			this.index = origin;
+			this.fence = fence;
+		}
+
+		@Override
+		public @Nullable TupleSpliterator trySplit()
+		{
+			final int remaining = fence - index;
+			if (remaining < 2)
+			{
+				return null;
+			}
+			final int oldIndex = index;
+			index += remaining >>> 1;
+			return new TupleSpliterator(tuple, oldIndex, index);
+		}
+
+		@Override
+		public boolean tryAdvance(
+			final Consumer<? super AvailObject> action)
+		{
+			if (index < fence) {
+				action.accept(tuple.tupleAt(index++));
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public void forEachRemaining(
+			final Consumer<? super AvailObject> action)
+		{
+			for (int i = index; i < fence; i++)
+			{
+				action.accept(tuple.tupleAt(i));
+			}
+			index = fence;
+		}
+
+		@Override
+		public long estimateSize() {
+			return fence - index;
+		}
+
+		@Override
+		public int characteristics() {
+			return Spliterator.ORDERED
+				| Spliterator.SIZED
+				| Spliterator.SUBSIZED
+				| Spliterator.NONNULL
+				| Spliterator.IMMUTABLE;
+		}
+	}
+
 	@Override
-	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new TupleIterator(object);
+	}
+
+	@Override
+	Spliterator<AvailObject> o_Spliterator (final AvailObject object)
+	{
+		object.makeImmutable();
+		return new TupleSpliterator(object, 1, object.tupleSize());
+	}
+
+	@Override
+	Stream<AvailObject> o_Stream (final AvailObject object)
+	{
+		object.makeImmutable();
+		return StreamSupport.stream(object.spliterator(), false);
+	}
+
+	@Override
+	Stream<AvailObject> o_ParallelStream (final AvailObject object)
+	{
+		object.makeImmutable();
+		return StreamSupport.stream(object.spliterator(), true);
 	}
 
 	@Override

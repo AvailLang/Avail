@@ -82,9 +82,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.avail.descriptor.LinearSetBinDescriptor.createLinearSetBinPair;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
@@ -2785,6 +2787,24 @@ extends AbstractDescriptor
 	 */
 	@Override
 	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Spliterator<AvailObject> o_Spliterator (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Stream<AvailObject> o_Stream (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Stream<AvailObject> o_ParallelStream (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -80,9 +80,11 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET;
 
@@ -1324,6 +1326,24 @@ extends AbstractDescriptor
 	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		return o_Traversed(object).iterator();
+	}
+
+	@Override
+	Spliterator<AvailObject> o_Spliterator (final AvailObject object)
+	{
+		return o_Traversed(object).spliterator();
+	}
+
+	@Override
+	Stream<AvailObject> o_Stream (final AvailObject object)
+	{
+		return o_Traversed(object).stream();
+	}
+
+	@Override
+	Stream<AvailObject> o_ParallelStream (final AvailObject object)
+	{
+		return o_Traversed(object).parallelStream();
 	}
 
 	@Override
