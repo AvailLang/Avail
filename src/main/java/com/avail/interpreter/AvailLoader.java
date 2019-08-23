@@ -33,7 +33,6 @@
 package com.avail.interpreter;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
@@ -59,13 +58,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2NotNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -132,7 +125,7 @@ public final class AvailLoader
 		/**
 		 * Ensure new {@link A_Lexer}s are not added after this point.
 		 */
-		@InnerAccess void freezeFromChanges()
+		void freezeFromChanges()
 		{
 			assert !frozen;
 			frozen = true;
@@ -621,7 +614,7 @@ public final class AvailLoader
 	 * The {@linkplain TextInterface text interface} for any {@linkplain A_Fiber
 	 * fibers} started by this {@code AvailLoader}.
 	 */
-	@InnerAccess final TextInterface textInterface;
+	final TextInterface textInterface;
 
 	/**
 	 * The {@linkplain MessageBundleTreeDescriptor message bundle tree} that

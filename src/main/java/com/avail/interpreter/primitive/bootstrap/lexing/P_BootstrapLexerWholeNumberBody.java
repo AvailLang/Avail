@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

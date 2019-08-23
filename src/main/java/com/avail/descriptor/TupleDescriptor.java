@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
@@ -44,14 +43,7 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -1138,7 +1130,7 @@ extends Descriptor
 		 *
 		 * @param tuple The tuple to iterate over.
 		 */
-		@InnerAccess TupleIterator (final AvailObject tuple)
+		TupleIterator (final AvailObject tuple)
 		{
 			this.tuple = tuple;
 			this.size = tuple.tupleSize();
@@ -1190,7 +1182,7 @@ extends Descriptor
 		 * @param origin The starting one-based index.
 		 * @param fence One past the last index to visit.
 		 */
-		@InnerAccess TupleSpliterator(
+		TupleSpliterator(
 			final A_Tuple tuple,
 			final int origin,
 			final int fence)

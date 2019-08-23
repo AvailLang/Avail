@@ -31,7 +31,7 @@
  */
 
 package com.avail.compiler.splitter;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.compiler.ParsingOperation;
 import com.avail.descriptor.A_Tuple;
 import com.avail.utility.Pair;
@@ -72,7 +72,7 @@ class InstructionGenerator
 		 * The one-based index of the label, where -1 indicates the label has
 		 * not yet been emitted.
 		 */
-		@InnerAccess int position = -1;
+		int position = -1;
 
 		/**
 		 * The operations that need to be fixed up when this label is emitted.
@@ -81,7 +81,6 @@ class InstructionGenerator
 		 * location after combining with this label's position to form a parsing
 		 * instruction.
 		 */
-		@InnerAccess
 		final List<Pair<Integer, ParsingOperation>> operationsToFix =
 			new ArrayList<>();
 

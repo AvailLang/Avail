@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.IteratorNotNull;
 
@@ -426,7 +425,7 @@ extends TupleDescriptor
 		 *
 		 * @param tuple The tuple to iterate over.
 		 */
-		@InnerAccess ObjectTupleIterator (final AvailObject tuple)
+		ObjectTupleIterator (final AvailObject tuple)
 		{
 			this.tuple = tuple;
 			this.size = tuple.tupleSize();

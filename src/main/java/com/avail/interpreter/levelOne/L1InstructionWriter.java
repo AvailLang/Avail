@@ -32,18 +32,13 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -70,7 +65,7 @@ public class L1InstructionWriter
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	@InnerAccess final List<AvailObject> literals = new ArrayList<>();
+	final List<AvailObject> literals = new ArrayList<>();
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map

@@ -32,18 +32,13 @@
 
 package com.avail.utility;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -195,7 +190,7 @@ public class LRUCache<K, V>
 	 * A {@code SoftCacheMap} subclasses {@link LinkedHashMap} to override
 	 * {@code removeEldestEntry}.
 	 */
-	@InnerAccess final class SoftCacheMap
+	final class SoftCacheMap
 	extends LinkedHashMap<K, SoftReference<V>>
 	{
 		/** The capacity of the {@linkplain StrongCacheMap map}. */

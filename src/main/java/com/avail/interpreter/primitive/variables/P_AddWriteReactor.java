@@ -32,12 +32,7 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

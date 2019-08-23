@@ -31,13 +31,8 @@
  */
 
 package com.avail.interpreter.levelTwo.operand;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.SetDescriptor;
+
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
@@ -45,11 +40,7 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;

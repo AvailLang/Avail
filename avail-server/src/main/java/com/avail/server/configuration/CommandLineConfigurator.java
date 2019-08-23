@@ -32,7 +32,6 @@
 
 package com.avail.server.configuration;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.server.AvailServer;
@@ -189,7 +188,7 @@ implements Configurator<AvailServerConfiguration>
 	}
 
 	/** The {@linkplain AvailServerConfiguration configuration}. */
-	@InnerAccess final AvailServerConfiguration configuration;
+	final AvailServerConfiguration configuration;
 
 	/** The command line arguments. */
 	private final String[] commandLineArguments;

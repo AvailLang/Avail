@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.hooks;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;

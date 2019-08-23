@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.HookType;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -91,7 +90,7 @@ public final class L1InstructionStepper
 	/**
 	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
-	@InnerAccess final Interpreter interpreter;
+	final Interpreter interpreter;
 
 	/** The current position in the nybblecodes. */
 	public final L1InstructionDecoder instructionDecoder =

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -83,7 +82,7 @@ extends L2Operation
 	 *        particular L2Operation, allowing it to be specialized by register
 	 *        type.
 	 */
-	@InnerAccess L2_MOVE (final L2NamedOperandType... theNamedOperandTypes)
+	L2_MOVE (final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
 	}

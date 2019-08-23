@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.InnerAccess;
-
 /**
  * A dimension along which a {@link PhraseTypeDescriptor phrase type} can
  * be covariantly specialized.
@@ -58,7 +56,6 @@ public final class CovariantParameterization
 	/**
 	 * The one-based index of this parameterization within
 	 */
-	@InnerAccess
 	int index = -1;
 
 	/**

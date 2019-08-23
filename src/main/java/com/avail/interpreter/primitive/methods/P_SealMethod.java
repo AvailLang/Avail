@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;

@@ -38,9 +38,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * {@code A_Tuple} is an interface that specifies the tuple-specific operations

@@ -47,11 +47,7 @@ import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;

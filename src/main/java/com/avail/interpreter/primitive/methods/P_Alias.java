@@ -33,12 +33,7 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;

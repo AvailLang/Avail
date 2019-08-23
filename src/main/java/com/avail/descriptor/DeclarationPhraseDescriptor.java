@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -649,7 +648,7 @@ extends PhraseDescriptor
 		 * @param indent
 		 *        The indentation depth.
 		 */
-		@InnerAccess static void printTypePartOf (
+		static void printTypePartOf (
 			final A_Phrase object,
 			final StringBuilder builder,
 			final IdentityHashMap<A_BasicObject, Void> recursionMap,

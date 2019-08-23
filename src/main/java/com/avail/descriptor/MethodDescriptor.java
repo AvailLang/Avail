@@ -73,12 +73,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;

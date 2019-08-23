@@ -37,26 +37,13 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3;
-import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter;
+import com.avail.interpreter.primitive.privatehelpers.*;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT;

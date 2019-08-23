@@ -34,7 +34,6 @@ package com.avail;
 
 import com.avail.AvailRuntimeSupport.Clock;
 import com.avail.CallbackSystem.Callback;
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
@@ -727,7 +726,7 @@ public final class AvailRuntime
 	}
 
 	/** The collection of hooks for this runtime. */
-	@InnerAccess final EnumMap<HookType, AtomicReference<A_Function>> hooks =
+	final EnumMap<HookType, AtomicReference<A_Function>> hooks =
 		new EnumMap<>(
 			Arrays.stream(HookType.values())
 				.collect(

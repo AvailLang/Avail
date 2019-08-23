@@ -31,8 +31,8 @@
  */
 
 package com.avail.builder;
+
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
@@ -40,21 +40,12 @@ import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation;
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilationKey;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
+import com.avail.persistence.IndexedRepositoryManager.*;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
@@ -96,7 +87,7 @@ import static java.util.Collections.emptyList;
 final class BuildLoader
 {
 	/** The {@link AvailBuilder} for which we're loading. */
-	@InnerAccess final AvailBuilder availBuilder;
+	final AvailBuilder availBuilder;
 
 	/**
 	 * A {@linkplain CompilerProgressReporter} that is updated to show progress

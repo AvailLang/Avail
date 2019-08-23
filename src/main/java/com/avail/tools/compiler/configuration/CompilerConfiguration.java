@@ -32,11 +32,7 @@
 
 package com.avail.tools.compiler.configuration;
 
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.builder.RenamesFileParserException;
+import com.avail.builder.*;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.performance.StatisticReport;
 import com.avail.stacks.StacksGenerator;
@@ -44,14 +40,7 @@ import com.avail.tools.compiler.Compiler;
 import com.avail.utility.configuration.Configuration;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.EnumSet;

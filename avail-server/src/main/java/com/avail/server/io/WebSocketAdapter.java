@@ -32,7 +32,6 @@
 
 package com.avail.server.io;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;
@@ -79,7 +78,7 @@ public final class WebSocketAdapter
 implements TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The {@linkplain AvailServer Avail server}. */
-	@InnerAccess final AvailServer server;
+	final AvailServer server;
 
 	@Override
 	public AvailServer server ()
@@ -91,18 +90,18 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * The {@linkplain InetSocketAddress address} of the {@linkplain
 	 * AsynchronousServerSocketChannel server socket channel}.
 	 */
-	@InnerAccess final InetSocketAddress adapterAddress;
+	final InetSocketAddress adapterAddress;
 
 	/**
 	 * The {@linkplain WebSocketAdapter server}'s authority, e.g., the host name
 	 * of this node.
 	 */
-	@InnerAccess final String serverAuthority;
+	final String serverAuthority;
 
 	/**
 	 * The {@linkplain AsynchronousServerSocketChannel server socket channel}.
 	 */
-	@InnerAccess final AsynchronousServerSocketChannel serverChannel;
+	final AsynchronousServerSocketChannel serverChannel;
 
 	/**
 	 * Construct a new {@link WebSocketAdapter} for the specified {@linkplain
@@ -369,7 +368,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">
 		 *      Status Code Definitions</a>
 		 */
-		@InnerAccess static void badRequest (
+		static void badRequest (
 			final WebSocketChannel channel,
 			final HttpStatusCode statusCode,
 			final String reason)
@@ -439,7 +438,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @return The parsed headers, or {@code null} if the specified headers
 		 *         do not constitute a valid request.
 		 */
-		@InnerAccess static @Nullable ClientRequest readRequest (
+		static @Nullable ClientRequest readRequest (
 			final WebSocketChannel channel,
 			final WebSocketAdapter adapter,
 			final String headersText)
@@ -671,7 +670,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @return A client handshake, or {@code null} if the specified headers
 		 *         do not constitute a valid WebSocket client handshake.
 		 */
-		@InnerAccess static @Nullable ClientHandshake readClientHandshake (
+		static @Nullable ClientHandshake readClientHandshake (
 			final WebSocketChannel channel,
 			final ClientRequest request)
 		{
@@ -761,7 +760,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @param badVersion
 		 *        The (unsupported) WebSocket version requested by the client.
 		 */
-		@InnerAccess static void badVersion (
+		static void badVersion (
 			final WebSocketChannel channel,
 			final int badVersion)
 		{
@@ -1028,7 +1027,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 *        The {@linkplain WebSocketChannel channel} along which the request
 	 *        arrived.
 	 */
-	@InnerAccess void processRequest (
+	void processRequest (
 		final ClientRequest request,
 		final WebSocketChannel channel)
 	{
@@ -1428,7 +1427,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 *        {@code -1} if the remote end closed.
 	 * @return {@code true} if the remote end closed, {@code false} otherwise.
 	 */
-	@InnerAccess static boolean remoteEndClosed (
+	static boolean remoteEndClosed (
 		final AsynchronousSocketChannel transport,
 		final @Nullable Integer result)
 	{
@@ -1595,7 +1594,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readFrameThen (
+	void readFrameThen (
 		final WebSocketChannel channel,
 		final Continuation1NotNull<Frame> continuation)
 	{
@@ -1676,7 +1675,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readPayloadLengthThen (
+	void readPayloadLengthThen (
 		final WebSocketChannel channel,
 		final Frame frame,
 		final Continuation0 continuation)
@@ -1759,7 +1758,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readPayloadLength2ByteExtensionThen (
+	void readPayloadLength2ByteExtensionThen (
 		final WebSocketChannel channel,
 		final Frame frame,
 		final Continuation0 continuation)
@@ -1837,7 +1836,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readPayloadLength8ByteExtensionThen (
+	void readPayloadLength8ByteExtensionThen (
 		final WebSocketChannel channel,
 		final Frame frame,
 		final Continuation0 continuation)
@@ -1927,7 +1926,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readMaskingKeyThen (
+	void readMaskingKeyThen (
 		final WebSocketChannel channel,
 		final Frame frame,
 		final Continuation0 continuation)
@@ -1984,7 +1983,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do after the complete frame has been read.
 	 */
-	@InnerAccess void readPayloadDataThen (
+	void readPayloadDataThen (
 		final WebSocketChannel channel,
 		final Frame frame,
 		final Continuation0 continuation)
@@ -2187,7 +2186,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 *        What to do if sending the frame fails.
 	 */
 	@SuppressWarnings("unused")
-	@InnerAccess void sendPing (
+	void sendPing (
 		final WebSocketChannel channel,
 		final byte[] payloadData,
 		final @Nullable Continuation0 success,
@@ -2212,7 +2211,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 *        What to do if sending the frame fails.
 	 */
 	@SuppressWarnings("SameParameterValue")
-	@InnerAccess void sendPong (
+	void sendPong (
 		final WebSocketChannel channel,
 		final byte[] payloadData,
 		final @Nullable Continuation0 success,
@@ -2232,7 +2231,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param reasonMessage
 	 *        The reason message.
 	 */
-	@InnerAccess void fail (
+	void fail (
 		final WebSocketChannel channel,
 		final WebSocketStatusCode statusCode,
 		final String reasonMessage)

@@ -33,25 +33,13 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A {@code Serializer} converts a series of objects passed individually to

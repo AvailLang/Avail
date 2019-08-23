@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -477,10 +476,10 @@ extends TypeDescriptor
 		}
 
 		/** The descriptor for mutable instances of this kind. */
-		@InnerAccess final PhraseTypeDescriptor mutableDescriptor;
+		final PhraseTypeDescriptor mutableDescriptor;
 
 		/** The descriptor for shared instances of this kind. */
-		@InnerAccess final PhraseTypeDescriptor sharedDescriptor;
+		final PhraseTypeDescriptor sharedDescriptor;
 
 		/**
 		 * The most general type for this kind of phrase.

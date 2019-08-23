@@ -33,15 +33,7 @@
 package com.avail.server;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParserException;
-import com.avail.builder.ResolvedModuleName;
-import com.avail.builder.UnresolvedDependencyException;
+import com.avail.builder.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.problems.ProblemHandler;
@@ -74,12 +66,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.Map.Entry;
@@ -107,7 +94,7 @@ public final class AvailServer
 		unmodifiableSet(new HashSet<>(singletonList(protocolVersion)));
 
 	/** The {@linkplain AvailServerConfiguration configuration}. */
-	@InnerAccess final AvailServerConfiguration configuration;
+	final AvailServerConfiguration configuration;
 
 	/**
 	 * Answer the {@linkplain AvailServerConfiguration configuration}.
@@ -123,7 +110,7 @@ public final class AvailServer
 	 * The {@linkplain AvailRuntime Avail runtime} managed by this {@linkplain
 	 * AvailServer server}.
 	 */
-	@InnerAccess final AvailRuntime runtime;
+	final AvailRuntime runtime;
 
 	/**
 	 * Answer the {@linkplain AvailRuntime runtime} managed by this {@linkplain
@@ -140,7 +127,7 @@ public final class AvailServer
 	 * The {@linkplain AvailBuilder Avail builder} responsible for managing
 	 * build and execution tasks.
 	 */
-	@InnerAccess final AvailBuilder builder;
+	final AvailBuilder builder;
 
 	/**
 	 * Answer the {@linkplain AvailBuilder Avail builder} responsible for
@@ -241,7 +228,6 @@ public final class AvailServer
 	 * @param writer
 	 *        A {@link JSONWriter}.
 	 */
-	@InnerAccess
 	static void writeStatusOn (
 		final boolean ok,
 		final JSONWriter writer)
@@ -297,7 +283,7 @@ public final class AvailServer
 	 *        transmitting this message.
 	 * @return A message.
 	 */
-	static @InnerAccess Message newErrorMessage (
+	static Message newErrorMessage (
 		final @Nullable CommandMessage command,
 		final String reason,
 		final boolean closeAfterSending)
@@ -327,7 +313,7 @@ public final class AvailServer
 	 *        The reason for the failure.
 	 * @return A message.
 	 */
-	@InnerAccess static Message newErrorMessage (
+	static Message newErrorMessage (
 		final @Nullable CommandMessage command,
 		final String reason)
 	{
@@ -342,7 +328,7 @@ public final class AvailServer
 	 *        response.
 	 * @return A message.
 	 */
-	@InnerAccess static Message newSimpleSuccessMessage (
+	static Message newSimpleSuccessMessage (
 		final CommandMessage command)
 	{
 		final JSONWriter writer = new JSONWriter();
@@ -365,7 +351,7 @@ public final class AvailServer
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
-	@InnerAccess static Message newSuccessMessage (
+	static Message newSuccessMessage (
 		final CommandMessage command,
 		final Continuation1NotNull<JSONWriter> content)
 	{
@@ -391,7 +377,7 @@ public final class AvailServer
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
-	@InnerAccess static Message newIOUpgradeRequestMessage (
+	static Message newIOUpgradeRequestMessage (
 		final CommandMessage command,
 		final UUID uuid)
 	{
@@ -666,7 +652,7 @@ public final class AvailServer
 	/**
 	 * A {@code ModuleNode} represents a node in a module tree.
 	 */
-	@InnerAccess static final class ModuleNode
+	static final class ModuleNode
 	{
 		/** The name associated with the {@linkplain ModuleNode node}. */
 		final String name;
@@ -846,7 +832,6 @@ public final class AvailServer
 	 *        {@linkplain ModuleNode modules}.
 	 * @return A {@code FileVisitor}.
 	 */
-	@InnerAccess
 	static FileVisitor<Path> sourceModuleVisitor (
 		final ModuleRoot root,
 		final MutableOrNull<ModuleNode> tree)
@@ -1222,7 +1207,7 @@ public final class AvailServer
 	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
 	 *        LoadModuleCommandMessage command message}.
 	 */
-	@InnerAccess void loadModule (
+	void loadModule (
 		final AvailServerChannel channel,
 		final AvailServerChannel ioChannel,
 		final LoadModuleCommandMessage command)
@@ -1415,7 +1400,7 @@ public final class AvailServer
 	 *        The resolved name of the target {@linkplain A_Module module}, or
 	 *        {@code null} if all modules should be unloaded.
 	 */
-	@InnerAccess void unloadModule (
+	void unloadModule (
 		final AvailServerChannel channel,
 		final AvailServerChannel ioChannel,
 		final CommandMessage command,
@@ -1476,7 +1461,7 @@ public final class AvailServer
 	 *        A {@link Command#RUN_ENTRY_POINT RUN_ENTRY_POINT} {@linkplain
 	 *        RunEntryPointCommandMessage command message}.
 	 */
-	@InnerAccess void run (
+	void run (
 		final AvailServerChannel channel,
 		final AvailServerChannel ioChannel,
 		final RunEntryPointCommandMessage command)

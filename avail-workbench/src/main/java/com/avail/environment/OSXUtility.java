@@ -32,7 +32,6 @@
 
 package com.avail.environment;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Transformer1;
 
 import javax.annotation.Nullable;
@@ -47,31 +46,31 @@ import java.lang.reflect.Proxy;
 public final class OSXUtility
 {
 	/** The Apple-specific Application class. */
-	@InnerAccess static final Class<?> applicationClass;
+	static final Class<?> applicationClass;
 
 	/** The Apple-specific ApplicationListener class. */
-	@InnerAccess static final Class<?> applicationListenerClass;
+	static final Class<?> applicationListenerClass;
 
 	/** The Apple-specific ApplicationEvent class. */
-	@InnerAccess static final Class<?> applicationEventClass;
+	static final Class<?> applicationEventClass;
 
 	/** An instance of the {@link #applicationClass}. */
-	@InnerAccess static final Object macOSXApplication;
+	static final Object macOSXApplication;
 
 	/** The method Application#addApplicationListener(ApplicationListener). */
-	@InnerAccess static final Method addListenerMethod;
+	static final Method addListenerMethod;
 
 	/** The method ApplicationEvent#getFilename(). */
-	@InnerAccess static final Method getFilenameMethod;
+	static final Method getFilenameMethod;
 
 	/** The method Application#setEnabledAboutMenu(boolean). */
-	@InnerAccess static final Method enableAboutMethod;
+	static final Method enableAboutMethod;
 
 	/** The method Application#setEnabledPreferencesMenu(boolean). */
-	@InnerAccess static final Method enablePrefsMethod;
+	static final Method enablePrefsMethod;
 
 	/** The method Application.setDockIconBadge(String). */
-	@InnerAccess static final Method setDockIconBadgeMethod;
+	static final Method setDockIconBadgeMethod;
 
 	static
 	{
@@ -261,7 +260,7 @@ public final class OSXUtility
 	 * @param event
 	 * @param handled
 	 */
-	@InnerAccess static void setApplicationEventHandled (
+	static void setApplicationEventHandled (
 		final Object event,
 		final boolean handled)
 	{

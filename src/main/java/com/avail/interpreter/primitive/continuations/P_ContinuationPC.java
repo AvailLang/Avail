@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

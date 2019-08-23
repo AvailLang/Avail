@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.IO;
 import com.avail.utility.MutableLong;
 import com.avail.utility.Nulls;
@@ -73,7 +72,7 @@ public class StacksOutputFile
 	/**
 	 * The error log file for the malformed comments.
 	 */
-	@InnerAccess AsynchronousFileChannel outputFile;
+	AsynchronousFileChannel outputFile;
 
 	/**
 	 * The exported name of the Method/Class/Global this file represents.

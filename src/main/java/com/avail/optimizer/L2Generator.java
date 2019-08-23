@@ -32,14 +32,7 @@
 
 package com.avail.optimizer;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -161,14 +154,14 @@ public final class L2Generator
 	 * The amount of {@linkplain OptimizationLevel effort} to apply to the
 	 * current optimization attempt.
 	 */
-	@InnerAccess final OptimizationLevel optimizationLevel;
+	final OptimizationLevel optimizationLevel;
 
 	/**
 	 * All {@link A_ChunkDependable contingent values} for which changes should
 	 * cause the current {@linkplain L2Chunk level two chunk} to be
 	 * invalidated.
 	 */
-	@InnerAccess A_Set contingentValues = emptySet();
+	A_Set contingentValues = emptySet();
 
 	/** The block at which to resume execution after a failed primitive. */
 	@Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock;

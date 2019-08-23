@@ -33,12 +33,7 @@
 package com.avail.tools.compiler;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.RenamesFileParserException;
+import com.avail.builder.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
@@ -211,7 +206,7 @@ public final class Compiler
 	 * unified status notification can be output regardless of the verbosity
 	 * level.
 	 */
-	@InnerAccess static volatile String globalStatus = "";
+	static volatile String globalStatus = "";
 
 	/**
 	 * @param configuration

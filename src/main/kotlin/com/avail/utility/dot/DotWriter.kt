@@ -34,7 +34,6 @@
 
 package com.avail.utility.dot
 
-import com.avail.annotations.InnerAccess
 import com.avail.utility.CheckedConsumer
 import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
@@ -102,30 +101,30 @@ import java.util.stream.Collectors
  */
 class DotWriter constructor(
 	private val name: String,
-	@field:InnerAccess internal val isDirected: Boolean,
-	@field:InnerAccess internal val charactersPerLine: Int,
-	@field:InnerAccess internal val accumulator: Appendable)
+	internal val isDirected: Boolean,
+	internal val charactersPerLine: Int,
+	internal val accumulator: Appendable)
 {
 	/**
 	 * The indentation level.
 	 */
-	@InnerAccess internal var indentationLevel = 0
+	internal var indentationLevel = 0
 
 	/**
 	 * Was the last character to be emitted a linefeed? Initialize this to
 	 * `true` so that the first [AttributeWriter.indent] is valid.
 	 */
-	@InnerAccess internal var justEmittedLinefeed = true
+	internal var justEmittedLinefeed = true
 
 	/**
 	 * The prebuilt [AttributeWriter] for dependency injection.
 	 */
-	@InnerAccess internal val attributeWriter = AttributeWriter()
+	internal val attributeWriter = AttributeWriter()
 
 	/**
 	 * The prebuilt [GraphWriter] for dependency injection.
 	 */
-	@InnerAccess internal val graphWriter = GraphWriter()
+	internal val graphWriter = GraphWriter()
 
 	/**
 	 * An `AttributeWriter` provides the ability to write generally
@@ -521,7 +520,7 @@ class DotWriter constructor(
 	 * @param compassPoint
 	 *        The [CompassPoint], if any.
 	 */
-	class DecoratedNode @InnerAccess internal constructor(
+	class DecoratedNode internal constructor(
 		internal val name: String,
 		internal val port: String?,
 		internal val compassPoint: CompassPoint?)
@@ -1047,13 +1046,13 @@ class DotWriter constructor(
 		 * The keywords reserved by `dot`. Identifiers must not collide with
 		 * these names.
 		 */
-		@InnerAccess internal val keywords = unmodifiableSet(
+		internal val keywords = unmodifiableSet(
 			HashSet(
 				listOf(
 					"strict", "graph", "digraph", "subgraph", "node", "edge")))
 
 		/** A pattern for matching tokens.  */
-		@InnerAccess internal val tokenPattern = Pattern.compile("[A-Za-z0-9]+")
+		internal val tokenPattern = Pattern.compile("[A-Za-z0-9]+")
 
 		/**
 		 * Answer a [DecoratedNode] suitable for complex edge specification.

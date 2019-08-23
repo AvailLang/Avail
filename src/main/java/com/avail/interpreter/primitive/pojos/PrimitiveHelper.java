@@ -33,13 +33,7 @@
 package com.avail.interpreter.primitive.pojos;
 
 import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;

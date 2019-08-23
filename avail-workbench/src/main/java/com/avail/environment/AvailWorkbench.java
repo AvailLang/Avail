@@ -33,7 +33,6 @@
 package com.avail.environment;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
@@ -335,7 +334,7 @@ extends JFrame
 	 * @return The document, retrieving it from the {@link #transcript} if
 	 *         necessary.
 	 */
-	@InnerAccess StyledDocument document ()
+	StyledDocument document ()
 	{
 		@Nullable StyledDocument d = document;
 		if (d == null)
@@ -388,7 +387,6 @@ extends JFrame
 	 * enqueuer to also deque surplus entries, the {@link #dequeLock} must
 	 * be held whenever removing entries from the queue.
 	 */
-	@InnerAccess
 	final Queue<BuildOutputStreamEntry> updateQueue =
 		new ConcurrentLinkedQueue<>();
 
@@ -397,7 +395,7 @@ extends JFrame
 	 * must always be ≤ the actual sum of the lengths of the strings at any
 	 * moment, so it's updated after an add but before a remove from the queue.
 	 */
-	@InnerAccess final AtomicLong totalQueuedTextSize = new AtomicLong();
+	final AtomicLong totalQueuedTextSize = new AtomicLong();
 
 	/**
 	 * A lock that's held when removing things from the {@link #updateQueue}.
@@ -412,7 +410,7 @@ extends JFrame
 	 * maximizes efficiency while avoiding starvation of the UI process in the
 	 * event that a high volume of data is being written.
 	 */
-	@InnerAccess void updateTranscript ()
+	void updateTranscript ()
 	{
 		assert totalQueuedTextSize.get() > 0;
 		final long now = currentTimeMillis();
@@ -1035,163 +1033,163 @@ extends JFrame
 	/* Actions. */
 
 	/** The {@linkplain RefreshAction refresh action}. */
-	@InnerAccess final RefreshAction refreshAction = new RefreshAction(this);
+	final RefreshAction refreshAction = new RefreshAction(this);
 
 	/** The {@linkplain AboutAction "about Avail" action}. */
-	@InnerAccess final AboutAction aboutAction = new AboutAction(this);
+	final AboutAction aboutAction = new AboutAction(this);
 
 	/** The {@linkplain PreferencesAction "Preferences..." action}. */
-	@InnerAccess final PreferencesAction preferencesAction =
+	final PreferencesAction preferencesAction =
 		new PreferencesAction(this);
 
 	/** The {@linkplain BuildAction build action}. */
-	@InnerAccess final BuildAction buildAction = new BuildAction(this, false);
+	final BuildAction buildAction = new BuildAction(this, false);
 
 	/** The {@linkplain UnloadAction unload action}. */
-	@InnerAccess final UnloadAction unloadAction = new UnloadAction(this);
+	final UnloadAction unloadAction = new UnloadAction(this);
 
 	/** The {@linkplain UnloadAllAction unload-all action}. */
-	@InnerAccess final UnloadAllAction unloadAllAction =
+	final UnloadAllAction unloadAllAction =
 		new UnloadAllAction(this);
 
 	/** The {@linkplain CancelAction cancel action}. */
-	@InnerAccess final CancelAction cancelAction = new CancelAction(this);
+	final CancelAction cancelAction = new CancelAction(this);
 
 	/** The {@linkplain CleanAction clean action}. */
-	@InnerAccess final CleanAction cleanAction = new CleanAction(this);
+	final CleanAction cleanAction = new CleanAction(this);
 
 	/** The {@linkplain CleanModuleAction clean module action}. */
-	@InnerAccess final CleanModuleAction cleanModuleAction =
+	final CleanModuleAction cleanModuleAction =
 		new CleanModuleAction(this);
 
 	/** The {@linkplain CreateProgramAction create program action}. */
-	@InnerAccess final CreateProgramAction createProgramAction =
+	final CreateProgramAction createProgramAction =
 		new CreateProgramAction(this);
 
 	/**
 	 * The {@linkplain GenerateDocumentationAction generate documentation
 	 * action}.
 	 */
-	@InnerAccess final GenerateDocumentationAction documentAction =
+	final GenerateDocumentationAction documentAction =
 		new GenerateDocumentationAction(this);
 
 	/** The {@linkplain GenerateGraphAction generate graph action}. */
-	@InnerAccess final GenerateGraphAction graphAction =
+	final GenerateGraphAction graphAction =
 		new GenerateGraphAction(this);
 
 	/**
 	 * The {@linkplain SetDocumentationPathAction documentation path dialog
 	 * action}.
 	 */
-	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
+	final SetDocumentationPathAction setDocumentationPathAction =
 		new SetDocumentationPathAction(this);
 
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
-	@InnerAccess final ShowVMReportAction showVMReportAction =
+	final ShowVMReportAction showVMReportAction =
 		new ShowVMReportAction(this);
 
 	/** The {@linkplain ResetVMReportDataAction reset VM report data action}. */
-	@InnerAccess final ResetVMReportDataAction resetVMReportDataAction =
+	final ResetVMReportDataAction resetVMReportDataAction =
 		new ResetVMReportDataAction(this);
 
 	/** The {@linkplain ShowCCReportAction show CC report action}. */
-	@InnerAccess final ShowCCReportAction showCCReportAction;
+	final ShowCCReportAction showCCReportAction;
 
 	/** The {@linkplain ResetCCReportDataAction reset CC report data action}. */
-	@InnerAccess final ResetCCReportDataAction
+	final ResetCCReportDataAction
 		resetCCReportDataAction;
 
 	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
-	@InnerAccess final TraceMacrosAction debugMacroExpansionsAction =
+	final TraceMacrosAction debugMacroExpansionsAction =
 		new TraceMacrosAction(this);
 
 	/** The {@linkplain TraceCompilerAction toggle trace compiler action}. */
-	@InnerAccess final TraceCompilerAction debugCompilerAction =
+	final TraceCompilerAction debugCompilerAction =
 		new TraceCompilerAction(this);
 
 	/** The {@linkplain ToggleFastLoaderAction toggle fast-loader action}. */
-	@InnerAccess final ToggleFastLoaderAction toggleFastLoaderAction =
+	final ToggleFastLoaderAction toggleFastLoaderAction =
 		new ToggleFastLoaderAction(this);
 
 	/** The {@linkplain ToggleDebugInterpreterL1 toggle L1 debug action}. */
-	@InnerAccess final ToggleDebugInterpreterL1 toggleDebugL1 =
+	final ToggleDebugInterpreterL1 toggleDebugL1 =
 		new ToggleDebugInterpreterL1(this);
 
 	/** The {@linkplain ToggleDebugInterpreterL2 toggle L2 debug action}. */
-	@InnerAccess final ToggleDebugInterpreterL2 toggleDebugL2 =
+	final ToggleDebugInterpreterL2 toggleDebugL2 =
 		new ToggleDebugInterpreterL2(this);
 
 	/** The {@linkplain ToggleL2SanityCheck} toggle L2 sanity checks action}. */
-	@InnerAccess final ToggleL2SanityCheck toggleL2SanityCheck =
+	final ToggleL2SanityCheck toggleL2SanityCheck =
 		new ToggleL2SanityCheck(this);
 
 	/**
 	 * The {@linkplain ToggleDebugInterpreterPrimitives toggle primitive debug
 	 * action}.
 	 */
-	@InnerAccess final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
+	final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
 		new ToggleDebugInterpreterPrimitives(this);
 
 	/**
 	 * The {@linkplain ToggleDebugWorkUnits toggle work-units debug action}.
 	 */
-	@InnerAccess final ToggleDebugWorkUnits toggleDebugWorkUnits =
+	final ToggleDebugWorkUnits toggleDebugWorkUnits =
 		new ToggleDebugWorkUnits(this);
 
 	/** The {@linkplain ToggleDebugJVM toggle JVM dump debug action}. */
-	@InnerAccess final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
+	final ToggleDebugJVM toggleDebugJVM = new ToggleDebugJVM(this);
 
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
 	 * summarization action}.
 	 */
-	@InnerAccess final TraceSummarizeStatementsAction
+	final TraceSummarizeStatementsAction
 		traceSummarizeStatementsAction =
 			new TraceSummarizeStatementsAction(this);
 
 	/**
 	 * The {@linkplain TraceLoadedStatementsAction toggle load-tracing action}.
 	 */
-	@InnerAccess final TraceLoadedStatementsAction
+	final TraceLoadedStatementsAction
 		traceLoadedStatementsAction =
 		new TraceLoadedStatementsAction(this);
 
 	/** The {@linkplain ParserIntegrityCheckAction}. */
-	@InnerAccess final ParserIntegrityCheckAction
+	final ParserIntegrityCheckAction
 		parserIntegrityCheckAction;
 
 	/** The {@linkplain ExamineRepositoryAction}. */
-	@InnerAccess final ExamineRepositoryAction
+	final ExamineRepositoryAction
 		examineRepositoryAction;
 
 	/** The {@linkplain ExamineCompilationAction}. */
-	@InnerAccess final ExamineCompilationAction
+	final ExamineCompilationAction
 		examineCompilationAction;
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
-	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
+	final ClearTranscriptAction clearTranscriptAction =
 		new ClearTranscriptAction(this);
 
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
-	@InnerAccess final InsertEntryPointAction insertEntryPointAction =
+	final InsertEntryPointAction insertEntryPointAction =
 		new InsertEntryPointAction(this);
 
 	/** The {@linkplain BuildAction action to build an entry point module}. */
-	@InnerAccess final BuildAction buildEntryPointModuleAction =
+	final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
 
 //	/**
 //	 * The {@linkplain DisplayCodeCoverageReport action to display the current
 //	 * code coverage session's report data}.
 //	 */
-//	@InnerAccess final DisplayCodeCoverageReport displayCodeCoverageReport =
+//	final DisplayCodeCoverageReport displayCodeCoverageReport =
 //		new DisplayCodeCoverageReport(this, true);
 
 //	/**
 //	 * The {@linkplain ResetCodeCoverageDataAction action to reset the code
 //	 * coverage data and thereby start a new code coverage session}.
 //	 */
-//	@InnerAccess final ResetCodeCoverageDataAction resetCodeCoverageDataAction =
+//	final ResetCodeCoverageDataAction resetCodeCoverageDataAction =
 //		new ResetCodeCoverageDataAction(this, true);
 
 	/** Whether an entry point invocation (command line) is executing. */
@@ -1668,7 +1666,7 @@ extends JFrame
 	 *
 	 * @return A module node, or {@code null} if no module is selected.
 	 */
-	@InnerAccess @Nullable ModuleOrPackageNode selectedModuleNode ()
+	@Nullable ModuleOrPackageNode selectedModuleNode ()
 	{
 		final @Nullable TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -1690,7 +1688,7 @@ extends JFrame
 	 * @return {@code true} if the selected module is loaded, {@code false} if
 	 *         no module is selected or the selected module is not loaded.
 	 */
-	@InnerAccess boolean selectedModuleIsLoaded ()
+	boolean selectedModuleIsLoaded ()
 	{
 		final @Nullable ModuleOrPackageNode node = selectedModuleNode();
 		return node != null && node.isLoaded();
@@ -1830,7 +1828,7 @@ extends JFrame
 	/**
 	 * Update the {@linkplain #buildProgress build progress bar}.
 	 */
-	@InnerAccess void updateBuildProgress ()
+	void updateBuildProgress ()
 	{
 		final MutableLong position = new MutableLong(0L);
 		final MutableLong max = new MutableLong(0L);
@@ -1932,7 +1930,7 @@ extends JFrame
 	 * Update the visual presentation of the per-module statistics.  This
 	 * must be invoked from within the UI dispatch thread,
 	 */
-	@InnerAccess void updatePerModuleProgressInUIThread ()
+	void updatePerModuleProgressInUIThread ()
 	{
 		assert EventQueue.isDispatchThread();
 		final List<Entry<ModuleName, Pair<Long, Long>>> progress =
@@ -2200,7 +2198,6 @@ extends JFrame
 	/**
 	 * Information about the window layout.
 	 */
-	@InnerAccess
 	public static class LayoutConfiguration
 	{
 		/** The preferred location and size of the window, if specified. */
@@ -2510,7 +2507,7 @@ extends JFrame
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
 	 */
-	@InnerAccess AvailWorkbench (
+	AvailWorkbench (
 		final ModuleNameResolver resolver)
 	{
 		// Set module components.

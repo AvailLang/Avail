@@ -32,13 +32,8 @@
 package com.avail.interpreter.primitive.general;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

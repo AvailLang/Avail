@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 
 import java.nio.ByteBuffer;
@@ -584,7 +583,7 @@ extends NumericTupleDescriptor
 	 * @param nybbleIndex The index.
 	 * @return The nybble at that index.
 	 */
-	@InnerAccess static byte getNybble (
+	static byte getNybble (
 		final AvailObject object,
 		final int nybbleIndex)
 	{

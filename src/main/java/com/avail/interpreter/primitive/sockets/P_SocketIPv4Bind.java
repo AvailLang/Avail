@@ -40,11 +40,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.channels.AsynchronousSocketChannel;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;

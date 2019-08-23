@@ -33,7 +33,6 @@ package com.avail.compiler;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntimeSupport;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
@@ -162,7 +161,7 @@ public class CompilationContext
 	 *
 	 * @return A loader.
 	 */
-	@InnerAccess public AvailLoader loader ()
+	public AvailLoader loader ()
 	{
 		return stripNull(loader);
 	}
@@ -171,7 +170,7 @@ public class CompilationContext
 	 * The source text of the Avail {@linkplain ModuleDescriptor module}
 	 * undergoing compilation.
 	 */
-	@InnerAccess final A_String source;
+	final A_String source;
 
 	/**
 	 * The Avail {@link A_String} containing the entire content of the module
@@ -805,7 +804,7 @@ public class CompilationContext
 	 *
 	 * @param function The function that has already run.
 	 */
-	@InnerAccess synchronized void serializeWithoutSummary (
+	synchronized void serializeWithoutSummary (
 		final A_Function function)
 	{
 		if (AvailLoader.debugUnsummarizedStatements)
@@ -830,7 +829,7 @@ public class CompilationContext
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	@InnerAccess void reportInternalProblem (
+	void reportInternalProblem (
 		final int lineNumber,
 		final int position,
 		final Throwable e)
@@ -866,7 +865,7 @@ public class CompilationContext
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	@InnerAccess void reportExecutionProblem (
+	void reportExecutionProblem (
 		final int lineNumber,
 		final int position,
 		final Throwable e)
@@ -921,7 +920,7 @@ public class CompilationContext
 	 * @param e
 	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
 	 */
-	@InnerAccess void reportAssertionFailureProblem (
+	void reportAssertionFailureProblem (
 		final int lineNumber,
 		final int position,
 		final AvailAssertionFailedException e)
@@ -955,7 +954,7 @@ public class CompilationContext
 	 *        The {@linkplain AvailEmergencyExitException emergency exit
 	 *        failure}.
 	 */
-	@InnerAccess void reportEmergencyExitProblem (
+	void reportEmergencyExitProblem (
 		final int lineNumber,
 		final int position,
 		final AvailEmergencyExitException e)

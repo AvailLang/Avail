@@ -33,15 +33,7 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.*;
 
 import java.io.IOException;
 import java.io.InputStream;

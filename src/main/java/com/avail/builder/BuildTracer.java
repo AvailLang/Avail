@@ -31,7 +31,7 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
@@ -61,7 +61,7 @@ import static com.avail.utility.Nulls.stripNull;
 final class BuildTracer
 {
 	/** The {@link AvailBuilder} for which to trace modules. */
-	@InnerAccess final AvailBuilder availBuilder;
+	final AvailBuilder availBuilder;
 
 	/**
 	 * The number of trace requests that have been scheduled.
@@ -323,7 +323,7 @@ final class BuildTracer
 	 *        How to handle or report {@link Problem}s that arise during the
 	 *        build.
 	 */
-	@InnerAccess void traceModuleNames (
+	void traceModuleNames (
 		final ResolvedModuleName moduleName,
 		final List<String> importNames,
 		final LinkedHashSet<ResolvedModuleName> recursionSet,
@@ -353,7 +353,7 @@ final class BuildTracer
 	 * A module was just traced, so record that fact.  Note that the trace was
 	 * either successful or unsuccessful.
 	 */
-	@InnerAccess synchronized void indicateTraceCompleted ()
+	synchronized void indicateTraceCompleted ()
 	{
 		traceCompletions++;
 		AvailBuilder.log(

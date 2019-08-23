@@ -32,13 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
+import com.avail.annotations.*;
 import com.avail.annotations.EnumField.Converter;
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.HideFieldJustForPrinting;
-import com.avail.annotations.InnerAccess;
-import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
@@ -57,11 +52,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -296,7 +287,6 @@ extends Descriptor
 	 * fields should also be moved there (allowing the AvailObjects to reuse the
 	 * common empty arrays).
 	 */
-	@InnerAccess
 	static class InvocationStatistic
 	{
 		/**
@@ -323,7 +313,7 @@ extends Descriptor
 		 * A {@code boolean} indicating whether the current {@link
 		 * A_RawFunction} has been run during the current code coverage session.
 		 */
-		@InnerAccess volatile boolean hasRun = false;
+		volatile boolean hasRun = false;
 	}
 
 	/**
@@ -393,7 +383,7 @@ extends Descriptor
 		 *
 		 * @return The consumed nybble.
 		 */
-		@InnerAccess int getNybble ()
+		int getNybble ()
 		{
 			final int result =
 				(int) ((encodedInstructionsArray[longIndex] >> shift) & 15);
@@ -572,7 +562,7 @@ extends Descriptor
 	}
 
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
-	@InnerAccess static final Set<A_RawFunction> activeRawFunctions =
+	static final Set<A_RawFunction> activeRawFunctions =
 		synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 
 	/**
@@ -670,7 +660,7 @@ extends Descriptor
 		 * @param methodName
 		 *        The method this raw function appears in.
 		 */
-		@InnerAccess CodeCoverageReport (
+		CodeCoverageReport (
 			final boolean hasRun,
 			final boolean isTranslated,
 			final int startingLineNumber,

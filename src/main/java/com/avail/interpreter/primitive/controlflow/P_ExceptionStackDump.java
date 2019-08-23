@@ -33,14 +33,7 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

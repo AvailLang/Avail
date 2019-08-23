@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.InstanceTypeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.ObjectTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

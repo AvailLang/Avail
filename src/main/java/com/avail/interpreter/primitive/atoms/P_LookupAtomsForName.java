@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.atoms;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

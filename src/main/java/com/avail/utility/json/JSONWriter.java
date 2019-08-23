@@ -32,7 +32,6 @@
 
 package com.avail.utility.json;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
@@ -113,7 +112,7 @@ implements AutoCloseable
 	 * @throws JSONIOException
 	 *         If the operation fails.
 	 */
-	@InnerAccess void privateWrite (final int c)
+	void privateWrite (final int c)
 		throws JSONIOException
 	{
 		assert (c & 0xFFFF) == c;
@@ -136,7 +135,7 @@ implements AutoCloseable
 	 * @throws JSONIOException
 	 *         If the operation fails.
 	 */
-	@InnerAccess void privateWrite (final String text)
+	void privateWrite (final String text)
 		throws JSONIOException
 	{
 		try
@@ -463,7 +462,7 @@ implements AutoCloseable
 		 * @throws JSONIOException
 		 *         If an I/O exception occurs.
 		 */
-		@InnerAccess void writePrologueTo (final JSONWriter writer)
+		void writePrologueTo (final JSONWriter writer)
 			throws JSONIOException
 		{
 			// Do nothing.
@@ -474,7 +473,7 @@ implements AutoCloseable
 	 * The {@linkplain Deque stack} of {@linkplain JSONState states}, to ensure
 	 * correct usage of the {@linkplain JSONWriter writer}.
 	 */
-	@InnerAccess final Deque<JSONState> stack = new LinkedList<>();
+	final Deque<JSONState> stack = new LinkedList<>();
 
 	{
 		stack.addFirst(EXPECTING_SINGLE_VALUE);

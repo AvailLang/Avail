@@ -31,7 +31,6 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.scanning.LexingState;
@@ -878,7 +877,7 @@ public class CompilerDiagnostics
 		 * @return A circled letter, optionally followed by a decimal numeral
 		 *         if it's past the 26th entry.
 		 */
-		@InnerAccess String next ()
+		String next ()
 		{
 			final int nextLetterOffset =
 				circledLetters.offsetByCodePoints(letterOffset, 1);

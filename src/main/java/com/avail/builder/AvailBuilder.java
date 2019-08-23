@@ -33,7 +33,6 @@
 package com.avail.builder;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
@@ -42,15 +41,7 @@ import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
@@ -60,12 +51,7 @@ import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
 import com.avail.utility.Graph;
 import com.avail.utility.Locks.Auto;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation2NotNull;
-import com.avail.utility.evaluation.Continuation3NotNull;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -75,14 +61,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -488,7 +468,6 @@ public final class AvailBuilder
 	 *         bytes.
 	 * @throws MalformedSerialStreamException If the CRC check fails.
 	 */
-	@InnerAccess
 	public static ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
 		throws MalformedSerialStreamException
 	{
@@ -512,7 +491,7 @@ public final class AvailBuilder
 	 * @param version
 	 *        A module version.
 	 */
-	@InnerAccess void serialize (
+	void serialize (
 		final ModuleHeader header,
 		final ModuleVersion version)
 	{
@@ -549,13 +528,13 @@ public final class AvailBuilder
 		 * ResolvedModuleName) digest} of this module's source code when it was
 		 * compiled.
 		 */
-		@InnerAccess final byte [] sourceDigest;
+		final byte [] sourceDigest;
 
 		/**
 		 * The actual {@link A_Module} that was plugged into the {@link
 		 * AvailRuntime}.
 		 */
-		@InnerAccess final A_Module module;
+		final A_Module module;
 
 		/** This module's version, which corresponds to the source code. */
 		final ModuleVersion version;
@@ -632,13 +611,13 @@ public final class AvailBuilder
 		 * The list of children of this package or module (in which case it must
 		 * be empty.
 		 */
-		@InnerAccess final List<ModuleTree> children = new ArrayList<>();
+		final List<ModuleTree> children = new ArrayList<>();
 
 		/** The private node name to use in the graph layout. */
-		@InnerAccess final String node;
+		final String node;
 
 		/** The textual label of the corresponding node in the graph layout. */
-		@InnerAccess final String label;
+		final String label;
 
 		/**
 		 * Add a child to this node.
@@ -683,7 +662,7 @@ public final class AvailBuilder
 		/**
 		 * The represented module's {@link ResolvedModuleName resolved name}.
 		 */
-		@InnerAccess final @Nullable ResolvedModuleName resolvedModuleName;
+		final @Nullable ResolvedModuleName resolvedModuleName;
 
 		/**
 		 * Construct a new {@code ModuleTree}.
@@ -692,7 +671,7 @@ public final class AvailBuilder
 		 * @param label The label to present.
 		 * @param resolvedModuleName The represented {@link ResolvedModuleName}.
 		 */
-		@InnerAccess ModuleTree (
+		ModuleTree (
 			final String node,
 			final String label,
 			final @Nullable ResolvedModuleName resolvedModuleName)
@@ -1048,7 +1027,7 @@ public final class AvailBuilder
 		 *        The compiled {@linkplain A_Phrase phrase} that sends this
 		 *        entry point.
 		 */
-		@InnerAccess CompiledCommand (
+		CompiledCommand (
 			final ResolvedModuleName moduleName,
 			final String entryPointName,
 			final A_Phrase phrase)
@@ -1133,7 +1112,7 @@ public final class AvailBuilder
 	 * @param onFailure
 	 *        What to do otherwise.
 	 */
-	@InnerAccess void scheduleAttemptCommand (
+	void scheduleAttemptCommand (
 		final String command,
 		final Continuation2NotNull<
 				List<CompiledCommand>,
@@ -1332,7 +1311,7 @@ public final class AvailBuilder
 	 *        A collection of continuations.
 	 * @return The combined continuation.
 	 */
-	@InnerAccess Continuation1NotNull<Continuation0> parallelCombine (
+	Continuation1NotNull<Continuation0> parallelCombine (
 		final Collection<Continuation1NotNull<Continuation0>> continuations)
 	{
 		final AtomicInteger count = new AtomicInteger(continuations.size());
@@ -1377,7 +1356,7 @@ public final class AvailBuilder
 	 * @param onFailure
 	 *        What to do after a failure.
 	 */
-	@InnerAccess void processParsedCommand (
+	void processParsedCommand (
 		final Map<LoadedModule, List<A_Phrase>> solutions,
 		final Map<LoadedModule, List<Problem>> problems,
 		final Continuation2NotNull<

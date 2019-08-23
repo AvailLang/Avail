@@ -32,13 +32,8 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

@@ -32,13 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

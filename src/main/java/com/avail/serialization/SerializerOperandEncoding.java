@@ -32,15 +32,8 @@
 
 package com.avail.serialization;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.MutableInt;
 
 import java.io.OutputStream;
@@ -742,7 +735,7 @@ enum SerializerOperandEncoding
 	 * @param index The integer to write.
 	 * @param serializer Where to write it.
 	 */
-	@InnerAccess static void writeCompressedPositiveInt (
+	static void writeCompressedPositiveInt (
 		final int index,
 		final Serializer serializer)
 	{
@@ -790,7 +783,7 @@ enum SerializerOperandEncoding
 	 * @param deserializer Where to read the integer from.
 	 * @return The integer that was read.
 	 */
-	@InnerAccess static int readCompressedPositiveInt (
+	static int readCompressedPositiveInt (
 		final AbstractDeserializer deserializer)
 	{
 		final int firstByte = deserializer.readByte();

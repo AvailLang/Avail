@@ -32,12 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.DeclarationPhraseDescriptor;
-import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.VariableUsePhraseDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

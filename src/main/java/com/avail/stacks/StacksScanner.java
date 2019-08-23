@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.CommentTokenDescriptor;
@@ -215,7 +214,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 *
 	 * @return Whether we are finished scanning.
 	 */
-	@InnerAccess @Override
+	@Override
 	boolean atEnd ()
 	{
 		if (commentEndsStandardly)

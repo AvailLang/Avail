@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
@@ -54,13 +53,7 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -173,7 +166,7 @@ implements ExecutableChunk
 		 * approximately {@link #maximumNewestGenerationSize}, queue it and
 		 * create a new one.
 		 */
-		@InnerAccess static volatile Generation newest = new Generation();
+		static volatile Generation newest = new Generation();
 
 		/**
 		 * The maximum number of chunks to place in this generation before
@@ -203,7 +196,7 @@ implements ExecutableChunk
 		 *
 		 * @param newChunk The new chunk to track.
 		 */
-		@InnerAccess static void addNewChunk (final L2Chunk newChunk)
+		static void addNewChunk (final L2Chunk newChunk)
 		{
 			newChunk.generation = newest;
 			newest.chunks.add(newChunk);
@@ -343,7 +336,7 @@ implements ExecutableChunk
 		 * @param chunk
 		 *        The invalidated {@link L2Chunk} to remove from its generation.
 		 */
-		@InnerAccess static void removeInvalidatedChunk (final L2Chunk chunk)
+		static void removeInvalidatedChunk (final L2Chunk chunk)
 		{
 			final @Nullable Generation gen = chunk.generation;
 			if (gen != null)

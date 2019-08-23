@@ -32,7 +32,6 @@
 
 package com.avail.tools.unicode;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.OptionProcessor;
@@ -73,7 +72,7 @@ implements Configurator<UnicodeConfiguration>
 	}
 
 	/** The {@linkplain UnicodeConfiguration configuration}. */
-	@InnerAccess final UnicodeConfiguration configuration;
+	final UnicodeConfiguration configuration;
 
 	/** The command line arguments. */
 	private final String[] commandLineArguments;

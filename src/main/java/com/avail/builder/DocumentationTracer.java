@@ -31,7 +31,7 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
@@ -63,7 +63,7 @@ import static com.avail.descriptor.FiberDescriptor.loaderPriority;
 final class DocumentationTracer
 {
 	/** The {@link AvailBuilder} for which to generate documentation. */
-	@InnerAccess final AvailBuilder availBuilder;
+	final AvailBuilder availBuilder;
 
 	/**
 	 * The {@linkplain StacksGenerator Stacks documentation generator}.
@@ -125,7 +125,7 @@ final class DocumentationTracer
 	 *        What to do when comments have been loaded for the named
 	 *        module (or an error occurs).
 	 */
-	@InnerAccess void loadComments (
+	void loadComments (
 		final ResolvedModuleName moduleName,
 		final ProblemHandler problemHandler,
 		final Continuation0 completionAction)

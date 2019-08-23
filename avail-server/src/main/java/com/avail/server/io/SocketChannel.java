@@ -32,7 +32,6 @@
 
 package com.avail.server.io;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.server.messages.Message;
 
 import java.nio.channels.AsynchronousSocketChannel;
@@ -50,7 +49,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	 * The {@link SocketAdapter} that created this {@linkplain SocketChannel
 	 * channel}.
 	 */
-	@InnerAccess final SocketAdapter adapter;
+	final SocketAdapter adapter;
 
 	@Override
 	public SocketAdapter adapter ()

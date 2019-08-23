@@ -32,17 +32,11 @@
 
 package com.avail.tools.compiler.configuration;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.performance.StatisticReport;
-import com.avail.tools.options.DefaultOption;
-import com.avail.tools.options.GenericHelpOption;
-import com.avail.tools.options.GenericOption;
-import com.avail.tools.options.OptionProcessingException;
-import com.avail.tools.options.OptionProcessor;
-import com.avail.tools.options.OptionProcessorFactory;
+import com.avail.tools.options.*;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
@@ -376,7 +370,7 @@ implements Configurator<CompilerConfiguration>
 	}
 
 	/** The {@linkplain CompilerConfiguration configuration}. */
-	@InnerAccess final CompilerConfiguration configuration;
+	final CompilerConfiguration configuration;
 
 	/** The command line arguments. */
 	private final String[] commandLineArguments;

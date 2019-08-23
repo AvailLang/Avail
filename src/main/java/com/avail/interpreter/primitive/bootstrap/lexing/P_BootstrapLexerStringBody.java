@@ -32,13 +32,8 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -223,10 +218,10 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		private final int sourceSize;
 
 		/** The current position in the source. */
-		@InnerAccess int position;
+		int position;
 
 		/** The current line number in the source. */
-		@InnerAccess int lineNumber;
+		int lineNumber;
 
 		/**
 		 * Create a {@code Scanner} to help parse the string literal.
@@ -252,7 +247,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		 * @return {@code true} if there are more codepoints available,
 		 *         otherwise {@code false}
 		 */
-		@InnerAccess boolean hasNext ()
+		boolean hasNext ()
 		{
 			return position <= sourceSize;
 		}
@@ -263,7 +258,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		 *
 		 * @return The next codepoint.
 		 */
-		@InnerAccess int peek ()
+		int peek ()
 		{
 			return source.tupleCodePointAt(position);
 		}
@@ -275,7 +270,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		 *
 		 * @return The consumed codepoint.
 		 */
-		@InnerAccess int next ()
+		int next ()
 		{
 			final int c = source.tupleCodePointAt(position++);
 			if (c == '\n')

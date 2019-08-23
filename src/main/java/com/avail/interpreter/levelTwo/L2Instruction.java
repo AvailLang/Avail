@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -93,12 +92,12 @@ public final class L2Instruction
 	/**
 	 * The source {@link L2Register}s.
 	 */
-	@InnerAccess final List<L2Register> sourceRegisters = new ArrayList<>();
+	final List<L2Register> sourceRegisters = new ArrayList<>();
 
 	/**
 	 * The destination {@link L2Register}s.
 	 */
-	@InnerAccess final List<L2Register> destinationRegisters =
+	final List<L2Register> destinationRegisters =
 		new ArrayList<>();
 
 	/**

@@ -33,12 +33,7 @@
 package com.avail.interpreter.primitive.processes;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
@@ -52,11 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;

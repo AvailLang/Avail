@@ -32,7 +32,6 @@
 
 package com.avail.optimizer;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
@@ -57,7 +56,7 @@ public final class L2RegisterColorer
 	/**
 	 * A collection of registers that should be colored the same.
 	 */
-	@InnerAccess static class RegisterGroup
+	static class RegisterGroup
 	{
 		final Set<L2Register> registers = new HashSet<>();
 

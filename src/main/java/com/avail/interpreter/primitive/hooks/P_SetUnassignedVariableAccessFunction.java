@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.hooks;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

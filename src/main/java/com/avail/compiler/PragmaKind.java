@@ -32,12 +32,7 @@
 
 package com.avail.compiler;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.Continuation0;
 

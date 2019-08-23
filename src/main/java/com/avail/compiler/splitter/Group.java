@@ -33,12 +33,7 @@
 package com.avail.compiler.splitter;
 
 import com.avail.compiler.splitter.InstructionGenerator.Label;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 

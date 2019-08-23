@@ -31,15 +31,7 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

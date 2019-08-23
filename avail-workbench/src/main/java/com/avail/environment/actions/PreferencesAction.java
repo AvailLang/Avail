@@ -32,7 +32,6 @@
 
 package com.avail.environment.actions;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.environment.AvailWorkbench;
@@ -116,12 +115,12 @@ extends AbstractWorkbenchAction
 		}
 	}
 
-	@InnerAccess @Nullable JDialog preferencesDialog;
+	@Nullable JDialog preferencesDialog;
 
-	@InnerAccess final SimpleTableModel rootsTableModel =
+	final SimpleTableModel rootsTableModel =
 		new SimpleTableModel("root", "repository", "source");
 
-	@InnerAccess final SimpleTableModel renamesTableModel =
+	final SimpleTableModel renamesTableModel =
 		new SimpleTableModel("module", "replacement path");
 
 	@Override

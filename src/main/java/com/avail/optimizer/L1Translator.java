@@ -32,7 +32,6 @@
 package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
@@ -66,12 +65,7 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.HookType.*;
@@ -745,7 +739,7 @@ public final class L1Translator
 	 * A memento to be used for coordinating code generation between the
 	 * branches of an {@link InternalLookupTree}.
 	 */
-	@InnerAccess class InternalNodeMemento
+	class InternalNodeMemento
 	{
 		/** The one-based index of the argument being tested. */
 		final int argumentIndexToTest;

@@ -31,11 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;

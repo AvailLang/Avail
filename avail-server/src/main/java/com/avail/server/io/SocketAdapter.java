@@ -32,7 +32,6 @@
 
 package com.avail.server.io;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;
@@ -66,7 +65,7 @@ public final class SocketAdapter
 implements TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The {@linkplain AvailServer Avail server}. */
-	@InnerAccess final AvailServer server;
+	final AvailServer server;
 
 	@Override
 	public AvailServer server ()
@@ -78,12 +77,12 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * The {@linkplain InetSocketAddress address} of the {@linkplain
 	 * AsynchronousServerSocketChannel server socket channel}.
 	 */
-	@InnerAccess final InetSocketAddress adapterAddress;
+	final InetSocketAddress adapterAddress;
 
 	/**
 	 * The {@linkplain AsynchronousServerSocketChannel server socket channel}.
 	 */
-	@InnerAccess final AsynchronousServerSocketChannel serverChannel;
+	final AsynchronousServerSocketChannel serverChannel;
 
 	/**
 	 * Construct a new {@code SocketAdapter} for the specified {@linkplain
@@ -163,7 +162,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 *        {@code -1} if the remote end closed.
 	 * @return {@code true} if the remote end closed, {@code false} otherwise.
 	 */
-	@InnerAccess static boolean remoteEndClosed (
+	static boolean remoteEndClosed (
 		final AsynchronousSocketChannel transport,
 		final @Nullable Integer result)
 	{
@@ -269,7 +268,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @param continuation
 	 *        What to do with the payload.
 	 */
-	@InnerAccess void readPayloadThen (
+	void readPayloadThen (
 		final SocketChannel channel,
 		final int payloadLength,
 		final Continuation1NotNull<ByteBuffer> continuation)

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
@@ -85,13 +84,13 @@ public class L1Decompiler
 	 * The {@linkplain CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
-	@InnerAccess final A_RawFunction code;
+	final A_RawFunction code;
 
 	/**
 	 * The number of nybbles in the nybblecodes of the raw function being
 	 * decompiled.
 	 */
-	@InnerAccess final int numNybbles;
+	final int numNybbles;
 
 	/**
 	 * {@linkplain PhraseDescriptor Phrases} which correspond with the lexically
@@ -100,66 +99,66 @@ public class L1Decompiler
 	 * phrases}, but the latter may be phased out in favor of module constants
 	 * and module variables.
 	 */
-	@InnerAccess final A_Phrase[] outers;
+	final A_Phrase[] outers;
 
 	/**
 	 * The {@linkplain DeclarationKind#ARGUMENT
 	 * arguments declarations} for this code.
 	 */
-	@InnerAccess final A_Phrase[] args;
+	final A_Phrase[] args;
 
 	/**
 	 * The {@linkplain DeclarationKind#LOCAL_VARIABLE local variables} defined
 	 * by this code.
 	 */
-	@InnerAccess final A_Phrase[] locals;
+	final A_Phrase[] locals;
 
 	/**
 	 * Flags to indicate which local variables have been mentioned.  Upon first
 	 * mention, the corresponding local declaration should be emitted.
 	 */
-	@InnerAccess final boolean[] mentionedLocals;
+	final boolean[] mentionedLocals;
 
 	/**
 	 * The {@linkplain DeclarationKind#LOCAL_CONSTANT local constants} defined
 	 * by this code.
 	 */
-	@InnerAccess final A_Phrase[] constants;
+	final A_Phrase[] constants;
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
 	 * occurring.
 	 */
-	@InnerAccess final L1InstructionDecoder instructionDecoder =
+	final L1InstructionDecoder instructionDecoder =
 		new L1InstructionDecoder();
 
 	/**
 	 * Something to generate unique variable names from a prefix.
 	 */
-	@InnerAccess final UnaryOperator<String> tempGenerator;
+	final UnaryOperator<String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	@InnerAccess final List<A_Phrase> expressionStack = new ArrayList<>();
+	final List<A_Phrase> expressionStack = new ArrayList<>();
 
 	/**
 	 * The list of completely decompiled {@linkplain PhraseDescriptor
 	 * statements}.
 	 */
-	@InnerAccess final List<A_Phrase> statements = new ArrayList<>();
+	final List<A_Phrase> statements = new ArrayList<>();
 
 	/**
 	 * A flag to indicate that the last instruction was a push of the null
 	 * object.
 	 */
-	@InnerAccess boolean endsWithPushNil = false;
+	boolean endsWithPushNil = false;
 
 	/**
 	 * The decompiled {@linkplain BlockPhraseDescriptor block phrase}.
 	 */
-	@InnerAccess A_Phrase block;
+	A_Phrase block;
 
 	/**
 	 * Create a new decompiler suitable for decoding the given raw function,
@@ -252,7 +251,7 @@ public class L1Decompiler
 	 * @param index The one-based index into the args/locals/constants.
 	 * @return The declaration.
 	 */
-	@InnerAccess A_Phrase argOrLocalOrConstant (final int index)
+	A_Phrase argOrLocalOrConstant (final int index)
 	{
 		if (index <= args.length)
 		{
@@ -293,7 +292,7 @@ public class L1Decompiler
 	 *
 	 * @return The phrase that's still on the top of the stack.
 	 */
-	@InnerAccess A_Phrase peekExpression ()
+	A_Phrase peekExpression ()
 	{
 		return expressionStack.get(expressionStack.size() - 1);
 	}
@@ -304,7 +303,7 @@ public class L1Decompiler
 	 *
 	 * @return The phrase popped off the stack.
 	 */
-	@InnerAccess A_Phrase popExpression ()
+	A_Phrase popExpression ()
 	{
 		return expressionStack.remove(expressionStack.size() - 1);
 	}
@@ -317,7 +316,7 @@ public class L1Decompiler
 	 * @return The list of {@code count} phrases, in the order they were
 	 *         added to the stack.
 	 */
-	@InnerAccess List<A_Phrase> popExpressions (final int count)
+	List<A_Phrase> popExpressions (final int count)
 	{
 		final List<A_Phrase> result = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
@@ -339,7 +338,7 @@ public class L1Decompiler
 		expressionStack.add(expression);
 	}
 
-	@InnerAccess class DecompilerDispatcher implements L1OperationDispatcher
+	class DecompilerDispatcher implements L1OperationDispatcher
 	{
 		@Override
 		public void L1_doCall ()
@@ -846,7 +845,7 @@ public class L1Decompiler
 	 * @return A list phrase or permuted list phrase containing at least one
 	 *         supercast somewhere within the recursive list structure.
 	 */
-	@InnerAccess A_Phrase reconstructListWithSuperUnionType (
+	A_Phrase reconstructListWithSuperUnionType (
 		final int nArgs,
 		final A_Type superUnionType)
 	{

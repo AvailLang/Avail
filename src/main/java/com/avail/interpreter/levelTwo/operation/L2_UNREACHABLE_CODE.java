@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -91,7 +90,7 @@ extends L2ControlFlowOperation
 	 * {@code UnreachableCodeException} is thrown only if unreachable code is
 	 * actually reached.
 	 */
-	@InnerAccess static class UnreachableCodeException
+	static class UnreachableCodeException
 	extends RuntimeException
 	{
 		// No implementation required.

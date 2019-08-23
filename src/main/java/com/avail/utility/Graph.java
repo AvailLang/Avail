@@ -32,19 +32,11 @@
 
 package com.avail.utility;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation2NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -103,7 +95,7 @@ public class Graph<Vertex>
 		 *
 		 * @param message The message describing the specific problem.
 		 */
-		@InnerAccess GraphPreconditionFailure (final String message)
+		GraphPreconditionFailure (final String message)
 		{
 			super(message);
 		}
@@ -117,7 +109,6 @@ public class Graph<Vertex>
 	 * @param message A description of the failed precondition.
 	 * @throws GraphPreconditionFailure If the condition was false.
 	 */
-	@InnerAccess
 	static void ensure (
 		final boolean condition,
 		final String message)
@@ -138,7 +129,7 @@ public class Graph<Vertex>
 	 * is the reverse relationship.
 	 * </p>
 	 */
-	@InnerAccess final Map<Vertex, Set<Vertex>> outEdges;
+	final Map<Vertex, Set<Vertex>> outEdges;
 
 	/**
 	 * A map from each vertex of the {@link Graph} to its set of predecessor
@@ -149,7 +140,7 @@ public class Graph<Vertex>
 	 * is the reverse relationship.
 	 * </p>
 	 */
-	@InnerAccess final Map<Vertex, Set<Vertex>> inEdges;
+	final Map<Vertex, Set<Vertex>> inEdges;
 
 	/**
 	 * Remove all edges and vertices from the graph.
@@ -668,7 +659,7 @@ public class Graph<Vertex>
 		 *
 		 * @param visitAction What to perform for each vertex being visited.
 		 */
-		@InnerAccess ParallelVisitor (
+		ParallelVisitor (
 			final Continuation2NotNull<Vertex, Continuation0> visitAction,
 			final Continuation0 afterTraversal)
 		{
@@ -785,7 +776,7 @@ public class Graph<Vertex>
 		 * <p>Whichever thread runs the last completion action will also execute
 		 * the {@link #afterTraversal} action immediately afterward.</p>
 		 */
-		@InnerAccess void execute ()
+		void execute ()
 		{
 			computePredecessorCountdowns();
 			if (predecessorCountdowns.isEmpty())

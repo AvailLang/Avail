@@ -31,12 +31,8 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

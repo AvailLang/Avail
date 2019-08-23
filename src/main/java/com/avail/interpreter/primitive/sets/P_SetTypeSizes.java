@@ -31,11 +31,7 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

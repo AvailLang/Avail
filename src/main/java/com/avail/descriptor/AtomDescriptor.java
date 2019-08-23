@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
@@ -536,7 +535,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	@InnerAccess static A_Atom createSpecialBooleanAtom (
+	static A_Atom createSpecialBooleanAtom (
 		final String name,
 		final boolean booleanValue)
 	{

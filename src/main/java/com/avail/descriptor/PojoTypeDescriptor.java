@@ -33,30 +33,14 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.exceptions.MarshalingException;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
@@ -75,7 +59,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.RawPojoDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -377,7 +362,7 @@ extends TypeDescriptor
 	 * @param key An {@code LRUCacheKey}.
 	 * @return A pojo type.
 	 */
-	@InnerAccess static AvailObject computeValue (final LRUCacheKey key)
+	static AvailObject computeValue (final LRUCacheKey key)
 	{
 		// Java allows the operations defined in java.lang.Object to be
 		// performed on interface types, so interfaces are implicitly subtypes

@@ -32,7 +32,6 @@
 
 package com.avail.server.io;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;
 
@@ -51,7 +50,7 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	 * The {@link WebSocketAdapter} that created this {@linkplain
 	 * WebSocketChannel channel}.
 	 */
-	@InnerAccess final WebSocketAdapter adapter;
+	final WebSocketAdapter adapter;
 
 	@Override
 	public WebSocketAdapter adapter ()

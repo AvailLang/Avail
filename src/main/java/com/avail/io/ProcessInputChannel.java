@@ -33,14 +33,9 @@
 package com.avail.io;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetDecoder;
@@ -61,7 +56,7 @@ public final class ProcessInputChannel
 implements TextInputChannel
 {
 	/** The wrapped {@linkplain Reader reader}. */
-	@SuppressWarnings("WeakerAccess") @InnerAccess final Reader in;
+	@SuppressWarnings("WeakerAccess") final Reader in;
 
 	/**
 	 * Construct a new {@code ProcessInputChannel} that wraps the specified

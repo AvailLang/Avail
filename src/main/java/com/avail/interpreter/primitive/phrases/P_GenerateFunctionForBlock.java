@@ -32,12 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

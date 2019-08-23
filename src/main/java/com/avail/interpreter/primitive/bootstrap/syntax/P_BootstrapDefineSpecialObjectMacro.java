@@ -32,11 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;

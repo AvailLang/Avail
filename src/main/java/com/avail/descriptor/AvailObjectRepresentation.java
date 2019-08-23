@@ -32,13 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -1095,7 +1093,7 @@ implements A_BasicObject
 			longArrayShift = Integer.numberOfTrailingZeros(delta);
 		}
 
-		@InnerAccess static long volatileRead (
+		static long volatileRead (
 			final long[] longs,
 			final int subscript)
 		{
@@ -1105,7 +1103,7 @@ implements A_BasicObject
 			return unsafe.getLongVolatile(longs, byteOffset);
 		}
 
-		@InnerAccess static void volatileWrite (
+		static void volatileWrite (
 			final long[] longs,
 			final int subscript,
 			final long value)
@@ -1116,7 +1114,7 @@ implements A_BasicObject
 			unsafe.putLongVolatile(longs, byteOffset, value);
 		}
 
-		@InnerAccess static boolean compareAndSet (
+		static boolean compareAndSet (
 			final long[] longs,
 			final int subscript,
 			final long expected,
@@ -1143,7 +1141,7 @@ implements A_BasicObject
 			objectArrayShift = Integer.numberOfTrailingZeros(delta);
 		}
 
-		@InnerAccess static AvailObject volatileRead (
+		static AvailObject volatileRead (
 			final AvailObject[] objects,
 			final int subscript)
 		{
@@ -1153,7 +1151,7 @@ implements A_BasicObject
 			return (AvailObject) unsafe.getObjectVolatile(objects, byteOffset);
 		}
 
-		@InnerAccess static void volatileWrite (
+		static void volatileWrite (
 			final AvailObject[] objects,
 			final int subscript,
 			final AvailObject value)
@@ -1164,7 +1162,7 @@ implements A_BasicObject
 			unsafe.putObjectVolatile(objects, byteOffset, value);
 		}
 
-		@InnerAccess static boolean compareAndSet (
+		static boolean compareAndSet (
 			final AvailObject[] objects,
 			final int subscript,
 			final AvailObject expected,

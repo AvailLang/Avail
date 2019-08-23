@@ -31,6 +31,7 @@
  */
 
 package com.avail.builder;
+
 import com.avail.builder.AvailBuilder.ModuleTree;
 import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
@@ -45,11 +46,7 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;

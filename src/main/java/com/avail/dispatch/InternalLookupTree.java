@@ -31,7 +31,7 @@
  */
 
 package com.avail.dispatch;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -78,7 +78,7 @@ public class InternalLookupTree<
 	private volatile @Nullable A_Type argumentTypeToTest;
 
 	/** The 1-based index of the argument to be tested at this node. */
-	@InnerAccess int argumentPositionToTest = -1;
+	int argumentPositionToTest = -1;
 
 	/** The tree to visit if the supplied arguments conform. */
 	private @Nullable LookupTree<Element, Result, AdaptorMemento> ifCheckHolds;
@@ -120,7 +120,7 @@ public class InternalLookupTree<
 	 * @return A list of argument types to check, expanding this node if
 	 *         necessary.
 	 */
-	@InnerAccess final A_Type argumentTypeToTest ()
+	final A_Type argumentTypeToTest ()
 	{
 		return stripNull(argumentTypeToTest);
 	}

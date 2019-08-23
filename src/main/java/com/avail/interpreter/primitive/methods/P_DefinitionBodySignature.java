@@ -31,11 +31,7 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

@@ -33,7 +33,6 @@ package com.avail.compiler;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntimeConfiguration;
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.CompilerDiagnostics;
@@ -59,17 +58,8 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableInt;
-import com.avail.utility.MutableLong;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2NotNull;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.Transformer3;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -373,16 +363,16 @@ public final class AvailCompiler
 	 * A list of subexpressions being parsed, represented by {@link
 	 * A_BundleTree}s holding the positions within all outer send expressions.
 	 */
-	@InnerAccess static class PartialSubexpressionList
+	static class PartialSubexpressionList
 	{
 		/** The {@link A_BundleTree} being parsed at this moment. */
-		@InnerAccess final A_BundleTree bundleTree;
+		final A_BundleTree bundleTree;
 
 		/** The parent {@link PartialSubexpressionList} being parsed. */
-		@InnerAccess final @Nullable PartialSubexpressionList parent;
+		final @Nullable PartialSubexpressionList parent;
 
 		/** How many subexpressions deep that we're parsing. */
-		@InnerAccess final int depth;
+		final int depth;
 
 		/**
 		 * Create a list like the receiver, but with a different {@link
@@ -394,7 +384,7 @@ public final class AvailCompiler
 		 * @return A {@code PartialSubexpressionList} like the receiver, but
 		 *         with a different message bundle tree.
 		 */
-		@InnerAccess PartialSubexpressionList advancedTo (
+		PartialSubexpressionList advancedTo (
 			final A_BundleTree newBundleTree)
 		{
 			return new PartialSubexpressionList(newBundleTree, parent);
@@ -408,7 +398,7 @@ public final class AvailCompiler
 		 * @param parent
 		 *        The enclosing partially-parsed super-expressions being parsed.
 		 */
-		@InnerAccess PartialSubexpressionList (
+		PartialSubexpressionList (
 			final A_BundleTree bundleTree,
 			final @Nullable PartialSubexpressionList parent)
 		{
@@ -5028,7 +5018,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *        What to do with a completed phrase.
 	 */
-	@InnerAccess void eventuallyParseRestOfSendNode (
+	void eventuallyParseRestOfSendNode (
 		final ParserState start,
 		final A_BundleTree bundleTree,
 		final @Nullable A_Phrase firstArgOrNull,

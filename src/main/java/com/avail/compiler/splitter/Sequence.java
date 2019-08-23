@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -41,12 +41,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter.*;
@@ -366,7 +361,6 @@ extends Expression
 	 *        A tuple type containing the expected phrase types for this entire
 	 *        sequence.  Indexed by the second()s of the run pairs.
 	 */
-	@InnerAccess
 	private void emitRunOn (
 		final List<Pair<Expression, Integer>> run,
 		final int positionInRun,

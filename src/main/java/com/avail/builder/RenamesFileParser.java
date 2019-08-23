@@ -32,7 +32,6 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 
@@ -166,7 +165,7 @@ public final class RenamesFileParser
 	 * A {@code Token} associates a {@link TokenType} with a {@linkplain String
 	 * lexeme} from the source text of the renames file.
 	 */
-	@InnerAccess static class Token
+	static class Token
 	{
 		/** The {@link TokenType}. */
 		final TokenType tokenType;

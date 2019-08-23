@@ -31,7 +31,7 @@
  */
 
 package com.avail.builder;
-import com.avail.annotations.InnerAccess;
+
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
@@ -48,11 +48,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -273,7 +269,7 @@ final class BuildDirectoryTracer
 	 *
 	 * @param modulePath The {@link Path} to add to the requests.
 	 */
-	@InnerAccess synchronized void addTraceRequest (
+	synchronized void addTraceRequest (
 		final Path modulePath)
 	{
 		final boolean added = traceRequests.add(modulePath);
@@ -349,7 +345,7 @@ final class BuildDirectoryTracer
 	 *        The {@link Continuation0} to execute exactly once when the
 	 *        examination of this module file has completed.
 	 */
-	@InnerAccess void traceOneModuleHeader (
+	void traceOneModuleHeader (
 		final ResolvedModuleName resolvedName,
 		final Continuation3NotNull
 			<ResolvedModuleName, ModuleVersion, Continuation0> action,
@@ -426,7 +422,7 @@ final class BuildDirectoryTracer
 	 *
 	 * @param modulePath The {@link Path} for which a trace just completed.
 	 */
-	@InnerAccess synchronized void indicateFileCompleted (
+	synchronized void indicateFileCompleted (
 		final Path modulePath)
 	{
 		final boolean added = traceCompletions.add(modulePath);

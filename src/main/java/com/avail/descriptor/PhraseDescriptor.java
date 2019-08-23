@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.serialization.SerializerOperation;
@@ -317,7 +316,7 @@ extends Descriptor
 	 * @param parentNode
 	 *        This phrase's parent, or {@code null}.
 	 */
-	@InnerAccess static void treeDoWithParent (
+	static void treeDoWithParent (
 		final A_Phrase object,
 		final Continuation2<A_Phrase, A_Phrase> aBlock,
 		final @Nullable A_Phrase parentNode)

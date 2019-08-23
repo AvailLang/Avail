@@ -33,14 +33,9 @@
 package com.avail.io;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 
 import javax.annotation.Nullable;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Writer;
+import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetEncoder;
@@ -60,7 +55,7 @@ public final class ProcessOutputChannel
 implements TextOutputChannel
 {
 	/** The wrapped {@linkplain Writer writer}. */
-	@SuppressWarnings("WeakerAccess") @InnerAccess final Writer out;
+	@SuppressWarnings("WeakerAccess") final Writer out;
 
 	/**
 	 * Construct a new {@code ProcessOutputChannel} that wraps the specified

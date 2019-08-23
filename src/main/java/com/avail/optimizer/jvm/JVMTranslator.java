@@ -33,7 +33,6 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.AvailThread;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
@@ -54,13 +53,7 @@ import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.util.CheckMethodAdapter;
 
 import javax.annotation.Nonnull;
@@ -72,13 +65,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -126,7 +114,7 @@ public final class JVMTranslator
 	 * subclass. The {@code ClassWriter} is configured to automatically compute
 	 * stack map frames and method limits (e.g., stack depths).
 	 */
-	@InnerAccess final ClassWriter classWriter;
+	final ClassWriter classWriter;
 
 	/**
 	 * The name of the generated class, formed from a {@link UUID} to ensure
@@ -137,7 +125,7 @@ public final class JVMTranslator
 	/**
 	 * The internal name of the generated class.
 	 */
-	@InnerAccess final String classInternalName;
+	final String classInternalName;
 
 	/** The class file bytes that are produced. */
 	private @Nullable byte[] classBytes = null;
@@ -264,7 +252,7 @@ public final class JVMTranslator
 	 * embedded into the translated {@link JVMChunk}, mapped to their
 	 * {@linkplain LiteralAccessor accessors}.
 	 */
-	@InnerAccess final Map<Object, LiteralAccessor> literals = new HashMap<>();
+	final Map<Object, LiteralAccessor> literals = new HashMap<>();
 
 	/**
 	 * Emit code to push the specified literal on top of the stack.
@@ -329,7 +317,7 @@ public final class JVMTranslator
 	 * The {@link L2PcOperand}'s encapsulated program counters, mapped to their
 	 * {@linkplain Label labels}.
 	 */
-	@InnerAccess final Map<Integer, Label> labels = new HashMap<>();
+	final Map<Integer, Label> labels = new HashMap<>();
 
 	/**
 	 * Answer the {@link Label} for the specified {@link L2Instruction}
@@ -348,7 +336,7 @@ public final class JVMTranslator
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	@InnerAccess final Map<L2Register, Integer> locals = new HashMap<>();
+	final Map<L2Register, Integer> locals = new HashMap<>();
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -420,7 +408,7 @@ public final class JVMTranslator
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	@InnerAccess class JVMTranslationPreparer
+	class JVMTranslationPreparer
 	implements L2OperandDispatcher
 	{
 		/**
@@ -626,7 +614,7 @@ public final class JVMTranslator
 	 * Prepare for JVM translation by {@linkplain JVMTranslationPreparer
 	 * visiting} each of the {@link L2Instruction}s to be translated.
 	 */
-	@InnerAccess void prepare ()
+	void prepare ()
 	{
 		final JVMTranslationPreparer preparer = new JVMTranslationPreparer();
 		for (final L2Instruction instruction : instructions)
@@ -731,7 +719,7 @@ public final class JVMTranslator
 	 * subclass's {@link JVMChunkClassLoader} into appropriate {@code
 	 * private static final} fields.
 	 */
-	@InnerAccess void generateStaticInitializer ()
+	void generateStaticInitializer ()
 	{
 		MethodVisitor method = classWriter.visitMethod(
 			ACC_STATIC | ACC_PUBLIC,
@@ -1410,7 +1398,7 @@ public final class JVMTranslator
 	 * Generate the default constructor [{@code ()V}] of the target {@link
 	 * JVMChunk}.
 	 */
-	@InnerAccess void generateConstructorV ()
+	void generateConstructorV ()
 	{
 		final MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC | ACC_MANDATED,
@@ -1435,7 +1423,7 @@ public final class JVMTranslator
 	 * Generate the {@link JVMChunk#name()} method of the target {@link
 	 * JVMChunk}.
 	 */
-	@InnerAccess void generateName ()
+	void generateName ()
 	{
 		final MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
@@ -1557,7 +1545,7 @@ public final class JVMTranslator
 	 * Generate the {@link JVMChunk#runChunk(Interpreter, int)} method of the
 	 * target {@link JVMChunk}.
 	 */
-	@InnerAccess void generateRunChunk ()
+	void generateRunChunk ()
 	{
 		MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
@@ -1723,7 +1711,7 @@ public final class JVMTranslator
 	}
 
 	/** The final phase of JVM code generation. */
-	@InnerAccess void visitEnd ()
+	void visitEnd ()
 	{
 		classWriter.visitEnd();
 	}
@@ -1776,7 +1764,7 @@ public final class JVMTranslator
 	/**
 	 * Populate {@link #classBytes}, dumping to a file for debugging if indicated.
 	 */
-	@InnerAccess void createClassBytes ()
+	void createClassBytes ()
 	{
 		classBytes = classWriter.toByteArray();
 		if (debugJVM)
@@ -1785,7 +1773,7 @@ public final class JVMTranslator
 		}
 	}
 
-	@InnerAccess void loadClass ()
+	void loadClass ()
 	{
 		final Object[] parameters = new Object[literals.size()];
 		for (final Entry<Object, LiteralAccessor> entry : literals.entrySet())
@@ -1833,7 +1821,7 @@ public final class JVMTranslator
 		 * Execute all JVM generation phases.
 		 * @param jvmTranslator The {@link JVMTranslator} for which to execute.
 		 */
-		@InnerAccess static void executeAll (final JVMTranslator jvmTranslator)
+		static void executeAll (final JVMTranslator jvmTranslator)
 		{
 			final @Nullable AvailThread thread = AvailThread.currentOrNull();
 			final @Nullable Interpreter interpreter =

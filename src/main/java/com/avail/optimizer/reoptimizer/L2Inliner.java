@@ -32,7 +32,6 @@
 
 package com.avail.optimizer.reoptimizer;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -40,11 +39,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.optimizer.L1Translator;
-import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.*;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -84,7 +79,7 @@ public final class L2Inliner
 	 * An {@link L2OperandDispatcher} subclass suitable for copying operands for
 	 * the enclosing {@link L2Inliner}.
 	 */
-	@InnerAccess class OperandInlineTransformer
+	class OperandInlineTransformer
 	implements L2OperandDispatcher
 	{
 		/**
@@ -244,37 +239,37 @@ public final class L2Inliner
 	}
 
 	/** The {@link L2Generator} on which to output the transformed L2 code. */
-	@InnerAccess final L2Generator targetGenerator;
+	final L2Generator targetGenerator;
 
 	/** The {@link Frame} representing the invocation being inlined. */
-	@InnerAccess final Frame inlineFrame;
+	final Frame inlineFrame;
 
 	/** The invoke-like {@link L2Instruction} being inlined. */
-	@InnerAccess final L2Instruction invokeInstruction;
+	final L2Instruction invokeInstruction;
 
 	/** The {@link A_RawFunction} being inlined. */
-	@InnerAccess final A_RawFunction code;
+	final A_RawFunction code;
 
 	/** The registers providing values captured by the closure being inlined. */
-	@InnerAccess final List<L2ReadBoxedOperand> outers;
+	final List<L2ReadBoxedOperand> outers;
 
 	/** The registers providing arguments to the invocation being inlined. */
-	@InnerAccess final List<L2ReadBoxedOperand> arguments;
+	final List<L2ReadBoxedOperand> arguments;
 
 	/** The register to write the result of the inlined call into. */
-	@InnerAccess final L2WriteBoxedOperand result;
+	final L2WriteBoxedOperand result;
 
 	/**
 	 * The {@link L2BasicBlock} that should be reached when the inlined call
 	 * completes successfully.
 	 */
-	@InnerAccess final L2BasicBlock completionBlock;
+	final L2BasicBlock completionBlock;
 
 	/**
 	 * The {@link L2BasicBlock} that should be reached when reification happens
 	 * during the inlined call.
 	 */
-	@InnerAccess final L2BasicBlock reificationBlock;
+	final L2BasicBlock reificationBlock;
 
 	/**
 	 * The accumulated mapping from original {@link L2BasicBlock}s to their

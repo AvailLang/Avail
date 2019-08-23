@@ -32,7 +32,6 @@
 
 package com.avail.persistence;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.ModuleHeader;
@@ -44,26 +43,11 @@ import com.avail.utility.evaluation.Transformer2NotNull;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -162,7 +146,7 @@ public class IndexedRepositoryManager implements Closeable
 	 * The {@linkplain ReentrantLock lock} responsible for guarding against
 	 * unsafe concurrent access.
 	 */
-	@InnerAccess final ReentrantLock lock = new ReentrantLock();
+	final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * The name of the {@linkplain ModuleRoot Avail root} represented by this
@@ -200,7 +184,7 @@ public class IndexedRepositoryManager implements Closeable
 	 *
 	 * @return The repository.
 	 */
-	@InnerAccess IndexedRepository repository ()
+	IndexedRepository repository ()
 	{
 		return stripNull(repository);
 	}
@@ -221,7 +205,7 @@ public class IndexedRepositoryManager implements Closeable
 	 * @return
 	 *        A hash value combining the two inputs.
 	 */
-	@InnerAccess static int mix (final int currentHash, final long newLong)
+	static int mix (final int currentHash, final long newLong)
 	{
 		int h = currentHash;
 		h *= multiplier;
@@ -849,7 +833,7 @@ public class IndexedRepositoryManager implements Closeable
 		 * The N most recently recorded compilations of this version of the
 		 * module.
 		 */
-		@InnerAccess final LimitedCache<ModuleCompilationKey, ModuleCompilation>
+		final LimitedCache<ModuleCompilationKey, ModuleCompilation>
 			compilations = new LimitedCache<>(maxHistoricalVersionCompilations);
 
 		/**
@@ -1003,7 +987,7 @@ public class IndexedRepositoryManager implements Closeable
 		 *        A DataOutputStream on which to write this module version.
 		 * @throws IOException If I/O fails.
 		 */
-		@InnerAccess void write (final DataOutputStream binaryStream)
+		void write (final DataOutputStream binaryStream)
 			throws IOException
 		{
 			binaryStream.writeLong(moduleSize);
@@ -1138,7 +1122,7 @@ public class IndexedRepositoryManager implements Closeable
 		 *        A DataOutputStream on which to write this module compilation.
 		 * @throws IOException If I/O fails.
 		 */
-		@InnerAccess void write (final DataOutputStream binaryStream)
+		void write (final DataOutputStream binaryStream)
 			throws IOException
 		{
 			binaryStream.writeLong(compilationTime);

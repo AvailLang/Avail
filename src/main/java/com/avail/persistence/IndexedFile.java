@@ -31,7 +31,6 @@
  */
 package com.avail.persistence;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.LRUCache;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Transformer2NotNull;
@@ -139,7 +138,7 @@ public abstract class IndexedFile
 	public static final int DEFAULT_PAGE_SIZE = 4096;
 
 	/** The page size of the {@linkplain IndexedFile indexed file}. */
-	@InnerAccess int pageSize;
+	int pageSize;
 
 	/**
 	 * The preferred compression threshold of a {@linkplain IndexedFile indexed
@@ -150,7 +149,7 @@ public abstract class IndexedFile
 	/**
 	 * The compression threshold of the {@linkplain IndexedFile indexed file}.
 	 */
-	@InnerAccess int compressionBlockSize;
+	int compressionBlockSize;
 
 	/**
 	 * The preferred index node fan-out. The value is small enough that the
@@ -174,7 +173,7 @@ public abstract class IndexedFile
 	 * {@code ByteArrayOutputStream} provides direct (unsafe) access to the
 	 * backing byte array (without requiring it to be copied).
 	 */
-	@InnerAccess static final class ByteArrayOutputStream
+	static final class ByteArrayOutputStream
 	extends java.io.ByteArrayOutputStream
 	{
 		/**
@@ -211,10 +210,10 @@ public abstract class IndexedFile
 		 * the <em>next</em> serial number that should be committed to the
 		 * {@linkplain IndexedFile indexed file}.
 		 */
-		@InnerAccess int serialNumber;
+		int serialNumber;
 
 		/** The virtual end of file. */
-		@InnerAccess long fileLimit;
+		long fileLimit;
 
 		/** The raw bytes of <em>uncompressed</em> data. */
 		final ByteArrayOutputStream rawBytes;
@@ -338,7 +337,7 @@ public abstract class IndexedFile
 	 *
 	 * @return The {@linkplain #masterNodeBuffer master node} size.
 	 */
-	@InnerAccess int masterNodeSize ()
+	int masterNodeSize ()
 	{
 		return (pageSize << 1) + compressionBlockSize;
 	}
@@ -388,7 +387,7 @@ public abstract class IndexedFile
 	 * compressed block containing the record. The second axis is the position
 	 * of the record within the <em>uncompressed</em> block.
 	 */
-	@InnerAccess static final class RecordCoordinates
+	static final class RecordCoordinates
 	{
 		/**
 		 * The absolute position within the {@linkplain IndexedFile indexed
@@ -904,7 +903,7 @@ public abstract class IndexedFile
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@InnerAccess byte[] fetchSizedFromFile (
+	byte[] fetchSizedFromFile (
 		final long startFilePosition)
 	throws IOException
 	{

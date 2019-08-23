@@ -32,7 +32,6 @@
 
 package com.avail.tools.unicode;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.IO;
 import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
@@ -53,22 +52,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,14 +72,14 @@ public class Catalog
 	 * The file name extensions of files that should be searched for Unicode
 	 * characters.
 	 */
-	@InnerAccess static final Set<String> extensions =
+	static final Set<String> extensions =
 		new HashSet<>(Arrays.asList(
 			"java",
 			"avail",
 			"properties"));
 
 	/** The source paths to search for matching files. */
-	@InnerAccess static final List<Path> rootPaths =
+	static final List<Path> rootPaths =
 		Arrays.asList(
 			// The Java search path.
 			Paths.get("src"),
@@ -104,7 +90,7 @@ public class Catalog
 	 * The {@linkplain List list} of all {@linkplain Path paths} whose targets
 	 * should be searched for Unicode characters.
 	 */
-	@InnerAccess final List<Path> allPaths = new LinkedList<>();
+	final List<Path> allPaths = new LinkedList<>();
 
 	/**
 	 * Accumulate into {@link #allPaths} every path under the specified root

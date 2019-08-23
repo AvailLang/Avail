@@ -32,7 +32,6 @@
 
 package com.avail.compiler.splitter;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.descriptor.*;
@@ -44,12 +43,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.utility.Locks.Auto;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -393,7 +387,7 @@ public final class MessageSplitter
 	 * found in various regions of the Unicode code space.  See {@link
 	 * #circledNumbersString}.
 	 */
-	@InnerAccess static final Map<Integer, Integer> circledNumbersMap =
+	static final Map<Integer, Integer> circledNumbersMap =
 		new HashMap<>(circledNumbersCount);
 
 	/* Initialize circledNumbersMap and circledNumberCodePoints */
@@ -414,7 +408,7 @@ public final class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	@InnerAccess final A_String messageName;
+	final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -494,16 +488,16 @@ public final class MessageSplitter
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the {@link #messagePartsList} that have been extracted.
 	 */
-	@InnerAccess final List<Integer> messagePartPositions = new ArrayList<>(10);
+	final List<Integer> messagePartPositions = new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
-	@InnerAccess int messagePartPosition;
+	int messagePartPosition;
 
 	/**
 	 * A count of the number of unbackquoted underscores or ellipses in the
 	 * message name.
 	 */
-	@InnerAccess int leafArgumentCount = 0;
+	int leafArgumentCount = 0;
 
 	/**
 	 * The number of {@link SectionCheckpoint}s encountered so far.
@@ -570,7 +564,6 @@ public final class MessageSplitter
 	 *        determined.
 	 * @return The permutation's one-based index.
 	 */
-	@InnerAccess
 	public static int indexForPermutation (final A_Tuple permutation)
 	{
 		int checkedLimit = 0;

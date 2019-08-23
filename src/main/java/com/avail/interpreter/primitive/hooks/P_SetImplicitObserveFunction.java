@@ -32,13 +32,9 @@
 
 package com.avail.interpreter.primitive.hooks;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

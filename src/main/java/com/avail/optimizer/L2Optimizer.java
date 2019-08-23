@@ -32,15 +32,10 @@
 
 package com.avail.optimizer;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
@@ -117,7 +112,7 @@ public final class L2Optimizer
 	 *
 	 * @return {@code true} if any blocks were removed, otherwise {@code false}.
 	 */
-	@InnerAccess boolean removeUnreachableBlocks ()
+	boolean removeUnreachableBlocks ()
 	{
 		final Deque<L2BasicBlock> blocksToVisit = new ArrayDeque<>();
 		for (final L2BasicBlock block : blocks)
@@ -226,7 +221,7 @@ public final class L2Optimizer
 	 * a side-effect or produce a value ultimately used by an instruction that
 	 * has a side-effect.
 	 */
-	@InnerAccess void removeDeadCode ()
+	void removeDeadCode ()
 	{
 		//noinspection StatementWithEmptyBody
 		while (removeUnreachableBlocks() || removeDeadInstructions()) { }
@@ -237,7 +232,7 @@ public final class L2Optimizer
 	 * split it by inserting a new block along it.  Note that we do this
 	 * regardless of whether the target block has any phi functions.
 	 */
-	@InnerAccess void transformToEdgeSplitSSA ()
+	void transformToEdgeSplitSSA ()
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
@@ -267,7 +262,7 @@ public final class L2Optimizer
 	 * lead to a use of the register, and sometimes-live-in, where at least one
 	 * future path from the start of the block leads to a use of the register.
 	 */
-	@InnerAccess void computeLivenessAtEachEdge ()
+	void computeLivenessAtEachEdge ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -399,7 +394,7 @@ public final class L2Optimizer
 	 * <p>This requires edge-split SSA form as input, but the duplicated
 	 * defining instructions break SSA.</p>
 	 */
-	@InnerAccess void postponeConditionallyUsedValues ()
+	void postponeConditionallyUsedValues ()
 	{
 		boolean changed;
 		do
@@ -551,7 +546,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	@InnerAccess void insertPhiMoves ()
+	void insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -605,7 +600,7 @@ public final class L2Optimizer
 	 * Determine which pairs of registers have to be simultaneously live and
 	 * potentially holding distinct values.
 	 */
-	@InnerAccess void computeInterferenceGraph ()
+	void computeInterferenceGraph ()
 	{
 		colorer = new L2RegisterColorer(controlFlowGraph);
 		colorer.computeInterferenceGraph();
@@ -619,7 +614,7 @@ public final class L2Optimizer
 	 * register's group or the destination register's group had interferences
 	 * with.
 	 */
-	@InnerAccess void coalesceNoninterferingMoves ()
+	void coalesceNoninterferingMoves ()
 	{
 		stripNull(colorer).coalesceNoninterferingMoves();
 	}
@@ -628,7 +623,7 @@ public final class L2Optimizer
 	 * Assign final coloring to each register based on the interference graph
 	 * and coalescing map.
 	 */
-	@InnerAccess void computeColors ()
+	void computeColors ()
 	{
 		stripNull(colorer).computeColors();
 		colorer = null;
@@ -641,7 +636,7 @@ public final class L2Optimizer
 	 * {@link L2Register#uniqueValue} that's the same as its {@link
 	 * L2Register#finalIndex() finalIndex}.
 	 */
-	@InnerAccess void replaceRegistersByColor ()
+	void replaceRegistersByColor ()
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
@@ -690,7 +685,7 @@ public final class L2Optimizer
 	 * form, and is certainly not after this, since removed moves are the SSA
 	 * definition points for their target registers.
 	 */
-	@InnerAccess void removeSameColorMoves ()
+	void removeSameColorMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -714,7 +709,7 @@ public final class L2Optimizer
 	 * Any control flow edges that land on jumps should be redirected to the
 	 * ultimate target of the jump, taking into account chains of jumps.
 	 */
-	@InnerAccess void adjustEdgesLeadingToJumps ()
+	void adjustEdgesLeadingToJumps ()
 	{
 		boolean changed;
 		do
@@ -763,7 +758,7 @@ public final class L2Optimizer
 	 * predecessors have been placed (or if there are only cycles unplaced, pick
 	 * one arbitrarily).</p>
 	 */
-	@InnerAccess void orderBlocks ()
+	void orderBlocks ()
 	{
 		final Map<L2BasicBlock, MutableInt> countdowns = new HashMap<>();
 		for (final L2BasicBlock block : blocks)

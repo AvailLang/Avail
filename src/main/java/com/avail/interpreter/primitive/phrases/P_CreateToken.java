@@ -32,14 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

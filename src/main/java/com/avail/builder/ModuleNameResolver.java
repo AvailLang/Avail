@@ -32,7 +32,6 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -40,12 +39,7 @@ import com.avail.utility.LRUCache;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -243,7 +237,7 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * Actually resolve the qualified module name.  This is @{@link InnerAccess}
+	 * Actually resolve the qualified module name.  This is not {@code public}
 	 * to ensure clients always go through the cache.
 	 *
 	 * @param qualifiedName
@@ -251,7 +245,7 @@ public final class ModuleNameResolver
 	 * @return A {@link ModuleNameResolutionResult} indicating the result of the
 	 *         attempted resolution.
 	 */
-	@InnerAccess ModuleNameResolutionResult privateResolve (
+	ModuleNameResolutionResult privateResolve (
 		final ModuleName qualifiedName)
 	{
 		// Attempt to look up the fully-qualified name in the map of renaming
@@ -398,7 +392,7 @@ public final class ModuleNameResolver
 	 * the ModuleNameResolver could bundle information about the different paths
 	 * checked for the missing file into the exception itself.
 	 */
-	@InnerAccess static final class ModuleNameResolutionResult
+	static final class ModuleNameResolutionResult
 	{
 		/** The module that was successfully resolved, or null if not found. */
 		private final @Nullable ResolvedModuleName resolvedModule;

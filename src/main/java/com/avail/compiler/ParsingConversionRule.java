@@ -33,15 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ListPhraseDescriptor;
-import com.avail.descriptor.LiteralPhraseDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
+import com.avail.descriptor.*;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import static com.avail.descriptor.IntegerDescriptor.fromInt;

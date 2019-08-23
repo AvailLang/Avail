@@ -32,7 +32,6 @@
 
 package com.avail.tools.options;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.utility.MutableOrNull;
 
 import java.io.IOException;
@@ -68,7 +67,6 @@ extends GenericOption<OptionKeyType>
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@InnerAccess
 	static <KeyType extends Enum<KeyType>> void writeHelpText (
 			final OptionProcessor<KeyType> optionProcessor,
 			final String preamble,

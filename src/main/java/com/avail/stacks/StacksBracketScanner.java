@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.TokenDescriptor;
 
@@ -72,7 +71,7 @@ public final class StacksBracketScanner extends AbstractStacksScanner
 	 *
 	 * @return Whether we are finished scanning.
 	 */
-	@InnerAccess @Override
+	@Override
 	boolean atEnd ()
 	{
 		return position() == tokenString().length() - 1;

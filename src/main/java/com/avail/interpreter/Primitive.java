@@ -32,27 +32,13 @@
 
 package com.avail.interpreter;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.ExecutableChunk;
@@ -71,11 +57,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -534,10 +516,10 @@ implements IntegerEnumSlotDescriptionEnum
 	private static final class PrimitiveHolder
 	{
 		/** The name by which a primitive function is declared in Avail code. */
-		@InnerAccess final String name;
+		final String name;
 
 		/** The full name of the Java class implementing the primitive. */
-		@InnerAccess final String className;
+		final String className;
 
 		/**
 		 * The numeric index of the primitive in the {@link #holdersByNumber}
@@ -545,7 +527,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * running Java VM instance.  The number should never be included in any
 		 * serialization of primitive functions.
 		 */
-		@InnerAccess final int number;
+		final int number;
 
 		/**
 		 * The sole instance of the specific subclass of {@link Primitive}.  It
@@ -553,7 +535,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * Java class loading to happen, and we'd rather smear out that startup
 		 * performance cost.
 		 */
-		@InnerAccess @Nullable volatile Primitive primitive = null;
+		@Nullable volatile Primitive primitive = null;
 
 		/**
 		 * Get the {@link Primitive} from this {@code PrimitiveHolder}.  Load
@@ -615,7 +597,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * @param className The fully qualified name of the Primitive subclass.
 		 * @param number The primitive's assigned index in the
 		 */
-		@InnerAccess PrimitiveHolder (
+		PrimitiveHolder (
 			final String name,
 			final String className,
 			final int number)

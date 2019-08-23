@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
@@ -195,7 +194,7 @@ extends MapBinDescriptor
 	 *        LinearMapBinDescriptor}.
 	 * @return The number of entries in the bin.
 	 */
-	@InnerAccess static int entryCount (final AvailObject object)
+	static int entryCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount() >> 1;
 	}

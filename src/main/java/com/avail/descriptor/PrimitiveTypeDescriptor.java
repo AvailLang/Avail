@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -524,7 +523,7 @@ extends TypeDescriptor
 	}
 
 	/** The {@link Types primitive type} represented by this descriptor. */
-	@InnerAccess final @Nullable Types primitiveType;
+	final @Nullable Types primitiveType;
 
 	/**
 	 * Construct a new {@link Mutability#SHARED shared} {@link

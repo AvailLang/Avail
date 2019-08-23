@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.CommentTokenDescriptor;
 
@@ -298,7 +297,6 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The newly added token.
 	 */
-	@InnerAccess
 	void addCurrentToken ()
 	{
 		final StacksToken token = StacksToken.create(
@@ -316,7 +314,6 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The newly added token.
 	 */
-	@InnerAccess
 	void addBracketedToken () throws StacksScannerException
 	{
 		final BracketedStacksToken token = BracketedStacksToken.create(
@@ -334,7 +331,6 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The newly added token.
 	 */
-	@InnerAccess
 	void addQuotedToken ()
 	{
 		final QuotedStacksToken token = QuotedStacksToken.create(
@@ -352,7 +348,6 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The newly added token.
 	 */
-	@InnerAccess
 	AbstractStacksToken addKeywordToken ()
 	{
 		final AbstractStacksToken token = KeywordStacksToken.create(
@@ -370,9 +365,7 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return Whether we are finished scanning.
 	 */
-	@InnerAccess
 	abstract boolean atEnd ();
-
 
 	/**
 	 * Extract the current character and increment the {@link #position}.
@@ -380,7 +373,6 @@ public abstract class AbstractStacksScanner
 	 * @return The consumed character.
 	 * @throws StacksScannerException If scanning fails.
 	 */
-	@InnerAccess
 	int next ()
 		throws StacksScannerException
 	{
@@ -409,7 +401,6 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The current character.
 	 */
-	@InnerAccess
 	int peek ()
 	{
 		return Character.codePointAt(tokenString, position);
@@ -425,7 +416,6 @@ public abstract class AbstractStacksScanner
 	 * @return Whether the specified character was found and skipped.
 	 * @throws StacksScannerException If scanning fails.
 	 */
-	@InnerAccess
 	boolean peekFor (final int aCharacter)
 		throws StacksScannerException
 	{

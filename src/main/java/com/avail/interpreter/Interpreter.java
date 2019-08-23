@@ -37,7 +37,6 @@ import com.avail.AvailRuntime.HookType;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
@@ -68,13 +67,8 @@ import com.avail.utility.evaluation.Continuation2NotNull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -2103,7 +2097,7 @@ public final class Interpreter
 	 * Run the interpreter until it completes the fiber, is suspended, or is
 	 * interrupted, perhaps by exceeding its time-slice.
 	 */
-	@InnerAccess void run ()
+	void run ()
 	{
 		assert unreifiedCallDepth() == 0;
 		assert fiber != null;

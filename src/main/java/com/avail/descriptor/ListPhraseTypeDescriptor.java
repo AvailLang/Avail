@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -538,7 +537,7 @@ extends PhraseTypeDescriptor
 	private static final class Empty
 	{
 		/** The empty list phrase's type. */
-		@InnerAccess static final A_Type empty =
+		static final A_Type empty =
 			createListNodeTypeNoCheck(
 				LIST_PHRASE, tupleTypeForTypes(), tupleTypeForTypes()
 			).makeShared();
