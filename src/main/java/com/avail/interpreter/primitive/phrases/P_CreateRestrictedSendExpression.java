@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -128,7 +128,7 @@ extends Primitive
 		{
 			bundle = messageName.bundleOrCreate();
 			final MessageSplitter splitter = bundle.messageSplitter();
-			if (splitter.numberOfArguments() != argsCount)
+			if (splitter.getNumberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
 					stringFrom(
@@ -368,6 +368,6 @@ extends Primitive
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_NO_METHOD_DEFINITION
-			).setUnionCanDestroy(possibleErrors, true));
+			).setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

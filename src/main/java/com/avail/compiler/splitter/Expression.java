@@ -83,13 +83,14 @@ abstract class Expression
 	 * @return The case-insensitive expression.
 	 * @throws MalformedMessageException if the result would not be meaningful.
 	 */
-	Expression applyCaseInsensitive ()
+	@Nullable Expression applyCaseInsensitive ()
 	throws MalformedMessageException
 	{
-		throw throwMalformedMessageException(
+		throwMalformedMessageException(
 			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
 			"Tilde (~) may only occur after a lowercase "
 				+ "token or a group of lowercase tokens");
+		return null;
 	}
 
 	/**
@@ -196,7 +197,7 @@ abstract class Expression
 	 *        of argument types are being validated against.  To validate
 	 *        the final method or macro body rather than a prefix function,
 	 *        use any value greater than the {@linkplain
-	 *        MessageSplitter#numberOfSectionCheckpoints}.
+	 *        MessageSplitter#getNumberOfSectionCheckpoints()}.
 	 * @throws SignatureException
 	 *        If the argument type is inappropriate.
 	 */

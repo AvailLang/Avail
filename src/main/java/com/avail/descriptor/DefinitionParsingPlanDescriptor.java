@@ -45,6 +45,8 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
+import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
+import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
@@ -168,21 +170,21 @@ extends Descriptor
 						{
 							builder.append(" Constant = ");
 							builder.append(
-								MessageSplitter.constantForIndex(operand));
+								constantForIndex(operand));
 							break;
 						}
 						case PERMUTE_LIST:
 						{
 							builder.append(" Permutation = ");
 							builder.append(
-								MessageSplitter.permutationAtIndex(operand));
+								permutationAtIndex(operand));
 							break;
 						}
 						case TYPE_CHECK_ARGUMENT:
 						{
 							builder.append(" Type = ");
 							builder.append(
-								MessageSplitter.constantForIndex(operand));
+								constantForIndex(operand));
 							break;
 						}
 						case CONVERT:

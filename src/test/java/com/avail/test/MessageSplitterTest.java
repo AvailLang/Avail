@@ -1466,7 +1466,7 @@ public final class MessageSplitterTest
 		final String msgString = splitCase.message;
 		final A_String message = stringFrom(msgString);
 		final MessageSplitter splitter = new MessageSplitter(message);
-		final A_Tuple parts = splitter.messageParts();
+		final A_Tuple parts = splitter.getMessagePartsTuple();
 		assert splitCase.tokens.length == parts.tupleSize();
 		for (int i = 1; i <= parts.tupleSize(); i++)
 		{

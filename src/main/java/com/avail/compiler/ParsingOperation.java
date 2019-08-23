@@ -1110,9 +1110,9 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+3} - Parse the N<sup>th</sup> {@linkplain
-	 * MessageSplitter#messageParts() message part} of the current message. This
-	 * will be a specific {@linkplain TokenDescriptor token}. It should be
-	 * matched case sensitively against the source token.
+	 * MessageSplitter#getMessagePartsTuple()}  message part} of the current
+	 * message. This will be a specific {@linkplain TokenDescriptor token}. It
+	 * should be matched case sensitively against the source token.
 	 */
 	PARSE_PART(3, false, false)
 	{
@@ -1143,9 +1143,9 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+4} - Parse the N<sup>th</sup> {@linkplain
-	 * MessageSplitter#messageParts()}  message part} of the current message.
-	 * This will be a specific {@linkplain TokenDescriptor token}. It should be
-	 * matched case insensitively against the source token.
+	 * MessageSplitter#getMessagePartsTuple() message part} of the current
+	 * message. This will be a specific {@linkplain TokenDescriptor token}. It
+	 * should be matched case insensitively against the source token.
 	 */
 	PARSE_PART_CASE_INSENSITIVELY(4, false, false)
 	{
@@ -1822,8 +1822,9 @@ public enum ParsingOperation
 
 	/**
 	 * Assume that the instruction encodes an operand that represents a
-	 * {@linkplain MessageSplitter#messageParts() message part} index: answer
-	 * the operand.  Answer 0 if the operand does not represent a message part.
+	 * {@linkplain MessageSplitter#getMessagePartsTuple() message part} index:
+	 * answer the operand.  Answer 0 if the operand does not represent a message
+	 * part.
 	 *
 	 * @param instruction A coded instruction.
 	 * @return The message part index, or {@code 0} if the assumption was false.

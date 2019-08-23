@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListPhraseDescriptor;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 
 /**
  * An {@code ArgumentForMacroOnly} is the translation of an {@linkplain
@@ -92,7 +93,7 @@ extends Argument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(phraseType));
+			indexForConstant(phraseType));
 		return wrapState;
 	}
 }

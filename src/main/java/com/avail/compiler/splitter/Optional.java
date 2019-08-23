@@ -30,9 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import com.avail.compiler.splitter.MessageSplitter.*;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
@@ -47,7 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
+import static com.avail.compiler.splitter.MessageSplitter.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
@@ -161,11 +162,11 @@ extends Expression
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
-		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
+		generator.emit(this, PUSH_LITERAL, getIndexForTrue());
 		final Label $after = new Label();
 		generator.emitJumpForward(this, $after);
 		generator.emit($absent);
-		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
+		generator.emit(this, PUSH_LITERAL, getIndexForFalse());
 		generator.emit($after);
 		return wrapState.processAfterPushedArgument(this, generator);
 	}
@@ -212,13 +213,13 @@ extends Expression
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		continuation.value();
 		generator.flushDelayed();
-		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
+		generator.emit(this, PUSH_LITERAL, getIndexForTrue());
 		final Label $merge = new Label();
 		generator.emitJumpForward(this, $merge);
 		generator.emit($absent);
 		continuation.value();
 		generator.flushDelayed();
-		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
+		generator.emit(this, PUSH_LITERAL, getIndexForFalse());
 		generator.emit($merge);
 	}
 

@@ -937,7 +937,7 @@ public final class AvailLoader
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodyBlock.kind());
-		final int numArgs = splitter.numberOfArguments();
+		final int numArgs = splitter.getNumberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -970,7 +970,7 @@ public final class AvailLoader
 	{
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final MessageSplitter splitter = bundle.messageSplitter();
-		final int numArgs = splitter.numberOfArguments();
+		final int numArgs = splitter.getNumberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		if (!bodyArgsSizes.lowerBound().equalsInt(numArgs)
 			|| !bodyArgsSizes.upperBound().equalsInt(numArgs))
@@ -1147,7 +1147,7 @@ public final class AvailLoader
 
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final MessageSplitter splitter = bundle.messageSplitter();
-		final int numArgs = splitter.numberOfArguments();
+		final int numArgs = splitter.getNumberOfArguments();
 		if (macroBody.code().numArgs() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -1247,7 +1247,7 @@ public final class AvailLoader
 		assert seal.isTuple();
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final MessageSplitter splitter = bundle.messageSplitter();
-		if (seal.tupleSize() != splitter.numberOfArguments())
+		if (seal.tupleSize() != splitter.getNumberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
@@ -1307,7 +1307,7 @@ public final class AvailLoader
 		{
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
 			final MessageSplitter splitter = bundle.messageSplitter();
-			final int numArgs = splitter.numberOfLeafArguments();
+			final int numArgs = splitter.getLeafArgumentCount();
 			if (illegalArgumentMessages.tupleSize() != numArgs)
 			{
 				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);

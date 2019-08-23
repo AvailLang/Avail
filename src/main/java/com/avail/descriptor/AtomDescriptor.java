@@ -386,7 +386,7 @@ extends Descriptor
 		{
 			final A_String name = object.slot(NAME);
 			final MessageSplitter splitter = new MessageSplitter(name);
-			final A_Method method = newMethod(splitter.numberOfArguments());
+			final A_Method method = newMethod(splitter.getNumberOfArguments());
 			bundle = newBundle(object, method, splitter);
 			object.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, bundle);
 		}

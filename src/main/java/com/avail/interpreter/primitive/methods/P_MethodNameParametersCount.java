@@ -42,7 +42,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -86,7 +86,7 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		return interpreter.primitiveSuccess(
-			fromInt(splitter.numberOfArguments()));
+			fromInt(splitter.getNumberOfArguments()));
 	}
 
 	@Override
@@ -100,6 +100,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(possibleErrors);
+		return enumerationWith(getPossibleErrors());
 	}
 }

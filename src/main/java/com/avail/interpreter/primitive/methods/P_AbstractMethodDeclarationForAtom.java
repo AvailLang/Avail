@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -143,10 +143,11 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+			set(
+				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(possibleErrors, true));
+				E_METHOD_IS_SEALED
+			).setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

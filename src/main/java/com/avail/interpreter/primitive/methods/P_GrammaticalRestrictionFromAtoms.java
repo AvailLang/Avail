@@ -42,7 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
@@ -125,6 +125,6 @@ extends Primitive
 		return enumerationWith(
 			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-				.setUnionCanDestroy(possibleErrors, true));
+				.setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

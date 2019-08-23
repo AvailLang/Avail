@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.utility.Nulls.stripNull;
@@ -126,7 +127,7 @@ extends Expression
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(phraseType));
+			indexForConstant(phraseType));
 		return wrapState.processAfterPushedArgument(this, generator);
 	}
 

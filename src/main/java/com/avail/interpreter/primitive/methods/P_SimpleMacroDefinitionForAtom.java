@@ -47,8 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.*;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -132,7 +131,7 @@ extends Primitive
 			final MessageSplitter splitter =
 				atom.bundleOrCreate().messageSplitter();
 			if (prefixFunctions.tupleSize()
-				!= splitter.numberOfSectionCheckpoints)
+				!= splitter.getNumberOfSectionCheckpoints())
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS);
@@ -222,14 +221,15 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+			set(
+				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
 				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
 				E_MACRO_MUST_RETURN_A_PARSE_NODE,
-				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-				.setUnionCanDestroy(possibleErrors, true));
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
+			).setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

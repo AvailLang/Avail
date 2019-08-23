@@ -209,7 +209,7 @@ extends Descriptor
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		final MessageSplitter messageSplitter =
 			splitterPojo.javaObjectNotNull();
-		return messageSplitter.messageParts();
+		return messageSplitter.getMessagePartsTuple();
 	}
 
 	@Override @AvailMethod
@@ -375,8 +375,8 @@ extends Descriptor
 		final MessageSplitter splitter)
 	{
 		assert methodName.isAtom();
-		assert splitter.numberOfArguments() == method.numArgs();
-		assert splitter.messageName().equals(methodName.atomName());
+		assert splitter.getNumberOfArguments() == method.numArgs();
+		assert splitter.getMessageName().equals(methodName.atomName());
 
 		final AvailObject splitterPojo = identityPojo(splitter);
 		final AvailObject result = mutable.create();

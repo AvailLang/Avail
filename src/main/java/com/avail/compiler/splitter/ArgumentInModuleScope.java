@@ -41,6 +41,7 @@ import java.util.Iterator;
 
 import static com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION;
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -101,7 +102,7 @@ extends Argument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(expressionType));
+			indexForConstant(expressionType));
 		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number());
 		return wrapState;
 	}

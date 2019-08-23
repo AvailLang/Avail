@@ -44,6 +44,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 import static com.avail.compiler.splitter.MessageSplitter.throwSignatureException;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -188,7 +189,7 @@ extends Expression
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 			generator.emit(
-				this, PUSH_LITERAL, MessageSplitter.indexForConstant(
+				this, PUSH_LITERAL, indexForConstant(
 					fromInt(index + 1)));
 			if (!last)
 			{
@@ -200,7 +201,7 @@ extends Expression
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(phraseType));
+			indexForConstant(phraseType));
 		return wrapState.processAfterPushedArgument(this, generator);
 	}
 

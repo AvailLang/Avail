@@ -36,6 +36,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 
 /**
  * A {@code RawStringLiteralTokenArgument} is an occurrence of {@linkplain
@@ -79,7 +80,7 @@ extends RawTokenArgument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(phraseType));
+			indexForConstant(phraseType));
 		return wrapState;
 	}
 }

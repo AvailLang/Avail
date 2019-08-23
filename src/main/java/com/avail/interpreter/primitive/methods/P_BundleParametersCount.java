@@ -73,7 +73,7 @@ extends Primitive
 
 		final MessageSplitter splitter = bundle.messageSplitter();
 		return interpreter.primitiveSuccess(
-			fromInt(splitter.numberOfArguments()));
+			fromInt(splitter.getNumberOfArguments()));
 	}
 
 	@Override

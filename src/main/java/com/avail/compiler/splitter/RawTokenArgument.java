@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type;
 
 import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 
 /**
  * A {@code RawTokenArgument} is an occurrence of {@linkplain
@@ -76,7 +77,7 @@ extends Argument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForConstant(phraseType));
+			indexForConstant(phraseType));
 		return wrapState;
 	}
 }

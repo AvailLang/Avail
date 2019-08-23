@@ -54,6 +54,7 @@ import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
+import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
@@ -1202,8 +1203,7 @@ extends Descriptor
 				// restriction check.  Now it needs to do a type check with a
 				// type-dispatch tree.
 				final int typeIndex = op.typeCheckArgumentIndex(instruction);
-				final A_Type phraseType =
-					MessageSplitter.constantForIndex(typeIndex);
+				final A_Type phraseType = constantForIndex(typeIndex);
 				final A_ParsingPlanInProgress planInProgress =
 					newPlanInProgress(plan, pc + 1);
 				final A_Tuple pair = tuple(phraseType, planInProgress);

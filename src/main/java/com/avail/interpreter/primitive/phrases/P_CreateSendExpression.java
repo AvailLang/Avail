@@ -42,7 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
@@ -93,7 +93,7 @@ extends Primitive
 		{
 			bundle = messageName.bundleOrCreate();
 			final MessageSplitter splitter = bundle.messageSplitter();
-			if (splitter.numberOfArguments() != argsCount)
+			if (splitter.getNumberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -138,6 +138,6 @@ extends Primitive
 		return enumerationWith(
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
-			).setUnionCanDestroy(possibleErrors, true));
+			).setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

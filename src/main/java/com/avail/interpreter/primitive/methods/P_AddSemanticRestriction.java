@@ -42,7 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
@@ -138,6 +138,6 @@ extends Primitive
 				E_AMBIGUOUS_NAME,
 				E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
-			).setUnionCanDestroy(possibleErrors, true));
+			).setUnionCanDestroy(getPossibleErrors(), true));
 	}
 }

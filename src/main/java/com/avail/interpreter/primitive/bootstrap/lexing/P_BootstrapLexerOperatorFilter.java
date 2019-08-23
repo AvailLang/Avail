@@ -32,13 +32,13 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.compiler.splitter.MessageSplitter.isOperator;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -79,8 +79,7 @@ public final class P_BootstrapLexerOperatorFilter extends Primitive
 		// if it's followed by an asterisk (*), since that sequence is reserved
 		// for comments.
 		final int c = character.codePoint();
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(MessageSplitter.isOperator(c)));
+		return interpreter.primitiveSuccess(objectFromBoolean(isOperator(c)));
 	}
 
 	@Override

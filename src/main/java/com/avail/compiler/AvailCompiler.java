@@ -39,7 +39,6 @@ import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
@@ -89,6 +88,7 @@ import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationL
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.*;
@@ -2332,8 +2332,7 @@ public final class AvailCompiler
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
 					final A_Type argType =
-						MessageSplitter.constantForIndex(typeIndex)
-							.expressionType();
+						constantForIndex(typeIndex).expressionType();
 					typeSet.add(argType);
 					// Add the type under the given plan *string*, even if it's
 					// a different underlying message bundle.

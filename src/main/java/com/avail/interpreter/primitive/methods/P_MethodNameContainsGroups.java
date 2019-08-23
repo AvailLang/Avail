@@ -41,7 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.*;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
@@ -84,7 +84,7 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(splitter.containsGroups()));
+			objectFromBoolean(splitter.getContainsGroups()));
 	}
 
 	@Override
@@ -98,6 +98,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(possibleErrors);
+		return enumerationWith(getPossibleErrors());
 	}
 }
