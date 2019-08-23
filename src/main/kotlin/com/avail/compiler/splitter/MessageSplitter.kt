@@ -72,8 +72,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * this message.
  *
  * @param messageName
- *        An Avail [string][StringDescriptor] specifying the keywords and
- *        arguments of some message being defined.
+ *   An Avail [string][StringDescriptor] specifying the keywords and arguments
+ *   of some message being defined.
  * @throws MalformedMessageException
  *         If the message name is malformed.
  */
@@ -428,8 +428,9 @@ class MessageSplitter
 			 * [backquoted][.BACK_QUOTE]
 			 *
 			 * @param codePoint
-			 *        The Unicode codepoint to check.
-			 * @return Whether the character can be backquoted in a method name.
+			 *   The Unicode codepoint to check.
+			 * @return
+			 *   Whether the character can be backquoted in a method name.
 			 */
 			fun canBeBackQuoted(codePoint: Int) =
 				backquotableCodepoints.contains(codePoint)
@@ -500,7 +501,7 @@ class MessageSplitter
 	 * specified [builder][StringBuilder].
 	 *
 	 * @param builder
-	 *        The accumulator.
+	 *   The accumulator.
 	 */
 	private fun dumpForDebug(builder: StringBuilder)
 	{
@@ -518,7 +519,8 @@ class MessageSplitter
 	 * Answer the 1-based position of the current message part in the message
 	 * name.
 	 *
-	 * @return The current 1-based position in the message name.
+	 * @return
+	 *   The current 1-based position in the message name.
 	 */
 	private val positionInName get() =
 		if (atEnd)
@@ -530,8 +532,8 @@ class MessageSplitter
 	/**
 	 * Answer whether parsing has reached the end of the message parts.
 	 *
-	 * @return `true` if the current position has consumed the last message
-	 *         part.
+	 * @return
+	 *   `true` if the current position has consumed the last message part.
 	 */
 	private val atEnd get() = messagePartPosition > messagePartsList.size
 
@@ -539,7 +541,8 @@ class MessageSplitter
 	 * Answer the current message part, or `null` if we are [.atEnd].  Do not
 	 * consume the message part.
 	 *
-	 * @return The current message part or `null`.
+	 * @return
+	 *   The current message part or `null`.
 	 */
 	private val currentMessagePartOrNull get() =
 		if (atEnd) null else messagePartsList[messagePartPosition - 1]
@@ -548,7 +551,8 @@ class MessageSplitter
 	 * Answer the current message part.  We must not be [.atEnd].  Do
 	 * not consume the message part.
 	 *
-	 * @return The current message part.
+	 * @return
+	 *   The current message part.
 	 */
 	private val currentMessagePart get(): A_String
 	{
@@ -560,12 +564,12 @@ class MessageSplitter
 	 * Pretty-print a send of this message with given argument phrases.
 	 *
 	 * @param sendPhrase
-	 *        The [send phrase][SendPhraseDescriptor] that is being printed.
+	 *   The [send phrase][SendPhraseDescriptor] that is being printed.
 	 * @param builder
-	 *        A [StringBuilder] on which to pretty-print the send of my message
-	 *        with the given arguments.
+	 *   A [StringBuilder] on which to pretty-print the send of my message with
+	 *   the given arguments.
 	 * @param indent
-	 *        The current indentation level.
+	 *   The current indentation level.
 	 */
 	fun printSendNodeOnIndent(
 		sendPhrase: A_Phrase,
@@ -586,9 +590,10 @@ class MessageSplitter
 	 * [ParsingOperation] for an understanding of the parse instructions.
 	 *
 	 * @param phraseType
-	 *        The phrase type (yielding a tuple type) for this signature.
-	 * @return The tuple of integers encoding parse instructions for this
-	 *         message and argument types.
+	 *   The phrase type (yielding a tuple type) for this signature.
+	 * @return
+	 *   The tuple of integers encoding parse instructions for this message and
+	 *   argument types.
 	 */
 	fun instructionsTupleFor(phraseType: A_Type): A_Tuple
 	{
@@ -605,8 +610,10 @@ class MessageSplitter
 	 * tuple is 1-based.
 	 *
 	 * @param phraseType
-	 *        The phrase type (yielding a tuple type) for this signature.
-	 * @return A list that indicates the origin Expression of each [         ].
+	 *   The phrase type (yielding a tuple type) for this signature.
+	 * @return
+	 *   A list that indicates the origin [Expression] of each
+	 *   [ParsingOperation].
 	 */
 	private fun originExpressionsFor(phraseType: A_Type): List<Expression>
 	{
@@ -624,11 +631,11 @@ class MessageSplitter
 	 * counter.
 	 *
 	 * @param phraseType
-	 *        The phrase type (yielding a tuple type) for this signature.
+	 *   The phrase type (yielding a tuple type) for this signature.
 	 * @param pc
-	 *        The program counter for which an appropriate annotation should be
-	 *        inserted into the name.  It's between 1 and the number of
-	 *        instructions generated plus one.
+	 *   The program counter for which an appropriate annotation should be
+	 *   inserted into the name.  It's between 1 and the number of instructions
+	 *   generated plus one.
 	 * @return The annotated message string.
 	 */
 	fun highlightedNameFor(phraseType: A_Type, pc: Int): String
@@ -653,6 +660,31 @@ class MessageSplitter
 	}
 
 	/**
+	 * Answer a variant of the [message name][.messageName] with backquotes
+	 * stripped.
+	 *
+	 * @param start
+	 *   The start position, inclusive.
+	 * @param limit
+	 *   The end position, exclusive.
+	 * @return
+	 *   The variant.
+	 */
+	private fun stripBackquotes(start:Int, limit: Int): String
+	{
+		val builder = StringBuilder()
+		for (i in start until limit)
+		{
+			val cp = messageName.tupleCodePointAt(i)
+			if (cp != '`'.toInt())
+			{
+				builder.appendCodePoint(cp)
+			}
+		}
+		return builder.toString()
+	}
+
+	/**
 	 * Decompose the message name into its constituent token strings. These can
 	 * be subsequently parsed to generate the actual parse instructions. Do not
 	 * do any semantic analysis here, not even backquote processing – that would
@@ -661,7 +693,7 @@ class MessageSplitter
 	 * backquote-escaped open-guillemet token.
 	 *
 	 * @throws MalformedMessageException
-	 *         If the signature is invalid.
+	 *   If the signature is invalid.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun splitMessage()
@@ -763,21 +795,11 @@ class MessageSplitter
 						if (sawRegular)
 						{
 							// If we ever saw something other than `_ in the
-							// sequence, then produce a single token that includes
-							// the underscores (but not the backquotes).
-							val builder = StringBuilder()
-							var i = start
-							val limit = position - 1
-							while (i <= limit)
-							{
-								val cp = messageName.tupleCodePointAt(i)
-								if (cp != '`'.toInt())
-								{
-									builder.appendCodePoint(cp)
-								}
-								i++
-							}
-							messagePartsList.add(stringFrom(builder.toString()))
+							// sequence, then produce a single token that
+							// includes the underscores (but not the
+							// backquotes).
+							messagePartsList.add(stringFrom(
+								stripBackquotes(start, position)))
 							messagePartPositions.add(position)
 						}
 						else
@@ -830,19 +852,8 @@ class MessageSplitter
 					}
 					if (sawIdentifierUnderscore)
 					{
-						val builder = StringBuilder()
-						var i = start
-						val limit = position - 1
-						while (i <= limit)
-						{
-							val cp = messageName.tupleCodePointAt(i)
-							if (cp != '`'.toInt())
-							{
-								builder.appendCodePoint(cp)
-							}
-							i++
-						}
-						messagePartsList.add(stringFrom(builder.toString()))
+						messagePartsList.add(stringFrom(
+							stripBackquotes(start, position)))
 					}
 					else
 					{
@@ -861,8 +872,9 @@ class MessageSplitter
 	 * answer `true`}`, otherwise answer `false`.
 	 *
 	 * @param metacharacter
-	 *        The [Metacharacter] to look for.
-	 * @return Whether the given metacharacter was found and consumed.
+	 *   The [Metacharacter] to look for.
+	 * @return
+	 *   Whether the given metacharacter was found and consumed.
 	 */
 	private fun peekFor(metacharacter: Metacharacter): Boolean
 	{
@@ -880,8 +892,9 @@ class MessageSplitter
 	 * Do not advance the [.messagePartPosition] in either case.
 	 *
 	 * @param metacharacter
-	 *        The [Metacharacter] to look ahead for.
-	 * @return Whether the given metacharacter is the next token.
+	 *   The [Metacharacter] to look ahead for.
+	 * @return
+	 *   Whether the given metacharacter is the next token.
 	 */
 	private fun peekAheadFor(metacharacter: Metacharacter): Boolean
 	{
@@ -894,8 +907,8 @@ class MessageSplitter
 	 * renumbering of arguments within a [Sequence].  Answer the contained
 	 * number, or -1 if not present.  If it was present, also advance past it.
 	 *
-	 * @return The value of the parsed explicit ordinal, or -1 if there was
-	 *         none.
+	 * @return
+	 *   The value of the parsed explicit ordinal, or -1 if there was none.
 	 */
 	private fun peekForExplicitOrdinal(): Int
 	{
@@ -922,19 +935,19 @@ class MessageSplitter
 	 * errorString.  Otherwise return `true`.
 	 *
 	 * @param metacharacter
-	 *        The [Metacharacter] to look for.
+	 *   The [Metacharacter] to look for.
 	 * @param failureCondition
-	 *        The [Boolean] to test if the metacharacter was consumed.
+	 *   The [Boolean] to test if the metacharacter was consumed.
 	 * @param errorCode
-	 *        The errorCode to use in the [MalformedMessageException] if
-	 *        the metacharacter is found and the condition is true.
+	 *   The error code to use in the [MalformedMessageException] if the
+	 *   metacharacter is found and the condition is true.
 	 * @param errorString
-	 *        The errorString to use in the [MalformedMessageException] if
-	 *        the metacharacter is found and the condition is true.
-	 * @return Whether the metacharacter was found and consumed.
+	 *   The errorString to use in the [MalformedMessageException] if the
+	 *   metacharacter is found and the condition is true.
+	 * @return
+	 *   Whether the metacharacter was found and consumed.
 	 * @throws MalformedMessageException
-	 *         If the [Metacharacter] was found and the `failureCondition` was
-	 *         true.
+	 *   If the [Metacharacter] was found and the `failureCondition` was true.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun peekFor(
@@ -958,9 +971,10 @@ class MessageSplitter
 	 * sequence when we reach the end of the tokens, a close guillemet (»), or a
 	 * double-dagger (‡).
 	 *
-	 * @return A [Sequence] expression parsed from the [.messagePartsList].
+	 * @return
+	 *   A [Sequence] expression parsed from the [.messagePartsList].
 	 * @throws MalformedMessageException
-	 *         If the method name is malformed.
+	 *   If the method name is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun parseSequence(): Sequence
@@ -979,10 +993,10 @@ class MessageSplitter
 	/**
 	 * Parse an element of a [Sequence].  The element may be an [Alternation].
 	 *
-	 * @return The parsed [Expression], or `null` if no expression
-	 *         can be found
+	 * @return
+	 *   The parsed [Expression], or `null` if no expression can be found.
 	 * @throws MalformedMessageException
-	 *         If the start of an [Expression] is found, but it's malformed.
+	 *   If the start of an [Expression] is found, but it's malformed.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun parseElementOrAlternation(): Expression?
@@ -1009,12 +1023,13 @@ class MessageSplitter
 	/**
 	 * Parse a single element or return `null`.
 	 *
-	 * @return A parsed [Expression], which is suitable for use within an
-	 * [Alternation] or [Sequence], or `null` if none
-	 * is available at this position.
+	 * @return
+	 *   A parsed [Expression], which is suitable for use within an
+	 *   [Alternation] or [Sequence], or `null` if none is available at this
+	 *   position.
 	 * @throws MalformedMessageException
-	 * If there appeared to be an element [Expression] at this
-	 * position, but it was malformed.
+	 *   If there appeared to be an element [Expression] at this position, but
+	 *   it was malformed.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun parseElement(): Expression?
@@ -1048,9 +1063,10 @@ class MessageSplitter
 	/**
 	 * Parse a [Simple] at the current position.  Don't look for any suffixes.
 	 *
-	 * @return The [Simple].
+	 * @return
+	 *   The [Simple].
 	 * @throws MalformedMessageException
-	 *         If the [Simple] expression is malformed.
+	 *   If the [Simple] expression is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun parseSimple(): Expression
@@ -1116,10 +1132,10 @@ class MessageSplitter
 	 * explicit ordinal if indicated.
 	 *
 	 * @param expression
-	 *        The [Expression] that was just parsed.
-	 * @return A replacement [Expression] with its explicit ordinal set
-	 *         if necessary.  This may be the original expression after
-	 *         mutation.
+	 *   The [Expression] that was just parsed.
+	 * @return
+	 *   A replacement [Expression] with its explicit ordinal set if necessary.
+	 *   This may be the original expression after mutation.
 	 */
 	private fun parseOptionalExplicitOrdinal(expression: Expression): Expression
 	{
@@ -1138,7 +1154,7 @@ class MessageSplitter
 	 * message.
 	 *
 	 * @throws MalformedMessageException
-	 *         If the token is special.
+	 *   If the token is special.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun checkSuffixCharactersNotInSuffix()
@@ -1199,10 +1215,10 @@ class MessageSplitter
 	 * an open guillemet.  Do not parse any trailing circled numbers, which are
 	 * used to permute argument expressions within a group or the top level.
 	 *
-	 * @return The [Expression] that started at the
-	 *         [Metacharacter.OPEN_GUILLEMET].
+	 * @return
+	 *   The [Expression] that started at the [Metacharacter.OPEN_GUILLEMET].
 	 * @throws MalformedMessageException
-	 * If the subgroup is malformed.
+	 *   If the subgroup is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
 	private fun parseGuillemetElement(): Expression
@@ -1317,7 +1333,8 @@ class MessageSplitter
 	 * Parse an ellipsis element, applying suffixed modifiers if present.  The
 	 * ellipsis has already been consumed.
 	 *
-	 * @return A newly parsed [RawTokenArgument] or subclass.
+	 * @return
+	 *   A newly parsed [RawTokenArgument] or subclass.
 	 */
 	private fun parseEllipsisElement(): Expression
 	{
@@ -1348,7 +1365,8 @@ class MessageSplitter
 	 * Parse an underscore element, applying suffixed modifiers if present.  The
 	 * underscore has already been consumed.
 	 *
-	 * @return A newly parsed [Argument] or subclass.
+	 * @return
+	 *   A newly parsed [Argument] or subclass.
 	 */
 	private fun parseUnderscoreElement(): Expression
 	{
@@ -1384,7 +1402,8 @@ class MessageSplitter
 	 * zero or more underscores/ellipses (and other guillemet groups) but count
 	 * as one top-level argument.
 	 *
-	 * @return The number of arguments this message takes.
+	 * @return
+	 *   The number of arguments this message takes.
 	 */
 	val numberOfArguments get() = rootSequence.arguments.size
 
@@ -1394,13 +1413,12 @@ class MessageSplitter
 	 * this.
 	 *
 	 * @param functionType
-	 *        A function type.
+	 *   A function type.
 	 * @param sectionNumber
-	 *        The [SectionCheckpoint]'s subscript if this is a check of a
-	 *        [macro][MacroDefinitionDescriptor]'s, [prefix
-	 *        function][A_Definition.prefixFunctions], otherwise any value past
-	 *        the total [.numberOfSectionCheckpoints] for a method or macro
-	 *        body.
+	 *   The [SectionCheckpoint]'s subscript if this is a check of a
+	 *   [macro][MacroDefinitionDescriptor]'s, [prefix
+	 *   function][A_Definition.prefixFunctions], otherwise any value past the
+	 *   total [.numberOfSectionCheckpoints] for a method or macro body.
 	 * @throws SignatureException
 	 *         If the function type is inappropriate for the method name.
 	 */
@@ -1431,7 +1449,8 @@ class MessageSplitter
 	/**
 	 * Does the message contain any groups?
 	 *
-	 * @return `true` if the message contains any groups, `false` otherwise.
+	 * @return
+	 *   `true` if the message contains any groups, `false` otherwise.
 	 */
 	val containsGroups get (): Boolean
 	{
@@ -1500,8 +1519,9 @@ class MessageSplitter
 		 * are 0..50.
 		 *
 		 * @param number
-		 *        The number.
-		 * @return The codepoint which depicts that number inside a circle.
+		 *   The number.
+		 * @return
+		 *   The codepoint which depicts that number inside a circle.
 		 */
 		@JvmStatic
 		fun circledNumberCodePoint(number: Int): Int
@@ -1572,8 +1592,9 @@ class MessageSplitter
 		 * appended to, ensuring all extant indices will always be valid.
 		 *
 		 * @param index
-		 *        The index of the permutation to retrieve.
-		 * @return The permutation (a [tuple][A_Tuple] of Avail integers).
+		 *   The index of the permutation to retrieve.
+		 * @return
+		 *   The permutation (a [tuple][A_Tuple] of Avail integers).
 		 */
 		@JvmStatic
 		fun permutationAtIndex(index: Int): AvailObject =
@@ -1584,8 +1605,8 @@ class MessageSplitter
 		 * it to the global [MessageSplitter.constantsList] if necessary.
 		 *
 		 * @param permutation
-		 *        The permutation whose globally unique one-based index should
-		 *        be determined.
+		 *   The permutation whose globally unique one-based index should be
+		 *   determined.
 		 * @return The permutation's one-based index.
 		 */
 		@JvmStatic
@@ -1620,9 +1641,10 @@ class MessageSplitter
 		 * [.constantsList] and [.constantsMap]} if necessary.
 		 *
 		 * @param constant
-		 *        The type to look up or add to the global index.
-		 * @return The one-based index of the type, which can be retrieved later
-		 *         via [.constantForIndex].
+		 *   The type to look up or add to the global index.
+		 * @return
+		 *   The one-based index of the type, which can be retrieved later via
+		 *   [.constantForIndex].
 		 */
 		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int
@@ -1663,8 +1685,9 @@ class MessageSplitter
 		 * static [.constantsList] [List].
 		 *
 		 * @param index
-		 *        The one-based index of the constant to retrieve.
-		 * @return The [AvailObject] at the given index.
+		 *   The one-based index of the constant to retrieve.
+		 * @return
+		 *   The [AvailObject] at the given index.
 		 */
 		@JvmStatic
 		fun constantForIndex(index: Int): AvailObject
@@ -1683,8 +1706,8 @@ class MessageSplitter
 		 *   The errorCode to use in the [MalformedMessageException] if the
 		 *   condition was true.
 		 * @param errorString
-		 *   The errorString to use in the [MalformedMessageException] if
-		 *   the condition was true.
+		 *   The errorString to use in the [MalformedMessageException] if the
+		 *   condition was true.
 		 * @throws MalformedMessageException
 		 *   If the condition was true.
 		 */

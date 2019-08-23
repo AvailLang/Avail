@@ -68,15 +68,15 @@ import java.util.stream.Collectors
  * an outer dynamic scope).
  *
  * @property name
- *           The name of the graph.
+ *   The name of the graph.
  * @property isDirected
- *           If `true`, then a directed graph will be generated; otherwise, an
- *           undirected graph will be generated.
+ *   If `true`, then a directed graph will be generated; otherwise, an
+ *   undirected graph will be generated.
  * @property charactersPerLine
- *           The number of characters to emit per line. Only applies to
- *           formatting of block comments.
+ *   The number of characters to emit per line. Only applies to formatting of
+ *   block comments.
  * @property accumulator
- *           The accumulator for the generated source code.
+ *   The accumulator for the generated source code.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see [The DOT Language](https://www.graphviz.org/doc/info/lang.html)
@@ -89,15 +89,15 @@ import java.util.stream.Collectors
  * Construct a new `DotWriter`.
  *
  * @param name
- *        The name of the graph.
+ *   The name of the graph.
  * @param isDirected
- *        If `true`, then a directed graph will be generated; otherwise, an
- *        undirected graph will be generated.
+ *   If `true`, then a directed graph will be generated; otherwise, an
+ *   undirected graph will be generated.
  * @param charactersPerLine
- *        The number of characters to emit per line. Only applies to formatting
- *        of block comments.
+ *   The number of characters to emit per line. Only applies to formatting of
+ *   block comments.
  * @param accumulator
- *        The accumulator for the generated source code.
+ *   The accumulator for the generated source code.
  */
 class DotWriter constructor(
 	private val name: String,
@@ -140,9 +140,9 @@ class DotWriter constructor(
 		 * [CheckedConsumer].
 		 *
 		 * @param block
-		 *        The `CheckedConsumer` to apply while indentation is increased.
+		 *   The [CheckedConsumer] to apply while indentation is increased.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		internal fun <T : AttributeWriter> increaseIndent(
@@ -165,7 +165,7 @@ class DotWriter constructor(
 		 * assumed that the most recently written character is a line feed.
 		 *
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun indent()
@@ -186,9 +186,9 @@ class DotWriter constructor(
 		 * text is a linefeed.
 		 *
 		 * @param text
-		 *        The arbitrary text to emit.
+		 *   The arbitrary text to emit.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun emit(text: String)
@@ -201,7 +201,7 @@ class DotWriter constructor(
 		 * Emit a linefeed. Updates [.justEmittedLinefeed] to `true`.
 		 *
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		internal fun linefeed()
@@ -214,9 +214,9 @@ class DotWriter constructor(
 		 * Emit an end-of-line comment.
 		 *
 		 * @param comment
-		 *        The end-of-line comment.
+		 *   The end-of-line comment.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun endOfLineComment(comment: String)
@@ -235,12 +235,13 @@ class DotWriter constructor(
 		 * is no longer than the given number of characters.
 		 *
 		 * @param s
-		 *        The string.
+		 *   The string.
 		 * @param max
-		 *        The maximum number of characters (excluding a linefeed).
-		 * @return A [Pair] comprising, respectively, the next line and
-		 *        the residue (i.e., everything not part of the next line or its
-		 *        immediately trailing whitespace).
+		 *   The maximum number of characters (excluding a linefeed).
+		 * @return
+		 *   A [Pair] comprising, respectively, the next line and the residue
+		 *   (i.e., everything not part of the next line or its immediately
+		 *   trailing whitespace).
 		 */
 		private fun extractLine(s: String, max: Int): Pair<String, String>
 		{
@@ -343,9 +344,9 @@ class DotWriter constructor(
 		 * accounting for indentation and comment overhead.
 		 *
 		 * @param comment
-		 *        The block comment.
+		 *   The block comment.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun blockComment(comment: String)
@@ -366,9 +367,10 @@ class DotWriter constructor(
 		 * Is the alleged identifier actually a `dot` keyword?
 		 *
 		 * @param id
-		 *        The would-be identifier.
-		 * @return `true` if the would-be identifier is actually a `dot`
-		 *         keyword, `false` otherwise.
+		 *   The would-be identifier.
+		 * @return
+		 *   `true` if the would-be identifier is actually a `dot` keyword,
+		 *   `false` otherwise.
 		 */
 		private fun isKeyword(id: String) = keywords.contains(id)
 
@@ -376,9 +378,9 @@ class DotWriter constructor(
 		 * Emit an appropriately escaped variant of the proposed identifier.
 		 *
 		 * @param proposedId
-		 *        The identifier.
+		 *   The identifier.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		internal fun identifier(proposedId: String)
@@ -420,11 +422,11 @@ class DotWriter constructor(
 		 * Emit a simple attribute statement.
 		 *
 		 * @param lhs
-		 *        The assignment target.
+		 *   The assignment target.
 		 * @param rhs
-		 *        The value to bind to the assignment target.
+		 *   The value to bind to the assignment target.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun attribute(lhs: String, rhs: String)
@@ -501,11 +503,11 @@ class DotWriter constructor(
 	 * their own.
 	 *
 	 * @property name
-	 *           The name of the node.
+	 *   The name of the node.
 	 * @property port
-	 *           The name of the port.
+	 *   The name of the port.
 	 * @property compassPoint
-	 *           The [CompassPoint], if any.
+	 *   The [CompassPoint], if any.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 *
@@ -514,11 +516,11 @@ class DotWriter constructor(
 	 * Construct a new `DecoratedNode`.
 	 *
 	 * @param name
-	 *        The name of the node.
+	 *   The name of the node.
 	 * @param port
-	 *        The name of the port.
+	 *   The name of the port.
 	 * @param compassPoint
-	 *        The [CompassPoint], if any.
+	 *   The [CompassPoint], if any.
 	 */
 	class DecoratedNode internal constructor(
 		internal val name: String,
@@ -538,10 +540,9 @@ class DotWriter constructor(
 		 * Emit an appropriately indented attribute block.
 		 *
 		 * @param block
-		 *        The [CheckedConsumer] to apply to emit the content of the
-		 *        block.
+		 *   The [CheckedConsumer] to apply to emit the content of the block.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		private fun attributeBlock(block: CheckedConsumer<AttributeWriter>)
@@ -557,13 +558,11 @@ class DotWriter constructor(
 		 * Emit an appropriately indented default attribute block.
 		 *
 		 * @param type
-		 *        The [DefaultAttributeBlockType] of the default attribute
-		 *        block.
+		 *   The [DefaultAttributeBlockType] of the default attribute block.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to emit the content of the
-		 *        block.
+		 *   The [CheckedConsumer] to apply to emit the content of the block.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun defaultAttributeBlock(
@@ -580,10 +579,9 @@ class DotWriter constructor(
 		 * Write an appropriately indented anonymous subgraph block.
 		 *
 		 * @param block
-		 *        The [CheckedConsumer] to apply to emit the content of the
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to emit the content of the subgraph.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun subgraph(block: CheckedConsumer<GraphWriter>)
@@ -599,12 +597,11 @@ class DotWriter constructor(
 		 * Write an appropriately indented named subgraph block.
 		 *
 		 * @param subgraphName
-		 *        The name of the subgraph.
+		 *   The name of the subgraph.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to emit the content of the
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to emit the content of the subgraph.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun subgraph(subgraphName: String, block: CheckedConsumer<GraphWriter>)
@@ -620,12 +617,11 @@ class DotWriter constructor(
 		 * Emit a node with attributes.
 		 *
 		 * @param nodeName
-		 *        The identifier of the node.
+		 *   The identifier of the node.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the node's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the node's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun node(
@@ -645,7 +641,7 @@ class DotWriter constructor(
 		 * Emit the appropriate edge operator.
 		 *
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		private fun edgeOperator() = emit(if (isDirected) " -> " else " -- ")
@@ -654,14 +650,13 @@ class DotWriter constructor(
 		 * Emit an edge with attributes.
 		 *
 		 * @param source
-		 *        The identifier of the source node.
+		 *   The identifier of the source node.
 		 * @param target
-		 *        The identifier of the target node.
+		 *   The identifier of the target node.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -685,7 +680,7 @@ class DotWriter constructor(
 		 * information.
 		 *
 		 * @param node
-		 *        The node.
+		 *   The node.
 		 */
 		private fun nodeReference(node: DecoratedNode)
 		{
@@ -706,14 +701,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The source [node][DecoratedNode].
+		 *   The source [node][DecoratedNode].
 		 * @param target
-		 *        The target [node][DecoratedNode].
+		 *   The target [node][DecoratedNode].
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -736,15 +730,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The [CheckedConsumer] to apply to generate the source
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the source subgraph.
 		 * @param target
-		 *        The identifier of the target node.
+		 *   The identifier of the target node.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -766,15 +758,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The [CheckedConsumer] to apply to generate the source
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the source subgraph.
 		 * @param target
-		 *        The target [node][DecoratedNode].
+		 *   The target [node][DecoratedNode].
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -796,15 +786,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The identifier of the source node.
+		 *   The identifier of the source node.
 		 * @param target
-		 *        The [CheckedConsumer] to apply to generate the target
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the target subgraph.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -827,15 +815,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The source [node][DecoratedNode].
+		 *   The source [node][DecoratedNode].
 		 * @param target
-		 *        The [CheckedConsumer] to apply to generate the target
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the target subgraph.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -858,16 +844,13 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *        The [CheckedConsumer] to apply to generate the source
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the source subgraph.
 		 * @param target
-		 *        The [CheckedConsumer] to apply to generate the target
-		 *        subgraph.
+		 *   The [CheckedConsumer] to apply to generate the target subgraph.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edge's
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
@@ -891,12 +874,11 @@ class DotWriter constructor(
 		 * do nothing.
 		 *
 		 * @param nodes
-		 *        The nodes.
+		 *   The nodes.
 		 * @param block
-		 *        The [CheckedConsumer] to apply to generate the edges'
-		 *        attributes.
+		 *   The [CheckedConsumer] to apply to generate the edges' attributes.
 		 * @throws IOException
-		 *         If emission fails.
+		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun interleaved(
@@ -966,9 +948,9 @@ class DotWriter constructor(
 	 * purpose.
 	 *
 	 * @param comment
-	 *        The comment.
+	 *   The comment.
 	 * @throws IOException
-	 *         If emission fails.
+	 *   If emission fails.
 	 */
 	@Throws(IOException::class)
 	fun blockComment(comment: String) = graphWriter.blockComment(comment)
@@ -977,9 +959,9 @@ class DotWriter constructor(
 	 * Emit an entire graph.
 	 *
 	 * @param block
-	 *        The [CheckedConsumer] to apply to emit the content of the graph.
+	 *   The [CheckedConsumer] to apply to emit the content of the graph.
 	 * @throws IOException
-	 *         If emission fails.
+	 *   If emission fails.
 	 */
 	@Throws(IOException::class)
 	fun graph(block: CheckedConsumer<GraphWriter>)
@@ -1004,8 +986,9 @@ class DotWriter constructor(
 		 * attributes.
 		 *
 		 * @param text
-		 *        Some arbitrary text.
-		 * @return The requested variant.
+		 *   Some arbitrary text.
+		 * @return
+		 *   The requested variant.
 		 */
 		fun label(text: String): String
 		{
@@ -1022,8 +1005,9 @@ class DotWriter constructor(
 		 * first to convert tabs to spaces.
 		 *
 		 * @param text
-		 *        Some arbitrary text.
-		 * @return The requested variant.
+		 *   Some arbitrary text.
+		 * @return
+		 *   The requested variant.
 		 */
 		fun leftJustified(text: String) =
 			lineFeed.matcher(label(text)).replaceAll(
@@ -1035,8 +1019,9 @@ class DotWriter constructor(
 		 * first to convert tabs to spaces.
 		 *
 		 * @param text
-		 *        Some arbitrary text.
-		 * @return The requested variant.
+		 *   Some arbitrary text.
+		 * @return
+		 *   The requested variant.
 		 */
 		fun rightJustified(text: String) =
 			lineFeed.matcher(label(text)).replaceAll(
@@ -1058,8 +1043,9 @@ class DotWriter constructor(
 		 * Answer a [DecoratedNode] suitable for complex edge specification.
 		 *
 		 * @param name
-		 *        The name of the node.
-		 * @return The requested node.
+		 *   The name of the node.
+		 * @return
+		 *   The requested node.
 		 */
 		@JvmStatic fun node(name: String) = DecoratedNode(name, null, null)
 
@@ -1067,10 +1053,11 @@ class DotWriter constructor(
 		 * Answer a [DecoratedNode] suitable for complex edge specification.
 		 *
 		 * @param name
-		 *        The name of the node.
+		 *   The name of the node.
 		 * @param port
-		 *        The name of the port.
-		 * @return The requested node.
+		 *   The name of the port.
+		 * @return
+		 *   The requested node.
 		 */
 		@JvmStatic fun node(name: String, port: String) =
 			DecoratedNode(name, port, null)
@@ -1079,12 +1066,13 @@ class DotWriter constructor(
 		 * Answer a [DecoratedNode] suitable for complex edge specification.
 		 *
 		 * @param name
-		 *        The name of the node.
+		 *   The name of the node.
 		 * @param port
-		 *        The name of the port.
+		 *   The name of the port.
 		 * @param compassPoint
-		 *        The [CompassPoint].
-		 * @return The requested node.
+		 *   The [CompassPoint].
+		 * @return
+		 *   The requested node.
 		 */
 		@JvmStatic fun node(
 				name: String,
