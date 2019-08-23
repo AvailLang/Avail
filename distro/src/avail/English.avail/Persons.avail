@@ -42,7 +42,7 @@ Names
 	"person",
 		/* fields */
 		"grammatical person identity",
-			/*"_'s⁇identity",*/
+			"_'s⁇person identity",
 		/* subtypes */
 		"English person",
 			/* subtypes */
@@ -102,14 +102,14 @@ Public "grammatical person identity" is a new field atom;
  * methods may be necessary to provide full support for new {@type "person"}s.
  *
  * @type "person"
- * @supertype "object"
+ * @supertype "attribute"
  * @field "grammatical person identity" "atom"
  *        The {@type "atom"} that distinguishes one {@type "person"} instance
  *        from another.
  */
-Public explicit class "person" extends object
+Public class "person" extends attribute
 	with field
-		grammatical person identity : atom ("_'s⁇identity");
+		public grammatical person identity : atom ("_'s⁇person identity");
 
 ////////////////////////////////////////////////////////////////////////////////
 //                              English persons.                              //
@@ -117,17 +117,19 @@ Public explicit class "person" extends object
 
 // Construct the classical person identities, subtypes, and instances
 // systematically, to reduce boilerplate and constructively assure correctness.
-For each aPerson of <"first", "second", "third"> do
+For each aPerson, index of <"first", "second", "third"> do
 [
 	identityAtomName ::= aPerson ++ " person identity";
 	className ::= "English " ++ aPerson ++ " person";
 	methodName ::= aPerson ++ " person";
 
 	identityAtom ::= atom for identityAtomName;
+	identityAtom's index ::= index;
 	Method identityAtom is [identityAtom];
 	Class className extends person
 		with field
-			grammatical person identity : {identityAtom}ᵀ ("_'s⁇identity");
+			grammatical person identity : {identityAtom}ᵀ
+				("_'s⁇person identity");
 	instance ::=
 		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
 		«<
@@ -136,6 +138,12 @@ For each aPerson of <"first", "second", "third"> do
 		>» : person;
 	Stable method methodName is [instance];
 	Semantic restriction methodName is [instance's type];
+	Stable method "“_”" is
+	«[
+		<arg «this token: x : instance's type»>
+	|
+		<‘methodName’>
+	] : nonempty string» → function;
 ];
 
 /**
@@ -210,9 +218,9 @@ Test "English persons" in person test suite is
 [
 	Require:
 		¬English first person = English second person = English third person;
-	Require: English first person's identity = {first person identity}ᵀ;
-	Require: English second person's identity = {second person identity}ᵀ;
-	Require: English third person's identity = {third person identity}ᵀ;
+	Require: English first person's person identity = {first person identity}ᵀ;
+	Require: English second person's person identity= {second person identity}ᵀ;
+	Require: English third person's person identity = {third person identity}ᵀ;
 	Require: English first person ⊆ English person;
 	Require: English second person ⊆ English person;
 	Require: English second person ⊆ English person;
@@ -221,6 +229,9 @@ Test "English persons" in person test suite is
 	Require: first person ∈ English first person;
 	Require: second person ∈ English second person;
 	Require: third person ∈ English third person;
+	Require: first person's person identity's index = 1;
+	Require: second person's person identity's index = 2;
+	Require: third person's person identity's index = 3;
 	Require: first person-personed
 		⊆ (extend personed with grammatical person : English first person);
 	Require: second person-personed

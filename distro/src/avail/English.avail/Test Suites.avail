@@ -45,7 +45,9 @@ Extends
 Names
 	/* Test suites. */
 	"English test suite",
+		"case test suite",
 		"gender test suite",
+		"number test suite",
 		"person test suite",
 		"pronoun test suite"
 Entries
@@ -75,7 +77,9 @@ English test suite is a new test suite;
  */
 allEnglishTestSuiteNames ::=
 <
+	"case test suite",
 	"gender test suite",
+	"number test suite",
 	"person test suite",
 	"pronoun test suite"
 >;
@@ -84,9 +88,12 @@ allEnglishTestSuiteNames ::=
  * Every test suite composing the {@type "English test suite"}, including
  * the {@type "English test suite"} itself.
  *
+ * Note that this must be a module variable rather than a module constant in
+ * order to ensure that the side-effects of the function always occur.
+ *
  * @global "allEnglishTestSuites" "{atom|}"
  */
-allEnglishTestSuites ::=
+allEnglishTestSuites : {atom|} :=
 	left fold <{English test suite}> ++ allEnglishTestSuiteNames through
 	[
 		testSuiteName : nonempty string,
@@ -107,7 +114,7 @@ allEnglishTestSuites ::=
  * @type "English test suite atom"
  * @returns "atom's type"
  */
-Private stable method "English test suite atom" is
+Private method "English test suite atom" is
 [
 	enumeration of allEnglishTestSuites
 ];

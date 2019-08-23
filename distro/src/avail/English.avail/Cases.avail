@@ -1,0 +1,236 @@
+/*
+ * Cases.avail
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Cases"
+Versions
+	"1.4.0"
+Uses
+	"Avail",
+	"Common",
+	"Test Suites"
+Names
+	/* Cases. */
+	"case",
+		/* fields */
+		"grammatical case identity",
+			"_'s⁇case identity",
+		/* subtypes */
+		"English case",
+			/* subtypes */
+			"subjective case",
+				/* instances */
+				"subjective",
+			"objective case",
+				/* instances */
+				"objective",
+			"possessive case",
+				/* instances */
+				"possessive",
+		/* type constructors */
+		"_-cased",
+
+	/* Classically cased objects. */
+	"cased",
+		/* fields */
+		"grammatical case",
+			/* accessor */
+			"_'s⁇case",
+			/* reconstructor */
+			"_'s⁇case::=_",
+
+	/* Low-level English case identities. */
+	"subjective case identity",
+	"objective case identity",
+	"possessive case identity"
+Body
+
+/**
+ * Herein are representations of English grammatical case. {@type "case"}
+ * and {@type "cased"} establish the classical three-case system, but the
+ * model supports ready extension to nontraditional concepts of case.
+ *
+ * @module
+ * @author Todd L Smith <todd@availlang.org>
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Cases.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical case identity" is a new field atom;
+
+/**
+ * English classically categorizes nouns and pronouns according to three
+ * grammatical cases, {@method "subjective"}, {@method "objective"}, and
+ * {@method "possessive"}.
+ *
+ * The type {@type "case"} flies above the traditional concepts of grammatical
+ * case, providing an opportunity for authors to extend the concepts of
+ * grammatical case as necessary for exotic or experimental applications. All
+ * library methods are designed to work abstractly with {@type "case"} rather
+ * than specifically with {@type "English case"}, though overrides to library
+ * methods may be necessary to provide full support for new {@type "case"}s.
+ *
+ * @type "case"
+ * @supertype "attribute"
+ * @field "grammatical case identity" "atom"
+ *        The {@type "atom"} that distinguishes one {@type "case"} instance
+ *        from another.
+ */
+Public class "case" extends attribute
+	with field
+		public grammatical case identity : atom ("_'s⁇case identity");
+
+////////////////////////////////////////////////////////////////////////////////
+//                               English cases.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+// Construct the classical case identities, subtypes, and instances
+// systematically, to reduce boilerplate and constructively assure correctness.
+For each aCase, index of <"subjective", "objective", "possessive"> do
+[
+	identityAtomName ::= aCase ++ " case identity";
+	className ::= aCase ++ " case";
+	methodName ::= aCase;
+
+	identityAtom ::= atom for identityAtomName;
+	identityAtom's index ::= index;
+	Method identityAtom is [identityAtom];
+	Class className extends case
+		with field
+			grammatical case identity : {identityAtom}ᵀ ("_'s⁇case identity");
+	instance ::=
+		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
+		«<
+			send atom for className with «<>» : case's type,
+			«<>»
+		>» : case;
+	Stable method methodName is [instance];
+	Semantic restriction methodName is [instance's type];
+	Stable method "“_”" is
+	«[
+		<arg «this token: x : instance's type»>
+	|
+		<‘methodName’>
+	] : nonempty string» → function;
+];
+
+/**
+ * {@type "English case"} is simply the union of {@type "subjective case"},
+ * {@type "objective case"}, and {@type "possessive case"}.
+ *
+ * @type "English case"
+ * @supertype "case"
+ * @alias "subjective case ∪ objective case ∪ possessive case"
+ */
+Public class "English case"
+extends subjective case ∪ objective case ∪ possessive case;
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Cased values.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical case" is a new field atom;
+
+/**
+ * Any {@type "object"} that wishes to express {@type "case"} immutably may
+ * extend {@type "cased"}. The class offers a {@method "_'s⁇case::=_"
+ * reconstructor} for convenience.
+ *
+ * Note that {@type "cased"} automatically supports {@type "case"}s beyond
+ * the traditional {@type "English case"}s.
+ *
+ * @type "cased"
+ * @supertype "object"
+ * @field "grammatical case" "case"
+ *        The grammatical {@type "case"}.
+ */
+Public class "cased" extends object
+	with field
+		public reconstructible grammatical case : case ("_'s⁇case");
+
+/**
+ * Construct a {@type "cased"} {@type "type"} that is parameterized by the
+ * specified {@type "case"}.
+ *
+ * @method "_-cased"
+ * @param "aCase" "case"
+ *        An arbitrary {@type "case"}.
+ * @returns "cased"
+ */
+Public stable method "_-cased" is
+[
+	aCase : case
+|
+	extend cased with grammatical case : (aCase's type)
+];
+
+/**
+ * The result is always constrained by the supplied {@type "case"}.
+ *
+ * @method "_-cased"
+ * @restricts "case's type"
+ */
+Semantic restriction "_-cased" is
+[
+	tCase : case's type
+|
+	(extend cased with grammatical case : tCase)'s type
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test cases.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+Test "English cases" in case test suite is
+[
+	Require: ¬subjective case = objective case = possessive case;
+	Require: subjective case's case identity = {subjective case identity}ᵀ;
+	Require: objective case's case identity = {objective case identity}ᵀ;
+	Require: possessive case's case identity = {possessive case identity}ᵀ;
+	Require: subjective case ⊆ English case;
+	Require: objective case ⊆ English case;
+	Require: possessive case ⊆ English case;
+	Require: subjective case ∪ objective case ∪ possessive case = English case;
+	Require: subjective ∈ subjective case;
+	Require: objective ∈ objective case;
+	Require: possessive ∈ possessive case;
+	Require: subjective's case identity's index = 1;
+	Require: objective's case identity's index = 2;
+	Require: possessive's case identity's index = 3;
+	Require: subjective-cased
+		⊆ (extend cased with grammatical case : subjective case);
+	Require: objective-cased
+		⊆ (extend cased with grammatical case : objective case);
+	Require: possessive-cased
+		⊆ (extend cased with grammatical case : possessive case);
+];

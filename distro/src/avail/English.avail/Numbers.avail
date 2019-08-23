@@ -1,0 +1,225 @@
+/*
+ * Numbers.avail
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Numbers"
+Versions
+	"1.4.0"
+Uses
+	"Avail" = (-"number", …),
+	"Common",
+	"Test Suites"
+Names
+	/* Numbers. */
+	"number",
+		/* fields */
+		"grammatical number identity",
+			"_'s⁇number identity",
+		/* subtypes */
+		"English number",
+			/* subtypes */
+			"singular number",
+				/* instances */
+				"singular",
+			"plural number",
+				/* instances */
+				"plural",
+		/* type constructors */
+		"_-numbered",
+
+	/* Classically numbered objects. */
+	"numbered",
+		/* fields */
+		"grammatical number",
+			/* accessor */
+			"_'s⁇number",
+			/* reconstructor */
+			"_'s⁇number::=_",
+
+	/* Low-level English number identities. */
+	"singular number identity",
+	"plural number identity"
+Body
+
+/**
+ * Herein are representations of English grammatical number. {@type "number"}
+ * and {@type "numbered"} establish the classical two-number system, but the
+ * model supports ready extension to nontraditional concepts of number.
+ *
+ * @module
+ * @author Todd L Smith <todd@availlang.org>
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Numbers.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical number identity" is a new field atom;
+
+/**
+ * English classically categorizes nouns, pronouns, and verbs according to two
+ * grammatical numbers, {@method "singular"} and {@method "plural"}.
+ *
+ * The type {@type "number"} flies above the traditional concepts of grammatical
+ * number, providing an opportunity for authors to extend the concepts of
+ * grammatical number as necessary for exotic or experimental applications. All
+ * library methods are designed to work abstractly with {@type "number"} rather
+ * than specifically with {@type "English number"}, though overrides to library
+ * methods may be necessary to provide full support for new {@type "number"}s.
+ *
+ * @type "number"
+ * @supertype "attribute"
+ * @field "grammatical number identity" "atom"
+ *        The {@type "atom"} that distinguishes one {@type "number"} instance
+ *        from another.
+ */
+Public class "number" extends attribute
+	with field
+		public grammatical number identity : atom ("_'s⁇number identity");
+
+////////////////////////////////////////////////////////////////////////////////
+//                              English numbers.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+// Construct the classical number identities, subtypes, and instances
+// systematically, to reduce boilerplate and constructively assure correctness.
+For each aNumber, index of <"singular", "plural"> do
+[
+	identityAtomName ::= aNumber ++ " number identity";
+	className ::= aNumber ++ " number";
+	methodName ::= aNumber;
+
+	identityAtom ::= atom for identityAtomName;
+	identityAtom's index ::= index;
+	Method identityAtom is [identityAtom];
+	Class className extends number
+		with field
+			grammatical number identity : {identityAtom}ᵀ
+				("_'s⁇number identity");
+	instance ::=
+		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
+		«<
+			send atom for className with «<>» : number's type,
+			«<>»
+		>» : number;
+	Stable method methodName is [instance];
+	Semantic restriction methodName is [instance's type];
+	Stable method "“_”" is
+	«[
+		<arg «this token: x : instance's type»>
+	|
+		<‘methodName’>
+	] : nonempty string» → function;
+];
+
+/**
+ * {@type "English number"} is simply the union of {@type "singular number"}
+ * and {@type "plural number"}.
+ *
+ * @type "English number"
+ * @supertype "number"
+ * @alias "singular number ∪ plural number"
+ */
+Public class "English number" extends singular number ∪ plural number;
+
+////////////////////////////////////////////////////////////////////////////////
+//                              Numbered values.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical number" is a new field atom;
+
+/**
+ * Any {@type "object"} that wishes to express {@type "number"} immutably may
+ * extend {@type "numbered"}. The class offers a {@method "_'s⁇number::=_"
+ * reconstructor} for convenience.
+ *
+ * Note that {@type "numbered"} automatically supports {@type "number"}s beyond
+ * the traditional {@type "English number"}s.
+ *
+ * @type "numbered"
+ * @supertype "object"
+ * @field "grammatical number" "number"
+ *        The grammatical {@type "number"}.
+ */
+Public class "numbered" extends object
+	with field
+		public reconstructible grammatical number : number ("_'s⁇number");
+
+/**
+ * Construct a {@type "numbered"} {@type "type"} that is parameterized by the
+ * specified {@type "number"}.
+ *
+ * @method "_-numbered"
+ * @param "aNumber" "number"
+ *        An arbitrary {@type "number"}.
+ * @returns "numbered"
+ */
+Public stable method "_-numbered" is
+[
+	aNumber : number
+|
+	extend numbered with grammatical number : (aNumber's type)
+];
+
+/**
+ * The result is always constrained by the supplied {@type "number"}.
+ *
+ * @method "_-numbered"
+ * @restricts "number's type"
+ */
+Semantic restriction "_-numbered" is
+[
+	tNumber : number's type
+|
+	(extend numbered with grammatical number : tNumber)'s type
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test cases.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+Test "English numbers" in number test suite is
+[
+	Require: singular number ≠ plural number;
+	Require: singular number's number identity = {singular number identity}ᵀ;
+	Require: plural number's number identity = {plural number identity}ᵀ;
+	Require: singular number ⊆ English number;
+	Require: plural number ⊆ English number;
+	Require: singular number ∪ plural number = English number;
+	Require: singular ∈ singular number;
+	Require: plural ∈ plural number;
+	Require: singular's number identity's index = 1;
+	Require: plural's number identity's index = 2;
+	Require: singular-numbered
+		⊆ (extend numbered with grammatical number : singular number);
+	Require: plural-numbered
+		⊆ (extend numbered with grammatical number : plural number);
+];

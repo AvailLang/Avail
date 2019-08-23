@@ -34,17 +34,1622 @@ Module "Pronouns"
 Versions
 	"1.4.0"
 Uses
-	"Avail",
+	"Avail" = (-"number", …),
+	"Cases",
+	"Common",
 	"Genders",
-	"Persons"
+	"Numbers",
+	"Persons",
+	"Test Suites"
 Names
-	/* Singular pronouns by person, gender, number, and case. */
+	/* Pronoun kinds. */
+	"pronoun kind",
+		/* fields */
+		"grammatical pronoun kind identity",
+			"_'s⁇pronoun kind identity",
+		/* subtypes */
+		"English pronoun kind",
+			/* subtypes */
+			"personal pronoun kind",
+				/* instances */
+				"personal",
+			"demonstrative pronoun kind",
+				/* instances */
+				"demonstrative",
+			"interrogative pronoun kind",
+				/* instances */
+				"interrogative",
+			"indefinite pronoun kind",
+				/* instances */
+				"indefinite",
+			"reciprocal pronoun kind",
+				/* instances */
+				"reciprocal",
+			"relative pronoun kind",
+				/* instances */
+				"relative",
+			"reflexive pronoun kind",
+				/* instances */
+				"reflexive",
+			"intensive pronoun kind",
+				/* instances */
+				"intensive",
+			"archaic pronoun kind",
+				/* instances */
+				"archaic",
+			"archaic reflexive pronoun kind",
+				/* instances */
+				"archaic reflexive",
+			"archaic intensive pronoun kind",
+				/* instances */
+				"archaic intensive",
+		"gendered pronoun kind",
+
+	/* Pronoun selectors. */
+	"gendered pronoun selector",
+		/* constructors */
+		"«_»?«_»?«_»?«_»?«_»?selector",
+		"«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»",
+
+	/* Pronouns. */
+	"_pronoun",
+		/* exceptions */
+		"invalid-gendered-pronoun-selector exception",
+			/* accessors */
+			"_'s⁇bad selector",
+	"_pronouns",
+
+	/* Low-level English pronoun kind identities. */
+	"personal pronoun kind identity",
+	"demonstrative pronoun kind identity",
+	"interrogative pronoun kind identity",
+	"indefinite pronoun kind identity",
+	"reciprocal pronoun kind identity",
+	"relative pronoun kind identity",
+	"reflexive pronoun kind identity",
+	"intensive pronoun kind identity",
+	"archaic pronoun kind identity",
+	"archaic pronoun reflexive kind identity",
+	"archaic pronoun intensive kind identity"
 Body
 
 /**
  * Herein are facilities for English pronouns. Pronouns are accessed by
- * {@type "person"}, {@type "gender"}, {@type "number"}, and case.
+ * {@type "person"}, {@type "gender"}, {@type "number"}, and {@type "case"}.
  *
  * @module
  * @author Todd L Smith <todd@availlang.org>
  */
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Pronoun kinds.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "grammatical pronoun kind identity" is a new field atom;
+
+/**
+ * English classically categorizes pronouns according to ten grammatical kinds,
+ * {@method "personal pronoun"}, {@method "demonstrative pronoun"}, {@method
+ * "interrogative pronoun"}, {@method "indefinite pronoun"}, {@method
+ * "reciprocal pronoun"}, {@method "relative pronoun"}, {@method
+ * "reflexive pronoun"}, {@method "intensive pronoun"}, {@type
+ * "archaic pronoun"}, {@type "archaic reflexive"}, and {@type
+ * "archaic intensive"}.
+ *
+ * The type {@type "pronoun kind"} flies above the traditional concepts of
+ * pronoun kind, providing an opportunity for authors to extend the concepts of
+ * pronoun kind as necessary for exotic or experimental applications. All
+ * library methods are designed to work abstractly with {@type "pronoun kind"}
+ * rather than specifically with {@type "English pronoun kind"}, though
+ * overrides to library methods may be necessary to provide full support for new
+ * {@type "pronoun kind"}s.
+ *
+ * @type "pronoun kind"
+ * @supertype "attribute"
+ * @field "grammatical pronoun kind identity" "atom"
+ *        The {@type "atom"} that distinguishes one {@type "pronoun kind"}
+ *        instance from another.
+ */
+Public class "pronoun kind" extends attribute
+	with field
+		public grammatical pronoun kind identity : atom
+			("_'s⁇pronoun kind identity");
+
+////////////////////////////////////////////////////////////////////////////////
+//                           English pronoun kinds.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+// Construct the classical pronoun kind identities, subtypes, and instances
+// systematically, to reduce boilerplate and constructively assure correctness.
+For each aKind, index of
+<
+	"personal",
+	"demonstrative",
+	"interrogative",
+	"indefinite",
+	"reciprocal",
+	"relative",
+	"reflexive",
+	"intensive",
+	"archaic",
+	"archaic reflexive",
+	"archaic intensive"
+>
+do
+[
+	identityAtomName ::= aKind ++ " pronoun kind identity";
+	className ::= aKind ++ " pronoun kind";
+	methodName ::= aKind;
+
+	identityAtom ::= atom for identityAtomName;
+	identityAtom's index ::= index;
+	Method identityAtom is [identityAtom];
+	Class className extends pronoun kind
+		with field
+			grammatical pronoun kind identity : {identityAtom}ᵀ
+				("_'s⁇pronoun kind identity");
+	instance ::=
+		evaluate send $"a|an_«with«_«:»?:=_‡,»»" with
+		«<
+			send atom for className with «<>» : pronoun kind's type,
+			«<>»
+		>» : pronoun kind;
+	Stable method methodName is [instance];
+	Semantic restriction methodName is [instance's type];
+	Stable method "“_”" is
+	«[
+		<arg «this token: x : instance's type»>
+	|
+		<‘methodName’>
+	] : nonempty string» → function;
+];
+
+/**
+ * {@type "English pronoun kind"} is simply the union of {@type
+ * "personal pronoun kind"}, {@type "demonstrative pronoun kind"}, {@type
+ * "interrogative pronoun kind"}, {@type "indefinite pronoun kind"}, {@type
+ * "reciprocal pronoun kind"}, {@type "relative pronoun kind"}, {@type
+ * "reflexive pronoun kind"}, {@type "intensive pronoun kind"}, {@type
+ * "archaic pronoun kind"}, {@type "archaic reflexive pronoun kind"}, and {@type
+ * "archaic intensive pronoun kind"}.
+ *
+ * @type "English pronoun kind"
+ * @supertype "pronoun kind"
+ */
+Public class "English pronoun kind"
+extends
+	personal pronoun kind
+	∪ demonstrative pronoun kind
+	∪ interrogative pronoun kind
+	∪ indefinite pronoun kind
+	∪ reciprocal pronoun kind
+	∪ relative pronoun kind
+	∪ reflexive pronoun kind
+	∪ intensive pronoun kind
+	∪ archaic pronoun kind
+	∪ archaic reflexive pronoun kind
+	∪ archaic intensive pronoun kind;
+
+/**
+ * A {@type "gendered pronoun kind"} is simply the union of {@type
+ * "personal pronoun kind"}, {@type "reflexive pronoun kind"}, {@type
+ * "intensive pronoun kind"}, {@type "archaic pronoun kind"}, {@type
+ * "archaic reflexive pronoun kind"}, and {@type
+ * "archaic intensive pronoun kind"}.
+ *
+ * @type "gendered pronoun kind"
+ * @supertype "pronoun kind"
+ */
+Public class "gendered pronoun kind"
+extends
+	personal pronoun kind
+	∪ reflexive pronoun kind
+	∪ intensive pronoun kind
+	∪ archaic pronoun kind
+	∪ archaic reflexive pronoun kind
+	∪ archaic intensive pronoun kind;
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Selectors.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A {@type "gendered pronoun selector"} uniquely designates a pronoun in
+ * English grammatical space by consolidating its {@type "person"}, {@type
+ * "number"}, {@type "gender"}, {@type "case"}, and {@type
+ * "gendered pronoun kind" gendered kind}.
+ *
+ * @type "gendered pronoun selector"
+ * @supertype "person"
+ * @supertype "number"
+ * @supertype "gender"
+ * @supertype "case"
+ * @supertype "gendered pronoun kind"
+ */
+Public class "gendered pronoun selector"
+extends person ∩ number ∩ gender ∩ case ∩ gendered pronoun kind;
+
+Stable method "“_”" is
+[
+	selector : gendered pronoun selector
+|
+	format "‘①’ ‘②’ ‘③’ ‘④’ ‘⑤’" with
+		“a person with
+			grammatical person identity ::= selector's person identity”,
+		“a number with
+			grammatical number identity ::= selector's number identity”,
+		“a gender with
+			grammatical gender identity ::= selector's gender identity”,
+		“a case with
+			grammatical case identity ::= selector's case identity”,
+		“a pronoun kind with
+			grammatical pronoun kind identity ::=
+				selector's pronoun kind identity”
+];
+
+/**
+ * Construct a {@type "gendered pronoun selector"} using the specified points in
+ * the grammatical space.
+ *
+ * @method "«_»?«_»?«_»?«_»?«_»?selector"
+ * @param "p" "person?"
+ * @param "n" "number?"
+ * @param "g" "gender?"
+ * @param "c" "case?"
+ * @param "k" "pronoun kind?"
+ * @returns "attribute"
+ */
+Public stable method "«_»?«_»?«_»?«_»?«_»?selector" is
+[
+	p : person?,
+	n : number?,
+	g : gender?,
+	c : case?,
+	k : pronoun kind?
+|
+	attr : attribute := an attribute;
+	Unless p is empty then
+	[
+		attr := attr as person with
+			grammatical person identity ::= p[1]'s person identity;
+	];
+	Unless n is empty then
+	[
+		attr := attr as number with
+			grammatical number identity ::= n[1]'s number identity;
+	];
+	Unless g is empty then
+	[
+		attr := attr as gender with
+			grammatical gender identity ::= g[1]'s gender identity;
+	];
+	Unless c is empty then
+	[
+		attr := attr as case with
+			grammatical case identity ::= c[1]'s case identity;
+	];
+	Unless k is empty then
+	[
+		attr := attr as pronoun kind with
+			grammatical pronoun kind identity ::= k[1]'s pronoun kind identity;
+	];
+	attr
+];
+
+/**
+ * Use as much type information as is lexically available to compute the result
+ * type.
+ *
+ * @method "«_»?«_»?«_»?«_»?«_»?selector"
+ * @restricts "person?'s type"
+ * @restricts "number?'s type"
+ * @restricts "gender?'s type"
+ * @restricts "case?'s type"
+ * @restricts "pronoun kind?'s type"
+ */
+Semantic restriction "«_»?«_»?«_»?«_»?«_»?selector" is
+[
+	tP : person?'s type,
+	tN : number?'s type,
+	tG : gender?'s type,
+	tC : case?'s type,
+	tK : pronoun kind?'s type
+|
+	attr : attribute's type := attribute;
+	If ⎣tP⎦ > 0 then
+	[
+		attr := extend attr with
+			grammatical person identity : tP[1]'s person identity;
+	];
+	If ⎣tN⎦ > 0 then
+	[
+		attr := extend attr with
+			grammatical number identity : tN[1]'s number identity;
+	];
+	If ⎣tG⎦ > 0 then
+	[
+		attr := extend attr with
+			grammatical gender identity : tG[1]'s gender identity;
+	];
+	If ⎣tC⎦ > 0 then
+	[
+		attr := extend attr with
+			grammatical case identity : tC[1]'s case identity;
+	];
+	If ⎣tK⎦ > 0 then
+	[
+		attr := extend attr with
+			grammatical pronoun kind identity : tK[1]'s pronoun kind identity;
+	];
+	attr
+];
+
+/**
+ * Construct a {@type "gendered pronoun selector"} using interlinear glossing
+ * conventions.
+ *
+ * @method "«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»"
+ * @param "p" "literal token ⇒ [1..3]"
+ *        {@code "1"} for {@method "first person"}, {@code "2"} for {@method
+ *        "second person"}, or {@code "3"} for {@method "third person"}.
+ * @param "n" "[1..2]"
+ *        {@code "sg"} for {@method "singular"} or {@code "pl"} for {@method
+ *        "plural"}.
+ * @param "g" "[1..3]"
+ *        {@code "f"} for {@method "feminine"}, {@code "m"} for {@method
+ *        "masculine"}, or {@code "n"} for {@method "neuter"}.
+ * @param "c" "[1..3]"
+ *        {@code "nom"} (i.e., nominative) for {@method "subjective"},
+ *        {@code "acc"} (i.e., accusative) for {@method "objective"}, or
+ *        {@code "gen"} (i.e., genitive) for {@method "possessive"}.
+ * @param "k" "[1..6]"
+ *        {@code "pers"} for {@method "personal"}, {@code "refl"} for {@method
+ *        "reflexive"}, {@code "int"} for {@method "intensive"}, {@code "a"}
+ *        for {@method "archaic"}, {@code "arefl"} for {@method
+ *        "archaic reflexive"}, or {@code "aint"} for {@method
+ *        "archaic intensive"}.
+ * @returns "attribute"
+ */
+Public stable method
+	"«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»"
+is
+[
+	p : [1..3]?,
+	n : [1..2]?,
+	g : [1..3]?,
+	c : [1..3]?,
+	k : [1..6]?
+|
+	attr : attribute := an attribute;
+	Unless p is empty then
+	[
+		attr := attr as person with
+			grammatical person identity ::=
+				<first person, second person, third person>
+					[p[1]]'s person identity;
+	];
+	Unless n is empty then
+	[
+		attr := attr as number with
+			grammatical number identity ::=
+				<singular, plural>[n[1]]'s number identity;
+	];
+	Unless g is empty then
+	[
+		attr := attr as gender with
+			grammatical gender identity ::=
+				<feminine, masculine, neuter>[g[1]]'s gender identity;
+	];
+	Unless c is empty then
+	[
+		attr := attr as case with
+			grammatical case identity ::=
+				<subjective, objective, possessive>[c[1]]'s case identity;
+	];
+	Unless k is empty then
+	[
+		attr := attr as pronoun kind with
+			grammatical pronoun kind identity ::=
+				<
+					personal,
+					reflexive,
+					intensive,
+					archaic,
+					archaic reflexive,
+					archaic intensive
+				>[k[1]]'s pronoun kind identity;
+	];
+	attr
+];
+
+/**
+ * Use as much type information as is lexically available to compute the result
+ * type.
+ *
+ * @method
+ *    "«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»"
+ * @restricts "[1..3]?'s type"
+ * @restricts "[1..2]?'s type"
+ * @restricts "[1..3]?'s type"
+ * @restricts "[1..3]?'s type"
+ * @restricts "[1..6]?'s type"
+ */
+Semantic restriction
+	"«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»"
+is
+[
+	tP : [1..3]?'s type,
+	tN : [1..2]?'s type,
+	tG : [1..3]?'s type,
+	tC : [1..3]?'s type,
+	tK : [1..6]?'s type
+|
+	attr : attribute's type := attribute;
+	If ⎣tP⎦ > 0 then
+	[
+		a ::=
+			if |tP[1]| = 1
+			then
+			[
+				<first person, second person, third person>
+					[tP[1]'s instance]'s person identity's type
+			]
+			else [atom];
+		attr := extend attr with
+			grammatical person identity : a;
+	];
+	If ⎣tN⎦ > 0 then
+	[
+		a ::=
+			if |tN[1]| = 1
+			then
+			[
+				<singular, plural>[tN[1]'s instance]'s number identity's type
+			]
+			else [atom];
+		attr := extend attr with
+			grammatical number identity : a;
+	];
+	If ⎣tG⎦ > 0 then
+	[
+		a ::=
+			if |tG[1]| = 1
+			then
+			[
+				<feminine, masculine, neuter>
+					[tG[1]'s instance]'s gender identity's type
+			]
+			else [atom];
+		attr := extend attr with
+			grammatical gender identity : a;
+	];
+	If ⎣tC⎦ > 0 then
+	[
+		a ::=
+			if |tC[1]| = 1
+			then
+			[
+				<subjective, objective, possessive>
+					[tC[1]'s instance]'s case identity's type
+			]
+			else [atom];
+		attr := extend attr with
+			grammatical case identity : a;
+	];
+	If ⎣tK⎦ > 0 then
+	[
+		a ::=
+			if |tK[1]| = 1
+			then
+			[
+				<
+					personal,
+					reflexive,
+					intensive,
+					archaic,
+					archaic reflexive,
+					archaic intensive
+				>[tK[1]'s instance]'s pronoun kind identity's type
+			]
+			else [atom];
+		attr := extend attr with
+			grammatical pronoun kind identity : a;
+	];
+	attr
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Pronouns.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * All gendered pronouns, as a table indexed first by {@type
+ * "gendered pronoun kind"}, then {@type "gender"}, then {@type "number"}, then
+ * {@type "person"}, and finally {@type "case"}.
+
+ * @global "genderedPronounTable" "nonempty string*****"
+ */
+genderedPronounTable ::=
+<
+	// Personal.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"she", "her", "hers"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"he", "him", "his"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"it", "it", "its"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"you", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>
+	>,
+	// Demonstrative.
+	<>,
+	// Interrogative.
+	<>,
+	// Indefinite.
+	<>,
+	// Reciprocal.
+	<>,
+	// Relative.
+	<>,
+	// Reflexive.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"herself", "herself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"himself", "himself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"itself", "itself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>
+	>,
+	// Intensive.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"herself", "herself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"himself", "himself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourself", "yourself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"itself", "itself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>
+	>,
+	// Archaic.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"thou", "thee", "thine"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"she", "her", "hers"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"ye", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"thou", "thee", "thine"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"he", "him", "his"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"ye", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"I", "me", "mine"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"thou", "thee", "thine"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"it", "it", "its"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, possessive.
+					"we", "us", "ours"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, possessive.
+					"ye", "you", "yours"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, possessive.
+					"they", "them", "theirs"
+				>
+			>
+		>
+	>,
+	// Archaic reflexive.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"herself", "herself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"himself", "himself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"itself", "itself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>
+	>,
+	// Intensive.
+	<
+		// Feminine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"herself", "herself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Masculine.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"himself", "himself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>,
+		// Neuter.
+		<
+			// Singular.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"myself", "myself"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"thyself", "thyself"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"itself", "itself"
+				>
+			>,
+			// Plural.
+			<
+				// First person.
+				<
+					// Subjective, objective, no possessive.
+					"ourselves", "ourselves"
+				>,
+				// Second person.
+				<
+					// Subjective, objective, no possessive.
+					"yourselves", "yourselves"
+				>,
+				// Third person.
+				<
+					// Subjective, objective, no possessive.
+					"themselves", "themselves"
+				>
+			>
+		>
+	>
+>;
+
+"bad selector" is a new field atom;
+
+/**
+ * An {@type "invalid-gendered-pronoun-selector exception"} is raised whenever a
+ * request is made for an invalid form.
+ *
+ * @type "invalid-gendered-pronoun-selector exception"
+ * @supertype "English exception"
+ * @field "bad selector" "gendered pronoun selector"
+ *        The invalid {@type "gendered pronoun selector"}.
+ */
+Public explicit class "invalid-gendered-pronoun-selector exception"
+extends English exception
+	with field
+		public bad selector : gendered pronoun selector;
+
+/**
+ * Answer the {@type "gendered pronoun selector" selected} gendered pronoun
+ *
+ * @method "_pronoun"
+ * @param "selector" "gendered pronoun selector"
+ * @returns "nonempty string"
+ * @raises "invalid-gendered-pronoun-selector exception"
+ *         If {@param "selector"} designates an invalid form.
+ */
+Public stable method "_pronoun" is
+[
+	selector : gendered pronoun selector
+|
+	guard
+	[
+		genderedPronounTable
+			[selector's pronoun kind identity's index]
+			[selector's gender identity's index]
+			[selector's number identity's index]
+			[selector's person identity's index]
+			[selector's case identity's index]
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		Raise an invalid-gendered-pronoun-selector exception with
+			bad selector ::= selector
+	]
+] : nonempty string;
+
+/**
+ * Answer the complete inventory of pronouns that match the specified {@type
+ * "attribute"}s.
+ *
+ * @method "_pronouns"
+ * @param "attr" "attribute"
+ *        An {@type "object"} that intersects several specializations of {@type
+ *        "attribute"} to denote a region of the grammatical space for pronouns.
+ * @returns "{nonempty string|}"
+ */
+Public stable method "_pronouns" is
+[
+	attr : attribute
+|
+	p ::=
+		cast attr into [p : person | [p]]
+		else [[trial element of <first person, second person, third person>]];
+	n ::=
+		cast attr into [n : number | [n]]
+		else [[trial element of <singular, plural>]];
+	g ::=
+		cast attr into [g : gender | [g]]
+		else [[trial element of <feminine, masculine, neuter>]];
+	c ::=
+		cast attr into [c : case | [c]]
+		else [[trial element of <subjective, objective, possessive>]];
+	k ::=
+		cast attr into [k : gendered pronoun kind | [k]]
+		else [[
+			trial element of
+			<
+				personal,
+				reflexive,
+				intensive,
+				archaic,
+				archaic reflexive,
+				archaic intensive
+			>
+		]];
+	all values of
+	[
+		p0 ::= p();
+		n0 ::= n();
+		g0 ::= g();
+		c0 ::= c();
+		k0 ::= k();
+		guard [p0 n0 g0 c0 k0 selector pronoun]
+		intercept [e : invalid-gendered-pronoun-selector exception | 0]
+	] → set - 0 ?→ {nonempty string|}
+] : {nonempty string|};
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test cases.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+Test "English pronoun kinds" in pronoun test suite is
+[
+	Require:
+		¬ personal pronoun kind
+		= demonstrative pronoun kind
+		= interrogative pronoun kind
+		= indefinite pronoun kind
+		= reciprocal pronoun kind
+		= relative pronoun kind
+		= reflexive pronoun kind
+		= intensive pronoun kind
+		= archaic pronoun kind;
+	Require: personal pronoun kind's pronoun kind identity
+		= {personal pronoun kind identity}ᵀ;
+	Require: demonstrative pronoun kind's pronoun kind identity
+		= {demonstrative pronoun kind identity}ᵀ;
+	Require: interrogative pronoun kind's pronoun kind identity
+		= {interrogative pronoun kind identity}ᵀ;
+	Require: indefinite pronoun kind's pronoun kind identity
+		= {indefinite pronoun kind identity}ᵀ;
+	Require: reciprocal pronoun kind's pronoun kind identity
+		= {reciprocal pronoun kind identity}ᵀ;
+	Require: relative pronoun kind's pronoun kind identity
+		= {relative pronoun kind identity}ᵀ;
+	Require: reflexive pronoun kind's pronoun kind identity
+		= {reflexive pronoun kind identity}ᵀ;
+	Require: intensive pronoun kind's pronoun kind identity
+		= {intensive pronoun kind identity}ᵀ;
+	Require: archaic pronoun kind's pronoun kind identity
+		= {archaic pronoun kind identity}ᵀ;
+	Require: personal pronoun kind ⊆ English pronoun kind;
+	Require: demonstrative pronoun kind ⊆ English pronoun kind;
+	Require: interrogative pronoun kind ⊆ English pronoun kind;
+	Require: indefinite pronoun kind ⊆ English pronoun kind;
+	Require: reciprocal pronoun kind ⊆ English pronoun kind;
+	Require: relative pronoun kind ⊆ English pronoun kind;
+	Require: reflexive pronoun kind ⊆ English pronoun kind;
+	Require: intensive pronoun kind ⊆ English pronoun kind;
+	Require: archaic pronoun kind ⊆ English pronoun kind;
+	Require: personal pronoun kind ⊆ gendered pronoun kind;
+    Require: reflexive pronoun kind ⊆ gendered pronoun kind;
+    Require: intensive pronoun kind ⊆ gendered pronoun kind;
+    Require: archaic pronoun kind ⊆ gendered pronoun kind;
+	Require: personal ∈ personal pronoun kind;
+	Require: demonstrative ∈ demonstrative pronoun kind;
+	Require: interrogative ∈ interrogative pronoun kind;
+	Require: indefinite ∈ indefinite pronoun kind;
+	Require: reciprocal ∈ reciprocal pronoun kind;
+	Require: relative ∈ relative pronoun kind;
+	Require: reflexive ∈ reflexive pronoun kind;
+	Require: intensive ∈ intensive pronoun kind;
+	Require: archaic ∈ archaic pronoun kind;
+	Require: personal's pronoun kind identity's index = 1;
+	Require: demonstrative's pronoun kind identity's index = 2;
+	Require: interrogative's pronoun kind identity's index = 3;
+	Require: indefinite's pronoun kind identity's index = 4;
+	Require: reciprocal's pronoun kind identity's index = 5;
+	Require: relative's pronoun kind identity's index = 6;
+	Require: reflexive's pronoun kind identity's index = 7;
+	Require: intensive's pronoun kind identity's index = 8;
+	Require: archaic's pronoun kind identity's index = 9;
+];
+
+Alias "test interlinear glossing(_,_,_,_,_)" to
+	$"«_»««sg|pl»!»««f|m|n»!»««nom|acc|gen»!»««pers|refl|int|a|arefl|aint»!»";
+
+Test "English pronouns" in pronoun test suite is
+[
+	actual1 ::= all values of
+	[
+		k ::= trial element of
+			<
+				personal,
+				reflexive,
+				intensive,
+				archaic,
+				archaic reflexive,
+				archaic intensive
+			>;
+		g ::= trial element of <feminine, masculine, neuter>;
+		n ::= trial element of <singular, plural>;
+		p ::= trial element of <first person, second person, third person>;
+		c ::= trial element of <subjective, objective, possessive>;
+		guard [p n g c k selector pronoun]
+		intercept [e : invalid-gendered-pronoun-selector exception | 0]
+	];
+	actual2 ::= all values of
+	[
+		k ::= <trial# of 6>;
+		g ::= <trial# of 3>;
+		n ::= <trial# of 2>;
+		p ::= <trial# of 3>;
+		c ::= <trial# of 3>;
+		selector ::= test interlinear glossing(p, n, g, c, k)
+			?→ gendered pronoun selector;
+		guard [selector pronoun]
+		intercept [e : invalid-gendered-pronoun-selector exception | 0]
+	];
+	ref ::=
+	<
+		// Feminine personal.
+		"I", "me", "mine",
+		"you", "you", "yours",
+		"she", "her", "hers",
+		"we", "us", "ours",
+		"you", "you", "yours",
+		"they", "them", "theirs",
+
+		// Masculine personal.
+		"I", "me", "mine",
+		"you", "you", "yours",
+		"he", "him", "his",
+		"we", "us", "ours",
+		"you", "you", "yours",
+		"they", "them", "theirs",
+
+		// Neuter personal.
+		"I", "me", "mine",
+		"you", "you", "yours",
+		"it", "it", "its",
+		"we", "us", "ours",
+		"you", "you", "yours",
+		"they", "them", "theirs",
+
+		// Feminine reflexive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"herself", "herself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Masculine reflexive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"himself", "himself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Neuter reflexive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"itself", "itself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Feminine intensive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"herself", "herself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Masculine intensive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"himself", "himself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Neuter intensive.
+		"myself", "myself", 0,
+		"yourself", "yourself", 0,
+		"itself", "itself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Feminine archaic.
+		"I", "me", "mine",
+		"thou", "thee", "thine",
+		"she", "her", "hers",
+		"we", "us", "ours",
+		"ye", "you", "yours",
+		"they", "them", "theirs",
+
+		// Masculine archaic.
+		"I", "me", "mine",
+		"thou", "thee", "thine",
+		"he", "him", "his",
+		"we", "us", "ours",
+		"ye", "you", "yours",
+		"they", "them", "theirs",
+
+		// Neuter archaic.
+		"I", "me", "mine",
+		"thou", "thee", "thine",
+		"it", "it", "its",
+		"we", "us", "ours",
+		"ye", "you", "yours",
+		"they", "them", "theirs",
+
+		// Feminine archaic reflexive.
+		"myself", "myself", 0,
+		"thyself", "thyself", 0,
+		"herself", "herself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Masculine archaic reflexive.
+		"myself", "myself", 0,
+		"thyself", "thyself", 0,
+		"himself", "himself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Neuter archaic reflexive.
+		"myself", "myself", 0,
+		"thyself", "thyself", 0,
+		"itself", "itself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Feminine archaic intensive.
+		"myself", "myself", 0,
+		"thyself", "thyself", 0,
+		"herself", "herself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Masculine archaic intensive.
+		"myself", "myself", 0,
+		"thyself", "thyself", 0,
+		"himself", "himself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0,
+
+		// Neuter archaic intensive.
+		"myself", "myself", 0,
+		"thyself",
+		"thyself", 0,
+		"itself", "itself", 0,
+		"ourselves", "ourselves", 0,
+		"yourselves", "yourselves", 0,
+		"themselves", "themselves", 0
+	>;
+	Require: actual1 = ref;
+	Require: actual2 = ref;
+];

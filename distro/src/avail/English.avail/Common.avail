@@ -36,7 +36,15 @@ Versions
 Uses
 	"Avail"
 Names
-	"_'s⁇identity"
+	/* Attributes. */
+	"attribute",
+
+	/* Exceptions. */
+	"English exception",
+
+	/* Internal table indices. */
+	"_'s⁇index::=_",
+	"_'s⁇index"
 Body
 
 /**
@@ -46,3 +54,82 @@ Body
  * @module
  * @author Todd L Smith <todd@availlang.org>
  */
+
+////////////////////////////////////////////////////////////////////////////////
+//                            English attributes.                             //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * An {@type "attribute"} represents a grammatical attribute.
+ *
+ * @type "attribute"
+ * @supertype "object"
+ */
+Public explicit class "attribute" extends object;
+
+////////////////////////////////////////////////////////////////////////////////
+//                            English exceptions.                             //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * An {@type "English exception"} is raised by library methods when encountering
+ * an exceptional condition.
+ *
+ * @type "English exception"
+ * @supertype "exception"
+ */
+Public explicit class "English exception" extends exception;
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Table indices.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * The {@type "atom"} that identifies the canonical index into an English
+ * subsystem {@type "atom"}.
+ *
+ * @method "English table index"
+ * @returns "atom"
+ */
+"English table index" is a new atom;
+
+/**
+ * Set the canonical index of the specified English subsystem atom. This index
+ * will always be used whenever the atom is used to produce an index into an
+ * internal table, irrespective of table dimension.
+ *
+ * This should not leak outside of the English subsystem. Must be called only
+ * once per English subsystem atom.
+ *
+ * @method "_'s⁇index::=_"
+ * @param "a" "atom"
+ *        An English subsystem atom.
+ * @returns "⊤"
+ */
+Public method "_'s⁇index::=_" is
+[
+	a : atom,
+	index : natural number
+|
+	Assert: ¬English table index ∈ a;
+	a[English table index] := index;
+];
+
+/**
+ * Answer the canonical index of the specified English subsystem atom. This
+ * index will always be used whenever the atom is used to produce an index into
+ * an internal table, irrespective of table dimension.
+ *
+ * This should not leak outside of the English subsystem.
+ *
+ * @method "_'s⁇index"
+ * @param "a" "atom"
+ *        An English subsystem atom.
+ * @returns "natural number"
+ */
+Public stable method "_'s⁇index" is
+[
+	a : atom
+|
+	a[English table index] ?→ natural number
+];
