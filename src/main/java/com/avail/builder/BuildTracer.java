@@ -37,6 +37,7 @@ import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
@@ -45,7 +46,6 @@ import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.nio.channels.CompletionHandler;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -413,24 +413,9 @@ final class BuildTracer
 			availBuilder.textInterface.errorChannel().write(
 				"Load failed.\n",
 				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable Void attachment)
-					{
-						// Ignore.
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable exc,
-						final @Nullable Void attachment)
-					{
-						// Ignore.
-					}
-				});
+				new SimpleCompletionHandler<Integer, Void>(
+					r -> { },
+					t -> { }));
 		}
 		else
 		{

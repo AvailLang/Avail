@@ -37,13 +37,15 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.util.Collections;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -65,6 +67,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -104,8 +107,7 @@ extends Primitive
 		final A_Function succeed = interpreter.argument(3);
 		final A_Function fail = interpreter.argument(4);
 		final A_Number priority = interpreter.argument(5);
-		final A_BasicObject pojo =
-			handle.getAtomProperty(SOCKET_KEY.atom);
+		final A_BasicObject pojo = handle.getAtomProperty(SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -144,8 +146,10 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() -> formatString("Socket IPv4 connect, %s:%d",
-				addressTuple.toString(), port.extractInt()));
+			() -> formatString(
+				"Socket IPv4 connect, %s:%d",
+				addressTuple.toString(),
+				port.extractInt()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -165,34 +169,18 @@ extends Primitive
 			socket.connect(
 				address,
 				null,
-				new CompletionHandler<Void, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Void unused1,
-						final @Nullable Void unused2)
-					{
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							succeed,
-							Collections.emptyList());
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable killer,
-						final @Nullable Void unused)
-					{
-						assert killer != null;
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							singletonList(
-								E_IO_ERROR.numericCode()));
-					}
-				});
+				new SimpleCompletionHandler<>(
+					unused -> runOutermostFunction(
+						runtime,
+						newFiber,
+						succeed,
+						emptyList()),
+					killer -> runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						singletonList(
+							E_IO_ERROR.numericCode()))));
 		}
 		catch (final IllegalArgumentException e)
 		{

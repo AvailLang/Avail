@@ -36,11 +36,10 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import javax.annotation.Nullable;
 import java.nio.CharBuffer;
-import java.nio.channels.CompletionHandler;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
@@ -81,24 +80,9 @@ extends Primitive
 				fiber.textInterface().inputChannel().read(
 					buffer,
 					fiber,
-					new CompletionHandler<Integer, A_Fiber>()
-					{
-						@Override
-						public void completed (
-							final @Nullable Integer result,
-							final @Nullable A_Fiber unused)
-						{
-							toSucceed.value(fromCodePoint(buffer.get(0)));
-						}
-
-						@Override
-						public void failed (
-							final @Nullable Throwable exc,
-							final @Nullable A_Fiber unused)
-						{
-							toFail.value(E_IO_ERROR);
-						}
-					});
+					new SimpleCompletionHandler<>(
+						result -> toSucceed.value(fromCodePoint(buffer.get(0))),
+						exc -> toFail.value(E_IO_ERROR)));
 			});
 	}
 

@@ -44,8 +44,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@SuppressWarnings("AbstractClassWithoutAbstractMethods")
-public abstract class ProblemHandler
+public interface ProblemHandler
 {
 	/**
 	 * The corresponding {@link Problem} is not actually an unexpected
@@ -61,7 +60,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleInformation (
+	default void handleInformation (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -70,7 +69,7 @@ public abstract class ProblemHandler
 
 	/**
 	 * The corresponding {@link Problem} indicates a situation that is less than
-	 * ideal.  A {@link ProblemHandler} may choose to present this warning, and
+	 * ideal.  A {@code ProblemHandler} may choose to present this warning, and
 	 * then {@linkplain Problem#continueCompilation() continue compilation}.
 	 *
 	 * @param problem
@@ -81,7 +80,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleWarning (
+	default void handleWarning (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -99,7 +98,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleTrace (
+	default void handleTrace (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -119,7 +118,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleParse (
+	default void handleParse (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -139,7 +138,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleExecution (
+	default void handleExecution (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -159,7 +158,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleInternal (
+	default void handleInternal (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -179,7 +178,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleExternal (
+	default void handleExternal (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -200,7 +199,7 @@ public abstract class ProblemHandler
 	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 *        compilation should continue.
 	 */
-	protected void handleGeneric (
+	default void handleGeneric (
 		final Problem problem,
 		final Continuation1NotNull<Boolean> decider)
 	{
@@ -218,7 +217,7 @@ public abstract class ProblemHandler
 	 * @param problem
 	 *        A problem.
 	 */
-	public final void handle (final Problem problem)
+	default void handle (final Problem problem)
 	{
 		problem.report(
 			this,

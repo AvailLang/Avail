@@ -33,17 +33,16 @@
 package com.avail.builder;
 
 import com.avail.builder.AvailBuilder.ModuleTree;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -366,27 +365,18 @@ final class GraphTracer
 			buffer,
 			0,
 			null,
-			new CompletionHandler<Integer, Void>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void unused)
-				{
+			new SimpleCompletionHandler<>(
+				(result, unused, handler) -> {
 					position.value += stripNull(result);
 					if (buffer.hasRemaining())
 					{
-						channel.write(buffer, position.value, null, this);
+						channel.write(
+							buffer,
+							position.value,
+							null,
+							handler);
 					}
-				}
-
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable Void attachment)
-				{
-					// Ignore failure.
-				}
-			});
+				},
+				(t, unused, handler) -> { }));
 	}
 }

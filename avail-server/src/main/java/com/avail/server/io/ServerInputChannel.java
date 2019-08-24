@@ -47,6 +47,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import static com.avail.utility.Casts.cast;
+
 /**
  * A {@code ServerInputChannel} adapts an {@link AvailServerChannel} for use as
  * a standard input channel.
@@ -132,7 +134,7 @@ implements TextInputChannel
 		{
 			this.buffer = buffer;
 			this.attachment = attachment;
-			this.handler = (CompletionHandler<Integer, Object>) handler;
+			this.handler = cast(handler);
 		}
 
 		/** The number of bytes read. */

@@ -404,7 +404,7 @@ final class BuildDirectoryTracer
 			new BuilderProblemHandler(availBuilder, "")
 			{
 				@Override
-				protected void handleGeneric (
+				public void handleGeneric (
 					final Problem problem,
 					final Continuation1NotNull<Boolean> decider)
 				{

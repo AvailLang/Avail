@@ -38,12 +38,12 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,33 +103,18 @@ extends Primitive
 			() -> textInterface.errorChannel().write(
 				string.asNativeString(),
 				fiber,
-				new CompletionHandler<Integer, A_Fiber>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer result,
-						final @Nullable A_Fiber unused)
-					{
-						Interpreter.resumeFromSuccessfulPrimitive(
-							runtime,
-							fiber,
-							P_PrintToErrorConsole.this,
-							nil);
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable exc,
-						final @Nullable A_Fiber unused)
-					{
-						Interpreter.resumeFromFailedPrimitive(
-							runtime,
-							fiber,
-							E_IO_ERROR.numericCode(),
-							primitiveFunction,
-							copiedArgs);
-					}
-				}));
+				new SimpleCompletionHandler<>(
+					result -> Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						P_PrintToErrorConsole.this,
+						nil),
+					exc -> Interpreter.resumeFromFailedPrimitive(
+						runtime,
+						fiber,
+						E_IO_ERROR.numericCode(),
+						primitiveFunction,
+						copiedArgs))));
 		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 

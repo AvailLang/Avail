@@ -38,6 +38,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem;
 import com.avail.io.IOSystem.BufferKey;
 import com.avail.io.IOSystem.FileHandle;
+import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableLong;
@@ -46,7 +47,6 @@ import com.avail.utility.MutableOrNull;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -185,9 +185,14 @@ extends Primitive
 		{
 			bufferIterator = new Iterator<ByteBuffer>()
 			{
+				/** The buffer to reuse for writing. */
 				final ByteBuffer buffer = ByteBuffer.allocateDirect(
 					min(totalBytes, MAX_WRITE_BUFFER_SIZE));
 
+				/**
+				 * The position in the bytes tuple corresponding with the
+				 * current buffer start.
+				 */
 				int nextSubscript = 1;
 
 				@Override
@@ -266,24 +271,14 @@ extends Primitive
 					currentBuffer.value,
 					nextPosition.value,
 					null,
-					new CompletionHandler<Integer, Void>()
-					{
-						@Override
-						public void completed (
-							final @Nullable Integer bytesWritten,
-							final @Nullable Void attachment)
+					new SimpleCompletionHandler<Integer, Void>(
+						bytesWritten ->
 						{
-							assert bytesWritten != null;
 							nextPosition.value += (long) bytesWritten;
 							continueWriting.value();
-						}
-
-						@Override
-						public void failed (
-							final @Nullable Throwable killer,
-							final @Nullable Void attachment)
+						},
+						throwable ->
 						{
-							assert killer != null;
 							// Invalidate *all* pages for this file to
 							// ensure subsequent I/O has a proper
 							// opportunity to re-encounter problems like
@@ -298,8 +293,7 @@ extends Primitive
 								newFiber,
 								fail,
 								singletonList(E_IO_ERROR.numericCode()));
-						}
-					});
+						}));
 			}
 			else
 			{
