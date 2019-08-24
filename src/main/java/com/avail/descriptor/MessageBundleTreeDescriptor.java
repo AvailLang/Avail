@@ -68,6 +68,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import static com.avail.dispatch.TypeComparison.compareForParsing;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static java.util.Collections.singletonList;
@@ -373,18 +374,18 @@ extends Descriptor
 			final List<TypeRestriction> argumentRestrictions,
 			final A_Type signatureType)
 		{
-			return TypeComparison.compareForParsing(
+			return compareForParsing(
 				argumentRestrictions, signatureType);
 		}
 
 		@Override
-		public boolean testsArgumentPositions ()
+		public boolean getTestsArgumentPositions()
 		{
 			return false;
 		}
 
 		@Override
-		public boolean subtypesHideSupertypes ()
+		public boolean getSubtypesHideSupertypes()
 		{
 			return false;
 		}

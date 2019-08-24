@@ -98,6 +98,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleWithout;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.dispatch.TypeComparison.compareForDispatch;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.anyRestriction;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
@@ -286,18 +287,18 @@ extends Descriptor
 			final List<TypeRestriction> argumentRestrictions,
 			final A_Type signatureType)
 		{
-			return TypeComparison.compareForDispatch(
+			return compareForDispatch(
 				argumentRestrictions, signatureType);
 		}
 
 		@Override
-		public boolean testsArgumentPositions ()
+		public boolean getTestsArgumentPositions()
 		{
 			return true;
 		}
 
 		@Override
-		public boolean subtypesHideSupertypes ()
+		public boolean getSubtypesHideSupertypes()
 		{
 			return true;
 		}
