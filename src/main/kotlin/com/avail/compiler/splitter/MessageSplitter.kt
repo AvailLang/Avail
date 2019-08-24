@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -159,7 +159,7 @@ class MessageSplitter
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
-	 * to the [.messagePartsList] that have been extracted.
+	 * to the [messagePartsList] that have been extracted.
 	 */
 	private val messagePartPositions: MutableList<Int> = ArrayList(10)
 
@@ -212,18 +212,18 @@ class MessageSplitter
 		 *
 		 * The only characters that can be backquoted (and must be to use
 		 * them in a non-special way) are the `Metacharacter`s, space, and
-		 * the [circled numbers][.circledNumbersString].
+		 * the [circled numbers][circledNumbersString].
 		 */
 		BACK_QUOTE("`"),
 
 		/**
 		 * A close-guillemet (») indicates the end of a group or other structure
-		 * that started with an [.OPEN_GUILLEMET] open-guillemet («).
+		 * that started with an [OPEN_GUILLEMET] open-guillemet («).
 		 */
 		CLOSE_GUILLEMET("»"),
 
 		/**
-		 * A dollar sign ($) after an [.ELLIPSIS] (…) indicates that a
+		 * A dollar sign ($) after an [ELLIPSIS] (…) indicates that a
 		 * string-valued literal token should be consumed from the Avail source
 		 * code at this position.  This is accomplished through the use of a
 		 * [RawStringLiteralTokenArgument].
@@ -270,25 +270,25 @@ class MessageSplitter
 		 *
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
-		 *  * If followed by an [.OCTOTHORP] (#), it creates a
+		 *  * If followed by an [OCTOTHORP] (#), it creates a
 		 *    [RawWholeNumberLiteralTokenArgument], which matches a single
 		 *    [A_Token] of kind [TokenType.LITERAL] which yields an integer in
 		 *    the range [0..∞).
-		 *  * If followed by a [.DOLLAR_SIGN] ($), it creates a
+		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
 		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
 		 *    of kind [TokenType.LITERAL] which yields a string.
-		 *  * If followed by an [.EXCLAMATION_MARK] (!), it creates a
+		 *  * If followed by an [EXCLAMATION_MARK] (!), it creates a
 		 *    [RawTokenArgument], which matches a single [A_Token] of any kind
 		 *    except [TokenType.WHITESPACE] or [TokenType.COMMENT].
 		 */
 		ELLIPSIS("…"),
 
 		/**
-		 * The exclamation mark (!) can follow an [.ELLIPSIS] (…) to cause
+		 * The exclamation mark (!) can follow an [ELLIPSIS] (…) to cause
 		 * creation of a [RawTokenArgument], which matches any token that
 		 * isn't whitespace or a comment.
 		 *
-		 * When it follows an [.UNDERSCORE] (_), it creates an
+		 * When it follows an [UNDERSCORE] (_), it creates an
 		 * [ArgumentForMacroOnly], which matches any [A_Phrase], even those that
 		 * yield ⊤ or ⊥.  Since these argument types are forbidden for methods,
 		 * this construct can only be used in macros, where what is passed as an
@@ -297,7 +297,7 @@ class MessageSplitter
 		EXCLAMATION_MARK("!"),
 
 		/**
-		 * An octothorp (#) after an [.ELLIPSIS] (…) indicates that a
+		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
 		 * of a [RawWholeNumberLiteralTokenArgument].
@@ -306,7 +306,7 @@ class MessageSplitter
 
 		/**
 		 * An open-guillemet («) indicates the start of a group or other
-		 * structure that will eventually end with a [.CLOSE_GUILLEMET] (»).
+		 * structure that will eventually end with a [CLOSE_GUILLEMET] (»).
 		 */
 		OPEN_GUILLEMET("«"),
 
@@ -316,14 +316,14 @@ class MessageSplitter
 		 * token was present or not.
 		 *
 		 * When a question mark follows a simple [Group], i.e., one that has no
-		 * [.DOUBLE_DAGGER] (‡) and yields no values, it creates an [Optional].
+		 * [DOUBLE_DAGGER] (‡) and yields no values, it creates an [Optional].
 		 * This causes a boolean literal to be generated at a call site,
 		 * indicating whether the sequence of tokens from that group actually
 		 * occurred.
 		 *
 		 * When a question mark follows a [Group] which produces one or more
 		 * values, it simply limits that group to [0..1] occurrences.  The
-		 * [.DOUBLE_DAGGER] (‡) is forbidden here as well, because the sequence
+		 * [DOUBLE_DAGGER] (‡) is forbidden here as well, because the sequence
 		 * after the double-dagger would only ever occur between repetitions,
 		 * but there cannot be two of them.
 		 */
@@ -345,7 +345,7 @@ class MessageSplitter
 		SECTION_SIGN("§"),
 
 		/**
-		 * A single-dagger (†) following an [.UNDERSCORE] (_) causes creation of
+		 * A single-dagger (†) following an [UNDERSCORE] (_) causes creation of
 		 * an [ArgumentInModuleScope].  This will parse an expression that does
 		 * not use any variables in the local scope, then evaluate it and wrap
 		 * it in a [literal][LiteralTokenDescriptor].
@@ -366,21 +366,21 @@ class MessageSplitter
 		 *
 		 *  * If unadorned, an [Argument] is created, which expects an
 		 *    expression that yields something other than ⊤ or ⊥.
-		 *  * If followed by an [.EXCLAMATION_MARK] (!), an
+		 *  * If followed by an [EXCLAMATION_MARK] (!), an
 		 *    [ArgumentForMacroOnly] is constructed.  This allows expressions
 		 *    that yield ⊤ or ⊥, which are only permitted in macros.
-		 *  * If followed by a [.SINGLE_DAGGER] (†), the expression must not
+		 *  * If followed by a [SINGLE_DAGGER] (†), the expression must not
 		 *    attempt to use any variables in the current scope. The expression
 		 *    will be evaluated at compile time, and wrapped in a literal
 		 *    phrase.
-		 *  * If followed by a [.UP_ARROW] (↑), a [variable use
+		 *  * If followed by a [UP_ARROW] (↑), a [variable use
 		 *    phrase][VariableUsePhraseDescriptor] must be supplied, which is
 		 *    converted into a [reference phrase][ReferencePhraseDescriptor].
 		 */
 		UNDERSCORE("_"),
 
 		/**
-		 * If an up-arrow (↑) follows an [.UNDERSCORE], a [VariableQuote] is
+		 * If an up-arrow (↑) follows an [UNDERSCORE], a [VariableQuote] is
 		 * created, which expects a [VariableUsePhraseDescriptor], which will be
 		 * automatically converted into a [reference
 		 * phrase][ReferencePhraseDescriptor].
@@ -407,7 +407,7 @@ class MessageSplitter
 		{
 			/**
 			 * This collects all metacharacters, including space and circled
-			 * numbers.  These are the characters that can be [.BACK_QUOTE]d.
+			 * numbers.  These are the characters that can be [BACK_QUOTE]d.
 			 */
 			private val backquotableCodepoints = HashSet<Int>()
 
@@ -425,7 +425,7 @@ class MessageSplitter
 
 			/**
 			 * Answer whether the given Unicode codepoint may be
-			 * [backquoted][.BACK_QUOTE]
+			 * [backquoted][BACK_QUOTE]
 			 *
 			 * @param codePoint
 			 *   The Unicode codepoint to check.
@@ -538,7 +538,7 @@ class MessageSplitter
 	private val atEnd get() = messagePartPosition > messagePartsList.size
 
 	/**
-	 * Answer the current message part, or `null` if we are [.atEnd].  Do not
+	 * Answer the current message part, or `null` if we are [atEnd].  Do not
 	 * consume the message part.
 	 *
 	 * @return
@@ -548,7 +548,7 @@ class MessageSplitter
 		if (atEnd) null else messagePartsList[messagePartPosition - 1]
 
 	/**
-	 * Answer the current message part.  We must not be [.atEnd].  Do
+	 * Answer the current message part.  We must not be [atEnd].  Do
 	 * not consume the message part.
 	 *
 	 * @return
@@ -605,7 +605,7 @@ class MessageSplitter
 
 	/**
 	 * Answer a [List] of [Expression] objects that correlates with the [parsing
-	 * instructions][.instructionsTupleFor] generated for the message name and
+	 * instructions][instructionsTupleFor] generated for the message name and
 	 * the provided signature tuple type. Note that the list is 0-based and the
 	 * tuple is 1-based.
 	 *
@@ -660,7 +660,7 @@ class MessageSplitter
 	}
 
 	/**
-	 * Answer a variant of the [message name][.messageName] with backquotes
+	 * Answer a variant of the [message name][messageName] with backquotes
 	 * stripped.
 	 *
 	 * @param start
@@ -868,7 +868,7 @@ class MessageSplitter
 
 	/**
 	 * Check if there are more parts and the next part is an occurrence of the
-	 * given [Metacharacter].  If so, increment the [.messagePartPosition] and
+	 * given [Metacharacter].  If so, increment the [messagePartPosition] and
 	 * answer `true`}`, otherwise answer `false`.
 	 *
 	 * @param metacharacter
@@ -889,7 +889,7 @@ class MessageSplitter
 
 	/**
 	 * Check if the next part, if any, is the indicated [Metacharacter].
-	 * Do not advance the [.messagePartPosition] in either case.
+	 * Do not advance the [messagePartPosition] in either case.
 	 *
 	 * @param metacharacter
 	 *   The [Metacharacter] to look ahead for.
@@ -972,7 +972,7 @@ class MessageSplitter
 	 * double-dagger (‡).
 	 *
 	 * @return
-	 *   A [Sequence] expression parsed from the [.messagePartsList].
+	 *   A [Sequence] expression parsed from the [messagePartsList].
 	 * @throws MalformedMessageException
 	 *   If the method name is malformed.
 	 */
@@ -1106,7 +1106,7 @@ class MessageSplitter
 				"Tilde (~) may only occur after a lowercase token " +
 					"or a group of lowercase tokens"))
 		{
-			expression = expression.applyCaseInsensitive()!!
+			expression = expression.applyCaseInsensitive()
 		}
 		if (peekFor(QUESTION_MARK))
 		{
@@ -1142,7 +1142,7 @@ class MessageSplitter
 		val ordinal = peekForExplicitOrdinal()
 		if (ordinal != -1)
 		{
-			expression.explicitOrdinal(ordinal)
+			expression.explicitOrdinal = ordinal
 		}
 		return expression
 	}
@@ -1268,7 +1268,7 @@ class MessageSplitter
 
 		if (peekFor(
 				OCTOTHORP,
-				group.underscoreCount() > 0,
+				group.underscoreCount > 0,
 				E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 				"An octothorp (#) may only follow a non-yielding " +
 					"group or an ellipsis (…)"))
@@ -1285,7 +1285,7 @@ class MessageSplitter
 					+ "double-dagger (‡), since that implies "
 					+ "multiple occurrences to be separated"))
 		{
-			if (group.underscoreCount() > 0)
+			if (group.underscoreCount > 0)
 			{
 				// A complex group just gets bounded to [0..1] occurrences.
 				group.beOptional()
@@ -1300,7 +1300,7 @@ class MessageSplitter
 		}
 		else if (peekFor(
 				DOUBLE_QUESTION_MARK,
-				group.underscoreCount() > 0 || group.hasDagger,
+				group.underscoreCount > 0 || group.hasDagger,
 				E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
 				"A double question mark (⁇) may only follow "
 					+ "a token or simple group, not one with a "
@@ -1311,7 +1311,7 @@ class MessageSplitter
 		}
 		else if (peekFor(
 				EXCLAMATION_MARK,
-				group.underscoreCount() > 0
+				group.underscoreCount > 0
 					|| group.hasDagger
 					|| group.beforeDagger.expressions.size != 1
 					|| group.beforeDagger.expressions[0] !is Alternation,
@@ -1322,8 +1322,8 @@ class MessageSplitter
 		{
 			// The guillemet group should have had a single element, an
 			// alternation.
-			val alternation =
-				cast<Expression, Alternation>(group.beforeDagger.expressions[0])
+			val alternation = cast<Expression, Alternation>(
+				group.beforeDagger.expressions[0]!!)
 			subexpression = NumberedChoice(alternation)
 		}
 		return subexpression
@@ -1418,7 +1418,7 @@ class MessageSplitter
 	 *   The [SectionCheckpoint]'s subscript if this is a check of a
 	 *   [macro][MacroDefinitionDescriptor]'s, [prefix
 	 *   function][A_Definition.prefixFunctions], otherwise any value past the
-	 *   total [.numberOfSectionCheckpoints] for a method or macro body.
+	 *   total [numberOfSectionCheckpoints] for a method or macro body.
 	 * @throws SignatureException
 	 *         If the function type is inappropriate for the method name.
 	 */
@@ -1456,7 +1456,7 @@ class MessageSplitter
 	{
 		for (expression in rootSequence.expressions)
 		{
-			if (expression.isGroup)
+			if (expression!!.isGroup)
 			{
 				return true
 			}
@@ -1534,7 +1534,7 @@ class MessageSplitter
 		 * A map from the Unicode code points for the circled number characters
 		 * found in various regions of the Unicode code space.
 		 *
-		 * @see [.circledNumbersString]
+		 * @see [circledNumbersString]
 		 */
 		private val circledNumbersMap: MutableMap<Int, Int> =
 			HashMap(circledNumbersCount)
@@ -1576,13 +1576,13 @@ class MessageSplitter
 
 		/**
 		 * A statically-scoped map from Avail object to one-based index (into
-		 * [.constantsList], after adjusting to a zero-based [List]), for which
+		 * [constantsList], after adjusting to a zero-based [List]), for which
 		 * some [ParsingOperation] needed to hold that constant as an operand.
 		 */
 		private val constantsMap = HashMap<AvailObject, Int>(100)
 
 		/**
-		 * A lock to protect [.constantsList] and [.constantsMap].
+		 * A lock to protect [constantsList] and [constantsMap].
 		 */
 		private val constantsLock = ReentrantReadWriteLock()
 
@@ -1638,13 +1638,13 @@ class MessageSplitter
 
 		/**
 		 * Answer the index of the given constant, adding it to the global
-		 * [.constantsList] and [.constantsMap]} if necessary.
+		 * [constantsList] and [constantsMap]} if necessary.
 		 *
 		 * @param constant
 		 *   The type to look up or add to the global index.
 		 * @return
 		 *   The one-based index of the type, which can be retrieved later via
-		 *   [.constantForIndex].
+		 *   [constantForIndex].
 		 */
 		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int
@@ -1672,17 +1672,17 @@ class MessageSplitter
 			}
 		}
 
-		/** The position at which true is stored in the [.constantsList].  */
+		/** The position at which true is stored in the [constantsList].  */
 		@JvmStatic
 		val indexForTrue = indexForConstant(trueObject())
 
-		/** The position at which false is stored in the [.constantsList].  */
+		/** The position at which false is stored in the [constantsList].  */
 		@JvmStatic
 		val indexForFalse = indexForConstant(falseObject())
 
 		/**
 		 * Answer the [AvailObject] having the given one-based index in the
-		 * static [.constantsList] [List].
+		 * static [constantsList] [List].
 		 *
 		 * @param index
 		 *   The one-based index of the constant to retrieve.
@@ -1738,7 +1738,7 @@ class MessageSplitter
 		{
 			throwMalformedIf(
 				expression.isArgumentOrGroup
-						|| expression.underscoreCount() > 0,
+						|| expression.underscoreCount > 0,
 				E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 				"Alternatives must not contain arguments")
 		}

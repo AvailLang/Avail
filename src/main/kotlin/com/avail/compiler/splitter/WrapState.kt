@@ -1,6 +1,6 @@
 /*
- * WrapState.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * WrapState.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.splitter;
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
+package com.avail.compiler.splitter
+
+import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
 
 /**
  * An indication of the desired and actual stack state.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-enum WrapState
+internal enum class WrapState
 {
 	/**
 	 * A list has already been pushed for the current sequence.
 	 */
 	PUSHED_LIST
 	{
-		@Override
-		WrapState processAfterPushedArgument (
-			final Expression expression,
-			final InstructionGenerator generator)
+		override fun processAfterPushedArgument(
+			expression: Expression,
+			generator: InstructionGenerator): WrapState
 		{
-			generator.flushDelayed();
-			generator.emit(expression, APPEND_ARGUMENT);
-			return this;
+			generator.flushDelayed()
+			generator.emit(expression, APPEND_ARGUMENT)
+			return this
 		}
 	},
 
@@ -59,14 +61,13 @@ enum WrapState
 	 */
 	NEEDS_TO_PUSH_LIST
 	{
-		@Override
-		WrapState processAfterPushedArgument (
-			final Expression expression,
-			final InstructionGenerator generator)
+		override fun processAfterPushedArgument(
+			expression: Expression,
+			generator: InstructionGenerator): WrapState
 		{
-			generator.flushDelayed();
-			generator.emitWrapped(expression, 1);
-			return PUSHED_LIST;
+			generator.flushDelayed()
+			generator.emitWrapped(expression, 1)
+			return PUSHED_LIST
 		}
 	},
 
@@ -76,12 +77,11 @@ enum WrapState
 	 */
 	SHOULD_NOT_PUSH_LIST
 	{
-		@Override
-		WrapState processAfterPushedArgument (
-			final Expression expression,
-			final InstructionGenerator generator)
+		override fun processAfterPushedArgument(
+			expression: Expression,
+			generator: InstructionGenerator): WrapState
 		{
-			return this;
+			return this
 		}
 	},
 
@@ -91,13 +91,12 @@ enum WrapState
 	 */
 	SHOULD_NOT_HAVE_ARGUMENTS
 	{
-		@Override
-		WrapState processAfterPushedArgument (
-			final Expression expression,
-			final InstructionGenerator generator)
+		override fun processAfterPushedArgument(
+			expression: Expression,
+			generator: InstructionGenerator): WrapState
 		{
-			throw new RuntimeException(
-				"Not expecting an argument/group, but got one.");
+			throw RuntimeException(
+				"Not expecting an argument/group, but got one.")
 		}
 	};
 
@@ -106,7 +105,7 @@ enum WrapState
 	 *
 	 * @return The new state of the stack.
 	 */
-	abstract WrapState processAfterPushedArgument (
-		final Expression expression,
-		final InstructionGenerator generator);
+	internal abstract fun processAfterPushedArgument(
+		expression: Expression,
+		generator: InstructionGenerator): WrapState
 }

@@ -1,5 +1,5 @@
 /*
- * DotWriter.java
+ * DotWriter.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -181,7 +181,7 @@ class DotWriter constructor(
 		}
 
 		/**
-		 * Emit arbitrary text. Updates [.justEmittedLinefeed]
+		 * Emit arbitrary text. Updates [justEmittedLinefeed]
 		 * appropriately, based on whether the last character of the specified
 		 * text is a linefeed.
 		 *
@@ -198,7 +198,7 @@ class DotWriter constructor(
 		}
 
 		/**
-		 * Emit a linefeed. Updates [.justEmittedLinefeed] to `true`.
+		 * Emit a linefeed. Updates [justEmittedLinefeed] to `true`.
 		 *
 		 * @throws IOException
 		 *   If emission fails.
@@ -340,7 +340,7 @@ class DotWriter constructor(
 
 		/**
 		 * Emit a block comment. A best effort will be made to keep the lines of
-		 * the block comment within the specified [limit][.charactersPerLine],
+		 * the block comment within the specified [limit][charactersPerLine],
 		 * accounting for indentation and comment overhead.
 		 *
 		 * @param comment
@@ -441,8 +441,8 @@ class DotWriter constructor(
 
 	/**
 	 * `DefaultAttributeBlockType` represents the scope of a default attributes
-	 * block. The three supported scopes are [.GRAPH], [.NODE], and [.EDGE]. The
-	 * [names][.name] of the enumeration values are chosen to match `dot`
+	 * block. The three supported scopes are [GRAPH], [NODE], and [EDGE]. The
+	 * [names][name] of the enumeration values are chosen to match `dot`
 	 * keywords and must not be changed.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -461,7 +461,7 @@ class DotWriter constructor(
 
 	/**
 	 * `CompassPoint` represents one of the compass points allowed for edge
-	 * attachments to node ports. The [names][.name] of the enumeration values
+	 * attachments to node ports. The [names][name] of the enumeration values
 	 * are chosen to match `dot` keywords and must not be changed.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -529,8 +529,8 @@ class DotWriter constructor(
 
 	/**
 	 * A `GraphWriter` provides the capability of writing entire graphs,
-	 * and as such is able to emit [default attribute blocks][.defaultAttributeBlock],
-	 * [nodes][.node], and [ ][.edge].
+	 * and as such is able to emit [default attribute blocks][defaultAttributeBlock],
+	 * [nodes][node], and [ ][edge].
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -1001,7 +1001,7 @@ class DotWriter constructor(
 
 		/**
 		 * Answer a left-justified variant of the specified text, for use with
-		 * the `label`, `headlabel`, and `taillabel` attributes. Calls [.label]
+		 * the `label`, `headlabel`, and `taillabel` attributes. Calls [label]
 		 * first to convert tabs to spaces.
 		 *
 		 * @param text
@@ -1015,7 +1015,7 @@ class DotWriter constructor(
 
 		/**
 		 * Answer a right-justified variant of the specified text, for use with
-		 * the `label`, `headlabel`, and `taillabel` attributes. Calls [.label]
+		 * the `label`, `headlabel`, and `taillabel` attributes. Calls [label]
 		 * first to convert tabs to spaces.
 		 *
 		 * @param text
