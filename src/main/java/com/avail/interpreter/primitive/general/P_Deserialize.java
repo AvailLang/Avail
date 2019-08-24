@@ -111,7 +111,7 @@ extends Primitive
 		final ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
 		final Deserializer deserializer = new Deserializer(
 			in, interpreter.runtime());
-		deserializer.currentModule(module);
+		deserializer.setCurrentModule(module);
 		final List<A_BasicObject> values = new ArrayList<>();
 		try
 		{

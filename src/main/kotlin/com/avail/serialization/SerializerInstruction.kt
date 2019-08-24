@@ -1,6 +1,6 @@
 /*
- * SerializerInstruction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SerializerInstruction.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,130 +30,82 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.serialization;
+package com.avail.serialization
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.AvailObject
 
 /**
- * A {@code SerializerInstruction} combines an {@link AvailObject} and a
- * {@link SerializerOperation} suitable for serializing it.
+ * A `SerializerInstruction` combines an [AvailObject] and a
+ * [SerializerOperation] suitable for serializing it.
  *
+ * @property operation
+ *   The [SerializerOperation] that can decompose this object for serialization.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * 
+ * @constructor
+ *
+ * Construct a new `SerializerInstruction`.
+ *
+ * @param operation
+ *   The [SerializerOperation] that will decompose the object for serialization.
+ * @param object
+ *   The object to record by this instruction.
+ * @param serializer
+ *   The [Serializer] to which this instruction will record.
  */
-final class SerializerInstruction
+internal class SerializerInstruction constructor(
+	internal val operation: SerializerOperation,
+	`object`: A_BasicObject,
+	serializer: Serializer)
 {
 	/**
 	 * An array of subobjects resulting from decomposing the object.  These
-	 * correspond to the operation's {@link SerializerOperation#operands()}.
+	 * correspond to the operation's [SerializerOperation.operands].
 	 */
-	private final A_BasicObject[] subobjects;
-
-	/**
-	 * The {@link SerializerOperation} that can decompose this object for
-	 * serialization.
-	 */
-	private final SerializerOperation operation;
+	private val subobjects =
+		operation.decompose(`object` as AvailObject, serializer)
 
 	/**
 	 * The index of this instruction in the list of instructions produced by a
-	 * {@link Serializer}.
+	 * [Serializer].
 	 */
-	private int index = -1;
+	internal var index = -1
+		set (newValue)
+		{
+			assert(field == -1)
+			field = newValue
+		}
 
 	/**
-	 * Set this instruction's absolute index in its {@link Serializer}'s
-	 * list of instructions.
-	 *
-	 * @param theIndex The instruction's index.
+	 * Whether this instruction has been assigned an instruction index, which
+	 * happens when the instruction is written.
 	 */
-	void index (final int theIndex)
-	{
-		assert index == -1;
-		index = theIndex;
-	}
+	val hasBeenWritten: Boolean
+		get() = index >= 0
 
 	/**
-	 * Answer this instruction's absolute index in its {@link Serializer}'s
-	 * list of instructions.
-	 *
-	 * @return The instruction's index.
+	 * The number of subobjects that this instruction has.
 	 */
-	int index ()
-	{
-		return index;
-	}
-
-	/**
-	 * Answer whether this instruction has been assigned an instruction index,
-	 * which happens when the instruction is written.
-	 *
-	 * @return Whether this instruction has been written.
-	 */
-	boolean hasBeenWritten ()
-	{
-		return index >= 0;
-	}
-
-	/**
-	 * Answer the {@link SerializerOperation} that will serialize the object.
-	 *
-	 * @return The {@code SerializerOperation} used to decompose the object.
-	 */
-	SerializerOperation operation ()
-	{
-		return operation;
-	}
-
-	/**
-	 * Answer the number of subobjects that this instruction has.
-	 *
-	 * @return The number of subobjects.
-	 */
-	int subobjectsCount ()
-	{
-		return subobjects.length;
-	}
+	val subobjectsCount: Int
+		get() = subobjects.size
 
 	/**
 	 * Answer the subobject at the given zero-based subscript.
 	 *
-	 * @param subscript The zero-based subobject subscript.
-	 * @return The {@link A_BasicObject} at the given subscript.
+	 * @param subscript
+	 *   The zero-based subobject subscript.
+	 * @return
+	 *   The [A_BasicObject] at the given subscript.
 	 */
-	A_BasicObject getSubobject (final int subscript)
-	{
-		return subobjects[subscript];
-	}
+	fun getSubobject(subscript: Int): A_BasicObject = subobjects[subscript]
 
 	/**
-	 * Write this already traced instruction to the {@link Serializer}.
+	 * Write this already traced instruction to the [Serializer].
 	 *
-	 * @param serializer Where to write the instruction.
-	 */
-	void writeTo (
-		final Serializer serializer)
-	{
-		operation.writeObject(subobjects, serializer);
-	}
-
-	/**
-	 * Construct a new {@code SerializerInstruction}.
-	 *
-	 * @param operation
-	 *        The {@link SerializerOperation} that will decompose the object for
-	 *        serialization.
-	 * @param object
-	 *        The object to record by this instruction.
 	 * @param serializer
-	 *        The {@link Serializer} to which this instruction will record.
+	 *   Where to write the instruction.
 	 */
-	SerializerInstruction (
-		final SerializerOperation operation,
-		final A_BasicObject object,
-		final Serializer serializer)
-	{
-		this.operation = operation;
-		this.subobjects = operation.decompose((AvailObject) object, serializer);
-	}
+	fun writeTo(serializer: Serializer) =
+		operation.writeObject(subobjects, serializer)
 }

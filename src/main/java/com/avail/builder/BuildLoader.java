@@ -408,7 +408,7 @@ final class BuildLoader
 			final ByteArrayInputStream inputStream =
 				AvailBuilder.validatedBytesFrom(bytes);
 			deserializer = new Deserializer(inputStream, availBuilder.runtime);
-			deserializer.currentModule(module);
+			deserializer.setCurrentModule(module);
 		}
 		catch (final MalformedSerialStreamException | RuntimeException e)
 		{

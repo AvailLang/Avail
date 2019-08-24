@@ -459,7 +459,7 @@ public final class SerializerTest
 		serializer().serialize(tuple);
 		prepareToReadBack();
 		runtime().addModule(inputModule);
-		deserializer().currentModule(currentModule);
+		deserializer().setCurrentModule(currentModule);
 		final @Nullable A_BasicObject newObject = deserializer().deserialize();
 		assertNotNull(newObject);
 		assertEquals(

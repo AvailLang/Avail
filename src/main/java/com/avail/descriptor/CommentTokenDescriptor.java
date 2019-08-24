@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.LINE_NUMBER;
@@ -129,6 +130,12 @@ extends TokenDescriptor
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.COMMENT_TOKEN;
 	}
 
 	@Override @AvailMethod

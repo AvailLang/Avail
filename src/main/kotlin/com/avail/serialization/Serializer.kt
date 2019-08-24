@@ -1,19 +1,19 @@
 /*
- * Serializer.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Serializer.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,124 +30,96 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.serialization;
+package com.avail.serialization
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.utility.evaluation.Continuation0;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
+import com.avail.AvailRuntime
+import com.avail.descriptor.*
+import com.avail.utility.evaluation.Continuation0
+import java.io.IOException
+import java.io.OutputStream
+import java.util.*
 
 /**
- * A {@code Serializer} converts a series of objects passed individually to
- * {@link #serialize(A_BasicObject)} into a stream of bytes which, when replayed
- * in a {@link Deserializer}, will reconstruct an analogous series of objects.
+ * A `Serializer` converts a series of objects passed individually to
+ * [serialize] into a stream of bytes which, when replayed in a [Deserializer],
+ * will reconstruct an analogous series of objects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Serializer
+class Serializer
 {
 	/**
-	 * The inverse of the {@link AvailRuntime}'s {@linkplain
-	 * AvailRuntime#specialObjects() special objects} list.  Entries that are
-	 * {@code null} (i.e., unused entries} are not included.
-	 */
-	private static final Map<A_BasicObject, Integer> specialObjects =
-		new HashMap<>(1000);
-
-	/**
-	 * Special system {@link AtomDescriptor atoms} that aren't already in the
-	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}.
-	 */
-	private static final Map<A_Atom, Integer> specialAtoms =
-		new HashMap<>(100);
-
-	/**
-	 * Special system {@link AtomDescriptor atoms} that aren't already in the
-	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}, keyed by
-	 * their {@link A_String}, where the value is the {@link A_Atom} itself.
-	 */
-	static final Map<A_String, A_Atom> specialAtomsByName =
-		new HashMap<>(100);
-
-	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
-	 * from each {@link AvailObject} to the {@link SerializerInstruction} that
-	 * will be output for it at the appropriate time.
+	 * from each [AvailObject] to the [SerializerInstruction] that will be
+	 * output for it at the appropriate time.
 	 */
-	private final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
-		new HashMap<>(100);
+	private val encounteredObjects:
+		MutableMap<A_BasicObject, SerializerInstruction> = HashMap(100)
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	private final Set<A_Variable> variablesToAssign = new HashSet<>(100);
+	private val variablesToAssign = HashSet<A_Variable>(100)
+
+	/** The number of instructions that have been written to the [output]. */
+	private var instructionsWritten = 0
 
 	/**
-	 * The number of instructions that have been written to the {@link #output}.
+	 * This maintains a stack of [serializer][SerializerInstruction] that need
+	 * to be processed.  It's a stack to ensure depth first writing of
+	 * instructions before their parents.  This mechanism avoids using the JVM's
+	 * limited stack, since Avail structures may in theory be exceptionally
+	 * deep.
 	 */
-	private int instructionsWritten = 0;
+	private val workStack = ArrayDeque<() -> Unit>(1000)
 
-	/**
-	 * This maintains a stack of {@linkplain SerializerInstruction serializer
-	 * instructions} that need to be processed.  It's a stack to ensure depth
-	 * first writing of instructions before their parents.  This mechanism
-	 * avoids using Java's limited stack, since Avail structures may in theory
-	 * be exceptionally deep.
-	 */
-	private final Deque<Continuation0> workStack = new ArrayDeque<>(1000);
-
-	/**
-	 * The {@link OutputStream} on which to write the serialized objects.
-	 */
-	private final OutputStream output;
+	/** The [OutputStream] on which to write the serialized objects. */
+	private val output: OutputStream
 
 	/**
 	 * The module within which serialization is occurring.  If non-null, it is
 	 * used to detect capture of atoms that are not defined in ancestor modules.
 	 */
-	public final @Nullable A_Module module;
+	val module: A_Module?
 
 	/**
 	 * Check that the atom is defined in the ancestry of the current module, if
 	 * any.  Fail if it isn't.
 	 *
 	 * @param atom
-	 *        The {@link A_Atom} to check.
+	 *   The [A_Atom] to check.
 	 */
-	void checkAtom (final A_Atom atom)
+	internal fun checkAtom(atom: A_Atom)
 	{
 		if (module == null)
 		{
-			return;
+			return
 		}
-		final A_Module atomModule = atom.issuingModule();
+		val atomModule = atom.issuingModule()
 		if (atomModule.equalsNil())
 		{
-			return;
+			return
 		}
-		assert module.allAncestors().hasElement(atomModule);
+		assert(module.allAncestors().hasElement(atomModule))
 	}
 
 	/**
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
 	 *
-	 * @param byteValue The unsigned byte to output, as an {@code int},
+	 * @param byteValue
+	 *   The unsigned byte to output, as an `int`,
 	 */
-	void writeByte (final int byteValue)
+	internal fun writeByte(byteValue: Int)
 	{
-		assert (byteValue & 255) == byteValue;
+		assert(byteValue and 255 == byteValue)
 		try
 		{
-			output.write(byteValue);
+			output.write(byteValue)
 		}
-		catch (final IOException e)
+		catch (e: IOException)
 		{
-			throw new RuntimeException(e);
+			throw RuntimeException(e)
 		}
 	}
 
@@ -155,54 +127,56 @@ public class Serializer
 	 * Output an unsigned short.  It must be in the range 0 ≤ n ≤ 65535.  Use
 	 * big endian order.
 	 *
-	 * @param shortValue The unsigned short to output, as a {@code short}.
+	 * @param shortValue
+	 *   The unsigned short to output, as a `short`.
 	 */
-	void writeShort (final int shortValue)
+	internal fun writeShort(shortValue: Int)
 	{
-		assert (shortValue & 0xFFFF) == shortValue;
+		assert(shortValue and 0xFFFF == shortValue)
 		try
 		{
-			output.write(shortValue>>8);
-			output.write(shortValue);
+			output.write(shortValue shr 8)
+			output.write(shortValue)
 		}
-		catch (final IOException e)
+		catch (e: IOException)
 		{
-			throw new RuntimeException(e);
+			throw RuntimeException(e)
 		}
 	}
 
 	/**
 	 * Output an int.  Use big endian order.
 	 *
-	 * @param intValue The {@code int} to output.
+	 * @param intValue
+	 *   The `int` to output.
 	 */
-	void writeInt (final int intValue)
+	internal fun writeInt(intValue: Int)
 	{
 		try
 		{
-			output.write(intValue>>24);
-			output.write(intValue>>16);
-			output.write(intValue>>8);
-			output.write(intValue);
+			output.write(intValue shr 24)
+			output.write(intValue shr 16)
+			output.write(intValue shr 8)
+			output.write(intValue)
 		}
-		catch (final IOException e)
+		catch (e: IOException)
 		{
-			throw new RuntimeException(e);
+			throw RuntimeException(e)
 		}
 	}
 
 	/**
-	 * Look up the object.  If it is already in the {@link #encounteredObjects}
-	 * list, answer the corresponding {@link SerializerInstruction}.
+	 * Look up the object.  If it is already in the [encounteredObjects] list,
+	 * answer the corresponding [SerializerInstruction].
 	 *
-	 * @param object The object to look up.
-	 * @return The object's zero-based index in {@code encounteredObjects}.
+	 * @param object
+	 *   The object to look up.
+	 * @return
+	 *   The object's zero-based index in `encounteredObjects`.
 	 */
-	SerializerInstruction instructionForObject (
-		final A_BasicObject object)
-	{
-		return encounteredObjects.get(object);
-	}
+	internal fun instructionForObject(
+			`object`: A_BasicObject): SerializerInstruction =
+		encounteredObjects[`object`]!!
 
 	/**
 	 * Look up the object and return the existing instruction that produces it.
@@ -211,105 +185,64 @@ public class Serializer
 	 * already have been written.
 	 *
 	 * @param object
-	 *            The object to look up.
+	 *   The object to look up.
 	 * @return
-	 *            The (non-negative) index of the instruction that produced the
-	 *            object.
+	 *   The (non-negative) index of the instruction that produced the object.
 	 */
-	int indexOfExistingObject (
-		final A_BasicObject object)
+	internal fun indexOfExistingObject(`object`: A_BasicObject): Int
 	{
-		final SerializerInstruction instruction =
-			encounteredObjects.get(object);
-		assert instruction.hasBeenWritten();
-		return instruction.index();
+		val instruction = encounteredObjects[`object`]!!
+		assert(instruction.hasBeenWritten)
+		return instruction.index
 	}
 
 	/**
-	 * Look up the object.  If it is a {@linkplain AvailRuntime#specialObjects()
-	 * special object}, then answer which special object it is, otherwise answer
-	 * -1.
+	 * Trace the object and answer, but don't emit, a [SerializerInstruction]
+	 * suitable for adding to the [encounteredObjects] [Map].
 	 *
-	 * @param object The object to look up.
-	 * @return The object's zero-based index in {@code encounteredObjects}.
+	 * @param object
+	 *   The [A_BasicObject] to trace.
+	 * @return
+	 *   The new [SerializerInstruction].
 	 */
-	static int indexOfSpecialObject (
-		final A_BasicObject object)
+	private fun newInstruction(`object`: A_BasicObject): SerializerInstruction
 	{
-		final Integer index = specialObjects.get(object);
-		if (index == null)
-		{
-			return -1;
-		}
-		return index;
-	}
-
-	/**
-	 * Look up the object.  If it is a {@linkplain AvailRuntime#specialAtoms()
-	 * special atom}, then answer which special atom it is, otherwise answer
-	 * -1.
-	 *
-	 * @param object The object to look up.
-	 * @return The object's zero-based index in {@code encounteredObjects}.
-	 */
-	static int indexOfSpecialAtom (
-		final A_Atom object)
-	{
-		final Integer index = specialAtoms.get(object);
-		if (index == null)
-		{
-			return -1;
-		}
-		return index;
-	}
-
-	/**
-	 * Trace the object and answer, but don't emit, a {@link
-	 * SerializerInstruction} suitable for adding to the {@link
-	 * #encounteredObjects} {@link Map}.
-	 *
-	 * @param object The {@link A_BasicObject} to trace.
-	 * @return The new {@link SerializerInstruction}.
-	 */
-	private SerializerInstruction newInstruction (
-		final A_BasicObject object)
-	{
-		return new SerializerInstruction(
-			specialObjects.containsKey(object)
-				? SerializerOperation.SPECIAL_OBJECT
-				: object.serializerOperation(),
-			object,
-			this);
+		return SerializerInstruction(
+			if (specialObjects.containsKey(`object`))
+				SerializerOperation.SPECIAL_OBJECT
+			else
+				`object`.serializerOperation(),
+			`object`,
+			this)
 	}
 
 	/**
 	 * Trace an object, ensuring that it and its subobjects will be written out
-	 * in the correct order during actual serialization.  Use the {@link
-	 * #workStack} rather than recursion to avoid Java stack overflow for deep
-	 * Avail structures.
+	 * in the correct order during actual serialization.  Use the [workStack]
+	 * rather than recursion to avoid JVM stack overflow for deep Avail
+	 * structures.
 	 *
-	 * <p>
 	 * To trace an object X with children Y and Z, first push onto the work
-	 * stack an action (a {@link Continuation0}) which will write X's {@link
-	 * SerializerInstruction}.  Then examine X to discover Y and Z, pushing
-	 * {@code Continuation0}s which will trace Y then trace Z.  Since those will
-	 * be processed completely before the first action gets a chance to run
-	 * (i.e., to generate the instruction for X), we ensure Y and Z are always
-	 * created before X.  Note that the continuation to trace Y must check if Y
-	 * has already been traced, since Z might recursively contain a reference to
-	 * Y, leading to Y needing to be traced prior to Z.
-	 * </p>
+	 * stack an action (a [Continuation0]) which will write X's
+	 * [SerializerInstruction].  Then examine X to discover Y and Z, pushing
+	 * `Continuation0`s which will trace Y then trace Z.  Since those will be
+	 * processed completely before the first action gets a chance to run (i.e.,
+	 * to generate the instruction for X), we ensure Y and Z are always created
+	 * before X.  Note that the continuation to trace Y must check if Y has
+	 * already been traced, since Z might recursively contain a reference to Y,
+	 * leading to Y needing to be traced prior to Z.
 	 *
 	 * @param object The object to trace.
 	 */
-	void traceOne (
-		final AvailObject object)
+	internal fun traceOne(`object`: AvailObject)
 	{
 		// Build but don't yet emit the instruction.
-		final SerializerInstruction instruction =
-			encounteredObjects.computeIfAbsent(object, this::newInstruction);
+		val instruction =
+			encounteredObjects.computeIfAbsent(`object`) {
+				newInstruction(it)
+			}
 		// Do nothing if the object's instruction has already been emitted.
-		if (!instruction.hasBeenWritten())
+		if (!instruction.hasBeenWritten)
 		{
 			// The object has not yet been traced.  (1) Stack an action that
 			// will assemble the object after the parts have been assembled,
@@ -317,129 +250,178 @@ public class Serializer
 			// Note that we have to add these actions even if we've already
 			// stacked equivalent actions, since it's the last one we push that
 			// will cause the instruction to be emitted.
-			workStack.addLast(
-				() ->
+			workStack.addLast {
+				if (!instruction.hasBeenWritten)
 				{
-					if (!instruction.hasBeenWritten())
-					{
-						instruction.index(instructionsWritten++);
-						instruction.writeTo(Serializer.this);
-						assert instruction.hasBeenWritten();
-					}
-				});
+					instruction.index = instructionsWritten++
+					instruction.writeTo(this@Serializer)
+					assert(instruction.hasBeenWritten)
+				}
+			}
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
-			final SerializerOperand[] operands =
-				instruction.operation().operands();
-			assert instruction.subobjectsCount() == operands.length;
-			for (int i = instruction.subobjectsCount() - 1; i >= 0; i--)
+			val operands = instruction.operation.operands
+			assert(instruction.subobjectsCount == operands.size)
+			for (i in instruction.subobjectsCount - 1 downTo 0)
 			{
-				final SerializerOperand operand = operands[i];
-				final A_BasicObject operandValue = instruction.getSubobject(i);
-				workStack.addLast(
-					() -> operand.trace((AvailObject) operandValue, this));
+				val operand = operands[i]
+				val operandValue = instruction.getSubobject(i)
+				workStack.addLast {
+					operand.trace(operandValue as AvailObject, this)
+				}
 			}
-			if (instruction.operation().isVariableCreation()
-				&& !object.value().equalsNil())
+			if (instruction.operation.isVariableCreation
+				&& !`object`.value().equalsNil())
 			{
-				variablesToAssign.add(object);
+				variablesToAssign.add(`object`)
 				// Output an action to the *start* of the workStack to trace the
 				// variable's value.  This prevents recursion, but ensures that
 				// everything reachable, including through variables, will be
 				// traced.
-				workStack.addFirst(() -> traceOne(object.value()));
-			}
-		}
-	}
-
-	static
-	{
-		// Build the inverse of AvailRuntime#specialObjects().
-		final List<AvailObject> objectList = AvailRuntime.specialObjects();
-		for (int i = 0; i < objectList.size(); i++)
-		{
-			final AvailObject specialObject = objectList.get(i);
-			if (specialObject != null)
-			{
-				specialObjects.put(specialObject, i);
-			}
-		}
-		// And build the inverse of AvailRuntime#specialAtoms().
-		final List<A_Atom> atomList = AvailRuntime.specialAtoms();
-		for (int i = 0; i < atomList.size(); i++)
-		{
-			final A_Atom specialAtom = atomList.get(i);
-			if (specialAtom != null)
-			{
-				specialAtoms.put(specialAtom, i);
-				specialAtomsByName.put(specialAtom.atomName(), specialAtom);
+				workStack.addFirst { traceOne(`object`.value()) }
 			}
 		}
 	}
 
 	/**
-	 * Construct a new {@code Serializer}.
+	 * Construct a new `Serializer`.
 	 *
-	 * @param output An {@link OutputStream} on which to write the module.
-	 * @param module The {@link A_Module} being compiled.
+	 * @param output
+	 *   An [OutputStream] on which to write the module.
+	 * @param module
+	 *   The [A_Module] being compiled.
 	 */
-	public Serializer (
-		final OutputStream output,
-		final A_Module module)
+	constructor(output: OutputStream, module: A_Module)
 	{
-		this.output = output;
-		this.module = module;
+		this.output = output
+		this.module = module
 	}
 
 	/**
-	 * Construct a new {@code Serializer}.
+	 * Construct a new `Serializer`.
 	 *
-	 * @param output An {@link OutputStream} on which to write the module.
+	 * @param output
+	 *   An [OutputStream] on which to write the module.
 	 */
-	public Serializer (final OutputStream output)
+	constructor(output: OutputStream)
 	{
-		this.output = output;
-		this.module = null;
+		this.output = output
+		this.module = null
 	}
 
 	/**
-	 * Serialize this {@link AvailObject} so that it will appear as the next
+	 * Serialize this [AvailObject] so that it will appear as the next
 	 * checkpoint object during deserialization.
 	 *
-	 * @param object An object to serialize.
+	 * @param object
+	 *   An object to serialize.
 	 */
-	public void serialize (final A_BasicObject object)
+	fun serialize(`object`: A_BasicObject)
 	{
-		final AvailObject strongObject = (AvailObject) object;
-		traceOne(strongObject);
+		val strongObject = `object` as AvailObject
+		traceOne(strongObject)
 		while (!workStack.isEmpty())
 		{
-			workStack.removeLast().value();
+			workStack.removeLast()()
 		}
 		// Next, do all variable assignments...
-		for (final A_Variable variable : variablesToAssign)
+		for (variable in variablesToAssign)
 		{
-			assert !variable.value().equalsNil();
-			final SerializerInstruction assignment =
-				new SerializerInstruction(
-					SerializerOperation.ASSIGN_TO_VARIABLE,
-					variable,
-					this);
-			assignment.index(instructionsWritten);
-			instructionsWritten++;
-			assignment.writeTo(this);
-			assert assignment.hasBeenWritten();
+			assert(!variable.value().equalsNil())
+			val assignment = SerializerInstruction(
+				SerializerOperation.ASSIGN_TO_VARIABLE,
+				variable,
+				this)
+			assignment.index = instructionsWritten
+			instructionsWritten++
+			assignment.writeTo(this)
+			assert(assignment.hasBeenWritten)
 		}
-		variablesToAssign.clear();
+		variablesToAssign.clear()
 		// Finally, write a checkpoint to say there's something ready for the
 		// deserializer to answer.
-		final SerializerInstruction checkpoint = new SerializerInstruction(
+		val checkpoint = SerializerInstruction(
 			SerializerOperation.CHECKPOINT,
 			strongObject,
-			this);
-		checkpoint.index(instructionsWritten);
-		instructionsWritten++;
-		checkpoint.writeTo(this);
-		assert checkpoint.hasBeenWritten();
+			this)
+		checkpoint.index = instructionsWritten
+		instructionsWritten++
+		checkpoint.writeTo(this)
+		assert(checkpoint.hasBeenWritten)
+	}
+
+	companion object
+	{
+		/**
+		 * The inverse of the [AvailRuntime]'s [special
+		 * objects][AvailRuntime.specialObjects] list.  Entries that are `null`
+		 * (i.e., unused entries} are not included.
+		 */
+		private val specialObjects = HashMap<A_BasicObject, Int>(1000)
+
+		/**
+		 * Special system [atoms][AtomDescriptor] that aren't already in the
+		 * list of [special atoms][AvailRuntime.specialAtoms].
+		 */
+		private val specialAtoms = HashMap<A_Atom, Int>(100)
+
+		/**
+		 * Special system [atoms][AtomDescriptor] that aren't already in the
+		 * list of [special atoms][AvailRuntime.specialAtoms], keyed by their
+		 * [A_String], where the value is the [A_Atom] itself.
+		 */
+		internal val specialAtomsByName: MutableMap<A_String, A_Atom> =
+			HashMap(100)
+
+		/**
+		 * Look up the object.  If it is a [special
+		 * object][AvailRuntime.specialObjects], then answer which special
+		 * object it is, otherwise answer -1.
+		 *
+		 * @param object
+		 *   The object to look up.
+		 * @return
+		 *   The object's zero-based index in `encounteredObjects`.
+		 */
+		internal fun indexOfSpecialObject(`object`: A_BasicObject): Int =
+			specialObjects[`object`] ?: -1
+
+		/**
+		 * Look up the object.  If it is a [special
+		 * atom][AvailRuntime.specialAtoms], then answer which special atom it
+		 * is, otherwise answer -1.
+		 *
+		 * @param
+		 *   object The object to look up.
+		 * @return
+		 *   The object's zero-based index in `encounteredObjects`.
+		 */
+		internal fun indexOfSpecialAtom(`object`: A_Atom): Int =
+			specialAtoms[`object`] ?: -1
+
+		init
+		{
+			// Build the inverse of AvailRuntime#specialObjects().
+			val objectList = AvailRuntime.specialObjects()
+			for (i in objectList.indices)
+			{
+				val specialObject = objectList[i]
+				if (specialObject !== null)
+				{
+					specialObjects[specialObject] = i
+				}
+			}
+			// And build the inverse of AvailRuntime#specialAtoms().
+			val atomList = AvailRuntime.specialAtoms()
+			for (i in atomList.indices)
+			{
+				val specialAtom = atomList[i]
+				if (specialAtom != null)
+				{
+					specialAtoms[specialAtom] = i
+					specialAtomsByName[specialAtom.atomName()] = specialAtom
+				}
+			}
+		}
 	}
 }

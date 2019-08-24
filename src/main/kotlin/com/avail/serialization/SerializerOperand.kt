@@ -1,6 +1,6 @@
 /*
- * SerializerOperand.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SerializerOperand.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,116 +30,92 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.serialization;
+package com.avail.serialization
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.CompiledCodeDescriptor
 
 /**
- * A {@code SerializerOperand} is part of a {@link SerializerOperation}.  It
- * indicates how to serialize part of an object already provided in an
- * appropriate form, and it knows how to describe the relationship between the
- * parent object and this part of it.
+ * A `SerializerOperand` is part of a [SerializerOperation].  It indicates how
+ * to serialize part of an object already provided in an appropriate form, and
+ * it knows how to describe the relationship between the parent object and this
+ * part of it.
  *
+ * @property operandEncoding
+ *   The [encoding][SerializerOperandEncoding] to use.
+ * @property roleName
+ *   The role this occupies in its containing [SerializerOperation].
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SerializerOperand`.
+ *
+ * @param operandEncoding
+ *   The [encoding][SerializerOperandEncoding] to use.
+ * @param roleName
+ *   The role this occupies in its containing [SerializerOperation].
  */
-final class SerializerOperand
+internal class SerializerOperand constructor(
+	private val operandEncoding: SerializerOperandEncoding,
+	private val roleName: String)
 {
 	/**
-	 * The {@linkplain SerializerOperandEncoding encoding} used by this operand.
-	 */
-	private final SerializerOperandEncoding operandEncoding;
-
-	/**
-	 * The name of the role this operand fulfills within its {@linkplain
-	 * SerializerOperation operation}.
-	 */
-	private final String roleName;
-
-	/**
-	 * Construct a new {@code SerializerOperand}.
-	 *
-	 * @param operandEncoding
-	 *            The {@linkplain SerializerOperandEncoding encoding} to use.
-	 * @param roleName
-	 *            The role this occupies in its containing {@linkplain
-	 *            SerializerOperation operation}.
-	 */
-	SerializerOperand (
-		final SerializerOperandEncoding operandEncoding,
-		final String roleName)
-	{
-		this.operandEncoding = operandEncoding;
-		this.roleName = roleName;
-	}
-
-	/**
-	 * Trace the {@link AvailObject}, visiting any subobjects to ensure they
-	 * will get a chance to be serialized before this object.  The object is
-	 * potentially synthetic, perhaps representing just one aspect of the real
-	 * object being traced.  For example, a {@link CompiledCodeDescriptor}
-	 * object may produce a tuple of its literals for use by the operand
-	 * responsible for literals, even though the actual representation does not
-	 * use a separate tuple.
+	 * Trace the [AvailObject], visiting any subobjects to ensure they will get
+	 * a chance to be serialized before this object.  The object is potentially
+	 * synthetic, perhaps representing just one aspect of the real object being
+	 * traced.  For example, a [CompiledCodeDescriptor] object may produce a
+	 * tuple of its literals for use by the operand responsible for literals,
+	 * even though the actual representation does not use a separate tuple.
 	 *
 	 * @param object
-	 *            The object to trace.
+	 *   The object to trace.
 	 * @param serializer
-	 *            The {@link Serializer} onto which to record the object's
-	 *            parts.
+	 *   The [Serializer] onto which to record the object's parts.
 	 */
-	public void trace (final AvailObject object, final Serializer serializer)
-	{
-		operandEncoding.trace(object, serializer);
-	}
+	fun trace(`object`: AvailObject, serializer: Serializer) =
+		operandEncoding.trace(`object`, serializer)
 
 	/**
-	 * Write the {@link AvailObject}'s subobjects as described by the {@link
-	 * #operandEncoding}.  As with {@link #trace(AvailObject, Serializer)}, the
-	 * object may be synthetic, produced solely for pre-processing information
-	 * for serialization of a single operand.
+	 * Write the [AvailObject]'s subobjects as described by the
+	 * [operandEncoding].  As with [trace], the object may be synthetic,
+	 * produced solely for pre-processing information for serialization of a
+	 * single operand.
 	 *
 	 * @param object
-	 *        The object to deconstruct and write.
+	 *   The object to deconstruct and write.
 	 * @param serializer
-	 *        The serializer to which to write the object.
+	 *   The serializer to which to write the object.
 	 */
-	public void write (final AvailObject object, final Serializer serializer)
-	{
-		operandEncoding.write(object, serializer);
-	}
+	fun write(`object`: AvailObject, serializer: Serializer) =
+		operandEncoding.write(`object`, serializer)
 
 	/**
-	 * Read an {@link AvailObject} from the {@link AbstractDeserializer} using
-	 * the receiver's {@link #operandEncoding}.
+	 * Read an [AvailObject] from the [AbstractDeserializer] using
+	 * the receiver's [operandEncoding].
 	 *
 	 * @param deserializer
-	 *        The deserializer from which to read an object.
-	 * @return The newly decoded object.
+	 *   The deserializer from which to read an object.
+	 * @return
+	 *   The newly decoded object.
 	 */
-	public AvailObject read (final AbstractDeserializer deserializer)
-	{
-		return operandEncoding.read(deserializer);
-	}
+	fun read(deserializer: AbstractDeserializer) =
+		operandEncoding.read(deserializer)
 
 	/**
 	 * Describe the operand that would be deserialized, using the receiver's
-	 * {@link #operandEncoding}.
+	 * [operandEncoding].
 	 *
 	 * @param describer
-	 *        The {@link DeserializerDescriber} from which to construct an
-	 *        object description.
+	 *   The [DeserializerDescriber] from which to construct an object
+	 *   description.
 	 */
-	public void describe (final DeserializerDescriber describer)
+	fun describe(describer: DeserializerDescriber)
 	{
-		describer.append(roleName);
-		describer.append(" = ");
-		operandEncoding.describe(describer);
+		describer.append(roleName)
+		describer.append(" = ")
+		operandEncoding.describe(describer)
 	}
 
-	@Override
-	public String toString ()
-	{
-		return operandEncoding + "(" + roleName + ")";
-	}
+	override fun toString(): String = "$operandEncoding($roleName)"
 }

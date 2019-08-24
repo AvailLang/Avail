@@ -1,19 +1,19 @@
 /*
- * DeserializerDescriber.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * DeserializerDescriber.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,88 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.serialization;
+package com.avail.serialization
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.AvailObject;
+import com.avail.AvailRuntime
+import com.avail.descriptor.AvailObject
 
-import java.io.InputStream;
+import java.io.InputStream
 
 /**
- * A {@link DeserializerDescriber} takes a stream of bytes and outputs a
- * description of what would be reconstructed by a {@link Deserializer}.
+ * A [DeserializerDescriber] takes a stream of bytes and outputs a
+ * description of what would be reconstructed by a [Deserializer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `DeserializerDescriber`.
+ *
+ * @param input
+ *   An [InputStream] from which to reconstruct objects.
+ * @param runtime
+ *   The [AvailRuntime] from which to locate well-known objects during
+ *   deserialization.
  */
-public class DeserializerDescriber extends AbstractDeserializer
+class DeserializerDescriber constructor(
+	input: InputStream,
+	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
 {
-	/** The {@link StringBuilder} on which the description is being written. */
-	private final StringBuilder builder = new StringBuilder(1000);
+	/** The [StringBuilder] on which the description is being written.  */
+	private val builder = StringBuilder(1000)
 
 	/**
-	 * Decode all of the deserialization steps, and return the resulting {@link
-	 * String}.
+	 * Decode all of the deserialization steps, and return the resulting
+	 * [String].
 	 *
-	 * @return The descriptive {@link String}.
+	 * @return
+	 *   The descriptive [String].
 	 * @throws MalformedSerialStreamException
-	 *         If the stream is malformed.
+	 *   If the stream is malformed.
 	 */
-	public String describe ()
-		throws MalformedSerialStreamException
+	@Throws(MalformedSerialStreamException::class)
+	fun describe(): String
 	{
 		try
 		{
-			int objectNumber = 0;
+			var objectNumber = 0
 			while (input.available() > 0)
 			{
-				append(Integer.toString(objectNumber++));
-				append(": ");
-				SerializerOperation.byOrdinal(readByte()).describe(this);
-				append("\n");
+				append((objectNumber++).toString())
+				append(": ")
+				SerializerOperation.byOrdinal(readByte()).describe(this)
+				append("\n")
 			}
 		}
-		catch (final Exception e)
+		catch (e: Exception)
 		{
-			throw new MalformedSerialStreamException(e);
+			throw MalformedSerialStreamException(e)
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
-	/**
-	 * Construct a new {@code DeserializerDescriber}.
-	 *
-	 * @param input
-	 *        An {@link InputStream} from which to reconstruct objects.
-	 * @param runtime
-	 *        The {@link AvailRuntime} from which to locate well-known objects
-	 *        during deserialization.
-	 */
-	public DeserializerDescriber (
-		final InputStream input,
-		final AvailRuntime runtime)
-	{
-		super(input, runtime);
-	}
+	override fun objectFromIndex(index: Int) =
+		throw UnsupportedOperationException()
 
-	@Override
-	AvailObject objectFromIndex (final int index)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	void recordProducedObject (final AvailObject object)
-	{
-		throw new UnsupportedOperationException();
-	}
+	override fun recordProducedObject(`object`: AvailObject) =
+		throw UnsupportedOperationException()
 
 	/**
 	 * Append the given string to my description.
 	 *
-	 * @param string The {@link String} to append.
+	 * @param string
+	 *   The [String] to append.
 	 */
-	void append (final String string)
+	internal fun append(string: String)
 	{
-		builder.append(string);
+		builder.append(string)
 	}
 }

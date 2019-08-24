@@ -1,6 +1,6 @@
 /*
- * MalformedSerialStreamException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * MalformedSerialStreamException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,26 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.serialization;
-
-import javax.annotation.Nullable;
+package com.avail.serialization
 
 /**
- * A problem occurred while using a {@link Deserializer}, indicating an invalid
+ * A problem occurred while using a [Deserializer], indicating an invalid
  * sequence of bytes.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `MalformedSerialStreamException`.
+ *
+ * @param e
+ *   The originating exception.
  */
-public class MalformedSerialStreamException
-extends Exception
-{
-	/**
-	 * Construct a new {@code MalformedSerialStreamException}.
-	 *
-	 * @param e The originating exception.
-	 */
-	public MalformedSerialStreamException (final @Nullable Throwable e)
-	{
-		super(e);
-	}
-}
+class MalformedSerialStreamException(e: Throwable?) : Exception(e)
