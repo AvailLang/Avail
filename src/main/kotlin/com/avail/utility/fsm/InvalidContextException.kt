@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * InvalidContextException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.utility.fsm;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.utility.fsm
+
+/**
+ * Exception thrown during a state transition when an invalid [execution
+ * context][ExecutionContext] is detected
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `InvalidContextException`.
+ *
+ * @param message
+ *   A (hopefully) informative message describing the invalid transition.
+ */
+class InvalidContextException
+internal constructor(message: String) : RuntimeException(message)
