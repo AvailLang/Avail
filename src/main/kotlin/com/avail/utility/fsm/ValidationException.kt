@@ -1,6 +1,6 @@
 /*
- * InvalidTransitionException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ValidationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.fsm;
+package com.avail.utility.fsm
 
 /**
- * Exception raised during an invalid transition.
+ * Exception thrown by the [factory][StateMachineFactory]'s validation process
+ * in the event that the client-specified [state machine][StateMachine] fails
+ * validation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-public class InvalidTransitionException
-extends RuntimeException
-{
-	/**
-	 * Construct a new {@code InvalidTransitionException}.
-	 */
-	InvalidTransitionException ()
-	{
-		// No implementation required.
-	}
+ *
+ * @constructor
 
-	/**
-	 * Construct a new {@code InvalidTransitionException}.
-	 *
-	 * @param message
-	 *        A (hopefully) informative message describing the invalid
-	 *        transition.
-	 */
-	InvalidTransitionException (final String message)
-	{
-		super(message);
-	}
-}
+ * Construct a new `ValidationException`.
+ *
+ * @param message
+ *   A (hopefully) informative message explaining why the
+ *   [factory][StateMachineFactory] could not validate the specified [state
+ *   machine][StateMachine].
+ */
+class ValidationException
+internal constructor(message: String) : RuntimeException(message)

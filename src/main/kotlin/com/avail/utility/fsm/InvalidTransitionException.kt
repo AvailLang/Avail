@@ -1,6 +1,6 @@
 /*
- * InvalidContextException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * InvalidTransitionException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.fsm;
+package com.avail.utility.fsm
 
 /**
- * Exception thrown during a state transition when an invalid {@linkplain
- * ExecutionContext execution context} is detected
+ * Exception raised during an invalid transition.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `InvalidTransitionException`.
+ *
+ * @param message
+ *   A (hopefully) informative message describing the invalid transition.
  */
-public class InvalidContextException
-extends RuntimeException
-{
-	/**
-	 * Construct a new {@code InvalidContextException}.
-	 */
-	InvalidContextException ()
-	{
-		// No implementation required.
-	}
-
-	/**
-	 * Construct a new {@code InvalidContextException}.
-	 *
-	 * @param message
-	 *        A (hopefully) informative message describing the invalid
-	 *        transition.
-	 */
-	InvalidContextException (final String message)
-	{
-		super(message);
-	}
-}
+class InvalidTransitionException
+internal constructor(message: String) : RuntimeException(message)
