@@ -30,137 +30,114 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
-import org.xml.sax.Attributes;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.InputStream;
+import javax.xml.parsers.SAXParserFactory
+import java.io.InputStream
 
 /**
- * An {@code XMLConfigurator} obtains a {@linkplain Configuration configuration}
- * by processing an XML document.
+ * An `XMLConfigurator` obtains a [configuration][Configuration] by processing
+ * an XML document.
  *
- * <p>In order to use an {@code XMLConfigurator} to obtain a configuration, a
- * client must implement three abstractions:</p>
+ * In order to use an `XMLConfigurator` to obtain a configuration, a client must
+ * implement three abstractions:
  *
- * <ul>
- * <li>A {@link Configuration} specific to the client's requirements.</li>
- * <li>An {@linkplain Enum enumeration} that satisfies the {@link XMLElement}
- * interface. This enumeration defines all valid elements for a particular
- * document type. Members must be able to satisfy requests for their {@linkplain
- * XMLElement#qName() qualified name} and immediate {@linkplain
- * XMLElement#allowedParents() parentage}. Members are also responsible for
- * their own processing (see {@link XMLElement#startElement(
- * XMLConfiguratorState, Attributes) startElement} and {@link
- * XMLElement#endElement(XMLConfiguratorState) endElement}.</li>
- * <li>An {@link XMLConfiguratorState} that maintains any state required by the
- * {@code XMLConfigurator} during the processing of an XML document. This state
- * may be interrogated by the {@code XMLElement}s.</li>
- * </ul>
  *
- * @param <ConfigurationType>
- *        A concrete {@link Configuration} class.
- * @param <ElementType>
- *        A concrete {@link XMLElement} class.
- * @param <StateType>
- *        A concrete {@link XMLConfiguratorState} class.
+ *  * A [Configuration] specific to the client's requirements.
+ *  * An [enumeration][Enum] that satisfies the [XMLElement] interface.
+ *  This enumeration defines all valid elements for a particular document type.
+ *  Members must be able to satisfy requests for their
+ *  [qualified name][XMLElement.qName] and immediate
+ *  [parentage][XMLElement.allowedParents]. Members are also responsible for
+ *  their own processing (see [startElement][XMLElement.startElement] and
+ *  [endElement][XMLElement.endElement].
+ *  * An [XMLConfiguratorState] that maintains any state required by the
+ *  `XMLConfigurator` during the processing of an XML document. This state
+ *  may be interrogated by the `XMLElement`s.
+ *
+ * @param ConfigurationType
+ *   A concrete [Configuration] class.
+ * @param ElementType
+ *   A concrete [XMLElement] class.
+ * @param StateType
+ *   A concrete [XMLConfiguratorState] class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property configuration
+ *   The [configuration][Configuration].
+ * @property state
+ *   The [configurator state][XMLConfiguratorState].
+ * @property documentStream
+ *   The [input stream][InputStream] which contains the XML document that
+ *   describes the [configuration][Configuration].
+ *
+ * @constructor
+ * Construct a new [XMLConfigurator].
+ *
+ * @param configuration
+ *   A [configuration][Configuration].
+ * @param state
+ *   The initial [configurator state][XMLConfiguratorState].
+ * @param elementClass
+ *   The [element][XMLElement] [class][Class].
+ * @param documentStream
+ *   The [input stream][InputStream] which contains the XML document that
+ *   describes the [configuration][Configuration].
  */
-public class XMLConfigurator<
-	ConfigurationType extends Configuration,
-	ElementType extends Enum<ElementType>
-		& XMLElement<ConfigurationType, ElementType, StateType>,
-	StateType extends XMLConfiguratorState<
-		ConfigurationType, ElementType, StateType>>
-implements Configurator<ConfigurationType>
+class XMLConfigurator<
+	ConfigurationType : Configuration,
+	ElementType,
+	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
+	constructor(
+		val configuration: ConfigurationType,
+		val state: StateType,
+		elementClass: Class<ElementType>,
+		private val documentStream: InputStream)
+	: Configurator<ConfigurationType>
+		where ElementType : Enum<ElementType>,
+			  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
-	/** The {@linkplain Configuration configuration}. */
-	protected final ConfigurationType configuration;
-
 	/**
-	 * The {@linkplain InputStream input stream} which contains the XML
-	 * document that describes the {@linkplain Configuration configuration}.
-	 */
-	private final InputStream documentStream;
-
-	/**
-	 * Construct a new {@link XMLConfigurator}.
+	 * Has the [configurator][XMLConfigurator] been run yet?
 	 *
-	 * @param configuration
-	 *        A {@linkplain Configuration configuration}.
-	 * @param state
-	 *        The initial {@linkplain XMLConfiguratorState configurator state}.
-	 * @param elementClass
-	 *        The {@linkplain XMLElement element} {@linkplain Class class}.
-	 * @param documentStream
-	 *        The {@linkplain InputStream input stream} which contains the XML
-	 *        document that describes the {@linkplain Configuration
-	 *        configuration}.
+	 * @return
+	 *   `true` if the configurator has been ren, `false` otherwise.
 	 */
-	public XMLConfigurator (
-			final ConfigurationType configuration,
-			final StateType state,
-			final Class<ElementType> elementClass,
-			final InputStream documentStream)
+	var isConfigured: Boolean = false
+		private set
+
+	/** The [document model][XMLDocumentModel].  */
+	private val model:
+		XMLDocumentModel<ConfigurationType, ElementType, StateType> =
+			XMLDocumentModel(elementClass)
+
+	init
 	{
-		this.configuration = configuration;
-		this.documentStream = documentStream;
-		this.model = new XMLDocumentModel<>(elementClass);
-		state.setDocumentModel(model);
-		this.state = state;
+		state.setDocumentModel(model)
 	}
 
-	/**
-	 * Has the {@linkplain XMLConfigurator configurator} been run yet?
-	 */
-	private boolean isConfigured;
-
-	/**
-	 * Has the {@linkplain XMLConfigurator configurator} been run yet?
-	 *
-	 * @return {@code true} if the configurator has been ren, {@code false}
-	 *         otherwise.
-	 */
-	protected boolean isConfigured ()
-	{
-		return isConfigured;
-	}
-
-	/** The {@linkplain XMLDocumentModel document model}. */
-	private final
-	XMLDocumentModel<ConfigurationType, ElementType, StateType> model;
-
-	/** The {@linkplain XMLConfiguratorState configurator state}. */
-	protected final StateType state;
-
-	@Override
-	public void updateConfiguration () throws ConfigurationException
+	@Throws(ConfigurationException::class)
+	override fun updateConfiguration()
 	{
 		if (!isConfigured)
 		{
 			try
 			{
-				final SAXParserFactory factory = SAXParserFactory.newInstance();
-				final SAXParser parser = factory.newSAXParser();
-				parser.parse(
-					documentStream,
-					new XMLEventHandler<>(
-						model, state));
-				isConfigured = true;
+				val factory = SAXParserFactory.newInstance()
+				val parser = factory.newSAXParser()
+				parser.parse(documentStream, XMLEventHandler(model, state))
+				isConfigured = true
 			}
-			catch (final Exception e)
+			catch (e: Exception)
 			{
-				throw new ConfigurationException("configuration error", e);
+				throw ConfigurationException("configuration error", e)
 			}
 		}
 	}
 
-	@Override
-	public ConfigurationType configuration ()
+	override fun configuration(): ConfigurationType
 	{
-		assert isConfigured;
-		return configuration;
+		assert(isConfigured)
+		return configuration
 	}
 }

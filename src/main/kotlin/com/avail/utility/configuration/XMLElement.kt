@@ -30,71 +30,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-
-import java.util.Set;
+import org.xml.sax.Attributes
+import org.xml.sax.SAXException
 
 /**
- * {@code XMLElement} is designed to be implemented only by {@linkplain Enum
- * enumerations} that represent XML tag sets. Concrete implementations specify
- * the complete set of behavior required to use the {@link XMLConfigurator} to
- * produce application-specific {@linkplain Configuration configurations}.
+ * `XMLElement` is designed to be implemented only by [enumerations][Enum] that
+ * represent XML tag sets. Concrete implementations specify the complete set of
+ * behavior required to use the [XMLConfigurator] to produce
+ * application-specific [configurations][Configuration].
  *
- * @param <ConfigurationType>
- *        A concrete {@link Configuration} class.
- * @param <ElementType>
- *        A concrete {@code XMLElement} class.
- * @param <StateType>
- *        A concrete {@link XMLConfiguratorState} class.
+ * @param ConfigurationType
+ *   A concrete [Configuration] class.
+ * @param ElementType
+ *   A concrete `XMLElement` class.
+ * @param StateType
+ *   A concrete [XMLConfiguratorState] class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public interface XMLElement<
-	ConfigurationType extends Configuration,
-	ElementType extends Enum<ElementType>
-		& XMLElement<ConfigurationType, ElementType, StateType>,
-	StateType extends XMLConfiguratorState<
-		ConfigurationType, ElementType, StateType>>
+interface XMLElement<
+	ConfigurationType : Configuration,
+	ElementType,
+	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
+	where ElementType : Enum<ElementType>,
+		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
-	 * Answer the qualified name of the {@linkplain XMLElement element}.
+	 * Answer the qualified name of the [element][XMLElement].
 	 *
-	 * @return The qualified name of the element.
+	 * @return
+	 *   The qualified name of the element.
 	 */
-	String qName ();
+	fun qName(): String
 
 	/**
 	 * Answer the allowed parent elements of the receiver element.
 	 *
-	 * @return The allowed parent elements.
+	 * @return
+	 *   The allowed parent elements.
 	 */
-	Set<ElementType> allowedParents ();
+	fun allowedParents(): Set<ElementType>
 
 	/**
 	 * Receive notification of the start of an element.
 	 *
 	 * @param state
-	 *        The current {@linkplain XMLConfiguratorState parse state}.
+	 *   The current [parse state][XMLConfiguratorState].
 	 * @param attributes
-	 *        The attributes attached to the element.
+	 *   The attributes attached to the element.
 	 * @throws SAXException
-	 *         If something goes wrong.
+	 *   If something goes wrong.
 	 */
-	void startElement (
-			final StateType state,
-			final Attributes attributes)
-		throws SAXException;
+	@Throws(SAXException::class)
+	fun startElement(state: StateType, attributes: Attributes)
 
 	/**
 	 * Receive notification of the end of an element.
 	 *
 	 * @param state
-	 *        The current {@linkplain XMLConfiguratorState parse state}.
+	 *   The current [parse state][XMLConfiguratorState].
 	 * @throws SAXException
-	 *         If something goes wrong.
+	 *   If something goes wrong.
 	 */
-	void endElement (final StateType state)
-		throws SAXException;
+	@Throws(SAXException::class)
+	fun endElement(state: StateType)
 }

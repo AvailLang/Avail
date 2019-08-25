@@ -30,140 +30,107 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.Attributes
+import org.xml.sax.SAXException
+import org.xml.sax.helpers.DefaultHandler
+import javax.xml.parsers.SAXParser
 
-import javax.annotation.Nullable;
-import javax.xml.parsers.SAXParser;
-import java.util.Collection;
-import java.util.Set;
-
-import static com.avail.utility.Nulls.stripNull;
-import static java.util.Collections.singleton;
+import com.avail.utility.Nulls.stripNull
 
 /**
- * An {@link XMLConfigurator} uses a {@code XMLEventHandler} to interface with
- * the {@linkplain SAXParser SAX parser}.
+ * An [XMLConfigurator] uses a `XMLEventHandler` to interface with the
+ * [SAX parser][SAXParser].
  *
- * @param <ConfigurationType>
- *        A concrete {@link Configuration} class.
- * @param <ElementType>
- *        A concrete {@link XMLElement} class.
- * @param <StateType>
- *        A concrete {@link XMLConfiguratorState} class.
+ * @param ConfigurationType
+ *   A concrete [Configuration] class.
+ * @param ElementType
+ *   A concrete [XMLElement] class.
+ * @param StateType
+ *   A concrete [XMLConfiguratorState] class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property model
+ *   The [document model][XMLDocumentModel].
+ * @property state
+ *   The current [state][XMLConfiguratorState] of the
+ *   [configurator][Configurator].
+ *
+ * @constructor
+ * Construct a new `XMLEventHandler`.
+ *
+ * @param model
+ * The [document model][XMLDocumentModel].
+ * @param state
+ * The [configurator state][XMLConfiguratorState].
  */
-final class XMLEventHandler<
-	ConfigurationType extends Configuration,
-	ElementType extends Enum<ElementType>
-		& XMLElement<ConfigurationType, ElementType, StateType>,
-	StateType extends XMLConfiguratorState<
-		ConfigurationType, ElementType, StateType>>
-extends DefaultHandler
+internal class XMLEventHandler<
+	ConfigurationType : Configuration,
+	ElementType,
+	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
+constructor (
+	private val model: XMLDocumentModel<ConfigurationType, ElementType, StateType>,
+	private val state: StateType) : DefaultHandler()
+		where ElementType : Enum<ElementType>,
+			  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
-	/** The {@linkplain XMLDocumentModel document model}. */
-	private final
-	XMLDocumentModel<ConfigurationType, ElementType, StateType> model;
-
 	/**
-	 * The current {@linkplain XMLConfiguratorState state} of the {@linkplain
-	 * Configurator configurator}.
-	 */
-	private final StateType state;
-
-	/**
-	 * Construct a new {@code XMLEventHandler}.
-	 *
-	 * @param model
-	 *        The {@linkplain XMLDocumentModel document model}.
-	 * @param state
-	 *        The {@linkplain XMLConfiguratorState configurator state}.
-	 */
-	XMLEventHandler (
-		final XMLDocumentModel<
-			ConfigurationType, ElementType, StateType> model,
-		final StateType state)
-	{
-		this.model = model;
-		this.state = state;
-	}
-
-	/**
-	 * Answer a {@link SAXException}.
+	 * Answer a [SAXException].
 	 *
 	 * @param forbidden
-	 *        The qualified name of an {@linkplain XMLElement element} that was
-	 *        not permitted to appear in some context.
+	 *   The qualified name of an [element][XMLElement] that was not permitted
+	 *   to appear in some context.
 	 * @param allowed
-	 *        A {@linkplain Collection collection} of elements allowed in
-	 *        the same context.
-	 * @return A {@code SAXException}.
+	 *   A [collection][Collection] of elements allowed in the same context.
+	 * @return
+	 *   A `SAXException`.
 	 */
-	private SAXException elementNotAllowed (
-		final String forbidden,
-		final Collection<ElementType> allowed)
+	private fun elementNotAllowed(
+		forbidden: String, allowed: Collection<ElementType>): SAXException
 	{
-		final StringBuilder builder = new StringBuilder(1000);
-		builder.append("found element \"");
-		builder.append(forbidden.toUpperCase());
-		builder.append("\" but expected one of:");
-		for (final ElementType element : allowed)
+		val builder = StringBuilder(1000)
+		builder.append("found element \"")
+		builder.append(forbidden.toUpperCase())
+		builder.append("\" but expected one of:")
+		for (element in allowed)
 		{
-			builder.append("\n\t\"");
-			builder.append(element.qName().toUpperCase());
-			builder.append('"');
+			builder.append("\n\t\"")
+			builder.append(element.qName().toUpperCase())
+			builder.append('"')
 		}
-		builder.append('\n');
-		return new SAXException(builder.toString());
+		builder.append('\n')
+		return SAXException(builder.toString())
 	}
 
-	@Override
-	public void startElement (
-		final @Nullable String uri,
-		final @Nullable String localName,
-		final @Nullable String qName,
-		final @Nullable Attributes attributes)
-	throws SAXException
+	@Throws(SAXException::class)
+	override fun startElement(
+		uri: String, localName: String, qName: String, attributes: Attributes)
 	{
-		assert qName != null;
-		assert attributes != null;
-		final @Nullable ElementType parent = state.peek();
-		final Set<ElementType> allowedChildren = parent == null
-			? singleton(model.rootElement())
-			: model.allowedChildrenOf(parent);
-		final ElementType element = model.elementWithQName(qName);
+		val parent = state.peek()
+		val allowedChildren : Set<ElementType> =
+			if (parent == null) setOf(model.rootElement())
+			else model.allowedChildrenOf(parent)!!
+		val element = model.elementWithQName(qName)
 		if (!allowedChildren.contains(element))
 		{
-			throw elementNotAllowed(qName, allowedChildren);
+			throw elementNotAllowed(qName, allowedChildren)
 		}
-		state.push(element);
-		element.startElement(state, attributes);
+		state.push(element!!)
+		element.startElement(state, attributes)
 	}
 
-	@Override
-	public void endElement (
-		final @Nullable String uri,
-		final @Nullable String localName,
-		final @Nullable String qName)
-	throws SAXException
+	@Throws(SAXException::class)
+	override fun endElement(uri: String?, localName: String?, qName: String)
 	{
-		assert qName != null;
-		final ElementType element = stripNull(model.elementWithQName(qName));
-		assert element == state.peek();
-		element.endElement(state);
-		state.pop();
+		val element = stripNull(model.elementWithQName(qName))
+		assert(element === state.peek())
+		element.endElement(state)
+		state.pop()
 	}
 
-	@Override
-	public void characters (
-		final @Nullable char[] buffer,
-		final int start,
-		final int length)
+	override fun characters(buffer: CharArray?, start: Int, length: Int)
 	{
-		assert buffer != null;
-		state.accumulate(buffer, start, length);
+		state.accumulate(buffer!!, start, length)
 	}
 }

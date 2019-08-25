@@ -30,89 +30,93 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
-import javax.annotation.Nullable;
-import java.lang.Thread.State;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.lang.Thread.State
+import java.util.ArrayDeque
+import java.util.Deque
 
-import static com.avail.utility.Nulls.stripNull;
+import com.avail.utility.Nulls.stripNull
 
 /**
- * An {@code XMLConfiguratorState} encapsulates the state of an
- * {@link XMLConfigurator}.
+ * An `XMLConfiguratorState` encapsulates the state of an [XMLConfigurator].
  *
- * @param <ConfigurationType>
- *        A concrete {@link Configuration} class.
- * @param <ElementType>
- *        A concrete {@link XMLElement} class.
- * @param <StateType>
- *        A concrete {@code XMLConfiguratorState} class.
+ * @param ConfigurationType
+ *   A concrete [Configuration] class.
+ * @param ElementType
+ *   A concrete [XMLElement] class.
+ * @param StateType
+ *   A concrete `XMLConfiguratorState` class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property configuration
+ *   The [configuration][Configuration].
+ *
+ * @constructor
+ * Construct a new [State].
+ *
+ * @param configuration
+ *   The initial [configuration][Configuration].
  */
-public class XMLConfiguratorState<
-	ConfigurationType extends Configuration,
-	ElementType extends Enum<ElementType>
-		& XMLElement<ConfigurationType, ElementType, StateType>,
-	StateType extends XMLConfiguratorState<
-		ConfigurationType, ElementType, StateType>>
+class XMLConfiguratorState<
+	ConfigurationType : Configuration,
+	ElementType,
+	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
+constructor(private val configuration: ConfigurationType)
+	where  ElementType : Enum<ElementType>,
+		   ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
-	/** The {@linkplain Configuration configuration}. */
-	private final ConfigurationType configuration;
 
-	/** The {@linkplain XMLDocumentModel document model}. */
-	private @Nullable
-	XMLDocumentModel<ConfigurationType, ElementType, StateType> model;
+	/** The [document model][XMLDocumentModel]. */
+	private var model:
+		XMLDocumentModel<ConfigurationType, ElementType, StateType>? = null
+
+	/** The [accumulator][StringBuilder] for text. */
+	private val accumulator = StringBuilder(1000)
+
+	/** Should the [accumulator] be collecting text?  */
+	private var shouldAccumulate = false
+
+	/** The parse [stack][Deque].  */
+	private val stack = ArrayDeque<ElementType>(5)
 
 	/**
-	 * Answer the {@linkplain XMLDocumentModel document model}.
+	 * Answer the [document model][XMLDocumentModel].
 	 *
-	 * @return The document model.
+	 * @return
+	 *   The document model.
 	 */
-	public XMLDocumentModel<ConfigurationType, ElementType, StateType>
-	documentModel ()
+	fun documentModel():
+		XMLDocumentModel<ConfigurationType, ElementType, StateType> =
+			stripNull(model)
+
+	/**
+	 * Set the [document model][XMLDocumentModel].
+	 *
+	 * @param model
+	 *   The document model.
+	 */
+	fun setDocumentModel(
+		model: XMLDocumentModel<ConfigurationType, ElementType, StateType>)
 	{
-		return stripNull(model);
+		this.model = model
 	}
 
 	/**
-	 * Set the {@linkplain XMLDocumentModel document model}.
-	 *
-	 * @param model The document model.
-	 */
-	public void setDocumentModel (
-		final XMLDocumentModel<
-			ConfigurationType, ElementType, StateType> model)
-	{
-		this.model = model;
-	}
-
-	/**
-	 * Answer the {@linkplain Configuration configuration} manipulated by this
-	 * {@linkplain XMLConfiguratorState state}.
+	 * Answer the [configuration][Configuration] manipulated by this
+	 * [state][XMLConfiguratorState].
 	 *
 	 * @return The configuration.
 	 */
-	public ConfigurationType configuration ()
-	{
-		return configuration;
-	}
-
-	/** The {@linkplain StringBuilder accumulator} for text. */
-	private final StringBuilder accumulator =
-		new StringBuilder(1000);
-
-	/** Should the {@linkplain #accumulator} be collecting text? */
-	private boolean shouldAccumulate = false;
+	fun configuration(): ConfigurationType = configuration
 
 	/**
 	 * Activate the text accumulator.
 	 */
-	public void startAccumulator ()
+	fun startAccumulator()
 	{
-		accumulator.setLength(0);
-		shouldAccumulate = true;
+		accumulator.setLength(0)
+		shouldAccumulate = true
 	}
 
 	/**
@@ -120,22 +124,18 @@ public class XMLConfiguratorState<
 	 * the buffer onto the text accumulator; otherwise, do nothing.
 	 *
 	 * @param buffer
-	 *        A buffer containing character data.
+	 *   A buffer containing character data.
 	 * @param start
-	 *        The zero-based offset of the first element of the buffer that
-	 *        should be copied to the accumulator.
+	 *   The zero-based offset of the first element of the buffer that should be
+	 *   copied to the accumulator.
 	 * @param length
-	 *        The number of characters that should be copied to the
-	 *        accumulator.
+	 *   The number of characters that should be copied to the accumulator.
 	 */
-	public void accumulate (
-		final char[] buffer,
-		final int start,
-		final int length)
+	fun accumulate(buffer: CharArray, start: Int, length: Int)
 	{
 		if (shouldAccumulate)
 		{
-			accumulator.append(buffer, start, length);
+			accumulator.append(buffer, start, length)
 		}
 	}
 
@@ -143,84 +143,60 @@ public class XMLConfiguratorState<
 	 * Answer the current contents of the text accumulator. This may contain
 	 * leading or trailing whitespace.
 	 *
-	 * @return The text contained within the accumulator.
+	 * @return
+	 *   The text contained within the accumulator.
 	 */
-	public String accumulatorContents ()
+	fun accumulatorContents(): String = accumulator.toString()
+
+	/** Deactivate the text accumulator. */
+	fun stopAccumulator()
 	{
-		return accumulator.toString();
+		shouldAccumulate = false
 	}
 
 	/**
-	 * Deactivate the text accumulator.
-	 */
-	public void stopAccumulator ()
-	{
-		shouldAccumulate = false;
-	}
-
-	/** The parse {@linkplain Deque stack}. */
-	private final Deque<ElementType> stack =
-		new ArrayDeque<>(5);
-
-	/**
-	 * Push the specified {@linkplain XMLElement element} onto the parse stack.
+	 * Push the specified [element][XMLElement] onto the parse stack.
 	 *
 	 * @param element
-	 *        An element.
+	 *   An element.
 	 */
-	public final void push (final ElementType element)
+	fun push(element: ElementType)
 	{
-		stack.push(element);
+		stack.push(element)
 	}
 
 	/**
-	 * Answer the {@linkplain XMLElement top} of the parse stack (without
-	 * consuming it).
+	 * Answer the [top][XMLElement] of the parse stack (without consuming it).
 	 *
-	 * @return The top of the parse stack.
+	 * @return
+	 *   The top of the parse stack.
 	 */
-	public final @Nullable ElementType peek ()
-	{
-		return stack.peek();
-	}
+	fun peek(): ElementType? = stack.peek()
 
 	/**
-	 * Answer the {@linkplain XMLElement top} of the parse stack (and consume
-	 * it).
-	 */
-	public final void pop ()
-	{
-		stack.pop();
-	}
-
-	/**
-	 * Answer the parent {@linkplain XMLElement element} of the current
-	 * element.
+	 * Answer the [top][XMLElement] of the parse stack (and consume it).
 	 *
-	 * @return The parent element.
+	 * @return
+	 *   The top element of the [stack].
 	 */
-	public @Nullable ElementType parentElement ()
+	fun pop(): ElementType = stack.pop()
+
+	/**
+	 * Answer the parent [element][XMLElement] of the current element.
+	 *
+	 * @return
+	 *   The parent element.
+	 */
+	fun parentElement(): ElementType?
 	{
-		final ElementType thisElement = stack.pop();
+		val thisElement = stack.pop()
 		try
 		{
-			return stack.peek();
+			return stack.peek()
 		}
 		finally
 		{
-			stack.push(thisElement);
+			stack.push(thisElement)
 		}
-	}
-
-	/**
-	 * Construct a new {@link State}.
-	 *
-	 * @param configuration
-	 *        The initial {@linkplain Configuration configuration}.
-	 */
-	protected XMLConfiguratorState (
-		final ConfigurationType configuration)
-	{
-		this.configuration = configuration;
 	}
 }

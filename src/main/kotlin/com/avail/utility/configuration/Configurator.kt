@@ -1,6 +1,6 @@
 /*
- * Configurator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Configurator.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
-
+package com.avail.utility.configuration
 
 /**
- * A {@code Configurator} produces a {@linkplain Configuration configuration}
- * tuple information provided during construction of a concrete implementation.
+ * A `Configurator` produces a [configuration][Configuration] tuple information
+ * provided during construction of a concrete implementation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <ConfigurationType>
- *        The type of resulting {@linkplain Configuration configurations}.
+ * @param ConfigurationType
+ *   The type of resulting [configurations][Configuration].
  */
-public interface Configurator<ConfigurationType extends Configuration>
+interface Configurator<ConfigurationType : Configuration>
 {
 	/**
-	 * Using information provided during construction of the {@linkplain
-	 * Configurator configurator}, produce the entailed {@linkplain
-	 * Configuration configuration}.
+	 * Using information provided during construction of the
+	 * [configurator][Configurator], produce the entailed
+	 * [configuration][Configuration].
 	 *
-	 * <p>Implementations should be idempotent, i.e., multiple invocations
-	 * should produce the same observable effect as a single invocation.</p>
+	 * Implementations should be idempotent, i.e., multiple invocations should
+	 * produce the same observable effect as a single invocation.
 	 *
 	 * @throws ConfigurationException
-	 *         If the configuration could not be created for any reason.
+	 *   If the configuration could not be created for any reason.
 	 */
-	void updateConfiguration () throws ConfigurationException;
+	@Throws(ConfigurationException::class)
+	fun updateConfiguration()
 
 	/**
-	 * Answer the {@linkplain Configuration configuration} produced by the
-	 * {@linkplain Configurator configurator}.
+	 * Answer the [configuration][Configuration] produced by the
+	 * [configurator][Configurator].
 	 *
-	 * @return A configuration.
+	 * @return
+	 *   A configuration.
 	 */
-	ConfigurationType configuration ();
+	fun configuration(): ConfigurationType
 }

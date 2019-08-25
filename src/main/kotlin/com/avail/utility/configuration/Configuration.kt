@@ -1,6 +1,6 @@
 /*
- * Configuration.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Configuration.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
 /**
- * A {@code Configuration} encapsulates the configurable parameters of a
- * software component.
+ * A `Configuration` encapsulates the configurable parameters of a software
+ * component.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("InterfaceMayBeAnnotatedFunctional")
-public interface Configuration
+interface Configuration
 {
 	/**
-	 * Is the {@linkplain Configuration configuration} valid?
+	 * Is the [configuration][Configuration] valid?
 	 *
-	 * @return {@code true} if the configuration is valid, {@code false}
-	 *         otherwise.
+	 * @return
+	 *   `true` if the configuration is valid, `false` otherwise.
 	 */
-	boolean isValid ();
+	val isValid: Boolean
 }

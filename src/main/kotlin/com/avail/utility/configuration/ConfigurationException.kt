@@ -1,6 +1,6 @@
 /*
- * ConfigurationException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ConfigurationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
 /**
- * A {@code ConfigurationException} is thrown when a {@linkplain Configurator
- * configurator} fails to {@linkplain Configurator#updateConfiguration() functionType}
- * a {@linkplain Configuration configuration} for any reason.
+ * A `ConfigurationException` is thrown when a [configurator][Configurator]
+ * fails to [functionType][Configurator.updateConfiguration] a
+ * [configuration][Configuration] for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class ConfigurationException
-extends Exception
+class ConfigurationException : Exception
 {
 	/**
-	 * Construct a new {@code ConfigurationException}.
+	 * Construct a new `ConfigurationException`.
 	 *
 	 * @param message
-	 *        The detail message, expected to be the proximal reason why
-	 *        configuration failed.
+	 *   The detail message, expected to be the proximal reason why
+	 *   configuration failed.
 	 */
-	public ConfigurationException (final String message)
-	{
-		super(message);
-	}
+	constructor(message: String) : super(message)
 
 	/**
-	 * Construct a new {@code ConfigurationException}.
+	 * Construct a new `ConfigurationException`.
 	 *
 	 * @param message
-	 *        The detail message, expected to be the proximal reason why
-	 *        configuration failed.
+	 *   The detail message, expected to be the proximal reason why
+	 *   configuration failed.
 	 * @param cause
-	 *        The proximal cause of the exception.
+	 *   The proximal cause of the exception.
 	 */
-	public ConfigurationException (
-		final String message,
-		final Throwable cause)
-	{
-		super(message, cause);
-	}
+	constructor(message: String, cause: Throwable) : super(message, cause)
 }

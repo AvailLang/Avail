@@ -30,166 +30,159 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.configuration;
+package com.avail.utility.configuration
 
-import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Modifier
+import java.util.HashMap
+import java.util.HashSet
 
 /**
- * An {@link XMLConfigurator} relies on an {@code XMLDocumentModel} to provide
- * a schematic description of the class of XML documents supported by a
- * particular {@link XMLElement} implementation. It offers:
+ * An [XMLConfigurator] relies on an `XMLDocumentModel` to provide a schematic
+ * description of the class of XML documents supported by a particular
+ * [XMLElement] implementation. It offers:
  *
- * <ul>
- * <li>Access to the {@linkplain #rootElement() root element}.<li>
- * <li>{@linkplain #elementWithQName(String) Lookup} of an element by its
- * qualified name.</li>
- * <li>Access to the {@linkplain #allowedParentsOf(Enum) allowed parent
- * elements} of a specified element.</li>
- * <li>Access to the {@linkplain #allowedChildrenOf(Enum) allowed child
- * elements} of a specified element.</li>
- * </ul>
+ *  * Access to the [root element][rootElement].
+ *  * [Lookup][elementWithQName] of an element by its qualified name.
+ *  * Access to the [allowed parent][allowedParentsOf] of a specified element.
+ *  * Access to the [allowed child][allowedChildrenOf] of a specified element.
  *
- * @param <ConfigurationType>
- *        A concrete {@link Configuration} class.
- * @param <ElementType>
- *        A concrete {@link XMLElement} class.
- * @param <StateType>
- *        A concrete {@link XMLConfiguratorState} class.
+ * @param ConfigurationType
+ *   A concrete [Configuration] class.
+ * @param ElementType
+ *   A concrete [XMLElement] class.
+ * @param StateType
+ *   A concrete [XMLConfiguratorState] class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [XMLDocumentModel].
+ *
+ * @param elementClass
+ *   The [element][XMLElement] [class][Class].
  */
-public final class XMLDocumentModel<
-	ConfigurationType extends Configuration,
-	ElementType extends Enum<ElementType>
-		& XMLElement<ConfigurationType, ElementType, StateType>,
-	StateType extends XMLConfiguratorState<
-		ConfigurationType, ElementType, StateType>>
+class XMLDocumentModel<
+	ConfigurationType : Configuration,
+	ElementType,
+	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
+internal constructor(elementClass: Class<ElementType>)
+	where ElementType : Enum<ElementType>,
+		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
-	 * A {@linkplain Map map} from the qualified names of XML elements to
-	 * the elements themselves.
+	 * A [map][Map] from the qualified names of XML elements to the elements
+	 * themselves.
 	 */
-	private final Map<String, ElementType> elementsByQName;
+	private val elementsByQName: MutableMap<String, ElementType>
+
+	/** The root [element][XMLElement]. */
+	private val rootElement: ElementType
 
 	/**
-	 * Answer the {@linkplain XMLElement element} with the specified qualified
-	 * name.
+	 * A [map][Map] from the [elements][XMLElement] to their allowed children.
+	 */
+	private val allowedChildren: MutableMap<ElementType, Set<ElementType>>
+
+	/**
+	 * Answer the [element][XMLElement] with the specified qualified name.
 	 *
 	 * @param qName
-	 *        The qualified name of an element.
-	 * @return The element, or {@code null} if there is no such element.
+	 *   The qualified name of an element.
+	 * @return
+	 *   The element, or `null` if there is no such element.
 	 */
-	public ElementType elementWithQName (final String qName)
-	{
-		return elementsByQName.get(qName);
-	}
+	fun elementWithQName(qName: String): ElementType? =
+		elementsByQName[qName]
 
 	/**
-	 * The root {@linkplain XMLElement element}.
-	 */
-	private final ElementType rootElement;
-
-	/**
-	 * Answer the root {@linkplain XMLElement element}.
+	 * Answer the root [element][XMLElement].
 	 *
-	 * @return The root element.
+	 * @return
+	 *   The root element.
 	 */
-	public ElementType rootElement ()
+	fun rootElement(): ElementType
 	{
-		return rootElement;
+		return rootElement
 	}
 
 	/**
-	 * A {@linkplain Map map} from the {@linkplain XMLElement elements} to their
-	 * allowed children.
-	 */
-	private final Map<ElementType, Set<ElementType>> allowedChildren;
-
-	/**
-	 * Answer the allowed child {@linkplain XMLElement elements} of the
-	 * specified element.
+	 * Answer the allowed child [elements][XMLElement] of the specified element.
 	 *
 	 * @param element
-	 *        An element.
-	 * @return The allowed child elements.
+	 *   An element.
+	 * @return
+	 *   The allowed child elements.
 	 */
-	public Set<ElementType> allowedChildrenOf (
-		final ElementType element)
-	{
-		return allowedChildren.get(element);
-	}
+	fun allowedChildrenOf(element: ElementType): Set<ElementType>? =
+		allowedChildren[element]
 
 	/**
-	 * Answer the allowed parent {@linkplain XMLElement elements} of the
-	 * specified element.
+	 * Answer the allowed parent [elements][XMLElement] of the specified
+	 * element.
 	 *
 	 * @param element
-	 *        An element.
-	 * @return The allowed parent elements.
+	 *   An element.
+	 * @return
+	 *   The allowed parent elements.
 	 */
-	public Set<ElementType> allowedParentsOf (
-		final ElementType element)
-	{
-		return element.allowedParents();
-	}
+	fun allowedParentsOf( element: ElementType): Set<ElementType> =
+		element.allowedParents()
 
-	/**
-	 * Construct a new {@link XMLDocumentModel}.
-	 *
-	 * @param elementClass
-	 *        The {@linkplain XMLElement element} {@linkplain Class class}.
-	 */
-	@SuppressWarnings("unchecked")
-	XMLDocumentModel (final Class<ElementType> elementClass)
+	init
 	{
-		assert elementClass.isEnum();
+		assert(elementClass.isEnum)
 		// Capture the elements of the enumeration.
-		@Nullable ElementType[] elements = null;
+		var elements: Array<ElementType>? = null
 		try
 		{
-			final Method valuesMethod = elementClass.getMethod("values");
-			assert Modifier.isStatic(valuesMethod.getModifiers());
-			elements = (ElementType[]) valuesMethod.invoke(null);
+			val valuesMethod = elementClass.getMethod("values")
+			assert(Modifier.isStatic(valuesMethod.modifiers))
+			elements = valuesMethod.invoke(null) as Array<ElementType>
 		}
-		catch (final SecurityException
-			| NoSuchMethodException
-			| IllegalArgumentException
-			| IllegalAccessException
-			| InvocationTargetException e)
+		catch (e: SecurityException)
 		{
 			// This never happens.
-			assert false;
+			assert(false)
 		}
-		assert elements != null;
-		// Initialize other data structures.
-		elementsByQName = new HashMap<>(elements.length);
-		allowedChildren = new HashMap<>(elements.length);
-		@Nullable ElementType root = null;
-		for (final ElementType element : elements)
+		catch (e: NoSuchMethodException)
 		{
-			elementsByQName.put(element.qName(), element);
+			assert(false)
+		}
+		catch (e: IllegalArgumentException)
+		{
+			assert(false)
+		}
+		catch (e: IllegalAccessException)
+		{
+			assert(false)
+		}
+		catch (e: InvocationTargetException)
+		{
+			assert(false)
+		}
+
+		// Initialize other data structures.
+		elementsByQName = HashMap(elements!!.size)
+		allowedChildren = HashMap(elements.size)
+		var root: ElementType? = null
+		for (element in elements)
+		{
+			elementsByQName[element.qName()] = element
 			if (element.allowedParents().isEmpty())
 			{
-				assert root == null;
-				root = element;
+				assert(root == null)
+				root = element
 			}
-			final Set<ElementType> children = new HashSet<>();
-			for (final ElementType child : elements)
+			val children = HashSet<ElementType>()
+			for (child in elements)
 			{
 				if (child.allowedParents().contains(element))
 				{
-					children.add(child);
+					children.add(child)
 				}
 			}
-			allowedChildren.put(element, children);
+			allowedChildren[element] = children
 		}
-		assert root != null;
-		rootElement = root;
+		rootElement = root!!
 	}
 }
