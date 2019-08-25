@@ -1,2 +1,4 @@
 # Default ignored files
-workspace.xml
+/libraries
+/modules
+/workspace.xml
