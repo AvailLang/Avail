@@ -15,6 +15,10 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail-workbench/avail.avail-workbench.test.iml" filepath="$PROJECT_DIR$/.idea/modules/avail-workbench/avail.avail-workbench.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail.main.iml" filepath="$PROJECT_DIR$/.idea/modules/avail.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail.test.iml" filepath="$PROJECT_DIR$/.idea/modules/avail.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/org.availlang.avail.iml" filepath="$PROJECT_DIR$/.idea/modules/org.availlang.avail.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail-bootstrap/org.availlang.avail.avail-bootstrap.iml" filepath="$PROJECT_DIR$/.idea/modules/avail-bootstrap/org.availlang.avail.avail-bootstrap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail-server/org.availlang.avail.avail-server.iml" filepath="$PROJECT_DIR$/.idea/modules/avail-server/org.availlang.avail.avail-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/avail-workbench/org.availlang.avail.avail-workbench.iml" filepath="$PROJECT_DIR$/.idea/modules/avail-workbench/org.availlang.avail.avail-workbench.iml" />
     </modules>
   </component>
 </project>

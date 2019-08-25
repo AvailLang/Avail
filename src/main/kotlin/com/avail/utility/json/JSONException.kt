@@ -1,6 +1,6 @@
 /*
- * MalformedJSONException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * JSONException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.json;
+package com.avail.utility.json
+
+import java.io.IOException
 
 /**
- * A {@link JSONReader} throws a {@code MalformedJSONException} if an invalid
- * construct is encountered during the parsing of a JSON document.
+ * A [JSONReader] throws a `JSONException` if anything goes wrong during the
+ * reading of a JSON document.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class MalformedJSONException
-extends JSONException
+abstract class JSONException : RuntimeException
 {
-	/**
-	 * Construct a new {@code MalformedJSONException}.
-	 */
-	MalformedJSONException ()
+	/** Construct a new `JSONException`. */
+	protected constructor()
 	{
 		// No implementation.
 	}
+
+	/**
+	 * Construct a new `JSONException`.
+	 *
+	 * @param cause
+	 *   The causal exception.
+	 */
+	protected constructor(cause: Exception) : super(cause)
 }
+
+/**
+ * A `JSONIOException` is an [unchecked][RuntimeException] that wraps an
+ * [IOException].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `JSONIOException`.
+ *
+ * @param cause
+ *   The causal exception.
+ */
+class JSONIOException internal constructor(cause: Exception)
+	: JSONException(cause)
+
+/**
+ * A [JSONReader] throws a `MalformedJSONException` if an invalid construct is
+ * encountered during the parsing of a JSON document.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `MalformedJSONException`.
+ */
+class MalformedJSONException internal constructor() : JSONException()

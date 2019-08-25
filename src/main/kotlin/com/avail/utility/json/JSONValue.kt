@@ -1,6 +1,6 @@
 /*
- * JSONException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * JSONValue.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,91 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.json;
+package com.avail.utility.json
 
 /**
- * A {@link JSONReader} throws a {@code JSONException} if anything goes wrong
- * during the reading of a JSON document.
+ * A `JSONValue` is an arbitrary JSON value. `JSONValue`s are produced by a
+ * [JSONReader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("AbstractClassWithoutAbstractMethods")
-public abstract class JSONException
-extends RuntimeException
+class JSONValue : JSONData
 {
+	/** The [Object].  */
+	private val value: Any
+
+	override val isBoolean: Boolean
+		get() = value is Boolean
+
 	/**
-	 * Construct a new {@code JSONException}.
+	 * Extract a `Boolean`.
+	 *
+	 * @return
+	 *   A `Boolean`.
+	 * @throws ClassCastException
+	 *   If the value is not a `Boolean`.
 	 */
-	protected JSONException ()
+	val boolean: Boolean
+		@Throws(ClassCastException::class)
+		get() = value as Boolean
+
+	override val isString: Boolean
+		get() = value is String
+
+	/**
+	 * Extract a [String].
+	 *
+	 * @return
+	 *   A `String`.
+	 * @throws ClassCastException
+	 *   If the value is not a `String`.
+	 */
+	val string: String
+		@Throws(ClassCastException::class)
+		get() = value as String
+
+	/**
+	 * Construct a new [JSONValue].
+	 *
+	 * @param value
+	 *   The value.
+	 */
+	constructor(value: Boolean)
 	{
-		// No implementation.
+		this.value = value
 	}
 
 	/**
-	 * Construct a new {@code JSONException}.
+	 * Construct a new [JSONValue].
 	 *
-	 * @param cause
-	 *        The causal exception.
+	 * @param value
+	 *   The value.
 	 */
-	protected JSONException (final Exception cause)
+	constructor(value: String)
 	{
-		super(cause);
+		this.value = value
+	}
+
+	override fun writeTo(writer: JSONWriter)
+	{
+		val valueClass = value.javaClass
+		if (valueClass == Boolean::class.java)
+		{
+			writer.write(boolean)
+		}
+		else
+		{
+			assert(valueClass == String::class.java)
+			writer.write(string)
+		}
+	}
+
+	companion object
+	{
+		/** The sole JSON `false`.  */
+		val jsonFalse = JSONValue(false)
+
+		/** The sole JSON `true`.  */
+		val jsonTrue = JSONValue(true)
 	}
 }

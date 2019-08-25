@@ -1,6 +1,6 @@
 /*
- * JSONIOException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * JSONData.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,82 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.json;
-
-import java.io.IOException;
+package com.avail.utility.json
 
 /**
- * A {@code JSONIOException} is an {@linkplain RuntimeException unchecked
- * exception} that wraps an {@link IOException}.
+ * `JSONData` is the superclass of [JSONValue], [JSONNumber], [JSONArray], and
+ * [JSONObject]. A [JSONReader] [ ][JSONReader.read] a single `JSONData`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class JSONIOException
-extends JSONException
+abstract class JSONData : JSONFriendly
 {
 	/**
-	 * Construct a new {@code JSONIOException}.
+	 * Is the [receiver][JSONData] a JSON null?
 	 *
-	 * @param cause
-	 *        The causal exception.
+	 * @return
+	 *   `true` if the receiver is a JSON null, `false` otherwise.
 	 */
-	JSONIOException (final Exception cause)
+	open val isNull: Boolean
+		get() = false
+
+	/**
+	 * Is the [receiver][JSONData] a JSON boolean?
+	 *
+	 * @return
+	 *   `true` if the receiver is a JSON boolean, `false otherwise.
+	 */
+	open val isBoolean: Boolean
+		get() = false
+
+	/**
+	 * Is the [receiver][JSONData] a [JSON][JSONNumber]?
+	 *
+	 * @return
+	 *   `true` if the receiver is a JSON number, `false` otherwise.
+	 */
+	open val isNumber: Boolean
+		get() = false
+
+	/**
+	 * Is the [receiver][JSONData] a JSON string?
+	 *
+	 * @return
+	 *   `true` if the receiver is a JSON string, `false` otherwise.
+	 */
+	open val isString: Boolean
+		get() = false
+
+	/**
+	 * Is the [receiver][JSONData] a [JSON][JSONArray]?
+	 *
+	 * @return
+	 *   `true` if the receiver is a JSON array, `false` otherwise.
+	 */
+	open val isArray: Boolean
+		get() = false
+
+	/**
+	 * Is the [receiver][JSONData] a [JSON][JSONObject]?
+	 *
+	 * @return
+	 *   `true` if the receiver is a JSON object, `false` otherwise.
+	 */
+	open val isObject: Boolean
+		get() = false
+
+	companion object
 	{
-		super(cause);
+		/** The sole JSON `null`.  */
+		val jsonNull = object : JSONData()
+		{
+			override val isNull: Boolean
+				get() = true
+
+			override fun writeTo(writer: JSONWriter)
+			{
+				writer.writeNull()
+			}
+		}
 	}
 }
