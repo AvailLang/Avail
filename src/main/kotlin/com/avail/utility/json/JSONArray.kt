@@ -36,18 +36,19 @@ package com.avail.utility.json
  * A `JSONArray` is produced by a [JSONReader] when an array is
  * read. Each element is a [JSONData].
  *
+ * @property array
+ *   The array of [JSONData].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-class JSONArray
-/**
+ *
+ * @constructor
+ *
  * Construct a new [JSONArray].
  *
  * @param array
- *   The array of [JSONData]s. This must not be modified by the caller 
+ *   The array of [JSONData]s. This must not be modified by the caller
  *   afterward; this call transfers ownership of the reference.
  */
-internal constructor(
-	/** The array of [JSONData].  */
+class JSONArray internal constructor(
 	private val array: Array<JSONData>) : JSONData(), Iterable<JSONData>
 {
 	override val isArray: Boolean get() = true
@@ -163,7 +164,6 @@ internal constructor(
 
 	companion object
 	{
-
 		/** The canonical [emptySet][.empty] [JSONArray].  */
 		private val empty = JSONArray(arrayOf())
 

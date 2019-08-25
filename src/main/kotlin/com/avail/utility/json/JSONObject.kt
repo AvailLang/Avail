@@ -1,5 +1,5 @@
 /*
- * JSONObject.java
+ * JSONObject.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -45,6 +45,7 @@ import kotlin.collections.Map.Entry
  *   [key][String]s to [value][JSONData]s.
  *
  * @constructor
+ *
  * Construct a new [JSONObject].
  *
  * @param map

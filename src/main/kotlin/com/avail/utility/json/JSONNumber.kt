@@ -41,6 +41,7 @@ import java.math.BigInteger
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 class JSONNumber : JSONData
 {
 	/** The [BigDecimal] that encodes the value.  */

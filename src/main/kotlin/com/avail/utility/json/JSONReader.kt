@@ -1,5 +1,5 @@
 /*
- * JSONReader.java
+ * JSONReader.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -43,11 +43,12 @@ import java.util.LinkedList
 /**
  * A `JSONReader` produces [JSON-friendly][JSONFriendly] [ ] given a valid JSON document.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- *
  * @property reader
  *   The [source][Reader] of the raw JSON document.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
  * @constructor
+ *
  * Construct a new [JSONReader].
  *
  * @param reader

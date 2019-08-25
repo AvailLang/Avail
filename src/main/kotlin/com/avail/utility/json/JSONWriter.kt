@@ -51,6 +51,7 @@ import com.avail.utility.json.JSONWriter.JSONState.*
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see [ECMA 404: "The JSON Data Interchange Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
  */
+@Suppress("unused")
 class JSONWriter : AutoCloseable
 {
 	/** The [target][Writer] for the raw JSON document.  */
@@ -68,10 +69,7 @@ class JSONWriter : AutoCloseable
 	 * @return
 	 *   A String.
 	 */
-	fun contents(): String
-	{
-		return writer.toString()
-	}
+	fun contents(): String = writer.toString()
 
 	/**
 	 * Construct a new [JSONWriter].
@@ -187,10 +185,8 @@ class JSONWriter : AutoCloseable
 		/** The [writer][JSONWriter] is expecting the end of the document. */
 		EXPECTING_END_OF_DOCUMENT
 		{
-			override fun nextStateAfterValue(): JSONState
-			{
+			override fun nextStateAfterValue(): JSONState =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
 			override fun checkCanEndDocument()
@@ -199,28 +195,20 @@ class JSONWriter : AutoCloseable
 			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteAnyValue()
-			{
+			override fun checkCanWriteAnyValue() =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteStringValue()
-			{
+			override fun checkCanWriteStringValue() =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteObjectStart()
-			{
+			override fun checkCanWriteObjectStart() =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteArrayStart()
-			{
+			override fun checkCanWriteArrayStart() =
 				throw IllegalStateException()
-			}
 		},
 
 		/**
@@ -233,16 +221,12 @@ class JSONWriter : AutoCloseable
 				EXPECTING_OBJECT_VALUE
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteAnyValue()
-			{
+			override fun checkCanWriteAnyValue() =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteObjectStart()
-			{
+			override fun checkCanWriteObjectStart() =
 				throw IllegalStateException()
-			}
 
 			override fun checkCanWriteObjectEnd()
 			{
@@ -250,10 +234,8 @@ class JSONWriter : AutoCloseable
 			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteArrayStart()
-			{
+			override fun checkCanWriteArrayStart() =
 				throw IllegalStateException()
-			}
 		},
 
 		/**
@@ -266,16 +248,12 @@ class JSONWriter : AutoCloseable
 				EXPECTING_OBJECT_VALUE
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteAnyValue()
-			{
+			override fun checkCanWriteAnyValue() =
 				throw IllegalStateException()
-			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteObjectStart()
-			{
+			override fun checkCanWriteObjectStart() =
 				throw IllegalStateException()
-			}
 
 			override fun checkCanWriteObjectEnd()
 			{
@@ -283,16 +261,12 @@ class JSONWriter : AutoCloseable
 			}
 
 			@Throws(IllegalStateException::class)
-			override fun checkCanWriteArrayStart()
-			{
+			override fun checkCanWriteArrayStart() =
 				throw IllegalStateException()
-			}
 
 			@Throws(JSONIOException::class)
-			override fun writePrologueTo(writer: JSONWriter)
-			{
+			override fun writePrologueTo(writer: JSONWriter) =
 				writer.privateWrite(',')
-			}
 		},
 
 		/**
@@ -304,10 +278,8 @@ class JSONWriter : AutoCloseable
 				EXPECTING_OBJECT_KEY_OR_OBJECT_END
 
 			@Throws(JSONIOException::class)
-			override fun writePrologueTo(writer: JSONWriter)
-			{
+			override fun writePrologueTo(writer: JSONWriter) =
 				writer.privateWrite(':')
-			}
 		},
 
 		/**
@@ -340,10 +312,8 @@ class JSONWriter : AutoCloseable
 			}
 
 			@Throws(JSONIOException::class)
-			override fun writePrologueTo(writer: JSONWriter)
-			{
+			override fun writePrologueTo(writer: JSONWriter) =
 				writer.privateWrite(',')
-			}
 		};
 
 		/**
@@ -354,10 +324,8 @@ class JSONWriter : AutoCloseable
 		 *   If the document cannot be closed yet.
 		 */
 		@Throws(IllegalStateException::class)
-		internal open fun checkCanEndDocument()
-		{
+		internal open fun checkCanEndDocument(): Unit =
 			throw IllegalStateException()
-		}
 
 		/**
 		 * Check that the receiver permits the [writer][JSONWriter] to emit an
@@ -432,10 +400,8 @@ class JSONWriter : AutoCloseable
 		 *   If an array ending cannot be written.
 		 */
 		@Throws(IllegalStateException::class)
-		internal open fun checkCanWriteArrayEnd()
-		{
+		internal open fun checkCanWriteArrayEnd(): Unit =
 			throw IllegalStateException()
-		}
 
 		/**
 		 * Answer the next [state][JSONState] following the writing of a value.
@@ -466,13 +432,9 @@ class JSONWriter : AutoCloseable
 		stack.addFirst(EXPECTING_SINGLE_VALUE)
 	}
 
-	/**
-	 * Answer the current [JSONState] of this [JSONWriter].
-	 *
-	 * @return
-	 *   A `JSONState`.
-	 */
-	internal fun currentState(): JSONState = stack.peekFirst()
+	/** The current [JSONState] of this [JSONWriter]. */
+	internal val currentState: JSONState
+		get() = stack.peekFirst()
 
 	/**
 	 * Write a JSON `null` to the underlying document [writer][Writer].
@@ -600,8 +562,8 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * Write the specified `Float` to the underlying document [ ] as a JSON
-	 * number.
+	 * Write the specified `Float` to the underlying document [writer][Writer]
+	 * as a JSON number.
 	 *
 	 * @param value
 	 *   A `Float` value.
@@ -723,9 +685,9 @@ class JSONWriter : AutoCloseable
 					codePoint == '\\'.toInt() -> privateWrite("\\\\")
 					codePoint == '"'.toInt() -> privateWrite("\\\"")
 					codePoint < 128 ->
-						// Even though Writer doesn't work on general code points,
-						// we have just proven that the code point is ASCII, so this
-						// is fine.
+						// Even though Writer doesn't work on general code
+						// points, we have just proven that the code point is
+						// ASCII, so this is fine.
 						privateWrite(codePoint)
 					Character.isSupplementaryCodePoint(codePoint) ->
 						// Supplementary code points need to be written as two
@@ -815,7 +777,7 @@ class JSONWriter : AutoCloseable
 	@Throws(JSONIOException::class)
 	fun startObject()
 	{
-		val state = stack.peekFirst()
+		val state = currentState
 		state.checkCanWriteObjectStart()
 		state.writePrologueTo(this)
 		privateWrite('{')
@@ -868,7 +830,7 @@ class JSONWriter : AutoCloseable
 	@Throws(JSONIOException::class, IllegalStateException::class)
 	fun startArray()
 	{
-		val state = stack.peekFirst()
+		val state = currentState
 		state.checkCanWriteArrayStart()
 		state.writePrologueTo(this)
 		privateWrite('[')
@@ -1083,7 +1045,7 @@ class JSONWriter : AutoCloseable
 		// Don't actually remove the remaining state; we want any errant
 		// subsequent operations to fail appropriately, not because the stack is
 		// empty.
-		val state = stack.peekFirst()
+		val state = currentState
 		state.checkCanEndDocument()
 		assert(stack.size == 1)
 		flush()
@@ -1103,7 +1065,7 @@ class JSONWriter : AutoCloseable
 	{
 		try
 		{
-			val state = stack.peekFirst()
+			val state = currentState
 			state.checkCanEndDocument()
 			return writer.toString()
 		}
@@ -1117,21 +1079,16 @@ class JSONWriter : AutoCloseable
 				e.message,
 				writer.toString())
 		}
-
 	}
 
 	companion object
 	{
-
 		/**
 		 * Answer a [JSONWriter] that targets an internal [StringWriter].
 		 *
 		 * @return
 		 *   A `JSONWriter`.
 		 */
-		fun newWriter(): JSONWriter
-		{
-			return JSONWriter(StringWriter())
-		}
+		fun newWriter(): JSONWriter = JSONWriter(StringWriter())
 	}
 }

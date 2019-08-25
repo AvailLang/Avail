@@ -64,6 +64,7 @@ abstract class JSONException : RuntimeException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
+ *
  * Construct a new `JSONIOException`.
  *
  * @param cause
@@ -79,6 +80,7 @@ class JSONIOException internal constructor(cause: Exception)
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
+ *
  * Construct a new `MalformedJSONException`.
  */
 class MalformedJSONException internal constructor() : JSONException()
