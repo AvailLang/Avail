@@ -2147,7 +2147,7 @@ extends JFrame
 				final Preferences childNode = rootsNode.node(root.name());
 				childNode.put(
 					moduleRootsRepoSubkeyString,
-					root.repository().fileName().getPath());
+					root.repository().getFileName().getPath());
 				childNode.put(
 					moduleRootsSourceSubkeyString,
 					stripNull(root.sourceDirectory()).getPath());

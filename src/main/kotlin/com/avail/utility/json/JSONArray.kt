@@ -164,7 +164,7 @@ class JSONArray internal constructor(
 
 	companion object
 	{
-		/** The canonical [emptySet][.empty] [JSONArray].  */
+		/** The canonical [emptySet][empty] [JSONArray].  */
 		private val empty = JSONArray(arrayOf())
 
 		/**

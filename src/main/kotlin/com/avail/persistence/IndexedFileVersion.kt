@@ -1,6 +1,6 @@
 /*
- * IndexedFileVersion.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * IndexedFileVersion.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.persistence;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.avail.persistence
 
 /**
- * Establishes the current version of the {@linkplain IndexedFile indexed file}
+ * Establishes the current version of the [indexed file][IndexedFile]
  * technology used by a particular subclass.
  *
+ * @property value
+ *   The version number.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface IndexedFileVersion
-{
-	/**
-	 * Answer the version number.
-	 *
-	 * @return The version number.
-	 */
-	int value ();
-}
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FILE)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class IndexedFileVersion(val value: Int)

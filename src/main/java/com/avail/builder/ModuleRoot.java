@@ -136,7 +136,7 @@ public final class ModuleRoot
 	}
 
 	/**
-	 * Write the {@linkplain IndexedRepositoryManager#fileName() binary
+	 * Write the {@linkplain IndexedRepositoryManager#getFileName() binary
 	 * repository path} and the {@linkplain #sourceDirectory() source module
 	 * path} (respectively) into a new JSON array.
 	 *
@@ -146,7 +146,7 @@ public final class ModuleRoot
 	public void writePathsOn (final JSONWriter writer)
 	{
 		writer.startArray();
-		writer.write(repository.fileName().getAbsolutePath());
+		writer.write(repository.getFileName().getAbsolutePath());
 		final @Nullable File dir = sourceDirectory;
 		if (dir == null)
 		{

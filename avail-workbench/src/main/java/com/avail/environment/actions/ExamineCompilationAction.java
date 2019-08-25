@@ -87,7 +87,7 @@ extends AbstractWorkbenchAction
 					{
 						// final ModuleVersionKey versionKey = entry.getKey();
 						final ModuleVersion version = entry.getValue();
-						compilations.addAll(version.allCompilations());
+						compilations.addAll(version.getAllCompilations());
 					}
 					final Object[] compilationsArray = compilations.toArray();
 					final @Nullable ModuleCompilation selectedCompilation =
@@ -111,7 +111,7 @@ extends AbstractWorkbenchAction
 					final IndexedRepositoryManagerDescriber describer =
 						new IndexedRepositoryManagerDescriber(repository);
 					final String description = describer.describeCompilation(
-						selectedCompilation.recordNumber);
+						selectedCompilation.getRecordNumber());
 					workbench.outputStream().println(description);
 				}
 			});

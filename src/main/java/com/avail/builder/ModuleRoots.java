@@ -92,7 +92,7 @@ implements Iterable<ModuleRoot>
 			}
 			builder.append(root.name());
 			builder.append("=");
-			builder.append(root.repository().fileName().getPath());
+			builder.append(root.repository().getFileName().getPath());
 			final @Nullable File sourceDirectory = root.sourceDirectory();
 			if (sourceDirectory != null)
 			{
@@ -121,7 +121,6 @@ implements Iterable<ModuleRoot>
 	 *         module} path is invalid.
 	 */
 	private void parseAvailModulePath (final String modulePath)
-	throws IllegalArgumentException
 	{
 		clearRoots();
 		// Root definitions are separated by semicolons.
@@ -190,11 +189,20 @@ implements Iterable<ModuleRoot>
 		}
 	}
 
+	/**
+	 * Clear the {@link #rootMap root map}.
+	 */
 	public void clearRoots ()
 	{
 		rootMap.clear();
 	}
 
+	/**
+	 * Add a {@linkplain ModuleRoot root} to the {@linkplain #rootMap root map}.
+	 *
+	 * @param root
+	 *        The root.
+	 */
 	public void addRoot (final ModuleRoot root)
 	{
 		rootMap.put(root.name(), root);
@@ -248,7 +256,7 @@ implements Iterable<ModuleRoot>
 	}
 
 	/**
-	 * Construct a new {@link ModuleRoots} from the specified Avail {@linkplain
+	 * Construct a new {@code ModuleRoots} from the specified Avail {@linkplain
 	 * ModuleDescriptor module} path.
 	 *
 	 * @param modulePath
@@ -263,8 +271,8 @@ implements Iterable<ModuleRoot>
 	}
 
 	/**
-	 * Write a JSON encoding of the {@linkplain ModuleRoots module roots} to
-	 * the specified {@link JSONWriter}.
+	 * Write a JSON encoding of the module roots to the specified {@link
+	 * JSONWriter}.
 	 *
 	 * @param writer
 	 *        A {@code JSONWriter}.
@@ -280,10 +288,9 @@ implements Iterable<ModuleRoot>
 	}
 
 	/**
-	 * Write a JSON object whose fields are the {@linkplain ModuleRoots module
-	 * roots} and whose values are {@linkplain
-	 * ModuleRoot#writePathsOn(JSONWriter) JSON arrays} containing path
-	 * information.
+	 * Write a JSON object whose fields are the module roots and whose values
+	 * are {@linkplain ModuleRoot#writePathsOn(JSONWriter) JSON arrays}
+	 * containing path information.
 	 *
 	 * @param writer
 	 *        A {@link JSONWriter}.

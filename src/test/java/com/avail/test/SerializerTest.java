@@ -119,9 +119,9 @@ public final class SerializerTest
 	public void initializeAllWellKnownObjects ()
 	{
 		final IndexedRepositoryManager repository =
-			IndexedRepositoryManager.createTemporary(
+			IndexedRepositoryManager.Companion.createTemporary(
 				"avail", "test repository", null);
-		final File repositoryFile = repository.fileName();
+		final File repositoryFile = repository.getFileName();
 		repository.close();
 		final ModuleRoots roots = new ModuleRoots(String.format(
 			"avail=%s,%s",

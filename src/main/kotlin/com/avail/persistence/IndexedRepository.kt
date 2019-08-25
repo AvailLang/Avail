@@ -1,6 +1,6 @@
 /*
- * IndexedRepository.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * IndexedRepository.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.persistence;
+package com.avail.persistence
 
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor
 
-import java.nio.charset.Charset;
+import java.nio.charset.Charset
 
 /**
- * An {@code IndexedRepository} represents an indexed collection of compiled
- * Avail {@linkplain ModuleDescriptor modules}.
+ * An `IndexedRepository` represents an indexed collection of compiled
+ * Avail [modules][ModuleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @IndexedFileVersion(3)
-final class IndexedRepository
-extends IndexedFile
+internal class IndexedRepository : IndexedFile()
 {
-	/**
-	 * Answer the NUL-terminated header bytes that uniquely identify a
-	 * particular usage of the core {@linkplain IndexedFile indexed file}
-	 * technology.
-	 *
-	 * @return An array of bytes that uniquely identifies the purpose of the
-	 *         indexed file.
-	 */
-	static byte[] header ()
-	{
-		return "Avail compiled module repository\0".getBytes(
-			Charset.forName("UTF-8"));
-	}
+	override val headerBytes: ByteArray
+		get() = header
 
-	@Override
-	protected byte[] headerBytes ()
+	companion object
 	{
-		return header();
+		/**
+		 * The NUL-terminated header bytes that uniquely identify a particular
+		 * usage of the core [indexed file][IndexedFile] technology.
+		 */
+		val header: ByteArray
+			get() = "Avail compiled module repository\u0000".toByteArray(
+				Charset.forName("UTF-8"))
 	}
 }

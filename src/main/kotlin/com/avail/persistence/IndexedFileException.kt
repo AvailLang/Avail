@@ -1,6 +1,6 @@
 /*
- * IndexedFileException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * IndexedFileException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.persistence;
+package com.avail.persistence
 
 /**
- * A {@code IndexedFileException} is thrown when an exceptional circumstance
- * occurs during manipulation of a {@linkplain IndexedFile indexed file}.
+ * A `IndexedFileException` is thrown when an exceptional circumstance occurs
+ * during manipulation of a [indexed file][IndexedFile].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-public final class IndexedFileException
-extends RuntimeException
+class IndexedFileException : RuntimeException
 {
 	/**
-	 * Construct a new {@link IndexedFileException}.
+	 * Construct a new [IndexedFileException].
 	 *
 	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
+	 *   The original [exception][Throwable] which caused the new instance to be
+	 *   raised.
 	 */
-	public IndexedFileException (final Throwable cause)
-	{
-		super(cause);
-	}
+	constructor(cause: Throwable) : super(cause)
 
 	/**
-	 * Construct a new {@link IndexedFileException}.
+	 * Construct a new [IndexedFileException].
 	 *
 	 * @param message
-	 *        The detail message.
+	 *   The detail message.
 	 */
-	public IndexedFileException (final String message)
-	{
-		super(message);
-	}
+	constructor(message: String) : super(message)
 }

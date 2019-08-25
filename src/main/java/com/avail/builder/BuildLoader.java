@@ -294,7 +294,7 @@ final class BuildLoader
 				final LoadedModule loadedPredecessor =
 					stripNull(loadedModulesByName.get(imports.get(i)));
 				predecessorCompilationTimes[i] =
-					loadedPredecessor.compilation.compilationTime;
+					loadedPredecessor.compilation.getCompilationTime();
 			}
 			final ModuleCompilationKey compilationKey =
 				new ModuleCompilationKey(predecessorCompilationTimes);
@@ -308,7 +308,7 @@ final class BuildLoader
 					moduleName,
 					version,
 					compilation,
-					versionKey.sourceDigest,
+					versionKey.getSourceDigest(),
 					completionAction);
 			}
 			else
@@ -570,7 +570,7 @@ final class BuildLoader
 						moduleName,
 						new LoadedModule(
 							moduleName,
-							versionKey.sourceDigest,
+							versionKey.getSourceDigest(),
 							module,
 							version,
 							compilation));

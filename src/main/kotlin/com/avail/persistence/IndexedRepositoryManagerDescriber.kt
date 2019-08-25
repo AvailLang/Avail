@@ -1,7 +1,7 @@
 /*
+ * IndexedRepositoryManagerDescriber.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
- * Copyright © 1993-2018, The Avail Foundation, LLC.
- * IndexedRepositoryManagerDescriber.java
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,102 +30,88 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.persistence;
+package com.avail.persistence
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Module;
-import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
-import com.avail.serialization.DeserializerDescriber;
-import com.avail.serialization.MalformedSerialStreamException;
-
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import java.util.SortedMap;
-
-import static com.avail.builder.AvailBuilder.validatedBytesFrom;
+import com.avail.AvailRuntime
+import com.avail.builder.AvailBuilder.validatedBytesFrom
+import com.avail.descriptor.A_Module
+import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
+import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
+import com.avail.serialization.DeserializerDescriber
+import com.avail.serialization.MalformedSerialStreamException
 
 /**
- * An {@code IndexedRepositoryManagerDescriber} provides a textual
- * representation of an {@link IndexedRepositoryManager}, showing the contained
- * {@link A_Module modules}, {@link ModuleVersion versions}, and {@link
- * ModuleCompilation compilations}.
+ * An `IndexedRepositoryManagerDescriber` provides a textual representation of
+ * an [IndexedRepositoryManager], showing the contained [modules][A_Module],
+ * [versions][ModuleVersion], and [compilations][ModuleCompilation].
  *
+ * @property repository
+ *   The open [repository][IndexedRepositoryManager] to be described.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Create a describer for the given repository.
+ *
+ * @param repository
+ *   The [repository][IndexedRepositoryManager] to be described.
  */
-public class IndexedRepositoryManagerDescriber
+class IndexedRepositoryManagerDescriber constructor(
+	internal val repository: IndexedRepositoryManager)
 {
-	/** The open {@link IndexedRepositoryManager repository} to be described. */
-	final IndexedRepositoryManager repository;
-
-	/**
-	 * Create a describer for the given repository.
-	 *
-	 * @param repository
-	 *        The {@link IndexedRepositoryManager repository} to be described.
-	 */
-	public IndexedRepositoryManagerDescriber (
-		final IndexedRepositoryManager repository)
-	{
-		this.repository = repository;
-	}
-
 	/**
 	 * Produce a summary of the entire repository.
 	 *
-	 * @return A {@link String} describing the repository.
+	 * @return
+	 *   A [String] describing the repository.
 	 */
-	public String dumpAll ()
+	fun dumpAll(): String
 	{
-		final StringBuilder builder = new StringBuilder();
-		final List<ModuleArchive> archives = repository.getAllArchives();
-		for (final ModuleArchive archive : archives)
+		val builder = StringBuilder()
+		val archives = repository.allArchives
+		for (archive in archives)
 		{
-			builder.append(archive.rootRelativeName);
-			builder.append('\n');
-			final SortedMap<ModuleVersionKey, ModuleVersion> versionMap =
-				archive.getAllKnownVersions();
-			versionMap.forEach((versionKey, version) ->
-			{
-				builder.append('\t');
-				builder.append(versionKey.shortString());
-				builder.append('\n');
-				version.allCompilations().forEach(
-					compilation ->
-					{
-						builder.append("\t\t");
-						builder.append("Rec #");
-						builder.append(compilation.recordNumber);
-						builder.append("\n");
-					}
-				);
-			});
+			builder.append(archive.rootRelativeName)
+			builder.append('\n')
+			val versionMap = archive.allKnownVersions
+			versionMap.forEach { (versionKey, version) ->
+				builder.append('\t')
+				builder.append(versionKey.shortString())
+				builder.append('\n')
+				version.allCompilations.forEach { compilation ->
+					builder.append("\t\t")
+					builder.append("Rec #")
+					builder.append(compilation.recordNumber)
+					builder.append("\n")
+				}
+			}
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
 	 * Describe a single compilation from the repository.  The supplied record
-	 * number should have been one of the values produced by {@link #dumpAll()}.
+	 * number should have been one of the values produced by [dumpAll].
 	 *
-	 * @param recordNumber The record number.
-	 * @return A description of the serialization in the specified record.
+	 * @param recordNumber
+	 *   The record number.
+	 * @return
+	 *   A description of the serialization in the specified record.
 	 */
-	public String describeCompilation (final long recordNumber)
+	fun describeCompilation(recordNumber: Long): String
 	{
-		final byte[] record = repository.repository().get(recordNumber);
-		try
+		val record = repository.repository!![recordNumber]
+		return try
 		{
-			final ByteArrayInputStream stream = validatedBytesFrom(record);
-			final DeserializerDescriber describer =
-				new DeserializerDescriber(stream, AvailRuntime.currentRuntime());
-			return describer.describe();
+			val stream = validatedBytesFrom(record)
+			val describer =
+				DeserializerDescriber(stream, AvailRuntime.currentRuntime())
+			describer.describe()
 		}
-		catch (final MalformedSerialStreamException e)
+		catch (e: MalformedSerialStreamException)
 		{
-			return "Serialized record is malformed";
+			"Serialized record is malformed"
 		}
+
 	}
 }

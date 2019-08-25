@@ -204,7 +204,7 @@ extends AbstractWorkbenchAction
 		{
 			final List<String> triple = new ArrayList<>(3);
 			triple.add(root.name());
-			triple.add(root.repository().fileName().getPath());
+			triple.add(root.repository().getFileName().getPath());
 			final @Nullable File source = root.sourceDirectory();
 			triple.add(source == null ? "" : source.getPath());
 			rootsTableModel.rows().add(triple);
