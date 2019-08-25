@@ -1261,7 +1261,7 @@ extends Descriptor
 	Spliterator<AvailObject> o_Spliterator (final AvailObject object)
 	{
 		object.makeImmutable();
-		return new TupleSpliterator(object, 1, object.tupleSize());
+		return new TupleSpliterator(object, 1, object.tupleSize() + 1);
 	}
 
 	@Override
