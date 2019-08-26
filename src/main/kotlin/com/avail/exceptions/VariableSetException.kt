@@ -1,6 +1,6 @@
 /*
- * VariableSetException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * VariableSetException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
- * {@code VariableSetException} is thrown when {@link AvailObject#setValue}
- * fails for any reason.
+ * `VariableSetException` is thrown when [AvailObject.setValue] fails for any
+ * reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class VariableSetException
-extends AvailRuntimeException
+class VariableSetException : AvailRuntimeException
 {
 	/**
-	 * Construct a new {@code VariableSetException}.
-	 *
-	 * @param errorCode An {@linkplain AvailErrorCode error code}.
-	 */
-	public VariableSetException (final AvailErrorCode errorCode)
-	{
-		super(errorCode);
-	}
-
-	/**
-	 * Construct a new {@code VariableSetException}.
+	 * Construct a new `VariableSetException`.
 	 *
 	 * @param errorCode
-	 *        An {@linkplain AvailErrorCode error code}.
-	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        VariableSetException exception}.
+	 *   An [error code][AvailErrorCode].
 	 */
-	public VariableSetException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
-	{
-		super(errorCode, cause);
-	}
+	constructor(errorCode: AvailErrorCode) : super(errorCode)
+
+	/**
+	 * Construct a new `VariableSetException`.
+	 *
+	 * @param errorCode
+	 *   An [error code][AvailErrorCode].
+	 * @param cause
+	 *   The proximal [cause][Throwable] of the
+	 *   [exception][VariableSetException].
+	 */
+	constructor(errorCode: AvailErrorCode, cause: Throwable)
+		: super(errorCode, cause)
 }

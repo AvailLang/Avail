@@ -1,6 +1,6 @@
 /*
- * MethodDefinitionException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * MethodDefinitionException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,90 +30,85 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.*
 
-import static com.avail.exceptions.AvailErrorCode.*;
+import com.avail.exceptions.AvailErrorCode.*
 
 /**
- * A {@code MethodDefinitionException} is raised whenever an error condition is
- * discovered that pertains to failed resolution of a {@linkplain
- * MethodDescriptor method} or {@linkplain MethodDefinitionDescriptor method
- * definition} or failed invocation of a method definition.
+ * A `MethodDefinitionException` is raised whenever an error condition is
+ * discovered that pertains to failed resolution of a [method][MethodDescriptor]
+ * or [method][MethodDefinitionDescriptor] or failed invocation of a method
+ * definition.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `MethodDefinitionException`.
+ *
+ * @param code
+ *    An [error code][AvailErrorCode].
  */
-public final class MethodDefinitionException
-extends AvailException
+class MethodDefinitionException private constructor(code: AvailErrorCode)
+	: AvailException(code)
 {
-	/**
-	 * Construct a new {@code MethodDefinitionException}.
-	 *
-	 * @param code
-	 *        An {@linkplain AvailErrorCode error code}.
-	 */
-	private MethodDefinitionException (final AvailErrorCode code)
+	companion object
 	{
-		super(code);
-	}
+		/**
+		 * Answer a `MethodDefinitionException` that indicates the nonexistence
+		 * of a [method][MethodDescriptor].
+		 *
+		 * @return
+		 *   The requested exception.
+		 */
+		fun noMethod(): MethodDefinitionException =
+			MethodDefinitionException(E_NO_METHOD)
 
-	/**
-	 * Answer a {@code MethodDefinitionException} that indicates the
-	 * nonexistence of a {@linkplain MethodDescriptor method}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException noMethod ()
-	{
-		return new MethodDefinitionException(E_NO_METHOD);
-	}
+		/**
+		 * Answer a `MethodDefinitionException` that indicates the resolved
+		 * [definition][MethodDefinitionDescriptor] is a
+		 * [forward][ForwardDefinitionDescriptor].
+		 *
+		 * @return
+		 *   The requested exception.
+		 */
+		fun forwardMethod(): MethodDefinitionException =
+			MethodDefinitionException(E_FORWARD_METHOD_DEFINITION)
 
-	/**
-	 * Answer a {@code MethodDefinitionException} that indicates the resolved
-	 * {@linkplain MethodDefinitionDescriptor definition} is a {@linkplain
-	 * ForwardDefinitionDescriptor forward}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException forwardMethod ()
-	{
-		return new MethodDefinitionException(E_FORWARD_METHOD_DEFINITION);
-	}
+		/**
+		 * Answer a `MethodDefinitionException` that indicates the resolved
+		 * [definition][MethodDefinitionDescriptor] is
+		 * [abstract][AbstractDefinitionDescriptor].
+		 *
+		 * @return
+		 *   The requested exception.
+		 */
+		fun abstractMethod(): MethodDefinitionException =
+			MethodDefinitionException(E_ABSTRACT_METHOD_DEFINITION)
 
-	/**
-	 * Answer a {@code MethodDefinitionException} that indicates the resolved
-	 * {@linkplain MethodDefinitionDescriptor definition} is {@linkplain
-	 * AbstractDefinitionDescriptor abstract}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException abstractMethod ()
-	{
-		return new MethodDefinitionException(E_ABSTRACT_METHOD_DEFINITION);
-	}
-
-	/**
-	 * Answer the sole {@link A_Definition} from the given tuple of definitions,
-	 * raising a {@code MethodDefinitionException} if the tuple doesn't have
-	 * exactly one element.
-	 *
-	 * @param methodDefinitions
-	 *        A tuple of {@link A_Definition}s.
-	 * @return The requested exception.
-	 * @throws MethodDefinitionException
-	 *         If the tuple did not contain exactly one definition.
-	 */
-	public static A_Definition extractUniqueMethod (
-			final A_Tuple methodDefinitions)
-		throws MethodDefinitionException
-	{
-		switch (methodDefinitions.tupleSize())
+		/**
+		 * Answer the sole [A_Definition] from the given tuple of definitions,
+		 * raising a `MethodDefinitionException` if the tuple doesn't have
+		 * exactly one element.
+		 *
+		 * @param methodDefinitions
+		 *   A tuple of [A_Definition]s.
+		 * @return
+		 *   The requested exception.
+		 * @throws MethodDefinitionException
+		 *   If the tuple did not contain exactly one definition.
+		 */
+		@Throws(MethodDefinitionException::class)
+		fun extractUniqueMethod(methodDefinitions: A_Tuple): A_Definition
 		{
-			case 0: throw new MethodDefinitionException(E_NO_METHOD_DEFINITION);
-			case 1: return methodDefinitions.tupleAt(1);
-			default: throw new MethodDefinitionException(
-				E_AMBIGUOUS_METHOD_DEFINITION);
+			when (methodDefinitions.tupleSize())
+			{
+				0 -> throw MethodDefinitionException(E_NO_METHOD_DEFINITION)
+				1 -> return methodDefinitions.tupleAt(1)
+				else -> throw MethodDefinitionException(
+					E_AMBIGUOUS_METHOD_DEFINITION)
+			}
 		}
 	}
 }

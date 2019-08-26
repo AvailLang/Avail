@@ -105,7 +105,7 @@ extends Primitive
 					final A_Number errorNumber = cast(errorMessageProducer);
 					final int intValue = errorNumber.extractInt();
 					final @Nullable AvailErrorCode code =
-						AvailErrorCode.byNumericCode(intValue);
+						AvailErrorCode.Companion.byNumericCode(intValue);
 					if (code != null)
 					{
 						builder.append(format(" (= %s)", code.name()));

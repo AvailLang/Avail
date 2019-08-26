@@ -139,7 +139,7 @@ extends Primitive
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(e.errorCode());
+			return interpreter.primitiveFailure(e.getErrorCode());
 		}
 		final int numArgs = function.code().numArgs();
 		final A_Type kind = function.kind();

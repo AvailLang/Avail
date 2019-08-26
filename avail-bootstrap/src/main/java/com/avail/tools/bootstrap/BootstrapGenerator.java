@@ -141,7 +141,7 @@ public final class BootstrapGenerator
 	 */
 	private String errorCodeName (final A_Number numericCode)
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.Companion.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
@@ -157,7 +157,7 @@ public final class BootstrapGenerator
 	 */
 	private String exceptionName (final A_Number numericCode)
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.Companion.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);

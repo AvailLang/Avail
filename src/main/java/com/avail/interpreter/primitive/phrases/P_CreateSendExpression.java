@@ -101,7 +101,7 @@ extends Primitive
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(e.errorCode());
+			return interpreter.primitiveFailure(e.getErrorCode());
 		}
 		return interpreter.primitiveSuccess(
 			newSendNode(emptyTuple(), bundle, argsListNode, returnType));

@@ -1,6 +1,6 @@
 /*
- * ArithmeticException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ArithmeticException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.InfinityDescriptor
+import com.avail.descriptor.IntegerDescriptor
 
 /**
- * An {@code ArithmeticException} is thrown by arithmetic operations.
+ * An `ArithmeticException` is thrown by arithmetic operations.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see InfinityDescriptor
  * @see IntegerDescriptor
  */
-public final class ArithmeticException
-extends AvailRuntimeException
+class ArithmeticException : AvailRuntimeException
 {
 	/**
-	 * Construct a new {@code ArithmeticException} with the specified
-	 * {@linkplain AvailErrorCode error code}.
+	 * Construct a new `ArithmeticException` with the specified
+	 * [error code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 */
-	public ArithmeticException (final AvailErrorCode errorCode)
-	{
-		super(errorCode);
-	}
+	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
 	/**
-	 * Construct a new {@code ArithmeticException} with the specified
-	 * {@linkplain Throwable cause}.
+	 * Construct a new `ArithmeticException` with the specified
+	 * [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        ArithmeticException exception}.
+	 *   The proximal [cause][Throwable] of the [        ].
 	 */
-	public ArithmeticException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
-	{
-		super(errorCode, cause);
-	}
+	constructor(errorCode: AvailErrorCode, cause: Throwable)
+		: super(errorCode, cause)
 }

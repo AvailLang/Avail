@@ -1,6 +1,6 @@
 /*
- * VariableGetException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * VariableGetException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
- * {@code VariableGetException} is thrown when {@link AvailObject#getValue}
- * fails for any reason.
+ * `VariableGetException` is thrown when [AvailObject.getValue] fails for any
+ * reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class VariableGetException
-extends AvailRuntimeException
+class VariableGetException : AvailRuntimeException
 {
 	/**
-	 * Construct a new {@code VariableGetException}.
-	 *
-	 * @param errorCode An {@linkplain AvailErrorCode error code}.
-	 */
-	public VariableGetException (final AvailErrorCode errorCode)
-	{
-		super(errorCode);
-	}
-
-	/**
-	 * Construct a new {@code VariableGetException}.
+	 * Construct a new `VariableGetException`.
 	 *
 	 * @param errorCode
-	 *        An {@linkplain AvailErrorCode error code}.
-	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        VariableGetException exception}.
+	 *   An [error code][AvailErrorCode].
 	 */
-	public VariableGetException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
-	{
-		super(errorCode, cause);
-	}
+	constructor(errorCode: AvailErrorCode) : super(errorCode)
+
+	/**
+	 * Construct a new `VariableGetException`.
+	 *
+	 * @param errorCode
+	 *   An [error code][AvailErrorCode].
+	 * @param cause
+	 *   The proximal [cause][Throwable] of the [        ].
+	 */
+	constructor(errorCode: AvailErrorCode, cause: Throwable)
+		: super(errorCode, cause)
 }

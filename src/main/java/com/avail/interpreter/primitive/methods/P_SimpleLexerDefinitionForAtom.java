@@ -113,7 +113,7 @@ extends Primitive
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(e.errorCode());
+			return interpreter.primitiveFailure(e.getErrorCode());
 		}
 		final A_Method method = bundle.bundleMethod();
 		final A_Lexer lexer = newLexer(

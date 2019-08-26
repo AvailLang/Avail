@@ -1,6 +1,6 @@
 /*
- * AvailEmergencyExitException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailEmergencyExitException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,70 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.A_String
+import com.avail.descriptor.StringDescriptor
 
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static java.lang.String.format;
+import com.avail.descriptor.StringDescriptor.stringFrom
+import java.lang.String.format
 
 /**
- * An {@code AvailEmergencyExitException} is thrown when a primitive fails
- * during system bootstrapping.
+ * An `AvailEmergencyExitException` is thrown when a primitive fails during
+ * system bootstrapping.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class AvailEmergencyExitException
-extends Exception
+class AvailEmergencyExitException : Exception
 {
 	/**
-	 * The {@linkplain StringDescriptor error message} describing the
-	 * emergency exit situation.
+	 * The [error message][StringDescriptor] describing the emergency exit
+	 * situation.
 	 */
-	private final A_String failureString;
+	val failureString: A_String
 
 	/**
-	 * Return the {@linkplain StringDescriptor error message} describing the
-	 * emergency exit situation.
-	 *
-	 * @return The interpretation of the exception.
-	 */
-	public A_String failureString ()
-	{
-		return failureString;
-	}
-
-	/**
-	 * Construct a new {@link AvailEmergencyExitException}.
+	 * Construct a new [AvailEmergencyExitException].
 	 *
 	 * @param failureString
-	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        emergency exit situation.
+	 *   The [error message][StringDescriptor] describing the emergency exit
+	 *   situation.
 	 */
-	public AvailEmergencyExitException (final A_String failureString)
+	constructor(failureString: A_String)
 	{
-		assert failureString.isString();
-		this.failureString = failureString;
+		assert(failureString.isString)
+		this.failureString = failureString
 	}
 
 	/**
-	 * Construct a new {@link AvailEmergencyExitException}.
+	 * Construct a new [AvailEmergencyExitException].
 	 *
 	 * @param failureString
-	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        emergency exit situation.
+	 *   The [error message][StringDescriptor] describing the emergency exit
+	 *   situation.
 	 */
-	public AvailEmergencyExitException (final String failureString)
+	constructor(failureString: String)
 	{
-		this.failureString = stringFrom(failureString);
+		this.failureString = stringFrom(failureString)
 	}
 
-	@Override
-	public String getMessage ()
-	{
-		return format(
-			"A bootstrap operation failed: %s%n",
-			failureString.asNativeString());
-	}
+	override val message: String
+		get()
+		{
+			return format(
+				"A bootstrap operation failed: %s%n",
+				failureString.asNativeString())
+		}
 }

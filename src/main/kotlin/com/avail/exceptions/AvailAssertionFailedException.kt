@@ -1,6 +1,6 @@
 /*
- * AvailAssertionFailedException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailAssertionFailedException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,72 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.A_String
+import com.avail.descriptor.StringDescriptor
 
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static java.lang.String.format;
+import com.avail.descriptor.StringDescriptor.stringFrom
+import java.lang.String.format
 
 /**
- * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
+ * An `AvailAssertionFailedException` is thrown when an Avail assertion
  * fails.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailAssertionFailedException
-extends Exception
+class AvailAssertionFailedException : Exception
 {
 	/**
-	 * The {@linkplain StringDescriptor error message} describing the
-	 * assertion.
+	 * The [error message][StringDescriptor] describing the assertion.
 	 */
-	private final A_String assertionString;
+	val assertionString: A_String
 
 	/**
-	 * Return the {@linkplain StringDescriptor error message} describing the
-	 * assertion.
-	 *
-	 * @return The interpretation of the assertion.
-	 */
-	public A_String assertionString ()
-	{
-		return assertionString;
-	}
-
-	/**
-	 * Construct a new {@code AvailAssertionFailedException}.
+	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        assertion.
+	 *   The [error message][StringDescriptor] describing the assertion.
 	 */
-	public AvailAssertionFailedException (
-		final A_String assertionString)
+	constructor(assertionString: A_String)
 	{
-		assert assertionString.isString();
-		this.assertionString = assertionString;
+		assert(assertionString.isString)
+		this.assertionString = assertionString
 	}
 
 	/**
-	 * Construct a new {@code AvailAssertionFailedException}.
+	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        assertion.
+	 *   The [error message][StringDescriptor] describing the assertion.
 	 */
-	public AvailAssertionFailedException (
-		final String assertionString)
+	constructor(assertionString: String)
 	{
-		this.assertionString = stringFrom(assertionString);
+		this.assertionString = stringFrom(assertionString)
 	}
 
-	@Override
-	public String getMessage ()
-	{
-		return format(
-			"An assertion failed: %s%n",
-			assertionString.asNativeString());
-	}
+	override val message: String
+		get()
+		{
+			return format(
+				"An assertion failed: %s%n",
+				assertionString.asNativeString())
+		}
 }

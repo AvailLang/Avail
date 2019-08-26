@@ -468,7 +468,8 @@ class MessageSplitter
 		catch (e: MalformedMessageException)
 		{
 			// Add contextual text and rethrow it.
-			throw MalformedMessageException(e.errorCode()) {
+			throw MalformedMessageException(e.errorCode)
+			{
 				val builder = StringBuilder()
 				builder.append(e.describeProblem())
 				builder.append(". See arrow (")
@@ -1775,8 +1776,7 @@ class MessageSplitter
 		@JvmStatic
 		@Throws(MalformedMessageException::class)
 		fun throwMalformedMessageException(
-			errorCode: AvailErrorCode,
-			errorMessage: String): Nothing
+			errorCode: AvailErrorCode, errorMessage: String): Nothing
 		{
 			throw MalformedMessageException(errorCode) { errorMessage }
 		}

@@ -750,7 +750,7 @@ extends Descriptor
 				catch (final MalformedMessageException e)
 				{
 					assert false : "This should not happen!";
-					throw new AvailRuntimeException(e.errorCode());
+					throw new AvailRuntimeException(e.getErrorCode());
 				}
 			}
 		}

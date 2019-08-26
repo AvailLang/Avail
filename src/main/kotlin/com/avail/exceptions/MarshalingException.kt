@@ -1,6 +1,6 @@
 /*
- * MarshalingException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * MarshalingException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 
 /**
- * {@code MarshalingException} indicates that an error occurred during the
- * marshaling of an {@linkplain AvailObject Avail object} to Java.
+ * `MarshalingException` indicates that an error occurred during the
+ * marshaling of an [Avail object][AvailObject] to Java.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class MarshalingException
-extends AvailRuntimeException
+class MarshalingException : AvailRuntimeException
 {
-	/**
-	 * Construct a new {@code MarshalingException}.
-	 */
-	public MarshalingException ()
-	{
-		super(E_JAVA_MARSHALING_FAILED);
-	}
+	/** Construct a new `MarshalingException`. */
+	constructor() : super(E_JAVA_MARSHALING_FAILED)
 
 	/**
-	 * Construct a new {@code MarshalingException}.
+	 * Construct a new `MarshalingException`.
 	 *
 	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@code
-	 *        MarshalingException exception}.
+	 *   The proximal [cause][Throwable] of the `MarshalingException exception`.
 	 */
-	public MarshalingException (final Throwable cause)
-	{
-		super(E_JAVA_MARSHALING_FAILED, cause);
-	}
+	constructor(cause: Throwable) : super(E_JAVA_MARSHALING_FAILED, cause)
 }

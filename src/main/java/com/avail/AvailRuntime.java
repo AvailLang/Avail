@@ -943,7 +943,7 @@ public final class AvailRuntime
 		specials[18] = extendedIntegersMeta();
 		specials[19] = mapMeta();
 		specials[20] = MODULE.o();
-		specials[21] = tupleFromIntegerList(allNumericCodes());
+		specials[21] = tupleFromIntegerList(Companion.allNumericCodes());
 		specials[22] = mostGeneralObjectType();
 		specials[23] = mostGeneralObjectMeta();
 		specials[24] = exceptionType();

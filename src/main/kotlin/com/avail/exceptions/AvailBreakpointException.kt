@@ -1,6 +1,6 @@
 /*
- * AvailBreakpointException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailBreakpointException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.interpreter.primitive.general.P_BreakPoint;
+import com.avail.interpreter.primitive.general.P_BreakPoint
 
 /**
- * {@code AvailBreakpointException} is thrown by {@link P_BreakPoint} and then
- * immediately caught. The Java debugger may be configured to trap when this
- * exception is raised, thereby permitting VM-debugging within the context of
- * specific Avail code.
+ * `AvailBreakpointException` is thrown by [P_BreakPoint] and then immediately
+ * caught. The Java debugger may be configured to trap when this exception is
+ * raised, thereby permitting VM-debugging within the context of specific Avail
+ * code.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class AvailBreakpointException
-extends RuntimeException
-{
-}
+class AvailBreakpointException : RuntimeException()

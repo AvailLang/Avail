@@ -125,7 +125,7 @@ extends PropertiesFileGenerator
 			for (final A_Number code : unreachableErrorCodes)
 			{
 				unreachable.add(
-					AvailErrorCode.byNumericCode(code.extractInt()));
+					AvailErrorCode.Companion.byNumericCode(code.extractInt()));
 			}
 			System.err.printf(
 				"some error codes are unreachable: %s%n",

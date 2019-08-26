@@ -2828,7 +2828,7 @@ public final class AvailCompiler
 						+ "(while parsing send of "
 						+ bundle.message().atomName().asNativeString()
 						+ "):\n\t"
-						+ ex.assertionString().asNativeString());
+						+ ex.getAssertionString().asNativeString());
 				}
 				else
 				{

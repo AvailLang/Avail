@@ -127,7 +127,7 @@ extends Primitive
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(e.errorCode());
+			return interpreter.primitiveFailure(e.getErrorCode());
 		}
 		newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle);
 		if (loader.phase() == EXECUTING_FOR_COMPILE)

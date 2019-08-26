@@ -1,6 +1,6 @@
 /*
- * MalformedMessageException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * MalformedMessageException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter
 
-import java.util.function.Supplier;
+import java.util.function.Supplier
 
 /**
- * A {@code MalformedMessageException} is thrown when a method name is malformed
+ * A `MalformedMessageException` is thrown when a method name is malformed
  * and therefore cannot be converted to parsing instructions.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @see SignatureException
+ *
+ * @property descriptionSupplier
+ *   A [Supplier] that can produce a description of what the problem is with the
+ *   message name.
+ *
+ * @constructor
+ * Construct a new `MalformedMessageException` with the specified
+ * [error code][AvailErrorCode] and the specified [Supplier] that describes the
+ * problem.
+ *
+ * @param errorCode
+ *   The [error code][AvailErrorCode].
+ * @param descriptionSupplier
+ *   A [Supplier] that produces a [String] describing what was malformed about
+ *   the signature that failed to be parsed by a [MessageSplitter].
  */
-public final class MalformedMessageException
-extends AvailException
+class MalformedMessageException constructor(
+		errorCode: AvailErrorCode,
+		private val descriptionSupplier: () -> String)
+	: AvailException(errorCode)
 {
-	/**
-	 * A {@link Supplier} that can produce a description of what the problem
-	 * is with the message name.
-	 */
-	private final Supplier<String> descriptionSupplier;
-
-	/**
-	 * Construct a new {@code MalformedMessageException} with the specified
-	 * {@linkplain AvailErrorCode error code} and the specified {@link Supplier}
-	 * that describes the problem.
-	 *
-	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
-	 * @param descriptionSupplier
-	 *        A {@link Supplier} that produces a {@link String} describing what
-	 *        was malformed about the signature that failed to be parsed by a
-	 *        {@link MessageSplitter}.
-	 */
-	public MalformedMessageException (
-		final AvailErrorCode errorCode,
-		final Supplier<String> descriptionSupplier)
-	{
-		super(errorCode);
-		this.descriptionSupplier = descriptionSupplier;
-	}
-
 	/**
 	 * Answer a description of how the signature is malformed.
 	 *
-	 * @return A description of what is wrong with the signature being analyzed.
+	 * @return
+	 *   A description of what is wrong with the signature being analyzed.
 	 */
-	public String describeProblem ()
-	{
-		return descriptionSupplier.get();
-	}
+	fun describeProblem(): String = descriptionSupplier.invoke()
 }

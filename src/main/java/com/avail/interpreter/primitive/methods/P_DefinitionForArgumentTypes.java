@@ -81,7 +81,7 @@ extends Primitive
 		{
 			if (bundle.equalsNil())
 			{
-				throw MethodDefinitionException.noMethod();
+				throw MethodDefinitionException.Companion.noMethod();
 			}
 			if (bundle.bundleMethod().numArgs() != argTypes.tupleSize())
 			{
@@ -95,7 +95,7 @@ extends Primitive
 		}
 		catch (final MethodDefinitionException e)
 		{
-			return interpreter.primitiveFailure(e.errorCode());
+			return interpreter.primitiveFailure(e.getErrorCode());
 		}
 	}
 

@@ -1,6 +1,6 @@
 /*
- * AvailException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,74 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.AvailObject;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.descriptor.A_Number
+import com.avail.descriptor.AvailObject
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * {@code AvailException} is the root of the hierarchy of {@linkplain Exception
- * exceptions} that are specific to the implementation of {@link AvailObject}
- * and its numerous primitive operations.
+ * `AvailException` is the root of the hierarchy of [exceptions][Exception] that
+ * are specific to the implementation of [AvailObject] and its numerous
+ * primitive operations.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailException
-extends Exception
+open class AvailException : Exception
 {
-	/** The {@linkplain AvailObject error value}. */
-	private final AvailErrorCode errorCode;
+	/** The [error value][AvailObject].  */
+	val errorCode: AvailErrorCode
 
 	/**
-	 * Answer the {@linkplain AvailErrorCode error code}.
+	 * Answer the [error code][AvailErrorCode].
 	 *
-	 * @return The error code.
+	 * @return
+	 *   The error code.
 	 */
-	public AvailErrorCode errorCode ()
-	{
-		return errorCode;
-	}
+	fun errorCode(): AvailErrorCode = errorCode
 
 	/**
-	 * Answer the numeric error code as an {@linkplain AvailObject Avail
-	 * object}.
+	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
-	 * @return The {@linkplain AvailObject numeric error code}.
+	 * @return
+	 *   The [numeric error code][AvailObject].
 	 */
 	@ReferencedInGeneratedCode
-	public A_Number numericCode ()
-	{
-		return errorCode.numericCode();
-	}
+	fun numericCode(): A_Number = errorCode.numericCode()
 
 	/**
-	 * Construct a new {@code AvailException} with the specified {@linkplain
-	 * AvailErrorCode error code}.
+	 * Construct a new `AvailException` with the specified
+	 * [error code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 */
-	public AvailException (final AvailErrorCode errorCode)
+	constructor(errorCode: AvailErrorCode)
 	{
-		this.errorCode = errorCode;
+		this.errorCode = errorCode
 	}
 
 	/**
-	 * Construct a new {@code AvailException} with the specified {@linkplain
-	 * AvailErrorCode error code} and {@linkplain Throwable cause}.
+	 * Construct a new `AvailException` with the specified
+	 * [error code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailException exception}.
+	 *   The proximal [cause][Throwable] of the [        ].
 	 */
-	public AvailException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
+	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
 	{
-		super(cause);
-		this.errorCode = errorCode;
+		this.errorCode = errorCode
 	}
 }

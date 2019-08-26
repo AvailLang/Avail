@@ -283,7 +283,7 @@ public final class L1InstructionStepper
 					catch (final MethodDefinitionException e)
 					{
 						return reifyAndReportFailedLookup(
-							method, e.errorCode());
+							method, e.getErrorCode());
 					}
 					finally
 					{
@@ -669,7 +669,7 @@ public final class L1InstructionStepper
 					catch (final MethodDefinitionException e)
 					{
 						return reifyAndReportFailedLookup(
-							method, e.errorCode());
+							method, e.getErrorCode());
 					}
 					finally
 					{

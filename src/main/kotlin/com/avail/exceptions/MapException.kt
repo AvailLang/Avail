@@ -1,6 +1,6 @@
 /*
- * MapException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * MapException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.MapBinDescriptor;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MapBinDescriptor
+import com.avail.descriptor.MapDescriptor
 
 /**
- * A {@code MapException} is thrown by map operations.
+ * A `MapException` is thrown by map operations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @see MapDescriptor
  * @see MapBinDescriptor
  */
-public final class MapException
-extends AvailRuntimeException
+class MapException : AvailRuntimeException
 {
 	/**
-	 * Construct a new {@code MapException} with the specified
-	 * {@linkplain AvailErrorCode error code}.
+	 * Construct a new `MapException` with the specified
+	 * [error code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 */
-	public MapException (final AvailErrorCode errorCode)
+	constructor(errorCode: AvailErrorCode) : super(errorCode)
 	{
-		super(errorCode);
 	}
 
 	/**
-	 * Construct a new {@code MapException} with the specified
-	 * {@linkplain Throwable cause}.
+	 * Construct a new `MapException` with the specified [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        MapException exception}.
+	 *   The proximal [cause][Throwable] of the [        ].
 	 */
-	public MapException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
-	{
-		super(errorCode, cause);
-	}
+	constructor(errorCode: AvailErrorCode, cause: Throwable)
+		: super(errorCode, cause)
 }

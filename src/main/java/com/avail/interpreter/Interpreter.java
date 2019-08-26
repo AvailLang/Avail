@@ -1360,7 +1360,7 @@ public final class Interpreter
 					if (latestResult().isInt())
 					{
 						final int errorInt = latestResult().extractInt();
-						errorCode = byNumericCode(errorInt);
+						errorCode = Companion.byNumericCode(errorInt);
 					}
 				}
 				final String failPart = errorCode != null

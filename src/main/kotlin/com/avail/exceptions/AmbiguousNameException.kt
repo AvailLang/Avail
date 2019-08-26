@@ -1,6 +1,6 @@
 /*
- * AmbiguousNameException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AmbiguousNameException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AtomDescriptor
 
 /**
- * An {@code AmbiguousNameException} is thrown when a simple string name could
- * represent multiple {@linkplain AtomDescriptor true names}.
+ * An `AmbiguousNameException` is thrown when a simple string name could
+ * represent multiple [true names][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `AmbiguousNameException`.
  */
-public final class AmbiguousNameException
-extends AvailException
-{
-	/**
-	 * Construct a new {@code AmbiguousNameException}.
-	 */
-	public AmbiguousNameException ()
-	{
-		super(AvailErrorCode.E_AMBIGUOUS_NAME);
-	}
-}
+class AmbiguousNameException : AvailException(AvailErrorCode.E_AMBIGUOUS_NAME)

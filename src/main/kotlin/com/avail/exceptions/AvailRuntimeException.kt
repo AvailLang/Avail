@@ -1,6 +1,6 @@
 /*
- * AvailRuntimeException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailRuntimeException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,75 +30,65 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.AvailObject;
-
-import javax.annotation.Nullable;
+import com.avail.descriptor.A_Number
+import com.avail.descriptor.AvailObject
 
 /**
- * {@code AvailRuntimeException} is the root of the hierarchy of {@linkplain
- * RuntimeException runtime exceptions} that are specific to the implementation
- * of {@link AvailObject} and its numerous primitive operations.
+ * `AvailRuntimeException` is the root of the hierarchy of
+ * [runtime exception][RuntimeException] that are specific to the implementation
+ * of [AvailObject] and its numerous primitive operations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailRuntimeException
-extends RuntimeException
+open class AvailRuntimeException : RuntimeException
 {
-	/** The {@linkplain AvailErrorCode error code}. */
-	private final AvailErrorCode errorCode;
+	/** The [error code][AvailErrorCode].  */
+	private val errorCode: AvailErrorCode
 
 	/**
-	 * Answer the numeric error code as an {@linkplain AvailObject Avail
-	 * object}.
+	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
-	 * @return The {@linkplain AvailObject numeric error code}.
+	 * @return
+	 *   The [numeric error code][AvailObject].
 	 */
-	public A_Number numericCode ()
+	fun numericCode(): A_Number = errorCode.numericCode()
+
+	/**
+	 * Construct a new `AvailRuntimeException` with the specified
+	 * [error code][AvailErrorCode].
+	 *
+	 * @param errorCode
+	 *   The [error code][AvailErrorCode].
+	 */
+	constructor(errorCode: AvailErrorCode)
 	{
-		return errorCode.numericCode();
+		this.errorCode = errorCode
 	}
 
 	/**
-	 * Construct a new {@code AvailRuntimeException} with the specified
-	 * {@linkplain AvailErrorCode error code}.
+	 * Construct a new `AvailRuntimeException` with the specified
+	 * [error code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
-	 */
-	public AvailRuntimeException (final AvailErrorCode errorCode)
-	{
-		this.errorCode = errorCode;
-	}
-
-	/**
-	 * Construct a new {@code AvailRuntimeException} with the specified
-	 * {@linkplain AvailErrorCode error code} and {@linkplain Throwable cause}.
-	 *
-	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
+	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailException exception}.
+	 *   The proximal [cause][Throwable] of the [exception][AvailException].
 	 */
-	public AvailRuntimeException (
-		final AvailErrorCode errorCode,
-		final Throwable cause)
+	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
 	{
-		super(cause);
-		this.errorCode = errorCode;
+		this.errorCode = errorCode
 	}
 
-	@Override
-	public String getMessage ()
-	{
-		@Nullable String message = super.getMessage();
-		if (message == null)
+	override val message: String
+		get ()
 		{
-			message = errorCode.toString();
+			var message: String? = super.message
+			if (message == null)
+			{
+				message = errorCode.toString()
+			}
+			return message
 		}
-		return message;
-	}
 }

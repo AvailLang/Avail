@@ -1,6 +1,6 @@
 /*
- * PrimitiveThrownException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * PrimitiveThrownException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.FiberDescriptor
 
 /**
- * A {@code PrimitiveThrownException} may be thrown from a primitive as a way to
- * terminate a {@linkplain FiberDescriptor fiber}, causing its {@linkplain
- * A_Fiber#failureContinuation() failure continuation} to be executed.
+ * A `PrimitiveThrownException` may be thrown from a primitive as a way to
+ * terminate a [fiber][FiberDescriptor], causing its
+ * [failure continuation][A_Fiber.failureContinuation] to be executed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class PrimitiveThrownException
-extends RuntimeException
-{
-}
+open class PrimitiveThrownException : RuntimeException()

@@ -1,6 +1,6 @@
 /*
- * AvailUnsupportedOperationException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailUnsupportedOperationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.AbstractDescriptor
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.Descriptor
 
-import static java.lang.String.format;
+import java.lang.String.format
 
 /**
- * An {@code AvailUnsupportedOperationException} is thrown whenever an
- * {@linkplain AvailObject Avail object}'s {@linkplain Descriptor descriptor} is
- * asked to perform an unsupported operation.
+ * An `AvailUnsupportedOperationException` is thrown whenever an
+ * [Avail object][AvailObject]'s [descriptor][Descriptor] is asked to perform an
+ * unsupported operation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `AvailUnsupportedOperationException`.
+ *
+ * @param descriptorClass
+ *   The [descriptor][AbstractDescriptor]'s [class][Class].
+ * @param messageName
+ *   The name of the unsupported operation.
  */
-public final class AvailUnsupportedOperationException
-extends RuntimeException
-{
-	/**
-	 * Construct a new {@code AvailUnsupportedOperationException}.
-	 *
-	 * @param descriptorClass
-	 *        The {@linkplain AbstractDescriptor descriptor}'s {@linkplain
-	 *        Class class}.
-	 * @param messageName
-	 *        The name of the unsupported operation.
-	 */
-	public AvailUnsupportedOperationException (
-		final Class<? extends AbstractDescriptor> descriptorClass,
-		final String messageName)
-	{
-		super(format(
-			"%s does not meaningfully implement %s",
-			descriptorClass.getSimpleName(),
-			messageName));
-	}
-}
+class AvailUnsupportedOperationException constructor(
+		descriptorClass: Class<out AbstractDescriptor>, messageName: String)
+	: RuntimeException(
+		"$descriptorClass.simpleName does not meaningfully implement " +
+			messageName)

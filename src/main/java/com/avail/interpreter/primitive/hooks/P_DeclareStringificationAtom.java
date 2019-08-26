@@ -95,7 +95,7 @@ extends Primitive
 		catch (final MalformedMessageException e)
 		{
 			assert false : "This should never happen!";
-			throw new AvailRuntimeException(e.errorCode());
+			throw new AvailRuntimeException(e.getErrorCode());
 		}
 		final A_Function function =
 			createFunction(writer.compiledCode(), emptyTuple());

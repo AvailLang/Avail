@@ -275,11 +275,11 @@ extends L2ControlFlowOperation
 		}
 		if (definitionToCall.isAbstractDefinition())
 		{
-			throw MethodDefinitionException.abstractMethod();
+			throw MethodDefinitionException.Companion.abstractMethod();
 		}
 		if (definitionToCall.isForwardDefinition())
 		{
-			throw MethodDefinitionException.forwardMethod();
+			throw MethodDefinitionException.Companion.forwardMethod();
 		}
 		return definitionToCall.bodyBlock();
 	}

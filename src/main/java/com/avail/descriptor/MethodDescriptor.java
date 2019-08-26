@@ -571,7 +571,7 @@ extends Descriptor
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple resultTuple =
 			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, TRUE);
-		return MethodDefinitionException.extractUniqueMethod(resultTuple);
+		return MethodDefinitionException.Companion.extractUniqueMethod(resultTuple);
 	}
 
 	/**
@@ -589,7 +589,7 @@ extends Descriptor
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
 			runtimeDispatcher.lookupByValues(tree, argumentList, TRUE);
-		return MethodDefinitionException.extractUniqueMethod(results);
+		return MethodDefinitionException.Companion.extractUniqueMethod(results);
 	}
 
 	/**

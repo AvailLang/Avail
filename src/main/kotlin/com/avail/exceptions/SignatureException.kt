@@ -1,6 +1,6 @@
 /*
- * SignatureException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SignatureException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.exceptions;
+package com.avail.exceptions
 
-import com.avail.descriptor.DefinitionDescriptor;
+import com.avail.descriptor.DefinitionDescriptor
 
 /**
- * A {@code SignatureException} is thrown when a {@linkplain
- * DefinitionDescriptor definition} of a method is invalid.  This might indicate
- * a compatibility problem between the argument signature and the message name,
- * or perhaps an inconsistency between the signature and other signatures
- * already installed in the system.
+ * A `SignatureException` is thrown when a [definition][DefinitionDescriptor] of
+ * a method is invalid.  This might indicate a compatibility problem between the
+ * argument signature and the message name, or perhaps an inconsistency between
+ * the signature and other signatures already installed in the system.
  *
- * <p>Note that this is distinct from a {@link MalformedMessageException}, which
- * indicates a syntactic error in the message name itself.</p>
+ * Note that this is distinct from a [MalformedMessageException], which
+ * indicates a syntactic error in the message name itself.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @see DefinitionDescriptor
  * @see MalformedMessageException
+ *
+ * @constructor
+ * Construct a new `SignatureException` with the specified
+ * [error code][AvailErrorCode].
+ *
+ * @param errorCode
+ *   The [error code][AvailErrorCode].
  */
-public final class SignatureException
-extends AvailException
-{
-	/**
-	 * Construct a new {@code SignatureException} with the specified {@linkplain
-	 * AvailErrorCode error code}.
-	 *
-	 * @param errorCode
-	 *        The {@linkplain AvailErrorCode error code}.
-	 */
-	public SignatureException (
-		final AvailErrorCode errorCode)
-	{
-		super(errorCode);
-	}
-}
+class SignatureException constructor(errorCode: AvailErrorCode)
+	: AvailException(errorCode)
