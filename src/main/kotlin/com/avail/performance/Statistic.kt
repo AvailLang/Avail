@@ -30,108 +30,100 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.performance;
+package com.avail.performance
 
-import java.util.function.Supplier;
+import com.avail.AvailRuntimeConfiguration.maxInterpreters
 
-import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
-
-/** An immutable collection of related statistics. */
-public class Statistic
+/**
+ * An immutable collection of related statistics.
+ *
+ * @property nameSupplier
+ *   The name of this [Statistic].
+ *
+ * @constructor
+ * Construct a new `Statistic` with the given name.
+ *
+ * @param nameSupplier
+ *   A lambda that supplies the name for this statistic.
+ * @param report
+ *   The report under which this statistic is classified.
+ */
+class Statistic constructor(
+	private val nameSupplier: () -> String, report: StatisticReport)
 {
-	/** The name of this {@link Statistic}. */
-	public final Supplier<String> nameSupplier;
-
-	/** The array of {@link PerInterpreterStatistic}s. */
-	public final PerInterpreterStatistic[] statistics;
+	/** The array of [PerInterpreterStatistic]s.  */
+	val statistics: Array<PerInterpreterStatistic>
 
 	/**
-	 * Answer the name of this {@code Statistic}.  Note that the {@link
-	 * #nameSupplier} may produce different {@link String}s at different times.
+	 * Answer the name of this `Statistic`.  Note that the [nameSupplier] may
+	 * produce different [String]s at different times.
 	 *
-	 * @return The statistic's current name.
+	 * @return
+	 *   The statistic's current name.
 	 */
-	public String name ()
-	{
-		return nameSupplier.get();
-	}
+	fun name(): String = nameSupplier.invoke()
 
-	/**
-	 * Construct a new {@code Statistic} with the given name.
-	 *
-	 * @param nameSupplier
-	 *        A {@link Supplier} of the name for this statistic.
-	 * @param report
-	 *        The report under which this statistic is classified.
-	 */
-	public Statistic (
-		final Supplier<String> nameSupplier,
-		final StatisticReport report)
+	init
 	{
-		this.nameSupplier = nameSupplier;
-		statistics = new PerInterpreterStatistic[maxInterpreters];
-		for (int i = 0; i < statistics.length; i++)
+		val temp =
+			arrayOfNulls<PerInterpreterStatistic>(maxInterpreters)
+		for (i in 0 until maxInterpreters)
 		{
-			statistics[i] = new PerInterpreterStatistic();
+			temp[i] = PerInterpreterStatistic.emptyStatistic()
 		}
-		//noinspection ThisEscapedInObjectConstruction
-		report.registerStatistic(this);
+		statistics = temp.requireNoNulls()
+		report.registerStatistic(this)
 	}
 
 	/**
-	 * Construct a new {@code Statistic} with the given fixed name.
+	 * Construct a new `Statistic` with the given fixed name.
 	 *
 	 * @param name
-	 *        The name to give this statistic.
+	 *   The name to give this statistic.
 	 * @param report
-	 *        The report under which this statistic is classified.
+	 *   The report under which this statistic is classified.
 	 */
-	public Statistic (final String name, final StatisticReport report)
-	{
-		this(() -> name, report);
-	}
+	constructor(name: String, report: StatisticReport) : this({ name }, report)
 
 	/**
-	 * Record a sample in my {@link PerInterpreterStatistic} having the
-	 * specified contention-avoidance index.
+	 * Record a sample in my [PerInterpreterStatistic] having the specified
+	 * contention-avoidance index.
 	 *
 	 * @param sample
-	 *        The sample to add.
+	 *   The sample to add.
 	 * @param index
-	 *        The index specifying which {@link PerInterpreterStatistic} to add
-	 *        the sample to.
+	 *   The index specifying which [PerInterpreterStatistic] to add the sample
+	 *   to.
 	 */
-	public void record (final double sample, final int index)
+	fun record(sample: Double, index: Int)
 	{
-		statistics[index].record(sample);
+		statistics[index].record(sample)
 	}
 
 	/**
-	 * Aggregate the information from my array of {@link
-	 * PerInterpreterStatistic}s, and return it as a new {@code
-	 * PerInterpreterStatistic}.
+	 * Aggregate the information from my array of [PerInterpreterStatistic]s,
+	 * and return it as a new `PerInterpreterStatistic`.
 	 *
-	 * @return The aggregated {@code PerInterpreterStatistic}.
+	 * @return
+	 *   The aggregated `PerInterpreterStatistic`.
 	 */
-	public PerInterpreterStatistic aggregate ()
+	fun aggregate(): PerInterpreterStatistic
 	{
-		final PerInterpreterStatistic accumulator =
-			new PerInterpreterStatistic();
-		for (final PerInterpreterStatistic each : statistics)
+		val accumulator =
+			PerInterpreterStatistic.emptyStatistic()
+		for (each in statistics)
 		{
-			each.addTo(accumulator);
+			each.addTo(accumulator)
 		}
-		return accumulator;
+		return accumulator
 	}
 
-	/**
-	 * Clear each of my {@link PerInterpreterStatistic}s.
-	 */
-	public void clear ()
+	/** Clear each of my [PerInterpreterStatistic]s. */
+	fun clear()
 	{
-		for (final PerInterpreterStatistic each : statistics)
+		for (each in statistics)
 		{
-			each.clear();
+			each.clear()
 		}
 	}
 }

@@ -30,115 +30,90 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.performance;
+package com.avail.performance
 
-import com.avail.AvailRuntimeConfiguration;
-import com.avail.interpreter.Interpreter;
+import com.avail.AvailRuntimeConfiguration
+import com.avail.interpreter.Interpreter
 
-import javax.annotation.Nullable;
-
-import static java.lang.Math.sqrt;
-import static java.lang.String.format;
+import java.lang.Math.sqrt
+import java.lang.String.format
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * A {@code PerInterpreterStatistic} is an incremental, summarized recording of
+ * A `PerInterpreterStatistic` is an incremental, summarized recording of
  * a set of integral values and times.  It is synchronized, although the typical
- * usage is that it will only be written by a single {@link Thread} at a time,
- * and read by another {@link Thread} only rarely.
+ * usage is that it will only be written by a single [Thread] at a time,
+ * and read by another [Thread] only rarely.
  *
- * <p>If you want to record samples from multiple processes, use a Statistic,
- * which holds a PerInterpreterStatistic for up to {@link
- * AvailRuntimeConfiguration#maxInterpreters} separate Threads to access,
- * without any locks.</p>
+ *
+ * If you want to record samples from multiple processes, use a Statistic,
+ * which holds a PerInterpreterStatistic for up to
+ * [AvailRuntimeConfiguration.maxInterpreters] separate Threads to access,
+ * without any locks.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property count
+ *  The number of samples recorded so far.
+ * @property min
+ *  The smallest sample yet encountered.
+ * @property max
+ *   The largest sample yet encountered.
+ * @property mean
+ *   The average of all samples recorded so far.
+ * @property sumOfDeltaSquares
+ *   The sum of the squares of differences from the current mean.  This is more
+ *   numerically stable in calculating the variance than the sum of squares of
+ *   the samples.  See <cite> Donald E. Knuth (1998). The Art of Computer
+ *   Programming, volume 2: Seminumerical Algorithms, 3rd edn., p. 232. Boston:
+ *   Addison-Wesley</cite>.  That cites a 1962 paper by <cite>B. P.
+ *   Welford</cite>.
+ * @constructor
+ * Construct a new statistic with the given values.
+ *
+ * @param count
+ *   The number of samples.
+ * @param min
+ *   The minimum sample.
+ * @param max
+ *   The maximum sample.
+ * @param mean
+ *   The mean of the samples.
+ * @param sumOfDeltaSquares
+ *   The sum of squares of differences of the samples from the mean.
  */
-public class PerInterpreterStatistic
-implements Comparable<PerInterpreterStatistic>
+class PerInterpreterStatistic internal constructor(
+	private var count: Long,
+	private var min: Double,
+	private var max: Double,
+	private var mean: Double,
+	private var sumOfDeltaSquares: Double) : Comparable<PerInterpreterStatistic>
 {
-	/** The number of samples recorded so far. */
-	private long count;
 
-	/** The smallest sample yet encountered. */
-	private double min;
-
-	/** The largest sample yet encountered. */
-	private double max;
-
-	/** The average of all samples recorded so far. */
-	private double mean;
-
-	/**
-	 * The sum of the squares of differences from the current mean.  This is
-	 * more numerically stable in calculating the variance than the sum of
-	 * squares of the samples.  See <cite> Donald E. Knuth (1998). The Art
-	 * of Computer Programming, volume 2: Seminumerical Algorithms, 3rd
-	 * edn., p. 232. Boston: Addison-Wesley</cite>.  That cites a 1962 paper
-	 * by <cite>B. P. Welford</cite>.
-	 */
-	private double sumOfDeltaSquares;
-
-	/**
-	 * Construct a new statistic with the given values.
-	 *
-	 * @param count The number of samples.
-	 * @param min The minimum sample.
-	 * @param max The maximum sample.
-	 * @param mean The mean of the samples.
-	 * @param sumOfDeltaSquares
-	 *        The sum of squares of differences of the samples from the mean.
-	 */
-	PerInterpreterStatistic (
-		final long count,
-		final double min,
-		final double max,
-		final double mean,
-		final double sumOfDeltaSquares)
-	{
-		this.count = count;
-		this.min = min;
-		this.max = max;
-		this.mean = mean;
-		this.sumOfDeltaSquares = sumOfDeltaSquares;
-	}
-
-	/**
-	 * Create an empty statistic.
-	 */
-	PerInterpreterStatistic ()
-	{
-		this(0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.0, 0.0);
-	}
-
-	/** Default sort is descending by sum. */
-	@Override
-	public int compareTo (final @Nullable PerInterpreterStatistic otherStat)
+	/** Default sort is descending by sum.  */
+	override operator fun compareTo(other: PerInterpreterStatistic): Int
 	{
 		// Compare by descending sums.
-		assert otherStat != null;
-		return Double.compare(otherStat.sum(), this.sum());
+		return other.sum().compareTo(this.sum())
 	}
 
 	/**
 	 * Return the number of samples that have been recorded.
 	 *
-	 * @return The sample count.
+	 * @return
+	 *   The sample count.
 	 */
-	public synchronized long count ()
-	{
-		return count;
-	}
+	@Synchronized fun count(): Long = count
 
 	/**
-	 * Return the sum of the samples.  This is thread-safe, but may block if
-	 * an update (or other read) is in progress.
+	 * Return the sum of the samples.  This is thread-safe, but may block if an
+	 * update (or other read) is in progress.
 	 *
-	 * @return The sum of the samples.
+	 * @return
+	 *   The sum of the samples.
 	 */
-	public synchronized double sum ()
-	{
-		return mean * count;
-	}
+	@Synchronized fun sum(): Double = mean * count
 
 	/**
 	 * Answer the corrected variance of the samples.  This is the sum of squares
@@ -146,29 +121,26 @@ implements Comparable<PerInterpreterStatistic>
 	 * samples.  Fudge it for less than two samples, pretending the variance is
 	 * zero rather than undefined.
 	 *
-	 * @return The Bessel-corrected variance of the samples.
+	 * @return
+	 *   The Bessel-corrected variance of the samples.
 	 */
-	public synchronized double variance ()
-	{
-		return computeVariance(count, sumOfDeltaSquares);
-	}
+	@Synchronized fun variance(): Double =
+		computeVariance(count, sumOfDeltaSquares)
 
 	/**
 	 * Given a count of samples and the sum of squares of their differences from
 	 * the mean, compute the variance.
 	 *
 	 * @param theCount
-	 *        The number of samples.
+	 *   The number of samples.
 	 * @param theSumOfDeltaSquares
-	 *        The sum of the squares of distances from the mean of the samples.
-	 * @return The statistical variance.
+	 *   The sum of the squares of distances from the mean of the samples.
+	 * @return
+	 *   The statistical variance.
 	 */
-	private static double computeVariance (
-		final long theCount,
-		final double theSumOfDeltaSquares)
-	{
-		return theCount <= 1L ? 0.0 : theSumOfDeltaSquares / (theCount - 1L);
-	}
+	private fun computeVariance(
+		theCount: Long, theSumOfDeltaSquares: Double): Double =
+			if (theCount <= 1L) 0.0 else theSumOfDeltaSquares / (theCount - 1L)
 
 	/**
 	 * Answer the Bessel-corrected ("unbiased") standard deviation of these
@@ -176,104 +148,109 @@ implements Comparable<PerInterpreterStatistic>
 	 * therefore the distances of the samples from the mean are really the
 	 * distances from the sample mean, not the actual population mean.
 	 *
-	 * @return The Bessel-corrected standard deviation of the samples.
+	 * @return
+	 *   The Bessel-corrected standard deviation of the samples.
 	 */
-	public double standardDeviation ()
-	{
-		return sqrt(variance());
-	}
+	fun standardDeviation(): Double = sqrt(variance())
 
 	/**
 	 * Describe this statistic as though its samples are durations in
 	 * nanoseconds.
 	 *
 	 * @param builder
-	 *        Where to describe this statistic.
+	 *   Where to describe this statistic.
 	 * @param unit
-	 *        The {@link ReportingUnit units} to use to report the statistic.
+	 *   The [units][ReportingUnit] to use to report the statistic.
 	 */
-	public void describeOn (
-		final StringBuilder builder,
-		final ReportingUnit unit)
+	fun describeOn(builder: StringBuilder, unit: ReportingUnit)
 	{
-		final long capturedCount;
-		final double capturedMean;
-		final double capturedSumOfDeltaSquares;
+		val capturedCount: Long
+		val capturedMean: Double
+		val capturedSumOfDeltaSquares: Double
 		// Read multiple fields coherently.
-		synchronized (this)
-		{
-			capturedCount = count;
-			capturedMean = mean;
-			capturedSumOfDeltaSquares = sumOfDeltaSquares;
+		synchronized(this) {
+			capturedCount = count
+			capturedMean = mean
+			capturedSumOfDeltaSquares = sumOfDeltaSquares
 		}
-		final double standardDeviation =
-			sqrt(computeVariance(capturedCount, capturedSumOfDeltaSquares));
+		val standardDeviation =
+			kotlin.math
+				.sqrt(computeVariance(capturedCount, capturedSumOfDeltaSquares))
 		builder.append(
 			unit.describe(
-				capturedCount, capturedMean, 0.0, false));
-		builder.append(format(" [N=%,10d] ", capturedCount));
+				capturedCount, capturedMean, 0.0, false))
+		builder.append(format(" [N=%,10d] ", capturedCount))
 		// We could use a chi (x) with a line over it, "\u0304x", but this makes
 		// the text area REALLY SLOW.  Like, over ten seconds to insert a report
 		// from running Avail for five seconds.  So we spell out "mean".
-		builder.append("(mean=");
-		builder.append(unit.describe(1, capturedMean, standardDeviation, true));
-		builder.append(")");
+		builder.append("(mean=")
+		builder.append(unit.describe(1, capturedMean, standardDeviation, true))
+		builder.append(")")
 	}
 
 	/**
 	 * Record a new sample, updating any cumulative statistical values.  This is
 	 * thread-safe.  However, the locking cost should be exceedingly low if a
-	 * {@link Statistic} is used to partition an array of {@link
-	 * PerInterpreterStatistic}s by {@link Interpreter}.
+	 * [Statistic] is used to partition an array of [PerInterpreterStatistic]s
+	 * by [Interpreter].
 	 *
-	 * @param sample The sample value to record.
+	 * @param sample
+	 *   The sample value to record.
 	 */
-	public synchronized void record (final double sample)
+	@Synchronized fun record(sample: Double)
 	{
-		count++;
-		min = Math.min(sample, min);
-		max = Math.max(sample, max);
-		final double delta = sample - mean;
-		mean += delta / count;
-		sumOfDeltaSquares += delta * (sample - mean);
+		count++
+		min = min(sample, min)
+		max = max(sample, max)
+		val delta = sample - mean
+		mean += delta / count
+		sumOfDeltaSquares += delta * (sample - mean)
 	}
 
 	/**
-	 * Add my information to another {@code PerInterpreterStatistic}.  This is
+	 * Add my information to another `PerInterpreterStatistic`.  This is
 	 * thread-safe for the receiver, and assumes the argument does not need to
 	 * be treated thread-safely.
 	 *
-	 * @param target The statistic to add the receiver to.
+	 * @param target
+	 *   The statistic to add the receiver to.
 	 */
-	synchronized void addTo (final PerInterpreterStatistic target)
+	@Synchronized internal fun addTo(target: PerInterpreterStatistic)
 	{
-		final long newCount = target.count + count;
+		val newCount = target.count + count
 		if (newCount > 0)
 		{
-			final double delta = mean - target.mean;
-			final double newMean =
-				(target.count * target.mean + count * mean) / newCount;
-			final double newSumOfDeltas =
-				target.sumOfDeltaSquares + sumOfDeltaSquares
-					+ (delta * delta / newCount) * target.count * count;
+			val delta = mean - target.mean
+			val newMean = (target.count * target.mean + count * mean) / newCount
+			val newSumOfDeltas = (target.sumOfDeltaSquares + sumOfDeltaSquares
+				+ delta * delta / newCount * target.count.toDouble() * count.toDouble())
 			// Now overwrite the target.
-			target.count = newCount;
-			target.min = Math.min(target.min, min);
-			target.max = Math.max(target.max, max);
-			target.mean = newMean;
-			target.sumOfDeltaSquares = newSumOfDeltas;
+			target.count = newCount
+			target.min = min(target.min, min)
+			target.max = max(target.max, max)
+			target.mean = newMean
+			target.sumOfDeltaSquares = newSumOfDeltas
 		}
 	}
 
-	/**
-	 * Reset this statistic as though no samples had ever been recorded.
-	 */
-	public synchronized void clear ()
+	/** Reset this statistic as though no samples had ever been recorded. */
+	@Synchronized fun clear()
 	{
-		count = 0;
-		min = Double.POSITIVE_INFINITY;
-		max = Double.NEGATIVE_INFINITY;
-		mean = 0.0;
-		sumOfDeltaSquares = 0.0;
+		count = 0
+		min = java.lang.Double.POSITIVE_INFINITY
+		max = java.lang.Double.NEGATIVE_INFINITY
+		mean = 0.0
+		sumOfDeltaSquares = 0.0
+	}
+
+	companion object
+	{
+
+		fun emptyStatistic(): PerInterpreterStatistic = PerInterpreterStatistic(
+			0,
+			java.lang.Double.POSITIVE_INFINITY,
+			java.lang.Double.NEGATIVE_INFINITY,
+			0.0,
+			0.0)
 	}
 }

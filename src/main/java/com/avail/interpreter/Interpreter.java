@@ -2837,7 +2837,7 @@ public final class Interpreter
 				}
 			}
 			perInterpreterStat =
-				stripNull(globalStat).statistics[interpreterIndex];
+				stripNull(globalStat).getStatistics()[interpreterIndex];
 			dynamicLookupPerInterpreterStat.put(size, perInterpreterStat);
 		}
 		perInterpreterStat.record(nanos);

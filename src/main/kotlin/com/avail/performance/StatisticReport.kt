@@ -30,75 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.performance;
+package com.avail.performance
 
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Module;
-import com.avail.optimizer.StackReifier;
-import com.avail.utility.Pair;
+import com.avail.descriptor.A_BundleTree
+import com.avail.optimizer.StackReifier
+import com.avail.utility.Pair
+import java.text.Collator
+import java.util.ArrayList
+import java.util.EnumSet
 
-import javax.annotation.Nullable;
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
-import static com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL;
-import static com.avail.performance.ReportingUnit.NANOSECONDS;
+import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
+import com.avail.performance.ReportingUnit.NANOSECONDS
 
 /**
  * The statistic reports requested of the compiler:
- * <ul>
- * <li>L2Operations ~ The most time-intensive level-two operations</li>
- * <li>DynamicLookups ~ The most time-intensive dynamic method lookups.</li>
- * <li>Primitives ~ The primitives that are the most time-intensive to run
- *     overall.</li>
- * <li>PrimitiveReturnTypeChecks ~ The primitives that take the most time
- *     checking return types.</li>
- * <li>NonprimitiveReturnTypeChecks ~ Returns from non-primitives that had to
- *     check the return type.</li>
- * </ul>
+ *
+ *  * L2Operations ~ The most time-intensive level-two operations
+ *  * DynamicLookups ~ The most time-intensive dynamic method lookups.
+ *  * Primitives ~ The primitives that are the most time-intensive to run
+ *  overall.
+ *  * PrimitiveReturnTypeChecks ~ The primitives that take the most time
+ *  checking return types.
+ *  * NonprimitiveReturnTypeChecks ~ Returns from non-primitives that had to
+ *  check the return type.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property title
+ *  The title of the StatisticReport.
+ * @property unit
+ *   The units which the contained reports use.
+ * @constructor
+ * Create the enumeration value.
+ *
+ * @param title
+ * The title of the statistic report.
  */
-public enum StatisticReport
+enum class StatisticReport constructor(
+	val title: String, val unit: ReportingUnit)
 {
-	/** Statistics for executing parsing instructions. */
+	/** Statistics for executing parsing instructions.  */
 	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),
 
 	/**
-	 * Statistics for {@linkplain A_BundleTree#expand(A_Module) expanding}
-	 * ParsingOperations.
+	 * Statistics for [expanding][A_BundleTree.expand] ParsingOperations.
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 
-	/** A breakdown of the time spent in L2 optimization phases. */
+	/** A breakdown of the time spent in L2 optimization phases.  */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
 
-	/** A breakdown of the time spent in L2 optimization phases. */
+	/** A breakdown of the time spent in L2 optimization phases.  */
 	L1_NAIVE_TRANSLATION_TIME(
 		"L1 -> L2 Naive translation by nybblecode", NANOSECONDS),
 
-	/** Dimensionless values related to L2Chunk creation. */
+	/** Dimensionless values related to L2Chunk creation.  */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
 
-	/** A breakdown of time spent in translation of L2 instructions to JVM. */
+	/** A breakdown of time spent in translation of L2 instructions to JVM.  */
 	L2_TO_JVM_TRANSLATION_TIME("L2 to JVM Translation time", NANOSECONDS),
 
-	/** A breakdown of final generation phases of L2->JVM. */
+	/** A breakdown of final generation phases of L2->JVM.  */
 	FINAL_JVM_TRANSLATION_TIME("Final JVM Translation time", NANOSECONDS),
 
-	/** Reifications of the Java stack.  See {@link StackReifier}.  */
+	/** Reifications of the Java stack.  See [StackReifier].   */
 	REIFICATIONS("Java stack reifications", NANOSECONDS),
 
-	/** The Primitives report. */
+	/** The Primitives report.  */
 	PRIMITIVES("Primitives", NANOSECONDS),
 
-	/** The Dynamic Lookups report. */
+	/** The Dynamic Lookups report.  */
 	DYNAMIC_LOOKUP_TIME("Dynamic Lookup Time", NANOSECONDS),
 
-	/** The Primitive Return Type Checks report. */
+	/** The Primitive Return Type Checks report.  */
 	PRIMITIVE_RETURNER_TYPE_CHECKS("Primitive Return Type Checks", NANOSECONDS),
 
 	/**
@@ -117,97 +122,41 @@ public enum StatisticReport
 	NON_PRIMITIVE_RETURNEE_TYPE_CHECKS(
 		"Non-primitive Returnee Type Checks", NANOSECONDS),
 
-	/** Outermost statements of modules that are loaded. */
+	/** Outermost statements of modules that are loaded.  */
 	TOP_LEVEL_STATEMENTS("Top Level Statements By Module", NANOSECONDS),
 
-	/** Time spent updating text in workbench transcript. */
+	/** Time spent updating text in workbench transcript.  */
 	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS);
 
-
-	/** The title of the StatisticReport. */
-	private final String title;
-
-	/** The units which the contained reports use. */
-	private final ReportingUnit unit;
-
 	/**
-	 * @return The title associated with the StatisticReport.
+	 * The [List] of [Statistic] objects that have been registered
+	 * for this particular [StatisticReport].
 	 */
-	public String title ()
-	{
-		return title;
-	}
+	internal val statistics: MutableList<Statistic> = ArrayList()
 
 	/**
-	 * @return The {@link ReportingUnit} of the statistics.
-	 */
-	public ReportingUnit unit ()
-	{
-		return unit;
-	}
-
-	/**
-	 * Create the enumeration value.
+	 * Register a [Statistic] with this `StatisticReport`.  This happens when
+	 * the statistic is first created, as part of its constructor. Access to the
+	 * [List] of [.statistics] is synchronized on the list, to ensure atomic
+	 * access among registrations and between registrations and enumeration of
+	 * the list.
 	 *
-	 * @param title The title of the statistic report.
+	 * @param statistic The [Statistic] to be registered.
 	 */
-	StatisticReport (final String title, final ReportingUnit unit)
+	fun registerStatistic(statistic: Statistic)
 	{
-		this.title = title;
-		this.unit = unit;
-	}
-
-	/**
-	 * The {@link List} of {@link Statistic} objects that have been registered
-	 * for this particular {@link StatisticReport}.
-	 */
-	final List<Statistic> statistics = new ArrayList<>();
-
-	/**
-	 * Register a {@link Statistic} with this {@code StatisticReport}.  This
-	 * happens when the statistic is first created, as part of its constructor.
-	 * Access to the {@link List} of {@link #statistics} is synchronized on the
-	 * list, to ensure atomic access among registrations and between
-	 * registrations and enumeration of the list.
-	 *
-	 * @param statistic The {@link Statistic} to be registered.
-	 */
-	public void registerStatistic (final Statistic statistic)
-	{
-		synchronized (statistics)
-		{
-			statistics.add(statistic);
+		synchronized(statistics) {
+			statistics.add(statistic)
 		}
 	}
 
-	/**
-	 * Answer the StatisticReport associated with the given keyword.
-	 *
-	 * @param str The keyword.
-	 * @return The corresponding StatisticReport.
-	 */
-	public static @Nullable StatisticReport reportFor (final String str)
+	/** Clear all my [Statistic]s. */
+	fun clear()
 	{
-		for (final StatisticReport report : values())
-		{
-			if (report.title().equals(str))
+		synchronized(statistics) {
+			for (stat in statistics)
 			{
-				return report;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Clear all my {@link Statistic}s.
-	 */
-	public void clear ()
-	{
-		synchronized (statistics)
-		{
-			for (final Statistic stat : statistics)
-			{
-				stat.clear();
+				stat.clear()
 			}
 		}
 	}
@@ -215,74 +164,98 @@ public enum StatisticReport
 	/**
 	 * Collect the aggregates of my statistics, filter out the ones with zero
 	 * counts, then sort descending by their sums.  Maintain names with the
-	 * aggregated statistics as {@link Pair}s.
+	 * aggregated statistics as [Pair]s.
 	 *
-	 * @return A sorted {@link List} of {@link Pair}&lt;{@link String},
-	 *         {@link PerInterpreterStatistic}&gt;.
+	 * @return A sorted [List] of [Pair]&lt;[String],
+	 * [PerInterpreterStatistic]&gt;.
 	 */
-	public List<Pair<String, PerInterpreterStatistic>> sortedPairs ()
+	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>>
 	{
-		final List<Pair<String, PerInterpreterStatistic>> namedSnapshots =
-			new ArrayList<>(statistics.size());
-		for (final Statistic stat : statistics)
+		val namedSnapshots =
+			ArrayList<Pair<String, PerInterpreterStatistic>>(statistics.size)
+		for (stat in statistics)
 		{
-			final PerInterpreterStatistic aggregate = stat.aggregate();
+			val aggregate = stat.aggregate()
 			if (aggregate.count() > 0)
 			{
-				namedSnapshots.add(new Pair<>(stat.name(), aggregate));
+				namedSnapshots.add(Pair(stat.name(), aggregate))
 			}
 		}
-		final Collator collator = Collator.getInstance();
-		namedSnapshots.sort((pair1, pair2) ->
-		{
-			assert pair1 != null && pair2 != null;
-			final int byStat = pair1.second().compareTo(pair2.second());
+		val collator = Collator.getInstance()
+		namedSnapshots.sortWith(Comparator { pair1, pair2 ->
+			val byStat = pair1!!.second().compareTo(pair2!!.second())
 			if (byStat != 0)
 			{
-				return byStat;
+				byStat
+
 			}
-			return collator.compare(pair1.first(), pair2.first());
-		});
-		return namedSnapshots;
+			else
+			{
+				collator.compare(pair1.first(), pair2.first())
+			}
+		})
+		return namedSnapshots
 	}
 
-	/**
-	 * Output the appropriate {@code StatisticReport reports}.
-	 *
-	 * @param reports
-	 *        The compiler configuration where the report settings are stored.
-	 * @return The specified reports as a single {@link String}.
-	 */
-	public static String produceReports (
-		final EnumSet<StatisticReport> reports)
+	companion object
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("\n");
-		for (final StatisticReport report : reports)
+
+		/**
+		 * Answer the StatisticReport associated with the given keyword.
+		 *
+		 * @param str
+		 *   The keyword.
+		 * @return
+		 *   The corresponding StatisticReport.
+		 */
+		fun reportFor(str: String): StatisticReport?
 		{
-			builder.append('\n');
-			builder.append(report.title());
-			builder.append('\n');
-			final List<Pair<String, PerInterpreterStatistic>> pairs =
-				report.sortedPairs();
-			if (!pairs.isEmpty())
+			for (report in values())
 			{
-				final PerInterpreterStatistic total =
-					new PerInterpreterStatistic();
-				for (final Pair<String, PerInterpreterStatistic> pair : pairs)
+				if (report.title == str)
 				{
-					pair.second().addTo(total);
+					return report
 				}
-				pairs.add(0, new Pair<>("TOTAL", total));
 			}
-			for (final Pair<String, PerInterpreterStatistic> pair : pairs)
-			{
-				pair.second().describeOn(builder, report.unit());
-				builder.append(" ");
-				builder.append(pair.first());
-				builder.append('\n');
-			}
+			return null
 		}
-		return builder.toString();
+
+		/**
+		 * Output the appropriate `StatisticReport reports`.
+		 *
+		 * @param reports
+		 *   The compiler configuration where the report settings are stored.
+		 * @return
+		 *   The specified reports as a single [String].
+		 */
+		fun produceReports(reports: EnumSet<StatisticReport>): String
+		{
+			val builder = StringBuilder()
+			builder.append("\n")
+			for (report in reports)
+			{
+				builder.append('\n')
+				builder.append(report.title)
+				builder.append('\n')
+				val pairs = report.sortedPairs()
+				if (pairs.isNotEmpty())
+				{
+					val total = PerInterpreterStatistic.emptyStatistic()
+					for (pair in pairs)
+					{
+						pair.second().addTo(total)
+					}
+					pairs.add(0, Pair("TOTAL", total))
+				}
+				for (pair in pairs)
+				{
+					pair.second().describeOn(builder, report.unit)
+					builder.append(" ")
+					builder.append(pair.first())
+					builder.append('\n')
+				}
+			}
+			return builder.toString()
+		}
 	}
 }

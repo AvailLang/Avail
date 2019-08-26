@@ -54,7 +54,7 @@ extends AbstractWorkbenchAction
 	{
 		final EnumSet<StatisticReport> reports =
 			EnumSet.allOf(StatisticReport.class);
-		final String reportsString = StatisticReport.produceReports(reports);
+		final String reportsString = StatisticReport.Companion.produceReports(reports);
 		workbench.writeText(reportsString, INFO);
 	}
 

@@ -48,7 +48,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 
-import static com.avail.performance.StatisticReport.reportFor;
 import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -280,7 +279,7 @@ implements Configurator<CompilerConfiguration>
 				for (final String reportName : reportsArr)
 				{
 					final @Nullable StatisticReport report =
-						reportFor(reportName);
+						StatisticReport.Companion.reportFor(reportName);
 
 					// This will also catch the illegal use of "="
 					// without any items following.

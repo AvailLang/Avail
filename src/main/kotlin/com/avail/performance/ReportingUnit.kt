@@ -30,52 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.performance;
+package com.avail.performance
 
-import com.avail.AvailRuntimeConfiguration;
+import com.avail.AvailRuntimeConfiguration
 
-import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Double.POSITIVE_INFINITY;
-import static java.lang.String.format;
+import java.lang.Double.NEGATIVE_INFINITY
+import java.lang.Double.POSITIVE_INFINITY
+import java.lang.String.format
 
 /**
- * A {@code PerInterpreterStatistic} is an incremental, summarized recording of
+ * A `PerInterpreterStatistic` is an incremental, summarized recording of
  * a set of integral values and times.  It is synchronized, although the typical
- * usage is that it will only be written by a single {@link Thread} at a time,
- * and read by another {@link Thread} only rarely.
+ * usage is that it will only be written by a single [Thread] at a time,
+ * and read by another [Thread] only rarely.
  *
- * <p>If you want to record samples from multiple processes, use a Statistic,
- * which holds a PerInterpreterStatistic for up to {@link
- * AvailRuntimeConfiguration#maxInterpreters} separate Threads to access,
- * without any locks.</p>
+ *
+ * If you want to record samples from multiple processes, use a Statistic,
+ * which holds a PerInterpreterStatistic for up to
+ * [AvailRuntimeConfiguration.maxInterpreters] separate Threads to access,
+ * without any locks.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a `ReportingUnit` with the given vararg [Range]s.
+ *
+ * @param ranges
+ * The [Range]s used for rendering a statistic.
  */
-public enum ReportingUnit
+enum class ReportingUnit constructor(vararg ranges: Range)
 {
-	/** The number of nanoseconds taken by some activity. */
+	/** The number of nanoseconds taken by some activity.  */
 	NANOSECONDS(
-		new Range(999_999_500.0,     POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s "),
-		new Range(    999_999.5,     999_999_500.0,     1.0e-6, "%, 8.3f ms"),
-		new Range(NEGATIVE_INFINITY,     999_999.5,     1.0e-3, "%, 8.3f µs")
+		Range(999_999_500.0, POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s "),
+		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f ms"),
+		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f µs")
 	),
 
-	/** The number of bytes consumed or produced by some activity. */
+	/** The number of bytes consumed or produced by some activity.  */
 	BYTES(
-		new Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB"),
-		new Range(    999_999_500.0, 999_999_999_500.0, 1.0e-9,  "%, 8.3f GB"),
-		new Range(        999_999.5,     999_999_500.0, 1.0e-6,  "%, 8.3f MB"),
-		new Range(NEGATIVE_INFINITY,         999_999.5, 1.0e-3,  "%, 8.3f KB")
+		Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB"),
+		Range(999_999_500.0, 999_999_999_500.0, 1.0e-9, "%, 8.3f GB"),
+		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f MB"),
+		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f KB")
 	),
 
-	/** A dimensionless measurement, such as a count of something. */
+	/** A dimensionless measurement, such as a count of something.  */
 	DIMENSIONLESS_DOUBLE(
-		new Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")
+		Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")
 	),
 
-	/** A dimensionless measurement, such as a count of something. */
+	/** A dimensionless measurement, such as a count of something.  */
 	DIMENSIONLESS_INTEGRAL(
-		new Range(
+		Range(
 			NEGATIVE_INFINITY,
 			POSITIVE_INFINITY,
 			1.0,
@@ -83,136 +90,90 @@ public enum ReportingUnit
 			"%, 8.3f±%,8.3f")
 	);
 
-	/** An [inclusive, exclusive) span, a scale, and a format string. */
-	private static class Range
-	{
-		/** The lower (inclusive) bound of the range. */
-		final double low;
-
-		/** The upper (exclusive) bound of the range. */
-		final double high;
-
-		/** The amount to multiply by before printing. */
-		final double scale;
-
-		/**
-		 * The format string for presenting a statistic that falls in this
-		 * range.  The first argument is the scaled sum, and the second is the
-		 * scaled standard deviation of the sample set.  Both values are in the
-		 * same units.
-		 */
-		final String format;
-
-		/**
-		 * The format string for presenting the mean of a statistic.
-		 */
-		final String meanFormat;
-
-		/**
-		 * Create a range.
-		 *
-		 * @param low
-		 *        The lowest value inside the range.
-		 * @param high
-		 *        The lowest value just beyond the range.
-		 * @param scale
-		 *        A scaling factor to multiply by the value before formatting.
-		 * @param format
-		 *        The format string to render values or a total.  It expects the
-		 *        first argument to be the (double) value to render, and the
-		 *        second argument to be the standard deviation.
-		 * @param meanFormat
-		 *        The format string to render means.  It expects the first
-		 *        argument to be the (double) value to render, and the second
-		 *        argument to be the standard deviation.
-		 */
-		Range (
-			final double low,
-			final double high,
-			final double scale,
-			final String format,
-			final String meanFormat)
-		{
-			this.low = low;
-			this.high = high;
-			this.scale = scale;
-			this.format = format;
-			this.meanFormat = meanFormat;
-		}
-
-		/**
-		 * Create a range.
-		 *
-		 * @param low
-		 *        The lowest value inside the range.
-		 * @param high
-		 *        The lowest value just beyond the range.
-		 * @param scale
-		 *        A scaling factor to multiply by the value before formatting.
-		 * @param format
-		 *        The format string to render values <em>or</em> the mean.  It
-		 *        expects the first argument to be the (double) value to render,
-		 *        and the second argument to be the standard deviation.
-		 */
-		Range (
-			final double low,
-			final double high,
-			final double scale,
-			final String format)
-		{
-			this(low, high, scale, format, format);
-		}
-	}
-
 	/**
 	 * The array of ranges to select a rendering strategy for statistics.
 	 */
-	final Range[] ranges;
+	internal val ranges: Array<Range>
+	init
+	{
+		this.ranges = ranges as Array<Range>
+	}
 
 	/**
-	 * Construct a {@code ReportingUnit} with the given vararg {@link Range}s.
+	 * An [inclusive, exclusive) span, a scale, and a format string.
 	 *
-	 * @param ranges
-	 *        The {@link Range}s used for rendering a statistic.
+	 * @property low
+	 *   The lower (inclusive) bound of the range.
+	 * @property high
+	 *   The upper (exclusive) bound of the range.
+	 * @property scale
+	 *   The amount to multiply by before printing.
+	 * @property format
+	 *   The format string for presenting a statistic that falls in this range.
+	 *   The first argument is the scaled sum, and the second is the scaled
+	 *   standard deviation of the sample set.  Both values are in the same
+	 *   units.
+	 * @property meanFormat
+	 *   The format string for presenting the mean of a statistic.
+	 *
+	 * @constructor
+	 * Create a range.
+	 *
+	 * @param low
+	 *   The lowest value inside the range.
+	 * @param high
+	 *   The lowest value just beyond the range.
+	 * @param scale
+	 *   A scaling factor to multiply by the value before formatting.
+	 * @param format
+	 *   The format string to render values or a total.  It expects the first
+	 *   argument to be the (double) value to render, and the second argument to
+	 *   be the standard deviation.
+	 * @param meanFormat
+	 *   The format string to render means.  It expects the first argument to be
+	 *   the (double) value to render, and the second argument to be the
+	 *   standard deviation.
 	 */
-	ReportingUnit (final Range... ranges)
-	{
-		this.ranges = ranges;
-	}
+	internal class Range @JvmOverloads internal constructor(
+		internal val low: Double,
+		internal val high: Double,
+		internal val scale: Double,
+		internal val format: String,
+		internal val meanFormat: String = format)
 
 	/**
 	 * Produce the formatted version of a statistical value for this kind of
 	 * unit.
 	 *
 	 * @param count
-	 *        How many samples were recorded.
+	 *   How many samples were recorded.
 	 * @param mean
-	 *        The mean value of those samples.
+	 *   The mean value of those samples.
 	 * @param standardDeviation
-	 *        The standard deviation of the samples.
+	 *   The standard deviation of the samples.
 	 * @param isMean
-	 *        Whether to format the value as a mean, rather than a total or
-	 *        sample.
-	 * @return A {@link String} summarizing the samples.
+	 *   Whether to format the value as a mean, rather than a total or sample.
+	 * @return
+	 *   A [String] summarizing the samples.
 	 */
-	String describe (
-		final long count,
-		final double mean,
-		final double standardDeviation,
-		final boolean isMean)
+	internal fun describe(
+		count: Long,
+		mean: Double,
+		standardDeviation: Double,
+		isMean: Boolean): String
 	{
-		final double total = count * mean;
-		for (final Range range : ranges)
+		val total = count * mean
+		for (range in ranges)
 		{
 			if (range.low <= total && total < range.high)
 			{
-				final String format = isMean ? range.meanFormat : range.format;
+				val format = if (isMean) range.meanFormat else range.format
 				return format(
 					format,
 					total * range.scale,
-					standardDeviation * range.scale);
+					standardDeviation * range.scale)
 			}
 		}
-		return "N/A";
+		return "N/A"
 	}
 }

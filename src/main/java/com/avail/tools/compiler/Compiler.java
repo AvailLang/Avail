@@ -318,7 +318,7 @@ public final class Compiler
 				if (configuration.hasReports())
 				{
 					System.out.append(
-						StatisticReport.produceReports(
+						StatisticReport.Companion.produceReports(
 							configuration.reports()));
 				}
 			}
