@@ -347,6 +347,7 @@ extends Descriptor
 	 *         If the atom has no associated bundle/method, or the function
 	 *         signature is inconsistent with the available method definitions.
 	 */
+	@SuppressWarnings("unused")
 	public static A_Function createStubToCallMethod (
 		final A_Type functionType,
 		final A_Atom atom)

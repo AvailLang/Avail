@@ -260,16 +260,16 @@ public class CallbackSystem
 	 * Create an {@link A_Function} from the given {@link Callback} and function
 	 * {@link A_Type}.
 	 *
+	 * @param functionType
+	 *        The signature of the {@link A_Function} to create.
 	 * @param callback
 	 *        The {@link Callback} to invoke when the corresponding Avail
 	 *        function is invoked.
-	 * @param functionType
-	 *        The signature of the {@link A_Function} to create.
 	 * @return The Avail {@link A_Function}.
 	 */
 	public static A_Function createCallbackFunction (
-		final Callback callback,
-		final A_Type functionType)
+		final A_Type functionType,
+		final Callback callback)
 	{
 		final AvailObject callbackPojo =
 			newPojo(identityPojo(callback), callbackTypePojo);
