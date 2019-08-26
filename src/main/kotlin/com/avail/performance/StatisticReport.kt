@@ -1,6 +1,6 @@
 /*
- * StatisticReport.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * StatisticReport.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
