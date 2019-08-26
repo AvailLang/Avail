@@ -151,10 +151,10 @@ public final class CallbackTest
 			}
 		};
 		return createCallbackFunction(
-			callback,
 			functionType(
 				tuple(NUMBER.o()),
-				NUMBER.o()));
+				NUMBER.o()),
+			callback);
 	}
 
 	/**
@@ -183,10 +183,10 @@ public final class CallbackTest
 			}
 		};
 		return createCallbackFunction(
-			callback,
 			functionType(
 				tuple(NUMBER.o(), NUMBER.o()),
-				NUMBER.o()));
+				NUMBER.o()),
+			callback);
 	}
 
 	/**
